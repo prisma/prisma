@@ -8,12 +8,85 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import { Generatable } from './Generatable'
 
-function interactiveTransactionDefinition() {
+function batchingTransactionDefinition(this: PrismaClientClass) {
+  return `
+  /**
+   * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
+   * @example
+   * \`\`\`
+   * const [george, bob, alice] = await prisma.$transaction([
+   *   prisma.user.create({ data: { name: 'George' } }),
+   *   prisma.user.create({ data: { name: 'Bob' } }),
+   *   prisma.user.create({ data: { name: 'Alice' } }),
+   * ])
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+   */
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;`
+}
+
+function interactiveTransactionDefinition(this: PrismaClientClass) {
+  if (!this.generator?.previewFeatures.includes('interactiveTransactions'))
+    return ''
+
   const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
   const txOptions = `{ maxWait?: number, timeout?: number }`
 
   return `
-  $transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>`
+  $transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>;`
+}
+
+function queryRawDefinition(this: PrismaClientClass) {
+  return `
+  /**
+   * Performs a prepared raw query and returns the SELECT data.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+
+  /**
+   * Performs a raw query and returns the SELECT data.
+   * Susceptible to SQL injections, see documentation.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;`
+}
+
+function executeRawDefinition(this: PrismaClientClass) {
+  return `
+  /**
+   * Executes a prepared raw query and returns the number of affected rows.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+
+  /**
+   * Executes a raw query and returns the number of affected rows.
+   * Susceptible to SQL injections, see documentation.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;`
 }
 
 export class PrismaClientClass implements Generatable {
@@ -102,70 +175,10 @@ export class PrismaClient<
    */
   $use(cb: Prisma.Middleware): void
 
-  /**
-   * Executes a prepared raw query and returns the number of affected rows.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
-
-  /**
-   * Executes a raw query and returns the number of affected rows.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
-
-  /**
-   * Performs a prepared raw query and returns the SELECT data.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
-
-  /**
-   * Performs a raw query and returns the SELECT data.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
-
-  /**
-   * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
-   * @example
-   * \`\`\`
-   * const [george, bob, alice] = await prisma.$transaction([
-   *   prisma.user.create({ data: { name: 'George' } }),
-   *   prisma.user.create({ data: { name: 'Bob' } }),
-   *   prisma.user.create({ data: { name: 'Alice' } }),
-   * ])
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
-   */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>${
-    this.generator?.previewFeatures.includes('interactiveTransactions')
-      ? interactiveTransactionDefinition()
-      : ''
-  }
+  ${executeRawDefinition.bind(this)()}
+  ${queryRawDefinition.bind(this)()}
+  ${batchingTransactionDefinition.bind(this)()}
+  ${interactiveTransactionDefinition.bind(this)()}
 
     ${indent(
       dmmf.mappings.modelOperations
