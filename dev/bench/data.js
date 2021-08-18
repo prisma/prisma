@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1629304843939,
+  "lastUpdate": 1629307593190,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -48532,6 +48532,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.09,
             "range": "±1.71%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 7.3,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 46,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 2.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/query-engine-debian-openssl-1.1.x size",
+            "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 16,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2bce15b790f06260ff5320400c7fbbf413a37ecd",
+          "message": "chore(cli): add deprecation message for introspect command (#8763)\n\n* chore(cli): add deprecation message for introspect command\r\n\r\nRenamed to `prisma db pull`\r\n\r\n* chore(cli): move commands into their own directory\r\n\r\n* test(cli): remove test.sh and port to Jest\r\n\r\n* fix Version.ts\r\n\r\n* test(cli): normalize snapshots\r\n\r\n* fix generate\r\n\r\n* move commands ts files\r\n\r\n* revert changes\r\n\r\n* Update packages/cli/src/Studio.ts\r\n\r\n* Update packages/cli/src/Studio.ts\r\n\r\n* add missing schema\r\n\r\n* test(cli): test CLI warning for introspect\r\n\r\n* Apply suggestions from code review\r\n\r\n* test: update snapshot",
+          "timestamp": "2021-08-18T19:23:43+02:00",
+          "tree_id": "390617d5b5cf21e7fe8b216fdfe419f6ee5d61bd",
+          "url": "https://github.com/prisma/prisma/commit/2bce15b790f06260ff5320400c7fbbf413a37ecd"
+        },
+        "date": 1629307591022,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.55,
+            "range": "±6.62%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±3.06%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
