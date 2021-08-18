@@ -41,6 +41,11 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
+  // we do not generate `$queryRaw...` definitions if not supported
+  if (!this.dmmf.mappings.otherOperations.write.includes('queryRaw')) {
+    return '' // https://github.com/prisma/prisma/issues/8189
+  }
+
   return `
   /**
    * Performs a prepared raw query and returns the SELECT data.
@@ -68,6 +73,11 @@ function queryRawDefinition(this: PrismaClientClass) {
 }
 
 function executeRawDefinition(this: PrismaClientClass) {
+  // we do not generate `$executeRaw...` definitions if not supported
+  if (!this.dmmf.mappings.otherOperations.write.includes('executeRaw')) {
+    return '' // https://github.com/prisma/prisma/issues/8189
+  }
+
   return `
   /**
    * Executes a prepared raw query and returns the number of affected rows.
