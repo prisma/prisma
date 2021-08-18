@@ -7,6 +7,7 @@ import {
   format,
   HelpError,
   unknownCommand,
+  logger,
 } from '@prisma/sdk'
 import { Version } from './Version'
 import { link } from '@prisma/sdk'
@@ -48,11 +49,12 @@ export class CLI implements Command {
 
     // display help for help flag or no subcommand
     if (args._.length === 0 || args['--help']) {
-      return CLI.help
+      return this.help()
     }
 
     // check if we have that subcommand
     const cmdName = args._[0]
+    // Throw if "lift"
     if (cmdName === 'lift') {
       throw new Error(
         `${chalk.red('prisma lift')} has been renamed to ${chalk.green(
@@ -60,6 +62,21 @@ export class CLI implements Command {
         )}`,
       )
     }
+    // warn if "introspect"
+    else if (cmdName === 'introspect') {
+      logger.warn('')
+      logger.warn(
+        `${chalk.bold(
+          `The ${chalk.underline(
+            'prisma introspect',
+          )} command is deprecated. Please use ${chalk.green(
+            'prisma db pull',
+          )} instead.`,
+        )}`,
+      )
+      logger.warn('')
+    }
+
     const cmd = this.cmds[cmdName]
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
@@ -90,10 +107,10 @@ export class CLI implements Command {
       return cmd.parse(argsForCmd)
     }
     // unknown command
-    return unknownCommand(CLI.help, args._[0])
+    return unknownCommand(this.help() as string, args._[0])
   }
 
-  private help(error?: string): string | HelpError {
+  public help(error?: string) {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
     }
