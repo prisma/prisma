@@ -70,7 +70,7 @@
     "@prisma/sdk": "workspace:*",
     "@prisma/studio-server": "0.422.0",
     "@timsuchanek/copy": "1.4.5",
-    "@types/jest": "27.0.0",
+    "@types/jest": "27.0.1",
     "@types/rimraf": "3.0.1",
     "@types/ws": "7.4.7",
     "@typescript-eslint/eslint-plugin": "4.29.1",
@@ -107,7 +107,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.0.5",
     "typescript": "4.3.5"
   },
   "scripts": {
