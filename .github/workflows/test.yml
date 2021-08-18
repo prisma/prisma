@@ -117,16 +117,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engineType: ['library', 'binary']
+        queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set Engine Type
+      - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE={{ matrix.engine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set Client Engine Type
+        run: |
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql
 
@@ -157,7 +161,7 @@ jobs:
           TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT
+          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
 
       - uses: codecov/codecov-action@v2
         with:
@@ -225,7 +229,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        engineType: ['library', 'binary']
+        queryEngine: ['library', 'binary']
         database:
           - sqlite
           - postgres
@@ -237,9 +241,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Set Engine Type
+      - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.engine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+      
+      - name: Set Client Engine Type
+        run: |
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
@@ -301,7 +309,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cliQueryEngine: ['library', 'binary']
+        queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -310,7 +318,11 @@ jobs:
 
       - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set Client Engine Type
+        run: |
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -354,7 +366,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cliQueryEngine: ['library', 'binary']
+        queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -365,7 +377,11 @@ jobs:
 
       - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set Client Engine Type
+        run: |
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1
@@ -399,8 +415,8 @@ jobs:
           TEST_MYSQL_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate
           TEST_MYSQL_SHADOWDB_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate-shadowdb
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT'
-          TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT'
+          TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
 
       - uses: codecov/codecov-action@v2
         with:
@@ -421,7 +437,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cliQueryEngine: ['library', 'binary']
+        queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
         node: [12]
 
@@ -430,7 +446,11 @@ jobs:
 
       - name: Set CLI Engine Type
         run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE={{ matrix.cliQueryEngine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+      
+      - name: Set Client Engine Type
+        run: |
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
         uses: actions/cache@v1

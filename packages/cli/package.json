@@ -63,18 +63,18 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "2.30.0-8.23063be2ac07bdf01cb26cb4f6762bd3a65dd8a9",
+    "@prisma/fetch-engine": "2.30.0-15.4da3a4b94c0bc4080d9bca0c9af0ed6835b11a68",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.30.0-8.23063be2ac07bdf01cb26cb4f6762bd3a65dd8a9",
+    "@prisma/get-platform": "2.30.0-15.4da3a4b94c0bc4080d9bca0c9af0ed6835b11a68",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.419.0",
+    "@prisma/studio-server": "0.422.0",
     "@timsuchanek/copy": "1.4.5",
-    "@types/jest": "27.0.0",
+    "@types/jest": "27.0.1",
     "@types/rimraf": "3.0.1",
     "@types/ws": "7.4.7",
-    "@typescript-eslint/eslint-plugin": "4.29.1",
-    "@typescript-eslint/parser": "4.29.1",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.20",
     "dotenv": "10.0.0",
@@ -107,7 +107,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.0.5",
     "typescript": "4.3.5"
   },
   "scripts": {
@@ -124,7 +124,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.30.0-8.23063be2ac07bdf01cb26cb4f6762bd3a65dd8a9"
+    "@prisma/engines": "2.30.0-15.4da3a4b94c0bc4080d9bca0c9af0ed6835b11a68"
   },
   "lint-staged": {
     "*.ts": [

@@ -9,10 +9,10 @@
   "homepage": "https://www.prisma.io",
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@types/jest": "27.0.0",
+    "@types/jest": "27.0.1",
     "@types/node": "14.17.9",
-    "@typescript-eslint/eslint-plugin": "4.29.1",
-    "@typescript-eslint/parser": "4.29.1",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
     "esbuild": "0.12.16",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
@@ -25,7 +25,7 @@
     "prettier": "2.3.2",
     "react": "17.0.2",
     "strip-ansi": "7.0.0",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.0.5",
     "typescript": "4.3.5"
   },
   "scripts": {
