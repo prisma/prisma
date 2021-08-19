@@ -1,5 +1,5 @@
 import getStream = require('get-stream')
-import { Client, Pool, Dispatcher } from 'undici'
+import { Pool, Dispatcher } from 'undici'
 import { URL } from 'url'
 
 export type Result<R> = {
