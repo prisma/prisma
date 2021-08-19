@@ -6,7 +6,6 @@ import {
   HelpError,
   isError,
   unknownCommand,
-  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
