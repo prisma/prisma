@@ -63,18 +63,18 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "2.30.0-12.bea9c1f215004e5407a7c5f77287b8bd5a24ea3c",
+    "@prisma/fetch-engine": "2.30.0-18.b404b6c51ff6f8ad999e94e470006af50e6f7142",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.30.0-12.bea9c1f215004e5407a7c5f77287b8bd5a24ea3c",
+    "@prisma/get-platform": "2.30.0-18.b404b6c51ff6f8ad999e94e470006af50e6f7142",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio-server": "0.422.0",
     "@timsuchanek/copy": "1.4.5",
-    "@types/jest": "27.0.0",
+    "@types/jest": "27.0.1",
     "@types/rimraf": "3.0.1",
     "@types/ws": "7.4.7",
-    "@typescript-eslint/eslint-plugin": "4.29.1",
-    "@typescript-eslint/parser": "4.29.1",
+    "@typescript-eslint/eslint-plugin": "4.29.2",
+    "@typescript-eslint/parser": "4.29.2",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.20",
     "dotenv": "10.0.0",
@@ -107,16 +107,13 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.0.5",
     "typescript": "4.3.5"
   },
   "scripts": {
     "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
-    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
-    "test-update": "pnpm run test:commands -- -u",
-    "test": "pnpm run test:commands",
-    "jest": "jest",
+    "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
@@ -127,7 +124,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.30.0-12.bea9c1f215004e5407a7c5f77287b8bd5a24ea3c"
+    "@prisma/engines": "2.30.0-18.b404b6c51ff6f8ad999e94e470006af50e6f7142"
   },
   "lint-staged": {
     "*.ts": [
