@@ -5,8 +5,6 @@ import {
   EngineConfig,
   EngineEventType,
 } from '@prisma/engine-core'
-import { LibraryEngine } from '@prisma/engine-core'
-import { BinaryEngine } from '@prisma/engine-core'
 import {
   DataSource,
   GeneratorConfig,
@@ -451,8 +449,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
     private getEngine() {
       if (this._clientEngineType === ClientEngineType.Binary) {
+        const { BinaryEngine } = require('@prisma/engine-core')
         return new BinaryEngine(this._engineConfig)
       } else {
+        const { LibraryEngine } = require('@prisma/engine-core')
         return new LibraryEngine(this._engineConfig)
       }
     }
