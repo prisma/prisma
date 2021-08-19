@@ -360,7 +360,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 2.30.0-22.6ee261c643b2c461a20371f48ffa5090ed578aaf
       '@types/jest': 27.0.1
-      '@types/node': 12.20.19
+      '@types/node': 16.6.2
       '@typescript-eslint/eslint-plugin': 4.29.2
       '@typescript-eslint/parser': 4.29.2
       chalk: 4.1.2
@@ -383,7 +383,7 @@ importers:
       terminal-link: 2.1.1
       ts-jest: 27.0.5
       typescript: 4.3.5
-      undici: 3.3.6
+      undici: github:nodejs/undici#lzy-llhttp
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 2.30.0-22.6ee261c643b2c461a20371f48ffa5090ed578aaf
@@ -396,10 +396,10 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       terminal-link: 2.1.1
-      undici: 3.3.6
+      undici: github.com/nodejs/undici/4c9dab085e3fe57a5c5ecfd970fd4eeac713bae8
     devDependencies:
       '@types/jest': 27.0.1
-      '@types/node': 12.20.19
+      '@types/node': 16.6.2
       '@typescript-eslint/eslint-plugin': 4.29.2_b01b7137116ac50f0745961d9cf72d34
       '@typescript-eslint/parser': 4.29.2_eslint@7.32.0+typescript@4.3.5
       esbuild: 0.12.16
@@ -2141,6 +2141,10 @@ packages:
 
   /@types/node/14.17.9:
     resolution: {integrity: sha512-CMjgRNsks27IDwI785YMY0KLt3co/c0cQ5foxHYv/shC2w8oOnVwz5Ubq1QG5KzrcW+AXk6gzdnxIkDnTvzu3g==}
+    dev: true
+
+  /@types/node/16.6.2:
+    resolution: {integrity: sha512-LSw8TZt12ZudbpHc6EkIyDM3nHVWKYrAvGy6EAJfNfjusbwnThqjqxUKKRwuV3iWYeW/LYMzNgaq3MaLffQ2xA==}
     dev: true
 
   /@types/node/8.10.66:
@@ -7361,6 +7365,7 @@ packages:
 
   /undici/3.3.6:
     resolution: {integrity: sha512-/j3YTZ5AobMB4ZrTY72mzM54uFUX32v0R/JRW9G2vOyF1uSKYAx+WT8dMsAcRS13TOFISv094TxIyWYk+WEPsA==}
+    dev: true
 
   /unique-string/2.0.0:
     resolution: {integrity: sha512-uNaeirEPvpZWSgzwsPGtU2zVSTrn/8L5q/IexZmH0eH6SA73CmAA5U4GwORTxQAZs95TAXLNqeLoPPNO5gZfWg==}
@@ -7642,3 +7647,12 @@ packages:
       archiver-utils: 2.1.0
       compress-commons: 3.0.0
       readable-stream: 3.6.0
+
+  github.com/nodejs/undici/4c9dab085e3fe57a5c5ecfd970fd4eeac713bae8:
+    resolution: {tarball: https://codeload.github.com/nodejs/undici/tar.gz/4c9dab085e3fe57a5c5ecfd970fd4eeac713bae8}
+    name: undici
+    version: 4.4.5
+    engines: {node: '>=12.18'}
+    prepare: true
+    requiresBuild: true
+    dev: false

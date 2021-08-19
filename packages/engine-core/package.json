@@ -55,7 +55,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.1",
     "terminal-link": "2.1.1",
-    "undici": "^4.0.0"
+    "undici": "github:nodejs/undici#lzy-llhttp"
   },
   "files": [
     "README.md",
