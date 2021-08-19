@@ -93,7 +93,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: '12'
+          node-version: '14'
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -119,7 +119,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -182,7 +182,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -236,7 +236,7 @@ jobs:
           - mysql
           - mariadb
           - mssql
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -311,7 +311,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -368,7 +368,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -439,7 +439,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
@@ -495,7 +495,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-20.04] # macos-latest, windows-latest
-        node: [12]
+        node: [14]
 
     steps:
       - uses: actions/checkout@v2
