@@ -3,6 +3,7 @@ import { GeneratorConfig } from '@prisma/generator-helper'
 export enum ClientEngineType {
   Library = 'library',
   Binary = 'binary',
+  DataProxy = 'dataproxy',
 }
 export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
 
@@ -18,8 +19,13 @@ export function getClientEngineType(
     return ClientEngineType.Library
   } else if (generatorConfig?.config.engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
+  } else if (
+    generatorConfig?.config.engineType === ClientEngineType.DataProxy
+  ) {
+    return ClientEngineType.DataProxy
+  } else {
+    return DEFAULT_CLIENT_ENGINE_TYPE
   }
-  return DEFAULT_CLIENT_ENGINE_TYPE
 }
 
 function getEngineTypeFromEnvVar() {
@@ -28,6 +34,8 @@ function getEngineTypeFromEnvVar() {
     return ClientEngineType.Library
   } else if (engineType === ClientEngineType.Binary) {
     return ClientEngineType.Binary
+  } else if (engineType === ClientEngineType.DataProxy) {
+    return ClientEngineType.DataProxy
   } else {
     return undefined
   }

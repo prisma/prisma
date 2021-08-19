@@ -48,6 +48,19 @@ import {
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
+import { GetConfigResult } from '@prisma/engine-core/dist/common/Engine'
+import {
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from '@prisma/engine-core/dist/common/types/QueryEngine'
+import {
+  Options,
+  Info,
+} from '@prisma/engine-core/dist/common/types/Transaction'
+import { createHash } from 'crypto'
+import fetch from 'node-fetch'
+import * as prismafile from 'prismafile'
+
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -449,9 +462,11 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
-    private getEngine() {
+    private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Binary) {
         return new BinaryEngine(this._engineConfig)
+      } else if (this._clientEngineType === ClientEngineType.DataProxy) {
+        return new DataProxyEngine(this._engineConfig)
       } else {
         return new LibraryEngine(this._engineConfig)
       }
@@ -1533,4 +1548,141 @@ export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
     return 'query'
   }
   return 'mutation'
+}
+
+class DataProxyEngine extends Engine {
+  // promise of base URL + API key
+  private initPromise?: Promise<[string, string]>
+
+  constructor(private config: EngineConfig) {
+    super()
+  }
+
+  // TODO: hardcoded, determine actual version
+  version(): string {
+    return '2.26.0'
+  }
+
+  async start() {}
+  async stop() {}
+
+  private async init(): Promise<[string, string]> {
+    // read the schema file
+    const schemaRaw = fs.readFileSync(this.config.datamodelPath, 'utf8')
+    const schema = Buffer.from(schemaRaw).toString('base64')
+
+    // get proxy connection string from env
+    // TODO: multiple datasources, value in schema (no env() fn use)
+    const ast = prismafile.parse(schemaRaw)
+
+    const sources = ast.blocks.filter((b) => b.type === 'datasource') as any[]
+
+    // grab "url" of first datasource
+    const urlProp = sources[0].assignments.find(
+      (a: any) => a.key.name === 'url',
+    )
+
+    const envVarName: string = urlProp.value.arguments[0].value
+    const connectionString = process.env[envVarName]
+
+    // "parse" connection string to get host and API key
+    const [proto, rest] = (connectionString ?? '').split('//')
+
+    if (proto !== 'prisma:') {
+      throw new Error('should be prisma:// URL')
+    }
+
+    const [host, key] = rest.split('/?api_key=')
+
+    const hash = createHash('sha256').update(schema).digest('hex')
+
+    // this is base URL
+    const base = `https://${host}/${this.version()}/${hash}`
+
+    // Upload the schema
+    // TODO: do it lazily - attempt to do the request and only upload if it fails
+    const res = await fetch(base + '/schema', {
+      method: 'PUT',
+      body: schema,
+      headers: {
+        authorization: 'Bearer ' + key,
+      },
+    })
+
+    if (!res.ok) {
+      throw new Error('could not upload schema')
+    }
+
+    return [base, key]
+  }
+
+  async request<T>(
+    query: string,
+    headers?: QueryEngineRequestHeaders,
+    numTry = 0,
+  ): Promise<QueryEngineResult<T>> {
+    if (!this.initPromise) {
+      this.initPromise = this.init()
+    }
+
+    const [base, key] = await this.initPromise
+
+    try {
+      const res = await fetch(base + '/graphql', {
+        method: 'POST',
+        body: JSON.stringify({
+          operationName: null,
+          variables: {},
+          query,
+        }),
+        headers: {
+          authorization: 'Bearer ' + key,
+        },
+      })
+
+      const text = await res.text()
+
+      // console.log(query, '-->', res.status, ':', text)
+
+      return JSON.parse(text)
+    } catch (err) {
+      // naive exponential backoff
+      if (numTry > 5) {
+        throw err
+      }
+      await new Promise((resolve) =>
+        setTimeout(resolve, Math.pow(2, numTry) * 200),
+      )
+      return this.request(query, headers, numTry + 1)
+    }
+  }
+
+  // Not implemented methods
+  on(event: EngineEventType, listener: (args?: any) => any): void {
+    throw new Error('Method not implemented.')
+  }
+  getConfig(): Promise<GetConfigResult> {
+    throw new Error('Method not implemented.')
+  }
+  requestBatch<T>(
+    queries: string[],
+    headers?: QueryEngineRequestHeaders,
+    transaction?: boolean,
+    numTry?: number,
+  ): Promise<QueryEngineResult<T>[]> {
+    throw new Error('Method not implemented.')
+  }
+  transaction(action: 'start', options?: Options): Promise<Info>
+  transaction(action: 'commit', info: Info): Promise<void>
+  transaction(action: 'rollback', info: Info): Promise<void>
+  transaction(
+    action: any,
+    info?: any,
+  ):
+    | Promise<void>
+    | Promise<
+        import('@prisma/engine-core/dist/common/types/Transaction').Info
+      > {
+    throw new Error('Method not implemented.')
+  }
 }
