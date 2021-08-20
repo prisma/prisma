@@ -1,0 +1,23 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  name     String  @db.FullText
+  posts    Post[]
+}
+
+model Post {
+  id     String @id @default(uuid())
+  title  String
+  user   User   @relation(fields: [userId], references: [id])
+  userId String
+}
