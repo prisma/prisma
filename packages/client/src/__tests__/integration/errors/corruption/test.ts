@@ -1,6 +1,10 @@
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../../../runtime/utils/getClientEngineType'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('corruption of query engine binary', async () => {
@@ -12,7 +16,7 @@ test('corruption of query engine binary', async () => {
   const binaryPath = path.join(
     __dirname,
     'node_modules/.prisma/client',
-    process.env.PRISMA_FORCE_NAPI
+    getClientEngineType() === ClientEngineType.Library
       ? getNodeAPIName(platform, 'fs')
       : `query-engine-${platform}`,
   )

@@ -16,6 +16,11 @@ import { performance } from 'perf_hooks'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import { generateClient } from '../generation/generateClient'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../runtime/utils/getClientEngineType'
+import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 
@@ -49,8 +54,8 @@ export async function generateInFolder({
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
-  const useNodeAPI =
-    previewFeatures.includes('nApi') || process.env.PRISMA_FORCE_NAPI === 'true'
+  const clientGenerator = config.generators[0]
+  const clientEngineType = getClientEngineType(clientGenerator)
 
   const dmmf = await getDMMF({
     datamodel,
@@ -99,36 +104,29 @@ export async function generateInFolder({
     )
   }
   const enginesPath = getEnginesPath()
-  const nodeAPILibraryPath = path.join(
+  const queryEngineLibraryPath = path.join(
     enginesPath,
     getNodeAPIName(platform, 'fs'),
   )
-  if (
-    (useNodeAPI || process.env.PRISMA_FORCE_NAPI) &&
-    !fs.existsSync(nodeAPILibraryPath)
-  ) {
-    // This is required as the Node-API library is not downloaded by default
-    await download({
-      binaries: {
-        'libquery-engine': enginesPath,
-      },
-      version: enginesVersion,
-    })
-  }
-  const binaryPaths = useNodeAPI
-    ? {
-        libqueryEngine: {
-          [platform]: nodeAPILibraryPath,
-        },
-      }
-    : {
-        queryEngine: {
-          [platform]: path.join(
-            enginesPath,
-            `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-          ),
-        },
-      }
+  const queryEngineBinaryPath = path.join(
+    enginesPath,
+    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+  )
+
+  await ensureTestClientQueryEngine(clientEngineType, platform)
+
+  const binaryPaths =
+    clientEngineType === ClientEngineType.Library
+      ? {
+          libqueryEngine: {
+            [platform]: queryEngineLibraryPath,
+          },
+        }
+      : {
+          queryEngine: {
+            [platform]: queryEngineBinaryPath,
+          },
+        }
 
   // we make sure that we are in the project root
   // this only applies to generated test clients
