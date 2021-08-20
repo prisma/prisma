@@ -15,7 +15,7 @@ import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { isError } from 'util'
-import { printError } from './prompt/utils/print'
+import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
   if (provider === 'sqlserver' || provider === 'mongodb') {

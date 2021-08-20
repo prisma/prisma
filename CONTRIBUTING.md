@@ -226,12 +226,6 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 1. `cd packages/migrate/fixtures/blog`
 1. `ts-node ../../src/bin.ts dev`
 
-### Developing `prisma init` Command
-
-1. `cd packages/introspection`
-1. `mkdir test && cd test`
-1. `ts-node ../src/bin.ts`
-
 ### Developing `prisma` CLI
 
 1. `cd packages/cli`
