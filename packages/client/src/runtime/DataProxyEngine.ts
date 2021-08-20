@@ -43,9 +43,8 @@ export class DataProxyEngine extends Engine {
       .digest('hex')
 
     const [host, apiKey] = extractHostAndApiKey(this.schemaText)
-    // TODO: how to get the current version?
-    const clientVersion =
-      config.clientVersion === 'local' ? '2.29.1' : config.clientVersion
+    // TODO: how to get the current version the right way?
+    const clientVersion = '2.29.1'
 
     this.url = (s) => `https://${host}/${clientVersion}/${this.schemaHash}/${s}`
     this.headers = { Authorization: `Bearer ${apiKey}` }
