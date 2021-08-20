@@ -385,7 +385,7 @@ importers:
       terminal-link: 2.1.1
       ts-jest: 27.0.5
       typescript: 4.3.5
-      undici: github:nodejs/undici#lzy-llhttp
+      undici: ^4.4.6
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 2.30.0-22.6ee261c643b2c461a20371f48ffa5090ed578aaf
@@ -398,7 +398,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       terminal-link: 2.1.1
-      undici: github.com/nodejs/undici/4c9dab085e3fe57a5c5ecfd970fd4eeac713bae8
+      undici: 4.4.6
     devDependencies:
       '@types/jest': 27.0.1
       '@types/node': 16.6.2
@@ -7353,6 +7353,11 @@ packages:
     resolution: {integrity: sha512-/j3YTZ5AobMB4ZrTY72mzM54uFUX32v0R/JRW9G2vOyF1uSKYAx+WT8dMsAcRS13TOFISv094TxIyWYk+WEPsA==}
     dev: true
 
+  /undici/4.4.6:
+    resolution: {integrity: sha512-NxnFqJouVi+R7wC7TtIeIP9AeBIy1ZHwnUHtmDFyXhtKNFQ2pjxFZdz3yYBKEWDTPQ5D2ipYxtovOi1tuU6s4w==}
+    engines: {node: '>=12.18'}
+    dev: false
+
   /unique-string/2.0.0:
     resolution: {integrity: sha512-uNaeirEPvpZWSgzwsPGtU2zVSTrn/8L5q/IexZmH0eH6SA73CmAA5U4GwORTxQAZs95TAXLNqeLoPPNO5gZfWg==}
     engines: {node: '>=8'}
@@ -7638,12 +7643,3 @@ packages:
       archiver-utils: 2.1.0
       compress-commons: 3.0.0
       readable-stream: 3.6.0
-
-  github.com/nodejs/undici/4c9dab085e3fe57a5c5ecfd970fd4eeac713bae8:
-    resolution: {tarball: https://codeload.github.com/nodejs/undici/tar.gz/4c9dab085e3fe57a5c5ecfd970fd4eeac713bae8}
-    name: undici
-    version: 4.4.5
-    engines: {node: '>=12.18'}
-    prepare: true
-    requiresBuild: true
-    dev: false
