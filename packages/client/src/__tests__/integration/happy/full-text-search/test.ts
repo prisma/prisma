@@ -24,7 +24,7 @@ describe('full-text-search (postgres)', () => {
     await prisma.user.create({
       data: {
         email: 'email1@email.io',
-        name: '0 1 2 3 4 5 6 7 8 9',
+        name: '0 1 2 3 4 5 6 7 8',
       },
     })
 
@@ -62,14 +62,14 @@ describe('full-text-search (postgres)', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: email1@email.io,
-          id: 1,
-          name: 0 1 2 3 4 5 6 7 8 9,
-        },
-      ]
-    `)
+Array [
+  Object {
+    email: email1@email.io,
+    id: 1,
+    name: 0 1 2 3 4 5 6 7 8,
+  },
+]
+`)
   })
 
   /**
@@ -85,52 +85,47 @@ describe('full-text-search (postgres)', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: email1@email.io,
-          id: 1,
-          name: 0 1 2 3 4 5 6 7 8 9,
-        },
-        Object {
-          email: email2@email.io,
-          id: 2,
-          name: 0 2 4 6 8,
-        },
-        Object {
-          email: email3@email.io,
-          id: 3,
-          name: 1 3 5 7 9,
-        },
-      ]
-    `)
+Array [
+  Object {
+    email: email1@email.io,
+    id: 1,
+    name: 0 1 2 3 4 5 6 7 8,
+  },
+  Object {
+    email: email2@email.io,
+    id: 2,
+    name: 0 2 4 6 8,
+  },
+  Object {
+    email: email3@email.io,
+    id: 3,
+    name: 1 3 5 7 9,
+  },
+]
+`)
   })
 
   /**
-   * Test search with the `*` operator
+   * Test search with the `<->` operator
    */
-  test('findMany with *', async () => {
+  test('findMany with <->', async () => {
     const result = await prisma.user.findMany({
       where: {
         name: {
-          search: '5*7',
+          search: '4 <-> 5',
         },
       },
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: email1@email.io,
-          id: 1,
-          name: 0 1 2 3 4 5 6 7 8 9,
-        },
-        Object {
-          email: email3@email.io,
-          id: 3,
-          name: 1 3 5 7 9,
-        },
-      ]
-    `)
+Array [
+  Object {
+    email: email1@email.io,
+    id: 1,
+    name: 0 1 2 3 4 5 6 7 8,
+  },
+]
+`)
   })
 
   /**
@@ -146,24 +141,24 @@ describe('full-text-search (postgres)', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: email1@email.io,
-          id: 1,
-          name: 0 1 2 3 4 5 6 7 8 9,
-        },
-        Object {
-          email: email2@email.io,
-          id: 2,
-          name: 0 2 4 6 8,
-        },
-        Object {
-          email: email3@email.io,
-          id: 3,
-          name: 1 3 5 7 9,
-        },
-      ]
-    `)
+Array [
+  Object {
+    email: email1@email.io,
+    id: 1,
+    name: 0 1 2 3 4 5 6 7 8,
+  },
+  Object {
+    email: email2@email.io,
+    id: 2,
+    name: 0 2 4 6 8,
+  },
+  Object {
+    email: email3@email.io,
+    id: 3,
+    name: 1 3 5 7 9,
+  },
+]
+`)
   })
 
   /**
@@ -179,13 +174,13 @@ describe('full-text-search (postgres)', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          email: email2@email.io,
-          id: 2,
-          name: 0 2 4 6 8,
-        },
-      ]
-    `)
+Array [
+  Object {
+    email: email2@email.io,
+    id: 2,
+    name: 0 2 4 6 8,
+  },
+]
+`)
   })
 })
