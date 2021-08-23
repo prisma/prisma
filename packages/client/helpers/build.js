@@ -7,7 +7,6 @@ const ESBUILD_DEFAULT = {
   bundle: true,
   platform: 'node',
   target: 'es2018',
-  // external: ['_http_common'],
   tsconfig: 'tsconfig.build.json',
 }
 
