@@ -17,11 +17,11 @@ import {
   EngineConfig,
   EngineEventType,
 } from '../common/Engine'
-import { RequestError } from '../common/errors/types/RequestError'
-import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import {
   ConfigMetaFormat,
@@ -36,11 +36,14 @@ import {
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
-import { QueryEngineInstance, QueryEngineConstructor } from './types/Library'
-import { Library } from './types/Library'
+import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
-import type * as Tx from '../common/types/Transaction'
+import {
+  Library,
+  QueryEngineConstructor,
+  QueryEngineInstance,
+} from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -312,9 +315,7 @@ You may have to run ${chalk.greenBright(
   private parseInitError(str: string): SyncRustError | string {
     try {
       const error = JSON.parse(str)
-      if (typeof error.is_panic !== 'undefined') {
-        return error
-      }
+      return error
     } catch (e) {
       //
     }
@@ -324,9 +325,7 @@ You may have to run ${chalk.greenBright(
   private parseRequestError(str: string): RustRequestError | string {
     try {
       const error = JSON.parse(str)
-      if (typeof error.is_panic !== 'undefined') {
-        return error
-      }
+      return error
     } catch (e) {
       //
     }
@@ -365,15 +364,34 @@ You may have to run ${chalk.greenBright(
       }
     }
     if (!this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStartingPromise = new Promise(async (res) => {
+      this.libraryStartingPromise = new Promise((resolve, reject) => {
         debug('library starting')
-        await this.engine?.connect({ enableRawQueries: true })
-        this.libraryStarted = true
-        debug('library started')
-        res()
+        this.engine
+          ?.connect({ enableRawQueries: true })
+          .then(() => {
+            this.libraryStarted = true
+            debug('library started')
+            resolve()
+          })
+          .catch((err) => {
+            reject(err.message)
+          })
       })
-      return this.libraryStartingPromise
+      try {
+        await this.libraryStartingPromise
+      } catch (e) {
+        const error = this.parseInitError(e)
+
+        if (typeof error === 'string') {
+          throw e
+        } else {
+          throw new PrismaClientInitializationError(
+            error.message,
+            this.config.clientVersion!,
+            error.error_code,
+          )
+        }
+      }
     }
   }
 
@@ -392,13 +410,17 @@ You may have to run ${chalk.greenBright(
 
     if (this.libraryStarted) {
       // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (res) => {
-        await new Promise((r) => setTimeout(r, 5))
-        debug('library stopping')
-        await this.engine?.disconnect()
-        this.libraryStarted = false
-        debug('library stopped')
-        res()
+      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
+        try {
+          await new Promise((r) => setTimeout(r, 5))
+          debug('library stopping')
+          await this.engine?.disconnect()
+          this.libraryStarted = false
+          debug('library stopped')
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
       })
     }
     return this.libraryStoppingPromise
@@ -443,12 +465,12 @@ You may have to run ${chalk.greenBright(
     headers: QueryEngineRequestHeaders = {},
     numTry = 1,
   ): Promise<{ data: T; elapsed: number }> {
-    try {
-      debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-      const request: QueryEngineRequest = { query, variables: {} }
-      const queryStr = JSON.stringify(request)
-      const headerStr = JSON.stringify(headers)
+    debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
+    const request: QueryEngineRequest = { query, variables: {} }
+    const queryStr = JSON.stringify(request)
+    const headerStr = JSON.stringify(headers)
 
+    try {
       await this.start()
       this.executingQueryPromise = this.engine?.query(
         queryStr,
@@ -476,6 +498,9 @@ You may have to run ${chalk.greenBright(
       // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
       return { data, elapsed: 0 }
     } catch (e) {
+      if (e instanceof PrismaClientInitializationError) {
+        throw e
+      }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
         throw e
