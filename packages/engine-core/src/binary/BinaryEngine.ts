@@ -210,7 +210,6 @@ You may have to run ${chalk.greenBright(
   }
 
   private cleanAndWarnRemovedPreviewFeatureFlags(previewFeatures: string[]) {
-    /*
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -250,8 +249,7 @@ You may have to run ${chalk.greenBright(
     previewFeatures = previewFeatures.filter(
       (e) => !removedFlags.includes(e)
     )
-    */
-   
+
     return previewFeatures
   }
 
