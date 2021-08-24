@@ -165,7 +165,7 @@ Object {
 
       generator gen {
         provider = "fancy-provider"
-        engineType = "binary"
+        engineType = "library"
       }
 
       model A {
@@ -191,7 +191,7 @@ Object {
     Object {
       "binaryTargets": Array [],
       "config": Object {
-        "engineType": "binary",
+        "engineType": "library",
       },
       "name": "gen",
       "output": null,
