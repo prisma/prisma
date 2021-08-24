@@ -171,41 +171,8 @@ export class BinaryEngine extends Engine {
     this.connection = new Connection()
 
     initHooks()
-    const removedFlags = [
-      'middlewares',
-      'aggregateApi',
-      'distinct',
-      'aggregations',
-      'insensitiveFilters',
-      'atomicNumberOperations',
-      'transactionApi',
-      'transaction',
-      'connectOrCreate',
-      'uncheckedScalarInputs',
-      'nativeTypes',
-      'createMany',
-      'groupBy',
-    ]
-    const removedFlagsUsed = this.previewFeatures.filter((e) =>
-      removedFlags.includes(e),
-    )
 
-    if (
-      removedFlagsUsed.length > 0 &&
-      !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
-    ) {
-      console.log(
-        `${chalk.blueBright(
-          'info',
-        )} The preview flags \`${removedFlagsUsed.join(
-          '`, `',
-        )}\` were removed, you can now safely remove them from your schema.prisma.`,
-      )
-    }
-
-    this.previewFeatures = this.previewFeatures.filter(
-      (e) => !removedFlags.includes(e),
-    )
+    this.previewFeatures = this.cleanAndWarnRemovedPreviewFeatureFlags(this.previewFeatures)
     this.engineEndpoint = engineEndpoint
 
     if (engineEndpoint) {
@@ -240,6 +207,50 @@ You may have to run ${chalk.greenBright(
     }
     engines.push(this)
     this.checkForTooManyEngines()
+  }
+
+  private cleanAndWarnRemovedPreviewFeatureFlags(previewFeatures: string[]) {
+    const removedFlags = [
+      'middlewares',
+      'aggregateApi',
+      'distinct',
+      'aggregations',
+      'insensitiveFilters',
+      'atomicNumberOperations',
+      'transactionApi',
+      'transaction',
+      'connectOrCreate',
+      'uncheckedScalarInputs',
+      'nativeTypes',
+      'createMany',
+      'groupBy',
+    ]
+
+    // are some removed flags used in the preview features?
+    const removedFlagsUsed = previewFeatures.filter((e) =>
+      removedFlags.includes(e),
+    )
+
+    // warn if yes
+    if (
+      removedFlagsUsed.length > 0 &&
+      !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
+    ) {
+      console.log(
+        `${chalk.blueBright(
+          'info',
+        )} The preview flags \`${removedFlagsUsed.join(
+          '`, `',
+        )}\` were removed, you can now safely remove them from your schema.prisma.`,
+      )
+    }
+
+    // remove all flags that are listed in removedFlags
+    previewFeatures = previewFeatures.filter(
+      (e) => !removedFlags.includes(e)
+    )
+
+    return previewFeatures
   }
 
   private setError(err: Error | RustLog | RustError) {
