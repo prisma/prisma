@@ -73,7 +73,7 @@ function buildTests() {
           envVar,
           value,
         )
-        test.skip(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
+        test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
           expect.assertions(2)
           const schema = buildSchema(engineType)
 
