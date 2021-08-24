@@ -35,14 +35,6 @@ async function build() {
         __dirname,
         '../node_modules/@prisma/engine-core/node_modules/undici/lib/llhttp',
       ),
-      path.resolve(__dirname, '../generator-build/llhttp'),
-    ),
-    // copy wasm files, etc necessary for undici
-    fs.copy(
-      path.resolve(
-        __dirname,
-        '../node_modules/@prisma/engine-core/node_modules/undici/lib/llhttp',
-      ),
       path.resolve(__dirname, '../runtime/llhttp'),
     ),
   ])
