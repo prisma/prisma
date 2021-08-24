@@ -105,7 +105,7 @@ describe('getConfig', () => {
 
     expect(config).toMatchSnapshot()
   })
-  test('with engineType', async () => {
+  test('with engineType="binary"', async () => {
     const binaryConfig = await getConfig({
       datamodel: `
       datasource db {
@@ -155,7 +155,8 @@ Object {
   "warnings": Array [],
 }
 `)
-
+  })
+  test('with engineType="library"', async () => {
     const libraryConfig = await getConfig({
       datamodel: `
       datasource db {
