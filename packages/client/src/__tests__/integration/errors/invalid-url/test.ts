@@ -1,5 +1,5 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
-describe.skip('invalid-url', () => {
+describe('invalid-url', () => {
   beforeAll(async () => {
     await generateTestClient()
   })
