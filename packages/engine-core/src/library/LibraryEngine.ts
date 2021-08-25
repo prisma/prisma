@@ -374,25 +374,22 @@ You may have to run ${chalk.greenBright(
             resolve()
           })
           .catch((err) => {
-            reject(err.message)
+            const error = this.parseInitError(err.message)
+            if (typeof error === 'string') {
+              reject(err)
+            } else {
+              reject(
+                new PrismaClientInitializationError(
+                  error.message,
+                  this.config.clientVersion!,
+                  error.error_code,
+                ),
+              )
+            }
           })
       })
-      try {
-        await this.libraryStartingPromise
-      } catch (e) {
-        const error = this.parseInitError(e)
-
-        if (typeof error === 'string') {
-          throw e
-        } else {
-          throw new PrismaClientInitializationError(
-            error.message,
-            this.config.clientVersion!,
-            error.error_code,
-          )
-        }
-      }
     }
+    return this.libraryStartingPromise
   }
 
   async stop(): Promise<void> {
