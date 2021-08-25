@@ -650,15 +650,15 @@ importers:
     specifiers:
       '@prisma/client': workspace:*
       '@types/jest': 27.0.1
-      '@types/node': 14.17.9
-      '@typescript-eslint/eslint-plugin': 4.29.2
-      '@typescript-eslint/parser': 4.29.2
+      '@types/node': 14.17.11
+      '@typescript-eslint/eslint-plugin': 4.29.3
+      '@typescript-eslint/parser': 4.29.3
       esbuild: 0.12.16
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.4.0
-      eslint-plugin-prettier: 3.4.0
+      eslint-plugin-prettier: 3.4.1
       glob: 7.1.7
       jest: 27.0.6
       lint-staged: 11.1.2
@@ -670,15 +670,15 @@ importers:
     devDependencies:
       '@prisma/client': link:../client
       '@types/jest': 27.0.1
-      '@types/node': 14.17.9
-      '@typescript-eslint/eslint-plugin': 4.29.2_b01b7137116ac50f0745961d9cf72d34
-      '@typescript-eslint/parser': 4.29.2_eslint@7.32.0+typescript@4.3.5
+      '@types/node': 14.17.11
+      '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
+      '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       esbuild: 0.12.16
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
-      eslint-plugin-jest: 24.4.0_79d1595ac137e2cc60da3c9a0e522fb9
-      eslint-plugin-prettier: 3.4.0_5a48a349ffec60f5257b5f148f5199c3
+      eslint-plugin-jest: 24.4.0_2ad72e29dce3c7f9f5b63c34ce24dd0c
+      eslint-plugin-prettier: 3.4.1_5a48a349ffec60f5257b5f148f5199c3
       glob: 7.1.7
       jest: 27.0.6_ts-node@10.2.1
       lint-staged: 11.1.2
@@ -2093,6 +2093,10 @@ packages:
 
   /@types/node/12.20.19:
     resolution: {integrity: sha512-niAuZrwrjKck4+XhoCw6AAVQBENHftpXw9F4ryk66fTgYaKQ53R4FI7c9vUGGw5vQis1HKBHDR1gcYI/Bq1xvw==}
+    dev: true
+
+  /@types/node/14.17.11:
+    resolution: {integrity: sha512-n2OQ+0Bz6WEsUjrvcHD1xZ8K+Kgo4cn9/w94s1bJS690QMUWfJPW/m7CCb7gPkA1fcYwL2UpjXP/rq/Eo41m6w==}
     dev: true
 
   /@types/node/14.17.6:
