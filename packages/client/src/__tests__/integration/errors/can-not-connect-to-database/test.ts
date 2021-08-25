@@ -1,15 +1,18 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
+
+let prisma
+
 describe('can-not-connect-to-database', () => {
   beforeAll(async () => {
     await generateTestClient()
+    const { PrismaClient } = require('./node_modules/@prisma/client')
+    prisma = new PrismaClient()
   })
+
   test('auto-connect', async () => {
     expect.assertions(1)
-    const { PrismaClient } = require('@prisma/client')
-
-    const db = new PrismaClient()
     try {
-      await db.user.findUnique({
+      await prisma.user.findUnique({
         where: {
           email: 'a@a.de',
         },
@@ -26,13 +29,11 @@ Please make sure your database server is running at \`localhost\`:\`5444\`.
 `)
     }
   })
+
   test('explicit connect', async () => {
     expect.assertions(1)
-    const { PrismaClient } = require('@prisma/client')
-
-    const db = new PrismaClient()
     try {
-      await db.$connect()
+      await prisma.$connect()
     } catch (err) {
       expect(err).toMatchInlineSnapshot(`
   Can't reach database server at \`localhost\`:\`5444\`
