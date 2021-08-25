@@ -4,6 +4,8 @@ import {
   EngineEventType,
   GetConfigResult,
 } from '@prisma/engine-core/src/common/Engine'
+import { clientVersion } from './utils/clientVersion'
+
 import fs from 'fs'
 import { createHash } from 'crypto'
 import { URL } from 'url'
@@ -20,6 +22,14 @@ function backOff(n: number): Promise<number> {
   const total = baseDelay + jitter
 
   return new Promise((done) => setTimeout(() => done(total), total))
+}
+
+function getClientVersion() {
+  // Expect version to be major.minor.patch
+  const [version] = clientVersion.split('-')
+  const isMMP = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)
+
+  return isMMP ? version : '2.30.0'
 }
 
 // TODO: move to @prisma/engine-core
@@ -43,8 +53,7 @@ export class DataProxyEngine extends Engine {
       .digest('hex')
 
     const [host, apiKey] = extractHostAndApiKey(this.schemaText)
-    // TODO: how to get the current version the right way?
-    const clientVersion = '2.29.1'
+    const clientVersion = getClientVersion()
 
     this.url = (s) => `https://${host}/${clientVersion}/${this.schemaHash}/${s}`
     this.headers = { Authorization: `Bearer ${apiKey}` }
@@ -52,8 +61,6 @@ export class DataProxyEngine extends Engine {
     this.logEmitter.on('error', () => {
       // Prevent unhandled error events
     })
-
-    this.logEmitter.emit('info', `Ready for ${host}`)
   }
 
   version() {
@@ -92,24 +99,39 @@ export class DataProxyEngine extends Engine {
       body: this.schemaBase64,
     })
 
-    if (!res.ok) {
-      this.logEmitter.emit('warn', 'Could not upload the schema')
+    if (res.ok) {
+      this.logEmitter.emit('info', {
+        message: `Schema (re)uploaded (hash: ${this.schemaHash})`,
+      })
+    } else {
+      this.logEmitter.emit('warn', { message: 'Could not upload the schema' })
       throw new Error('Could not upload the schema')
     }
   }
 
-  async request<T>(q: string, _hs?: any, n = 0) {
+  request<T>(query: string) {
+    this.logEmitter.emit('query', { query })
+
+    return this.requestInternal<T>({ query, variables: {} })
+  }
+
+  requestBatch<T>(queries: string[], _headers?: any, isTransaction = false) {
+    return this.requestInternal<T>({
+      batch: queries.map((query) => ({ query, variables: {} })),
+      transaction: isTransaction,
+    })
+  }
+
+  private async requestInternal<T>(body: Record<string, any>, attempt = 0) {
     try {
-      this.logEmitter.emit('query', q)
+      this.logEmitter.emit('info', {
+        message: `Calling ${this.url('graphql')} (n=${attempt})`,
+      })
 
       const res = await fetch(this.url('graphql'), {
         method: 'POST',
         headers: this.headers,
-        body: JSON.stringify({
-          operationName: null,
-          variables: {},
-          query: q,
-        }),
+        body: JSON.stringify(body),
       })
 
       // 404 on the GraphQL endpoint may mean that the schema
@@ -125,24 +147,17 @@ export class DataProxyEngine extends Engine {
 
       return JSON.parse(await res.text())
     } catch (err) {
-      if (n >= MAX_RETRIES) {
-        this.logEmitter.emit('error', `Failed to query: ${err.message}`)
+      if (attempt >= MAX_RETRIES) {
+        this.logEmitter.emit('error', {
+          message: `Failed to query: ${err.message}`,
+        })
         throw err
       } else {
-        const delay = await backOff(n)
-        this.logEmitter.emit('warn', `Retrying after ${delay}`)
-        return this.request<T>(q, {}, n + 1)
+        const delay = await backOff(attempt)
+        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+        return this.requestInternal<T>(body, attempt + 1)
       }
     }
-  }
-
-  requestBatch<T>(qs: string[], _hs: any, transact = false) {
-    // TODO: transactions not supported (see below)
-    // TODO: introduce batch endpoint in Data Proxy;
-    // current implementation will result in `qs.length` HTTP calls
-    return transact
-      ? this.transaction()
-      : Promise.all(qs.map((q) => this.request<T>(q)))
   }
 
   // TODO: figure out how to support transactions
