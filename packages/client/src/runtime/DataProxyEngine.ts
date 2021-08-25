@@ -109,20 +109,43 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(query: string) {
+  request<T>(query: string, headers: Record<string, string>, attempt = 0) {
     this.logEmitter.emit('query', { query })
 
-    return this.requestInternal<T>({ query, variables: {} })
+    return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
   }
 
-  requestBatch<T>(queries: string[], _headers?: any, isTransaction = false) {
-    return this.requestInternal<T>({
+  async requestBatch<T>(
+    queries: string[],
+    headers: Record<string, string>,
+    isTransaction = false,
+    attempt = 0,
+  ) {
+    this.logEmitter.emit('query', {
+      query: `Batch${isTransaction ? ' in transaction' : ''} (${
+        queries.length
+      }):\n${queries.join('\n')}`,
+    })
+
+    const body = {
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction: isTransaction,
-    })
+    }
+
+    const { batchResult } = await this.requestInternal<T>(
+      body,
+      headers,
+      attempt,
+    )
+
+    return batchResult
   }
 
-  private async requestInternal<T>(body: Record<string, any>, attempt = 0) {
+  private async requestInternal<T>(
+    body: Record<string, any>,
+    headers: Record<string, string>,
+    attempt: number,
+  ) {
     try {
       this.logEmitter.emit('info', {
         message: `Calling ${this.url('graphql')} (n=${attempt})`,
@@ -130,7 +153,7 @@ export class DataProxyEngine extends Engine {
 
       const res = await fetch(this.url('graphql'), {
         method: 'POST',
-        headers: this.headers,
+        headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
       })
 
@@ -155,7 +178,7 @@ export class DataProxyEngine extends Engine {
       } else {
         const delay = await backOff(attempt)
         this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
-        return this.requestInternal<T>(body, attempt + 1)
+        return this.requestInternal<T>(body, headers, attempt + 1)
       }
     }
   }
