@@ -472,9 +472,7 @@ describe('sqlite', () => {
       await MigrateDev.new().parse([])
     } catch (e) {
       expect(e.code).toEqual('P3006')
-      expect(e.message).toContain(
-        'Error querying the database: near "BROKEN": syntax error',
-      )
+      expect(e.message).toContain('near "BROKEN": syntax error')
     }
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
