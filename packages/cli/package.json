@@ -71,7 +71,7 @@
     "@prisma/studio-server": "0.422.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "27.0.1",
-    "@types/rimraf": "3.0.1",
+    "@types/rimraf": "3.0.2",
     "@types/ws": "7.4.7",
     "@typescript-eslint/eslint-plugin": "4.29.3",
     "@typescript-eslint/parser": "4.29.3",
