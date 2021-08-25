@@ -13,11 +13,11 @@ async function main() {
     },
   })
 
-  const users = await prisma.user.findMany({
-    include: {
-      posts: true,
-    },
-  })
+  const users = await Promise.all([
+    // This will be batched:
+    prisma.user.findUnique({ where: { id: 1 } }),
+    prisma.user.findUnique({ where: { id: 2 } }),
+  ])
 
   console.dir(users, { depth: null })
 }
