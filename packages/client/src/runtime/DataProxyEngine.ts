@@ -26,9 +26,10 @@ function backOff(n: number): Promise<number> {
 
 function getClientVersion() {
   // Expect version to be major.minor.patch
-  const [version] = clientVersion.split('-')
-  const isMMP = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)
+  const [version, suffix] = clientVersion.split('-')
+  const isMMP = !suffix && /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)
 
+  // Default to a know version if not major.minor.patch
   return isMMP ? version : '2.30.0'
 }
 
