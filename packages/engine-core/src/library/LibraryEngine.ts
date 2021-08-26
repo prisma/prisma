@@ -358,10 +358,7 @@ You may have to run ${chalk.greenBright(
       debug(
         `library already starting, this.libraryStarted: ${this.libraryStarted}`,
       )
-      await this.libraryStartingPromise
-      if (this.libraryStarted) {
-        return
-      }
+      return this.libraryStartingPromise
     }
     if (!this.libraryStarted) {
       this.libraryStartingPromise = new Promise((resolve, reject) => {
@@ -370,11 +367,14 @@ You may have to run ${chalk.greenBright(
           ?.connect({ enableRawQueries: true })
           .then(() => {
             this.libraryStarted = true
+            this.libraryStartingPromise = undefined
             debug('library started')
             resolve()
           })
           .catch((err) => {
             const error = this.parseInitError(err.message)
+            // The error message throw by the query engine should be a stringified JSON
+            // if parsing fails then we just reject the error
             if (typeof error === 'string') {
               reject(err)
             } else {
@@ -388,21 +388,16 @@ You may have to run ${chalk.greenBright(
             }
           })
       })
+      return this.libraryStartingPromise
     }
-    return this.libraryStartingPromise
   }
 
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
-    debug(`library stopping, this.libraryStarted: ${this.libraryStarted}`)
     if (this.libraryStoppingPromise) {
-      debug('library is already disconnecting')
-      await this.libraryStoppingPromise
-      if (!this.libraryStarted) {
-        this.libraryStoppingPromise = undefined
-        return
-      }
+      debug('library is already stopping')
+      return this.libraryStoppingPromise
     }
 
     if (this.libraryStarted) {
@@ -413,14 +408,15 @@ You may have to run ${chalk.greenBright(
           debug('library stopping')
           await this.engine?.disconnect()
           this.libraryStarted = false
+          this.libraryStoppingPromise = undefined
           debug('library stopped')
           resolve()
         } catch (err) {
           reject(err)
         }
       })
+      return this.libraryStoppingPromise
     }
-    return this.libraryStoppingPromise
   }
 
   getConfig(): Promise<ConfigMetaFormat> {
