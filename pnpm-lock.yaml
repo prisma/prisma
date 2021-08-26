@@ -1818,6 +1818,7 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -4544,7 +4545,7 @@ packages:
       jest-validate: 27.0.6
       micromatch: 4.0.4
       pretty-format: 27.0.6
-      ts-node: 10.2.1_e9826578d41fc6528049929fabcaf705
+      ts-node: 10.2.1_a3da7f9f56afe7b98c9382c63365a60d
     transitivePeerDependencies:
       - bufferutil
       - canvas
