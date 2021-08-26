@@ -187,6 +187,7 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     atomicNumberOperations: getMessage('atomicNumberOperations'),
     connectOrCreate: getMessage('connectOrCreate'),
     transaction: getMessage('transaction'),
+    nApi: getMessage('nApi'),
     transactionApi: getMessage('transactionApi'),
     uncheckedScalarInputs: getMessage('uncheckedScalarInputs'),
     nativeTypes: getMessage('nativeTypes'),
