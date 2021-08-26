@@ -2,7 +2,7 @@ import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
-import { Studio } from '../Studio'
+import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
 const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
@@ -26,11 +26,11 @@ describe('studio', () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
     rimraf.sync(
-      path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
+      path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'),
     )
     fs.copyFileSync(
-      path.join(__dirname, './fixtures/studio-test-project/dev.db'),
-      path.join(__dirname, './fixtures/studio-test-project/dev_tmp.db'),
+      path.join(__dirname, '../fixtures/studio-test-project/dev.db'),
+      path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'),
     )
 
     // Clean up Client generation directory
@@ -39,7 +39,7 @@ describe('studio', () => {
 
     await studio.parse([
       '--schema',
-      path.join(__dirname, './fixtures/studio-test-project/schema.prisma'),
+      path.join(__dirname, '../fixtures/studio-test-project/schema.prisma'),
       '--port',
       `${STUDIO_TEST_PORT}`,
       '--browser',
