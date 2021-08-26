@@ -73,7 +73,7 @@ ${chalk.bold('Options')}
     if (args['--schema']) {
       logger.warn(
         chalk.yellow(
-          `The "--schema" parameter is not used anymore by "prisma db seed" since 2.27.0 and can now be removed.`,
+          `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
         ),
       )
     }

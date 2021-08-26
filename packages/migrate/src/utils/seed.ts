@@ -42,7 +42,7 @@ export async function verifySeedConfigAndReturnMessage(
 `
 
   if (detected.numberOfSeedFiles === 1) {
-    // Probably was using seed before 2.27.0 and need to add the seed property in package.json
+    // Probably was using seed before 3.0 and need to add the seed property in package.json
     message += `2. Add the following example to it:`
 
     if (detected.js) {
@@ -194,7 +194,7 @@ export async function legacyTsNodeScriptWarning() {
   if (scripts?.['ts-node']) {
     logger.warn(
       chalk.yellow(
-        `The "ts-node" script in the package.json is not used anymore since 2.27.0 and can now be removed.`,
+        `The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`,
       ),
     )
   }
