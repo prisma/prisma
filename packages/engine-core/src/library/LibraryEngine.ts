@@ -373,7 +373,7 @@ You may have to run ${chalk.greenBright(
           })
           .catch((err) => {
             const error = this.parseInitError(err.message)
-            // The error message throw by the query engine should be a stringified JSON
+            // The error message thrown by the query engine should be a stringified JSON
             // if parsing fails then we just reject the error
             if (typeof error === 'string') {
               reject(err)
