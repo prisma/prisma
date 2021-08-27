@@ -51,14 +51,14 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
   userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -90,14 +90,14 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
   userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id])
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -133,14 +133,14 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  User      User     @relation(fields: [authorId], references: [id])
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
   userId Int     @unique
-  User   User    @relation(fields: [userId], references: [id])
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
@@ -183,7 +183,7 @@ model AwesomeNewPost {
   id        Int         @id @default(autoincrement())
   published Boolean     @default(false)
   title     String
-  author    AwesomeUser @relation(fields: [authorId], references: [id])
+  author    AwesomeUser @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("Post")
 }
@@ -192,7 +192,7 @@ model AwesomeProfile {
   bio    String?
   id     Int         @id @default(autoincrement())
   userId Int         @unique
-  user   AwesomeUser @relation(fields: [userId], references: [id])
+  user   AwesomeUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("Profile")
 }
@@ -219,14 +219,14 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  User      User     @relation(fields: [authorId], references: [id])
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
   userId Int     @unique
-  User   User    @relation(fields: [userId], references: [id])
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {

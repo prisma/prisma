@@ -171,6 +171,9 @@ export class BinaryEngine extends Engine {
     this.connection = new Connection()
 
     initHooks()
+
+    // See also warnOnDeprecatedFeatureFlag at
+    // https://github.com/prisma/prisma/blob/main/packages/sdk/src/engine-commands/getDmmf.ts#L179
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -185,6 +188,8 @@ export class BinaryEngine extends Engine {
       'nativeTypes',
       'createMany',
       'groupBy',
+      'referentialActions',
+      'microsoftSqlServer',
     ]
     const removedFlagsUsed = this.previewFeatures.filter((e) =>
       removedFlags.includes(e),

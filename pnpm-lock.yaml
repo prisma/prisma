@@ -1636,8 +1636,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/debug/2.31.0-dev.12:
-    resolution: {integrity: sha512-IN0Av4n1T00xYcXb6s9Y83k9xQukV4YynZM/CoOFSuskanhTE1P4iKEdTF8boD/iRKgcpV+2PgKfMdZuQQJijg==}
+  /@prisma/debug/2.31.0-dev.14:
+    resolution: {integrity: sha512-vqktkSY54OiGgy8l9a/9VLPI/Xef4lqbKdxITjTWQFkXOpXgSrP3iL0muAGSslH47RWAB+uuRE5lhJGxRTwLnQ==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.2
@@ -1646,12 +1646,12 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/engine-core/2.31.0-dev.12:
-    resolution: {integrity: sha512-Bnqe+RECx5o24PPvBwNruDUChIzZI6gzLZT/5A9TuEn/Gua8rfJgGgJ1ZSjuzjFM3TFbyF4eaLXm2JsC4x0pAg==}
+  /@prisma/engine-core/2.31.0-dev.14:
+    resolution: {integrity: sha512-SfRekcS8MbdLNng5GJ80u5EPbOmvyjyLKnoPaivJQeIlh8rywOmTU0CVSuA3WakONN7ufImhQtzRdWiyJWmJvg==}
     dependencies:
-      '@prisma/debug': 2.31.0-dev.12
+      '@prisma/debug': 2.31.0-dev.14
       '@prisma/engines': 2.31.0-6.f8f3f1a36b5b0b9afb45bc27a2ec1a3fea9c2b8e
-      '@prisma/generator-helper': 2.31.0-dev.12
+      '@prisma/generator-helper': 2.31.0-dev.14
       '@prisma/get-platform': 2.31.0-6.f8f3f1a36b5b0b9afb45bc27a2ec1a3fea9c2b8e
       chalk: 4.1.2
       execa: 5.1.1
@@ -1724,10 +1724,10 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/generator-helper/2.31.0-dev.12:
-    resolution: {integrity: sha512-x5HxofUmR3I7p7MCmxJrKPJi7dQ9vLgN9Ni2taBndPQ5JacC/M7PK8cZ/lLsBGUDMzuvD2XDJxFe1eD3AQ9wdg==}
+  /@prisma/generator-helper/2.31.0-dev.14:
+    resolution: {integrity: sha512-Q0UzSrhICD44ZwpTcGV9dgej2u92ySjCCkco+/aJ0h4N/T0KO24xSTNXRQKAv0+EXptDJAKQmmMyJmeaMf0hjg==}
     dependencies:
-      '@prisma/debug': 2.31.0-dev.12
+      '@prisma/debug': 2.31.0-dev.14
       '@types/cross-spawn': 6.0.2
       chalk: 4.1.2
       cross-spawn: 7.0.3
@@ -1750,14 +1750,14 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/sdk/2.31.0-dev.12:
-    resolution: {integrity: sha512-Lg3b6gtf8i5qiFLthrCzAbnxdT3S6KFhgtgFIU5lwVQS4VZK7778yes1/fAlJWBWxH3lwWDJ/FJafyAw36AOcA==}
+  /@prisma/sdk/2.31.0-dev.14:
+    resolution: {integrity: sha512-oACkbPmqEmgJZiVTnZkumfpv0yEb6rFsUU3SCS/Ghx/ArxtnMSSE2MawcwNj3yqQMpIeu6vYSIt1XG7Ulb1j1g==}
     dependencies:
-      '@prisma/debug': 2.31.0-dev.12
-      '@prisma/engine-core': 2.31.0-dev.12
+      '@prisma/debug': 2.31.0-dev.14
+      '@prisma/engine-core': 2.31.0-dev.14
       '@prisma/engines': 2.31.0-6.f8f3f1a36b5b0b9afb45bc27a2ec1a3fea9c2b8e
       '@prisma/fetch-engine': 2.31.0-6.f8f3f1a36b5b0b9afb45bc27a2ec1a3fea9c2b8e
-      '@prisma/generator-helper': 2.31.0-dev.12
+      '@prisma/generator-helper': 2.31.0-dev.14
       '@prisma/get-platform': 2.31.0-6.f8f3f1a36b5b0b9afb45bc27a2ec1a3fea9c2b8e
       '@timsuchanek/copy': 1.4.5
       archiver: 4.0.2
@@ -1792,13 +1792,13 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-pcw/0.422.0_@prisma+sdk@2.31.0-dev.12:
+  /@prisma/studio-pcw/0.422.0_@prisma+sdk@2.31.0-dev.14:
     resolution: {integrity: sha512-82VESX2oeh6DwggY6B9Cblaz2xeaJfj0a+LRvUJve8NDShkarhLHMFh9auO8AWa3cCN1gWxEF/DUfnLNL35BrA==}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': 2.31.0-dev.12
+      '@prisma/sdk': 2.31.0-dev.14
       debug: 4.3.1
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -1808,8 +1808,8 @@ packages:
   /@prisma/studio-server/0.422.0:
     resolution: {integrity: sha512-VLDIsIDzklsFJB4AUyluZq9QiKQkz/nI9Hrj7Pp7Mb1rm3S0x8fsf4W3jYqibqqqz8rgg+5ztc4EjkCgpCa4sA==}
     dependencies:
-      '@prisma/sdk': 2.31.0-dev.12
-      '@prisma/studio-pcw': 0.422.0_@prisma+sdk@2.31.0-dev.12
+      '@prisma/sdk': 2.31.0-dev.14
+      '@prisma/studio-pcw': 0.422.0_@prisma+sdk@2.31.0-dev.14
       '@prisma/studio-transports': 0.422.0
       '@sentry/node': 6.2.5
       checkpoint-client: 1.1.20
@@ -1818,7 +1818,6 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
