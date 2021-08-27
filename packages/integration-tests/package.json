@@ -62,6 +62,7 @@
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
+    "jest": "jest",
     "test": "jest --maxConcurrency=8 --verbose",
     "precommit": "lint-staged"
   },
