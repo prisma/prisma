@@ -957,7 +957,7 @@ model b {
   id  BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   one Int
   two Int
-  a   a      @relation(fields: [one, two], references: [one, two])
+  a   a      @relation(fields: [one, two], references: [one, two], onUpdate: Restrict)
 
   @@index([one, two], name: "one")
 }

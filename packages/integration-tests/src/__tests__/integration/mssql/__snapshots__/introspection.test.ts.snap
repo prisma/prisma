@@ -812,7 +812,7 @@ model b {
   id  Int @id @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two])
+  a   a   @relation(fields: [one, two], references: [one, two], onUpdate: NoAction)
 }
 
 `;
