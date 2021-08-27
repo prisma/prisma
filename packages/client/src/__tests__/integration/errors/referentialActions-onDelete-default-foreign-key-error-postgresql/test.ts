@@ -53,7 +53,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
       expect(e.message).toMatchInlineSnapshot(`
 
 Invalid \`prisma.user.delete()\` invocation in
-/client/src/__tests__/integration/errors/default-onDelete-cascade-postgres/test.ts:47:31
+/client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-postgresql/test.ts:47:31
 
   44 expect(await prisma.user.findMany()).toHaveLength(1)
   45 
