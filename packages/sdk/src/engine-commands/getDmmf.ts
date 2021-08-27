@@ -176,6 +176,9 @@ function addMissingOpenSSLInfo(message: string) {
   }
   return message
 }
+
+// See also removedFlags at
+// https://github.com/prisma/prisma/blob/main/packages/engine-core/src/binary/BinaryEngine.ts#L174
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
   const getMessage = (flag: string) =>
     `${chalk.blueBright(
@@ -193,6 +196,8 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     nativeTypes: getMessage('nativeTypes'),
     createMany: getMessage('createMany'),
     groupBy: getMessage('groupBy'),
+    referentialActions: getMessage('referentialActions'),
+    microsoftSqlServer: getMessage('microsoftSqlServer'),
   }
 
   previewFeatures?.forEach((f) => {

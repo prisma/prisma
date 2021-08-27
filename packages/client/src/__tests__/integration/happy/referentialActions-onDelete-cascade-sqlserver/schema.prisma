@@ -4,8 +4,7 @@ datasource my_db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["microsoftSqlServer", "referentialActions"]
+  provider = "prisma-client-js"
 }
 
 model Post {

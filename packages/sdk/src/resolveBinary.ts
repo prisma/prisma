@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { plusX } from '@prisma/engine-core'
-import { enginesVersion, getEnginesPath } from '@prisma/engines'
-import { BinaryType, download } from '@prisma/fetch-engine'
+import { getEnginesPath } from '@prisma/engines'
+import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import makeDir from 'make-dir'
@@ -13,6 +13,15 @@ const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
 const debug = Debug('prisma:resolveBinary')
 
+async function getBinaryName(name: BinaryType): Promise<string> {
+  const platform = await getPlatform()
+  const extension = platform === 'windows' ? '.exe' : ''
+
+  if (name === BinaryType.libqueryEngine) {
+    return getNodeAPIName(platform, 'fs')
+  }
+  return `${name}-${platform}${extension}`
+}
 export const engineEnvVarMap = {
   [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
   [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
@@ -47,21 +56,7 @@ export async function resolveBinary(
 
   const dir = eval('__dirname')
 
-  const platform = await getPlatform()
-  const extension = platform === 'windows' ? '.exe' : ''
-  let binaryName = `${name}-${platform}${extension}`
-  if (name === BinaryType.libqueryEngine) {
-    binaryName = getNodeAPIName(platform, 'fs')
-    if (!fs.existsSync(path.join(getEnginesPath(), binaryName))) {
-      debug('Downloading Node-API Library')
-      await download({
-        binaries: {
-          'libquery-engine': getEnginesPath(),
-        },
-        version: enginesVersion,
-      })
-    }
-  }
+  const binaryName = await getBinaryName(name)
 
   let prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {

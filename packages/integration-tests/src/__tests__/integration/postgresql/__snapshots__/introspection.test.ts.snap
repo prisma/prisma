@@ -952,7 +952,7 @@ model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 }
 
 model users {
@@ -1029,7 +1029,7 @@ model b {
   id  Int @id @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two])
+  a   a   @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction)
 }
 
 `;
@@ -1188,7 +1188,7 @@ model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 }
 
 model users {
