@@ -37,6 +37,8 @@ test('missing binary, native binaryTarget', async () => {
   })
 
   if (getClientEngineType() === ClientEngineType.Library) {
+    // When updating snapshots this is sensitive to OS, here Linux
+    // macOS will update extension to .dylib.node, but we need to kepp .so.node for CI
     await expect(async () => {
       await prisma.user.findMany()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -48,7 +50,7 @@ test('missing binary, native binaryTarget', async () => {
             You incorrectly pinned it to TEST_PLATFORM
 
             This probably happens, because you built Prisma Client on a different platform.
-            (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.dylib.node")
+            (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-binary-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.so.node")
 
             Searched Locations:
 
