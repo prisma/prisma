@@ -5,7 +5,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["middlewares", "aggregateApi", "distinct", "aggregations", "insensitiveFilters", "atomicNumberOperations", "transactionApi", "transaction", "connectOrCreate", "uncheckedScalarInputs", "nativeTypes", "createMany", "groupBy", "referentialActions", "microsoftSqlServer"]
+  previewFeatures = ["middlewares", "aggregateApi", "distinct", "atomicNumberOperations", "transactionApi", "connectOrCreate", "uncheckedScalarInputs", "nativeTypes", "createMany", "groupBy", "referentialActions", "microsoftSqlServer"]
 }
 
 // / User model comment
