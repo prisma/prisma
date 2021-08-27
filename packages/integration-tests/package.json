@@ -52,9 +52,8 @@
   "scripts": {
     "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
-    "jest": "jest",
     "test:integration": "jest integration --maxConcurrency=8 --verbose",
-    "test:sqlite": "jest integration.sqlite --verbose",
+    "test:sqlite": "jest integration.sqlite --maxConcurrency=8 --verbose",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
     "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
@@ -63,7 +62,7 @@
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
-    "test": "jest --verbose",
+    "test": "jest --maxConcurrency=8 --verbose",
     "precommit": "lint-staged"
   },
   "files": [
