@@ -14365,7 +14365,6 @@ Object {
               "authorId",
             ],
             "relationName": "PostToUser",
-            "relationOnDelete": "Cascade",
             "relationToFields": Array [
               "id",
             ],
@@ -26451,7 +26450,6 @@ Object {
               "authorId",
             ],
             "relationName": "PostToUser",
-            "relationOnDelete": "Cascade",
             "relationToFields": Array [
               "id",
             ],
@@ -38499,9 +38497,9 @@ Object {
 
 exports[`getDMMF big schema 1`] = `119500334`;
 
-exports[`getDMMF chinook introspected schema 1`] = `842413`;
+exports[`getDMMF chinook introspected schema 1`] = `842094`;
 
-exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `842413`;
+exports[`getDMMF chinook introspected schema connectOrCreate 1`] = `842094`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing

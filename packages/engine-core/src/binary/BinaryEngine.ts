@@ -188,6 +188,7 @@ export class BinaryEngine extends Engine {
       'nativeTypes',
       'createMany',
       'groupBy',
+      'referentialActions',
       'microsoftSqlServer',
     ]
     const removedFlagsUsed = this.previewFeatures.filter((e) =>
