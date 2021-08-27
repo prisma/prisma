@@ -106,7 +106,7 @@ import {
 } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
-import { detectPrisma1 } from './detectPrisma1'
+import { detectPrisma1 } from './utils/detectPrisma1'
 
 // because chalk ...
 if (process.env.NO_COLOR) {
@@ -143,6 +143,9 @@ async function main(): Promise<number> {
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
+      /**
+       * @deprecated since version 2.30.0, use `db pull` instead (renamed)
+       */
       introspect: DbPull.new(),
       dev: Dev.new(),
       studio: Studio.new(),

@@ -4,7 +4,7 @@ import {
   getOriginalBinaryTargetsValue,
   printGeneratorConfig,
 } from '@prisma/engine-core'
-import { enginesVersion } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import {
   BinaryDownloadConfiguration,
   BinaryType,
@@ -96,10 +96,7 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  const queryEngineBinaryType =
-    process.env.PRISMA_FORCE_NAPI === 'true'
-      ? BinaryType.libqueryEngine
-      : BinaryType.queryEngine
+  const queryEngineBinaryType = getCliQueryEngineBinaryType()
 
   const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
   let prismaPath: string | undefined = binaryPathsOverride?.[queryEngineType]

@@ -20,6 +20,20 @@ model AtAtIdNamed {
   key1 String
   key2 Int
 
-  @@id(fields:[key1, key2], name:"namedConstraint")
+  @@id(fields: [key1, key2], name: "namedConstraintId")
 }
 
+// named @@unique was possible before namedConstraints but we still want to test it
+model AtAtUnique {
+  key1 String
+  key2 Int
+
+  @@unique([key1, key2])
+}
+
+model AtAtUniqueNamed {
+  key1 String
+  key2 Int
+
+  @@unique(fields: [key1, key2], name: "namedConstraintUnique")
+}

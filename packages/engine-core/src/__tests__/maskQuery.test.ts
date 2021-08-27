@@ -1,4 +1,4 @@
-import { maskQuery } from '../maskQuery'
+import { maskQuery } from '../common/errors/utils/maskQuery'
 
 test('big query', () => {
   const query = `query {
