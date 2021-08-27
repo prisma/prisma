@@ -185,6 +185,7 @@ export class BinaryEngine extends Engine {
       'nativeTypes',
       'createMany',
       'groupBy',
+      'referentialActions',
     ]
     const removedFlagsUsed = this.previewFeatures.filter((e) =>
       removedFlags.includes(e),

@@ -193,6 +193,7 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     nativeTypes: getMessage('nativeTypes'),
     createMany: getMessage('createMany'),
     groupBy: getMessage('groupBy'),
+    referentialActions: getMessage('referentialActions'),
   }
 
   previewFeatures?.forEach((f) => {
