@@ -9,7 +9,7 @@
   "repository": "git@github.com:prisma/prisma.git",
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@prisma/get-platform": "2.31.0-6.f8f3f1a36b5b0b9afb45bc27a2ec1a3fea9c2b8e",
+    "@prisma/get-platform": "2.31.0-11.c6aa2685dff09984e6656f5d99a90b9e90eabbce",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
@@ -52,9 +52,8 @@
   "scripts": {
     "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
-    "jest": "jest",
     "test:integration": "jest integration --maxConcurrency=8 --verbose",
-    "test:sqlite": "jest integration.sqlite --verbose",
+    "test:sqlite": "jest integration.sqlite --maxConcurrency=8 --verbose",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
     "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
@@ -63,7 +62,8 @@
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
-    "test": "jest --verbose",
+    "jest": "jest",
+    "test": "jest --maxConcurrency=8 --verbose",
     "precommit": "lint-staged"
   },
   "files": [

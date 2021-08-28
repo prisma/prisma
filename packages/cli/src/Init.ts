@@ -18,7 +18,8 @@ import { isError } from 'util'
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
-  if (provider === 'sqlserver' || provider === 'mongodb') {
+  // add preview flag
+  if (provider === 'mongodb') {
     return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -29,9 +30,7 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["${
-    provider === 'sqlserver' ? 'microsoftSqlServer' : 'mongoDb'
-  }"]
+  previewFeatures = ["mongoDb"]
 }
 `
   } else {
