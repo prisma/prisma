@@ -9,7 +9,7 @@
   "repository": "git@github.com:prisma/prisma.git",
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@prisma/get-platform": "2.31.0-11.c6aa2685dff09984e6656f5d99a90b9e90eabbce",
+    "@prisma/get-platform": "2.31.0-13.query-engine-rework-json-nullability-88641c1a232e4509c48131ad440ba85970b05ff1",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
