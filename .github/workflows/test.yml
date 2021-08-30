@@ -438,7 +438,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [ubuntu-20.04, macos-latest, windows-latest]
         node: [12]
 
     steps:
