@@ -658,7 +658,7 @@ importers:
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.4.0
-      eslint-plugin-prettier: 3.4.1
+      eslint-plugin-prettier: 4.0.0
       glob: 7.1.7
       jest: 27.0.6
       lint-staged: 11.1.2
@@ -678,7 +678,7 @@ importers:
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 24.4.0_2ad72e29dce3c7f9f5b63c34ce24dd0c
-      eslint-plugin-prettier: 3.4.1_5a48a349ffec60f5257b5f148f5199c3
+      eslint-plugin-prettier: 4.0.0_5a48a349ffec60f5257b5f148f5199c3
       glob: 7.1.7
       jest: 27.0.6_ts-node@10.2.1
       lint-staged: 11.1.2
@@ -3420,23 +3420,6 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - typescript
-    dev: true
-
-  /eslint-plugin-prettier/3.4.1_5a48a349ffec60f5257b5f148f5199c3:
-    resolution: {integrity: sha512-htg25EUYUeIhKHXjOinK4BgCcDwtLHjqaxCDsMy5nbnUMkKFvIhMVCp+5GFUXQ4Nr8lBsPqtGAqBenbpFqAA2g==}
-    engines: {node: '>=6.0.0'}
-    peerDependencies:
-      eslint: '>=5.0.0'
-      eslint-config-prettier: '*'
-      prettier: '>=1.13.0'
-    peerDependenciesMeta:
-      eslint-config-prettier:
-        optional: true
-    dependencies:
-      eslint: 7.32.0
-      eslint-config-prettier: 8.3.0_eslint@7.32.0
-      prettier: 2.3.2
-      prettier-linter-helpers: 1.0.0
     dev: true
 
   /eslint-plugin-prettier/4.0.0_5a48a349ffec60f5257b5f148f5199c3:
