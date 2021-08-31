@@ -203,10 +203,10 @@ async function main(): Promise<number> {
         schemaProvider = config.datasources[0].provider
       }
 
-      // restrict the search to prisma-client-js and prisma-client-go previewFeatures
+      // restrict the search to prisma-client-js previewFeatures
       const generator = config.generators.find((generator) => {
         return (
-          ['prisma-client-js'].includes(generator.name) &&
+          generator.name === 'prisma-client-js' &&
           generator.previewFeatures.length > 0
         )
       })
