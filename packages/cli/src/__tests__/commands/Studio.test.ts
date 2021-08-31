@@ -42,8 +42,6 @@ describe('studio', () => {
       path.join(__dirname, '../fixtures/studio-test-project/schema.prisma'),
       '--port',
       `${STUDIO_TEST_PORT}`,
-      '--browser',
-      'none',
     ])
 
     // Give Studio time to start

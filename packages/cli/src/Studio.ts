@@ -141,7 +141,7 @@ ${chalk.bold('Examples')}
           url: true,
         })
       } catch (e) {
-        // Ignore any errors that occur when trying to open the browser, since they should not halt the process
+        throw new Error('Cannot open the browser to run studio: ' + e)
       }
     }
 
