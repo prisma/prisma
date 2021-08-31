@@ -412,6 +412,54 @@ jobs:
           name: migrate-${{ matrix.os }}
 
   #
+  # CLI-COMMANDS (Studio only)
+  #
+  cli-commands-studio:
+    timeout-minutes: 10
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        engine: ['napi', 'binary']
+        os: [ubuntu-20.04, macos-latest, windows-latest]
+        node: [12]
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set Engine Type
+        if: ${{ matrix.engine == 'napi' }}
+        run: |
+          echo "PRISMA_FORCE_NAPI=true" >> $GITHUB_ENV
+
+      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
+        uses: actions/cache@v1
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+      - uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test studio
+        working-directory: packages/cli
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+  #
   # CLI-COMMANDS
   #
   cli-commands:
