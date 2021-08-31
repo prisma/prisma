@@ -119,10 +119,10 @@ export function main() {
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
   const nodeMinorVersion = parseInt(nodeVersions[1])
-  if (nodeMajorVersion < 12 || (nodeMajorVersion === 12 && nodeMinorVersion < 2)) {
+  if (nodeMajorVersion < 12 || (nodeMajorVersion === 12 && nodeMinorVersion < 6)) {
     console.error(
       drawBox({
-        str: `Prisma only supports Node.js >= 12.2`,
+        str: `Prisma only supports Node.js >= 12.6`,
         verticalPadding: 1,
         horizontalPadding: 3,
       }),
