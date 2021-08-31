@@ -361,6 +361,9 @@ You may have to run ${chalk.greenBright(
       return this.libraryStartingPromise
     }
     if (!this.libraryStarted) {
+      if (!this.engine) {
+        await this.loadEngine()
+      }
       this.libraryStartingPromise = new Promise((resolve, reject) => {
         debug('library starting')
         this.engine
@@ -407,7 +410,7 @@ You may have to run ${chalk.greenBright(
           await new Promise((r) => setTimeout(r, 5))
           debug('library stopping')
           await this.engine?.disconnect()
-          this.engine = undefined
+          this.engine = null
           this.libraryStarted = false
           this.libraryStoppingPromise = undefined
           debug('library stopped')
