@@ -5,11 +5,6 @@ import {
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {
-  // TODO triggerPanic has not been implemented for Node-API: https://github.com/prisma/prisma/issues/7810
-  if (getClientEngineType() === ClientEngineType.Library) {
-    return
-  }
-
   expect.assertions(1)
 
   const PrismaClient = await getTestClient()
