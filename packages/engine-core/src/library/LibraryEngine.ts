@@ -410,7 +410,7 @@ You may have to run ${chalk.greenBright(
           await new Promise((r) => setTimeout(r, 5))
           debug('library stopping')
           await this.engine?.disconnect()
-          this.engine = null
+          this.engine = undefined
           this.libraryStarted = false
           this.libraryStoppingPromise = undefined
           debug('library stopped')
