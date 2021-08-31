@@ -175,48 +175,48 @@ describe('common/sqlite', () => {
     ).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toMatchInlineSnapshot(`
-          generator client {
-            provider = "prisma-client-js"
-            output   = "../generated/client"
-          }
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
 
-          datasource db {
-            provider = "sqlite"
-            url      = "file:dev.db"
-          }
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
 
-          model AwesomeUser {
-            email    String           @unique
-            id       Int              @id @default(autoincrement())
-            name     String?
-            newPosts AwesomeNewPost[]
-            profile  AwesomeProfile?
+model AwesomeUser {
+  email    String           @unique
+  id       Int              @id @default(autoincrement())
+  name     String?
+  newPosts AwesomeNewPost[]
+  profile  AwesomeProfile?
 
-            @@map("User")
-          }
+  @@map("User")
+}
 
-          model AwesomeNewPost {
-            authorId  Int
-            content   String?
-            createdAt DateTime    @default(now())
-            id        Int         @id @default(autoincrement())
-            published Boolean     @default(false)
-            title     String
-            author    AwesomeUser @relation(fields: [authorId], references: [id])
+model AwesomeNewPost {
+  authorId  Int
+  content   String?
+  createdAt DateTime    @default(now())
+  id        Int         @id @default(autoincrement())
+  published Boolean     @default(false)
+  title     String
+  author    AwesomeUser @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-            @@map("Post")
-          }
+  @@map("Post")
+}
 
-          model AwesomeProfile {
-            bio    String?
-            id     Int         @id @default(autoincrement())
-            userId Int         @unique
-            user   AwesomeUser @relation(fields: [userId], references: [id])
+model AwesomeProfile {
+  bio    String?
+  id     Int         @id @default(autoincrement())
+  userId Int         @unique
+  user   AwesomeUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-            @@map("Profile")
-          }
+  @@map("Profile")
+}
 
-      `)
+`)
   })
 
   it('should succeed and keep changes to valid schema and output warnings when using --print', async () => {

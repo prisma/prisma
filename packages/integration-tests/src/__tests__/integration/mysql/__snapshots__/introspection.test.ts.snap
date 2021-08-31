@@ -796,7 +796,7 @@ model posts {
   id      BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   user_id BigInt @mysql.UnsignedBigInt
   title   String @mysql.VarChar(50)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 
   @@index([user_id], name: "user_id")
 }
@@ -875,7 +875,7 @@ model b {
   id  BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   one Int
   two Int
-  a   a      @relation(fields: [one, two], references: [one, two])
+  a   a      @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction)
 
   @@index([one, two], name: "one")
 }
@@ -1016,7 +1016,7 @@ model posts {
   id      BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   user_id BigInt @mysql.UnsignedBigInt
   title   String @mysql.VarChar(50)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 
   @@index([user_id], name: "user_id")
 }
