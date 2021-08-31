@@ -3,7 +3,7 @@
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:5432;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  url      = "sqlserver://localhost:5432;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
 }
 
 model jobs {
