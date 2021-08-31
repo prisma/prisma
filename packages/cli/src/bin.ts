@@ -206,7 +206,7 @@ async function main(): Promise<number> {
       // restrict the search to prisma-client-js and prisma-client-go previewFeatures
       const generator = config.generators.find((generator) => {
         return (
-          ['prisma-client-js', 'prisma-client-go'].includes(generator.name) &&
+          ['prisma-client-js'].includes(generator.name) &&
           generator.previewFeatures.length > 0
         )
       })
