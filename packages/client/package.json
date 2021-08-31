@@ -72,7 +72,7 @@
     "@types/jest": "27.0.1",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.8",
-    "@types/node": "12.20.20",
+    "@types/node": "12.20.21",
     "@types/pg": "8.6.1",
     "@typescript-eslint/eslint-plugin": "4.29.3",
     "@typescript-eslint/parser": "4.29.3",
