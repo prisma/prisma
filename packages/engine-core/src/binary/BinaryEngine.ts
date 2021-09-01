@@ -86,7 +86,7 @@ export class BinaryEngine extends Engine {
   private flags: string[]
   private port?: number
   private enableDebugLogs: boolean
-  private enableEngineDebugMode: boolean
+  private allowTriggerPanic: boolean
   private child?: ChildProcessByStdio<null, Readable, Readable>
   private clientVersion?: string
   private lastPanic?: Error
@@ -140,7 +140,7 @@ export class BinaryEngine extends Engine {
     previewFeatures,
     engineEndpoint,
     enableDebugLogs,
-    enableEngineDebugMode,
+    allowTriggerPanic,
     dirname,
     useUds,
     activeProvider,
@@ -152,7 +152,7 @@ export class BinaryEngine extends Engine {
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
-    this.enableEngineDebugMode = enableEngineDebugMode ?? false
+    this.allowTriggerPanic = allowTriggerPanic ?? false
     this.datamodelPath = datamodelPath
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
@@ -607,9 +607,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const prismaPath = await this.getPrismaPath()
 
-        const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
+        const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = [...debugFlag, '--enable-raw-queries', ...this.flags]
+        const flags = ['--enable-raw-queries', ...this.flags, ...additionalFlag]
 
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)
