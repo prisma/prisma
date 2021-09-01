@@ -98,7 +98,7 @@ export class LibraryEngine extends Engine {
     this.datasourceOverrides = config.datasources
       ? this.convertDatasources(config.datasources)
       : {}
-    if (config.enableEngineDebugMode) {
+    if (config.enableDebugLogs) {
       this.logLevel = 'debug'
       // Debug.enable('*')
     }
