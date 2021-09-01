@@ -384,6 +384,19 @@ const dmmf: DMMF.Document = {
               inputTypes: [
                 {
                   isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserOrderByWithRelationInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'author',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
                   location: 'enumTypes',
                   namespace: 'prisma',
                   type: 'SortOrder',
@@ -420,7 +433,7 @@ const dmmf: DMMF.Document = {
               name: 'published',
             },
           ],
-          name: 'PostOrderByInput',
+          name: 'PostOrderByWithRelationInput',
         },
         {
           constraints: {
@@ -442,6 +455,132 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 0,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCountOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostAvgOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_avg',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostMaxOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostMinOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostSumOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_sum',
+            },
+          ],
+          name: 'PostOrderByWithAggregationInput',
         },
         {
           constraints: {
@@ -716,8 +855,21 @@ const dmmf: DMMF.Document = {
               isRequired: false,
               name: 'email',
             },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostOrderByRelationAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'posts',
+            },
           ],
-          name: 'UserOrderByInput',
+          name: 'UserOrderByWithRelationInput',
         },
         {
           constraints: {
@@ -751,6 +903,106 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'UserWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 0,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCountOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserAvgOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_avg',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserMaxOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserMinOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserSumOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_sum',
+            },
+          ],
+          name: 'UserOrderByWithAggregationInput',
         },
         {
           constraints: {
@@ -1903,6 +2155,259 @@ const dmmf: DMMF.Document = {
         },
         {
           constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostCountOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+          ],
+          name: 'PostAvgOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostMaxOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostMinOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+          ],
+          name: 'PostSumOrderByAggregateInput',
+        },
+        {
+          constraints: {
             maxNumFields: null,
             minNumFields: null,
           },
@@ -2599,6 +3104,195 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostListRelationFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_count',
+            },
+            {
+              deprecation: {
+                reason:
+                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
+                sinceVersion: '2.23',
+              },
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'count',
+            },
+          ],
+          name: 'PostOrderByRelationAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserCountOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+          ],
+          name: 'UserAvgOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserMaxOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserMinOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+          ],
+          name: 'UserSumOrderByAggregateInput',
         },
         {
           constraints: {
@@ -5487,13 +6181,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5560,6 +6254,17 @@ const dmmf: DMMF.Document = {
                 type: 'Post',
               },
             },
+            {
+              args: [],
+              isNullable: true,
+              name: '_count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserCountOutputType',
+              },
+            },
           ],
           name: 'User',
         },
@@ -5588,13 +6293,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5682,13 +6387,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5776,13 +6481,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5857,13 +6562,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithAggregationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithAggregationInput',
                     },
                   ],
                   isNullable: false,
@@ -5982,13 +6687,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -6076,13 +6781,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -6170,13 +6875,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -6251,13 +6956,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithAggregationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithAggregationInput',
                     },
                   ],
                   isNullable: false,
@@ -7640,6 +8345,21 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostMaxAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              name: 'posts',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'UserCountOutputType',
         },
         {
           fields: [
