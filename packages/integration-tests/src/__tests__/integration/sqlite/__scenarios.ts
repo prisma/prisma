@@ -1430,7 +1430,7 @@ export const scenarios = [
       `,
     do: (client) => {
       return client.variables.findUnique({
-        where: { sqlite_autoindex_variables_1: { key: 'b', name: 'a' } },
+        where: { name_key: { key: 'b', name: 'a' } },
       })
     },
     expect: {
@@ -1456,7 +1456,7 @@ export const scenarios = [
       `,
     do: (client) => {
       return client.variables.findUnique({
-        where: { sqlite_autoindex_variables_2: { value: 'c', email: 'd' } },
+        where: { value_email: { value: 'c', email: 'd' } },
       })
     },
     expect: {

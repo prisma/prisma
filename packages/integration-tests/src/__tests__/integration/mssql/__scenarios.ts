@@ -25,8 +25,8 @@ export const scenarios = [
     up: `
         create table teams (
           id int CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
-          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique,
-          email varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
+          name varchar(32) not null CONSTRAINT UQ__teams__name__CustomNameToAvoidRandomNumber unique,
+          email varchar(32) not null CONSTRAINT UQ__teams__email__CustomNameToAvoidRandomNumber unique
         );
         insert into teams (id, name, email) values (1, 'a', 'a@a');
         insert into teams (id, name, email) values (2, 'b', 'b@b');
@@ -292,7 +292,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.findUnique({
         where: {
-          u_const: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
       })
     },
@@ -316,7 +316,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.update({
         where: {
-          u_const: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
         data: { name: 'Marco' },
       })
@@ -341,7 +341,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.delete({
         where: {
-          u_const: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
       })
     },
@@ -1249,7 +1249,7 @@ export const scenarios = [
         );
 
         insert into exercises (distance) values (12.213);
-        insert into exercises CONSTRAINT DF__exercises__active__CustomNameToAvoidRandomNumber default values;
+        insert into exercises default values;
       `,
     do: (client) => {
       return client.exercises.findUnique({ where: { distance: 12.3 } })
@@ -1413,7 +1413,7 @@ export const scenarios = [
       `,
     do: (client) => {
       return client.variables.findUnique({
-        where: { u_const: { key: 'b', name: 'a' } },
+        where: { name_key: { key: 'b', name: 'a' } },
       })
     },
     expect: {
@@ -1439,7 +1439,7 @@ export const scenarios = [
       `,
     do: (client) => {
       return client.variables.findUnique({
-        where: { u_const: { value: 'c', email: 'd' } },
+        where: { value_email: { value: 'c', email: 'd' } },
       })
     },
     expect: {
