@@ -7,6 +7,7 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
+  logger,
   getConfig,
   getDMMF,
 } from '@prisma/sdk'
@@ -35,7 +36,11 @@ import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
-import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
+import {
+  executeSeedCommand,
+  verifySeedConfigAndReturnMessage,
+  getSeedCommandFromPackageJson,
+} from '../utils/seed'
 import { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:dev')
@@ -140,6 +145,7 @@ ${chalk.bold('Examples')}
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
     if (wasDbCreated) {
       console.info(wasDbCreated)
+      console.info() // empty line
     }
 
     const migrate = new Migrate(schemaPath)
@@ -168,9 +174,9 @@ ${chalk.bold('Examples')}
           dbInfo,
           devDiagnostic.action.reason,
         )
-        console.info() // empty line
 
         if (!confirmedReset) {
+          console.info() // empty line
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
@@ -216,10 +222,35 @@ ${chalk.bold('Examples')}
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution
       try {
-        const detected = detectSeedFiles(schemaPath)
-        if (detected.numberOfSeedFiles > 0) {
+        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
+          process.cwd(),
+        )
+
+        if (seedCommandFromPkgJson) {
           console.info() // empty line
-          await tryToRunSeed(schemaPath)
+          const successfulSeeding = await executeSeedCommand(
+            seedCommandFromPkgJson,
+          )
+          if (successfulSeeding) {
+            console.info(
+              `\n${
+                process.platform === 'win32' ? '' : '🌱  '
+              }The seed command has been executed.\n`,
+            )
+          } else {
+            console.info() // empty line
+          }
+        } else {
+          // Only used to help users to setup their seeds from old way to new package.json config
+          const schemaPath = await getSchemaPath(args['--schema'])
+
+          const message = await verifySeedConfigAndReturnMessage(schemaPath)
+          // warn because setup of the feature needs to be done
+          if (message) {
+            console.warn() // empty line
+            logger.warn(message)
+            console.warn() // empty line
+          }
         }
       } catch (e) {
         console.error(e)
