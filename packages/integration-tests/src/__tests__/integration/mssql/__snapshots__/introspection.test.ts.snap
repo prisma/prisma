@@ -711,6 +711,27 @@ model users {
 
 exports[`introspection: findUnique where PK with include: warnings 1`] = `Array []`;
 
+exports[`introspection: findUnique where PK with select: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlserver {
+  provider = "sqlserver"
+  url = "***"
+}
+
+model teams {
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber")
+  name  String @unique(map: "UQ__teams__name__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  email String @unique(map: "UQ__teams__email__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+}
+
+`;
+
+exports[`introspection: findUnique where PK with select: warnings 1`] = `Array []`;
+
 exports[`introspection: findUnique where PK: datamodel 1`] = `
 generator client {
   provider = "prisma-client-js"
@@ -807,6 +828,26 @@ model users {
 `;
 
 exports[`introspection: findUnique where composite unique: warnings 1`] = `Array []`;
+
+exports[`introspection: findUnique where decimal - default value: datamodel 1`] = `
+generator client {
+  provider = "prisma-client-js"
+  output = "***"
+}
+
+datasource sqlserver {
+  provider = "sqlserver"
+  url = "***"
+}
+
+model exercises {
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  distance Decimal @unique(map: "UQ__exercises_CustomNameToAvoidRandomNumber") @default(12.3, map: "DF__exercises__active__CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
+}
+
+`;
+
+exports[`introspection: findUnique where decimal - default value: warnings 1`] = `Array []`;
 
 exports[`introspection: findUnique where decimal: datamodel 1`] = `
 generator client {
