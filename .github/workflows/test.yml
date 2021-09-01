@@ -108,7 +108,7 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 60
+    timeout-minutes: 20
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -220,7 +220,7 @@ jobs:
   # INTEGRATION-TESTS
   #
   integration-tests:
-    timeout-minutes: 60
+    timeout-minutes: 20
     runs-on: ubuntu-20.04
 
     needs: detect_jobs_to_run
