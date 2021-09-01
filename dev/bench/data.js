@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1630495478478,
+  "lastUpdate": 1630499336280,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -51720,6 +51720,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.08,
             "range": "±2.10%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 7.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 44,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "011c8ae75e17ae7dae8149cd343e52b40ec398b3",
+          "message": "feat(*): `namedConstraints` GA (#9032)\n\n* choire: force push, restart bump from main\n\n* test(sdk): update introspection schema snapshot\n\n* test(sdk): update db pull snapshot + name sql server PK\n\n* test(integration-tests): update sqlite introspected schema snapshots\n\n* test(integration-tests): name constraints for sql server\n\n* test(integration-tests): update mysql introspected schema snapshots\n\n* test(integration-tests): update mariadb introspected schema snapshots\n\n* test(db pull): update snapshot\n\n* test(integrations-tests): use default name for constraint for client\n\n* test(integration-test): update introspection snapshot for postgresql\n\n* test(integrations-tests): use default name for constraint for client for mysql\n\nCo-authored-by: Joël <joel.galeran@gmail.com>",
+          "timestamp": "2021-09-01T12:24:57Z",
+          "tree_id": "5dab065df5642938b8cda99a49bc7f8099d745b1",
+          "url": "https://github.com/prisma/prisma/commit/011c8ae75e17ae7dae8149cd343e52b40ec398b3"
+        },
+        "date": 1630499333295,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.44,
+            "range": "±6.39%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.09,
+            "range": "±2.92%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
