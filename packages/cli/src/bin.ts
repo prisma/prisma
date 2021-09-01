@@ -204,12 +204,8 @@ async function main(): Promise<number> {
       }
 
       // restrict the search to prisma-client-js previewFeatures
-      const generator = config.generators.find((generator) => {
-        return (
-          generator.name === 'prisma-client-js' &&
-          generator.previewFeatures.length > 0
-        )
-      })
+	  // this was not scoped to `prisma-client-js` before Prisma 3.0
+      const generator = config.generators.find((generator) => generator.name === 'prisma-client-js' && generator.previewFeatures.length > 0)
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
