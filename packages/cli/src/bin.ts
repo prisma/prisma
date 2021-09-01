@@ -203,9 +203,13 @@ async function main(): Promise<number> {
         schemaProvider = config.datasources[0].provider
       }
 
-      // restrict the search to previewFeatures of `provider = 'prisma-client-js'` 
+      // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
       // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-      const generator = config.generators.find((generator) => generator.provider === 'prisma-client-js' && generator.previewFeatures.length > 0)
+      const generator = config.generators.find(
+        (generator) =>
+          parseEnvValue(generator.provider) === 'prisma-client-js' &&
+          generator.previewFeatures.length > 0,
+      )
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
