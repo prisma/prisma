@@ -842,7 +842,7 @@ datasource sqlserver {
 
 model exercises {
   id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
-  distance Decimal @unique(map: "UQ__exercise__0FC61E6DDE1736F5") @default(12.3, map: "DF__exercises__active__CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
+  distance Decimal @unique(map: "UQ__exercises_CustomNameToAvoidRandomNumber") @default(12.3, map: "DF__exercises__active__CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
 }
 
 `;

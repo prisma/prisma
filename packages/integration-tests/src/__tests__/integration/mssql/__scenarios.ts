@@ -1245,7 +1245,7 @@ export const scenarios = [
     up: `
         create table exercises (
           id int identity CONSTRAINT PK__exercises__CustomNameToAvoidRandomNumber primary key not null,
-          distance decimal(5, 3) not null unique CONSTRAINT DF__exercises__active__CustomNameToAvoidRandomNumber default (12.3)
+          distance decimal(5, 3) not null CONSTRAINT UQ__exercises_CustomNameToAvoidRandomNumber unique CONSTRAINT DF__exercises__active__CustomNameToAvoidRandomNumber default (12.3)
         );
 
         insert into exercises (distance) values (12.213);
