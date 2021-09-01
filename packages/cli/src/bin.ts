@@ -198,15 +198,18 @@ async function main(): Promise<number> {
         datamodel: schema,
         ignoreEnvVarErrors: true,
       })
+
       if (config.datasources.length > 0) {
         schemaProvider = config.datasources[0].provider
       }
-      const generator = config.generators.find(
-        (gen) => gen.previewFeatures.length > 0,
-      )
+
+      // restrict the search to prisma-client-js previewFeatures
+	  // this was not scoped to `prisma-client-js` before Prisma 3.0
+      const generator = config.generators.find((generator) => generator.name === 'prisma-client-js' && generator.previewFeatures.length > 0)
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
+
       // Example 'prisma-client-js'
       schemaGeneratorsProviders = config.generators.map((gen) =>
         parseEnvValue(gen.provider),

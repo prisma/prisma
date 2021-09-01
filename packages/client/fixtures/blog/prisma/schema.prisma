@@ -4,8 +4,7 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["selectRelationCount"]
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
