@@ -198,6 +198,9 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     groupBy: getMessage('groupBy'),
     referentialActions: getMessage('referentialActions'),
     microsoftSqlServer: getMessage('microsoftSqlServer'),
+    selectRelationCount: getMessage('selectRelationCount'),
+    orderByRelation: getMessage('orderByRelation'),
+    orderByAggregateGroup: getMessage('orderByAggregateGroup'),
   }
 
   previewFeatures?.forEach((f) => {
