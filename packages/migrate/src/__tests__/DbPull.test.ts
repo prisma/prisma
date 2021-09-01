@@ -284,18 +284,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            P4001 The introspected database was empty: 
+P4001 The introspected database was empty: 
 
-                                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-            To fix this, you have two options:
+To fix this, you have two options:
 
-            - manually create a table in your database (using SQL).
-            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+- manually create a table in your database (using SQL).
+- make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                                Then you can run prisma db pull again. 
+Then you can run prisma db pull again. 
 
-          `)
+`)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -318,18 +318,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            P4001 The introspected database was empty: 
+P4001 The introspected database was empty: 
 
-                                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-            To fix this, you have two options:
+To fix this, you have two options:
 
-            - manually create a table in your database (using SQL).
-            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+- manually create a table in your database (using SQL).
+- make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                                Then you can run prisma db pull again. 
+Then you can run prisma db pull again. 
 
-          `)
+`)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -368,12 +368,12 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            P1012 Introspection failed as your current Prisma schema file is invalid
+P1012 Introspection failed as your current Prisma schema file is invalid
 
-                      Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-            Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
-          `)
+`)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
