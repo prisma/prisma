@@ -28,7 +28,7 @@ model Post {
   published Boolean  @default(false)
   title     String   @default(\\"\\")
   updatedAt DateTime @default(dbgenerated(\\"'1970-01-01 00:00:00'\\"))
-  uuid      String   @id @unique
+  uuid      String   @id @unique(map: \\"Post.uuid\\")
   User      User     @relation(fields: [author], references: [id], onUpdate: NoAction)
 }
 
@@ -36,8 +36,8 @@ model User {
   age     Int     @default(0)
   amount  Float   @default(0)
   balance Float   @default(0)
-  email   String  @unique @default(\\"\\")
-  id      Int     @id @unique @default(autoincrement())
+  email   String  @unique(map: \\"User.email\\") @default(\\"\\")
+  id      Int     @id @unique(map: \\"User.id\\") @default(autoincrement())
   name    String?
   role    String  @default(\\"USER\\")
   Post    Post[]

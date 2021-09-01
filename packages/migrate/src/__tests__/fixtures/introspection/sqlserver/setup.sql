@@ -5,5 +5,5 @@ CREATE TABLE [dbo].[jobs] (
     [customer_id] int,
     [description] varchar(200),
     [created_at] datetime2(7),
-    PRIMARY KEY ([job_id])
+    CONSTRAINT PK__jobs__CustomNameToAvoidRandomNumber PRIMARY KEY ([job_id])
 );

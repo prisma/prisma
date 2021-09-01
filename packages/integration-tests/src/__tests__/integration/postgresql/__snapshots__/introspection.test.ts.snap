@@ -99,7 +99,7 @@ model users {
   email String
   name  String
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -1076,7 +1076,7 @@ model users {
   email String
   name  String
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -1141,7 +1141,7 @@ model variables {
   email String
 
   @@id([name, key])
-  @@unique([value, email], name: "variables_value_email_key")
+  @@unique([value, email])
 }
 
 `;
@@ -1166,7 +1166,7 @@ model variables {
   value String
   email String
 
-  @@unique([name, key], name: "variables_name_key_key")
+  @@unique([name, key])
 }
 
 `;
@@ -1261,7 +1261,7 @@ model users {
   email String
   name  String
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
