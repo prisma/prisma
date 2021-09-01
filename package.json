@@ -2,7 +2,7 @@
   "private": true,
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.2"
+    "node": ">=12.6"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
