@@ -203,16 +203,16 @@ async function main(): Promise<number> {
         schemaProvider = config.datasources[0].provider
       }
 
-      // restrict the search to prisma-client-js previewFeatures
-	  // this was not scoped to `prisma-client-js` before Prisma 3.0
-      const generator = config.generators.find((generator) => generator.name === 'prisma-client-js' && generator.previewFeatures.length > 0)
+      // restrict the search to previewFeatures of `provider = 'prisma-client-js'` 
+      // (this was not scoped to `prisma-client-js` before Prisma 3.0)
+      const generator = config.generators.find((generator) => generator.provider === 'prisma-client-js' && generator.previewFeatures.length > 0)
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
 
       // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((gen) =>
-        parseEnvValue(gen.provider),
+      schemaGeneratorsProviders = config.generators.map((generator) =>
+        parseEnvValue(generator.provider),
       )
     } catch (e) {
       debug('Error from cli/src/bin.ts')
