@@ -10,30 +10,47 @@ export function printUpdateMessage(checkResult: {
 }): void {
   let boxHeight = 4
   let majorText = ''
-  if (checkResult.data.previous_version.split('.')[0] < checkResult.data.current_version.split('.')[0]) {
-    majorText = `\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
-    boxHeight = boxHeight + 4
-  }
-  let boxText = `\n${chalk.blue('Update available')} ${
-    checkResult.data.previous_version
-  } -> ${checkResult.data.current_version}\n${majorText}Run the following to update
-${chalk.bold(
-makeInstallCommand(checkResult.data.package, checkResult.data.release_tag),
-)}
-${chalk.bold(
-makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
-  canBeGlobal: false,
-  canBeDev: false,
-}),
-)}`
-  console.error(
-    drawBox({
-      height: boxHeight,
-      width: 59,
-      str: boxText,
-      horizontalPadding: 2,
-    }),
+
+  const currentVersionInstalled = checkResult.data.previous_version
+  const latestVersionAvailable = checkResult.data.current_version
+
+  const prismaCLICommand = makeInstallCommand(
+    checkResult.data.package,
+    checkResult.data.release_tag,
   )
+  const prismaClientCommand = makeInstallCommand(
+    '@prisma/client',
+    checkResult.data.release_tag,
+    {
+      canBeGlobal: false,
+      canBeDev: false,
+    },
+  )
+
+  try {
+    const [majorInstalled] = currentVersionInstalled.split('.')
+    const [majorLatest] = latestVersionAvailable.split('.')
+
+    if (majorInstalled < majorLatest) {
+      majorText = `\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
+      boxHeight = boxHeight + 4
+    }
+  } catch (e) { }
+
+  const boxText = `\n${chalk.blue(
+    'Update available',
+  )} ${currentVersionInstalled} -> ${latestVersionAvailable}\n${majorText}Run the following to update
+${chalk.bold(prismaCLICommand)}
+${chalk.bold(prismaClientCommand)}`
+
+  const boxedMessage = drawBox({
+    height: boxHeight,
+    width: 59,
+    str: boxText,
+    horizontalPadding: 2,
+  })
+
+  console.error(boxedMessage)
 }
 
 function makeInstallCommand(
@@ -63,7 +80,10 @@ function makeInstallCommand(
   } else {
     command = `npm i ${packageName}`
   }
+
   // always output tag (so major upgrades work)
+  // see https://www.npmjs.com/package/prisma?activeTab=versions
+  // could be latest, dev, patch-dev, integration
   command += `@${tag}`
 
   return command
