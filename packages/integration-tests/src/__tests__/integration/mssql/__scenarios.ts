@@ -50,9 +50,11 @@ export const scenarios = [
         );
         create table posts (
           id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
-          user_id int not null references users (id) on update cascade,
-          title varchar(32) not null
+          user_id int not null,
+          title varchar(32) not null,
+          CONSTRAINT FK_UserId FOREIGN KEY (user_id) REFERENCES users(id) on update cascade
         );
+        
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
         insert into posts ("user_id", "title") values (1, 'A');
@@ -427,8 +429,9 @@ export const scenarios = [
         );
         create table posts (
           id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
-          user_id int not null references users (id) on update cascade,
-          title varchar(32) not null
+          user_id int not null,
+          title varchar(32) not null,
+          CONSTRAINT FK_UserId FOREIGN KEY (user_id) REFERENCES users(id) on update cascade
         );
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
@@ -1461,7 +1464,7 @@ export const scenarios = [
             id int identity CONSTRAINT PK__b__CustomNameToAvoidRandomNumber primary key not null,
             one integer not null,
             two integer not null,
-            foreign key ("one", "two") references a ("one", "two")
+            CONSTRAINT FK_OneTwo foreign key ("one", "two") references a ("one", "two")
           );
           insert into a ("one", "two") values (1, 2);
           insert into b ("one", "two") values (1, 2);
