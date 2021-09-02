@@ -31,7 +31,6 @@ export function printUpdateMessage(checkResult: {
 
 export function makeUninstallCommand(
   packageName: string,
-  tag: string,
   options = {
     canBeGlobal: true,
     canBeDev: true,
@@ -56,9 +55,6 @@ export function makeUninstallCommand(
   } else {
     command = `npm remove ${packageName}`
   }
-  if (tag && tag !== 'latest') {
-    command += `@${tag}`
-  }
 
   return command
 }
@@ -72,7 +68,6 @@ export function printPrismaCliUpdateWarning() {
   )} package has been renamed to ${chalk.bold('prisma')}.
 Please uninstall ${chalk.bold('@prisma/cli')}: ${makeUninstallCommand(
     '@prisma/cli',
-    'latest',
     {
       canBeGlobal: true,
       canBeDev: false,
