@@ -184,7 +184,7 @@ export async function getPackages(): Promise<RawPackages> {
       acc[p.packageJson.name] = p
     }
     return acc
-  }, { })
+  }, {})
 }
 
 interface Package {
@@ -221,7 +221,7 @@ export function getPackageDependencies(packages: RawPackages): Packages {
       }
       return acc
     },
-    { },
+    {},
   )
 
   for (const pkg of Object.values(packageCache)) {
@@ -282,7 +282,7 @@ async function getNewPackageVersions(
       }
       return acc
     },
-    { },
+    {},
   )
 }
 
@@ -292,7 +292,7 @@ export function getPublishOrder(packages: Packages): string[][] {
       acc[curr.name] = [...curr.usedBy, ...curr.usedByDev]
       return acc
     },
-    { },
+    {},
   )
 
   return topo(dag)
@@ -421,7 +421,7 @@ async function getNewPatchDevVersion(
 }
 
 function getMaxDevVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -436,7 +436,7 @@ function getMaxDevVersionIncrement(versions: string[]): number {
 }
 
 function getMaxIntegrationVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-integration.*\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-integration.*\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -453,7 +453,7 @@ function getMaxIntegrationVersionIncrement(versions: string[]): number {
 
 // TODO: Adjust this for stable releases
 function getMaxPatchVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -856,7 +856,7 @@ async function testPackages(
   packages: Packages,
   publishOrder: string[][],
 ): Promise<void> {
-  let order = flatten(publishOrder)
+  const order = flatten(publishOrder)
 
   // If parallelism is set in build-kite we split the testing
   //  Job 0 - Node-API Library
@@ -925,8 +925,9 @@ const semverRegex =
 function patchVersion(version: string) {
   const match = semverRegex.exec(version)
   if (match?.groups) {
-    return `${match.groups.major}.${match.groups.minor}.${Number(match.groups.patch) + 1
-      }`
+    return `${match.groups.major}.${match.groups.minor}.${
+      Number(match.groups.patch) + 1
+    }`
   }
 
   return undefined
@@ -935,8 +936,9 @@ function patchVersion(version: string) {
 function increaseMinor(version: string) {
   const match = semverRegex.exec(version)
   if (match?.groups) {
-    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${match.groups.patch
-      }`
+    return `${match.groups.major}.${Number(match.groups.minor) + 1}.${
+      match.groups.patch
+    }`
   }
 
   return undefined
@@ -997,8 +999,8 @@ async function publishPackages(
   const publishStr = dryRun
     ? `${chalk.bold('Dry publish')} `
     : releaseVersion
-      ? 'Releasing '
-      : 'Publishing '
+    ? 'Releasing '
+    : 'Publishing '
 
   if (releaseVersion) {
     console.log(
@@ -1116,7 +1118,7 @@ async function publishPackages(
 
       const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
-        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+        await run(pkgDir, ``, dryRun)
       }
     }
   }
@@ -1229,7 +1231,8 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   const packageJson = JSON.parse(file)
   if (dryRun) {
     console.log(
-      `Would update ${pkgJsonPath} from ${packageJson.version
+      `Would update ${pkgJsonPath} from ${
+        packageJson.version
       } to ${version} now ${chalk.dim('(dry)')}`,
     )
   } else {
@@ -1258,7 +1261,7 @@ async function getPrismaBranch(): Promise<string | undefined> {
       '.',
       'git rev-parse --symbolic-full-name --abbrev-ref HEAD',
     )
-  } catch (e) { }
+  } catch (e) {}
 
   return undefined
 }
@@ -1321,15 +1324,19 @@ async function sendSlackMessage({
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
 What's shipped:
 \`prisma/prisma\`
-<https://github.com/prisma/prisma/commit/${prismaCommit.hash}|${prismaLines[0]
+<https://github.com/prisma/prisma/commit/${prismaCommit.hash}|${
+      prismaLines[0]
     }\t\t\t\t-  ${prismaCommit.hash.slice(0, 7)}>
-${prismaLines.slice(1).join('\n')}${prismaLines.length > 1 ? '\n' : ''
+${prismaLines.slice(1).join('\n')}${
+      prismaLines.length > 1 ? '\n' : ''
     }Authored by ${prismaCommit.author}
 
 \`prisma/prisma-engines\`
-<https://github.com/prisma/prisma-engines/commit/${enginesCommit.hash}|${enginesLines[0]
+<https://github.com/prisma/prisma-engines/commit/${enginesCommit.hash}|${
+      enginesLines[0]
     }\t\t\t\t-  ${enginesCommit.hash.slice(0, 7)}>
-${enginesLines.slice(1).join('\n')}${enginesLines.length > 1 ? '\n' : ''
+${enginesLines.slice(1).join('\n')}${
+      enginesLines.length > 1 ? '\n' : ''
     }Authored by ${enginesCommit.author}`,
   )
 }
