@@ -35,13 +35,13 @@ export function printUpdateMessage(checkResult: {
       majorText = `\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
       boxHeight = boxHeight + 4
     }
-  } catch (e) { }
+  } catch (e) {}
 
   const boxText = `\n${chalk.blue(
     'Update available',
   )} ${currentVersionInstalled} -> ${latestVersionAvailable}\n${majorText}Run the following to update
-${chalk.bold(prismaCLICommand)}
-${chalk.bold(prismaClientCommand)}`
+  ${chalk.bold(prismaCLICommand)}
+  ${chalk.bold(prismaClientCommand)}`
 
   const boxedMessage = drawBox({
     height: boxHeight,

@@ -8,8 +8,8 @@ exports[`update available message dev tag - major 1`] = `
 │  https://pris.ly/d/major-version-upgrade                │
 │                                                         │
 │  Run the following to update                            │
-│  npm i --save-dev prisma@dev                            │
-│  npm i @prisma/client@dev                               │
+│    npm i --save-dev prisma@dev                          │
+│    npm i @prisma/client@dev                             │
 └─────────────────────────────────────────────────────────┘
 `;
 
@@ -17,8 +17,8 @@ exports[`update available message dev tag - minor 1`] = `
 ┌─────────────────────────────────────────────────────────┐
 │  Update available 2.6.1 -> 2.16.0                       │
 │  Run the following to update                            │
-│  npm i --save-dev prisma@dev                            │
-│  npm i @prisma/client@dev                               │
+│    npm i --save-dev prisma@dev                          │
+│    npm i @prisma/client@dev                             │
 └─────────────────────────────────────────────────────────┘
 `;
 
@@ -30,8 +30,8 @@ exports[`update available message latest tag - major 1`] = `
 │  https://pris.ly/d/major-version-upgrade                │
 │                                                         │
 │  Run the following to update                            │
-│  npm i --save-dev prisma@latest                         │
-│  npm i @prisma/client@latest                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
 └─────────────────────────────────────────────────────────┘
 `;
 
@@ -39,7 +39,7 @@ exports[`update available message latest tag - minor 1`] = `
 ┌─────────────────────────────────────────────────────────┐
 │  Update available 2.6.1 -> 2.16.0                       │
 │  Run the following to update                            │
-│  npm i --save-dev prisma@latest                         │
-│  npm i @prisma/client@latest                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
 └─────────────────────────────────────────────────────────┘
 `;
