@@ -698,7 +698,7 @@ model posts {
   id      Int    @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   user_id Int
   title   String @sqlserver.VarChar(32)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], map: "FK_UserId")
 }
 
 model users {
@@ -775,7 +775,7 @@ model b {
   id  Int @id(map: "PK__b__CustomNameToAvoidRandomNumber") @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two], onUpdate: NoAction)
+  a   a   @relation(fields: [one, two], references: [one, two], onUpdate: NoAction, map: "FK_OneTwo")
 }
 
 `;
@@ -934,7 +934,7 @@ model posts {
   id      Int    @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   user_id Int
   title   String @sqlserver.VarChar(32)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], map: "FK_UserId")
 }
 
 model users {
