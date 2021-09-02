@@ -11,7 +11,7 @@ export function printUpdateMessage(checkResult: {
   let boxHeight = 4
   let majorText = ''
   if (checkResult.data.previous_version.split('.')[0] < checkResult.data.current_version.split('.')[0]) {
-    majorText = `\nThis is a major update - please the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
+    majorText = `\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
     boxHeight = boxHeight + 4
   }
   let boxText = `\n${chalk.blue('Update available')} ${
