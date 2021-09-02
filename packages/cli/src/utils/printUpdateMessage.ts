@@ -112,9 +112,7 @@ function makeInstallCommand(
   } else {
     command = `npm i ${packageName}`
   }
-  if (tag && tag !== 'latest') {
-    command += `@${tag}`
-  }
+  command += `@${tag}`
 
   return command
 }
