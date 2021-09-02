@@ -33,7 +33,7 @@ export async function verifySeedConfigAndReturnMessage(
   // If new "seed" config is not set, help user to set it
   const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
 
-  // TODO link to docs
+  // TODO link to docs <-
   let message = `${chalk.red(
     'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
   )}
