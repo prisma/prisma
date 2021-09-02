@@ -36,62 +36,6 @@ makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
   )
 }
 
-export function makeUninstallCommand(
-  packageName: string,
-  options = {
-    canBeGlobal: true,
-    canBeDev: true,
-  },
-): string {
-  // Examples
-  // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
-  // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
-  const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
-
-  let command = ''
-  if (isPrismaInstalledGlobally === 'yarn' && options.canBeGlobal) {
-    command = `yarn global remove ${packageName}`
-  } else if (isPrismaInstalledGlobally === 'npm' && options.canBeGlobal) {
-    command = `npm remove -g ${packageName}`
-  } else if (yarnUsed && options.canBeDev) {
-    command = `yarn remove ${packageName}`
-  } else if (options.canBeDev) {
-    command = `npm remove ${packageName}`
-  } else if (yarnUsed) {
-    command = `yarn remove ${packageName}`
-  } else {
-    command = `npm remove ${packageName}`
-  }
-
-  return command
-}
-
-/**
- * Users of `@prisma/cli` will be pointed to `prisma`
- */
-export function printPrismaCliUpdateWarning() {
-  logger.error(`${chalk.bold(
-    '@prisma/cli',
-  )} package has been renamed to ${chalk.bold('prisma')}.
-Please uninstall ${chalk.bold('@prisma/cli')}: ${makeUninstallCommand(
-    '@prisma/cli',
-    {
-      canBeGlobal: true,
-      canBeDev: false,
-    },
-  )}
-And install ${chalk.bold.greenBright('prisma')}: ${makeInstallCommand(
-    'prisma',
-    'latest',
-    {
-      canBeGlobal: true,
-      canBeDev: true,
-    },
-  )}\n`)
-
-  process.exit(1)
-}
-
 function makeInstallCommand(
   packageName: string,
   tag: string,
