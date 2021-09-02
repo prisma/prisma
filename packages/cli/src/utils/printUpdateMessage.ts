@@ -83,7 +83,7 @@ function makeInstallCommand(
 
   // always output tag (so major upgrades work)
   // see https://www.npmjs.com/package/prisma?activeTab=versions
-  // could be latest, dev, patch-dev, integration
+  // (can only be latest or dev via checkpoint-server)
   command += `@${tag}`
 
   return command
