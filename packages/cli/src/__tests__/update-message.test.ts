@@ -10,8 +10,8 @@ describe('update available message', () => {
       status: 'ok',
       // @ts-ignore
       data: {
-        previous_version: '2.6.1',
-        current_version: '2.16.0',
+        previous_version: '2.6.1-dev.18',
+        current_version: '2.16.0-dev.8',
         package: 'prisma',
         release_tag: 'dev',
       },
@@ -27,8 +27,8 @@ describe('update available message', () => {
       status: 'ok',
       // @ts-ignore
       data: {
-        previous_version: '2.6.1',
-        current_version: '3.0.1',
+        previous_version: '2.6.1-dev.18',
+        current_version: '3.0.1-dev.8',
         package: 'prisma',
         release_tag: 'dev',
       },
