@@ -73,7 +73,7 @@ async function getConfigNodeAPI(
     options.prismaPath,
   )
   await isNodeAPISupported()
-  debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
   try {
     const NodeAPIQueryEngineLibrary =
       load<NodeAPILibraryTypes.Library>(queryEnginePath)
