@@ -8,22 +8,29 @@ export function printUpdateMessage(checkResult: {
   status: 'ok'
   data: Check.Response
 }): void {
+  let boxHeight = 4
+  let majorText = ''
+  if (checkResult.data.previous_version.split('.')[0] < checkResult.data.current_version.split('.')[0]) {
+    majorText = `\nThis is a major update - please the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
+    boxHeight = boxHeight + 4
+  }
+  let boxText = `\n${chalk.blue('Update available')} ${
+    checkResult.data.previous_version
+  } -> ${checkResult.data.current_version}\n${majorText}Run the following to update
+${chalk.bold(
+makeInstallCommand(checkResult.data.package, checkResult.data.release_tag),
+)}
+${chalk.bold(
+makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
+  canBeGlobal: false,
+  canBeDev: false,
+}),
+)}`
   console.error(
     drawBox({
-      height: 4,
+      height: boxHeight,
       width: 59,
-      str: `\n${chalk.blue('Update available')} ${
-        checkResult.data.previous_version
-      } -> ${checkResult.data.current_version}\nRun the following to update
-  ${chalk.bold(
-    makeInstallCommand(checkResult.data.package, checkResult.data.release_tag),
-  )}
-  ${chalk.bold(
-    makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
-      canBeGlobal: false,
-      canBeDev: false,
-    }),
-  )}`,
+      str: boxText,
       horizontalPadding: 2,
     }),
   )
