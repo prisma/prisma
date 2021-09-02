@@ -119,6 +119,7 @@ function makeInstallCommand(
   } else {
     command = `npm i ${packageName}`
   }
+  // always output tag (so major upgrades work)
   command += `@${tag}`
 
   return command
