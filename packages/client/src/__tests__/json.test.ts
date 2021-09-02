@@ -74,7 +74,7 @@ describe('json', () => {
     expect(String(document)).toMatchSnapshot()
   })
 
-  test('should be able filter json null', () => {
+  test.skip('should be able filter json null', () => {
     const document = makeDocument({
       dmmf,
       select: {
