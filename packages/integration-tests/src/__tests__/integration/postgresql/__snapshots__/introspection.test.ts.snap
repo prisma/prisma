@@ -1029,7 +1029,7 @@ model b {
   id  Int @id @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction)
+  a   a   @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction, map: "b_one_fkey")
 }
 
 `;
