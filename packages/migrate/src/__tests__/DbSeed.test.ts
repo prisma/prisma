@@ -88,50 +88,6 @@ describe('seed - legacy', () => {
       await DbSeed.new().parse([])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-        To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
-
-        1. Open the package.json of your project
-        2. Add one of the following examples to your package.json:
-
-        TypeScript:
-        \`\`\`
-        "prisma": {
-          "seed": "ts-node ./prisma/seed.ts"
-        }
-        \`\`\`
-        And install the required dependencies by running:
-        npm i -D ts-node typescript @types/node
-
-        JavaScript:
-        \`\`\`
-        "prisma": {
-          "seed": "node ./prisma/seed.js"
-        }
-        \`\`\`
-
-        Bash:
-        \`\`\`
-        "prisma": {
-          "seed": "./prisma/seed.sh"
-        }
-        \`\`\`
-        And run \`chmod +x prisma/seed.sh\` to make it executable.
-      `)
-    }
-
-    expect(
-      ctx.mocked['console.info'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
-  })
-
-  it('more than one seed file', async () => {
-    ctx.fixture('seed-sqlite-legacy')
-
-    const result = DbSeed.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
 1. Open the package.json of your project
@@ -160,6 +116,36 @@ Bash:
 }
 \`\`\`
 And run \`chmod +x prisma/seed.sh\` to make it executable.
+More information in our documentation:
+https://pris.ly/d/seeding
+`)
+    }
+
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('more than one seed file', async () => {
+    ctx.fixture('seed-sqlite-legacy')
+
+    const result = DbSeed.new().parse([])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+
+1. Open the package.json of your project
+2. Add the following example to it:
+\`\`\`
+"prisma": {
+  "seed": "node prisma/seed.js"
+}
+\`\`\`
+
+More information in our documentation:
+https://pris.ly/d/seeding
 `)
 
     expect(
@@ -218,17 +204,19 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-            1. Open the package.json of your project
-            2. Add the following example to it:
-            \`\`\`
-            "prisma": {
-              "seed": "node custom-folder/seed.js"
-            }
-            \`\`\`
+1. Open the package.json of your project
+2. Add the following example to it:
+\`\`\`
+"prisma": {
+  "seed": "node custom-folder/seed.js"
+}
+\`\`\`
 
-          `)
+More information in our documentation:
+https://pris.ly/d/seeding
+`)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -242,20 +230,22 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-            1. Open the package.json of your project
-            2. Add the following example to it:
-            \`\`\`
-            "prisma": {
-              "seed": "ts-node prisma/seed.ts"
-            }
-            \`\`\`
+1. Open the package.json of your project
+2. Add the following example to it:
+\`\`\`
+"prisma": {
+  "seed": "ts-node prisma/seed.ts"
+}
+\`\`\`
 
-            3. Install the required dependencies by running:
-            npm i -D ts-node typescript @types/node
+3. Install the required dependencies by running:
+npm i -D ts-node typescript @types/node
 
-          `)
+More information in our documentation:
+https://pris.ly/d/seeding
+`)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

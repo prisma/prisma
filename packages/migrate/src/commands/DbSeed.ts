@@ -56,6 +56,9 @@ ${chalk.bold('Options')}
     if (args['--preview-feature']) {
       logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
 You can now remove the ${chalk.red('--preview-feature')} flag.`)
+
+      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+      await legacyTsNodeScriptWarning()
     }
 
     // Print warning if user is using --schema
@@ -66,9 +69,6 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
         ),
       )
     }
-
-    // Print warning if user has a "ts-node" script in their package.json, not supported anymore
-    await legacyTsNodeScriptWarning()
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
       process.cwd(),
