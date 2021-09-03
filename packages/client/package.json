@@ -61,10 +61,10 @@
   "devDependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.31.0-15.node-api-threadsafe-unref-ed19644b7b0883ce32a466850475a114911d8395",
-    "@prisma/fetch-engine": "2.31.0-15.node-api-threadsafe-unref-ed19644b7b0883ce32a466850475a114911d8395",
+    "@prisma/engines": "2.31.0-25.node-api-threadsafe-unref-1ca259332bad49e28dd3eda822c358a766b3ec08",
+    "@prisma/fetch-engine": "2.31.0-25.node-api-threadsafe-unref-1ca259332bad49e28dd3eda822c358a766b3ec08",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.31.0-15.node-api-threadsafe-unref-ed19644b7b0883ce32a466850475a114911d8395",
+    "@prisma/get-platform": "2.31.0-25.node-api-threadsafe-unref-1ca259332bad49e28dd3eda822c358a766b3ec08",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -128,7 +128,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.31.0-15.node-api-threadsafe-unref-ed19644b7b0883ce32a466850475a114911d8395"
+    "@prisma/engines-version": "2.31.0-25.node-api-threadsafe-unref-1ca259332bad49e28dd3eda822c358a766b3ec08"
   },
   "lint-staged": {
     "*.ts": [
