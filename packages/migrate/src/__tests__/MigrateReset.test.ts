@@ -281,6 +281,9 @@ describe('reset', () => {
 
   it('reset - legacy seed (no config in package.json)', async () => {
     ctx.fixture('seed-sqlite-legacy')
+    ctx.fs.remove('prisma/seed.js')
+    ctx.fs.remove('prisma/seed.ts')
+    // ctx.fs.remove('prisma/seed.sh')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
@@ -299,31 +302,15 @@ describe('reset', () => {
       prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
       1. Open the package.json of your project
-      2. Add one of the following examples to your package.json:
-
-      TypeScript:
+      2. Add the following example to it:
       \`\`\`
       "prisma": {
-        "seed": "ts-node ./prisma/seed.ts"
-      }
-      \`\`\`
-      And install the required dependencies by running:
-      npm i -D ts-node typescript @types/node
-
-      JavaScript:
-      \`\`\`
-      "prisma": {
-        "seed": "node ./prisma/seed.js"
-      }
-      \`\`\`
-
-      Bash:
-      \`\`\`
-      "prisma": {
-        "seed": "./prisma/seed.sh"
+        "seed": "prisma/seed.sh"
       }
       \`\`\`
       And run \`chmod +x prisma/seed.sh\` to make it executable.
+      More information in our documentation:
+      https://pris.ly/d/seeding
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),

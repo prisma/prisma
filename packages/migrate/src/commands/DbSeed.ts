@@ -4,12 +4,10 @@ import {
   format,
   HelpError,
   isError,
-  link,
   getSchemaPath,
   logger,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { PreviewFlagError } from '../utils/flagErrors'
 import {
   getSeedCommandFromPackageJson,
   executeSeedCommand,
@@ -25,23 +23,13 @@ export class DbSeed implements Command {
   private static help = format(`
 ${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Seed your database
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db seed is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db seed [options] --preview-feature
+  ${chalk.dim('$')} prisma db seed [options]
 
 ${chalk.bold('Options')}
 
-    -h, --help   Display this help message
+  -h, --help   Display this help message
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -65,8 +53,12 @@ ${chalk.bold('Options')}
       return this.help()
     }
 
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
+    if (args['--preview-feature']) {
+      logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
+
+      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+      await legacyTsNodeScriptWarning()
     }
 
     // Print warning if user is using --schema
@@ -77,9 +69,6 @@ ${chalk.bold('Options')}
         ),
       )
     }
-
-    // Print warning if user has a "ts-node" script in their package.json, not supported anymore
-    await legacyTsNodeScriptWarning()
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
       process.cwd(),
