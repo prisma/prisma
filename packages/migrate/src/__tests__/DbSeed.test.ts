@@ -11,8 +11,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                🌱  The seed command has been executed.
-                                                                                                                        `)
+                                                                                                                                                            🌱  The seed command has been executed.
+                                                                                                                                  `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -48,8 +48,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                        🌱  The seed command has been executed.
-                                                                                                                                            `)
+                                                                                                                                                                                    🌱  The seed command has been executed.
+                                                                                                                                                      `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
@@ -66,8 +66,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                        🌱  The seed command has been executed.
-                                                                                                                                            `)
+                                                                                                                                                                                    🌱  The seed command has been executed.
+                                                                                                                                                      `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
@@ -195,8 +195,8 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
     const result = DbSeed.new().parse(['--schema=./some-folder/schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                🌱  The seed command has been executed.
-                                                                                                                        `)
+                                                                                                                                                                                    🌱  The seed command has been executed.
+                                                                                                                                                      `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Running seed command \`node prisma/seed.js\` ...
@@ -235,36 +235,36 @@ And run \`chmod +x prisma/seed.sh\` to make it executable.
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
-})
 
-it('custom ts-node should warn', async () => {
-  ctx.fixture('seed-sqlite-legacy-custom-ts-node')
+  it('custom ts-node should warn', async () => {
+    ctx.fixture('seed-sqlite-legacy-custom-ts-node')
 
-  const result = DbSeed.new().parse([])
-  await expect(result).rejects.toMatchInlineSnapshot(`
-          To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+    const result = DbSeed.new().parse([])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-          1. Open the package.json of your project
-          2. Add the following example to it:
-          \`\`\`
-          "prisma": {
-            "seed": "ts-node prisma/seed.ts"
-          }
-          \`\`\`
+            1. Open the package.json of your project
+            2. Add the following example to it:
+            \`\`\`
+            "prisma": {
+              "seed": "ts-node prisma/seed.ts"
+            }
+            \`\`\`
 
-          3. Install the required dependencies by running:
-          npm i -D ts-node typescript @types/node
+            3. Install the required dependencies by running:
+            npm i -D ts-node typescript @types/node
 
-        `)
-  expect(
-    ctx.mocked['console.info'].mock.calls.join('\n'),
-  ).toMatchInlineSnapshot(``)
-  expect(
-    ctx.mocked['console.warn'].mock.calls.join('\n'),
-  ).toMatchInlineSnapshot(
-    `prisma:warn The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`,
-  )
-  expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
-    ``,
-  )
+          `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.warn'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(
+      `prisma:warn The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`,
+    )
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(
+      ``,
+    )
+  })
 })
