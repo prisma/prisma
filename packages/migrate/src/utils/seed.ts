@@ -40,7 +40,7 @@ export async function verifySeedConfigAndReturnMessage(
 1. Open the package.json of your project
 `
 
-  if (detected.numberOfSeedFiles > 0) {
+  if (detected.numberOfSeedFiles) {
     // Print warning if user has a "ts-node" script in their package.json, not supported anymore
     await legacyTsNodeScriptWarning()
 
