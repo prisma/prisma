@@ -35,7 +35,7 @@ exports[`json should be able filter json null 1`] = `
 query {
   findManyOptionalUser(where: {
     json: {
-      equals: null
+      equals: JsonNull
     }
   }) {
     id

@@ -67,6 +67,13 @@ In case this error is unexpected for you, please report it in https://github.com
 Prisma.validator = () => (val) => val
 
 /**
+ * Shorthand utilities for JSON filtering
+ */
+Prisma.DbNull = 'DbNull'
+Prisma.JsonNull = 'JsonNull'
+Prisma.AnyNull = 'AnyNull'
+
+/**
  * Enums
  */
 // Based on
@@ -870,7 +877,7 @@ export namespace Prisma {
    * From https://github.com/sindresorhus/type-fest/
    * Matches any valid JSON value.
    */
-  export type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+  export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
 
   /**
    * Same as JsonObject, but allows undefined
@@ -879,8 +886,16 @@ export namespace Prisma {
  
   export interface InputJsonArray extends Array<JsonValue> {}
  
-  export type InputJsonValue = undefined |  string | number | boolean | null | InputJsonObject | InputJsonArray
-   type SelectAndInclude = {
+  export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
+
+  /**
+   * Shorthand utilities for JSON filtering
+   */
+  export const DbNull: 'DbNull'
+  export const JsonNull: 'JsonNull'
+  export const AnyNull: 'AnyNull'
+
+  type SelectAndInclude = {
     select: any
     include: any
   }
