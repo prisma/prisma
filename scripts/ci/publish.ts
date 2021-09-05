@@ -421,7 +421,7 @@ async function getNewPatchDevVersion(
 }
 
 function getMaxDevVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -436,7 +436,7 @@ function getMaxDevVersionIncrement(versions: string[]): number {
 }
 
 function getMaxIntegrationVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-integration.*\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-integration.*\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -453,7 +453,7 @@ function getMaxIntegrationVersionIncrement(versions: string[]): number {
 
 // TODO: Adjust this for stable releases
 function getMaxPatchVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
