@@ -99,7 +99,7 @@ model users {
   email String
   name  String
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -952,7 +952,7 @@ model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 }
 
 model users {
@@ -1029,7 +1029,7 @@ model b {
   id  Int @id @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two])
+  a   a   @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction, map: "b_one_fkey")
 }
 
 `;
@@ -1076,7 +1076,7 @@ model users {
   email String
   name  String
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -1141,7 +1141,7 @@ model variables {
   email String
 
   @@id([name, key])
-  @@unique([value, email], name: "variables_value_email_key")
+  @@unique([value, email])
 }
 
 `;
@@ -1166,7 +1166,7 @@ model variables {
   value String
   email String
 
-  @@unique([name, key], name: "variables_name_key_key")
+  @@unique([name, key])
 }
 
 `;
@@ -1188,7 +1188,7 @@ model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 }
 
 model users {
@@ -1261,7 +1261,7 @@ model users {
   email String
   name  String
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;

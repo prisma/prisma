@@ -1,0 +1,6 @@
+{
+  "compilerOptions": {
+    "lib": ["DOM", "ES2016"],
+    "types": ["node"]
+  }
+}

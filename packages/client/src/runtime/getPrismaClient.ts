@@ -127,7 +127,7 @@ export interface PrismaClientOptions {
       cwd?: string
       binaryPath?: string
       endpoint?: string
-      enableEngineDebugMode?: boolean
+      allowTriggerPanic?: boolean
     }
   }
 }
@@ -377,7 +377,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          enableEngineDebugMode: engineConfig.enableEngineDebugMode,
+          allowTriggerPanic: engineConfig.allowTriggerPanic,
           datamodelPath: path.join(config.dirname, 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
@@ -863,12 +863,12 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     __internal_triggerPanic(fatal: boolean) {
-      if (!this._engineConfig.enableEngineDebugMode) {
-        throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
+      if (!this._engineConfig.allowTriggerPanic) {
+        throw new Error(`In order to use .__internal_triggerPanic(), please enable it like so:
 new PrismaClient({
   __internal: {
     engine: {
-      enableEngineDebugMode: true
+      allowTriggerPanic: true
     }
   }
 })`)

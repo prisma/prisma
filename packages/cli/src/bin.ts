@@ -101,7 +101,6 @@ import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import {
-  printPrismaCliUpdateWarning,
   printUpdateMessage,
 } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
@@ -120,10 +119,6 @@ const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
-
-  if (__dirname.includes(`@prisma${path.sep}cli`)) {
-    printPrismaCliUpdateWarning()
-  }
 
   detectPrisma1()
 
@@ -198,18 +193,25 @@ async function main(): Promise<number> {
         datamodel: schema,
         ignoreEnvVarErrors: true,
       })
+
       if (config.datasources.length > 0) {
         schemaProvider = config.datasources[0].provider
       }
+
+      // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
+      // (this was not scoped to `prisma-client-js` before Prisma 3.0)
       const generator = config.generators.find(
-        (gen) => gen.previewFeatures.length > 0,
+        (generator) =>
+          parseEnvValue(generator.provider) === 'prisma-client-js' &&
+          generator.previewFeatures.length > 0,
       )
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
+
       // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((gen) =>
-        parseEnvValue(gen.provider),
+      schemaGeneratorsProviders = config.generators.map((generator) =>
+        parseEnvValue(generator.provider),
       )
     } catch (e) {
       debug('Error from cli/src/bin.ts')

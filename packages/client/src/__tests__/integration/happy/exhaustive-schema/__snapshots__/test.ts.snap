@@ -1750,7 +1750,7 @@ export namespace Prisma {
     
   export type PostGroupByArgs = {
     where?: PostWhereInput
-    orderBy?: Enumerable<PostOrderByInput>
+    orderBy?: Enumerable<PostOrderByWithAggregationInput>
     by: Array<PostScalarFieldEnum>
     having?: PostScalarWhereWithAggregatesInput
     take?: number
@@ -2724,7 +2724,7 @@ export namespace Prisma {
     
   export type UserGroupByArgs = {
     where?: UserWhereInput
-    orderBy?: Enumerable<UserOrderByInput>
+    orderBy?: Enumerable<UserOrderByWithAggregationInput>
     by: Array<UserScalarFieldEnum>
     having?: UserScalarWhereWithAggregatesInput
     take?: number
@@ -3714,7 +3714,7 @@ export namespace Prisma {
     
   export type MGroupByArgs = {
     where?: MWhereInput
-    orderBy?: Enumerable<MOrderByInput>
+    orderBy?: Enumerable<MOrderByWithAggregationInput>
     by: Array<MScalarFieldEnum>
     having?: MScalarWhereWithAggregatesInput
     take?: number
@@ -4702,7 +4702,7 @@ export namespace Prisma {
     
   export type NGroupByArgs = {
     where?: NWhereInput
-    orderBy?: Enumerable<NOrderByInput>
+    orderBy?: Enumerable<NOrderByWithAggregationInput>
     by: Array<NScalarFieldEnum>
     having?: NScalarWhereWithAggregatesInput
     take?: number
@@ -5690,7 +5690,7 @@ export namespace Prisma {
     
   export type OneOptionalGroupByArgs = {
     where?: OneOptionalWhereInput
-    orderBy?: Enumerable<OneOptionalOrderByInput>
+    orderBy?: Enumerable<OneOptionalOrderByWithAggregationInput>
     by: Array<OneOptionalScalarFieldEnum>
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
@@ -6688,7 +6688,7 @@ export namespace Prisma {
     
   export type ManyRequiredGroupByArgs = {
     where?: ManyRequiredWhereInput
-    orderBy?: Enumerable<ManyRequiredOrderByInput>
+    orderBy?: Enumerable<ManyRequiredOrderByWithAggregationInput>
     by: Array<ManyRequiredScalarFieldEnum>
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
@@ -7682,7 +7682,7 @@ export namespace Prisma {
     
   export type OptionalSide1GroupByArgs = {
     where?: OptionalSide1WhereInput
-    orderBy?: Enumerable<OptionalSide1OrderByInput>
+    orderBy?: Enumerable<OptionalSide1OrderByWithAggregationInput>
     by: Array<OptionalSide1ScalarFieldEnum>
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
@@ -8666,7 +8666,7 @@ export namespace Prisma {
     
   export type OptionalSide2GroupByArgs = {
     where?: OptionalSide2WhereInput
-    orderBy?: Enumerable<OptionalSide2OrderByInput>
+    orderBy?: Enumerable<OptionalSide2OrderByWithAggregationInput>
     by: Array<OptionalSide2ScalarFieldEnum>
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
@@ -9636,7 +9636,7 @@ export namespace Prisma {
     
   export type AGroupByArgs = {
     where?: AWhereInput
-    orderBy?: Enumerable<AOrderByInput>
+    orderBy?: Enumerable<AOrderByWithAggregationInput>
     by: Array<AScalarFieldEnum>
     having?: AScalarWhereWithAggregatesInput
     take?: number
@@ -10515,7 +10515,7 @@ export namespace Prisma {
     
   export type BGroupByArgs = {
     where?: BWhereInput
-    orderBy?: Enumerable<BOrderByInput>
+    orderBy?: Enumerable<BOrderByWithAggregationInput>
     by: Array<BScalarFieldEnum>
     having?: BScalarWhereWithAggregatesInput
     take?: number
@@ -11346,7 +11346,7 @@ export namespace Prisma {
     
   export type CGroupByArgs = {
     where?: CWhereInput
-    orderBy?: Enumerable<COrderByInput>
+    orderBy?: Enumerable<COrderByWithAggregationInput>
     by: Array<CScalarFieldEnum>
     having?: CScalarWhereWithAggregatesInput
     take?: number
@@ -12163,7 +12163,7 @@ export namespace Prisma {
     
   export type DGroupByArgs = {
     where?: DWhereInput
-    orderBy?: Enumerable<DOrderByInput>
+    orderBy?: Enumerable<DOrderByWithAggregationInput>
     by: Array<DScalarFieldEnum>
     having?: DScalarWhereWithAggregatesInput
     take?: number
@@ -12974,7 +12974,7 @@ export namespace Prisma {
     
   export type EGroupByArgs = {
     where?: EWhereInput
-    orderBy?: Enumerable<EOrderByInput>
+    orderBy?: Enumerable<EOrderByWithAggregationInput>
     by: Array<EScalarFieldEnum>
     having?: EScalarWhereWithAggregatesInput
     take?: number
@@ -13907,13 +13907,18 @@ export namespace Prisma {
     id?: number
   }
 
-  export type PostOrderByInput = {
+  export type PostOrderByWithAggregationInput = {
     id?: SortOrder
     createdAt?: SortOrder
     title?: SortOrder
     content?: SortOrder
     published?: SortOrder
     authorId?: SortOrder
+    _count?: PostCountOrderByAggregateInput
+    _avg?: PostAvgOrderByAggregateInput
+    _max?: PostMaxOrderByAggregateInput
+    _min?: PostMinOrderByAggregateInput
+    _sum?: PostSumOrderByAggregateInput
   }
 
   export type PostScalarWhereWithAggregatesInput = {
@@ -13972,7 +13977,7 @@ export namespace Prisma {
     email?: string
   }
 
-  export type UserOrderByInput = {
+  export type UserOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
     int?: SortOrder
@@ -13987,6 +13992,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: UserCountOrderByAggregateInput
+    _avg?: UserAvgOrderByAggregateInput
+    _max?: UserMaxOrderByAggregateInput
+    _min?: UserMinOrderByAggregateInput
+    _sum?: UserSumOrderByAggregateInput
   }
 
   export type UserScalarWhereWithAggregatesInput = {
@@ -14050,7 +14060,7 @@ export namespace Prisma {
     id?: number
   }
 
-  export type MOrderByInput = {
+  export type MOrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14064,6 +14074,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: MCountOrderByAggregateInput
+    _avg?: MAvgOrderByAggregateInput
+    _max?: MMaxOrderByAggregateInput
+    _min?: MMinOrderByAggregateInput
+    _sum?: MSumOrderByAggregateInput
   }
 
   export type MScalarWhereWithAggregatesInput = {
@@ -14126,7 +14141,7 @@ export namespace Prisma {
     id?: number
   }
 
-  export type NOrderByInput = {
+  export type NOrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14140,6 +14155,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: NCountOrderByAggregateInput
+    _avg?: NAvgOrderByAggregateInput
+    _max?: NMaxOrderByAggregateInput
+    _min?: NMinOrderByAggregateInput
+    _sum?: NSumOrderByAggregateInput
   }
 
   export type NScalarWhereWithAggregatesInput = {
@@ -14202,7 +14222,7 @@ export namespace Prisma {
     id?: number
   }
 
-  export type OneOptionalOrderByInput = {
+  export type OneOptionalOrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14216,6 +14236,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: OneOptionalCountOrderByAggregateInput
+    _avg?: OneOptionalAvgOrderByAggregateInput
+    _max?: OneOptionalMaxOrderByAggregateInput
+    _min?: OneOptionalMinOrderByAggregateInput
+    _sum?: OneOptionalSumOrderByAggregateInput
   }
 
   export type OneOptionalScalarWhereWithAggregatesInput = {
@@ -14280,7 +14305,7 @@ export namespace Prisma {
     id?: number
   }
 
-  export type ManyRequiredOrderByInput = {
+  export type ManyRequiredOrderByWithAggregationInput = {
     id?: SortOrder
     oneOptionalId?: SortOrder
     int?: SortOrder
@@ -14295,6 +14320,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: ManyRequiredCountOrderByAggregateInput
+    _avg?: ManyRequiredAvgOrderByAggregateInput
+    _max?: ManyRequiredMaxOrderByAggregateInput
+    _min?: ManyRequiredMinOrderByAggregateInput
+    _sum?: ManyRequiredSumOrderByAggregateInput
   }
 
   export type ManyRequiredScalarWhereWithAggregatesInput = {
@@ -14360,7 +14390,7 @@ export namespace Prisma {
     id?: number
   }
 
-  export type OptionalSide1OrderByInput = {
+  export type OptionalSide1OrderByWithAggregationInput = {
     id?: SortOrder
     optionalSide2Id?: SortOrder
     int?: SortOrder
@@ -14375,6 +14405,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: OptionalSide1CountOrderByAggregateInput
+    _avg?: OptionalSide1AvgOrderByAggregateInput
+    _max?: OptionalSide1MaxOrderByAggregateInput
+    _min?: OptionalSide1MinOrderByAggregateInput
+    _sum?: OptionalSide1SumOrderByAggregateInput
   }
 
   export type OptionalSide1ScalarWhereWithAggregatesInput = {
@@ -14438,7 +14473,7 @@ export namespace Prisma {
     id?: number
   }
 
-  export type OptionalSide2OrderByInput = {
+  export type OptionalSide2OrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14452,6 +14487,11 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    _count?: OptionalSide2CountOrderByAggregateInput
+    _avg?: OptionalSide2AvgOrderByAggregateInput
+    _max?: OptionalSide2MaxOrderByAggregateInput
+    _min?: OptionalSide2MinOrderByAggregateInput
+    _sum?: OptionalSide2SumOrderByAggregateInput
   }
 
   export type OptionalSide2ScalarWhereWithAggregatesInput = {
@@ -14505,7 +14545,7 @@ export namespace Prisma {
     email?: string
   }
 
-  export type AOrderByInput = {
+  export type AOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
     name?: SortOrder
@@ -14515,6 +14555,11 @@ export namespace Prisma {
     inc_int?: SortOrder
     inc_sInt?: SortOrder
     inc_bInt?: SortOrder
+    _count?: ACountOrderByAggregateInput
+    _avg?: AAvgOrderByAggregateInput
+    _max?: AMaxOrderByAggregateInput
+    _min?: AMinOrderByAggregateInput
+    _sum?: ASumOrderByAggregateInput
   }
 
   export type AScalarWhereWithAggregatesInput = {
@@ -14555,12 +14600,17 @@ export namespace Prisma {
     id?: string
   }
 
-  export type BOrderByInput = {
+  export type BOrderByWithAggregationInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
     decFloat?: SortOrder
     numFloat?: SortOrder
+    _count?: BCountOrderByAggregateInput
+    _avg?: BAvgOrderByAggregateInput
+    _max?: BMaxOrderByAggregateInput
+    _min?: BMinOrderByAggregateInput
+    _sum?: BSumOrderByAggregateInput
   }
 
   export type BScalarWhereWithAggregatesInput = {
@@ -14601,7 +14651,7 @@ export namespace Prisma {
     id?: string
   }
 
-  export type COrderByInput = {
+  export type COrderByWithAggregationInput = {
     id?: SortOrder
     char?: SortOrder
     vChar?: SortOrder
@@ -14609,6 +14659,9 @@ export namespace Prisma {
     bit?: SortOrder
     vBit?: SortOrder
     uuid?: SortOrder
+    _count?: CCountOrderByAggregateInput
+    _max?: CMaxOrderByAggregateInput
+    _min?: CMinOrderByAggregateInput
   }
 
   export type CScalarWhereWithAggregatesInput = {
@@ -14649,13 +14702,16 @@ export namespace Prisma {
     id?: string
   }
 
-  export type DOrderByInput = {
+  export type DOrderByWithAggregationInput = {
     id?: SortOrder
     bool?: SortOrder
     byteA?: SortOrder
     xml?: SortOrder
     json?: SortOrder
     jsonb?: SortOrder
+    _count?: DCountOrderByAggregateInput
+    _max?: DMaxOrderByAggregateInput
+    _min?: DMinOrderByAggregateInput
   }
 
   export type DScalarWhereWithAggregatesInput = {
@@ -14691,11 +14747,14 @@ export namespace Prisma {
     id?: string
   }
 
-  export type EOrderByInput = {
+  export type EOrderByWithAggregationInput = {
     id?: SortOrder
     date?: SortOrder
     time?: SortOrder
     ts?: SortOrder
+    _count?: ECountOrderByAggregateInput
+    _max?: EMaxOrderByAggregateInput
+    _min?: EMinOrderByAggregateInput
   }
 
   export type EScalarWhereWithAggregatesInput = {
@@ -15949,6 +16008,43 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
+  export type PostCountOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    published?: SortOrder
+    authorId?: SortOrder
+  }
+
+  export type PostAvgOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+  }
+
+  export type PostMaxOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    published?: SortOrder
+    authorId?: SortOrder
+  }
+
+  export type PostMinOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    title?: SortOrder
+    content?: SortOrder
+    published?: SortOrder
+    authorId?: SortOrder
+  }
+
+  export type PostSumOrderByAggregateInput = {
+    id?: SortOrder
+    authorId?: SortOrder
+  }
+
   export type IntWithAggregatesFilter = {
     equals?: number
     in?: Enumerable<number>
@@ -16217,6 +16313,69 @@ export namespace Prisma {
      * 
     **/
     count?: SortOrder
+  }
+
+  export type UserCountOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type UserAvgOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type UserMaxOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type UserMinOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type UserSumOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
   }
 
   export type IntNullableWithAggregatesFilter = {
@@ -16510,6 +16669,66 @@ export namespace Prisma {
     count?: SortOrder
   }
 
+  export type MCountOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type MAvgOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type MMaxOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type MMinOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type MSumOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
   export type MListRelationFilter = {
     every?: MWhereInput
     some?: MWhereInput
@@ -16523,6 +16742,66 @@ export namespace Prisma {
      * 
     **/
     count?: SortOrder
+  }
+
+  export type NCountOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type NAvgOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type NMaxOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type NMinOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type NSumOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
   }
 
   export type ManyRequiredListRelationFilter = {
@@ -16540,9 +16819,134 @@ export namespace Prisma {
     count?: SortOrder
   }
 
+  export type OneOptionalCountOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OneOptionalAvgOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type OneOptionalMaxOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OneOptionalMinOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OneOptionalSumOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
   export type OneOptionalRelationFilter = {
     is?: OneOptionalWhereInput | null
     isNot?: OneOptionalWhereInput | null
+  }
+
+  export type ManyRequiredCountOrderByAggregateInput = {
+    id?: SortOrder
+    oneOptionalId?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type ManyRequiredAvgOrderByAggregateInput = {
+    id?: SortOrder
+    oneOptionalId?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type ManyRequiredMaxOrderByAggregateInput = {
+    id?: SortOrder
+    oneOptionalId?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type ManyRequiredMinOrderByAggregateInput = {
+    id?: SortOrder
+    oneOptionalId?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type ManyRequiredSumOrderByAggregateInput = {
+    id?: SortOrder
+    oneOptionalId?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
   }
 
   export type OptionalSide2RelationFilter = {
@@ -16550,9 +16954,134 @@ export namespace Prisma {
     isNot?: OptionalSide2WhereInput | null
   }
 
+  export type OptionalSide1CountOrderByAggregateInput = {
+    id?: SortOrder
+    optionalSide2Id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OptionalSide1AvgOrderByAggregateInput = {
+    id?: SortOrder
+    optionalSide2Id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type OptionalSide1MaxOrderByAggregateInput = {
+    id?: SortOrder
+    optionalSide2Id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OptionalSide1MinOrderByAggregateInput = {
+    id?: SortOrder
+    optionalSide2Id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OptionalSide1SumOrderByAggregateInput = {
+    id?: SortOrder
+    optionalSide2Id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
   export type OptionalSide1RelationFilter = {
     is?: OptionalSide1WhereInput | null
     isNot?: OptionalSide1WhereInput | null
+  }
+
+  export type OptionalSide2CountOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    json?: SortOrder
+    optionalJson?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OptionalSide2AvgOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+  }
+
+  export type OptionalSide2MaxOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OptionalSide2MinOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
+    string?: SortOrder
+    optionalString?: SortOrder
+    enum?: SortOrder
+    optionalEnum?: SortOrder
+    boolean?: SortOrder
+    optionalBoolean?: SortOrder
+  }
+
+  export type OptionalSide2SumOrderByAggregateInput = {
+    id?: SortOrder
+    int?: SortOrder
+    optionalInt?: SortOrder
+    float?: SortOrder
+    optionalFloat?: SortOrder
   }
 
   export type BigIntFilter = {
@@ -16564,6 +17093,60 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntFilter | bigint | number
+  }
+
+  export type ACountOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    name?: SortOrder
+    int?: SortOrder
+    sInt?: SortOrder
+    bInt?: SortOrder
+    inc_int?: SortOrder
+    inc_sInt?: SortOrder
+    inc_bInt?: SortOrder
+  }
+
+  export type AAvgOrderByAggregateInput = {
+    int?: SortOrder
+    sInt?: SortOrder
+    bInt?: SortOrder
+    inc_int?: SortOrder
+    inc_sInt?: SortOrder
+    inc_bInt?: SortOrder
+  }
+
+  export type AMaxOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    name?: SortOrder
+    int?: SortOrder
+    sInt?: SortOrder
+    bInt?: SortOrder
+    inc_int?: SortOrder
+    inc_sInt?: SortOrder
+    inc_bInt?: SortOrder
+  }
+
+  export type AMinOrderByAggregateInput = {
+    id?: SortOrder
+    email?: SortOrder
+    name?: SortOrder
+    int?: SortOrder
+    sInt?: SortOrder
+    bInt?: SortOrder
+    inc_int?: SortOrder
+    inc_sInt?: SortOrder
+    inc_bInt?: SortOrder
+  }
+
+  export type ASumOrderByAggregateInput = {
+    int?: SortOrder
+    sInt?: SortOrder
+    bInt?: SortOrder
+    inc_int?: SortOrder
+    inc_sInt?: SortOrder
+    inc_bInt?: SortOrder
   }
 
   export type BigIntWithAggregatesFilter = {
@@ -16618,6 +17201,44 @@ export namespace Prisma {
     not?: NestedDecimalFilter | Decimal | number | string
   }
 
+  export type BCountOrderByAggregateInput = {
+    id?: SortOrder
+    float?: SortOrder
+    dFloat?: SortOrder
+    decFloat?: SortOrder
+    numFloat?: SortOrder
+  }
+
+  export type BAvgOrderByAggregateInput = {
+    float?: SortOrder
+    dFloat?: SortOrder
+    decFloat?: SortOrder
+    numFloat?: SortOrder
+  }
+
+  export type BMaxOrderByAggregateInput = {
+    id?: SortOrder
+    float?: SortOrder
+    dFloat?: SortOrder
+    decFloat?: SortOrder
+    numFloat?: SortOrder
+  }
+
+  export type BMinOrderByAggregateInput = {
+    id?: SortOrder
+    float?: SortOrder
+    dFloat?: SortOrder
+    decFloat?: SortOrder
+    numFloat?: SortOrder
+  }
+
+  export type BSumOrderByAggregateInput = {
+    float?: SortOrder
+    dFloat?: SortOrder
+    decFloat?: SortOrder
+    numFloat?: SortOrder
+  }
+
   export type DecimalWithAggregatesFilter = {
     equals?: Decimal | number | string
     in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
@@ -16659,9 +17280,62 @@ export namespace Prisma {
     max?: NestedDecimalFilter
   }
 
+  export type CCountOrderByAggregateInput = {
+    id?: SortOrder
+    char?: SortOrder
+    vChar?: SortOrder
+    text?: SortOrder
+    bit?: SortOrder
+    vBit?: SortOrder
+    uuid?: SortOrder
+  }
+
+  export type CMaxOrderByAggregateInput = {
+    id?: SortOrder
+    char?: SortOrder
+    vChar?: SortOrder
+    text?: SortOrder
+    bit?: SortOrder
+    vBit?: SortOrder
+    uuid?: SortOrder
+  }
+
+  export type CMinOrderByAggregateInput = {
+    id?: SortOrder
+    char?: SortOrder
+    vChar?: SortOrder
+    text?: SortOrder
+    bit?: SortOrder
+    vBit?: SortOrder
+    uuid?: SortOrder
+  }
+
   export type BytesFilter = {
     equals?: Buffer
     not?: NestedBytesFilter | Buffer
+  }
+
+  export type DCountOrderByAggregateInput = {
+    id?: SortOrder
+    bool?: SortOrder
+    byteA?: SortOrder
+    xml?: SortOrder
+    json?: SortOrder
+    jsonb?: SortOrder
+  }
+
+  export type DMaxOrderByAggregateInput = {
+    id?: SortOrder
+    bool?: SortOrder
+    byteA?: SortOrder
+    xml?: SortOrder
+  }
+
+  export type DMinOrderByAggregateInput = {
+    id?: SortOrder
+    bool?: SortOrder
+    byteA?: SortOrder
+    xml?: SortOrder
   }
 
   export type BytesWithAggregatesFilter = {
@@ -16685,6 +17359,27 @@ export namespace Prisma {
      * 
     **/
     max?: NestedBytesFilter
+  }
+
+  export type ECountOrderByAggregateInput = {
+    id?: SortOrder
+    date?: SortOrder
+    time?: SortOrder
+    ts?: SortOrder
+  }
+
+  export type EMaxOrderByAggregateInput = {
+    id?: SortOrder
+    date?: SortOrder
+    time?: SortOrder
+    ts?: SortOrder
+  }
+
+  export type EMinOrderByAggregateInput = {
+    id?: SortOrder
+    date?: SortOrder
+    time?: SortOrder
+    ts?: SortOrder
   }
 
   export type UserCreateNestedOneWithoutPostsInput = {

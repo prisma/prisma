@@ -77,7 +77,6 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
       Database reset successful
 
       The following migration(s) have been applied:
@@ -153,8 +152,8 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
       Database reset successful
+
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -173,7 +172,6 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
 
       Reset cancelled.
     `)
@@ -198,21 +196,26 @@ describe('reset', () => {
   })
 
   it('reset - multiple seed files', async () => {
-    ctx.fixture('seed-sqlite')
+    ctx.fixture('seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            More than one seed file was found in \`prisma\` directory.
-            This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.
-          `)
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      Database reset successful
+
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
   })
 
   it('reset - multiple seed files - --skip-seed', async () => {
-    ctx.fixture('seed-sqlite')
+    ctx.fixture('seed-sqlite-legacy')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse(['--skip-seed'])
@@ -223,14 +226,92 @@ describe('reset', () => {
   })
 
   it('reset - seed.js', async () => {
-    ctx.fixture('seed-sqlite')
-    // ctx.fs.remove('prisma/seed.js')
-    ctx.fs.remove('prisma/seed.ts')
-    ctx.fs.remove('prisma/seed.sh')
+    ctx.fixture('seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      Database reset successful
+
+
+      Running seed command \`node prisma/seed.js\` ...
+
+      🌱  The seed command has been executed.
+    `)
+    expect(
+      ctx.mocked['console.warn'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('reset - seed.ts', async () => {
+    ctx.fixture('seed-sqlite-ts')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      Database reset successful
+
+
+      Running seed command \`ts-node prisma/seed.ts\` ...
+
+      🌱  The seed command has been executed.
+    `)
+    expect(
+      ctx.mocked['console.warn'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('reset - legacy seed (no config in package.json)', async () => {
+    ctx.fixture('seed-sqlite-legacy')
+    ctx.fs.remove('prisma/seed.js')
+    ctx.fs.remove('prisma/seed.ts')
+    // ctx.fs.remove('prisma/seed.sh')
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      Database reset successful
+
+    `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+
+      1. Open the package.json of your project
+      2. Add the following example to it:
+      \`\`\`
+      "prisma": {
+        "seed": "prisma/seed.sh"
+      }
+      \`\`\`
+      And run \`chmod +x prisma/seed.sh\` to make it executable.
+      More information in our documentation:
+      https://pris.ly/d/seeding
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

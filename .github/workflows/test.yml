@@ -150,7 +150,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test -- --testPathIgnorePatterns src/__tests__/types/types.test.ts --verbose
+      - run: pnpm run test-notypes
         working-directory: packages/client
         env:
           CI: true

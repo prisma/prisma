@@ -51,19 +51,20 @@ describe('include validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.findManyPost()\` invocation:
+Invalid \`prisma.findManyPost()\` invocation:
 
-        {
-          include: {
-        ?   author?: true,
-        ?   categories?: true
-          }
-        }
+{
+  include: {
+?   author?: true,
+?   categories?: true,
+?   _count?: true
+  }
+}
 
 
-        The \`include\` statement for type Post must not be empty. Available options are listed in green.
+The \`include\` statement for type Post must not be empty. Available options are listed in green.
 
-      `)
+`)
     }
   })
 
@@ -255,22 +256,23 @@ describe('include validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.id()\` invocation:
+Invalid \`prisma.id()\` invocation:
 
-        {
-          include: {
-            id: true,
-            ~~
-        ?   author?: true,
-        ?   categories?: true
-          }
-        }
+{
+  include: {
+    id: true,
+    ~~
+?   author?: true,
+?   categories?: true,
+?   _count?: true
+  }
+}
 
 
-        Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
-        Note, that include statements only accept relation fields.
+Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
+Note, that include statements only accept relation fields.
 
-      `)
+`)
     }
   })
 
@@ -294,21 +296,22 @@ describe('include validation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.mauthor()\` invocation:
+Invalid \`prisma.mauthor()\` invocation:
 
-        {
-          include: {
-            mauthor: true,
-            ~~~~~~~
-        ?   author?: true,
-        ?   categories?: true
-          }
-        }
+{
+  include: {
+    mauthor: true,
+    ~~~~~~~
+?   author?: true,
+?   categories?: true,
+?   _count?: true
+  }
+}
 
 
-        Unknown field \`mauthor\` for include statement on model Post. Available options are listed in green. Did you mean \`author\`?
+Unknown field \`mauthor\` for include statement on model Post. Available options are listed in green. Did you mean \`author\`?
 
-      `)
+`)
     }
   })
 
