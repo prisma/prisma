@@ -117,77 +117,6 @@ Array [
 ]
 `;
 
-exports[`groupBy name and aggregations (legacy) 1`] = `
-
-Invalid \`prisma.user.groupBy()\` invocation:
-
-{
-  by: [
-    'name'
-  ],
-  select: {
-    name: true,
-    avg: {
-      select: {
-        age: true
-      }
-    },
-    ~~~~~~~~~~~~~
-    count: {
-      select: {
-        _all: true
-      }
-    },
-    max: {
-      select: {
-        age: true
-      }
-    },
-    ~~~~~~~~~~~~~
-    min: {
-      select: {
-        age: true
-      }
-    },
-    ~~~~~~~~~~~~~
-    sum: {
-      select: {
-        age: true
-      }
-    }
-    ~~~~~~~~~~~~~
-  },
-  where: {
-    age: {
-      gt: -1
-    }
-  }
-}
-
-
-Invalid value {
-	select: {
-		age: true
-	}
-} of type Json for field avg on model UserGroupByOutputType. Expected either true or false.
-Invalid value {
-	select: {
-		age: true
-	}
-} of type Json for field max on model UserGroupByOutputType. Expected either true or false.
-Invalid value {
-	select: {
-		age: true
-	}
-} of type Json for field min on model UserGroupByOutputType. Expected either true or false.
-Invalid value {
-	select: {
-		age: true
-	}
-} of type Json for field sum on model UserGroupByOutputType. Expected either true or false.
-
-`;
-
 exports[`groupBy name and aggregations 1`] = `
 Array [
   Object {
@@ -210,25 +139,4 @@ Array [
     name: Bobby Brown,
   },
 ]
-`;
-
-exports[`groupBy name and with count (legacy) 1`] = `
-
-Invalid \`prisma.user.groupBy()\` invocation:
-
-{
-  by: [
-    'name'
-  ],
-  select: {
-    name: true,
-    count: {
-      select: true
-    }
-  }
-}
-
-
-The \`select\` statement for type Int must not be empty. Available options are listed in green.
-
 `;
