@@ -66,6 +66,39 @@ Array [
 ]
 `;
 
+exports[`json-filtering(postgres) filter with Prisma.AnyNull 1`] = `
+Array [
+  Object {
+    email: a@b.de,
+  },
+  Object {
+    email: b@b.de,
+  },
+  Object {
+    email: c@b.de,
+  },
+]
+`;
+
+exports[`json-filtering(postgres) filter with Prisma.DbNull 1`] = `
+Array [
+  Object {
+    email: a@b.de,
+  },
+  Object {
+    email: c@b.de,
+  },
+]
+`;
+
+exports[`json-filtering(postgres) filter with Prisma.JsonNull 1`] = `
+Array [
+  Object {
+    email: b@b.de,
+  },
+]
+`;
+
 exports[`json-filtering(postgres) gt(2) 1`] = `
 Array [
   Object {
