@@ -677,22 +677,8 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           throw e
         }
       }
-      return {
-        then(onFulfilled, onRejected, transactionId?: number) {
-          return request(transactionId).then(onFulfilled, onRejected)
-        },
-        requestTransaction(transactionId: number) {
-          return request(transactionId, true)
-        },
-        catch(onRejected) {
-          return request().catch(onRejected)
-        },
-        finally(onFinally) {
-          return request().finally(onFinally)
-        },
-      } as Promise<unknown> & {
-        requestTransaction: (id: number) => Promise<unknown>
-      }
+
+      return createPrismaPromise(request)
     }
 
     /**
@@ -703,24 +689,26 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      * @param values
      * @returns
      */
-    async $executeRaw(
+    $executeRaw(
       query: TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: any[]
     ) {
-      if (
-        (query as TemplateStringsArray).raw ||
-        (query as sqlTemplateTag.Sql).sql
-      ) {
-        return this.$executeRawRequest(query, ...values)
-      }
+      return createPrismaPromise(() => {
+        if (
+          (query as TemplateStringsArray).raw ||
+          (query as sqlTemplateTag.Sql).sql
+        ) {
+          return this.$executeRawRequest(query, ...values)
+        }
 
-      throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
+        throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
 \`\`\`
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
 `)
+      })
     }
 
     /**
@@ -863,22 +851,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           throw e
         }
       }
-      return {
-        then(onFulfilled, onRejected, transactionId?: number) {
-          return request(transactionId).then(onFulfilled, onRejected)
-        },
-        requestTransaction(transactionId: number) {
-          return request(transactionId, true)
-        },
-        catch(onRejected) {
-          return request().catch(onRejected)
-        },
-        finally(onFinally) {
-          return request().finally(onFinally)
-        },
-      } as Promise<unknown> & {
-        requestTransaction: (id: number) => Promise<unknown>
-      }
+
+      return createPrismaPromise(request)
     }
 
     /**
@@ -889,24 +863,26 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param values
      * @returns
      */
-    async $queryRaw(
+    $queryRaw(
       query: TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: any[]
     ) {
-      if (
-        (query as TemplateStringsArray).raw ||
-        (query as sqlTemplateTag.Sql).sql
-      ) {
-        return this.$queryRawRequest(query, ...values)
-      }
+      return createPrismaPromise(() => {
+        if (
+          (query as TemplateStringsArray).raw ||
+          (query as sqlTemplateTag.Sql).sql
+        ) {
+          return this.$queryRawRequest(query, ...values)
+        }
 
-      throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
+        throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
 \`\`\`
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw
 `)
+      })
     }
 
     /**
@@ -1321,20 +1297,7 @@ new PrismaClient({
 
             // `modelClient` implements promises to have deferred actions that
             // will be called later on through model delegated functions
-            const modelClient = {
-              then: (onFulfilled, onRejected, transactionId?: number) => {
-                return request(transactionId).then(onFulfilled, onRejected)
-              },
-              requestTransaction: (transactionId: number) => {
-                return request(transactionId, true)
-              },
-              catch: (onRejected) => {
-                return request().catch(onRejected)
-              },
-              finally: (onFinally) => {
-                return request().finally(onFinally)
-              },
-            }
+            const modelClient = createPrismaPromise(request)
 
             // add relation fields
             for (const field of model.fields.filter(
@@ -1550,6 +1513,7 @@ new PrismaClient({
   return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
 
+const TX_ID = Symbol.for('prisma.client.transaction.id')
 const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
 
 /**
@@ -1590,7 +1554,81 @@ function transactionProxy<T>(thing: T, transactionId: string): T {
   }) as any as T
 }
 
-const TX_ID = Symbol.for('prisma.client.transaction.id')
+/**
+ * Prisma's `Promise` that is backwards-compatible. All additions on top of the
+ * original `Promise` are optional so that it can be backwards-compatible.
+ * @see [[createPrismaPromise]]
+ */
+interface PrismaPromise<A> extends Promise<A> {
+  /**
+   * Extension of the original `.then` function
+   * @param onfulfilled same as regular promises
+   * @param onrejected same as regular promises
+   * @param transactionId for interactive tx ids
+   */
+  then<R1 = A, R2 = never>(
+    onfulfilled?: (value: A) => R1 | PromiseLike<R1>,
+    onrejected?: (error: unknown) => R2 | PromiseLike<R2>,
+    transactionId?: number,
+  ): Promise<R1 | R2>
+
+  /**
+   * Called when executing a batch of regular tx
+   * @param id for regular tx ids
+   */
+  requestTransaction?(id: number): PromiseLike<unknown>
+}
+
+/**
+ * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
+ * is essentially a proxy for `Promise`. All the transaction-compatible client
+ * methods return one, this allows for pre-preparing queries without executing
+ * them until `.then` is called. It's the foundation of Prisma's query batching.
+ * @param callback that will be wrapped within our promise implementation
+ * @see [[PrismaPromise]]
+ * @returns
+ */
+function createPrismaPromise(
+  callback: (
+    transactionId?: number,
+    runInTransaction?: boolean,
+  ) => PrismaPromise<unknown>,
+): PrismaPromise<unknown> {
+  // we handle exceptions that happen in the scope as `Promise` rejections
+  const _callback = (transactionId?: number, runInTransaction?: boolean) => {
+    try {
+      return callback(transactionId, runInTransaction)
+    } catch (error) {
+      // and that is because exceptions are not always async
+      return Promise.reject(error) as PrismaPromise<unknown>
+    }
+  }
+
+  return {
+    then(onFulfilled, onRejected, transactionId?: number) {
+      const promise = _callback(transactionId, false)
+
+      return promise.then(onFulfilled, onRejected, transactionId)
+    },
+    catch(onRejected) {
+      return _callback().catch(onRejected)
+    },
+    finally(onFinally) {
+      return _callback().finally(onFinally)
+    },
+    requestTransaction(transactionId: number) {
+      const promise = _callback(transactionId, true)
+
+      if (promise.requestTransaction) {
+        // requestTransaction support for nested promises
+        return promise.requestTransaction(transactionId)
+      }
+
+      return promise
+    },
+    [Symbol.toStringTag]: 'PrismaPromise',
+  }
+}
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (
