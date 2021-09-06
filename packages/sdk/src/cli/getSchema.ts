@@ -58,35 +58,68 @@ export async function getSchemaPathInternal(
   return null
 }
 
+// Example:
+// "prisma": {
+//   "schema": "db/schema.prisma"
+//   "seed": "ts-node db/seed.ts",
+// }
+export type PrismaConfig = {
+  schema?: string
+  seed?: string
+}
+
+export async function getPrismaConfigFromPackageJson(cwd: string) {
+  const pkgJson = await readPkgUp({ cwd })
+  const prismaPropertyFromPkgJson = pkgJson?.packageJson?.prisma as
+    | PrismaConfig
+    | undefined
+
+  if (!pkgJson) {
+    return null
+  }
+
+  return {
+    data: prismaPropertyFromPkgJson,
+    packagePath: pkgJson.path,
+  }
+}
+
 export async function getSchemaPathFromPackageJson(
   cwd: string,
 ): Promise<string | null> {
-  const pkgJson = await readPkgUp({ cwd })
-  const schemaPathFromPkgJson = pkgJson?.packageJson?.prisma?.schema as unknown
+  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
 
-  if (!schemaPathFromPkgJson || !pkgJson) {
+  if (!prismaConfig || !prismaConfig.data?.schema) {
     return null
   }
+
+  const schemaPathFromPkgJson = prismaConfig.data.schema
 
   if (typeof schemaPathFromPkgJson !== 'string') {
     throw new Error(
       `Provided schema path \`${schemaPathFromPkgJson}\` from \`${path.relative(
         cwd,
-        pkgJson.path,
+        prismaConfig.packagePath,
       )}\` must be of type string`,
     )
   }
 
   const absoluteSchemaPath = path.isAbsolute(schemaPathFromPkgJson)
     ? schemaPathFromPkgJson
-    : path.resolve(path.dirname(pkgJson.path), schemaPathFromPkgJson)
+    : path.resolve(
+        path.dirname(prismaConfig.packagePath),
+        schemaPathFromPkgJson,
+      )
 
   if ((await exists(absoluteSchemaPath)) === false) {
     throw new Error(
       `Provided schema path \`${path.relative(
         cwd,
         absoluteSchemaPath,
-      )}\` from \`${path.relative(cwd, pkgJson.path)}\` doesn't exist.`,
+      )}\` from \`${path.relative(
+        cwd,
+        prismaConfig.packagePath,
+      )}\` doesn't exist.`,
     )
   }
 

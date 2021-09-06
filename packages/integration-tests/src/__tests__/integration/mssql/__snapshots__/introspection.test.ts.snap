@@ -12,7 +12,7 @@ datasource sqlserver {
 }
 
 model migrate {
-  version BigInt @id
+  version BigInt @id(map: "PK__migrate__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -31,8 +31,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -51,8 +51,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @default("alice") @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @default("alice", map: "DF__teams__name__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -76,7 +76,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -95,11 +95,11 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String @sqlserver.VarChar(32)
   name  String @sqlserver.VarChar(32)
 
-  @@unique([email, name], name: "u_const")
+  @@unique([email, name], map: "u_const")
 }
 
 `;
@@ -118,7 +118,7 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
+  id    Int     @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String? @sqlserver.VarChar(32)
 }
 
@@ -138,8 +138,8 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String @unique(map: "UQ__users_CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -158,9 +158,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -179,9 +179,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -200,9 +200,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -221,9 +221,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -242,8 +242,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -263,7 +263,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -283,9 +283,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -304,7 +304,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -324,9 +324,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -345,7 +345,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -365,9 +365,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -386,7 +386,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -406,9 +406,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -427,7 +427,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -447,7 +447,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -467,7 +467,7 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int     @id @default(autoincrement())
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
   distance Decimal @sqlserver.Decimal(5, 3)
 }
 
@@ -487,8 +487,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -508,8 +508,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -529,8 +529,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -550,8 +550,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -571,8 +571,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -592,8 +592,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -613,8 +613,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -634,7 +634,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -654,8 +654,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -675,8 +675,8 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String @unique(map: "UQ__users_CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -695,15 +695,15 @@ datasource sqlserver {
 }
 
 model posts {
-  id      Int    @id @default(autoincrement())
+  id      Int    @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   user_id Int
   title   String @sqlserver.VarChar(32)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], map: "FK_UserId")
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique @sqlserver.VarChar(32)
+  id    Int     @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String  @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   posts posts[]
 }
 
@@ -723,9 +723,9 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id
-  name  String @unique @sqlserver.VarChar(32)
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber")
+  name  String @unique(map: "UQ__teams__name__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  email String @unique(map: "UQ__teams__email__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -744,8 +744,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber")
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -768,14 +768,14 @@ model a {
   two Int
   b   b[]
 
-  @@id([one, two])
+  @@id([one, two], map: "PK__a__CustomNameToAvoidRandomNumber")
 }
 
 model b {
-  id  Int @id @default(autoincrement())
+  id  Int @id(map: "PK__b__CustomNameToAvoidRandomNumber") @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two], onUpdate: NoAction)
+  a   a   @relation(fields: [one, two], references: [one, two], onUpdate: NoAction, map: "FK_OneTwo")
 }
 
 `;
@@ -799,7 +799,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -818,11 +818,11 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String @sqlserver.VarChar(32)
   name  String @sqlserver.VarChar(32)
 
-  @@unique([email, name], name: "u_const")
+  @@unique([email, name], map: "u_const")
 }
 
 `;
@@ -841,8 +841,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int     @id @default(autoincrement())
-  distance Decimal @unique @default(12.3) @sqlserver.Decimal(5, 3)
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  distance Decimal @unique(map: "UQ__exercises_CustomNameToAvoidRandomNumber") @default(12.3, map: "DF__exercises__active__CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -861,8 +861,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int     @id @default(autoincrement())
-  distance Decimal @unique @sqlserver.Decimal(5, 3)
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  distance Decimal @unique(map: "UQ__exercises_CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -886,8 +886,8 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
-  @@unique([value, email], name: "u_const")
+  @@id([name, key], map: "pk_const")
+  @@unique([value, email], map: "u_const")
 }
 
 `;
@@ -906,13 +906,13 @@ datasource sqlserver {
 }
 
 model variables {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__variables__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name  String @sqlserver.VarChar(32)
   key   String @sqlserver.VarChar(32)
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@unique([name, key], name: "u_const")
+  @@unique([name, key], map: "u_const")
 }
 
 `;
@@ -931,15 +931,15 @@ datasource sqlserver {
 }
 
 model posts {
-  id      Int    @id @default(autoincrement())
+  id      Int    @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   user_id Int
   title   String @sqlserver.VarChar(32)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], map: "FK_UserId")
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique @sqlserver.VarChar(32)
+  id    Int     @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String  @unique(map: "UQ__users_CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   posts posts[]
 }
 
@@ -959,8 +959,8 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -984,7 +984,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -1003,11 +1003,11 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String @sqlserver.VarChar(32)
   name  String @sqlserver.VarChar(32)
 
-  @@unique([email, name], name: "u_const")
+  @@unique([email, name], map: "u_const")
 }
 
 `;
@@ -1026,8 +1026,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int @id @default(autoincrement())
-  token Int @unique
+  id    Int @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1046,9 +1046,9 @@ datasource sqlserver {
 }
 
 model teams {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique @sqlserver.VarChar(32)
-  active Boolean @default(true)
+  id     Int     @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name   String  @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  active Boolean @default(true, map: "DF__teams__active__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1067,9 +1067,9 @@ datasource sqlserver {
 }
 
 model teams {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique @sqlserver.VarChar(32)
-  active Boolean @default(true)
+  id     Int     @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name   String  @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  active Boolean @default(true, map: "DF__teams__active__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1088,8 +1088,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -1108,8 +1108,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -1128,7 +1128,7 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int     @id @default(autoincrement())
+  id   Int     @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name String? @sqlserver.VarChar(32)
 }
 
@@ -1148,7 +1148,7 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name String @sqlserver.VarChar(32)
 }
 
@@ -1168,7 +1168,7 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name String @sqlserver.VarChar(32)
 }
 
@@ -1188,9 +1188,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1209,9 +1209,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1235,7 +1235,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -1259,7 +1259,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;

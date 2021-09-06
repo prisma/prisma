@@ -51,7 +51,7 @@ export interface EngineConfig {
   dirname?: string
   datamodelPath: string
   enableDebugLogs?: boolean
-  enableEngineDebugMode?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
+  allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig

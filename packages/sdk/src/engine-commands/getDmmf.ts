@@ -52,7 +52,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   )
   await isNodeAPISupported()
 
-  debug(`Using Node-API Query Engine at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
   const NodeAPIQueryEngineLibrary =
     load<NodeAPILibraryTypes.Library>(queryEnginePath)
   const datamodel =
@@ -76,7 +76,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     BinaryType.queryEngine,
     options.prismaPath,
   )
-  debug(`Using Query Engine Binary at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
     let tempDatamodelPath: string | undefined = options.datamodelPath
@@ -198,6 +198,9 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     groupBy: getMessage('groupBy'),
     referentialActions: getMessage('referentialActions'),
     microsoftSqlServer: getMessage('microsoftSqlServer'),
+    selectRelationCount: getMessage('selectRelationCount'),
+    orderByRelation: getMessage('orderByRelation'),
+    orderByAggregateGroup: getMessage('orderByAggregateGroup'),
   }
 
   previewFeatures?.forEach((f) => {
