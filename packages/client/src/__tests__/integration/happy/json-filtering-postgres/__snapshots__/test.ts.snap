@@ -69,13 +69,55 @@ Array [
 exports[`json-filtering(postgres) filter with Prisma.AnyNull 1`] = `
 Array [
   Object {
-    email: a@b.de,
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
   },
   Object {
-    email: b@b.de,
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
   },
   Object {
-    email: c@b.de,
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
   },
 ]
 `;
@@ -83,10 +125,38 @@ Array [
 exports[`json-filtering(postgres) filter with Prisma.DbNull 1`] = `
 Array [
   Object {
-    email: a@b.de,
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
   },
   Object {
-    email: c@b.de,
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
   },
 ]
 `;
@@ -94,7 +164,21 @@ Array [
 exports[`json-filtering(postgres) filter with Prisma.JsonNull 1`] = `
 Array [
   Object {
-    email: b@b.de,
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
   },
 ]
 `;

@@ -221,56 +221,57 @@ describe('json-filtering(postgres)', () => {
    * Filter entries that have a JSON `null` value
    */
   test('filter with Prisma.JsonNull', async () => {
-    const user = await prisma.user.findMany({
+    const data = await prisma.user.findMany({
       where: {
         jsonOpt: {
           equals: PrismaUtil.JsonNull,
         },
       },
       select: {
-        email: true,
+        json: true,
       },
     })
 
-    expect(user).toMatchSnapshot()
+    expect(sort(data)).toMatchSnapshot()
   })
 
   /**
    * Filter entries that have a db `null` value
    */
   test('filter with Prisma.DbNull', async () => {
-    const user = await prisma.user.findMany({
+    const data = await prisma.user.findMany({
       where: {
         jsonOpt: {
           equals: PrismaUtil.DbNull,
         },
       },
       select: {
-        email: true,
+        json: true,
       },
     })
 
-    expect(user).toMatchSnapshot()
+    expect(sort(data)).toMatchSnapshot()
   })
 
   /**
    * Filter entries that have a db or json `null` value
    */
   test('filter with Prisma.AnyNull', async () => {
-    const user = await prisma.user.findMany({
+    const data = await prisma.user.findMany({
       where: {
         jsonOpt: {
           equals: PrismaUtil.AnyNull,
         },
       },
       select: {
-        email: true,
+        json: true,
       },
     })
 
-    expect(user).toMatchSnapshot()
+    expect(sort(data)).toMatchSnapshot()
   })
 })
+
 function sort(array: any) {
   return array.sort((a, b) => b.json.number - a.json.number)
 }
