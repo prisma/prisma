@@ -314,16 +314,10 @@ Invalid \`prisma.user.create()\` invocation:
     })
 
     const result = prisma.$transaction([
-      prisma.$executeRaw(
-        'INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")',
-      ),
-      prisma.$queryRaw('DELETE FROM User'),
-      prisma.$executeRaw(
-        'INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")',
-      ),
-      prisma.$executeRaw(
-        'INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")',
-      ),
+      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")`,
+      prisma.$queryRaw`DELETE FROM User`,
+      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")`,
+      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")`,
     ])
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`

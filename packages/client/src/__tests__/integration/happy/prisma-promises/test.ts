@@ -9,9 +9,9 @@ describe('prisma promises', () => {
     const handler = (e) => Promise.reject(e)
 
     const remove = await prisma.user.deleteMany().catch(handler)
-    const queryRaw = await prisma.$queryRaw('SELECT 1').catch(handler)
+    const queryRaw = await prisma.$queryRawUnsafe('SELECT 1').catch(handler)
     const executeRaw = await prisma
-      .$executeRaw('DELETE FROM User')
+      .$executeRawUnsafe('DELETE FROM User')
       .catch(handler)
     const findMany = await prisma.user.findMany().catch(handler)
 
@@ -42,9 +42,9 @@ describe('prisma promises', () => {
     const handler = () => {}
 
     const remove = await prisma.user.deleteMany().finally(handler)
-    const queryRaw = await prisma.$queryRaw('SELECT 1').finally(handler)
+    const queryRaw = await prisma.$queryRawUnsafe('SELECT 1').finally(handler)
     const executeRaw = await prisma
-      .$executeRaw('DELETE FROM User')
+      .$executeRawUnsafe('DELETE FROM User')
       .finally(handler)
     const findMany = await prisma.user.findMany().finally(handler)
 

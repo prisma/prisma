@@ -707,7 +707,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     ) {
       if (
         (query as TemplateStringsArray).raw ||
-        query instanceof sqlTemplateTag.Sql
+        (query as sqlTemplateTag.Sql).sql
       ) {
         return this.$executeRawRequest(query, ...values)
       }
@@ -891,10 +891,12 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     ) {
       if (
         (query as TemplateStringsArray).raw ||
-        query instanceof sqlTemplateTag.Sql
+        (query as sqlTemplateTag.Sql).sql
       ) {
         return this.$queryRawRequest(query, ...values)
       }
+
+      console.log(query instanceof sqlTemplateTag.Sql)
 
       throw new PrismaClientValidationError(`\`$queryRaw\` is a tagged function, please use it like the following:
 \`\`\`

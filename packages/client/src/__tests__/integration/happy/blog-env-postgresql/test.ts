@@ -56,7 +56,7 @@ test('Blog fixture: Postgres', async () => {
   }
 
   // Test queryRaw(string)
-  const rawQuery = await prisma.$queryRaw('SELECT 1')
+  const rawQuery = await prisma.$queryRawUnsafe('SELECT 1')
   expect(rawQuery[0]['?column?']).toBe(1)
 
   // Test queryRaw``
