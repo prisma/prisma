@@ -24,14 +24,16 @@ const markStudioSdkAsExternalEsbuildPlugin = {
     // Intercept import paths for @prisma/sdk from studio
     build.onResolve({ filter: /^@prisma\/sdk$/ }, args => {
       console.debug(args)
-      if (args.importer?.includes('packages/cli/')) {
-        resolveDirPathForCliPrismaSdk = args.importer
-        console.debug("resolveDirPathForCliPrismaSdk stored", resolveDirPathForCliPrismaSdk)
-      } else if (args.importer?.includes('@prisma/studio-pcw')) {
-        console.debug("resolveDirPathForCliPrismaSdk read", resolveDirPathForCliPrismaSdk)
-        return ({
-          path: resolveDirPathForCliPrismaSdk,
-        })
+      if (args.importer) {
+        if (args.importer.includes('packages/cli/')) {
+          resolveDirPathForCliPrismaSdk = args.importer
+          console.debug("resolveDirPathForCliPrismaSdk stored", resolveDirPathForCliPrismaSdk)
+        } else if (args.importer.includes('@prisma/studio-pcw')) {
+          console.debug("resolveDirPathForCliPrismaSdk read", resolveDirPathForCliPrismaSdk)
+          return ({
+            path: resolveDirPathForCliPrismaSdk,
+          })
+        }
       }
     })
   },
