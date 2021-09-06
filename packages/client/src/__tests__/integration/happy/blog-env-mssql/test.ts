@@ -229,13 +229,13 @@ describe('blog-env-mssql', () => {
   })
 
   describe('$executeRawUnsafe', () => {
-    test('$executeRaw(string)', async () => {
+    test('$executeRawUnsafe(string)', async () => {
       await prisma.user.create({ data: { email: 'a@b.de', name: 'A' } })
       const users = await prisma.$executeRawUnsafe('SELECT * FROM [dbo].[User]')
       expect(users).not.toBe(0)
     })
 
-    test('$executeRaw(string) with params', async () => {
+    test('$executeRawUnsafe(string) with params', async () => {
       await prisma.user.create({ data: { email: 'b@b.de', name: 'B' } })
       const users = await prisma.$executeRawUnsafe(
         'SELECT * FROM [dbo].[User] WHERE name = @P1',
@@ -269,6 +269,18 @@ describe('blog-env-mssql', () => {
       const users =
         await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users).not.toBe(0)
+    })
+
+    test('$executeRaw(string) error', async () => {
+      const users = prisma.$executeRaw('<strings will throw>')
+
+      await expect(users).rejects.toThrowErrorMatchingSnapshot()
+    })
+
+    test('$queryRaw(string) error', async () => {
+      const users = prisma.$queryRaw('<strings will throw>')
+
+      await expect(users).rejects.toThrowErrorMatchingSnapshot()
     })
   })
 })
