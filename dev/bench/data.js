@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1630938350945,
+  "lastUpdate": 1630939670610,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -53331,6 +53331,72 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client/index.js size",
             "value": 3,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "Pierre-Antoine Mills",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "08abf03a5d77a2779f3a807bbe740c5d7ddfeeba",
+          "message": "fix(client): json null filtering (#9074)\n\nCo-authored-by: Joël <joel.galeran@gmail.com>",
+          "timestamp": "2021-09-06T16:44:50+02:00",
+          "tree_id": "709e06e7f5eb1fc379e67d9401d9cb718f335601",
+          "url": "https://github.com/prisma/prisma/commit/08abf03a5d77a2779f3a807bbe740c5d7ddfeeba"
+        },
+        "date": 1630939668278,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.54,
+            "range": "±5.71%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±2.67%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 7.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 44,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
