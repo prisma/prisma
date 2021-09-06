@@ -243,12 +243,6 @@ const aggregateKeys = {
   _sum: true,
   _min: true,
   _max: true,
-  // These will be removed at a later date
-  avg: true,
-  count: true,
-  sum: true,
-  min: true,
-  max: true,
 }
 
 // TODO improve all these types, need a common place to share them between type
@@ -1364,7 +1358,7 @@ new PrismaClient({
            */
           let unpacker: Unpacker | undefined = undefined
           const select = Object.entries(args).reduce((acc, [key, value]) => {
-            // if it is an aggregate like "avg", wrap it with "select"
+            // if it is an aggregate like "_avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
@@ -1407,11 +1401,11 @@ new PrismaClient({
           let unpacker: Unpacker | undefined = undefined
 
           /**
-           * avg, count, sum, min, max need to go into select
+           * _avg, _count, _sum, _min, _max need to go into select
            * For speed reasons we can go with "for in "
            */
           const select = Object.entries(args).reduce((acc, [key, value]) => {
-            // if it is an aggregate like "avg", wrap it with "select"
+            // if it is an aggregate like "_avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
