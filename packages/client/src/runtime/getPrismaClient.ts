@@ -696,7 +696,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query provided through a safe tagged function
+     * Executes a raw query provided through a safe tag function
      * @see https://github.com/prisma/prisma/issues/7142
      *
      * @param query
@@ -714,7 +714,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         return this.$executeRawRequest(query, ...values)
       }
 
-      throw new PrismaClientValidationError(`\`$executeRaw\` is a tagged function, please use it like the following:
+      throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
 \`\`\`
@@ -882,7 +882,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     /**
-     * Executes a raw query provided through a safe tagged function
+     * Executes a raw query provided through a safe tag function
      * @see https://github.com/prisma/prisma/issues/7142
      *
      * @param query
@@ -900,7 +900,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         return this.$queryRawRequest(query, ...values)
       }
 
-      throw new PrismaClientValidationError(`\`$queryRaw\` is a tagged function, please use it like the following:
+      throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
 \`\`\`
