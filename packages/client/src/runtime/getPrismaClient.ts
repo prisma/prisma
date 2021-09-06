@@ -690,6 +690,8 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         finally(onFinally) {
           return request().finally(onFinally)
         },
+      } as Promise<unknown> & {
+        requestTransaction: (id: number) => Promise<unknown>
       }
     }
 
@@ -701,7 +703,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      * @param values
      * @returns
      */
-    $executeRaw(
+    async $executeRaw(
       query: TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: any[]
     ) {
@@ -874,6 +876,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         finally(onFinally) {
           return request().finally(onFinally)
         },
+      } as Promise<unknown> & {
+        requestTransaction: (id: number) => Promise<unknown>
       }
     }
 
@@ -885,7 +889,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param values
      * @returns
      */
-    $queryRaw(
+    async $queryRaw(
       query: TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: any[]
     ) {
@@ -895,8 +899,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       ) {
         return this.$queryRawRequest(query, ...values)
       }
-
-      console.log(query instanceof sqlTemplateTag.Sql)
 
       throw new PrismaClientValidationError(`\`$queryRaw\` is a tagged function, please use it like the following:
 \`\`\`
