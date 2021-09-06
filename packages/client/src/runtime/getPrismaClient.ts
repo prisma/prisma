@@ -48,6 +48,7 @@ import {
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
+import { PrismaClientValidationError } from '.'
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -272,12 +273,10 @@ export interface Client {
   $disconnect()
   _runDisconnect()
   $executeRaw(
-    stringOrTemplateStringsArray:
-      | ReadonlyArray<string>
-      | string
-      | sqlTemplateTag.Sql,
+    query: TemplateStringsArray | sqlTemplateTag.Sql,
+    ...values: any[]
   )
-  $queryRaw(stringOrTemplateStringsArray)
+  $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   __internal_triggerPanic(fatal: boolean)
   $transaction(input: any, options?: any)
 }
@@ -657,9 +656,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and always returns a number
      */
-    $executeRaw(
+    private $executeRawRequest(
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -695,6 +694,34 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
+     * Executes a raw query provided through a safe tagged function
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $executeRaw(
+      query: TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: any[]
+    ) {
+      if (
+        (query as TemplateStringsArray).raw ||
+        query instanceof sqlTemplateTag.Sql
+      ) {
+        return this.$executeRawRequest(query, ...values)
+      }
+
+      throw new PrismaClientValidationError(`\`$executeRaw\` is a tagged function, please use it like the following:
+\`\`\`
+const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
+\`\`\`
+
+Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
+`)
+    }
+
+    /**
      * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
      * @see https://github.com/prisma/prisma/issues/7142
      *
@@ -703,7 +730,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      * @returns
      */
     $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return this.$executeRaw(query, ...values)
+      return this.$executeRawRequest(query, ...values)
     }
 
     private _getCallsite() {
@@ -714,7 +741,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
       runInTransaction: boolean,
@@ -813,9 +840,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and returns selected data
      */
-    $queryRaw(
+    private $queryRawRequest(
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -851,6 +878,34 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
+     * Executes a raw query provided through a safe tagged function
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $queryRaw(
+      query: TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: any[]
+    ) {
+      if (
+        (query as TemplateStringsArray).raw ||
+        query instanceof sqlTemplateTag.Sql
+      ) {
+        return this.$queryRawRequest(query, ...values)
+      }
+
+      throw new PrismaClientValidationError(`\`$queryRaw\` is a tagged function, please use it like the following:
+\`\`\`
+const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
+\`\`\`
+
+Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw
+`)
+    }
+
+    /**
      * Unsafe counterpart of `$queryRaw` that is susceptible to SQL injections
      * @see https://github.com/prisma/prisma/issues/7142
      *
@@ -859,7 +914,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      * @returns
      */
     $queryRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return this.$queryRaw(query, ...values)
+      return this.$queryRawRequest(query, ...values)
     }
 
     __internal_triggerPanic(fatal: boolean) {

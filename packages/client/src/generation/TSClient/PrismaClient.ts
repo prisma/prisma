@@ -1,4 +1,3 @@
-import path from 'path'
 import { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { DMMFClass } from '../../runtime/dmmf'
@@ -47,10 +46,10 @@ function queryRawDefinition(this: PrismaClientClass) {
 
   return `
   /**
-   * Performs a prepared raw query and returns the SELECT data.
+   * Performs a prepared raw query and returns the \`SELECT\` data.
    * @example
    * \`\`\`
-   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
+   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
    * \`\`\`
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
@@ -58,11 +57,11 @@ function queryRawDefinition(this: PrismaClientClass) {
   $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
 
   /**
-   * Performs a raw query and returns the SELECT data.
+   * Performs a raw query and returns the \`SELECT\` data.
    * Susceptible to SQL injections, see documentation.
    * @example
    * \`\`\`
-   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
+   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
    * \`\`\`
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
@@ -81,24 +80,24 @@ function executeRawDefinition(this: PrismaClientClass) {
    * Executes a prepared raw query and returns the number of affected rows.
    * @example
    * \`\`\`
-   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
+   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
    * \`\`\`
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
 
   /**
    * Executes a raw query and returns the number of affected rows.
    * Susceptible to SQL injections, see documentation.
    * @example
    * \`\`\`
-   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
+   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
    * \`\`\`
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;`
+  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;`
 }
 
 export class PrismaClientClass implements Generatable {
