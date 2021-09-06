@@ -13,7 +13,8 @@ const ESBUILD_DEFAULT = {
   platform: 'node',
   target: 'es2018',
   bundle: true,
-  tsconfig: 'tsconfig.build.json'
+  tsconfig: 'tsconfig.build.json',
+  keepNames: true,
 }
 
 const markStudioSdkAsExternalEsbuildPlugin = {
