@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1630682663543,
+  "lastUpdate": 1630921824649,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -53067,6 +53067,72 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client/index.js size",
             "value": 3.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "80c8f74f787ff32968e7eb1b6dff8323acd13ecb",
+          "message": "chore(deps): update engines to 2.31.0-29.5fda01bccd0ca46fbc398f0bc73cb0e97b6643b8 (#9118)\n\nCo-authored-by: Pierre-Antoine Mills <pierreantoine.urvoy@gmail.com>",
+          "timestamp": "2021-09-06T11:46:49+02:00",
+          "tree_id": "46a7c05b201dcc16302ac1d0ee05e1a98a4ad8ec",
+          "url": "https://github.com/prisma/prisma/commit/80c8f74f787ff32968e7eb1b6dff8323acd13ecb"
+        },
+        "date": 1630921821938,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±6.26%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.09,
+            "range": "±3.41%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 7.5,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 44,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
