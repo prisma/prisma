@@ -248,7 +248,7 @@ describe('blog-env-mssql', () => {
       const users = await prisma.$executeRaw(
         sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`,
       )
-      expect(users).not.toHaveLength(0)
+      expect(users).not.toBe(0)
     })
 
     test('$executeRaw`<SQL>`', async () => {
