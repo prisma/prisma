@@ -19,13 +19,18 @@ const ESBUILD_DEFAULT = {
 const markStudioSdkAsExternalEsbuildPlugin = {
   name: 'MarkStudioSdkAsExternalEsbuildPlugin',
   setup(build) {
-    // Intercept import paths for @prisma/sdk from studio and mark them as external
-    // because it is a peerDependencies
+    let resolveDirPathForCliPrismaSdk = ''
+
+    // Intercept import paths for @prisma/sdk from studio
     build.onResolve({ filter: /^@prisma\/sdk$/ }, args => {
-      if (args.importer && args.importer.includes('@prisma/studio-pcw')) {
+      console.debug(args)
+      if (args.importer?.includes('packages/cli/')) {
+        resolveDirPathForCliPrismaSdk = args.importer
+        console.debug("resolveDirPathForCliPrismaSdk stored", resolveDirPathForCliPrismaSdk)
+      } else if (args.importer?.includes('@prisma/studio-pcw')) {
+        console.debug("resolveDirPathForCliPrismaSdk read", resolveDirPathForCliPrismaSdk)
         return ({
-          path: args.path,
-          external: true
+          path: resolveDirPathForCliPrismaSdk,
         })
       }
     })
