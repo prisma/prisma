@@ -16,6 +16,22 @@ const ESBUILD_DEFAULT = {
   tsconfig: 'tsconfig.build.json'
 }
 
+const markStudioSdkAsExternalEsbuildPlugin = {
+  name: 'MarkStudioSdkAsExternalEsbuildPlugin',
+  setup(build) {
+    // Intercept import paths for @prisma/sdk from studio and mark them as external
+    // because it is a peerDependencies
+    build.onResolve({ filter: /^@prisma\/sdk$/ }, args => {
+      if (args.importer && args.importer.includes('@prisma/studio-pcw')) {
+        return ({
+          path: args.path,
+          external: true
+        })
+      }
+    })
+  },
+}
+
 async function main() {
   const before = Date.now()
 
@@ -29,6 +45,7 @@ async function main() {
       entryPoints: ['src/bin.ts'],
       outfile: 'build/index.js',
       external: ['@prisma/engines', '_http_common'],
+      plugins: [markStudioSdkAsExternalEsbuildPlugin]
     }),
     esbuild.build({
       ...ESBUILD_DEFAULT,
