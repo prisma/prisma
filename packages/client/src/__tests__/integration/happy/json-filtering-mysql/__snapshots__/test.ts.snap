@@ -66,6 +66,39 @@ Array [
 ]
 `;
 
+exports[`json-filtering(mysql) filter with Prisma.AnyNull 1`] = `
+Array [
+  Object {
+    email: b@b.de,
+  },
+  Object {
+    email: c@b.de,
+  },
+  Object {
+    email: a@b.de,
+  },
+]
+`;
+
+exports[`json-filtering(mysql) filter with Prisma.DbNull 1`] = `
+Array [
+  Object {
+    email: c@b.de,
+  },
+  Object {
+    email: a@b.de,
+  },
+]
+`;
+
+exports[`json-filtering(mysql) filter with Prisma.JsonNull 1`] = `
+Array [
+  Object {
+    email: b@b.de,
+  },
+]
+`;
+
 exports[`json-filtering(mysql) gt(2) 1`] = `
 Array [
   Object {
