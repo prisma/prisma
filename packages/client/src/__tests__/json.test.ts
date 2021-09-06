@@ -80,7 +80,7 @@ describe('json', () => {
       select: {
         where: {
           json: {
-            equals: null,
+            equals: 'JsonNull',
           },
         },
       },

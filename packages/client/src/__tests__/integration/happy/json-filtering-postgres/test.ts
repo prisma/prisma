@@ -3,7 +3,11 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
-let prisma
+// @ts-ignore trick to get typings at dev time
+import type { PrismaClient, Prisma } from './node_modules/.prisma/client'
+
+let prisma: PrismaClient
+let PrismaUtil: typeof Prisma
 const baseUri = process.env.TEST_POSTGRES_URI
 describe('json-filtering(postgres)', () => {
   beforeAll(async () => {
@@ -14,8 +18,9 @@ describe('json-filtering(postgres)', () => {
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
-    const { PrismaClient } = require('./node_modules/@prisma/client')
+    const { PrismaClient, Prisma } = require('./node_modules/.prisma/client')
     prisma = new PrismaClient()
+    PrismaUtil = Prisma
     await prisma.user.createMany({
       data: [
         {
@@ -26,6 +31,7 @@ describe('json-filtering(postgres)', () => {
             array: [1, 2, 3, 4],
             object: { a: 1, b: 2, c: 3 },
           },
+          jsonOpt: undefined,
         },
         {
           email: 'b@b.de',
@@ -35,6 +41,7 @@ describe('json-filtering(postgres)', () => {
             array: [5, 6, 7, 8],
             object: { a: 4, b: 5, c: 6 },
           },
+          jsonOpt: PrismaUtil.JsonNull,
         },
         {
           email: 'c@b.de',
@@ -44,6 +51,7 @@ describe('json-filtering(postgres)', () => {
             array: [9, 10, 11, 12],
             object: { a: 7, b: 8, c: 9 },
           },
+          jsonOpt: PrismaUtil.DbNull,
         },
       ],
     })
@@ -208,7 +216,62 @@ describe('json-filtering(postgres)', () => {
     })
     expect(sort(b)).toMatchSnapshot()
   })
+
+  /**
+   * Filter entries that have a JSON `null` value
+   */
+  test('filter with Prisma.JsonNull', async () => {
+    const data = await prisma.user.findMany({
+      where: {
+        jsonOpt: {
+          equals: PrismaUtil.JsonNull,
+        },
+      },
+      select: {
+        json: true,
+      },
+    })
+
+    expect(sort(data)).toMatchSnapshot()
+  })
+
+  /**
+   * Filter entries that have a db `null` value
+   */
+  test('filter with Prisma.DbNull', async () => {
+    const data = await prisma.user.findMany({
+      where: {
+        jsonOpt: {
+          equals: PrismaUtil.DbNull,
+        },
+      },
+      select: {
+        json: true,
+      },
+    })
+
+    expect(sort(data)).toMatchSnapshot()
+  })
+
+  /**
+   * Filter entries that have a db or json `null` value
+   */
+  test('filter with Prisma.AnyNull', async () => {
+    const data = await prisma.user.findMany({
+      where: {
+        jsonOpt: {
+          equals: PrismaUtil.AnyNull,
+        },
+      },
+      select: {
+        json: true,
+      },
+    })
+
+    expect(sort(data)).toMatchSnapshot()
+  })
 })
+
 function sort(array: any) {
   return array.sort((a, b) => b.json.number - a.json.number)
 }
