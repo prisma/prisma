@@ -78,7 +78,6 @@ Prisma.Decimal = Decimal
 /**
  * Re-export of sql-template-tag
  */
-
 Prisma.sql = ${notSupportOnBrowser('sqltag', browser)}
 Prisma.empty = ${notSupportOnBrowser('empty', browser)}
 Prisma.join = ${notSupportOnBrowser('join', browser)}
@@ -183,10 +182,24 @@ export interface InputJsonArray extends Array<JsonValue> {}
 export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
 
 /**
- * Shorthand utilities for JSON filtering
+ * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
+ * 
+ * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
 export const DbNull: 'DbNull'
+
+/**
+ * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
+ * 
+ * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+ */
 export const JsonNull: 'JsonNull'
+
+/**
+ * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
+ * 
+ * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+ */
 export const AnyNull: 'AnyNull'
 
 type SelectAndInclude = {
