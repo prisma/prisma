@@ -19,7 +19,7 @@ async function main() {
     }),
 
     prisma.$queryRaw`SELECT 1`,
-    prisma.$executeRaw(''),
+    prisma.$executeRawUnsafe(''),
   ])
   // Test Type Fallback
   const txs = [prisma.user.findMany(), prisma.user.findFirst()]

@@ -177,21 +177,6 @@ describe('blog-env-mssql', () => {
   })
 
   describe('$queryRaw', () => {
-    test('$queryRaw(string)', async () => {
-      await prisma.user.create({ data: { email: 'a@a.de', name: 'A' } })
-      const users = await prisma.$queryRaw('SELECT * FROM [dbo].[User]')
-      expect(users).not.toHaveLength(0)
-    })
-
-    test('$queryRaw(string) with params', async () => {
-      await prisma.user.create({ data: { email: 'b@a.de', name: 'B' } })
-      const users = await prisma.$queryRaw(
-        'SELECT * FROM [dbo].[User] WHERE name = @P1',
-        'B',
-      )
-      expect(users).not.toHaveLength(0)
-    })
-
     test('$queryRaw(sql`<SQL>`)', async () => {
       await prisma.user.create({ data: { email: 'c@a.de', name: 'C' } })
       const users = await prisma.$queryRaw(sql`SELECT * FROM [dbo].[User]`)
@@ -226,24 +211,32 @@ describe('blog-env-mssql', () => {
         await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users[0].name).toBe('F')
     })
+
+    test('$queryRaw(string) error', async () => {
+      const users = prisma.$queryRaw('<strings will throw>')
+
+      await expect(users).rejects.toThrowErrorMatchingSnapshot()
+    })
   })
 
-  describe('$executeRaw', () => {
-    test('$executeRaw(string)', async () => {
-      await prisma.user.create({ data: { email: 'a@b.de', name: 'A' } })
-      const users = await prisma.$executeRaw('SELECT * FROM [dbo].[User]')
-      expect(users).not.toBe(0)
+  describe('$queryRawUnsafe', () => {
+    test('$queryRawUnsafe(string)', async () => {
+      await prisma.user.create({ data: { email: 'a@a.de', name: 'A' } })
+      const users = await prisma.$queryRawUnsafe('SELECT * FROM [dbo].[User]')
+      expect(users).not.toHaveLength(0)
     })
 
-    test('$executeRaw(string) with params', async () => {
-      await prisma.user.create({ data: { email: 'b@b.de', name: 'B' } })
-      const users = await prisma.$executeRaw(
+    test('$queryRawUnsafe(string) with params', async () => {
+      await prisma.user.create({ data: { email: 'b@a.de', name: 'B' } })
+      const users = await prisma.$queryRawUnsafe(
         'SELECT * FROM [dbo].[User] WHERE name = @P1',
         'B',
       )
-      expect(users).not.toBe(0)
+      expect(users).not.toHaveLength(0)
     })
+  })
 
+  describe('$executeRaw', () => {
     test('$executeRaw(sql`<SQL>`)', async () => {
       await prisma.user.create({ data: { email: 'c@b.de', name: 'C' } })
       const users = await prisma.$executeRaw(sql`SELECT * FROM [dbo].[User]`)
@@ -252,10 +245,10 @@ describe('blog-env-mssql', () => {
 
     test('$executeRaw(sql`<SQL>`) with params', async () => {
       await prisma.user.create({ data: { email: 'd@b.de', name: 'D' } })
-      const users = await prisma.$queryRaw(
+      const users = await prisma.$executeRaw(
         sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`,
       )
-      expect(users).not.toHaveLength(0)
+      expect(users).not.toBe(0)
     })
 
     test('$executeRaw`<SQL>`', async () => {
@@ -268,6 +261,29 @@ describe('blog-env-mssql', () => {
       await prisma.user.create({ data: { email: 'f@b.de', name: 'F' } })
       const users =
         await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
+      expect(users).not.toBe(0)
+    })
+
+    test('$executeRaw(string) error', async () => {
+      const users = prisma.$executeRaw('<strings will throw>')
+
+      await expect(users).rejects.toThrowErrorMatchingSnapshot()
+    })
+  })
+
+  describe('$executeRawUnsafe', () => {
+    test('$executeRawUnsafe(string)', async () => {
+      await prisma.user.create({ data: { email: 'a@b.de', name: 'A' } })
+      const users = await prisma.$executeRawUnsafe('SELECT * FROM [dbo].[User]')
+      expect(users).not.toBe(0)
+    })
+
+    test('$executeRawUnsafe(string) with params', async () => {
+      await prisma.user.create({ data: { email: 'b@b.de', name: 'B' } })
+      const users = await prisma.$executeRawUnsafe(
+        'SELECT * FROM [dbo].[User] WHERE name = @P1',
+        'B',
+      )
       expect(users).not.toBe(0)
     })
   })

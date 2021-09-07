@@ -646,32 +646,50 @@ export class PrismaClient<
   $use(cb: Prisma.Middleware): void
 
   /**
-   * Executes a raw query and returns the number of affected rows
+   * Executes a prepared raw query and returns the number of affected rows.
    * @example
    * \`\`\`
-   * // With parameters use prisma.$executeRaw\`\`, values will be escaped automatically
-   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-   * // Or
-   * const result = await prisma.$executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
+   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
 
   /**
-   * Performs a raw query and returns the SELECT data
+   * Executes a raw query and returns the number of affected rows.
+   * Susceptible to SQL injections, see documentation.
    * @example
    * \`\`\`
-   * // With parameters use prisma.$queryRaw\`\`, values will be escaped automatically
-   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-   * // Or
-   * const result = await prisma.$queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;
+
+  /**
+   * Performs a prepared raw query and returns the \`SELECT\` data.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+
+  /**
+   * Performs a raw query and returns the \`SELECT\` data.
+   * Susceptible to SQL injections, see documentation.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
 
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
@@ -686,7 +704,8 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
+
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
