@@ -215,8 +215,10 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
           clientVersionBeforeGenerate &&
           typeof clientVersionBeforeGenerate === 'string'
         ) {
+          const major = clientVersionBeforeGenerate.split('.')[0]
           const minor = clientVersionBeforeGenerate.split('.')[1]
-          if (parseInt(minor, 10) < 12) {
+          
+          if (parseInt(minor, 10) == 2 && parseInt(minor, 10) < 12) {
             printBreakingChangesMessage = true
           }
         }
