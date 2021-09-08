@@ -10,9 +10,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@types/jest": "27.0.1",
-    "@types/node": "14.17.14",
-    "@typescript-eslint/eslint-plugin": "4.30.0",
-    "@typescript-eslint/parser": "4.30.0",
+    "@types/node": "14.17.15",
+    "@typescript-eslint/eslint-plugin": "4.31.0",
+    "@typescript-eslint/parser": "4.31.0",
     "esbuild": "0.12.16",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
