@@ -17,10 +17,10 @@ async function build() {
       ...ESBUILD_DEFAULT,
       entryPoints: glob.sync('./src/**/*.{j,t}s', {
         ignore: './src/__tests__/**/*'
-      }),
+      })
     }),
   ])
-  
+
   if (process.env.DEV !== 'true') {
     await run('tsc --build tsconfig.build.json')
   }
