@@ -19,8 +19,6 @@ export const esmBuildOptions: esbuild.BuildOptions = {
   tsconfig: 'tsconfig.build.json',
 }
 
-function process 
-
 export async function build(
   options: esbuild.BuildOptions[],
   buildTypes = true,
