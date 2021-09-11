@@ -1,12 +1,24 @@
 import type { F } from 'ts-toolbelt'
-
-import { reduce } from './reduce'
 import { skip } from './transduce'
 
+/**
+ * Pipe the input and output of functions.
+ *
+ * @param fn parameter-taking function
+ * @param fns subsequent piped functions
+ * @returns
+ */
 const pipe: PipeMultiSync =
   (fn: F.Function, ...fns: F.Function[]) =>
-  (...args: unknown[]) =>
-    reduce(fns, (acc, fn) => (acc === skip ? skip : fn(acc)), fn(...args))
+  (...args: unknown[]) => {
+    let result = fn(...args)
+
+    for (let pos = 0; result !== skip && pos < fns.length; ++pos) {
+      result = fns[pos](result)
+    }
+
+    return result
+  }
 
 // TODO: use the one from ts-toolbelt (broken atm since ts 4.1)
 export declare type PipeMultiSync = {

@@ -31,23 +31,21 @@ const skip = Symbol('skip')
  * )
  * ```
  */
-const transduce = <L extends L.List, I, R>(
+const transduce = <L extends L.List<I>, I, R>(
   list: L & L.List<I>,
   transformer: (item: I) => R | typeof skip,
 ) => {
-  return reduce(
-    list,
-    (acc, unit) => {
-      const transformed = transformer(unit)
+  const transduced = [] as R[]
 
-      if (transformed === skip) return acc
+  for (let pos = 0; pos < list.length; ++pos) {
+    const transformed = transformer(list[pos])
 
-      acc[acc.length] = transformed
+    if (transformed !== skip) {
+      transduced[transduced.length] = transformed
+    }
+  }
 
-      return acc
-    },
-    [] as R[],
-  )
+  return transduced
 }
 
 const Filter =
@@ -63,15 +61,3 @@ const Mapper =
   }
 
 export { transduce, Filter, Mapper, skip }
-
-const filterEven = Filter(<U extends number>(unit: U) =>
-  typeof unit === 'number' ? !(unit % 2) : true,
-)
-const mapTimes2 = Mapper(<U extends number>(unit: U) =>
-  typeof unit === 'number' ? unit * 2 : unit,
-)
-const mapString = Mapper(<U>(unit: U) => `${unit}`)
-const test0 = transduce(
-  [1, 2, 3, 4, 5, 6, 7, 'a'],
-  pipe(filterEven, mapTimes2, mapTimes2, filterEven),
-)
