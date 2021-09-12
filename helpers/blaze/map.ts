@@ -15,8 +15,8 @@ function mapList<L extends L.List, I, R>(
 ): Map<L, R> {
   const mapped = new Array(object.length)
 
-  for (let pos = 0; pos < object.length; ++pos) {
-    mapped[pos] = mapper(object[pos], pos)
+  for (let i = 0; i < object.length; ++i) {
+    mapped[i] = mapper(object[i], i)
   }
 
   return mapped as any
@@ -29,8 +29,8 @@ function mapObject<O extends object, I, R>(
   const mapped = {}
 
   const keys = Object.keys(object)
-  for (let pos = 0; pos < keys.length; ++pos) {
-    mapped[pos] = mapper(object[keys[pos]], keys[pos])
+  for (let i = 0; i < keys.length; ++i) {
+    mapped[i] = mapper(object[keys[i]], keys[i])
   }
 
   return mapped as any

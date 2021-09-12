@@ -1,7 +1,4 @@
 import type { L } from 'ts-toolbelt'
-import { _ } from './_'
-import { reduce } from './reduce'
-import { pipe } from './pipe'
 
 const skip = Symbol('skip')
 
@@ -9,6 +6,8 @@ const skip = Symbol('skip')
  * Transducers enable efficient data processing. They allow the composition of
  * mappers and filters to be applied on a list. And this is applied in a single
  * pass, that's the efficient pipeline processing.
+ *
+ * (does not reduce at the same time)
  *
  * @see https://medium.com/javascript-scene/7985330fe73d
  *
@@ -21,7 +20,7 @@ const skip = Symbol('skip')
  *   typeof unit === 'number' ? !(unit % 2) : true,
  * )
  * const mapTimes2 = Mapper(<U>(unit: U) =>
- *   typeof unit === 'number' ? unit * 2 : `${unit}`,
+ *   typeof unit === 'number' ? unit * 2 : unit,
  * )
  * const mapString = Mapper(<U>(unit: U) => `${unit}`)
  *
@@ -37,8 +36,8 @@ const transduce = <L extends L.List<I>, I, R>(
 ) => {
   const transduced = [] as R[]
 
-  for (let pos = 0; pos < list.length; ++pos) {
-    const transformed = transformer(list[pos])
+  for (let i = 0; i < list.length; ++i) {
+    const transformed = transformer(list[i])
 
     if (transformed !== skip) {
       transduced[transduced.length] = transformed

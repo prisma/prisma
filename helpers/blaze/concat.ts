@@ -16,12 +16,12 @@ function concat<I0, I1>(list0: L.List<I0>, list1: L.List<I1>) {
 
   const _list: (I0 | I1)[] = new Array(length)
 
-  for (let j = list1.length - 1; j >= 0; --j) {
-    _list[--length] = list1[j]
+  for (let i = list1.length - 1; i >= 0; --i) {
+    _list[--length] = list1[i]
   }
 
-  for (let j = list0.length - 1; j >= 0; --j) {
-    _list[--length] = list0[j]
+  for (let i = list0.length - 1; i >= 0; --i) {
+    _list[--length] = list0[i]
   }
 
   return _list
