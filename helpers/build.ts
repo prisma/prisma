@@ -1,64 +1,89 @@
 import execa from 'execa'
 import * as esbuild from 'esbuild'
+import { flatten } from './blaze/flatten'
+import { pipe } from './blaze/pipe'
+import { map } from './blaze/map'
+import { handle } from './blaze/handle'
 
-export const cjsBuildOptions: esbuild.BuildOptions = {
+export const cjsBaseOptions: esbuild.BuildOptions = {
   format: 'cjs',
   platform: 'node',
   target: 'es2018',
   external: ['_http_common'],
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
+  outExtension: { '.js': '.cjs' },
 }
 
-export const esmBuildOptions: esbuild.BuildOptions = {
+export const esmBaseOptions: esbuild.BuildOptions = {
   format: 'esm',
   platform: 'node',
   target: 'es2018',
   external: ['_http_common'],
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
+  outExtension: { '.js': '.mjs' },
 }
 
-export async function build(
-  options: esbuild.BuildOptions[],
-  buildTypes = true,
-) {
-  try {
-    // we let esbuild process all configs we passed
-    await Promise.all(
-      options
-        // we create a matrix of cjs and esm config
-        .flatMap((options) => [
-          { ...cjsBuildOptions, ...options },
-          { ...esmBuildOptions, ...options },
-        ])
-        // that we re-map to add some extra config
-        .map((options) => {
-          // we determine the output file extension
-          const ext = options.format === 'esm' ? '.mjs' : '.cjs'
+// create a matrix of possible options with cjs and esm
+function combineBaseOptions(options: esbuild.BuildOptions[]) {
+  return flatten(
+    map(options, (options) => [
+      { ...cjsBaseOptions, ...options },
+      { ...esmBaseOptions, ...options },
+    ]),
+  )
+}
 
-          // when using `outdir`, this will set it
-          options.outExtension = { '.js': ext }
+// extensions are not auto set for `outfile`, we do it
+function addExtensionFormat(options: esbuild.BuildOptions[]) {
+  return map(options, (options) => {
+    if (options.outfile && options.outExtension) {
+      const ext = options.outExtension['.js']
 
-          if (options.outfile) {
-            // but not for `outfile`, so we set it
-            options.outfile = `${options.outfile}${ext}`
-          }
-
-          return esbuild.build(options) // build
-        }),
-    )
-
-    // when it's requested, we also generate ts types
-    if (buildTypes && process.env.DEV !== 'true') {
-      await run('tsc --build tsconfig.build.json')
+      options.outfile = `${options.outfile}${ext}`
     }
-  } catch (e) {
-    console.log(e)
+
+    return options
+  })
+}
+
+// execute esbuild with all the configurations we pass
+function executeEsBuild(options: esbuild.BuildOptions[]) {
+  return map(options, (options) => esbuild.build(options))
+}
+
+// when it's requested we also generate project types
+async function emitProjectTypes(result: Promise<esbuild.BuildResult>[]) {
+  await Promise.all(result) // check that it compiled
+
+  if (process.env.DEV !== 'true') {
+    await run('tsc --build tsconfig.build.json')
+  }
+
+  return undefined
+}
+
+// detect build errors and exit the process if needed
+async function handleBuildErrors(promise: Promise<void>) {
+  const result = await handle(() => promise)
+
+  if (result instanceof Error) {
+    console.log(result)
     process.exit(1)
   }
 }
 
-function run(command, preferLocal = true) {
+export function build(options: esbuild.BuildOptions[]) {
+  void pipe(
+    combineBaseOptions,
+    addExtensionFormat,
+    executeEsBuild,
+    emitProjectTypes,
+    handleBuildErrors,
+  )(options)
+}
+
+function run(command: string, preferLocal = true) {
   return execa.command(command, { preferLocal, shell: true, stdio: 'inherit' })
 }

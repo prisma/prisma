@@ -23,4 +23,4 @@ const browserBuildConfig: BuildOptions = {
   bundle: true,
 }
 
-void build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig], true)
+build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig])
