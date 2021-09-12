@@ -31,8 +31,8 @@ const reduce = <L extends L.List<I>, I, R>(
     return acc
   }
 
-  for (let pos = 0; !exited && pos < list.length; ++pos) {
-    acc = reducer(acc, list[pos], pos, exit)
+  for (let i = 0; !exited && i < list.length; ++i) {
+    acc = reducer(acc, list[i], i, exit)
   }
 
   return acc

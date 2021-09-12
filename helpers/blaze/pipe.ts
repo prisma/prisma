@@ -13,8 +13,8 @@ const pipe: PipeMultiSync =
   (...args: unknown[]) => {
     let result = fn(...args)
 
-    for (let pos = 0; result !== skip && pos < fns.length; ++pos) {
-      result = fns[pos](result)
+    for (let i = 0; result !== skip && i < fns.length; ++i) {
+      result = fns[i](result)
     }
 
     return result
