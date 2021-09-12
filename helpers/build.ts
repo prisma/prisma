@@ -4,8 +4,9 @@ import { flatten } from './blaze/flatten'
 import { pipe } from './blaze/pipe'
 import { map } from './blaze/map'
 import { handle } from './blaze/handle'
+import globby from 'globby'
 
-export const cjsBaseOptions: esbuild.BuildOptions = {
+export const cjsBaseOptions = (): esbuild.BuildOptions => ({
   format: 'cjs',
   platform: 'node',
   target: 'es2018',
@@ -13,9 +14,12 @@ export const cjsBaseOptions: esbuild.BuildOptions = {
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.cjs' },
-}
+  entryPoints: globby.sync('./src/**/*.{j,t}s', {
+    ignore: ['./src/__tests__/**/*'],
+  }),
+})
 
-export const esmBaseOptions: esbuild.BuildOptions = {
+export const esmBaseOptions = (): esbuild.BuildOptions => ({
   format: 'esm',
   platform: 'node',
   target: 'es2018',
@@ -23,14 +27,17 @@ export const esmBaseOptions: esbuild.BuildOptions = {
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.mjs' },
-}
+  entryPoints: globby.sync('./src/**/*.{j,t}s', {
+    ignore: ['./src/__tests__/**/*'],
+  }),
+})
 
 // create a matrix of possible options with cjs and esm
 function combineBaseOptions(options: esbuild.BuildOptions[]) {
   return flatten(
     map(options, (options) => [
-      { ...cjsBaseOptions, ...options },
-      { ...esmBaseOptions, ...options },
+      { ...cjsBaseOptions(), ...options },
+      { ...esmBaseOptions(), ...options },
     ]),
   )
 }
