@@ -33,22 +33,25 @@ test('executeRaw-alter-postgres', async () => {
       Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
-        await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+        await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
 
     `)
   }
   try {
-    await prisma.$executeRaw(`ALTER USER prisma WITH PASSWORD $1`, password)
+    await prisma.$executeRawUnsafe(
+      `ALTER USER prisma WITH PASSWORD $1`,
+      password,
+    )
   } catch (err) {
     // String
     expect(err).toMatchInlineSnapshot(`
-      Running ALTER using prisma.$executeRaw(<SQL>, [...values]) is not supported
+      Running ALTER using prisma.$executeRawUnsafe(<SQL>, [...values]) is not supported
       Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
-        await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+        await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
 
@@ -63,7 +66,7 @@ test('executeRaw-alter-postgres', async () => {
       Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
       Example:
-        await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+        await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
       More Information: https://pris.ly/d/execute-raw
 
@@ -71,7 +74,7 @@ test('executeRaw-alter-postgres', async () => {
   }
 
   // Should Work
-  const result = await prisma.$executeRaw(
+  const result = await prisma.$executeRawUnsafe(
     `ALTER USER prisma WITH PASSWORD '${password}'`,
   )
   expect(result).toMatchInlineSnapshot(`0`)

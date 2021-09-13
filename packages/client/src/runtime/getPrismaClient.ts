@@ -48,6 +48,7 @@ import {
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
+import { PrismaClientValidationError } from '.'
 import { DataProxyEngine } from './DataProxyEngine'
 
 const debug = Debug('prisma:client')
@@ -57,12 +58,13 @@ function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
 }
 
+// TODO also check/disallow for CREATE, DROP
 function checkAlter(
   query: string,
   values: sqlTemplateTag.Value[],
   invalidCall:
     | 'prisma.$executeRaw`<SQL>`'
-    | 'prisma.$executeRaw(<SQL>, [...values])'
+    | 'prisma.$executeRawUnsafe(<SQL>, [...values])'
     | 'prisma.$executeRaw(sql`<SQL>`)',
 ) {
   if (values.length > 0 && ALTER_RE.exec(query)) {
@@ -71,7 +73,7 @@ function checkAlter(
 Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
 
 Example:
-  await prisma.$executeRaw(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
+  await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
 
 More Information: https://pris.ly/d/execute-raw
 `)
@@ -128,7 +130,7 @@ export interface PrismaClientOptions {
       cwd?: string
       binaryPath?: string
       endpoint?: string
-      enableEngineDebugMode?: boolean
+      allowTriggerPanic?: boolean
     }
   }
 }
@@ -245,12 +247,6 @@ const aggregateKeys = {
   _sum: true,
   _min: true,
   _max: true,
-  // These will be removed at a later date
-  avg: true,
-  count: true,
-  sum: true,
-  min: true,
-  max: true,
 }
 
 // TODO improve all these types, need a common place to share them between type
@@ -273,12 +269,10 @@ export interface Client {
   $disconnect()
   _runDisconnect()
   $executeRaw(
-    stringOrTemplateStringsArray:
-      | ReadonlyArray<string>
-      | string
-      | sqlTemplateTag.Sql,
+    query: TemplateStringsArray | sqlTemplateTag.Sql,
+    ...values: any[]
   )
-  $queryRaw(stringOrTemplateStringsArray)
+  $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   __internal_triggerPanic(fatal: boolean)
   $transaction(input: any, options?: any)
 }
@@ -378,7 +372,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
-          enableEngineDebugMode: engineConfig.enableEngineDebugMode,
+          allowTriggerPanic: engineConfig.allowTriggerPanic,
           datamodelPath: path.join(config.dirname, 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
@@ -556,34 +550,32 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     private $executeRawInternal(
       runInTransaction: boolean,
       transactionId: number | undefined,
-      stringOrTemplateStringsArray:
-        | ReadonlyArray<string>
-        | string
-        | sqlTemplateTag.Sql,
+      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
       // TODO Clean up types
-      let query = ''
+      let queryString = ''
       let parameters: any = undefined
-      if (typeof stringOrTemplateStringsArray === 'string') {
+      if (typeof query === 'string') {
         // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
-        query = stringOrTemplateStringsArray
+        queryString = query
         parameters = {
           values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-        checkAlter(query, values, 'prisma.$executeRaw(<SQL>, [...values])')
-      } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
+        checkAlter(
+          queryString,
+          values,
+          'prisma.$executeRawUnsafe(<SQL>, [...values])',
+        )
+      } else if (isReadonlyArray(query)) {
         // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray,
-              ...values,
-            )
+            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
 
-            query = queryInstance.sql
+            queryString = queryInstance.sql
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -592,13 +584,14 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           }
 
           case 'postgresql': {
-            const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray,
-              ...values,
-            )
+            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
 
-            query = queryInstance.text
-            checkAlter(query, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
+            queryString = queryInstance.text
+            checkAlter(
+              queryString,
+              queryInstance.values,
+              'prisma.$executeRaw`<SQL>`',
+            )
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -607,7 +600,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           }
 
           case 'sqlserver': {
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray)
+            queryString = mssqlPreparedStatement(query)
             parameters = {
               values: serializeRawParameters(values),
               __prismaRawParamaters__: true,
@@ -620,33 +613,33 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql':
-            query = stringOrTemplateStringsArray.sql
+            queryString = query.sql
             break
           case 'postgresql':
-            query = stringOrTemplateStringsArray.text
+            queryString = query.text
             checkAlter(
-              query,
-              stringOrTemplateStringsArray.values,
+              queryString,
+              query.values,
               'prisma.$executeRaw(sql`<SQL>`)',
             )
             break
           case 'sqlserver':
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray.strings)
+            queryString = mssqlPreparedStatement(query.strings)
             break
         }
         parameters = {
-          values: serializeRawParameters(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(query.values),
           __prismaRawParamaters__: true,
         }
       }
 
       if (parameters?.values) {
-        debug(`prisma.$executeRaw(${query}, ${parameters.values})`)
+        debug(`prisma.$executeRaw(${queryString}, ${parameters.values})`)
       } else {
-        debug(`prisma.$executeRaw(${query})`)
+        debug(`prisma.$executeRaw(${queryString})`)
       }
 
-      const args = { query, parameters }
+      const args = { query: queryString, parameters }
 
       debug(`Prisma Client call:`)
       return this._request({
@@ -661,13 +654,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and always returns a number
      */
-    $executeRaw(
-      stringOrTemplateStringsArray:
-        | ReadonlyArray<string>
-        | string
-        | sqlTemplateTag.Sql,
+    private $executeRawRequest(
+      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
       const request = (transactionId?: number, runInTransaction?: boolean) => {
@@ -675,7 +665,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           const promise = this.$executeRawInternal(
             runInTransaction ?? false,
             transactionId,
-            stringOrTemplateStringsArray,
+            query,
             ...values,
           )
           ;(promise as any).isExecuteRaw = true
@@ -685,20 +675,50 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           throw e
         }
       }
-      return {
-        then(onFulfilled, onRejected, transactionId?: number) {
-          return request(transactionId).then(onFulfilled, onRejected)
-        },
-        requestTransaction(transactionId: number) {
-          return request(transactionId, true)
-        },
-        catch(onRejected) {
-          return request().catch(onRejected)
-        },
-        finally(onFinally) {
-          return request().finally(onFinally)
-        },
-      }
+
+      return createPrismaPromise(request)
+    }
+
+    /**
+     * Executes a raw query provided through a safe tag function
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $executeRaw(
+      query: TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: any[]
+    ) {
+      return createPrismaPromise(() => {
+        if (
+          (query as TemplateStringsArray).raw ||
+          (query as sqlTemplateTag.Sql).sql
+        ) {
+          return this.$executeRawRequest(query, ...values)
+        }
+
+        throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
+\`\`\`
+const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
+\`\`\`
+
+Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
+`)
+      })
+    }
+
+    /**
+     * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
+      return this.$executeRawRequest(query, ...values)
     }
 
     private _getCallsite() {
@@ -709,39 +729,33 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
       runInTransaction: boolean,
       transactionId: number | undefined,
-      stringOrTemplateStringsArray:
-        | ReadonlyArray<string>
-        | TemplateStringsArray
-        | sqlTemplateTag.Sql,
-      ...values: any[]
+      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
     ) {
-      let query = ''
+      let queryString = ''
       let parameters: any = undefined
 
-      if (typeof stringOrTemplateStringsArray === 'string') {
+      if (typeof query === 'string') {
         // If this was called as prisma.$queryRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
-        query = stringOrTemplateStringsArray
+        queryString = query
         parameters = {
           values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-      } else if (isReadonlyArray(stringOrTemplateStringsArray)) {
+      } else if (isReadonlyArray(query)) {
         // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
         // Example: prisma.$queryRaw`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray,
-              ...values,
-            )
+            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
 
-            query = queryInstance.sql
+            queryString = queryInstance.sql
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -750,12 +764,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           }
 
           case 'postgresql': {
-            const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray as any,
-              ...values,
-            )
+            const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
 
-            query = queryInstance.text
+            queryString = queryInstance.text
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -764,12 +775,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           }
 
           case 'sqlserver': {
-            const queryInstance = sqlTemplateTag.sqltag(
-              stringOrTemplateStringsArray as any,
-              ...values,
-            )
+            const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
 
-            query = mssqlPreparedStatement(queryInstance.strings)
+            queryString = mssqlPreparedStatement(queryInstance.strings)
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -783,28 +791,28 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql':
-            query = stringOrTemplateStringsArray.sql
+            queryString = query.sql
             break
           case 'postgresql':
-            query = stringOrTemplateStringsArray.text
+            queryString = query.text
             break
           case 'sqlserver':
-            query = mssqlPreparedStatement(stringOrTemplateStringsArray.strings)
+            queryString = mssqlPreparedStatement(query.strings)
             break
         }
         parameters = {
-          values: serializeRawParameters(stringOrTemplateStringsArray.values),
+          values: serializeRawParameters(query.values),
           __prismaRawParamaters__: true,
         }
       }
 
       if (parameters?.values) {
-        debug(`prisma.queryRaw(${query}, ${parameters.values})`)
+        debug(`prisma.queryRaw(${queryString}, ${parameters.values})`)
       } else {
-        debug(`prisma.queryRaw(${query})`)
+        debug(`prisma.queryRaw(${queryString})`)
       }
 
-      const args = { query, parameters }
+      const args = { query: queryString, parameters }
 
       debug(`Prisma Client call:`)
       // const doRequest = (runInTransaction = false) => {
@@ -820,10 +828,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and returns selected data
      */
-    $queryRaw(
-      stringOrTemplateStringsArray,
+    private $queryRawRequest(
+      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
       const request = (transactionId?: number, runInTransaction?: boolean) => {
@@ -831,7 +839,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           const promise = this.$queryRawInternal(
             runInTransaction ?? false,
             transactionId,
-            stringOrTemplateStringsArray,
+            query,
             ...values,
           )
           ;(promise as any).isQueryRaw = true
@@ -841,29 +849,59 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           throw e
         }
       }
-      return {
-        then(onFulfilled, onRejected, transactionId?: number) {
-          return request(transactionId).then(onFulfilled, onRejected)
-        },
-        requestTransaction(transactionId: number) {
-          return request(transactionId, true)
-        },
-        catch(onRejected) {
-          return request().catch(onRejected)
-        },
-        finally(onFinally) {
-          return request().finally(onFinally)
-        },
-      }
+
+      return createPrismaPromise(request)
+    }
+
+    /**
+     * Executes a raw query provided through a safe tag function
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $queryRaw(
+      query: TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: any[]
+    ) {
+      return createPrismaPromise(() => {
+        if (
+          (query as TemplateStringsArray).raw ||
+          (query as sqlTemplateTag.Sql).sql
+        ) {
+          return this.$queryRawRequest(query, ...values)
+        }
+
+        throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
+\`\`\`
+const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
+\`\`\`
+
+Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw
+`)
+      })
+    }
+
+    /**
+     * Unsafe counterpart of `$queryRaw` that is susceptible to SQL injections
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $queryRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
+      return this.$queryRawRequest(query, ...values)
     }
 
     __internal_triggerPanic(fatal: boolean) {
-      if (!this._engineConfig.enableEngineDebugMode) {
-        throw new Error(`In order to use .__internal_triggerPanic(), please enable the debug mode like so:
+      if (!this._engineConfig.allowTriggerPanic) {
+        throw new Error(`In order to use .__internal_triggerPanic(), please enable it like so:
 new PrismaClient({
   __internal: {
     engine: {
-      enableEngineDebugMode: true
+      allowTriggerPanic: true
     }
   }
 })`)
@@ -1257,20 +1295,7 @@ new PrismaClient({
 
             // `modelClient` implements promises to have deferred actions that
             // will be called later on through model delegated functions
-            const modelClient = {
-              then: (onFulfilled, onRejected, transactionId?: number) => {
-                return request(transactionId).then(onFulfilled, onRejected)
-              },
-              requestTransaction: (transactionId: number) => {
-                return request(transactionId, true)
-              },
-              catch: (onRejected) => {
-                return request().catch(onRejected)
-              },
-              finally: (onFinally) => {
-                return request().finally(onFinally)
-              },
-            }
+            const modelClient = createPrismaPromise(request)
 
             // add relation fields
             for (const field of model.fields.filter(
@@ -1368,7 +1393,7 @@ new PrismaClient({
            */
           let unpacker: Unpacker | undefined = undefined
           const select = Object.entries(args).reduce((acc, [key, value]) => {
-            // if it is an aggregate like "avg", wrap it with "select"
+            // if it is an aggregate like "_avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
@@ -1411,11 +1436,11 @@ new PrismaClient({
           let unpacker: Unpacker | undefined = undefined
 
           /**
-           * avg, count, sum, min, max need to go into select
+           * _avg, _count, _sum, _min, _max need to go into select
            * For speed reasons we can go with "for in "
            */
           const select = Object.entries(args).reduce((acc, [key, value]) => {
-            // if it is an aggregate like "avg", wrap it with "select"
+            // if it is an aggregate like "_avg", wrap it with "select"
             if (aggregateKeys[key]) {
               if (!acc.select) {
                 acc.select = {}
@@ -1486,6 +1511,7 @@ new PrismaClient({
   return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
 
+const TX_ID = Symbol.for('prisma.client.transaction.id')
 const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
 
 /**
@@ -1526,7 +1552,81 @@ function transactionProxy<T>(thing: T, transactionId: string): T {
   }) as any as T
 }
 
-const TX_ID = Symbol.for('prisma.client.transaction.id')
+/**
+ * Prisma's `Promise` that is backwards-compatible. All additions on top of the
+ * original `Promise` are optional so that it can be backwards-compatible.
+ * @see [[createPrismaPromise]]
+ */
+interface PrismaPromise<A> extends Promise<A> {
+  /**
+   * Extension of the original `.then` function
+   * @param onfulfilled same as regular promises
+   * @param onrejected same as regular promises
+   * @param transactionId for interactive tx ids
+   */
+  then<R1 = A, R2 = never>(
+    onfulfilled?: (value: A) => R1 | PromiseLike<R1>,
+    onrejected?: (error: unknown) => R2 | PromiseLike<R2>,
+    transactionId?: number,
+  ): Promise<R1 | R2>
+
+  /**
+   * Called when executing a batch of regular tx
+   * @param id for regular tx ids
+   */
+  requestTransaction?(id: number): PromiseLike<unknown>
+}
+
+/**
+ * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
+ * is essentially a proxy for `Promise`. All the transaction-compatible client
+ * methods return one, this allows for pre-preparing queries without executing
+ * them until `.then` is called. It's the foundation of Prisma's query batching.
+ * @param callback that will be wrapped within our promise implementation
+ * @see [[PrismaPromise]]
+ * @returns
+ */
+function createPrismaPromise(
+  callback: (
+    transactionId?: number,
+    runInTransaction?: boolean,
+  ) => PrismaPromise<unknown>,
+): PrismaPromise<unknown> {
+  // we handle exceptions that happen in the scope as `Promise` rejections
+  const _callback = (transactionId?: number, runInTransaction?: boolean) => {
+    try {
+      return callback(transactionId, runInTransaction)
+    } catch (error) {
+      // and that is because exceptions are not always async
+      return Promise.reject(error) as PrismaPromise<unknown>
+    }
+  }
+
+  return {
+    then(onFulfilled, onRejected, transactionId?: number) {
+      const promise = _callback(transactionId, false)
+
+      return promise.then(onFulfilled, onRejected, transactionId)
+    },
+    catch(onRejected) {
+      return _callback().catch(onRejected)
+    },
+    finally(onFinally) {
+      return _callback().finally(onFinally)
+    },
+    requestTransaction(transactionId: number) {
+      const promise = _callback(transactionId, true)
+
+      if (promise.requestTransaction) {
+        // requestTransaction support for nested promises
+        return promise.requestTransaction(transactionId)
+      }
+
+      return promise
+    },
+    [Symbol.toStringTag]: 'PrismaPromise',
+  }
+}
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   if (

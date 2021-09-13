@@ -120,31 +120,33 @@ describe('where transformation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.users()\` invocation:
+Invalid \`prisma.users()\` invocation:
 
-        {
-          orderBy: {
-            email: 'asc',
-            id: 'asc'
-          }
-          ~~~~~~~~~~~~~~~
-        }
+{
+  orderBy: {
+    email: 'asc',
+    id: 'asc'
+  }
+  ~~~~~~~~~~~~~~~
+}
 
-        Argument orderBy of type UserOrderByInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-        type UserOrderByInput {
-          id?: SortOrder
-          name?: SortOrder
-          email?: SortOrder
-          status?: SortOrder
-          nicknames?: SortOrder
-          permissions?: SortOrder
-          favoriteTree?: SortOrder
-          locationId?: SortOrder
-          someFloats?: SortOrder
-        }
+Argument orderBy of type UserOrderByWithRelationInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+type UserOrderByWithRelationInput {
+  id?: SortOrder
+  name?: SortOrder
+  email?: SortOrder
+  status?: SortOrder
+  nicknames?: SortOrder
+  permissions?: SortOrder
+  favoriteTree?: SortOrder
+  locationId?: SortOrder
+  location?: LocationOrderByWithRelationInput
+  posts?: PostOrderByRelationAggregateInput
+  someFloats?: SortOrder
+}
 
 
-      `)
+`)
     }
   })
 

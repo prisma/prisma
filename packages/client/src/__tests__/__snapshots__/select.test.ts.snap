@@ -575,7 +575,8 @@ Invalid \`prisma.findManyUser()\` invocation:
 ?   countInt5?: true,
 ?   countInt6?: true,
 ?   lastLoginAt?: true,
-?   coinflips?: true
+?   coinflips?: true,
+?   _count?: true
   }
 }
 
@@ -860,7 +861,8 @@ Invalid \`prisma.findManyUser()\` invocation:
 ?   countInt5?: true,
 ?   countInt6?: true,
 ?   lastLoginAt?: true,
-?   coinflips?: true
+?   coinflips?: true,
+?   _count?: true
   }
 }
 

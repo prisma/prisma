@@ -1,47 +1,171 @@
 import fs from 'fs'
 import path from 'path'
 import execa from 'execa'
-import resolvePkg from 'resolve-pkg'
 import hasYarn from 'has-yarn'
 import chalk from 'chalk'
-import globalDirectories from 'global-dirs'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
+import { getPrismaConfigFromPackageJson, logger, link } from '@prisma/sdk'
+import Debug from '@prisma/debug'
 
+const debug = Debug('prisma:migrate:seed')
 const readFileAsync = promisify(fs.readFile)
 
-export function isPackageInstalledGlobally(
-  packageName: string,
-): 'npm' | 'yarn' | false {
-  try {
-    const usingGlobalYarn = fs.existsSync(
-      path.join(globalDirectories.yarn.packages, packageName),
-    )
-    const usingGlobalNpm = fs.existsSync(
-      path.join(globalDirectories.npm.packages, packageName),
-    )
+/*
+  Checks if user has a prisma/seed.ts or prisma/seed.js or prisma/seed.sh
+  If prisma.seed is not set in package.json it will return the best error message to help the user
+*/
+export async function verifySeedConfigAndReturnMessage(
+  schemaPath: string | null,
+): Promise<string | undefined> {
+  const cwd = process.cwd()
 
-    if (usingGlobalNpm) {
-      return 'npm'
-    }
-    if (usingGlobalYarn) {
-      return 'yarn'
-    } else {
-      false
-    }
-  } catch (e) {
-    //
+  // Detect if seed files are next to prisma.schema file
+  const detected = detectSeedFiles(cwd, schemaPath)
+
+  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+
+  // New config is set in the package.json, no need for an error message
+  if (prismaConfig && prismaConfig.data?.seed) {
+    return undefined
   }
-  return false
+
+  // If new "seed" config is not set, help user to set it
+  const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
+
+  let message = `${chalk.red(
+    'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
+  )}
+
+1. Open the package.json of your project
+`
+
+  if (detected.numberOfSeedFiles) {
+    // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+    await legacyTsNodeScriptWarning()
+
+    // Probably was using seed before 3.0 and need to add the seed property in package.json
+    message += `2. Add the following example to it:`
+
+    if (detected.js) {
+      message += `
+\`\`\`
+"prisma": {
+  "seed": "node ${detected.js}"
+}
+\`\`\`
+`
+    } else if (detected.ts) {
+      message += `
+\`\`\`
+"prisma": {
+  "seed": "ts-node ${detected.ts}"
+}
+\`\`\`
+
+3. Install the required dependencies by running:
+${chalk.green(`${packageManager} ts-node typescript @types/node`)}
+`
+    } else if (detected.sh) {
+      message += `
+\`\`\`
+"prisma": {
+  "seed": "${detected.sh}"
+}
+\`\`\`
+And run \`chmod +x ${detected.sh}\` to make it executable.`
+    }
+  } else {
+    message += `2. Add one of the following examples to your package.json:
+
+${chalk.bold('TypeScript:')}
+\`\`\`
+"prisma": {
+  "seed": "ts-node ./prisma/seed.ts"
+}
+\`\`\`
+And install the required dependencies by running:
+${packageManager} ts-node typescript @types/node
+
+${chalk.bold('JavaScript:')}
+\`\`\`
+"prisma": {
+  "seed": "node ./prisma/seed.js"
+}
+\`\`\`
+
+${chalk.bold('Bash:')}
+\`\`\`
+"prisma": {
+  "seed": "./prisma/seed.sh"
+}
+\`\`\`
+And run \`chmod +x prisma/seed.sh\` to make it executable.`
+  }
+
+  message += `\nMore information in our documentation:\n${link(
+    'https://pris.ly/d/seeding',
+  )}`
+
+  return message
 }
 
-export function detectSeedFiles(schemaPath) {
-  let parentDirectory = path.relative(
-    process.cwd(),
-    path.join(process.cwd(), 'prisma'),
-  )
+export async function getSeedCommandFromPackageJson(cwd: string) {
+  const prismaConfig = await getPrismaConfigFromPackageJson(cwd)
+
+  debug({ prismaConfig })
+
+  if (!prismaConfig || !prismaConfig.data?.seed) {
+    return null
+  }
+
+  const seedCommandFromPkgJson = prismaConfig.data.seed
+
+  // Validate if seed commad is a string
+  if (typeof seedCommandFromPkgJson !== 'string') {
+    throw new Error(
+      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
+        cwd,
+        prismaConfig.packagePath,
+      )}\` must be of type string`,
+    )
+  }
+
+  if (!seedCommandFromPkgJson) {
+    throw new Error(
+      `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
+        cwd,
+        prismaConfig.packagePath,
+      )}\` cannot be empty`,
+    )
+  }
+
+  return seedCommandFromPkgJson
+}
+
+export async function executeSeedCommand(command: string): Promise<boolean> {
+  console.info(`Running seed command \`${chalk.italic(command)}\` ...`)
+  try {
+    await execa.command(command, {
+      stdout: 'inherit',
+      stderr: 'pipe',
+    })
+  } catch (e) {
+    debug({ e })
+    console.error(
+      chalk.bold.red(`\nAn error occured while running the seed command:`),
+    )
+    console.error(chalk.red(e.stderr || e))
+    return false
+  }
+
+  return true
+}
+
+function detectSeedFiles(cwd, schemaPath) {
+  let parentDirectory = path.relative(cwd, path.join(cwd, 'prisma'))
   if (schemaPath) {
-    parentDirectory = path.relative(process.cwd(), path.dirname(schemaPath))
+    parentDirectory = path.relative(cwd, path.dirname(schemaPath))
   }
 
   const seedPath = path.join(parentDirectory, 'seed.')
@@ -64,139 +188,27 @@ export function detectSeedFiles(schemaPath) {
     detected.numberOfSeedFiles++
   }
 
+  debug({ detected })
+
   return detected
 }
 
-function getSeedScript(type: 'TS' | 'JS', seedFilepath: string) {
-  let script = `
-console.info('Result:')
+export async function legacyTsNodeScriptWarning() {
+  // Check package.json for a "ts-node" script (so users can customize flags)
+  const scripts = await getScriptsFromPackageJson()
 
-const __seed = require('./${seedFilepath}')
-const __keys = Object.keys(__seed)
-
-async function runSeed() {
-  // Execute "seed" named export or default export
-  if (__keys && __keys.length) {
-    if (__keys.indexOf('seed') !== -1) {
-      return __seed.seed()
-    } else if (__keys.indexOf('default') !== -1) {
-      return __seed.default()
-    }
-  }
-}
-
-runSeed()
-  .then(function (result) {
-    if (result) {
-      console.log(result)
-    }
-  })
-  .catch(function (e) {
-    console.error('Error from seed:')
-    throw e
-  })
-`
-
-  if (type === 'TS') {
-    script = `
-// @ts-ignore
-declare const require: any
-
-${script}
-
-export {}
-`
-  }
-
-  return script
-}
-
-export async function tryToRunSeed(schemaPath: string | null) {
-  const detected = detectSeedFiles(schemaPath)
-
-  if (detected.numberOfSeedFiles === 0) {
-    throw new Error(`No seed file found.
-Create a \`seed.ts\`, \`.js\` or \`.sh\` file in the prisma directory.`)
-  } else if (detected.numberOfSeedFiles > 1) {
-    throw new Error(
-      `More than one seed file was found in \`${path.relative(
-        process.cwd(),
-        path.dirname(detected.seedPath),
-      )}\` directory.
-This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.`,
+  if (scripts?.['ts-node']) {
+    logger.warn(
+      chalk.yellow(
+        `The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`,
+      ),
     )
-  } else {
-    if (detected.js) {
-      console.info(`Running seed from ${chalk.bold(`"${detected.js}"`)} ...`)
-
-      // -e (Evaluate the following argument as JavaScript.)
-      return await execa('node', [`-e "${getSeedScript('JS', detected.js)}"`], {
-        shell: true,
-        stdio: 'inherit',
-      })
-    } else if (detected.ts) {
-      const hasTypescriptPkg =
-        resolvePkg('typescript') || isPackageInstalledGlobally('typescript')
-      const hasTsNodePkg =
-        resolvePkg('ts-node') || isPackageInstalledGlobally('ts-node')
-      const hasTypesNodePkg = resolvePkg('@types/node')
-
-      const missingPkgs: string[] = []
-      if (!hasTypescriptPkg) {
-        missingPkgs.push('typescript')
-      }
-      if (!hasTsNodePkg) {
-        missingPkgs.push('ts-node')
-      }
-      if (!hasTypesNodePkg) {
-        missingPkgs.push('@types/node')
-      }
-
-      if (missingPkgs.length > 0) {
-        const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
-        console.info(`We detected a seed file at \`${
-          detected.ts
-        }\` but it seems that you do not have the following dependencies installed:
-${missingPkgs.map((name) => `- ${name}`).join('\n')}
-
-To install them run: ${chalk.green(
-          `${packageManager} ${missingPkgs.join(' ')}`,
-        )}\n`)
-      }
-
-      // Check package.json for a "ts-node" script (so users can customize flags)
-      const scripts = await getScriptsFromPackageJson()
-      let tsNodeCommand = 'ts-node'
-      let tsNodeArgs = `--eval "${getSeedScript('TS', detected.ts)}"`
-
-      // User can customize the `ts-node` command from the package script
-      if (scripts?.['ts-node']) {
-        tsNodeCommand = scripts['ts-node']
-        tsNodeArgs = `"${detected.ts}"`
-        console.info(
-          `Running seed: ${chalk.bold(`${tsNodeCommand} ${tsNodeArgs}`)} ...`,
-        )
-      } else {
-        console.info(`Running seed from ${chalk.bold(`${detected.ts}`)} ...`)
-      }
-
-      return await execa(tsNodeCommand, [tsNodeArgs], {
-        shell: true,
-        stdio: 'inherit',
-      })
-    } else if (detected.sh) {
-      console.info(`Running seed: ${chalk.bold(`sh "${detected.sh}"`)} ...`)
-      return await execa('sh', [`"${detected.sh}"`], {
-        shell: true,
-        stdio: 'inherit',
-      })
-    }
   }
 
   return undefined
 }
 
-export async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
+async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
   interface PkgJSON {
     scripts: PkgJSONScripts
   }

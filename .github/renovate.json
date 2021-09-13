@@ -4,7 +4,7 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "dependencyDashboard": true,
-  "reviewers": ["@jolg42", "@williamluke4", "millsp"],
+  "reviewers": ["@Jolg42", "@millsp"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": ["esbuild", "sqlite3", "@prisma/engines", "@prisma/engines-version", "@prisma/fetch-engine", "@prisma/get-platform"],
   "packageRules": [

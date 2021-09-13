@@ -30,7 +30,7 @@ async function main() {
 
   const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
   const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`
-  const queryRaw3 = await prisma.$queryRaw(
+  const queryRaw3 = await prisma.$queryRawUnsafe(
     `SELECT * FROM User WHERE id = $1`,
     2,
   )
@@ -44,7 +44,7 @@ async function main() {
   const executeRaw1 = await prisma.$executeRaw`SELECT * FROM User WHERE id = 1`
   const executeRaw2 =
     await prisma.$executeRaw`SELECT * FROM User WHERE id = ${1}`
-  const executeRaw3 = await prisma.$executeRaw(
+  const executeRaw3 = await prisma.$executeRawUnsafe(
     `SELECT * FROM User WHERE id = $1`,
     2,
   )

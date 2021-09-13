@@ -35,7 +35,7 @@ exports[`json should be able filter json null 1`] = `
 query {
   findManyOptionalUser(where: {
     json: {
-      equals: null
+      equals: JsonNull
     }
   }) {
     id
@@ -71,8 +71,8 @@ Invalid \`prisma.user()\` invocation:
 
 Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`select\`? Available args:
 type JsonFilter {
-  equals?: Json
-  not?: Json
+  equals?: JsonNullValueFilter | Json
+  not?: JsonNullValueFilter | Json
 }
 
 
