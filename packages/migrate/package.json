@@ -2,6 +2,7 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -71,8 +72,8 @@
     "strip-indent": "3.0.0"
   },
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true ts-node helpers/build.ts",
+    "build": "ts-node helpers/build.ts",
     "run": "node dist/bin.js",
     "precommit": "lint-staged",
     "format": "prettier --write .",
