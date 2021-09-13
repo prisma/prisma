@@ -1,16 +1,15 @@
 import execa from 'execa'
 import * as esbuild from 'esbuild'
-import { flatten } from './blaze/flatten'
-import { pipe } from './blaze/pipe'
-import { map } from './blaze/map'
-import { handle } from './blaze/handle'
+import { flatten } from '../blaze/flatten'
+import { pipe } from '../blaze/pipe'
+import { map } from '../blaze/map'
+import { handle } from '../blaze/handle'
 import globby from 'globby'
 
 export const cjsBaseOptions = (): esbuild.BuildOptions => ({
   format: 'cjs',
   platform: 'node',
   target: 'es2018',
-  external: ['_http_common'],
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.cjs' },
@@ -23,7 +22,6 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
   format: 'esm',
   platform: 'node',
   target: 'es2018',
-  external: ['_http_common'],
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.mjs' },
@@ -49,6 +47,17 @@ function addExtensionFormat(options: esbuild.BuildOptions[]) {
       const ext = options.outExtension['.js']
 
       options.outfile = `${options.outfile}${ext}`
+    }
+
+    return options
+  })
+}
+
+// automatically default outdir if we have no outfile
+function addDefaultOutDir(options: esbuild.BuildOptions[]) {
+  return map(options, (options) => {
+    if (options.outfile === undefined) {
+      options.outdir = 'dist'
     }
 
     return options
@@ -85,6 +94,7 @@ export function build(options: esbuild.BuildOptions[]) {
   void pipe(
     combineBaseOptions,
     addExtensionFormat,
+    addDefaultOutDir,
     executeEsBuild,
     emitProjectTypes,
     handleBuildErrors,
