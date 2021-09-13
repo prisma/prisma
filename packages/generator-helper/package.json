@@ -22,8 +22,8 @@
     "cross-spawn": "7.0.3"
   },
   "scripts": {
-    "dev": "DEV=true ts-node helpers/build.ts",
-    "build": "ts-node helpers/build.ts",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
