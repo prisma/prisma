@@ -11,9 +11,9 @@ import {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
-import * as logger from '@prisma/sdk/dist/logger'
-import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
-import { tryLoadEnvs } from '@prisma/sdk/dist/utils/tryLoadEnvs'
+import { logger } from '@prisma/sdk'
+import { mapPreviewFeatures } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
