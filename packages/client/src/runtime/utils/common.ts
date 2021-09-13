@@ -1,9 +1,9 @@
 import chalk from 'chalk'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
-import { BaseField, DMMF } from '../dmmf-types'
+import type { BaseField, DMMF } from '../dmmf-types'
 import Decimal from 'decimal.js'
-import { DMMFClass } from '../dmmf'
+import type { DMMFClass } from '../dmmf'
 
 export interface Dictionary<T> {
   [key: string]: T

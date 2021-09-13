@@ -78,6 +78,7 @@ module.exports = {
         "jest/no-try-expect": "off",
         "jest/no-export": "off",
         "@typescript-eslint/no-empty-interface": "off",
+        "@typescript-eslint/consistent-type-imports": "error"
       },
     },
   ],

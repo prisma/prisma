@@ -1,29 +1,29 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
+import type { Platform } from '@prisma/get-platform'
 import {
   getNodeAPIName,
   getPlatform,
   isNodeAPISupported,
-  Platform,
   platforms,
 } from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
-import {
+import type {
   DatasourceOverwrite,
-  Engine,
   EngineConfig,
   EngineEventType,
 } from '../common/Engine'
+import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
-import { RequestError } from '../common/errors/types/RequestError'
+import type { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
-import {
+import type {
   ConfigMetaFormat,
   QueryEngineBatchRequest,
   QueryEngineEvent,
@@ -39,7 +39,7 @@ import {
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
-import {
+import type {
   Library,
   QueryEngineConstructor,
   QueryEngineInstance,

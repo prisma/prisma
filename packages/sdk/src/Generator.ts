@@ -1,10 +1,10 @@
-import {
+import type {
   GeneratorOptions,
-  GeneratorProcess,
   GeneratorManifest,
   BinaryPaths,
   GeneratorConfig,
 } from '@prisma/generator-helper'
+import { GeneratorProcess } from '@prisma/generator-helper'
 
 export class Generator {
   private generatorProcess: GeneratorProcess

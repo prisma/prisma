@@ -1,9 +1,9 @@
 import indent from 'indent-string'
-import { DMMF } from '../../runtime/dmmf-types'
+import type { DMMF } from '../../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable } from '../../runtime/utils/common'
 import { TAB_SIZE } from './constants'
-import { Generatable } from './Generatable'
-import { ExportCollector } from './helpers'
+import type { Generatable } from './Generatable'
+import type { ExportCollector } from './helpers'
 
 export class SchemaOutputField implements Generatable {
   constructor(protected readonly field: DMMF.SchemaField) {}

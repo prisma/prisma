@@ -1,6 +1,6 @@
 import fs from 'fs'
-import { Platform } from '@prisma/get-platform'
-import { BinaryTargetsEnvValue } from '@prisma/generator-helper'
+import type { Platform } from '@prisma/get-platform'
+import type { BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import terminalLink from 'terminal-link'
 import newGithubIssueUrl from 'new-github-issue-url'
 import chalk from 'chalk'

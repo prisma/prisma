@@ -1,7 +1,6 @@
 import chalk from 'chalk'
+import type { Command, Commands } from '@prisma/sdk'
 import {
-  Command,
-  Commands,
   arg,
   isError,
   format,

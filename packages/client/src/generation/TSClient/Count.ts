@@ -1,6 +1,6 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
-import { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFClass } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
   getAggregateArgsName,
@@ -17,13 +17,10 @@ import {
 } from '../utils'
 import { ArgsType } from './Args'
 import { TAB_SIZE } from './constants'
-import { Generatable, TS } from './Generatable'
-import {
-  ExportCollector,
-  getArgs,
-  getGenericMethod,
-  getMethodJSDoc,
-} from './helpers'
+import type { Generatable } from './Generatable'
+import { TS } from './Generatable'
+import type { ExportCollector } from './helpers'
+import { getArgs, getGenericMethod, getMethodJSDoc } from './helpers'
 import { OutputType } from './Output'
 import { PayloadType } from './Payload'
 

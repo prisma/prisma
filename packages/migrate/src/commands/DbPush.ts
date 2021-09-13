@@ -1,6 +1,6 @@
+import type { Command } from '@prisma/sdk'
 import {
   arg,
-  Command,
   format,
   HelpError,
   isError,
@@ -21,7 +21,7 @@ import {
   NoSchemaFoundError,
 } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
-import { EngineResults } from '../types'
+import type { EngineResults } from '../types'
 
 export class DbPush implements Command {
   public static new(): DbPush {

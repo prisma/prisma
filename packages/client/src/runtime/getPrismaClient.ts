@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import {
+import type {
   DatasourceOverwrite,
   Engine,
   EngineConfig,
@@ -7,7 +7,7 @@ import {
 } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
-import {
+import type {
   DataSource,
   GeneratorConfig,
 } from '@prisma/generator-helper/dist/types'
@@ -26,13 +26,13 @@ import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import {
+import type {
   EngineMiddleware,
-  Middlewares,
   Namespace,
   QueryMiddleware,
   QueryMiddlewareParams,
 } from './MiddlewareHandler'
+import { Middlewares } from './MiddlewareHandler'
 import { PrismaClientFetcher } from './PrismaClientFetcher'
 import { makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
@@ -40,11 +40,11 @@ import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
-import {
-  getRejectOnNotFound,
+import type {
   InstanceRejectOnNotFound,
   RejectOnNotFound,
 } from './utils/rejectOnNotFound'
+import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
