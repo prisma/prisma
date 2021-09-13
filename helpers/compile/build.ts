@@ -25,19 +25,22 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.mjs' },
-  entryPoints: ['src/index.ts'],
+  entryPoints: globby.sync('./src/**/*.{j,t,mj}s', {
+    ignore: ['./src/__tests__/**/*'],
+  }),
+  resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
 
-  bundle: true,
-  outfile: 'dist/index',
+  // bundle: true,
+  // outfile: 'dist/index',
   mainFields: ['module', 'main'],
-  plugins: [makeAllPackagesExternalPlugin],
+  // plugins: [makeAllPackagesExternalPlugin],
 })
 
 // create a matrix of possible options with cjs and esm
 function combineBaseOptions(options: esbuild.BuildOptions[]) {
   return flatten(
     map(options, (options) => [
-      { ...cjsBaseOptions(), ...options },
+      // { ...cjsBaseOptions(), ...options },
       { ...esmBaseOptions(), ...options },
     ]),
   )
