@@ -2,9 +2,8 @@
 
 exports[`introspection: create bigint data: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -13,7 +12,7 @@ datasource sqlserver {
 }
 
 model migrate {
-  version BigInt @id
+  version BigInt @id(map: "PK__migrate__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -22,9 +21,8 @@ exports[`introspection: create bigint data: warnings 1`] = `Array []`;
 
 exports[`introspection: create with data: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -33,8 +31,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -43,9 +41,8 @@ exports[`introspection: create with data: warnings 1`] = `Array []`;
 
 exports[`introspection: create with empty data and SQL default: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -54,8 +51,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @default("alice") @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @default("alice", map: "DF__teams__name__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -64,9 +61,8 @@ exports[`introspection: create with empty data and SQL default: warnings 1`] = `
 
 exports[`introspection: delete where composite PK: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -80,7 +76,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -89,9 +85,8 @@ exports[`introspection: delete where composite PK: warnings 1`] = `Array []`;
 
 exports[`introspection: delete where composite unique: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -100,11 +95,11 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String @sqlserver.VarChar(32)
   name  String @sqlserver.VarChar(32)
 
-  @@unique([email, name], name: "u_const")
+  @@unique([email, name], map: "u_const")
 }
 
 `;
@@ -113,9 +108,8 @@ exports[`introspection: delete where composite unique: warnings 1`] = `Array []`
 
 exports[`introspection: findMany - email text: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -124,7 +118,7 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
+  id    Int     @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String? @sqlserver.VarChar(32)
 }
 
@@ -134,9 +128,8 @@ exports[`introspection: findMany - email text: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany - email varchar(50) not null unique: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -145,8 +138,8 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String @unique(map: "UQ__users_CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -155,9 +148,8 @@ exports[`introspection: findMany - email varchar(50) not null unique: warnings 1
 
 exports[`introspection: findMany orderBy asc: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -166,9 +158,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -177,9 +169,8 @@ exports[`introspection: findMany orderBy asc: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany orderBy desc: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -188,9 +179,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -199,9 +190,8 @@ exports[`introspection: findMany orderBy desc: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where OR[contains, contains] : datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -210,9 +200,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -221,9 +211,8 @@ exports[`introspection: findMany where OR[contains, contains] : warnings 1`] = `
 
 exports[`introspection: findMany where contains and boolean: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -232,9 +221,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -243,9 +232,8 @@ exports[`introspection: findMany where contains and boolean: warnings 1`] = `Arr
 
 exports[`introspection: findMany where contains: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -254,8 +242,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -265,9 +253,8 @@ exports[`introspection: findMany where contains: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime exact: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -276,7 +263,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -286,9 +273,8 @@ exports[`introspection: findMany where datetime exact: warnings 1`] = `Array []`
 
 exports[`introspection: findMany where datetime gt than now: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -297,9 +283,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -308,9 +294,8 @@ exports[`introspection: findMany where datetime gt than now: warnings 1`] = `Arr
 
 exports[`introspection: findMany where datetime gt: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -319,7 +304,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -329,9 +314,8 @@ exports[`introspection: findMany where datetime gt: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime gte than now: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -340,9 +324,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -351,9 +335,8 @@ exports[`introspection: findMany where datetime gte than now: warnings 1`] = `Ar
 
 exports[`introspection: findMany where datetime gte: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -362,7 +345,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -372,9 +355,8 @@ exports[`introspection: findMany where datetime gte: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime lt than now: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -383,9 +365,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -394,9 +376,8 @@ exports[`introspection: findMany where datetime lt than now: warnings 1`] = `Arr
 
 exports[`introspection: findMany where datetime lt: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -405,7 +386,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -415,9 +396,8 @@ exports[`introspection: findMany where datetime lt: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime lte - check instanceof Date: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -426,9 +406,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id         Int      @id @default(autoincrement())
+  id         Int      @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title      String   @sqlserver.VarChar(32)
-  created_at DateTime @default(now()) @sqlserver.DateTime
+  created_at DateTime @default(now(), map: "DF__posts__created_at__CustomNameToAvoidRandomNumber") @sqlserver.DateTime
 }
 
 `;
@@ -437,9 +417,8 @@ exports[`introspection: findMany where datetime lte - check instanceof Date: war
 
 exports[`introspection: findMany where datetime lte: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -448,7 +427,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -458,9 +437,8 @@ exports[`introspection: findMany where datetime lte: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where datetime not: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -469,7 +447,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -479,9 +457,8 @@ exports[`introspection: findMany where datetime not: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where decimal: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -490,7 +467,7 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int     @id @default(autoincrement())
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
   distance Decimal @sqlserver.Decimal(5, 3)
 }
 
@@ -500,9 +477,8 @@ exports[`introspection: findMany where decimal: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where empty in[]: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -511,8 +487,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -522,9 +498,8 @@ exports[`introspection: findMany where empty in[]: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where empty notIn[]: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -533,8 +508,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -544,9 +519,8 @@ exports[`introspection: findMany where empty notIn[]: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where endsWith: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -555,8 +529,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -566,9 +540,8 @@ exports[`introspection: findMany where endsWith: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where id empty in[] and token in[]: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -577,8 +550,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -588,9 +561,8 @@ exports[`introspection: findMany where id empty in[] and token in[]: warnings 1`
 
 exports[`introspection: findMany where in[integer]: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -599,8 +571,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -610,9 +582,8 @@ exports[`introspection: findMany where in[integer]: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where in[string]: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -621,8 +592,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -632,9 +603,8 @@ exports[`introspection: findMany where in[string]: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where notIn[]: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -643,8 +613,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id @default(autoincrement())
-  token Int    @unique
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int    @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
   name  String @sqlserver.VarChar(32)
 }
 
@@ -654,9 +624,8 @@ exports[`introspection: findMany where notIn[]: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where null: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -665,7 +634,7 @@ datasource sqlserver {
 }
 
 model events {
-  id   Int       @id @default(autoincrement())
+  id   Int       @id(map: "PK__events__CustomNameToAvoidRandomNumber") @default(autoincrement())
   time DateTime? @sqlserver.DateTime
 }
 
@@ -675,9 +644,8 @@ exports[`introspection: findMany where null: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where startsWith: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -686,8 +654,8 @@ datasource sqlserver {
 }
 
 model crons {
-  id        Int     @id @default(autoincrement())
-  job       String  @unique @sqlserver.VarChar(32)
+  id        Int     @id(map: "PK__crons__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  job       String  @unique(map: "UQ__crons__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   frequency String? @sqlserver.VarChar(32)
 }
 
@@ -697,9 +665,8 @@ exports[`introspection: findMany where startsWith: warnings 1`] = `Array []`;
 
 exports[`introspection: findMany where unique: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -708,8 +675,8 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String @unique(map: "UQ__users_CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -718,9 +685,8 @@ exports[`introspection: findMany where unique: warnings 1`] = `Array []`;
 
 exports[`introspection: findUnique where PK with include: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -729,15 +695,15 @@ datasource sqlserver {
 }
 
 model posts {
-  id      Int    @id @default(autoincrement())
+  id      Int    @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   user_id Int
   title   String @sqlserver.VarChar(32)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], map: "FK_UserId")
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique @sqlserver.VarChar(32)
+  id    Int     @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String  @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   posts posts[]
 }
 
@@ -747,9 +713,8 @@ exports[`introspection: findUnique where PK with include: warnings 1`] = `Array 
 
 exports[`introspection: findUnique where PK with select: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -758,9 +723,9 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int    @id
-  name  String @unique @sqlserver.VarChar(32)
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber")
+  name  String @unique(map: "UQ__teams__name__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  email String @unique(map: "UQ__teams__email__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -769,9 +734,8 @@ exports[`introspection: findUnique where PK with select: warnings 1`] = `Array [
 
 exports[`introspection: findUnique where PK: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -780,8 +744,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber")
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -790,9 +754,8 @@ exports[`introspection: findUnique where PK: warnings 1`] = `Array []`;
 
 exports[`introspection: findUnique where composite PK with foreign key: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -805,14 +768,14 @@ model a {
   two Int
   b   b[]
 
-  @@id([one, two])
+  @@id([one, two], map: "PK__a__CustomNameToAvoidRandomNumber")
 }
 
 model b {
-  id  Int @id @default(autoincrement())
+  id  Int @id(map: "PK__b__CustomNameToAvoidRandomNumber") @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two])
+  a   a   @relation(fields: [one, two], references: [one, two], onUpdate: NoAction, map: "FK_OneTwo")
 }
 
 `;
@@ -821,9 +784,8 @@ exports[`introspection: findUnique where composite PK with foreign key: warnings
 
 exports[`introspection: findUnique where composite PK: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -837,7 +799,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -846,9 +808,8 @@ exports[`introspection: findUnique where composite PK: warnings 1`] = `Array []`
 
 exports[`introspection: findUnique where composite unique: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -857,11 +818,11 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String @sqlserver.VarChar(32)
   name  String @sqlserver.VarChar(32)
 
-  @@unique([email, name], name: "u_const")
+  @@unique([email, name], map: "u_const")
 }
 
 `;
@@ -870,9 +831,8 @@ exports[`introspection: findUnique where composite unique: warnings 1`] = `Array
 
 exports[`introspection: findUnique where decimal - default value: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -881,8 +841,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int     @id @default(autoincrement())
-  distance Decimal @unique @default(12.3) @sqlserver.Decimal(5, 3)
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  distance Decimal @unique(map: "UQ__exercises_CustomNameToAvoidRandomNumber") @default(12.3, map: "DF__exercises__active__CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -891,9 +851,8 @@ exports[`introspection: findUnique where decimal - default value: warnings 1`] =
 
 exports[`introspection: findUnique where decimal: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -902,8 +861,8 @@ datasource sqlserver {
 }
 
 model exercises {
-  id       Int     @id @default(autoincrement())
-  distance Decimal @unique @sqlserver.Decimal(5, 3)
+  id       Int     @id(map: "PK__exercises__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  distance Decimal @unique(map: "UQ__exercises_CustomNameToAvoidRandomNumber") @sqlserver.Decimal(5, 3)
 }
 
 `;
@@ -912,9 +871,8 @@ exports[`introspection: findUnique where decimal: warnings 1`] = `Array []`;
 
 exports[`introspection: findUnique where unique composite (PK is a composite): datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -928,8 +886,8 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
-  @@unique([value, email], name: "u_const")
+  @@id([name, key], map: "pk_const")
+  @@unique([value, email], map: "u_const")
 }
 
 `;
@@ -938,9 +896,8 @@ exports[`introspection: findUnique where unique composite (PK is a composite): w
 
 exports[`introspection: findUnique where unique composite: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -949,13 +906,13 @@ datasource sqlserver {
 }
 
 model variables {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__variables__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name  String @sqlserver.VarChar(32)
   key   String @sqlserver.VarChar(32)
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@unique([name, key], name: "u_const")
+  @@unique([name, key], map: "u_const")
 }
 
 `;
@@ -964,9 +921,8 @@ exports[`introspection: findUnique where unique composite: warnings 1`] = `Array
 
 exports[`introspection: findUnique where unique with foreign key and unpack: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -975,15 +931,15 @@ datasource sqlserver {
 }
 
 model posts {
-  id      Int    @id @default(autoincrement())
+  id      Int    @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   user_id Int
   title   String @sqlserver.VarChar(32)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], map: "FK_UserId")
 }
 
 model users {
-  id    Int     @id @default(autoincrement())
-  email String  @unique @sqlserver.VarChar(32)
+  id    Int     @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String  @unique(map: "UQ__users_CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
   posts posts[]
 }
 
@@ -993,9 +949,8 @@ exports[`introspection: findUnique where unique with foreign key and unpack: war
 
 exports[`introspection: findUnique where unique: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1004,8 +959,8 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
-  email String @unique @sqlserver.VarChar(32)
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  email String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -1014,9 +969,8 @@ exports[`introspection: findUnique where unique: warnings 1`] = `Array []`;
 
 exports[`introspection: update where composite PK: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1030,7 +984,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -1039,9 +993,8 @@ exports[`introspection: update where composite PK: warnings 1`] = `Array []`;
 
 exports[`introspection: update where composite unique: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1050,11 +1003,11 @@ datasource sqlserver {
 }
 
 model users {
-  id    Int    @id @default(autoincrement())
+  id    Int    @id(map: "PK__users__CustomNameToAvoidRandomNumber") @default(autoincrement())
   email String @sqlserver.VarChar(32)
   name  String @sqlserver.VarChar(32)
 
-  @@unique([email, name], name: "u_const")
+  @@unique([email, name], map: "u_const")
 }
 
 `;
@@ -1063,9 +1016,8 @@ exports[`introspection: update where composite unique: warnings 1`] = `Array []`
 
 exports[`introspection: update where integer data: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1074,8 +1026,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id    Int @id @default(autoincrement())
-  token Int @unique
+  id    Int @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  token Int @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1084,9 +1036,8 @@ exports[`introspection: update where integer data: warnings 1`] = `Array []`;
 
 exports[`introspection: update where with boolean data and select: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1095,9 +1046,9 @@ datasource sqlserver {
 }
 
 model teams {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique @sqlserver.VarChar(32)
-  active Boolean @default(true)
+  id     Int     @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name   String  @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  active Boolean @default(true, map: "DF__teams__active__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1106,9 +1057,8 @@ exports[`introspection: update where with boolean data and select: warnings 1`] 
 
 exports[`introspection: update where with boolean data: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1117,9 +1067,9 @@ datasource sqlserver {
 }
 
 model teams {
-  id     Int     @id @default(autoincrement())
-  name   String  @unique @sqlserver.VarChar(32)
-  active Boolean @default(true)
+  id     Int     @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name   String  @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
+  active Boolean @default(true, map: "DF__teams__active__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1128,9 +1078,8 @@ exports[`introspection: update where with boolean data: warnings 1`] = `Array []
 
 exports[`introspection: update where with numeric data: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1139,8 +1088,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -1149,9 +1098,8 @@ exports[`introspection: update where with numeric data: warnings 1`] = `Array []
 
 exports[`introspection: update where with string data: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1160,8 +1108,8 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
-  name String @unique @sqlserver.VarChar(32)
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
+  name String @unique(map: "UQ__teams__CustomNameToAvoidRandomNumber") @sqlserver.VarChar(32)
 }
 
 `;
@@ -1170,9 +1118,8 @@ exports[`introspection: update where with string data: warnings 1`] = `Array []`
 
 exports[`introspection: updateMany where null - check findMany: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1181,7 +1128,7 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int     @id @default(autoincrement())
+  id   Int     @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name String? @sqlserver.VarChar(32)
 }
 
@@ -1191,9 +1138,8 @@ exports[`introspection: updateMany where null - check findMany: warnings 1`] = `
 
 exports[`introspection: updateMany where with string data - check findMany: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1202,7 +1148,7 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name String @sqlserver.VarChar(32)
 }
 
@@ -1212,9 +1158,8 @@ exports[`introspection: updateMany where with string data - check findMany: warn
 
 exports[`introspection: updateMany where with string data - check returned count: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1223,7 +1168,7 @@ datasource sqlserver {
 }
 
 model teams {
-  id   Int    @id @default(autoincrement())
+  id   Int    @id(map: "PK__teams__CustomNameToAvoidRandomNumber") @default(autoincrement())
   name String @sqlserver.VarChar(32)
 }
 
@@ -1233,9 +1178,8 @@ exports[`introspection: updateMany where with string data - check returned count
 
 exports[`introspection: upsert (create): datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1244,9 +1188,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1255,9 +1199,8 @@ exports[`introspection: upsert (create): warnings 1`] = `Array []`;
 
 exports[`introspection: upsert (update): datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1266,9 +1209,9 @@ datasource sqlserver {
 }
 
 model posts {
-  id        Int     @id @default(autoincrement())
+  id        Int     @id(map: "PK__posts__CustomNameToAvoidRandomNumber") @default(autoincrement())
   title     String  @sqlserver.VarChar(32)
-  published Boolean @default(false)
+  published Boolean @default(false, map: "DF__posts__published__CustomNameToAvoidRandomNumber")
 }
 
 `;
@@ -1277,9 +1220,8 @@ exports[`introspection: upsert (update): warnings 1`] = `Array []`;
 
 exports[`introspection: upsert where composite PK - create: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1293,7 +1235,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;
@@ -1302,9 +1244,8 @@ exports[`introspection: upsert where composite PK - create: warnings 1`] = `Arra
 
 exports[`introspection: upsert where composite PK - update: datamodel 1`] = `
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
   output = "***"
-  previewFeatures = ["microsoftSqlServer"]
 }
 
 datasource sqlserver {
@@ -1318,7 +1259,7 @@ model variables {
   value String @sqlserver.VarChar(32)
   email String @sqlserver.VarChar(32)
 
-  @@id([name, key])
+  @@id([name, key], map: "pk_const")
 }
 
 `;

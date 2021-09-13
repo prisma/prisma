@@ -29,7 +29,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.2"
+    "node": ">=12.6"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -63,12 +63,12 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "2.31.0-4.b3db3803a9a9efc0de76c0cb0f5d3e534fe43b9a",
+    "@prisma/fetch-engine": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.31.0-4.b3db3803a9a9efc0de76c0cb0f5d3e534fe43b9a",
+    "@prisma/get-platform": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.422.0",
+    "@prisma/studio-server": "0.423.0",
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "27.0.1",
     "@types/rimraf": "3.0.2",
@@ -84,7 +84,7 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.4.0",
-    "eslint-plugin-prettier": "3.4.1",
+    "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
     "fs-jetpack": "4.1.1",
@@ -92,12 +92,12 @@
     "global-dirs": "3.0.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.0.6",
+    "jest": "27.1.0",
     "line-replace": "2.0.1",
     "lint-staged": "11.1.2",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
-    "node-fetch": "2.6.1",
+    "node-fetch": "2.6.2",
     "open": "7.4.2",
     "pg": "8.7.1",
     "pkg-up": "3.1.0",
@@ -124,7 +124,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.31.0-4.b3db3803a9a9efc0de76c0cb0f5d3e534fe43b9a"
+    "@prisma/engines": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a"
   },
   "lint-staged": {
     "*.ts": [

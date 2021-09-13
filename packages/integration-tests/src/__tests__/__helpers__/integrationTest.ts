@@ -149,10 +149,7 @@ type Settings = {
 /**
  * A list of available preview features on the Prisma client.
  */
-type PreviewFeature =
-  | 'connectOrCreate'
-  | 'microsoftSqlServer'
-  | 'transactionApi'
+type PreviewFeature = ''
 
 /**
  * Settings to add properties on the Prisma client.

@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`blog-env-mssql $executeRaw $executeRaw(string) error 1`] = `
+\`$executeRaw\` is a tag function, please use it like the following:
+\`\`\`
+const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
+\`\`\`
+
+Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
+
+`;
+
+exports[`blog-env-mssql $queryRaw $queryRaw(string) error 1`] = `
+\`$queryRaw\` is a tag function, please use it like the following:
+\`\`\`
+const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
+\`\`\`
+
+Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw
+
+`;

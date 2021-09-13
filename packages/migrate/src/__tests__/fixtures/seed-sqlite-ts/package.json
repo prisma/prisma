@@ -1,0 +1,11 @@
+{
+  "name": "seed-sqlite-ts",
+  "version": "1.0.0",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.14.21"
+  },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  }
+}

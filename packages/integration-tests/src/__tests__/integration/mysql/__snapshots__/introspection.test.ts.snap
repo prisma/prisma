@@ -32,7 +32,7 @@ datasource mysql {
 
 model teams {
   id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  name String @unique @mysql.VarChar(50)
+  name String @unique(map: "name") @mysql.VarChar(50)
 }
 
 `;
@@ -99,7 +99,7 @@ model users {
   email String @mysql.VarChar(50)
   name  String @mysql.VarChar(50)
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -217,7 +217,7 @@ datasource mysql {
 
 model users {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  email String @unique @mysql.VarChar(50)
+  email String @unique(map: "email") @mysql.VarChar(50)
 }
 
 `;
@@ -279,7 +279,7 @@ datasource mysql {
 
 model users {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  email String @unique @mysql.VarChar(50)
+  email String @unique(map: "email") @mysql.VarChar(50)
 }
 
 `;
@@ -341,7 +341,7 @@ datasource mysql {
 
 model crons {
   id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  job       String  @unique @mysql.VarChar(50)
+  job       String  @unique(map: "job") @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
 
@@ -523,7 +523,7 @@ datasource mysql {
 
 model teams {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  token Int    @unique
+  token Int    @unique(map: "token")
   name  String @mysql.VarChar(50)
 }
 
@@ -544,7 +544,7 @@ datasource mysql {
 
 model teams {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  token Int    @unique
+  token Int    @unique(map: "token")
   name  String @mysql.VarChar(50)
 }
 
@@ -565,7 +565,7 @@ datasource mysql {
 
 model crons {
   id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  job       String  @unique @mysql.VarChar(50)
+  job       String  @unique(map: "job") @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
 
@@ -586,7 +586,7 @@ datasource mysql {
 
 model teams {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  token Int    @unique
+  token Int    @unique(map: "token")
   name  String @mysql.VarChar(50)
 }
 
@@ -607,7 +607,7 @@ datasource mysql {
 
 model teams {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  token Int    @unique
+  token Int    @unique(map: "token")
   name  String @mysql.VarChar(50)
 }
 
@@ -628,7 +628,7 @@ datasource mysql {
 
 model crons {
   id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  job       String  @unique @mysql.VarChar(50)
+  job       String  @unique(map: "job") @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
 
@@ -649,7 +649,7 @@ datasource mysql {
 
 model teams {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  token Int    @unique
+  token Int    @unique(map: "token")
   name  String @mysql.VarChar(50)
 }
 
@@ -690,7 +690,7 @@ datasource mysql {
 
 model crons {
   id        BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  job       String  @unique @mysql.VarChar(50)
+  job       String  @unique(map: "job") @mysql.VarChar(50)
   frequency String? @mysql.Text
 }
 
@@ -774,7 +774,7 @@ datasource mysql {
 
 model users {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  email String @unique @mysql.VarChar(50)
+  email String @unique(map: "email") @mysql.VarChar(50)
 }
 
 `;
@@ -796,14 +796,14 @@ model posts {
   id      BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   user_id BigInt @mysql.UnsignedBigInt
   title   String @mysql.VarChar(50)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction, map: "posts_ibfk_1")
 
-  @@index([user_id], name: "user_id")
+  @@index([user_id], map: "user_id")
 }
 
 model users {
   id    BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  email String  @unique @mysql.VarChar(50)
+  email String  @unique(map: "email") @mysql.VarChar(50)
   posts posts[]
 }
 
@@ -824,8 +824,8 @@ datasource mysql {
 
 model teams {
   id    Int    @id
-  name  String @unique @mysql.VarChar(50)
-  email String @unique @mysql.VarChar(50)
+  name  String @unique(map: "name") @mysql.VarChar(50)
+  email String @unique(map: "email") @mysql.VarChar(50)
 }
 
 `;
@@ -845,7 +845,7 @@ datasource mysql {
 
 model teams {
   id   Int    @id
-  name String @unique @mysql.VarChar(50)
+  name String @unique(map: "name") @mysql.VarChar(50)
 }
 
 `;
@@ -875,9 +875,9 @@ model b {
   id  BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   one Int
   two Int
-  a   a      @relation(fields: [one, two], references: [one, two])
+  a   a      @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction, map: "b_ibfk_1")
 
-  @@index([one, two], name: "one")
+  @@index([one, two], map: "one")
 }
 
 `;
@@ -924,7 +924,7 @@ model users {
   email String @mysql.VarChar(50)
   name  String @mysql.VarChar(50)
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -944,7 +944,7 @@ datasource mysql {
 
 model exercises {
   id       BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  distance Decimal @unique @mysql.Decimal(5, 3)
+  distance Decimal @unique(map: "distance") @mysql.Decimal(5, 3)
 }
 
 `;
@@ -969,7 +969,7 @@ model variables {
   email String @mysql.VarChar(50)
 
   @@id([name, key])
-  @@unique([value, email], name: "variables_value_email_key")
+  @@unique([value, email])
 }
 
 `;
@@ -994,7 +994,7 @@ model variables {
   value String @mysql.VarChar(50)
   email String @mysql.VarChar(50)
 
-  @@unique([name, key], name: "variables_name_key_key")
+  @@unique([name, key])
 }
 
 `;
@@ -1016,14 +1016,14 @@ model posts {
   id      BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
   user_id BigInt @mysql.UnsignedBigInt
   title   String @mysql.VarChar(50)
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction, map: "posts_ibfk_1")
 
-  @@index([user_id], name: "user_id")
+  @@index([user_id], map: "user_id")
 }
 
 model users {
   id    BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  email String  @unique @mysql.VarChar(50)
+  email String  @unique(map: "email") @mysql.VarChar(50)
   posts posts[]
 }
 
@@ -1044,7 +1044,7 @@ datasource mysql {
 
 model users {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  email String @unique @mysql.VarChar(50)
+  email String @unique(map: "email") @mysql.VarChar(50)
 }
 
 `;
@@ -1091,7 +1091,7 @@ model users {
   email String @mysql.VarChar(50)
   name  String @mysql.VarChar(50)
 
-  @@unique([email, name], name: "users_email_name_key")
+  @@unique([email, name])
 }
 
 `;
@@ -1111,7 +1111,7 @@ datasource mysql {
 
 model teams {
   id    BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  token Int    @unique
+  token Int    @unique(map: "token")
 }
 
 `;
@@ -1131,7 +1131,7 @@ datasource mysql {
 
 model teams {
   id     BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  name   String  @unique @mysql.VarChar(50)
+  name   String  @unique(map: "name") @mysql.VarChar(50)
   active Boolean @default(true)
 }
 
@@ -1152,7 +1152,7 @@ datasource mysql {
 
 model teams {
   id     BigInt  @id @default(autoincrement()) @mysql.UnsignedBigInt
-  name   String  @unique @mysql.VarChar(50)
+  name   String  @unique(map: "name") @mysql.VarChar(50)
   active Boolean @default(true)
 }
 
@@ -1173,7 +1173,7 @@ datasource mysql {
 
 model teams {
   id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  name String @unique @mysql.VarChar(50)
+  name String @unique(map: "name") @mysql.VarChar(50)
 }
 
 `;
@@ -1193,7 +1193,7 @@ datasource mysql {
 
 model teams {
   id   BigInt @id @default(autoincrement()) @mysql.UnsignedBigInt
-  name String @unique @mysql.VarChar(50)
+  name String @unique(map: "name") @mysql.VarChar(50)
 }
 
 `;
