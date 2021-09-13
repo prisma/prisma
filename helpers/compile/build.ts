@@ -29,6 +29,7 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
 
   bundle: true,
   outfile: 'dist/index',
+  mainFields: ['module', 'main'],
   plugins: [makeAllPackagesExternalPlugin],
 })
 
