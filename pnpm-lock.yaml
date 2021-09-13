@@ -26,6 +26,7 @@ importers:
       eslint-plugin-jest: 24.4.0
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
+      glob: 7.1.7
       globby: 11.0.4
       graphviz: 0.0.9
       husky: 7.0.2
@@ -65,6 +66,7 @@ importers:
       eslint-plugin-jest: 24.4.0_2ad72e29dce3c7f9f5b63c34ce24dd0c
       eslint-plugin-prettier: 4.0.0_5a48a349ffec60f5257b5f148f5199c3
       execa: 5.1.1
+      glob: 7.1.7
       globby: 11.0.4
       graphviz: 0.0.9
       husky: 7.0.2
