@@ -1,5 +1,5 @@
 import chalk from 'chalk'
-import { Theme } from './types'
+import type { Theme } from './types'
 
 export const orange = chalk.rgb(246, 145, 95)
 export const darkBrightBlue = chalk.rgb(107, 139, 140)

@@ -1,47 +1,49 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
-import { getPlatform, Platform, platforms } from '@prisma/get-platform'
+import type { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
+import type { Platform } from '@prisma/get-platform'
+import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import { ChildProcessByStdio, spawn } from 'child_process'
+import type { ChildProcessByStdio } from 'child_process'
+import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
 import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
-import { Readable } from 'stream'
+import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
 import byline from '../tools/byline'
-import {
+import type {
   DatasourceOverwrite,
-  Engine,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
 } from '../common/Engine'
-import { RequestError } from '../common/errors/types/RequestError'
+import { Engine } from '../common/Engine'
+import type { RequestError } from '../common/errors/types/RequestError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
+import type { RustError, RustLog } from '../common/errors/utils/log'
 import {
   convertLog,
   getMessage,
   isRustError,
   isRustErrorLog,
-  RustError,
-  RustLog,
 } from '../common/errors/utils/log'
 import { omit } from '../tools/omit'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { Connection, Result } from './Connection'
+import type { Result } from './Connection'
+import { Connection } from './Connection'
 import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
 import type * as Tx from '../common/types/Transaction'
-import {
+import type {
   QueryEngineRequestHeaders,
   QueryEngineResult,
 } from '../common/types/QueryEngine'

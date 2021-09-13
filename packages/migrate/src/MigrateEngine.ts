@@ -1,15 +1,16 @@
 import Debug from '@prisma/debug'
+import type { MigrateEngineLogLine } from '@prisma/sdk'
 import {
   BinaryType,
   ErrorArea,
   resolveBinary,
   RustPanic,
-  MigrateEngineLogLine,
   MigrateEngineExitCode,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-import { ChildProcess, spawn } from 'child_process'
-import { EngineArgs, EngineResults } from './types'
+import type { ChildProcess } from 'child_process'
+import { spawn } from 'child_process'
+import type { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')

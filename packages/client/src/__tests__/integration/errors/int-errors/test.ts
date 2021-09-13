@@ -1,9 +1,6 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
-import {
-  SetupParams,
-  setupMysql,
-  tearDownMysql,
-} from '../../../../utils/setupMysql'
+import type { SetupParams } from '../../../../utils/setupMysql'
+import { setupMysql, tearDownMysql } from '../../../../utils/setupMysql'
 
 describe('int-errors', () => {
   let prisma

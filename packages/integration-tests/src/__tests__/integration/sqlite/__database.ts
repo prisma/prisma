@@ -1,5 +1,5 @@
 import Database from 'sqlite-async'
-import { Input } from '../../__helpers__/integrationTest'
+import type { Input } from '../../__helpers__/integrationTest'
 
 export const database = {
   name: 'sqlite',

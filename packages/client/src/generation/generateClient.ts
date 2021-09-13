@@ -1,5 +1,5 @@
 import { BinaryType } from '@prisma/fetch-engine'
-import {
+import type {
   BinaryPaths,
   DataSource,
   DMMF,
@@ -13,8 +13,8 @@ import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
-import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
-import { Dictionary } from '../runtime/utils/common'
+import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
+import type { Dictionary } from '../runtime/utils/common'
 import {
   ClientEngineType,
   getClientEngineType,

@@ -2,7 +2,8 @@ import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
-import readPkgUp, { NormalizedPackageJson } from 'read-pkg-up'
+import type { NormalizedPackageJson } from 'read-pkg-up'
+import readPkgUp from 'read-pkg-up'
 import { promisify } from 'util'
 
 const exists = promisify(fs.exists)

@@ -1,6 +1,7 @@
 import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { getNodeAPIName, Platform } from '@prisma/get-platform'
+import type { Platform } from '@prisma/get-platform'
+import { getNodeAPIName } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 import { ClientEngineType } from '../runtime/utils/getClientEngineType'

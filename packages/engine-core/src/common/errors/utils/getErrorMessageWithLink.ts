@@ -3,7 +3,7 @@ import { getGithubIssueUrl, link } from '../../utils/util'
 import stripAnsi from 'strip-ansi'
 import { maskQuery } from './maskQuery'
 import { normalizeLogs } from './normalizeLogs'
-import { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
+import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 
 export function getErrorMessageWithLink({
   version,

@@ -7,11 +7,13 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { DataLoader } from './DataLoader'
-import { Unpacker } from './getPrismaClient'
-import { EngineMiddleware } from './MiddlewareHandler'
-import { Args, Document, unpack } from './query'
+import type { Unpacker } from './getPrismaClient'
+import type { EngineMiddleware } from './MiddlewareHandler'
+import type { Document } from './query'
+import { Args, unpack } from './query'
 import { printStack } from './utils/printStack'
-import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
+import type { RejectOnNotFound } from './utils/rejectOnNotFound'
+import { throwIfNotFound } from './utils/rejectOnNotFound'
 const debug = Debug('prisma:client:fetcher')
 
 export type RequestParams = {

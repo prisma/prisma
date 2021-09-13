@@ -1,7 +1,8 @@
-import { ChildProcessByStdio, fork } from 'child_process'
+import type { ChildProcessByStdio } from 'child_process'
+import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import byline from './byline'
-import {
+import type {
   GeneratorConfig,
   GeneratorManifest,
   GeneratorOptions,

@@ -1,6 +1,7 @@
 import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
-import { setupMSSQL, SetupParams } from '../../../../utils/setupMSSQL'
+import type { SetupParams } from '../../../../utils/setupMSSQL'
+import { setupMSSQL } from '../../../../utils/setupMSSQL'
 
 describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance

@@ -1,7 +1,7 @@
 const sql = require('mssql')
 const url = require('url')
 
-import { Context, Input } from '../../__helpers__/integrationTest'
+import type { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {
   name: 'sqlserver',

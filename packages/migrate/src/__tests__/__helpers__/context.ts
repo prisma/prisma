@@ -1,6 +1,7 @@
-import execa, { ExecaChildProcess } from 'execa'
+import type { ExecaChildProcess } from 'execa'
+import execa from 'execa'
 import * as FSJet from 'fs-jetpack'
-import { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack } from 'fs-jetpack/types'
 import * as Path from 'path'
 import tempy from 'tempy'
 

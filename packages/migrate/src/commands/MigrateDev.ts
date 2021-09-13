@@ -1,6 +1,6 @@
+import type { Command } from '@prisma/sdk'
 import {
   arg,
-  Command,
   format,
   HelpError,
   isError,
@@ -17,11 +17,8 @@ import prompt from 'prompts'
 import fs from 'fs'
 import path from 'path'
 import { Migrate } from '../Migrate'
-import {
-  ensureDatabaseExists,
-  getDbInfo,
-  DbType,
-} from '../utils/ensureDatabaseExists'
+import type { DbType } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import {
   ExperimentalFlagWithNewMigrateError,
   EarlyAccessFeatureFlagWithNewMigrateError,
@@ -41,7 +38,7 @@ import {
   verifySeedConfigAndReturnMessage,
   getSeedCommandFromPackageJson,
 } from '../utils/seed'
-import { EngineResults } from '../types'
+import type { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:dev')
 

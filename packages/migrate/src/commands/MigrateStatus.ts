@@ -1,6 +1,6 @@
+import type { Command } from '@prisma/sdk'
 import {
   arg,
-  Command,
   format,
   getSchemaPath,
   HelpError,
@@ -19,7 +19,7 @@ import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
 import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
-import { EngineResults } from '../types'
+import type { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:status')
 

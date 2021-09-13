@@ -1,5 +1,6 @@
 import chalk from 'chalk'
-import { RustPanic, sendPanic, link, isCi } from '@prisma/sdk'
+import type { RustPanic } from '@prisma/sdk'
+import { sendPanic, link, isCi } from '@prisma/sdk'
 import prompt from 'prompts'
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 

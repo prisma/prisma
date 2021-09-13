@@ -1,5 +1,5 @@
 import indent from 'indent-string'
-import { DMMF } from '../../runtime/dmmf-types'
+import type { DMMF } from '../../runtime/dmmf-types'
 import {
   argIsInputType,
   GraphQLScalarToJSTypeTable,
@@ -7,8 +7,9 @@ import {
 } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import { TAB_SIZE } from './constants'
-import { Generatable } from './Generatable'
-import { ExportCollector, wrapComment } from './helpers'
+import type { Generatable } from './Generatable'
+import type { ExportCollector } from './helpers'
+import { wrapComment } from './helpers'
 
 export class InputField implements Generatable {
   constructor(

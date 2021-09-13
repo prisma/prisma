@@ -1,4 +1,4 @@
-import { EnvValue, BinaryTargetsEnvValue } from '@prisma/generator-helper'
+import type { EnvValue, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import chalk from 'chalk'
 
 /**

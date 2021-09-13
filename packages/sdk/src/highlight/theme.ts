@@ -1,4 +1,4 @@
-import { Theme } from './types'
+import type { Theme } from './types'
 import chalk from 'chalk'
 
 // https://www.wnycstudios.org/story/211119-colors

@@ -1,5 +1,5 @@
-import { DataSource } from '@prisma/generator-helper'
-import { DatasourceOverwrite } from './extractSqliteSources'
+import type { DataSource } from '@prisma/generator-helper'
+import type { DatasourceOverwrite } from './extractSqliteSources'
 
 // this is NOT printing datasources, but just serializing the data source
 // object used for generation

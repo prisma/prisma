@@ -1,4 +1,4 @@
-import { DMMF } from './dmmf-types'
+import type { DMMF } from './dmmf-types'
 
 export interface ArgError {
   path: string[]

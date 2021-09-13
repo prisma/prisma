@@ -1,7 +1,7 @@
 import { IntrospectionEngine } from '@prisma/sdk'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
-import { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack } from 'fs-jetpack/types'
 import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'

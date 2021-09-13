@@ -1,4 +1,4 @@
-import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
 // Events
 export type QueryEngineEvent =

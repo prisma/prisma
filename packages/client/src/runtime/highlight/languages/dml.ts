@@ -1,4 +1,4 @@
-import { SyntaxDefinition } from '../types'
+import type { SyntaxDefinition } from '../types'
 
 export const dml: SyntaxDefinition = {
   value: { pattern: /\:\s+(\w+)/g },

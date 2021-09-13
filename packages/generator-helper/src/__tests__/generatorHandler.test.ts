@@ -1,6 +1,6 @@
 import { GeneratorProcess } from '../GeneratorProcess'
 import path from 'path'
-import { GeneratorOptions } from '../types'
+import type { GeneratorOptions } from '../types'
 
 const stubOptions: GeneratorOptions = {
   datamodel: '',

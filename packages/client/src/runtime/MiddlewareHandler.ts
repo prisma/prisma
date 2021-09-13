@@ -1,5 +1,5 @@
-import { Action } from './getPrismaClient'
-import { Document } from './query'
+import type { Action } from './getPrismaClient'
+import type { Document } from './query'
 
 export type QueryMiddleware<T = unknown> = (
   params: QueryMiddlewareParams,

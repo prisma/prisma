@@ -1,6 +1,6 @@
-import { DatabaseCredentials } from './types'
+import type { DatabaseCredentials } from './types'
 import * as NodeURL from 'url'
-import { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator-helper'
 import path from 'path'
 
 export function credentialsToUri(credentials: DatabaseCredentials): string {

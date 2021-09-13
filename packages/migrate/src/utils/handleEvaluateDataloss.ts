@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { getCommandWithExecutor } from '@prisma/sdk'
-import { MigrationFeedback } from '../types'
+import type { MigrationFeedback } from '../types'
 
 export function handleUnexecutableSteps(
   unexecutableSteps: MigrationFeedback[],

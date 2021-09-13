@@ -1,14 +1,15 @@
 import indent from 'indent-string'
-import { DMMFClass } from '../../runtime/dmmf'
-import { BaseField, DMMF } from '../../runtime/dmmf-types'
+import type { DMMFClass } from '../../runtime/dmmf'
+import type { BaseField, DMMF } from '../../runtime/dmmf-types'
 import {
   GraphQLScalarToJSTypeTable,
   isSchemaEnum,
   needsNamespace,
 } from '../../runtime/utils/common'
 import { TAB_SIZE } from './constants'
-import { Generatable } from './Generatable'
-import { ExportCollector, wrapComment } from './helpers'
+import type { Generatable } from './Generatable'
+import type { ExportCollector } from './helpers'
+import { wrapComment } from './helpers'
 
 export class ModelOutputField implements Generatable {
   constructor(

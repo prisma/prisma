@@ -1,6 +1,6 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
+import type { SetupParams } from '../../../../utils/setupPostgres'
 import {
-  SetupParams,
   setupPostgres,
   tearDownPostgres,
 } from '../../../../utils/setupPostgres'
