@@ -5,7 +5,7 @@ import type {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import { getVersion } from '@prisma/sdk/dist/engine-commands/getVersion'
+import { getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'

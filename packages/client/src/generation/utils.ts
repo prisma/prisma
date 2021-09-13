@@ -1,5 +1,5 @@
 import type { Platform } from '@prisma/get-platform'
-import { getNodeAPIName } from '@prisma/get-platform/dist/getNodeAPIName'
+import { getNodeAPIName } from '@prisma/get-platform'
 import indent from 'indent-string'
 import path from 'path'
 import type { DMMFClass } from '../runtime/dmmf'

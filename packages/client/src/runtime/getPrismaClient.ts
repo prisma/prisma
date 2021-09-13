@@ -7,10 +7,7 @@ import type {
 } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
-import type {
-  DataSource,
-  GeneratorConfig,
-} from '@prisma/generator-helper/dist/types'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { logger } from '@prisma/sdk'
 import { mapPreviewFeatures } from '@prisma/sdk'
 import { tryLoadEnvs } from '@prisma/sdk'

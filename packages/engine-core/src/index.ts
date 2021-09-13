@@ -4,9 +4,9 @@ export { PrismaClientRustPanicError } from './common/errors/PrismaClientRustPani
 export { PrismaClientUnknownRequestError } from './common/errors/PrismaClientUnknownRequestError'
 
 export { Engine } from './common/Engine'
-export { EngineConfig } from './common/Engine'
-export { EngineEventType } from './common/Engine'
-export { DatasourceOverwrite } from './common/Engine'
+export type { EngineConfig } from './common/Engine'
+export type { EngineEventType } from './common/Engine'
+export type { DatasourceOverwrite } from './common/Engine'
 export { LibraryEngine } from './library/LibraryEngine'
 export { BinaryEngine } from './binary/BinaryEngine'
 export * as NodeAPILibraryTypes from './library/types/Library'
