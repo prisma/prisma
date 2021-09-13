@@ -1,5 +1,6 @@
-import type { BuildOptions } from 'esbuild'
+import type { BuildOptions, OnResolveResult, Plugin } from 'esbuild'
 import { build } from '../../../helpers/compile/build'
+import path from 'path'
 
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
@@ -20,10 +21,11 @@ const runtimeBuildConfig: BuildOptions = {
 // we define the config for browser
 const browserBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index-browser.ts'],
-  outfile: 'runtime/index',
+  outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
   external: ['_http_common', 'spdx-license-ids', 'spdx-exceptions'],
 }
 
 build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig])
+

@@ -66,5 +66,6 @@
       "eslint",
       "prettier --write"
     ]
-  }
+  },
+  "sideEffects": false
 }
