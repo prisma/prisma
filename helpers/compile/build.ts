@@ -4,7 +4,8 @@ import { flatten } from '../blaze/flatten'
 import { pipe } from '../blaze/pipe'
 import { map } from '../blaze/map'
 import { handle } from '../blaze/handle'
-import globby from 'globby'
+import { transduce } from '../blaze/transduce'
+import glob from 'glob'
 
 export const cjsBaseOptions = (): esbuild.BuildOptions => ({
   format: 'cjs',
@@ -13,7 +14,7 @@ export const cjsBaseOptions = (): esbuild.BuildOptions => ({
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.js' },
-  entryPoints: globby.sync('./src/**/*.{j,t}s', {
+  entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
 })
@@ -25,7 +26,7 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.mjs' },
-  entryPoints: globby.sync('./src/**/*.{j,t,mj}s', {
+  entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
   resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
@@ -47,37 +48,33 @@ function combineBaseOptions(options: esbuild.BuildOptions[]) {
 }
 
 // extensions are not auto set for `outfile`, we do it
-function addExtensionFormat(options: esbuild.BuildOptions[]) {
-  return map(options, (options) => {
-    if (options.outfile && options.outExtension) {
-      const ext = options.outExtension['.js']
+function addExtensionFormat(options: esbuild.BuildOptions) {
+  if (options.outfile && options.outExtension) {
+    const ext = options.outExtension['.js']
 
-      options.outfile = `${options.outfile}${ext}`
-    }
+    options.outfile = `${options.outfile}${ext}`
+  }
 
-    return options
-  })
+  return options
 }
 
 // automatically default outdir if we have no outfile
-function addDefaultOutDir(options: esbuild.BuildOptions[]) {
-  return map(options, (options) => {
-    if (options.outfile === undefined) {
-      options.outdir = 'dist'
-    }
+function addDefaultOutDir(options: esbuild.BuildOptions) {
+  if (options.outfile === undefined) {
+    options.outdir = 'dist'
+  }
 
-    return options
-  })
+  return options
 }
 
 // execute esbuild with all the configurations we pass
-function executeEsBuild(options: esbuild.BuildOptions[]) {
-  return map(options, (options) => esbuild.build(options))
+function executeEsBuild(options: esbuild.BuildOptions) {
+  return esbuild.build(options)
 }
 
 // when it's requested we also generate project types
-async function emitProjectTypes(result: Promise<esbuild.BuildResult>[]) {
-  await Promise.all(result) // check that it compiled
+async function emitProjectTypes(result: Promise<esbuild.BuildResult>) {
+  await result // check that it compiled
 
   if (process.env.DEV !== 'true') {
     await run('tsc --build tsconfig.build.json')
@@ -97,14 +94,16 @@ async function handleBuildErrors(promise: Promise<void>) {
 }
 
 export function build(options: esbuild.BuildOptions[]) {
-  void pipe(
-    combineBaseOptions,
-    addExtensionFormat,
-    addDefaultOutDir,
-    executeEsBuild,
-    emitProjectTypes,
-    handleBuildErrors,
-  )(options)
+  transduce(
+    combineBaseOptions(options),
+    pipe(
+      addExtensionFormat,
+      addDefaultOutDir,
+      executeEsBuild,
+      emitProjectTypes,
+      handleBuildErrors,
+    ),
+  )
 }
 
 function run(command: string, preferLocal = true) {

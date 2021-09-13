@@ -44,6 +44,7 @@
     "eslint-plugin-jest": "24.4.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
+    "glob": "7.1.7",
     "globby": "11.0.4",
     "graphviz": "0.0.9",
     "husky": "7.0.2",
