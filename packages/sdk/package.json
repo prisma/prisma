@@ -2,6 +2,7 @@
   "name": "@prisma/sdk",
   "version": "0.0.0",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
   "homepage": "https://www.prisma.io",
@@ -14,8 +15,8 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true ts-node helpers/build.ts",
+    "build": "ts-node helpers/build.ts",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
