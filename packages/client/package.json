@@ -37,8 +37,8 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
-    "dev": "DEV=true ts-node helpers/build.ts",
-    "build": "ts-node helpers/build.ts",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "format": "prettier --write .",
