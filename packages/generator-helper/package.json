@@ -2,6 +2,7 @@
   "name": "@prisma/generator-helper",
   "version": "0.0.0",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -21,8 +22,8 @@
     "cross-spawn": "7.0.3"
   },
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true ts-node helpers/build.ts",
+    "build": "ts-node helpers/build.ts",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
