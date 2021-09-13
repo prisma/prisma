@@ -51,8 +51,8 @@
     "verror": "1.10.0"
   },
   "scripts": {
-    "dev": "DEV=true ts-node helpers/build.ts",
-    "build": "ts-node helpers/build.ts",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
     "test:integration": "jest integration --maxConcurrency=8 --verbose",
     "test:sqlite": "jest integration.sqlite --maxConcurrency=8 --verbose",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
