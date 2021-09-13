@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getEnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
+import { getEnvPaths } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
