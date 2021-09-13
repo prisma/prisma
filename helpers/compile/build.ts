@@ -12,7 +12,7 @@ export const cjsBaseOptions = (): esbuild.BuildOptions => ({
   target: 'es2018',
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
-  outExtension: { '.js': '.cjs' },
+  outExtension: { '.js': '.js' },
   entryPoints: globby.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
@@ -25,9 +25,11 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.mjs' },
-  entryPoints: globby.sync('./src/**/*.{j,t}s', {
-    ignore: ['./src/__tests__/**/*'],
-  }),
+  entryPoints: ['src/index.ts'],
+
+  bundle: true,
+  outfile: 'dist/index',
+  plugins: [makeAllPackagesExternalPlugin],
 })
 
 // create a matrix of possible options with cjs and esm
@@ -103,4 +105,13 @@ export function build(options: esbuild.BuildOptions[]) {
 
 function run(command: string, preferLocal = true) {
   return execa.command(command, { preferLocal, shell: true, stdio: 'inherit' })
+}
+
+// taken from https://github.com/evanw/esbuild/issues/619
+const makeAllPackagesExternalPlugin = {
+  name: 'make-all-packages-external',
+  setup(build) {
+    const filter = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/ // Must not start with "/" or "./" or "../"
+    build.onResolve({ filter }, (args) => ({ path: args.path, external: true }))
+  },
 }
