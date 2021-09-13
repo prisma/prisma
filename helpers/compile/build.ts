@@ -40,8 +40,8 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
 function combineBaseOptions(options: esbuild.BuildOptions[]) {
   return flatten(
     map(options, (options) => [
-      // { ...cjsBaseOptions(), ...options },
-      { ...esmBaseOptions(), ...options },
+      { ...cjsBaseOptions(), ...options },
+      // { ...esmBaseOptions(), ...options },
     ]),
   )
 }
