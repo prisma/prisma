@@ -1,12 +1,12 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
-import { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFClass } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
-import { InternalDatasource } from '../../runtime/utils/printDatasources'
-import { DatasourceOverwrite } from './../extractSqliteSources'
+import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
-import { Generatable } from './Generatable'
+import type { Generatable } from './Generatable'
 
 function batchingTransactionDefinition(this: PrismaClientClass) {
   return `

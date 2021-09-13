@@ -2,8 +2,9 @@ import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
-import { Generatable } from './Generatable'
-import { ExportCollector, getArgFieldJSDoc } from './helpers'
+import type { Generatable } from './Generatable'
+import type { ExportCollector } from './helpers'
+import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
 
 export class ArgsType implements Generatable {

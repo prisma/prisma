@@ -5,13 +5,12 @@ import {
   printGeneratorConfig,
 } from '@prisma/engine-core'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import {
+import type {
   BinaryDownloadConfiguration,
-  BinaryType,
-  download,
   DownloadOptions,
 } from '@prisma/fetch-engine'
-import {
+import { BinaryType, download } from '@prisma/fetch-engine'
+import type {
   BinaryPaths,
   BinaryTargetsEnvValue,
   EngineType,
@@ -19,7 +18,8 @@ import {
   GeneratorManifest,
   GeneratorOptions,
 } from '@prisma/generator-helper'
-import { getPlatform, Platform, platforms } from '@prisma/get-platform'
+import type { Platform } from '@prisma/get-platform'
+import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
 import makeDir from 'make-dir'
@@ -28,10 +28,8 @@ import path from 'path'
 import { getConfig, getDMMF } from '.'
 import { Generator } from './Generator'
 import { pick } from './pick'
-import {
-  GeneratorPaths,
-  predefinedGeneratorResolvers,
-} from './predefinedGeneratorResolvers'
+import type { GeneratorPaths } from './predefinedGeneratorResolvers'
+import { predefinedGeneratorResolvers } from './predefinedGeneratorResolvers'
 import { resolveOutput } from './resolveOutput'
 import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from './utils/mapPreviewFeatures'

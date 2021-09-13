@@ -1,5 +1,6 @@
-import { DMMF } from '@prisma/generator-helper'
-import { Dictionary, keyBy, keyBy2, ScalarTypeTable } from './utils/common'
+import type { DMMF } from '@prisma/generator-helper'
+import type { Dictionary } from './utils/common'
+import { keyBy, keyBy2, ScalarTypeTable } from './utils/common'
 
 export class DMMFClass implements DMMF.Document {
   public datamodel: DMMF.Datamodel

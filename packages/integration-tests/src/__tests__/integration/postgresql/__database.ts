@@ -1,5 +1,5 @@
 import * as PG from 'pg'
-import { Context, Input } from '../../__helpers__/integrationTest'
+import type { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {
   name: 'postgresql',

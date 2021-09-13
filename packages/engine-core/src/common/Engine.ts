@@ -1,6 +1,6 @@
-import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type * as Transaction from './types/Transaction'
-import {
+import type {
   QueryEngineRequestHeaders,
   QueryEngineResult,
 } from './types/QueryEngine'

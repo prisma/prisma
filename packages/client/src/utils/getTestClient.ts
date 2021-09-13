@@ -13,10 +13,8 @@ import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
 import { getDMMF } from '../generation/getDMMF'
-import {
-  getPrismaClient,
-  GetPrismaClientOptions,
-} from '../runtime/getPrismaClient'
+import type { GetPrismaClientOptions } from '../runtime/getPrismaClient'
+import { getPrismaClient } from '../runtime/getPrismaClient'
 import { getClientEngineType } from '../runtime/utils/getClientEngineType'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
