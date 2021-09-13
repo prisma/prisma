@@ -1,5 +1,5 @@
 import { BuildOptions } from 'esbuild'
-import { build } from '../../../helpers/build/build'
+import { build } from '../../../helpers/compile/build'
 
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
