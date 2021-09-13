@@ -1,4 +1,4 @@
-import getStream = require('get-stream')
+import getStream from 'get-stream'
 import type { Client } from 'undici'
 import { Pool } from 'undici'
 import type { URL } from 'url'

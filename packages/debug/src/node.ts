@@ -3,8 +3,8 @@
  * Module dependencies.
  */
 
-const tty = require('tty')
-const util = require('util')
+import tty from 'tty'
+import util from 'util'
 
 /**
  * This is the Node.js implementation of `debug()`.
