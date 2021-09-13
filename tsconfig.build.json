@@ -4,6 +4,7 @@
     "module": "commonjs",
     "lib": ["esnext"],
     "esModuleInterop": true,
+    "isolatedModules": true,
     "sourceMap": true,
     "declaration": true,
 
