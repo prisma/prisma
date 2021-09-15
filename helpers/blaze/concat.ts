@@ -1,4 +1,4 @@
-import { L } from 'ts-toolbelt'
+import type { L } from 'ts-toolbelt'
 
 /**
  * Combines two lists into a new one.

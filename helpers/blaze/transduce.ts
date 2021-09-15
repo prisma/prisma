@@ -2,6 +2,52 @@ import type { L } from 'ts-toolbelt'
 
 const skip = Symbol('skip')
 
+function transduceSync<L extends L.List<I>, I, R>(
+  list: L & L.List<I>,
+  transformer: (item: I) => R | typeof skip,
+) {
+  const transduced = [] as R[]
+
+  for (let i = 0; i < list.length; ++i) {
+    const transformed = transformer(list[i])
+
+    if (transformed !== skip) {
+      transduced[transduced.length] = transformed
+    }
+  }
+
+  return transduced
+}
+
+async function transduceAsync<L extends L.List<I>, I, R>(
+  list: L & L.List<I>,
+  transformer: (item: I) => Promise<R | typeof skip>,
+) {
+  const transduced = [] as R[]
+
+  for (let i = 0; i < list.length; ++i) {
+    const transformed = await transformer(list[i])
+
+    if (transformed !== skip) {
+      transduced[transduced.length] = transformed
+    }
+  }
+
+  return transduced
+}
+
+const Filter =
+  <I>(filter: (item: I) => boolean) =>
+  (item: I) => {
+    return filter(item) ? item : (skip as never)
+  }
+
+const Mapper =
+  <I, R>(mapper: (item: I) => R) =>
+  (item: I) => {
+    return mapper(item)
+  }
+
 /**
  * Transducers enable efficient data processing. They allow the composition of
  * mappers and filters to be applied on a list. And this is applied in a single
@@ -30,33 +76,10 @@ const skip = Symbol('skip')
  * )
  * ```
  */
-const transduce = <L extends L.List<I>, I, R>(
-  list: L & L.List<I>,
-  transformer: (item: I) => R | typeof skip,
-) => {
-  const transduced = [] as R[]
-
-  for (let i = 0; i < list.length; ++i) {
-    const transformed = transformer(list[i])
-
-    if (transformed !== skip) {
-      transduced[transduced.length] = transformed
-    }
-  }
-
-  return transduced
+const transduce = transduceSync as typeof transduceSync & {
+  async: typeof transduceAsync
 }
 
-const Filter =
-  <I>(filter: (item: I) => boolean) =>
-  (item: I) => {
-    return filter(item) ? item : (skip as never)
-  }
-
-const Mapper =
-  <I, R>(mapper: (item: I) => R) =>
-  (item: I) => {
-    return mapper(item)
-  }
+transduce.async = transduceAsync
 
 export { transduce, Filter, Mapper, skip }

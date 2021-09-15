@@ -1,29 +1,27 @@
+function handleSync<R, E = Error>(fn: () => R): R | E {
+  try {
+    return fn()
+  } catch (e: unknown) {
+    return e as E
+  }
+}
+
+async function handleAsync<R, E = Error>(fn: () => Promise<R>): Promise<R | E> {
+  try {
+    return await fn()
+  } catch (e: unknown) {
+    return e as E
+  }
+}
+
 /**
  * Executes a function, catches exceptions, and returns any outcome.
  * @param fn to be executed
  */
-function handle<R, E = Error>(fn: () => Promise<R>): Promise<R | E>
-function handle<R, E = Error>(fn: () => R): R | E
-function handle(fn: () => unknown): unknown {
-  try {
-    const result = fn()
-
-    if (result instanceof Promise) {
-      return handleAsync(result)
-    }
-
-    return result
-  } catch (e: unknown) {
-    return e
-  }
+const handle = handleSync as typeof handleSync & {
+  async: typeof handleAsync
 }
 
-async function handleAsync(promise: Promise<unknown>) {
-  try {
-    return await promise
-  } catch (e: unknown) {
-    return e
-  }
-}
+handle.async = handleAsync
 
 export { handle }

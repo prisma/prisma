@@ -1,4 +1,4 @@
-import { L } from 'ts-toolbelt'
+import type { L } from 'ts-toolbelt'
 import { reduce } from './reduce'
 import { concat } from './concat'
 
