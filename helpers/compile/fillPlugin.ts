@@ -30,7 +30,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       crypto: { path: find('crypto-browserify') },
       domain: { path: find('domain-browser') },
       events: { path: find('events') },
-      fs: { path: find('browserify-fs') },
+      fs: { path: find('memfs') },
       http: { path: find('stream-http') },
       https: { path: find('https-browserify') },
       inherits: { path: find('inherits') },
@@ -85,7 +85,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
 
       // if a path is provided, we just replace it
       if (item.path !== undefined) {
-        return { path: item.path }
+        return { path: item.path, sideEffects: false }
       }
 
       // if not, we defer action to the loaders cb
@@ -93,6 +93,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
         path: args.path,
         namespace: 'fill-plugin',
         pluginData: args.importer,
+        sideEffects: false,
       }
     })
 
