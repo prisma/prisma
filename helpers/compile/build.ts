@@ -15,9 +15,7 @@ export const cjsBaseOptions = (): esbuild.BuildOptions => ({
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
-  entryPoints: glob.sync('./src/**/*.{j,t}s', {
-    ignore: ['./src/__tests__/**/*'],
-  }),
+  entryPoints: glob.sync('./dist/**/*.mjs'),
   mainFields: ['main', 'module'],
 })
 
@@ -41,7 +39,7 @@ function combineBaseOptions(options: esbuild.BuildOptions[]) {
   return flatten(
     map(options, (options) => [
       { ...esmBaseOptions(), ...options },
-      // { ...cjsBaseOptions(), ...options },
+      { ...cjsBaseOptions(), ...options },
     ]),
   )
 }
@@ -68,34 +66,32 @@ function addDefaultOutDir(options: esbuild.BuildOptions) {
 
 // execute esbuild with all the configurations we pass
 function executeEsBuild(options: esbuild.BuildOptions) {
-  return esbuild.build(options)
+  return handle.async(() => esbuild.build(options))
 }
 
 // when it's requested we also generate project types
-async function emitProjectTypes(result: Promise<esbuild.BuildResult>) {
-  await result // check that it compiled
+function emitProjectTypes(result?: Error | esbuild.BuildResult) {
+  if (result instanceof Error) return result
 
   if (process.env.DEV !== 'true') {
-    await run('tsc --build tsconfig.build.json')
+    return handle.async(() => run('tsc --build tsconfig.build.json'))
   }
 
   return undefined
 }
 
 // detect build errors and exit the process if needed
-async function handleBuildErrors(promise: Promise<void>) {
-  const result = await handle(() => promise)
-
+function handleBuildErrors(result?: Error | execa.ExecaReturnValue) {
   if (result instanceof Error) {
-    console.log(result)
+    console.log(result.message)
     process.exit(1)
   }
 }
 
 export function build(options: esbuild.BuildOptions[]) {
-  transduce(
+  void transduce.async(
     combineBaseOptions(options),
-    pipe(
+    pipe.async(
       addExtensionFormat,
       addDefaultOutDir,
       executeEsBuild,
@@ -105,15 +101,10 @@ export function build(options: esbuild.BuildOptions[]) {
   )
 }
 
-function run(command: string, preferLocal = true) {
-  return execa.command(command, { preferLocal, shell: true, stdio: 'inherit' })
-}
-
-// taken from https://github.com/evanw/esbuild/issues/619
-const makeAllPackagesExternalPlugin = {
-  name: 'make-all-packages-external',
-  setup(build) {
-    const filter = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/ // Must not start with "/" or "./" or "../"
-    build.onResolve({ filter }, (args) => ({ path: args.path, external: true }))
-  },
+function run(command: string) {
+  return execa.command(command, {
+    preferLocal: true,
+    shell: true,
+    stdio: 'inherit',
+  })
 }
