@@ -12,7 +12,7 @@ export {
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
-export type { HelpError } from './cli/Help'
+export { HelpError } from './cli/Help'
 export type {
   Command,
   Commands,
@@ -38,8 +38,8 @@ export {
   highlightSql,
   highlightTS,
 } from './highlight/highlight'
+export { IntrospectionEngine } from './IntrospectionEngine'
 export type {
-  IntrospectionEngine,
   IntrospectionSchemaVersion,
   IntrospectionWarnings,
 } from './IntrospectionEngine'
@@ -53,14 +53,12 @@ export {
   createDatabase,
   dropDatabase,
 } from './migrateEngineCommands'
-export type {
-  MigrateEngineExitCode,
-  MigrateEngineLogLine,
-} from './migrateEngineCommands'
+export { MigrateEngineExitCode } from './migrateEngineCommands'
+export type { MigrateEngineLogLine } from './migrateEngineCommands'
 export { ErrorArea, RustPanic } from './panic'
 export { pick } from './pick'
 export type { GeneratorPaths } from './predefinedGeneratorResolvers'
-export type { BinaryType } from './resolveBinary'
+export { BinaryType } from './resolveBinary'
 export { engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { sendPanic } from './sendPanic'
 export type { DatabaseCredentials } from './types'
