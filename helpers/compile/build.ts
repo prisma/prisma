@@ -7,18 +7,7 @@ import { handle } from '../blaze/handle'
 import { transduce } from '../blaze/transduce'
 import glob from 'glob'
 
-export const cjsBaseOptions = (): esbuild.BuildOptions => ({
-  format: 'cjs',
-  platform: 'node',
-  target: 'es2018',
-  keepNames: true,
-  tsconfig: 'tsconfig.build.json',
-  outExtension: { '.js': '.js' },
-  resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
-  entryPoints: glob.sync('./dist/**/*.mjs'),
-  mainFields: ['main', 'module'],
-})
-
+// we first compile everything to esm
 export const esmBaseOptions = (): esbuild.BuildOptions => ({
   format: 'esm',
   platform: 'node',
@@ -34,14 +23,33 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
   mainFields: ['module', 'main'],
 })
 
+// then we compile all the esm to cjs
+export const cjsBaseOptions = (): esbuild.BuildOptions => ({
+  format: 'cjs',
+  platform: 'node',
+  target: 'es2018',
+  keepNames: true,
+  tsconfig: 'tsconfig.build.json',
+  outExtension: { '.js': '.js' },
+  resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
+  entryPoints: glob.sync('./dist/**/*.mjs'),
+  mainFields: ['main', 'module'],
+})
+
 // create a matrix of possible options with cjs and esm
 function combineBaseOptions(options: esbuild.BuildOptions[]) {
   return flatten(
     map(options, (options) => [
-      { ...esmBaseOptions(), ...options },
-      { ...cjsBaseOptions(), ...options },
+      // we defer it so that we don't trigger glob now
+      () => ({ ...esmBaseOptions(), ...options }),
+      () => ({ ...cjsBaseOptions(), ...options }),
     ]),
   )
+}
+
+// only trigger it when ready because of the glob search
+function computeOptions(options: () => esbuild.BuildOptions) {
+  return options()
 }
 
 // extensions are not auto set for `outfile`, we do it
@@ -92,6 +100,7 @@ export function build(options: esbuild.BuildOptions[]) {
   void transduce.async(
     combineBaseOptions(options),
     pipe.async(
+      computeOptions,
       addExtensionFormat,
       addDefaultOutDir,
       executeEsBuild,
