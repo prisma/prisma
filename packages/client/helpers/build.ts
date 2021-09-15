@@ -1,6 +1,6 @@
-import type { BuildOptions, OnResolveResult, Plugin } from 'esbuild'
+import type { BuildOptions } from 'esbuild'
 import { build } from '../../../helpers/compile/build'
-import path from 'path'
+import { fillPlugin } from '../../../helpers/compile/fillPlugin'
 
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
@@ -27,5 +27,29 @@ const browserBuildConfig: BuildOptions = {
   external: ['_http_common', 'spdx-license-ids', 'spdx-exceptions'],
 }
 
-build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig])
+// we define the config for proxy
+const proxyBuildConfig: BuildOptions = {
+  logLevel: 'error',
+  platform: 'browser',
+  entryPoints: ['src/runtime/index.ts'],
+  outfile: 'runtime/index',
+  bundle: true,
+  external: [
+    'src/generation',
+    '_http_common',
+    'spdx-license-ids',
+    'spdx-exceptions',
+  ],
+  plugins: [
+    fillPlugin({
+      '@prisma/engines': { contents: '' },
+      '@prisma/engine-core': { contents: '' },
+      '@prisma/fetch-engine': { contents: '' },
+      '@prisma/generator-helper': { contents: '' },
+      '@prisma/get-platform': { contents: '' },
+    }),
+  ],
+}
 
+// build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig])
+build([proxyBuildConfig])

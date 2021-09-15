@@ -16,6 +16,8 @@ type LoadResultMap = {
   [k in string]: { contents?: string; path?: string }
 }
 
+// https://v2.parceljs.org/features/node-emulation/
+// https://github.com/Richienb/node-polyfill-webpack-plugin/blob/master/index.js
 const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
   name: 'fillPlugin',
   setup(build) {
