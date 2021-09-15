@@ -20,7 +20,7 @@
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.0.1",
-    "@types/node": "12.20.24",
+    "@types/node": "12.20.25",
     "@types/pg": "8.6.1",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.7",
