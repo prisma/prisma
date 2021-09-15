@@ -1,5 +1,5 @@
-import { L } from 'ts-toolbelt'
-import { F } from 'ts-toolbelt'
+import type { L } from 'ts-toolbelt'
+import type { F } from 'ts-toolbelt'
 
 /**
  * An accumulable function can be passed its output as input
@@ -8,8 +8,8 @@ type Accumulable<P, R> = (arg0: R, ...rest: P[]) => R
 
 /**
  * Repeat an [[Accumulable]] function
- * @param f to be repeated
- * @param again to control / exit
+ * @param f to be repeated until...
+ * @param again return false to exit
  * @returns
  * @example
  * ```ts
