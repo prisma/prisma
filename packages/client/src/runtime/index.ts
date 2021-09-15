@@ -14,17 +14,11 @@ export {
   PrismaClientInitializationError,
   PrismaClientRustPanicError,
 } from '@prisma/engine-core'
-export { getPrismaClient, PrismaClientOptions } from './getPrismaClient'
+export { getPrismaClient } from './getPrismaClient'
+export type { PrismaClientOptions } from './getPrismaClient'
 
-export {
-  RawValue,
-  Sql,
-  Value,
-  empty,
-  join,
-  raw,
-  sqltag,
-} from 'sql-template-tag'
+export { Sql, empty, join, raw, sqltag } from 'sql-template-tag'
+export type { RawValue, Value } from 'sql-template-tag'
 
 export { warnEnvConflicts } from './warnEnvConflicts'
 
