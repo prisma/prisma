@@ -1,6 +1,7 @@
 import type { BuildOptions } from 'esbuild'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/fillPlugin'
+import { externalPlugin } from '../../../helpers/compile/externalPlugin'
 
 const external = ['_http_common', 'spdx-license-ids', 'spdx-exceptions']
 
@@ -9,8 +10,8 @@ const generatorBuildConfig: BuildOptions = {
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
-  external: external,
   define: { NOT_PROXY: 'true' },
+  plugins: [externalPlugin],
 }
 
 // we define the config for runtime
