@@ -43,10 +43,10 @@ export const cjsBaseOptions = (
   mainFields: ['module'],
   ...options,
   // we want to compile tree-shaken esm to cjs, so we override
-  // outfile has precedence over outdir, hence these ternaries
   entryPoints: options.outfile
     ? glob.sync(`./${getEsmOutFile(options)}.mjs`)
     : glob.sync(`./${getEsmOutDir(options)}/**/*.mjs`),
+  // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
 })
 
