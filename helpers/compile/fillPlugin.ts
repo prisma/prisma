@@ -55,7 +55,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       vm: { path: find('vm-browserify') },
       zlib: { path: find('browserify-zlib') },
 
-      // // disabled
+      // disabled
       global: {},
       _inherits: {},
       _buffer_list: {},
@@ -71,7 +71,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       repl: { contents: '' },
       tls: { contents: '' },
       perf_hooks: { contents: '' },
-      async_hooks: { contents: '' },
+      // async_hooks: { contents: '' },
       child_process: { contents: '' },
 
       // overrides

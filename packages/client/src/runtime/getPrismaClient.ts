@@ -49,7 +49,12 @@ import { PrismaClientValidationError } from '.'
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
-declare const NOT_PROXY: {}
+declare global {
+  // eslint-disable-next-line no-var
+  var NOT_PROXY: {}
+}
+
+global.NOT_PROXY = true
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
@@ -444,9 +449,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
     private getEngine() {
       if (this._clientEngineType === ClientEngineType.Binary) {
-        return NOT_PROXY && new BinaryEngine(this._engineConfig)
+        return globalThis.NOT_PROXY && new BinaryEngine(this._engineConfig)
       } else {
-        return NOT_PROXY && new LibraryEngine(this._engineConfig)
+        return globalThis.NOT_PROXY && new LibraryEngine(this._engineConfig)
       }
     }
 
@@ -1116,7 +1121,7 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        if (NOT_PROXY === true) {
+        if (globalThis.NOT_PROXY) {
           // async scope https://github.com/prisma/prisma/issues/3148
           const resource = new AsyncResource('prisma-client-request')
           return resource.runInAsyncScope(() => consumer(params))
