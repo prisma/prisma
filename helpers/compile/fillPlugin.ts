@@ -39,7 +39,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       punycode: { path: find('punycode') },
       process: { path: find('process/browser') },
       querystring: { path: find('querystring-es3') },
-      stream: { path: find('stream-browserify') },
+      stream: { path: find('readable-stream') },
       _stream_duplex: { path: find(`${STREAM_LIB_BASE}duplex`) },
       _stream_passthrough: { path: find(`${STREAM_LIB_BASE}passthrough`) },
       _stream_readable: { path: find(`${STREAM_LIB_BASE}readable`) },

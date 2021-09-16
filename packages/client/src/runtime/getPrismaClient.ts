@@ -51,6 +51,8 @@ import { DataProxyEngine } from './DataProxyEngine'
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
+declare const NOT_PROXY: {}
+
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
 }
@@ -444,11 +446,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     }
     private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Binary) {
-        return new BinaryEngine(this._engineConfig)
-      } else if (this._clientEngineType === ClientEngineType.DataProxy) {
-        return new DataProxyEngine(this._engineConfig)
+        return NOT_PROXY && new BinaryEngine(this._engineConfig)
       } else {
-        return new LibraryEngine(this._engineConfig)
+        return NOT_PROXY && new LibraryEngine(this._engineConfig)
       }
     }
 
@@ -1087,9 +1087,6 @@ new PrismaClient({
      */
     private _request(internalParams: InternalRequestParams): Promise<any> {
       try {
-        let index = -1
-        // async scope https://github.com/prisma/prisma/issues/3148
-        const resource = new AsyncResource('prisma-client-request')
         // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
           args: internalParams.args,
@@ -1099,6 +1096,7 @@ new PrismaClient({
           model: internalParams.model,
         }
 
+        let index = -1
         // prepare recursive fn that will pipe params through middlewares
         const consumer = (changedParams: QueryMiddlewareParams) => {
           // if this `next` was called and there's some more middlewares
@@ -1120,7 +1118,13 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        return resource.runInAsyncScope(() => consumer(params))
+        if (NOT_PROXY === true) {
+          // async scope https://github.com/prisma/prisma/issues/3148
+          const resource = new AsyncResource('prisma-client-request')
+          return resource.runInAsyncScope(() => consumer(params))
+        }
+
+        return consumer(params)
       } catch (e) {
         e.clientVersion = this._clientVersion
 

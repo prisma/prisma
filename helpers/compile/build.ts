@@ -6,9 +6,12 @@ import { map } from '../blaze/map'
 import { handle } from '../blaze/handle'
 import { transduce } from '../blaze/transduce'
 import glob from 'glob'
+import path from 'path'
 
 // we first compile everything to esm
-export const esmBaseOptions = (): esbuild.BuildOptions => ({
+export const esmBaseOptions = (
+  options: esbuild.BuildOptions,
+): esbuild.BuildOptions => ({
   format: 'esm',
   platform: 'node',
   target: 'es2018',
@@ -19,21 +22,32 @@ export const esmBaseOptions = (): esbuild.BuildOptions => ({
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
-
   mainFields: ['module', 'main'],
+  ...options,
+  // outfile has precedence over outdir, hence these ternaries
+  outfile: options.outfile ? getEsmOutFile(options) : undefined,
+  outdir: options.outfile ? undefined : getEsmOutDir(options),
 })
 
 // then we compile all the esm to cjs
-export const cjsBaseOptions = (): esbuild.BuildOptions => ({
+export const cjsBaseOptions = (
+  options: esbuild.BuildOptions,
+): esbuild.BuildOptions => ({
   format: 'cjs',
   platform: 'node',
   target: 'es2018',
   keepNames: true,
   tsconfig: 'tsconfig.build.json',
   outExtension: { '.js': '.js' },
-  resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
-  entryPoints: glob.sync('./dist/**/*.mjs'),
-  mainFields: ['main', 'module'],
+  resolveExtensions: ['.mjs'],
+  mainFields: ['module'],
+  ...options,
+  // we want to compile tree-shaken esm to cjs, so we override
+  // outfile has precedence over outdir, hence these ternaries
+  entryPoints: options.outfile
+    ? glob.sync(`./${getEsmOutFile(options)}.mjs`)
+    : glob.sync(`./${getEsmOutDir(options)}/**/*.mjs`),
+  outdir: options.outfile ? undefined : getOutDir(options),
 })
 
 // create a matrix of possible options with cjs and esm
@@ -41,19 +55,21 @@ function combineBaseOptions(options: esbuild.BuildOptions[]) {
   return flatten(
     map(options, (options) => [
       // we defer it so that we don't trigger glob now
-      () => ({ ...esmBaseOptions(), ...options }),
-      () => ({ ...cjsBaseOptions(), ...options }),
+      () => esmBaseOptions(options),
+      () => cjsBaseOptions(options),
     ]),
   )
 }
 
 // only trigger it when ready because of the glob search
 function computeOptions(options: () => esbuild.BuildOptions) {
-  return options()
+  return handle(() => options())
 }
 
 // extensions are not auto set for `outfile`, we do it
-function addExtensionFormat(options: esbuild.BuildOptions) {
+function addExtensionFormat(options: esbuild.BuildOptions | Error) {
+  if (options instanceof Error) return options
+
   if (options.outfile && options.outExtension) {
     const ext = options.outExtension['.js']
 
@@ -64,21 +80,25 @@ function addExtensionFormat(options: esbuild.BuildOptions) {
 }
 
 // automatically default outdir if we have no outfile
-function addDefaultOutDir(options: esbuild.BuildOptions) {
+function addDefaultOutDir(options: esbuild.BuildOptions | Error) {
+  if (options instanceof Error) return options
+
   if (options.outfile === undefined) {
-    options.outdir = 'dist'
+    options.outdir = getOutDir(options)
   }
 
   return options
 }
 
 // execute esbuild with all the configurations we pass
-function executeEsBuild(options: esbuild.BuildOptions) {
+async function executeEsBuild(options: esbuild.BuildOptions | Error) {
+  if (options instanceof Error) return options
+
   return handle.async(() => esbuild.build(options))
 }
 
 // when it's requested we also generate project types
-function emitProjectTypes(result?: Error | esbuild.BuildResult) {
+function emitProjectTypes(result?: esbuild.BuildResult | Error) {
   if (result instanceof Error) return result
 
   if (process.env.DEV !== 'true') {
@@ -96,6 +116,7 @@ function handleBuildErrors(result?: Error | execa.ExecaReturnValue) {
   }
 }
 
+// execution pipeline: options => build => (esm -> cjs)
 export function build(options: esbuild.BuildOptions[]) {
   void transduce.async(
     combineBaseOptions(options),
@@ -110,6 +131,35 @@ export function build(options: esbuild.BuildOptions[]) {
   )
 }
 
+// Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+// get a default directory if needed (no outfile)
+function getOutDir(options: esbuild.BuildOptions) {
+  if (options.outfile !== undefined) {
+    return path.dirname(options.outfile)
+  }
+
+  return options.outdir ?? 'dist'
+}
+
+// get the esm output path from an original path
+function getEsmOutDir(options: esbuild.BuildOptions) {
+  return `${getOutDir(options)}/esm`
+}
+
+// get the esm output file from an original path
+function getEsmOutFile(options: esbuild.BuildOptions) {
+  if (options.outfile !== undefined) {
+    const dirname = getOutDir(options)
+    const filename = path.basename(options.outfile)
+
+    return `${dirname}/esm/${filename}`
+  }
+
+  return undefined
+}
+
+// wrapper around execa to run our build cmds
 function run(command: string) {
   return execa.command(command, {
     preferLocal: true,
