@@ -1,4 +1,4 @@
-import type { BuildOptions } from 'esbuild'
+import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/fillPlugin'
 import { externalPlugin } from '../../../helpers/compile/externalPlugin'
@@ -38,6 +38,7 @@ const proxyBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/proxy',
   bundle: true,
+  minify: true,
   external: external,
   define: { NOT_PROXY: 'false' },
   plugins: [fillPlugin({})],
