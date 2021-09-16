@@ -2,7 +2,7 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "module": "dist/esm/index.mjs",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
