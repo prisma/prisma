@@ -17,6 +17,7 @@ importers:
       '@typescript-eslint/parser': 4.29.3
       arg: 5.0.1
       assert: ^2.0.0
+      assert-browserify: ^2.0.0
       base64-js: ^1.5.1
       batching-toposort: 1.2.0
       benchmark: 2.1.4
@@ -108,6 +109,7 @@ importers:
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       arg: 5.0.1
       assert: 2.0.0
+      assert-browserify: 2.0.0
       base64-js: 1.5.1
       batching-toposort: 1.2.0
       benchmark: 2.1.4
@@ -2866,6 +2868,15 @@ packages:
       safer-buffer: 2.1.2
     dev: true
     optional: true
+
+  /assert-browserify/2.0.0:
+    resolution: {integrity: sha512-SJvtrHmyaOT57oKWIpzWZr2hLkFyXjg5ajNT+RHvd9fhpruhrJF0OYT0yy8rIgvSn3xQp/VpLQAOwO0KNVKrJw==}
+    dependencies:
+      es6-object-assign: 1.1.0
+      is-nan: 1.3.2
+      object-is: 1.1.5
+      util: 0.12.4
+    dev: true
 
   /assert-plus/1.0.0:
     resolution: {integrity: sha1-8S4PPF13sLHN2RRpQuTpbB5N1SU=}

@@ -23,23 +23,23 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
   setup(build) {
     const _loadResultMap: LoadResultMap = {
       // enabled
-      assert: { path: find('assert') },
+      assert: { path: find('assert-browserify') },
       buffer: { path: find('buffer') },
       console: { path: find('console-browserify') },
       constants: { path: find('constants-browserify') },
       crypto: { path: find('crypto-browserify') },
       domain: { path: find('domain-browser') },
       events: { path: find('events') },
-      fs: { path: find('memfs') },
+      // fs: { path: find('memfs') },
       http: { path: find('stream-http') },
       https: { path: find('https-browserify') },
       inherits: { path: find('inherits') },
-      os: { path: find('os-browserify/browser') },
+      // os: { path: find('os-browserify/browser') },
       path: { path: find('path-browserify') },
       punycode: { path: find('punycode') },
       process: { path: find('process/browser') },
       querystring: { path: find('querystring-es3') },
-      stream: { path: find('readable-stream') },
+      stream: { path: find('stream-browserify') },
       _stream_duplex: { path: find(`${STREAM_LIB_BASE}duplex`) },
       _stream_passthrough: { path: find(`${STREAM_LIB_BASE}passthrough`) },
       _stream_readable: { path: find(`${STREAM_LIB_BASE}readable`) },
@@ -50,11 +50,12 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       timers: { path: find('timers-browserify') },
       tty: { path: find('tty-browserify') },
       url: { path: find('url') },
-      util: { path: find('util') },
+      // util: { path: find('util') },
+      'util/': { path: find('util') },
       vm: { path: find('vm-browserify') },
       zlib: { path: find('browserify-zlib') },
 
-      // disabled
+      // // disabled
       global: {},
       _inherits: {},
       _buffer_list: {},
@@ -85,7 +86,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
 
       // if a path is provided, we just replace it
       if (item.path !== undefined) {
-        return { path: item.path, sideEffects: false }
+        return { path: item.path }
       }
 
       // if not, we defer action to the loaders cb
@@ -93,7 +94,6 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
         path: args.path,
         namespace: 'fill-plugin',
         pluginData: args.importer,
-        sideEffects: false,
       }
     })
 
@@ -105,10 +105,6 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       }
 
       return _loadResultMap[args.path] // inject contents
-    })
-
-    build.onEnd((result) => {
-      result.warnings = []
     })
   },
 })
