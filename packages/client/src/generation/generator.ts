@@ -16,7 +16,8 @@ const debug = Debug('prisma:client:generator')
 const pkg = require('../../package.json')
 const clientVersion = pkg.version
 
-if (require.main === module) {
+// if the file has been run as a CLI
+if (process.argv[1] === __filename) {
   generatorHandler({
     onManifest(config) {
       const requiredEngine =
