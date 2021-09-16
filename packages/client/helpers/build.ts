@@ -10,7 +10,7 @@ const generatorBuildConfig: BuildOptions = {
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
-  define: { NOT_PROXY: 'true' },
+  define: { 'globalThis.NOT_PROXY': 'true' },
   plugins: [externalPlugin],
 }
 
@@ -20,7 +20,7 @@ const runtimeBuildConfig: BuildOptions = {
   outfile: 'runtime/index',
   bundle: true,
   external: external,
-  define: { NOT_PROXY: 'true' },
+  define: { 'globalThis.NOT_PROXY': 'true' },
 }
 
 // we define the config for browser
@@ -30,7 +30,7 @@ const browserBuildConfig: BuildOptions = {
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
   external: external,
-  define: { NOT_PROXY: 'true' },
+  define: { 'globalThis.NOT_PROXY': 'true' },
 }
 
 // we define the config for proxy
@@ -38,9 +38,8 @@ const proxyBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/proxy',
   bundle: true,
-  minify: true,
   external: external,
-  define: { NOT_PROXY: 'false' },
+  define: { 'globalThis.NOT_PROXY': 'false' },
   plugins: [fillPlugin({})],
   logLevel: 'error',
 }
