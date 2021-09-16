@@ -120,7 +120,9 @@ function addDefaultOutDir(options: BuildOptions | Error) {
 async function executeEsBuild(options: BuildOptions | Error) {
   if (options instanceof Error) return options
 
-  const result = await handle.async(() => esbuild.build(options))
+  const result = await handle.async(() => {
+    return esbuild.build(stripOwnOptions(options))
+  })
 
   if (result instanceof Error) return result
 
@@ -194,6 +196,15 @@ function getEsmOutFile(options: BuildOptions) {
   }
 
   return undefined
+}
+
+// remove our options from the esbuild options
+function stripOwnOptions(options: BuildOptions) {
+  const _options = { ...options }
+
+  delete _options.emitProjectTypes
+
+  return _options
 }
 
 // wrapper around execa to run our build cmds
