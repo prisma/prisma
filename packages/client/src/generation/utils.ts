@@ -371,6 +371,10 @@ export function buildNFTEngineAnnotations(
   platforms: Platform[],
   cwdDirname: string,
 ) {
+  if (clientEngineType === ClientEngineType.DataProxy) {
+    return ''
+  }
+
   if (platforms && process.env.NETLIFY) {
     platforms = ['rhel-openssl-1.0.x']
   }
