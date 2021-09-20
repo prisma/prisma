@@ -27,7 +27,6 @@ const prismaSDKResolvePlugin = {
      * So, we override ESBuild's resolution logic for the SDK in this plugin. We manually resolve the SDK's location at build time.
      */
     build.onResolve({ filter: /^@prisma\/sdk$/ }, (args) => {
-      console.log(args)
       return { path: require.resolve('@prisma/sdk') }
     })
   },
