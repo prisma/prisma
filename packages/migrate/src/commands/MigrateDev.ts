@@ -402,11 +402,11 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
 We need to reset the database.
 Do you want to continue? ${chalk.red('All data will be lost')}.`
 
-    const message = `${reason}
+    const message = `
 
 We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
 Do you want to continue? ${chalk.red('All data will be lost')}.`
-
+    console.info(reason)
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
