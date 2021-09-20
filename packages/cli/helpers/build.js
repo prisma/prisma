@@ -43,8 +43,8 @@ async function main() {
     }),
     copy({
       from: path.join(
-        require.resolve('@prisma/studio-server/package.json'),
-        '../public',
+        require.resolve('@prisma/studio/package.json'),
+        '../dist',
       ),
       to: './build/public',
       recursive: true,

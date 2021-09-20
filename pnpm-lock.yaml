@@ -88,7 +88,7 @@ importers:
       '@prisma/get-platform': 3.1.0-24.c22652b7e418506fab23052d569b85d3aec4883f
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
-      '@prisma/studio-server': 0.426.0
+      '@prisma/studio-server': 0.427.0
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.1
       '@types/rimraf': 3.0.2
@@ -139,7 +139,7 @@ importers:
       '@prisma/get-platform': 3.1.0-24.c22652b7e418506fab23052d569b85d3aec4883f
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
-      '@prisma/studio-server': 0.426.0
+      '@prisma/studio-server': 0.427.0
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.1
       '@types/rimraf': 3.0.2
@@ -1684,78 +1684,84 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/studio-pcw/0.426.0:
-    resolution: {integrity: sha512-Oxi/yH2O84d9rtKtHXbZzOc0IvB67GZkP0GFCGhCGd0j47kykl0iRI4ZzZk/odZ6AS1ofvmKQRYDc/gIVwReoQ==}
+  /@prisma/studio-common/0.427.0:
+    resolution: {integrity: sha512-XWdKVBsRDYU303Mvdlf/yoytuP1FO+mEs5hHmLQLAD8zGPzDNAsgIjVpc0f5LnfHGpjrferL/rEWgUv59TjWXw==}
+    dependencies:
+      buffer: 6.0.3
+    dev: true
+
+  /@prisma/studio-pcw/0.427.0:
+    resolution: {integrity: sha512-y6xnCZvisXxSm+B4Iy1cXWqpm5n6qm1zD6gPI4eylWKqSCmw2sagjdL0b+r3iHXZCQ8z1kuvabhvmWAsLWknNw==}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      debug: 4.3.1
+      debug: 4.3.2
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.426.0:
-    resolution: {integrity: sha512-rM0VTDfdlaEwMD2jDCvs5zu1Lg5K/P4rJpmuZIU7Aoz1KWOJxQc6BvckmDnFk3ogLv3rIurIv+GOCqZsL8VV9A==}
+  /@prisma/studio-server/0.427.0:
+    resolution: {integrity: sha512-cMyi6qQ9sZHDtV2WwJxmGHVjo+RZXvf6URGFHv3n584hjlcSEqo8UTH1WkgiwdGYkyTwW3dXgyafcABEUiBrnw==}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/studio-pcw': 0.426.0
-      '@prisma/studio-transports': 0.426.0
-      '@sentry/node': 6.2.5
+      '@prisma/studio': 0.427.0
+      '@prisma/studio-common': 0.427.0
+      '@prisma/studio-pcw': 0.427.0
+      '@sentry/node': 6.12.0
       checkpoint-client: 1.1.20
       cors: 2.8.5
-      debug: 4.3.1
+      debug: 4.3.2
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
-  /@prisma/studio-transports/0.426.0:
-    resolution: {integrity: sha512-LqEViWj43fXKEo7l8sfWTrn1ob+yMCDaR9whfnmyd9f0Pghc7S9IUieR8nt/kYLkq7DgUqxxqWcjau3aKVm5aA==}
+  /@prisma/studio/0.427.0:
+    resolution: {integrity: sha512-aNY3rZ1DZHX7/b8ys65/SyHWCkOxPLBR/AhvFjcbuWz6gyJnA9b3/2Zc2anjwS6fKsKiegNmI1oyLQ5wXnIEDQ==}
     dev: true
 
-  /@sentry/core/6.2.5:
-    resolution: {integrity: sha512-I+AkgIFO6sDUoHQticP6I27TT3L+i6TUS03in3IEtpBcSeP2jyhlxI8l/wdA7gsBqUPdQ4GHOOaNgtFIcr8qag==}
+  /@sentry/core/6.12.0:
+    resolution: {integrity: sha512-mU/zdjlzFHzdXDZCPZm8OeCw7c9xsbL49Mq0TrY0KJjLt4CJBkiq5SDTGfRsenBLgTedYhe5Z/J8Z+xVVq+MfQ==}
     engines: {node: '>=6'}
     dependencies:
-      '@sentry/hub': 6.2.5
-      '@sentry/minimal': 6.2.5
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
+      '@sentry/hub': 6.12.0
+      '@sentry/minimal': 6.12.0
+      '@sentry/types': 6.12.0
+      '@sentry/utils': 6.12.0
       tslib: 1.14.1
     dev: true
 
-  /@sentry/hub/6.2.5:
-    resolution: {integrity: sha512-YlEFdEhcfqpl2HC+/dWXBsBJEljyMzFS7LRRjCk8QANcOdp9PhwQjwebUB4/ulOBjHPP2WZk7fBBd/IKDasTUg==}
+  /@sentry/hub/6.12.0:
+    resolution: {integrity: sha512-yR/UQVU+ukr42bSYpeqvb989SowIXlKBanU0cqLFDmv5LPCnaQB8PGeXwJAwWhQgx44PARhmB82S6Xor8gYNxg==}
     engines: {node: '>=6'}
     dependencies:
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
+      '@sentry/types': 6.12.0
+      '@sentry/utils': 6.12.0
       tslib: 1.14.1
     dev: true
 
-  /@sentry/minimal/6.2.5:
-    resolution: {integrity: sha512-RKP4Qx3p7Cv0oX1cPKAkNVFYM7p2k1t32cNk1+rrVQS4hwlJ7Eg6m6fsqsO+85jd6Ne/FnyYsfo9cDD3ImTlWQ==}
+  /@sentry/minimal/6.12.0:
+    resolution: {integrity: sha512-r3C54Q1KN+xIqUvcgX9DlcoWE7ezWvFk2pSu1Ojx9De81hVqR9u5T3sdSAP2Xma+um0zr6coOtDJG4WtYlOtsw==}
     engines: {node: '>=6'}
     dependencies:
-      '@sentry/hub': 6.2.5
-      '@sentry/types': 6.2.5
+      '@sentry/hub': 6.12.0
+      '@sentry/types': 6.12.0
       tslib: 1.14.1
     dev: true
 
-  /@sentry/node/6.2.5:
-    resolution: {integrity: sha512-/iM3khzGnUH713VFhZBAEYJhb/saEQSVz7Udogml+O7mFQ4rutnwJhgoGcB9YYrwMv2m7qOSszkdZbemDV6k2g==}
+  /@sentry/node/6.12.0:
+    resolution: {integrity: sha512-hfAU3cX5sNWgqyDQBCOIQOZj21l0w1z2dG4MjmrMMHKrQ18pfMaaOtEwRXMCdjTUlwsK+L3TOoUB23lbezmu1A==}
     engines: {node: '>=6'}
     dependencies:
-      '@sentry/core': 6.2.5
-      '@sentry/hub': 6.2.5
-      '@sentry/tracing': 6.2.5
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
+      '@sentry/core': 6.12.0
+      '@sentry/hub': 6.12.0
+      '@sentry/tracing': 6.12.0
+      '@sentry/types': 6.12.0
+      '@sentry/utils': 6.12.0
       cookie: 0.4.1
       https-proxy-agent: 5.0.0
       lru_map: 0.3.3
@@ -1764,27 +1770,27 @@ packages:
       - supports-color
     dev: true
 
-  /@sentry/tracing/6.2.5:
-    resolution: {integrity: sha512-j/hM0BoHxfrNLxPeEJ5Vq4R34hO/TOHMEpLR3FdnunBXbsmjoKMMygIkPxnpML5XWtvukAehbwpDXldwMYz83w==}
+  /@sentry/tracing/6.12.0:
+    resolution: {integrity: sha512-u10QHNknPBzbWSUUNMkvuH53sQd5NaBo6YdNPj4p5b7sE7445Sh0PwBpRbY3ZiUUiwyxV59fx9UQ4yVnPGxZQA==}
     engines: {node: '>=6'}
     dependencies:
-      '@sentry/hub': 6.2.5
-      '@sentry/minimal': 6.2.5
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
+      '@sentry/hub': 6.12.0
+      '@sentry/minimal': 6.12.0
+      '@sentry/types': 6.12.0
+      '@sentry/utils': 6.12.0
       tslib: 1.14.1
     dev: true
 
-  /@sentry/types/6.2.5:
-    resolution: {integrity: sha512-1Sux6CLYrV9bETMsGP/HuLFLouwKoX93CWzG8BjMueW+Di0OGxZphYjXrGuDs8xO8bAKEVGCHgVQdcB2jevS0w==}
+  /@sentry/types/6.12.0:
+    resolution: {integrity: sha512-urtgLzE4EDMAYQHYdkgC0Ei9QvLajodK1ntg71bGn0Pm84QUpaqpPDfHRU+i6jLeteyC7kWwa5O5W1m/jrjGXA==}
     engines: {node: '>=6'}
     dev: true
 
-  /@sentry/utils/6.2.5:
-    resolution: {integrity: sha512-fJoLUZHrd5MPylV1dT4qL74yNFDl1Ur/dab+pKNSyvnHPnbZ/LRM7aJ8VaRY/A7ZdpRowU+E14e/Yeem2c6gtQ==}
+  /@sentry/utils/6.12.0:
+    resolution: {integrity: sha512-oRHQ7TH5TSsJqoP9Gqq25Jvn9LKexXfAh/OoKwjMhYCGKGhqpDNUIZVgl9DWsGw5A5N5xnQyLOxDfyRV5RshdA==}
     engines: {node: '>=6'}
     dependencies:
-      '@sentry/types': 6.2.5
+      '@sentry/types': 6.12.0
       tslib: 1.14.1
     dev: true
 
@@ -3190,18 +3196,6 @@ packages:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
     dependencies:
       ms: 2.1.3
-    dev: true
-
-  /debug/4.3.1:
-    resolution: {integrity: sha512-doEwdvm4PCeK4K3RQN2ZC2BYUBaxwLARCqZmMjtF8a51J2Rb0xpVloFRnCODwqjpwnAoao4pelN8l3RJdv3gRQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
     dev: true
 
   /debug/4.3.2:
