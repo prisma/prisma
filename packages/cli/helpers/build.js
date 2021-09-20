@@ -21,8 +21,9 @@ const prismaSDKResolvePlugin = {
   setup(build) {
     /**
      * We need this because:
-     * 1. The SDK is a `peerDependency` of Studio. In order for ESBuild to resolve it correctly, the SDK must be a dependency of the CLI.
+     * 1. The SDK is a `peerDependency` of Studio, which means the CLI is suppose to make it available. In order for ESBuild to resolve it correctly, the SDK must be a dependency of the CLI.
      * 2. But we want to bundle everything into one file for the CLI, so the SDK is not a dependency of the CLI, but rather a `devDependency`.
+     * 3. Moreover, the SDK's version in the CLI's package.json is `workspace:*`, so ESBuild cannot resolve it anyway without PNPM's help.
      *
      * So, we override ESBuild's resolution logic for the SDK in this plugin. We manually resolve the SDK's location at build time.
      */
