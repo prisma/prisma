@@ -28,7 +28,7 @@ export function getGithubIssueUrl({
 interface IssueOptions {
   error: any
   cliVersion: string
-  binaryVersion: string
+  engineVersion: string
   command: string
   prompt: Boolean
   title?: string
@@ -92,7 +92,7 @@ Hi Prisma Team! Prisma Migrate just crashed. ${
 | Platform    | ${platform.padEnd(19)}| 
 | Node        | ${process.version.padEnd(19)}| 
 | Prisma CLI  | ${options.cliVersion.padEnd(19)}| 
-| Binary      | ${options.binaryVersion.padEnd(19)}| 
+| Engine      | ${options.engineVersion.padEnd(19)}| 
 
 ## Error
 \`\`\`
