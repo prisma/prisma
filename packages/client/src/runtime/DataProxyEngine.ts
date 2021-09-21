@@ -1,17 +1,15 @@
-import {
-  Engine,
+/// <reference lib="webworker" />
+
+import { Engine } from '@prisma/engine-core/src/common/Engine'
+import type {
   EngineConfig,
   EngineEventType,
   GetConfigResult,
 } from '@prisma/engine-core/src/common/Engine'
 import { clientVersion } from './utils/clientVersion'
 
-import fs from 'fs'
-import { createHash } from 'crypto'
-import { URL } from 'url'
 import EventEmitter from 'events'
-import * as prismafile from 'prismafile'
-import fetch from 'node-fetch'
+import prismafile from 'prismafile'
 
 const BACKOFF_INTERVAL = 250
 const MAX_RETRIES = 5
@@ -49,9 +47,8 @@ export class DataProxyEngine extends Engine {
 
     this.schemaText = fs.readFileSync(config.datamodelPath, 'utf8')
     this.schemaBase64 = Buffer.from(this.schemaText).toString('base64')
-    this.schemaHash = createHash('sha256')
-      .update(this.schemaBase64)
-      .digest('hex')
+    const schemaBase64Uint8 = new TextEncoder().encode(this.schemaBase64)
+    // this.schemaHash = await crypto.subtle.digest('SHA-256', schemaBase64Uint8)
 
     const [host, apiKey] = extractHostAndApiKey(this.schemaText)
     const clientVersion = getClientVersion()
@@ -59,9 +56,8 @@ export class DataProxyEngine extends Engine {
     this.url = (s) => `https://${host}/${clientVersion}/${this.schemaHash}/${s}`
     this.headers = { Authorization: `Bearer ${apiKey}` }
 
-    this.logEmitter.on('error', () => {
-      // Prevent unhandled error events
-    })
+    // prevent unhandled error events
+    this.logEmitter.on('error', () => {})
   }
 
   version() {
