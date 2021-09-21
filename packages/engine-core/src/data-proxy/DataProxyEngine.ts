@@ -1,12 +1,12 @@
 /// <reference lib="webworker" />
 
-import { Engine } from '@prisma/engine-core/src/common/Engine'
+import { Engine } from '../common/Engine'
 import type {
   EngineConfig,
   EngineEventType,
   GetConfigResult,
-} from '@prisma/engine-core/src/common/Engine'
-import { clientVersion } from './utils/clientVersion'
+} from '../common/Engine'
+import { clientVersion } from '../../../client/src/runtime/utils/clientVersion'
 
 import EventEmitter from 'events'
 import prismafile from 'prismafile'
