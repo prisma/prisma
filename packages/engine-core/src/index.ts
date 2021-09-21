@@ -9,6 +9,7 @@ export type { EngineEventType } from './common/Engine'
 export type { DatasourceOverwrite } from './common/Engine'
 export { LibraryEngine } from './library/LibraryEngine'
 export { BinaryEngine } from './binary/BinaryEngine'
+export { DataProxyEngine } from './data-proxy/DataProxyEngine'
 export * as NodeAPILibraryTypes from './library/types/Library'
 
 export {
