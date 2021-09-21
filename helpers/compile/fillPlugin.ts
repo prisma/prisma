@@ -29,7 +29,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       constants: { path: find('constants-browserify') },
       crypto: { path: find('crypto-browserify') },
       domain: { path: find('domain-browser') },
-      events: { path: find('events') },
+      events: { path: find('eventemitter3') },
       // fs: { path: find('memfs') },
       http: { path: find('stream-http') },
       https: { path: find('https-browserify') },
@@ -71,7 +71,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       repl: { contents: '' },
       tls: { contents: '' },
       perf_hooks: { contents: '' },
-      // async_hooks: { contents: '' },
+      async_hooks: { contents: '' },
       child_process: { contents: '' },
 
       // overrides

@@ -63,6 +63,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.4.0",
     "eslint-plugin-prettier": "4.0.0",
+    "eventemitter3": "^4.0.7",
     "events": "^3.3.0",
     "execa": "5.1.1",
     "fs-monkey": "1.0.3",
