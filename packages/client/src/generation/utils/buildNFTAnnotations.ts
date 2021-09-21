@@ -56,6 +56,13 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
 }
 
 /**
+ * Replaces \ to /
+ */
+export const fixPath = (path: string) => {
+  return path.replace(/\\/g, '/')
+}
+
+/**
  * Build tool annotations in order to make Vercel upload our files
  * The first annotation is general purpose, the second if for now-next.
  * @see https://github.com/vercel/vercel/tree/master/packages/now-next
@@ -66,7 +73,7 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
 function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
   return `
 path.join(__dirname, '${fileName}');
-path.join(process.cwd(), './${path.join(relativeOutdir, fileName)}')`
+path.join(process.cwd(), './${fixPath(path.join(relativeOutdir, fileName))}')`
 }
 
 /**
