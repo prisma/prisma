@@ -7,6 +7,7 @@ import type {
 } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
+import { DataProxyEngine } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { logger } from '@prisma/sdk'
 import { mapPreviewFeatures } from '@prisma/sdk'
@@ -46,7 +47,6 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
 import { PrismaClientValidationError } from '.'
-import { DataProxyEngine } from './DataProxyEngine'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i

@@ -4,8 +4,6 @@ importers:
 
   .:
     specifiers:
-      '@aws-crypto/sha256-browser': ^1.2.1
-      '@peculiar/webcrypto': ^1.1.7
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.0.0
       '@types/benchmark': 2.1.1
@@ -15,7 +13,6 @@ importers:
       '@types/node': 14.17.15
       '@types/redis': 2.8.32
       '@types/resolve': 1.20.1
-      '@types/sha.js': ^2.4.0
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       arg: 5.0.1
@@ -86,7 +83,6 @@ importers:
       resolve: 1.20.0
       safe-buffer: ^5.2.1
       semver: 7.3.5
-      sha.js: ^2.4.11
       staged-git-files: 1.2.0
       stream-browserify: ^3.0.0
       stream-http: ^3.2.0
@@ -101,8 +97,6 @@ importers:
       vm-browserify: ^1.1.2
       xtend: ^4.0.2
     devDependencies:
-      '@aws-crypto/sha256-browser': 1.2.1
-      '@peculiar/webcrypto': 1.1.7
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.0.0_debug@4.3.2
       '@types/benchmark': 2.1.1
@@ -112,7 +106,6 @@ importers:
       '@types/node': 14.17.15
       '@types/redis': 2.8.32
       '@types/resolve': 1.20.1
-      '@types/sha.js': 2.4.0
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       arg: 5.0.1
@@ -183,7 +176,6 @@ importers:
       resolve: 1.20.0
       safe-buffer: 5.2.1
       semver: 7.3.5
-      sha.js: 2.4.11
       staged-git-files: 1.2.0
       stream-browserify: 3.0.0
       stream-http: 3.2.0
@@ -504,6 +496,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       prettier: 2.3.2
+      prismafile: 1.0.11
       strip-ansi: 6.0.0
       terminal-link: 2.1.1
       ts-jest: 27.0.5
@@ -536,6 +529,7 @@ importers:
       jest: 27.1.0_ts-node@10.2.1
       lint-staged: 11.1.2
       prettier: 2.3.2
+      prismafile: 1.0.11
       strip-ansi: 6.0.0
       ts-jest: 27.0.5_1318b7d4288f89be474291123601427f
       typescript: 4.3.5
@@ -928,64 +922,6 @@ importers:
       typescript: 4.3.5
 
 packages:
-
-  /@aws-crypto/ie11-detection/1.0.0:
-    resolution: {integrity: sha512-kCKVhCF1oDxFYgQrxXmIrS5oaWulkvRcPz+QBDMsUr2crbF4VGgGT6+uQhSwJFdUAQ2A//Vq+uT83eJrkzFgXA==}
-    dependencies:
-      tslib: 1.14.1
-    dev: true
-
-  /@aws-crypto/sha256-browser/1.2.1:
-    resolution: {integrity: sha512-WX/Wp6sXPhcBWx/w1aSJv3bDJL0ut5Ik6hl7yfqA1pn3cfsahl4rgHzRRXqYfJ+hnhnCqdgadS17wyBbVPsK+w==}
-    dependencies:
-      '@aws-crypto/ie11-detection': 1.0.0
-      '@aws-crypto/sha256-js': 1.2.1
-      '@aws-crypto/supports-web-crypto': 1.0.0
-      '@aws-crypto/util': 1.2.1
-      '@aws-sdk/types': 3.32.0
-      '@aws-sdk/util-locate-window': 3.32.0
-      tslib: 1.14.1
-    dev: true
-
-  /@aws-crypto/sha256-js/1.2.1:
-    resolution: {integrity: sha512-KtZ4qFDWZy6pKcky6RvwSytR/I8vPX9Z47pXh9sOuTcxjjtcegzS2uupg9vo0vbFcAWkSHVOEmNPh6ygiC3VFQ==}
-    dependencies:
-      '@aws-crypto/util': 1.2.1
-      '@aws-sdk/types': 3.32.0
-      tslib: 1.14.1
-    dev: true
-
-  /@aws-crypto/supports-web-crypto/1.0.0:
-    resolution: {integrity: sha512-IHLfv+WmVH89EW4n6a5eE8/hUlz6qkWGMn/v4r5ZgzcXdTC5nolii2z3k46y01hWRiC2PPhOdeSLzMUCUMco7g==}
-    dependencies:
-      tslib: 1.14.1
-    dev: true
-
-  /@aws-crypto/util/1.2.1:
-    resolution: {integrity: sha512-H6Qrl28lzGGXZgLkdP7DQpJ3D3jJagQJugziThcqZCJVUT0HABHJt9EQMiiuf93KcUV/MMoisl56UfCxCFfmWQ==}
-    dependencies:
-      '@aws-sdk/types': 3.32.0
-      '@aws-sdk/util-utf8-browser': 3.32.0
-      tslib: 1.14.1
-    dev: true
-
-  /@aws-sdk/types/3.32.0:
-    resolution: {integrity: sha512-ZkB+jFk6FZ9wA9wvQTqv6ao2sPSVeMlUF349NecPGLtpy2c/+RPxO10NmJ8yG9jFfmB0OXLnEPrDR7VinxTHNw==}
-    engines: {node: '>= 10.0.0'}
-    dev: true
-
-  /@aws-sdk/util-locate-window/3.32.0:
-    resolution: {integrity: sha512-P5sOlu7AhzxhyUtKj4aYK35MrXFrt64XivwgAUo7h+ZUx6iWUEflpurMqm2dExUYNVnpGaeTKkNX8qdvbnDGZw==}
-    engines: {node: '>= 10.0.0'}
-    dependencies:
-      tslib: 2.3.1
-    dev: true
-
-  /@aws-sdk/util-utf8-browser/3.32.0:
-    resolution: {integrity: sha512-KjyGj1TFmR5siw5960hKaicdtyQJJDXgiXm0CM7PMXKLgrT8C2/PmVrpF2qYDGpGgfXVRgZNHNMv3XNMAw9vlw==}
-    dependencies:
-      tslib: 2.3.1
-    dev: true
 
   /@azure/abort-controller/1.0.4:
     resolution: {integrity: sha512-lNUmDRVGpanCsiUN3NWxFTdwmdFI53xwhkTFfHDGTYk46ca7Ind3nanJc+U6Zj9Tv+9nTCWRBscWEW1DyKOpTw==}
@@ -1820,33 +1756,6 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: true
 
-  /@peculiar/asn1-schema/2.0.38:
-    resolution: {integrity: sha512-zZ64UpCTm9me15nuCpPgJghSdbEm8atcDQPCyK+bKXjZAQ1735NCZXCSCfbckbQ4MH36Rm9403n/qMq77LFDzQ==}
-    dependencies:
-      '@types/asn1js': 2.0.2
-      asn1js: 2.1.1
-      pvtsutils: 1.2.0
-      tslib: 2.3.1
-    dev: true
-
-  /@peculiar/json-schema/1.1.12:
-    resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
-    engines: {node: '>=8.0.0'}
-    dependencies:
-      tslib: 2.3.1
-    dev: true
-
-  /@peculiar/webcrypto/1.1.7:
-    resolution: {integrity: sha512-aCNLYdHZkvGH+T8/YBOY33jrVGVuLIa3bpizeHXqwN+P4ZtixhA+kxEEWM1amZwUY2nY/iuj+5jdZn/zB7EPPQ==}
-    engines: {node: '>=10.12.0'}
-    dependencies:
-      '@peculiar/asn1-schema': 2.0.38
-      '@peculiar/json-schema': 1.1.12
-      pvtsutils: 1.2.0
-      tslib: 2.3.1
-      webcrypto-core: 1.2.1
-    dev: true
-
   /@prisma/debug/3.0.1:
     resolution: {integrity: sha512-jygNyhua6weT/pMmoTBHIcSV/eC6WZpyHZwlGtRqP+PCcQgSUvfxY4b1Il7itsd8rCLI/D6JuvBm5UsNdo5dXw==}
     dependencies:
@@ -2208,10 +2117,6 @@ packages:
     hasBin: true
     dev: true
 
-  /@types/asn1js/2.0.2:
-    resolution: {integrity: sha512-t4YHCgtD+ERvH0FyxvNlYwJ2ezhqw7t+Ygh4urQ7dJER8i185JPv6oIM3ey5YQmGN6Zp9EMbpohkjZi9t3UxwA==}
-    dev: true
-
   /@types/babel__core/7.1.15:
     resolution: {integrity: sha512-bxlMKPDbY8x5h6HBwVzEOk2C8fb6SLfYQ5Jw3uBYuYF1lfWk/kbLd81la82vrIkBb0l+JdmrZaDikPrNxpS/Ew==}
     dependencies:
@@ -2414,12 +2319,6 @@ packages:
     resolution: {integrity: sha512-F3OznnSLAUxFrCEu/L5PY8+ny8DtcFRjx7fZZ9bycvXRi3KPTRS9HOitGZwvPg0juRhXFWIeKX58cnX5YqLohQ==}
     dependencies:
       '@types/glob': 7.1.4
-      '@types/node': 16.7.1
-    dev: true
-
-  /@types/sha.js/2.4.0:
-    resolution: {integrity: sha512-amxKgPy6WJTKuw8mpUwjX2BSxuBtBmZfRwIUDIuPJKNwGN8CWDli8JTg5ONTWOtcTkHIstvT7oAhhYXqEjStHQ==}
-    dependencies:
       '@types/node': 16.7.1
     dev: true
 
@@ -2978,13 +2877,6 @@ packages:
       safer-buffer: 2.1.2
     dev: true
     optional: true
-
-  /asn1js/2.1.1:
-    resolution: {integrity: sha512-t9u0dU0rJN4ML+uxgN6VM2Z4H5jWIYm0w8LsZLzMJaQsgL3IJNbxHgmbWDvJAwspyHpDFuzUaUFh4c05UB4+6g==}
-    engines: {node: '>=6.0.0'}
-    dependencies:
-      pvutils: 1.0.17
-    dev: true
 
   /assert-browserify/2.0.0:
     resolution: {integrity: sha512-SJvtrHmyaOT57oKWIpzWZr2hLkFyXjg5ajNT+RHvd9fhpruhrJF0OYT0yy8rIgvSn3xQp/VpLQAOwO0KNVKrJw==}
@@ -5452,7 +5344,7 @@ packages:
       jest-validate: 27.1.0
       micromatch: 4.0.4
       pretty-format: 27.1.0
-      ts-node: 10.2.1_a0c01aa728d04e1dcfa7300dce926502
+      ts-node: 10.2.1_b04324131e2fb5ba13b634647cdac0ef
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -7315,17 +7207,6 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /pvtsutils/1.2.0:
-    resolution: {integrity: sha512-IDefMJEQl7HX0FP2hIKJFnAR11klP1js2ixCrOaMhe3kXFK6RQ2ABUCuwWaaD4ib0hSbh2fGTICvWJJhDfNecA==}
-    dependencies:
-      tslib: 2.3.1
-    dev: true
-
-  /pvutils/1.0.17:
-    resolution: {integrity: sha512-wLHYUQxWaXVQvKnwIDWFVKDJku9XDCvyhhxoq8dc5MFdIlRenyPI9eSfEtcvgHgD7FlvCyGAlWgOzRnZD99GZQ==}
-    engines: {node: '>=6.0.0'}
-    dev: true
-
   /qs/6.10.1:
     resolution: {integrity: sha512-M528Hph6wsSVOBiYUnGf+K/7w0hNshs/duGsNXPUCLH5XAqjEtiPGwNONLV0tBH8NoGb0mvD5JubnUTrujKDTg==}
     engines: {node: '>=0.6'}
@@ -8755,16 +8636,6 @@ packages:
     resolution: {integrity: sha1-L3+bj9ENZ3JisYqITijRlhjgKPs=}
     dependencies:
       makeerror: 1.0.11
-    dev: true
-
-  /webcrypto-core/1.2.1:
-    resolution: {integrity: sha512-5+h1/e/A4eegCRTg+oQ9ehTJRTMwFhZazJ2RH1FP0VC3q1/0xl7x6SzzTwPxd/VTGc7kjuSEJGnfNgoLe5jNRQ==}
-    dependencies:
-      '@peculiar/asn1-schema': 2.0.38
-      '@peculiar/json-schema': 1.1.12
-      asn1js: 2.1.1
-      pvtsutils: 1.2.0
-      tslib: 2.3.1
     dev: true
 
   /webidl-conversions/5.0.0:
