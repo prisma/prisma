@@ -134,16 +134,16 @@ ${chalk.bold('Examples')}
     await studio.start()
 
     const serverUrl = `http://localhost:${port}`
-    if (!browser || browser.toLowerCase() !== 'none') {
-      try {
-        await open(serverUrl, {
-          app: browser,
-          url: true,
-        })
-      } catch (e) {
-        // Ignore any errors that occur when trying to open the browser, since they should not halt the process
-      }
-    }
+    // try {
+    //   if (!browser || browser.toLowerCase() !== 'none') {
+    //     await open(serverUrl, {
+    //       app: browser,
+    //       url: true,
+    //     })
+    //   }
+    // } catch (e) {
+    //   // Ignore any errors that occur when trying to open the browser, since they should not halt the process
+    // }
 
     this.instance = studio
 
