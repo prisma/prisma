@@ -1,15 +1,14 @@
-/// <reference lib="webworker" />
-
 import { Engine } from '../common/Engine'
 import type {
   EngineConfig,
   EngineEventType,
   GetConfigResult,
 } from '../common/Engine'
-import { clientVersion } from '../../../client/src/runtime/utils/clientVersion'
-
 import EventEmitter from 'events'
 import prismafile from 'prismafile'
+import { Sha256 } from '@aws-crypto/sha256-browser'
+import fetch from 'isomorphic-unfetch'
+import { URL } from 'url'
 
 const BACKOFF_INTERVAL = 250
 const MAX_RETRIES = 5
@@ -22,42 +21,85 @@ function backOff(n: number): Promise<number> {
   return new Promise((done) => setTimeout(() => done(total), total))
 }
 
-function getClientVersion() {
-  // Expect version to be major.minor.patch
-  const [version, suffix] = clientVersion.split('-')
-  const isMMP = !suffix && /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)
+/**
+ * Determine the client version to be sent to the DataProxy
+ * @param config
+ * @returns
+ */
+function getClientVersion(config: EngineConfig) {
+  const [version, suffix] = config.clientVersion?.split('-') ?? []
 
-  // Default to a know version if not major.minor.patch
-  return isMMP ? version : '3.0.1'
+  // we expect the version to match the pattern major.minor.patch
+  if (!suffix && /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)) {
+    return version
+  }
+
+  return '3.0.2' // and we default it to this one if does not
+}
+
+/**
+ * Create a SHA256 hash from an `inlineSchema`
+ * @param inlineSchema
+ * @returns
+ */
+async function createSchemaHash(inlineSchema: string) {
+  const hasher = new Sha256()
+
+  hasher.update(inlineSchema)
+
+  return Buffer.from(await hasher.digest()).toString('hex')
+}
+
+/**
+ * Decode the contents from an `inlineSchema`
+ * @param inlineSchema
+ * @returns
+ */
+function decodeInlineSchema(inlineSchema: string) {
+  return Buffer.from(inlineSchema, 'base64').toString()
 }
 
 // TODO: move to @prisma/engine-core
 export class DataProxyEngine extends Engine {
-  private schemaText: string
-  private schemaBase64: string
-  private schemaHash: string
+  private initPromise: Promise<void>
+  private inlineSchema: string
+  private config: EngineConfig
+  private logEmitter: EventEmitter
 
-  private url: (s: string) => string
-  private headers: { Authorization: string }
+  private clientVersion!: string
+  private headers!: { Authorization: string }
+  private host!: string
+  private schemaHash!: string
+  private schemaText!: string
 
-  private logEmitter = new EventEmitter()
-
-  constructor(private config: EngineConfig) {
+  constructor(config: EngineConfig) {
     super()
 
-    this.schemaText = fs.readFileSync(config.datamodelPath, 'utf8')
-    this.schemaBase64 = Buffer.from(this.schemaText).toString('base64')
-    const schemaBase64Uint8 = new TextEncoder().encode(this.schemaBase64)
-    // this.schemaHash = await crypto.subtle.digest('SHA-256', schemaBase64Uint8)
+    this.config = config
+    this.inlineSchema = config.inlineSchema ?? ''
 
-    const [host, apiKey] = extractHostAndApiKey(this.schemaText)
-    const clientVersion = getClientVersion()
-
-    this.url = (s) => `https://${host}/${clientVersion}/${this.schemaHash}/${s}`
-    this.headers = { Authorization: `Bearer ${apiKey}` }
-
-    // prevent unhandled error events
+    this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {})
+
+    this.initPromise = this.init()
+  }
+
+  /**
+   * !\ Asynchronous constructor that fulfills the contract expressed by
+   * properties that are marked with `!`. Any function that depends on these
+   * properties needs to start with `await this.initPromise`, else type-safety
+   * is broken. This pattern essentially makes the whole class `async`.
+   */
+  private async init() {
+    // we use inline schema to get a hash from it as well as its original content
+    this.schemaHash = await createSchemaHash(this.inlineSchema)
+    this.schemaText = decodeInlineSchema(this.inlineSchema)
+
+    // we set the network stuff up for the engine to make http calls to the proxy
+    const [host, apiKey] = extractHostAndApiKey(this.schemaText)
+    this.clientVersion = getClientVersion(this.config)
+    this.headers = { Authorization: `Bearer ${apiKey}` }
+    this.host = host
   }
 
   version() {
@@ -77,26 +119,36 @@ export class DataProxyEngine extends Engine {
     }
   }
 
+  private async url(s: string) {
+    await this.initPromise
+
+    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}`
+  }
+
   // TODO: looks like activeProvider is the only thing
   // used externally; verify that
-  getConfig() {
-    return Promise.resolve({
+  async getConfig() {
+    await this.initPromise
+
+    return {
       datasources: [
         {
           activeProvider: this.config.activeProvider,
         },
       ],
-    } as GetConfigResult)
+    } as GetConfigResult
   }
 
   private async uploadSchema() {
-    const res = await fetch(this.url('schema'), {
+    await this.initPromise
+
+    const res = await fetch(await this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
-      body: this.schemaBase64,
+      body: this.config.inlineSchema,
     })
 
-    if (res.ok) {
+    if (res) {
       this.logEmitter.emit('info', {
         message: `Schema (re)uploaded (hash: ${this.schemaHash})`,
       })
@@ -143,12 +195,14 @@ export class DataProxyEngine extends Engine {
     headers: Record<string, string>,
     attempt: number,
   ) {
+    await this.initPromise
+
     try {
       this.logEmitter.emit('info', {
         message: `Calling ${this.url('graphql')} (n=${attempt})`,
       })
 
-      const res = await fetch(this.url('graphql'), {
+      const res = await fetch(await this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
