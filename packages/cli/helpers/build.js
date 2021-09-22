@@ -13,7 +13,24 @@ const ESBUILD_DEFAULT = {
   platform: 'node',
   target: 'es2018',
   bundle: true,
-  tsconfig: 'tsconfig.build.json'
+  tsconfig: 'tsconfig.build.json',
+}
+
+const prismaSDKResolvePlugin = {
+  name: 'PrismaSDKResolvePlugin',
+  setup(build) {
+    /**
+     * We need this because:
+     * 1. The SDK is a `peerDependency` of Studio, which means the CLI is supposed to make it available. In order for ESBuild to resolve it correctly, the SDK must be a dependency of the CLI.
+     * 2. But we want to bundle everything into one file for the CLI. So the SDK is not a dependency of the CLI, but rather a `devDependency`.
+     * 3. Moreover, the SDK's version in the CLI's package.json is `workspace:*`, so ESBuild cannot resolve it anyway without PNPM's help.
+     *
+     * So, we override ESBuild's resolution logic for the SDK in this plugin. We manually resolve the SDK's location at build time.
+     */
+    build.onResolve({ filter: /^@prisma\/sdk$/ }, (args) => {
+      return { path: require.resolve('@prisma/sdk') }
+    })
+  },
 }
 
 async function main() {
@@ -29,6 +46,7 @@ async function main() {
       entryPoints: ['src/bin.ts'],
       outfile: 'build/index.js',
       external: ['@prisma/engines', '_http_common'],
+      plugins: [prismaSDKResolvePlugin],
     }),
     esbuild.build({
       ...ESBUILD_DEFAULT,
@@ -43,8 +61,8 @@ async function main() {
     }),
     copy({
       from: path.join(
-        require.resolve('@prisma/studio-server/package.json'),
-        '../public',
+        require.resolve('@prisma/studio/package.json'),
+        '../dist',
       ),
       to: './build/public',
       recursive: true,
