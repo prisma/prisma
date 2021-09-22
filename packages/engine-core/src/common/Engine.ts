@@ -63,6 +63,11 @@ export interface EngineConfig {
   flags?: string[]
   useUds?: boolean
 
+  /**
+   * A Base64 string representing the schema
+   */
+  inlineSchema?: string
+
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
