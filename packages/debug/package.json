@@ -60,5 +60,5 @@
       "prettier --write"
     ]
   },
-  "sideEffects": false
+  "sideEffects": true
 }
