@@ -9,13 +9,21 @@ import util from 'util'
 /**
  * This is the Node.js implementation of `debug()`.
  */
-export const destroy = util.deprecate(() => {},
+
+exports.init = init
+exports.log = log
+exports.formatArgs = formatArgs
+exports.save = save
+exports.load = load
+exports.useColors = useColors
+exports.destroy = util.deprecate(() => {},
 'Instance method `debug.destroy()` is deprecated and no longer does anything. It will be removed in the next major version of `debug`.')
 
 /**
  * Colors.
  */
-export const colors = [6, 2, 3, 4, 5, 1]
+
+exports.colors = [6, 2, 3, 4, 5, 1]
 
 try {
   // Optional dependency (as in, doesn't need to be installed, NOT like optionalDependencies in package.json)
@@ -39,7 +47,8 @@ try {
  *
  *   $ DEBUG_COLORS=no DEBUG_DEPTH=10 DEBUG_SHOW_HIDDEN=enabled node script.js
  */
-export const inspectOpts = Object.keys(process.env)
+
+exports.inspectOpts = Object.keys(process.env)
   .filter((key) => {
     return /^debug_/i.test(key)
   })
@@ -71,7 +80,8 @@ export const inspectOpts = Object.keys(process.env)
 /**
  * Is stdout a TTY? Colored output is enabled when `true`.
  */
-export function useColors() {
+
+function useColors() {
   return 'colors' in exports.inspectOpts
     ? Boolean(exports.inspectOpts.colors)
     : tty.isatty((process.stderr as any).fd)
@@ -82,7 +92,8 @@ export function useColors() {
  *
  * @api public
  */
-export function formatArgs(this, args) {
+
+function formatArgs(this, args) {
   const { namespace: name, useColors } = this
 
   if (useColors) {
@@ -99,7 +110,7 @@ export function formatArgs(this, args) {
   }
 }
 
-export function getDate() {
+function getDate() {
   if (exports.inspectOpts.hideDate) {
     return ''
   }
@@ -109,7 +120,8 @@ export function getDate() {
 /**
  * Invokes `util.format()` with the specified arguments and writes to stderr.
  */
-export function log(...args) {
+
+function log(...args) {
   return process.stderr.write(util.format(...args) + '\n')
 }
 
@@ -119,7 +131,7 @@ export function log(...args) {
  * @param {String} namespaces
  * @api private
  */
-export function save(namespaces) {
+function save(namespaces) {
   if (namespaces) {
     process.env.DEBUG = namespaces
   } else {
@@ -135,7 +147,8 @@ export function save(namespaces) {
  * @return {String} returns the previously persisted debug modes
  * @api private
  */
-export function load() {
+
+function load() {
   return process.env.DEBUG
 }
 
@@ -145,7 +158,8 @@ export function load() {
  * Create a new `inspectOpts` object in case `useColors` is set
  * differently for a particular `debug` instance.
  */
-export function init(debug) {
+
+function init(debug) {
   debug.inspectOpts = {}
 
   const keys = Object.keys(exports.inspectOpts)
@@ -156,6 +170,7 @@ export function init(debug) {
 
 import { setup } from './common'
 const mod = setup(exports)
+module.exports = mod
 export default mod
 
 const { formatters } = mod
@@ -163,6 +178,7 @@ const { formatters } = mod
 /**
  * Map %o to `util.inspect()`, all on a single line.
  */
+
 formatters.o = function (v) {
   this.inspectOpts.colors = this.useColors
   return util
@@ -175,6 +191,7 @@ formatters.o = function (v) {
 /**
  * Map %O to `util.inspect()`, allowing multiple lines if needed.
  */
+
 formatters.O = function (v) {
   this.inspectOpts.colors = this.useColors
   return util.inspect(v, this.inspectOpts)
