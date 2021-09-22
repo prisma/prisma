@@ -16,6 +16,7 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
+    "@types/crypto-js": "^4.0.2",
     "@types/jest": "27.0.1",
     "@types/node": "12.20.24",
     "@typescript-eslint/eslint-plugin": "4.29.3",
@@ -45,14 +46,20 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
+    "@aws-crypto/sha256-browser": "^1.2.1",
+    "@peculiar/webcrypto": "^1.1.7",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a",
     "chalk": "4.1.2",
+    "cross-fetch": "^3.1.4",
+    "crypto-js": "^4.1.1",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
     "indent-string": "4.0.0",
+    "isomorphic-fetch": "^3.0.0",
+    "isomorphic-unfetch": "^3.1.0",
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.1",
     "terminal-link": "2.1.1",

@@ -33,7 +33,7 @@ const fillPlugin = (loadResultMapOverrides: LoadResultMap): Plugin => ({
       // fs: { path: find('memfs') },
       http: { path: find('stream-http') },
       https: { path: find('https-browserify') },
-      inherits: { path: find('inherits') },
+      inherits: { contents: '' },
       // os: { path: find('os-browserify/browser') },
       path: { path: find('path-browserify') },
       punycode: { path: find('punycode') },

@@ -323,7 +323,6 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-jest: 24.4.0
       eslint-plugin-prettier: 4.0.0
-      eventemitter3: ^4.0.7
       execa: 5.1.1
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
@@ -343,7 +342,6 @@ importers:
       pkg-up: 3.1.0
       pluralize: 8.0.0
       prettier: 2.3.2
-      prismafile: 1.0.11
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.56.3
@@ -388,7 +386,6 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 24.4.0_2ad72e29dce3c7f9f5b63c34ce24dd0c
       eslint-plugin-prettier: 4.0.0_5a48a349ffec60f5257b5f148f5199c3
-      eventemitter3: 4.0.7
       execa: 5.1.1
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
@@ -408,7 +405,6 @@ importers:
       pkg-up: 3.1.0
       pluralize: 8.0.0
       prettier: 2.3.2
-      prismafile: 1.0.11
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.56.3
@@ -473,15 +469,20 @@ importers:
 
   packages/engine-core:
     specifiers:
+      '@aws-crypto/sha256-browser': ^1.2.1
+      '@peculiar/webcrypto': ^1.1.7
       '@prisma/debug': workspace:*
       '@prisma/engines': 3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a
+      '@types/crypto-js': ^4.0.2
       '@types/jest': 27.0.1
       '@types/node': 12.20.24
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       chalk: 4.1.2
+      cross-fetch: ^3.1.4
+      crypto-js: ^4.1.1
       esbuild: 0.12.25
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -491,6 +492,8 @@ importers:
       execa: 5.1.1
       get-stream: 6.0.1
       indent-string: 4.0.0
+      isomorphic-fetch: ^3.0.0
+      isomorphic-unfetch: ^3.1.0
       jest: 27.1.0
       lint-staged: 11.1.2
       new-github-issue-url: 0.2.1
@@ -503,19 +506,26 @@ importers:
       typescript: 4.3.5
       undici: 3.3.6
     dependencies:
+      '@aws-crypto/sha256-browser': 1.2.1
+      '@peculiar/webcrypto': 1.1.7
       '@prisma/debug': link:../debug
       '@prisma/engines': 3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': 3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a
       chalk: 4.1.2
+      cross-fetch: 3.1.4
+      crypto-js: 4.1.1
       execa: 5.1.1
       get-stream: 6.0.1
       indent-string: 4.0.0
+      isomorphic-fetch: 3.0.0
+      isomorphic-unfetch: 3.1.0
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       terminal-link: 2.1.1
       undici: 3.3.6
     devDependencies:
+      '@types/crypto-js': 4.0.2
       '@types/jest': 27.0.1
       '@types/node': 12.20.24
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
@@ -922,6 +932,64 @@ importers:
       typescript: 4.3.5
 
 packages:
+
+  /@aws-crypto/ie11-detection/1.0.0:
+    resolution: {integrity: sha512-kCKVhCF1oDxFYgQrxXmIrS5oaWulkvRcPz+QBDMsUr2crbF4VGgGT6+uQhSwJFdUAQ2A//Vq+uT83eJrkzFgXA==}
+    dependencies:
+      tslib: 1.14.1
+    dev: false
+
+  /@aws-crypto/sha256-browser/1.2.1:
+    resolution: {integrity: sha512-WX/Wp6sXPhcBWx/w1aSJv3bDJL0ut5Ik6hl7yfqA1pn3cfsahl4rgHzRRXqYfJ+hnhnCqdgadS17wyBbVPsK+w==}
+    dependencies:
+      '@aws-crypto/ie11-detection': 1.0.0
+      '@aws-crypto/sha256-js': 1.2.1
+      '@aws-crypto/supports-web-crypto': 1.0.0
+      '@aws-crypto/util': 1.2.1
+      '@aws-sdk/types': 3.32.0
+      '@aws-sdk/util-locate-window': 3.32.0
+      tslib: 1.14.1
+    dev: false
+
+  /@aws-crypto/sha256-js/1.2.1:
+    resolution: {integrity: sha512-KtZ4qFDWZy6pKcky6RvwSytR/I8vPX9Z47pXh9sOuTcxjjtcegzS2uupg9vo0vbFcAWkSHVOEmNPh6ygiC3VFQ==}
+    dependencies:
+      '@aws-crypto/util': 1.2.1
+      '@aws-sdk/types': 3.32.0
+      tslib: 1.14.1
+    dev: false
+
+  /@aws-crypto/supports-web-crypto/1.0.0:
+    resolution: {integrity: sha512-IHLfv+WmVH89EW4n6a5eE8/hUlz6qkWGMn/v4r5ZgzcXdTC5nolii2z3k46y01hWRiC2PPhOdeSLzMUCUMco7g==}
+    dependencies:
+      tslib: 1.14.1
+    dev: false
+
+  /@aws-crypto/util/1.2.1:
+    resolution: {integrity: sha512-H6Qrl28lzGGXZgLkdP7DQpJ3D3jJagQJugziThcqZCJVUT0HABHJt9EQMiiuf93KcUV/MMoisl56UfCxCFfmWQ==}
+    dependencies:
+      '@aws-sdk/types': 3.32.0
+      '@aws-sdk/util-utf8-browser': 3.32.0
+      tslib: 1.14.1
+    dev: false
+
+  /@aws-sdk/types/3.32.0:
+    resolution: {integrity: sha512-ZkB+jFk6FZ9wA9wvQTqv6ao2sPSVeMlUF349NecPGLtpy2c/+RPxO10NmJ8yG9jFfmB0OXLnEPrDR7VinxTHNw==}
+    engines: {node: '>= 10.0.0'}
+    dev: false
+
+  /@aws-sdk/util-locate-window/3.32.0:
+    resolution: {integrity: sha512-P5sOlu7AhzxhyUtKj4aYK35MrXFrt64XivwgAUo7h+ZUx6iWUEflpurMqm2dExUYNVnpGaeTKkNX8qdvbnDGZw==}
+    engines: {node: '>= 10.0.0'}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
+
+  /@aws-sdk/util-utf8-browser/3.32.0:
+    resolution: {integrity: sha512-KjyGj1TFmR5siw5960hKaicdtyQJJDXgiXm0CM7PMXKLgrT8C2/PmVrpF2qYDGpGgfXVRgZNHNMv3XNMAw9vlw==}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
 
   /@azure/abort-controller/1.0.4:
     resolution: {integrity: sha512-lNUmDRVGpanCsiUN3NWxFTdwmdFI53xwhkTFfHDGTYk46ca7Ind3nanJc+U6Zj9Tv+9nTCWRBscWEW1DyKOpTw==}
@@ -1756,6 +1824,33 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: true
 
+  /@peculiar/asn1-schema/2.0.38:
+    resolution: {integrity: sha512-zZ64UpCTm9me15nuCpPgJghSdbEm8atcDQPCyK+bKXjZAQ1735NCZXCSCfbckbQ4MH36Rm9403n/qMq77LFDzQ==}
+    dependencies:
+      '@types/asn1js': 2.0.2
+      asn1js: 2.1.1
+      pvtsutils: 1.2.0
+      tslib: 2.3.1
+    dev: false
+
+  /@peculiar/json-schema/1.1.12:
+    resolution: {integrity: sha512-coUfuoMeIB7B8/NMekxaDzLhaYmp0HZNPEjYRm9goRou8UZIC3z21s0sL9AWoCw4EG876QyO3kYrc61WNF9B/w==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
+
+  /@peculiar/webcrypto/1.1.7:
+    resolution: {integrity: sha512-aCNLYdHZkvGH+T8/YBOY33jrVGVuLIa3bpizeHXqwN+P4ZtixhA+kxEEWM1amZwUY2nY/iuj+5jdZn/zB7EPPQ==}
+    engines: {node: '>=10.12.0'}
+    dependencies:
+      '@peculiar/asn1-schema': 2.0.38
+      '@peculiar/json-schema': 1.1.12
+      pvtsutils: 1.2.0
+      tslib: 2.3.1
+      webcrypto-core: 1.2.1
+    dev: false
+
   /@prisma/debug/3.0.1:
     resolution: {integrity: sha512-jygNyhua6weT/pMmoTBHIcSV/eC6WZpyHZwlGtRqP+PCcQgSUvfxY4b1Il7itsd8rCLI/D6JuvBm5UsNdo5dXw==}
     dependencies:
@@ -1765,8 +1860,8 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/debug/3.0.2:
-    resolution: {integrity: sha512-D2/LghEqphW6h9ycT8nfdEw2rzT0LXmikBy2101aYcY28vS01rHTVIUOiz/DDaltlqY1qBat3F5vgM+6GwIqbw==}
+  /@prisma/debug/3.1.1:
+    resolution: {integrity: sha512-KCpckIAxYnf3wJ6wa2HkdwK7JZdgwr00T5QulC6dHbhn0a8QCSb/yTo74m2zuiyi/5NYo5LslZVPFeQJvKU7cQ==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.2
@@ -1775,8 +1870,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/debug/3.1.0-dev.16:
-    resolution: {integrity: sha512-2YqxozOB+AthDaf9JwowLzwThIqVNlkhBsVsID6U+I+8kfrcxgw4W0WoYkzGZ8JHnK7TcTfIxwYVsxPy5hKJ+w==}
+  /@prisma/debug/3.2.0-dev.2:
+    resolution: {integrity: sha512-jdsLVquhf12nu4D2jTZbtAGm672mKuSR72cL5JdjwtT5rOqHo2jDvf+x1yo92WZ9PAC/RRrvpCSk8WK1VsjymQ==}
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.2
@@ -1785,13 +1880,13 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/engine-core/3.1.0-dev.16:
-    resolution: {integrity: sha512-S5gIgjK0flJ7CVn3XUdVdNdvNdZzY2yU5lFz7qg9QuglZmPFwVRvjEhdqZbZ1MOsaXBBnexGe7nLJ5CIUqLAvQ==}
+  /@prisma/engine-core/3.2.0-dev.2:
+    resolution: {integrity: sha512-2EBpuiJw9gTS6Pj23gG0XWkwzDz0Ebdi1WVZ6lypo86l722HwQtje4wf6o1siMgzHKjZixq17U438pBSgNc3Gw==}
     dependencies:
-      '@prisma/debug': 3.1.0-dev.16
-      '@prisma/engines': 3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c
-      '@prisma/generator-helper': 3.1.0-dev.16
-      '@prisma/get-platform': 3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c
+      '@prisma/debug': 3.2.0-dev.2
+      '@prisma/engines': 3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8
+      '@prisma/generator-helper': 3.2.0-dev.2
+      '@prisma/get-platform': 3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8
       chalk: 4.1.2
       execa: 5.1.1
       get-stream: 6.0.1
@@ -1807,37 +1902,13 @@ packages:
   /@prisma/engines-version/3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a:
     resolution: {integrity: sha512-AxWb6eibldtJku6VHcXSiP4RLadWVh6sENOYskZOGH7mPYmfUr4w5TS0SsOgxDnpVpXFLQv5cpnrDKaMd1WKYQ==}
 
-  /@prisma/engines/3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c:
-    resolution: {integrity: sha512-E+JWthwkVjkfg/kKl+67ttbdJBIE6UyZYIHt+9Tt24cyGKd08sO1Ue4oeD2+mrtCeGtSAeoj2SUE+lfhFAfRfw==}
-    requiresBuild: true
-    dev: true
-
   /@prisma/engines/3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a:
     resolution: {integrity: sha512-AWSXrvk0BJshthIkfCSb1w0i3u1s8ZwRZu2EMG/EX+S73LPnzeOklS0RvpkcqLw7DPLu21+0YPIMz110Kwe2tg==}
     requiresBuild: true
 
-  /@prisma/fetch-engine/3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c:
-    resolution: {integrity: sha512-+Jann9/NrVf3nD4Ng1y9pT4QdJzBkWk1OLsCXFCCWIgxNdXlm2Dybhm4Q2nFVyovUH03HmVv9rjR+F1BDDS3iA==}
-    dependencies:
-      '@prisma/debug': 3.0.2
-      '@prisma/get-platform': 3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c
-      chalk: 4.1.2
-      execa: 5.1.1
-      find-cache-dir: 3.3.2
-      hasha: 5.2.2
-      http-proxy-agent: 4.0.1
-      https-proxy-agent: 5.0.0
-      make-dir: 3.1.0
-      node-fetch: 2.6.2
-      p-filter: 2.1.0
-      p-map: 4.0.0
-      p-retry: 4.6.1
-      progress: 2.0.3
-      rimraf: 3.0.2
-      temp-dir: 2.0.0
-      tempy: 1.0.1
-    transitivePeerDependencies:
-      - supports-color
+  /@prisma/engines/3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8:
+    resolution: {integrity: sha512-dP0dFvivdwHSezA/JCAOV5mnMcTFcc3JvxWdwVtBb9XNuq4ykVo6P01uUaJeOndv4hlJzXY5o1NuE5dRIOzveQ==}
+    requiresBuild: true
     dev: true
 
   /@prisma/fetch-engine/3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a:
@@ -1863,21 +1934,37 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/generator-helper/3.1.0-dev.16:
-    resolution: {integrity: sha512-qbU6IHUPyabDnIBodNgIQBh7rzRNJCW3KqyAW8a3r2U0dCs/JyE51ucblN4JXjsQDDAlDISmXevkYMbgecJ6Fw==}
+  /@prisma/fetch-engine/3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8:
+    resolution: {integrity: sha512-fO+LUEsGCmeTyXgttKKB6VWMmkM/ajRdQdxMUAD/XrM40xDNIXqANqLi6NFCVrW3s7tse4SjFPxfYYkINMj5Dg==}
     dependencies:
-      '@prisma/debug': 3.1.0-dev.16
-      '@types/cross-spawn': 6.0.2
+      '@prisma/debug': 3.1.1
+      '@prisma/get-platform': 3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8
       chalk: 4.1.2
-      cross-spawn: 7.0.3
+      execa: 5.1.1
+      find-cache-dir: 3.3.2
+      hasha: 5.2.2
+      http-proxy-agent: 4.0.1
+      https-proxy-agent: 5.0.0
+      make-dir: 3.1.0
+      node-fetch: 2.6.2
+      p-filter: 2.1.0
+      p-map: 4.0.0
+      p-retry: 4.6.1
+      progress: 2.0.3
+      rimraf: 3.0.2
+      temp-dir: 2.0.0
+      tempy: 1.0.1
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/get-platform/3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c:
-    resolution: {integrity: sha512-zwqE0aWvS4SplEMd9ppucEHnQPkhDRoqJDZmbJqCh9TZKiBhCPh3RXrtH1VOHL1/19yfpnee0mAfSc3+wJ6iNA==}
+  /@prisma/generator-helper/3.2.0-dev.2:
+    resolution: {integrity: sha512-sRKv9x20579N6kYyvlH9UwLr47Nq8tdZ7mYl4QJgyUs34sZ6HVLqUUZgSwWaUwAyE5MAWan3tx7vROZLVsF0lA==}
     dependencies:
-      '@prisma/debug': 3.0.2
+      '@prisma/debug': 3.2.0-dev.2
+      '@types/cross-spawn': 6.0.2
+      chalk: 4.1.2
+      cross-spawn: 7.0.3
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -1889,15 +1976,23 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/sdk/3.1.0-dev.16:
-    resolution: {integrity: sha512-PHYoptxgF0REx6AY7bHPqdzz0rhAA1N5R5Xf6u8hQ6FpFTEIqmphUcl9K8iY41qWxXe3xDulfyZEH5+CCY6ajA==}
+  /@prisma/get-platform/3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8:
+    resolution: {integrity: sha512-CTSuowVClXLXWZpE+qdvlyajAi1AJfQ/+t/s08RgkOdhZqScyHndyh/v8JF7GvltK2BYmj7Ddci1V6RV46Rhig==}
     dependencies:
-      '@prisma/debug': 3.1.0-dev.16
-      '@prisma/engine-core': 3.1.0-dev.16
-      '@prisma/engines': 3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c
-      '@prisma/fetch-engine': 3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c
-      '@prisma/generator-helper': 3.1.0-dev.16
-      '@prisma/get-platform': 3.1.0-11.028d8c126412a64d42cb9d5f87c6ab7f7368656c
+      '@prisma/debug': 3.1.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@prisma/sdk/3.2.0-dev.2:
+    resolution: {integrity: sha512-UcD9JLpJDgnkcliPFmrVnmkGflJMHxJ8XFm3GFYmMFFSsYeKAorxuuBcZl1A/ypHCVwq822ey6rEYgoUGf+/jA==}
+    dependencies:
+      '@prisma/debug': 3.2.0-dev.2
+      '@prisma/engine-core': 3.2.0-dev.2
+      '@prisma/engines': 3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8
+      '@prisma/fetch-engine': 3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8
+      '@prisma/generator-helper': 3.2.0-dev.2
+      '@prisma/get-platform': 3.2.0-7.9062d80f548ec5d0e7ae453788615b2b560510a8
       '@timsuchanek/copy': 1.4.5
       archiver: 4.0.2
       arg: 5.0.1
@@ -1912,7 +2007,7 @@ packages:
       has-yarn: 2.1.0
       is-ci: 3.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.1
+      node-fetch: 2.6.2
       p-map: 4.0.0
       read-pkg-up: 7.0.1
       resolve: 1.20.0
@@ -1931,13 +2026,13 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-pcw/0.423.0_@prisma+sdk@3.1.0-dev.16:
+  /@prisma/studio-pcw/0.423.0_@prisma+sdk@3.2.0-dev.2:
     resolution: {integrity: sha512-emrBVhCNsfPqI4gkQqKgfvXEyGGTYBUhZiEAM6UXfwLsWxUryKfXVvW2BDTI+wMQvw7/z2o8ZF4ZtEHp1AUr/w==}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': 3.1.0-dev.16
+      '@prisma/sdk': 3.2.0-dev.2
       debug: 4.3.1
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -1947,8 +2042,8 @@ packages:
   /@prisma/studio-server/0.423.0:
     resolution: {integrity: sha512-xDoteg7q+dA18r2GTcZicqc8gtS2jzTL3ljDwUGHXq39sMw4Ma+W42yR4B3RVMzkoeuS6GLuqegCTTgjjeMMZg==}
     dependencies:
-      '@prisma/sdk': 3.1.0-dev.16
-      '@prisma/studio-pcw': 0.423.0_@prisma+sdk@3.1.0-dev.16
+      '@prisma/sdk': 3.2.0-dev.2
+      '@prisma/studio-pcw': 0.423.0_@prisma+sdk@3.2.0-dev.2
       '@prisma/studio-transports': 0.423.0
       '@sentry/node': 6.2.5
       checkpoint-client: 1.1.20
@@ -2117,6 +2212,10 @@ packages:
     hasBin: true
     dev: true
 
+  /@types/asn1js/2.0.2:
+    resolution: {integrity: sha512-t4YHCgtD+ERvH0FyxvNlYwJ2ezhqw7t+Ygh4urQ7dJER8i185JPv6oIM3ey5YQmGN6Zp9EMbpohkjZi9t3UxwA==}
+    dev: false
+
   /@types/babel__core/7.1.15:
     resolution: {integrity: sha512-bxlMKPDbY8x5h6HBwVzEOk2C8fb6SLfYQ5Jw3uBYuYF1lfWk/kbLd81la82vrIkBb0l+JdmrZaDikPrNxpS/Ew==}
     dependencies:
@@ -2154,6 +2253,10 @@ packages:
     resolution: {integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==}
     dependencies:
       '@types/node': 12.20.20
+
+  /@types/crypto-js/4.0.2:
+    resolution: {integrity: sha512-sCVniU+h3GcGqxOmng11BRvf9TfN9yIs8KKjB8C8d75W69cpTfZG80gau9yTx5SxF3gvHGbJhdESzzvnjtf3Og==}
+    dev: true
 
   /@types/debug/4.1.7:
     resolution: {integrity: sha512-9AonUzyTjXXhEOa0DnqpzZi6VHlqKMswga9EXjpXnnqxwLtdvPPtlO8evrI5D9S6asFRCQ6v+wpiUKbw+vKqyg==}
@@ -2878,6 +2981,13 @@ packages:
     dev: true
     optional: true
 
+  /asn1js/2.1.1:
+    resolution: {integrity: sha512-t9u0dU0rJN4ML+uxgN6VM2Z4H5jWIYm0w8LsZLzMJaQsgL3IJNbxHgmbWDvJAwspyHpDFuzUaUFh4c05UB4+6g==}
+    engines: {node: '>=6.0.0'}
+    dependencies:
+      pvutils: 1.0.17
+    dev: false
+
   /assert-browserify/2.0.0:
     resolution: {integrity: sha512-SJvtrHmyaOT57oKWIpzWZr2hLkFyXjg5ajNT+RHvd9fhpruhrJF0OYT0yy8rIgvSn3xQp/VpLQAOwO0KNVKrJw==}
     dependencies:
@@ -3558,6 +3668,12 @@ packages:
     resolution: {integrity: sha512-dcKFX3jn0MpIaXjisoRvexIJVEKzaq7z2rZKxf+MSr9TkdmHmsU4m2lcLojrj/FHl8mk5VxMmYA+ftRkP/3oKQ==}
     dev: true
 
+  /cross-fetch/3.1.4:
+    resolution: {integrity: sha512-1eAtFWdIubi6T4XPy6ei9iUFoKpUkIF971QLN8lIvvvwueI65+Nw5haMNKUwfJxabqlIIDODJKGrQ66gxC0PbQ==}
+    dependencies:
+      node-fetch: 2.6.1
+    dev: false
+
   /cross-spawn/7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
     engines: {node: '>= 8'}
@@ -3581,6 +3697,10 @@ packages:
       randombytes: 2.1.0
       randomfill: 1.0.4
     dev: true
+
+  /crypto-js/4.1.1:
+    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
+    dev: false
 
   /crypto-random-string/2.0.0:
     resolution: {integrity: sha512-v1plID3y9r/lPhviJ1wrXpLeyUIGAZ2SHNYTEapm7/8A9nLPoyvVp3RK/EPFqn5kEznyWgYZNsRtYYIWbuG8KA==}
@@ -5197,6 +5317,20 @@ packages:
 
   /isexe/2.0.0:
     resolution: {integrity: sha1-6PvzdNxVb/iUehDcsFctYz8s+hA=}
+
+  /isomorphic-fetch/3.0.0:
+    resolution: {integrity: sha512-qvUtwJ3j6qwsF3jLxkZ72qCgjMysPzDfeV240JHiGZsANBYd+EEuu35v7dfrJ9Up0Ak07D7GGSkGhCHTqg/5wA==}
+    dependencies:
+      node-fetch: 2.6.2
+      whatwg-fetch: 3.6.2
+    dev: false
+
+  /isomorphic-unfetch/3.1.0:
+    resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
+    dependencies:
+      node-fetch: 2.6.2
+      unfetch: 4.2.0
+    dev: false
 
   /isstream/0.1.2:
     resolution: {integrity: sha1-R+Y/evVa+m+S4VAOaQ64uFKcCZo=}
@@ -7207,6 +7341,17 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
+  /pvtsutils/1.2.0:
+    resolution: {integrity: sha512-IDefMJEQl7HX0FP2hIKJFnAR11klP1js2ixCrOaMhe3kXFK6RQ2ABUCuwWaaD4ib0hSbh2fGTICvWJJhDfNecA==}
+    dependencies:
+      tslib: 2.3.1
+    dev: false
+
+  /pvutils/1.0.17:
+    resolution: {integrity: sha512-wLHYUQxWaXVQvKnwIDWFVKDJku9XDCvyhhxoq8dc5MFdIlRenyPI9eSfEtcvgHgD7FlvCyGAlWgOzRnZD99GZQ==}
+    engines: {node: '>=6.0.0'}
+    dev: false
+
   /qs/6.10.1:
     resolution: {integrity: sha512-M528Hph6wsSVOBiYUnGf+K/7w0hNshs/duGsNXPUCLH5XAqjEtiPGwNONLV0tBH8NoGb0mvD5JubnUTrujKDTg==}
     engines: {node: '>=0.6'}
@@ -8373,11 +8518,9 @@ packages:
 
   /tslib/1.14.1:
     resolution: {integrity: sha512-Xni35NKzjgMrwevysHTCArtLDpPvye8zV/0E4EyYn43P7/7qvQwPh9BGkHewbMulVntbigmcT7rdX3BNo9wRJg==}
-    dev: true
 
   /tslib/2.3.1:
     resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
-    dev: true
 
   /tsutils/3.21.0_typescript@4.3.5:
     resolution: {integrity: sha512-mHKK3iUXL+3UF6xL5k0PEhKRUBKPBCv/+RkEOpjRWxxx27KKRBmmA60A9pgOUvMi8GKhRMPEmjBRPzs2W7O1OA==}
@@ -8520,6 +8663,10 @@ packages:
   /undici/3.3.6:
     resolution: {integrity: sha512-/j3YTZ5AobMB4ZrTY72mzM54uFUX32v0R/JRW9G2vOyF1uSKYAx+WT8dMsAcRS13TOFISv094TxIyWYk+WEPsA==}
 
+  /unfetch/4.2.0:
+    resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
+    dev: false
+
   /unique-string/2.0.0:
     resolution: {integrity: sha512-uNaeirEPvpZWSgzwsPGtU2zVSTrn/8L5q/IexZmH0eH6SA73CmAA5U4GwORTxQAZs95TAXLNqeLoPPNO5gZfWg==}
     engines: {node: '>=8'}
@@ -8638,6 +8785,16 @@ packages:
       makeerror: 1.0.11
     dev: true
 
+  /webcrypto-core/1.2.1:
+    resolution: {integrity: sha512-5+h1/e/A4eegCRTg+oQ9ehTJRTMwFhZazJ2RH1FP0VC3q1/0xl7x6SzzTwPxd/VTGc7kjuSEJGnfNgoLe5jNRQ==}
+    dependencies:
+      '@peculiar/asn1-schema': 2.0.38
+      '@peculiar/json-schema': 1.1.12
+      asn1js: 2.1.1
+      pvtsutils: 1.2.0
+      tslib: 2.3.1
+    dev: false
+
   /webidl-conversions/5.0.0:
     resolution: {integrity: sha512-VlZwKPCkYKxQgeSbH5EyngOmRp7Ww7I9rQLERETtf5ofd9pGeswWiOtogpEO850jziPRarreGxn5QIiTqpb2wA==}
     engines: {node: '>=8'}
@@ -8653,6 +8810,10 @@ packages:
     dependencies:
       iconv-lite: 0.4.24
     dev: true
+
+  /whatwg-fetch/3.6.2:
+    resolution: {integrity: sha512-bJlen0FcuU/0EMLrdbJ7zOnW6ITZLrZMIarMUVmdKtsGvZna8vxKYaexICWPfZ8qwf9fzNq+UEIZrnSaApt6RA==}
+    dev: false
 
   /whatwg-mimetype/2.3.0:
     resolution: {integrity: sha512-M4yMwr6mAnQz76TbJm914+gPpB/nCwvZbJU28cUD6dR004SAxDLOOSUaB1JDRqLtaOV/vi0IC5lEAGFgrjGv/g==}
