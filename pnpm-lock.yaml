@@ -29,7 +29,7 @@ importers:
       graphviz: 0.0.9
       husky: 7.0.2
       is-ci: 3.0.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.4
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -66,7 +66,7 @@ importers:
       graphviz: 0.0.9
       husky: 7.0.2
       is-ci: 3.0.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.4
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -117,7 +117,7 @@ importers:
       lint-staged: 11.1.2
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.4
       open: 7.4.2
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -168,7 +168,7 @@ importers:
       lint-staged: 11.1.2
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.4
       open: 7.4.2
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -726,7 +726,7 @@ importers:
       jest: 27.2.1
       lint-staged: 11.1.2
       make-dir: 3.1.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.4
       p-map: 4.0.0
       prettier: 2.3.2
       read-pkg-up: 7.0.1
@@ -766,7 +766,7 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.4
       p-map: 4.0.0
       read-pkg-up: 7.0.1
       resolve: 1.20.0
@@ -5785,6 +5785,12 @@ packages:
     resolution: {integrity: sha512-aLoxToI6RfZ+0NOjmWAgn9+LEd30YCkJKFSyWacNZdEKTit/ZMcKjGkTRo8uWEsnIb/hfKecNPEbln02PdWbcA==}
     engines: {node: 4.x || >=6.0.0}
 
+  /node-fetch/2.6.4:
+    resolution: {integrity: sha512-aD1fO+xtLiSCc9vuD+sYMxpIuQyhHscGSkBEo2o5LTV/3bTEAYvdUii29n8LlO5uLCmWdGP7uVUVXFo5SRdkLA==}
+    engines: {node: 4.x || >=6.0.0}
+    dependencies:
+      whatwg-url: 5.0.0
+
   /node-gyp/3.8.0:
     resolution: {integrity: sha512-3g8lYefrRRzvGeSowdJKAKyks8oUpLEd/DyPV4eMhVlhJ0aNaZqIrNUIPuEWWTAoPqyFkfGrM67MC69baqn6vA==}
     engines: {node: '>= 0.8.0'}
@@ -7257,6 +7263,9 @@ packages:
       universalify: 0.1.2
     dev: true
 
+  /tr46/0.0.3:
+    resolution: {integrity: sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=}
+
   /tr46/2.1.0:
     resolution: {integrity: sha512-15Ih7phfcdP5YxqiB+iDtLoaTz4Nd35+IiAv0kQ5FNKHzXgdWqPoTIqEDDJmXceQt4JZk6lVPT8lnDlPpGDppw==}
     engines: {node: '>=8'}
@@ -7630,6 +7639,9 @@ packages:
       makeerror: 1.0.11
     dev: true
 
+  /webidl-conversions/3.0.1:
+    resolution: {integrity: sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=}
+
   /webidl-conversions/5.0.0:
     resolution: {integrity: sha512-VlZwKPCkYKxQgeSbH5EyngOmRp7Ww7I9rQLERETtf5ofd9pGeswWiOtogpEO850jziPRarreGxn5QIiTqpb2wA==}
     engines: {node: '>=8'}
@@ -7649,6 +7661,12 @@ packages:
   /whatwg-mimetype/2.3.0:
     resolution: {integrity: sha512-M4yMwr6mAnQz76TbJm914+gPpB/nCwvZbJU28cUD6dR004SAxDLOOSUaB1JDRqLtaOV/vi0IC5lEAGFgrjGv/g==}
     dev: true
+
+  /whatwg-url/5.0.0:
+    resolution: {integrity: sha1-lmRU6HZUYuN2RNNib2dCzotwll0=}
+    dependencies:
+      tr46: 0.0.3
+      webidl-conversions: 3.0.1
 
   /whatwg-url/8.7.0:
     resolution: {integrity: sha512-gAojqb/m9Q8a5IV96E3fHJM70AzCkgt4uXYX2O7EmuyOnLrViCQlsEBmF9UQIu3/aeAIp2U17rtbpZWNntQqdg==}
