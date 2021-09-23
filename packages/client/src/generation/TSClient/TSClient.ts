@@ -71,6 +71,7 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
+      inlineSchema: fs.readFileSync(schemaPath).toString('base64'),
     }
 
     // This ensures that any engine override is propagated to the generated clients config
