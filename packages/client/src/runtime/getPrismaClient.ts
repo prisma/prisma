@@ -338,9 +338,11 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         if (internal.hooks) {
           this._hooks = internal.hooks
         }
+
         let cwd = path.resolve(config.dirname, config.relativePath)
 
-        if (!fs.existsSync(cwd)) {
+        // TODO this logic should not be needed anymore #findSync
+        if (globalThis.NOT_PROXY && !fs.existsSync(cwd)) {
           cwd = config.dirname
         }
 
