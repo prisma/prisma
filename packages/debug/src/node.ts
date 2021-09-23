@@ -84,7 +84,7 @@ exports.inspectOpts = Object.keys(process.env)
 function useColors() {
   return 'colors' in exports.inspectOpts
     ? Boolean(exports.inspectOpts.colors)
-    : tty.isatty((process.stderr as any).fd)
+    : tty.isatty((process.stderr as any)?.fd)
 }
 
 /**
