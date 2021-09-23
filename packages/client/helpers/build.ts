@@ -42,7 +42,15 @@ const proxyBuildConfig: BuildOptions = {
   legalComments: 'none',
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },
-  plugins: [fillPlugin({})],
+  plugins: [
+    fillPlugin({
+      // TODO no tree shaking on wrapper pkgs
+      '@prisma/get-platform': { contents: '' },
+      // these cannot be exported anymore
+      './warnEnvConflicts': { contents: '' },
+      './utils/find': { contents: '' },
+    }),
+  ],
   logLevel: 'error',
 }
 
