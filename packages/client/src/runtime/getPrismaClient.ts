@@ -225,6 +225,11 @@ export interface GetPrismaClientOptions {
   engineVersion?: string
   datasourceNames: string[]
   activeProvider: string
+
+  /**
+   * The contents of the schema encoded into a string
+   */
+  inlineSchema: string
 }
 
 const actionOperationMap = {
@@ -399,6 +404,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           previewFeatures: mapPreviewFeatures(this._previewFeatures),
           useUds: internal.useUds,
           activeProvider: config.activeProvider,
+          inlineSchema: config.inlineSchema,
         }
 
         // Append the mongodb experimental flag if the provider is mongodb
