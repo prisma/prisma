@@ -133,7 +133,7 @@ const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
 
-${buildWarnEnvConflicts(runtimePath)}
+${buildWarnEnvConflicts(clientEngineType, runtimePath)}
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
