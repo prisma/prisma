@@ -1,16 +1,11 @@
-export interface CommonCodeParams {
-  runtimePath: string
-  clientVersion: string
-  engineVersion: string
-  browser?: boolean
-}
+import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
   runtimePath,
   browser,
   clientVersion,
   engineVersion,
-}: CommonCodeParams): string => `
+}: TSClientOptions): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
   browser
@@ -26,17 +21,13 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
-  warnEnvConflicts,
   getPrismaClient,
   sqltag,
   empty,
   join,
   raw,
-  Decimal,
-  findSync
+  Decimal
 } = require('${runtimePath}')
-
-const path = require('path')
 `
 }
 
@@ -105,7 +96,7 @@ export const commonCodeTS = ({
   runtimePath,
   clientVersion,
   engineVersion,
-}: CommonCodeParams) => ({
+}: TSClientOptions) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimePath}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
