@@ -179,7 +179,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
       introspectionSchemaVersion = introspectionResult.version
-    } catch (e) {
+    } catch (e: any) {
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
           throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red(

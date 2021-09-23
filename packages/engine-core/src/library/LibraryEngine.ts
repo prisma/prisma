@@ -256,7 +256,8 @@ You may have to run ${chalk.greenBright(
             },
             (err, log) => this.logger(err, log),
           )
-        } catch (e) {
+        } catch (_e) {
+          const e = _e as Error
           const error = this.parseInitError(e.message)
           if (typeof error === 'string') {
             throw e
@@ -490,7 +491,7 @@ You may have to run ${chalk.greenBright(
       }
       // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
       return { data, elapsed: 0 }
-    } catch (e) {
+    } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
       }

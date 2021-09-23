@@ -992,13 +992,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       this.currentRequestPromise = undefined
       return { data, elapsed } as any
-    } catch (error) {
-      logger('req - e', error)
-      if (error instanceof PrismaClientKnownRequestError) {
-        throw error
+    } catch (e: any) {
+      logger('req - e', e)
+      if (e instanceof PrismaClientKnownRequestError) {
+        throw e
       }
 
-      await this.handleRequestError(error, numTry <= MAX_REQUEST_RETRIES)
+      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
       if (numTry <= MAX_REQUEST_RETRIES) {
         logger('trying a retry now')
@@ -1097,8 +1097,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           transactionHttpErrorHandler,
         )
       }
-    } catch (error) {
-      this.setError(error)
+    } catch (e: any) {
+      this.setError(e)
     }
 
     return undefined

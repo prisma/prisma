@@ -184,8 +184,8 @@ export class Migrate {
           }${toStr} in ${formatms(after - before)}`,
         )
         generator.stop()
-      } catch (err) {
-        message.push(`${err.message}`)
+      } catch (e: any) {
+        message.push(`${e.message}`)
         generator.stop()
       }
     }
