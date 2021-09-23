@@ -158,6 +158,11 @@ export async function generateClient({
   runtimePath =
     runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
+  // we make sure that we point to the right engine build
+  if (clientEngineType === ClientEngineType.DataProxy) {
+    runtimePath = `${runtimePath}/proxy`
+  }
+
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
     : outputDir

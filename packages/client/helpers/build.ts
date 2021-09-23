@@ -39,6 +39,7 @@ const proxyBuildConfig: BuildOptions = {
   outfile: 'runtime/proxy',
   bundle: true,
   minify: true,
+  legalComments: 'none',
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },
   plugins: [fillPlugin({})],
