@@ -79,7 +79,6 @@ const fillPlugin = (
       zlib: { path: await load('browserify-zlib') },
 
       // no shims
-      // fs: { path: await load('memfs') },
       fs: { contents: '' },
       http2: { contents: '' },
       dns: { contents: '' },

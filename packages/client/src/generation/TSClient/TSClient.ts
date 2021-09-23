@@ -85,10 +85,8 @@ export class TSClient implements Generatable {
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
-
 ${buildRequirePath(clientEngineType)}
 ${buildDirname(clientEngineType, relativeOutdir, runtimePath)}
-
 /**
  * Enums
  */
@@ -113,7 +111,6 @@ ${new Enum(
   true,
 ).toJS()}
 
-
 /**
  * DMMF
  */
@@ -124,21 +121,16 @@ const dmmfString = ${JSON.stringify(this.dmmfString)}
 const dmmf = JSON.parse(dmmfString)
 exports.Prisma.dmmf = JSON.parse(dmmfString)
 
-
-
 /**
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-
 ${buildWarnEnvConflicts(clientEngineType, runtimePath)}
-
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-
 ${buildNFTAnnotations(clientEngineType, this.options.platforms, relativeOutdir)}
 `
     return code
