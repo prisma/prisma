@@ -9,7 +9,7 @@ import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { getClientEngineType } from '../../runtime/utils/getClientEngineType'
-import { buildNFTEngineAnnotations } from '../utils'
+import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
@@ -29,7 +29,7 @@ export interface TSClientOptions {
   browser?: boolean
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
-  platforms?: string[]
+  platforms?: Platform[]
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaDir: string
   outputDir: string
@@ -57,7 +57,7 @@ export class TSClient implements Generatable {
         path.relative(outputDir, envPaths.schemaEnvPath),
     }
 
-    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
+    const config: Omit<GetPrismaClientOptions, 'document'> = {
       generator,
       relativeEnvPaths,
       sqliteDatasourceOverrides,
@@ -66,7 +66,9 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
+      dirname: '/',
     }
+
     // This ensures that any engine override is propagated to the generated clients config
     const clientEngineType = getClientEngineType(config.generator!)
     if (config.generator) {
@@ -149,27 +151,14 @@ warnEnvConflicts(envPaths)
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-
 Object.assign(exports, Prisma)
 
-/**
- * Build tool annotations
- * In order to make \`ncc\` and \`@vercel/nft\` happy.
- * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
-**/
-${buildNFTEngineAnnotations(
+${buildNFTAnnotations(
   clientEngineType,
-  this.options.platforms as Platform[],
+  this.options.platforms,
   relativeOutputDir,
 )}
-/**
- * Annotation for \`@vercel/nft\`
- * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
-**/
-path.join(__dirname, 'schema.prisma');
-path.join(process.cwd(), './${path.join(relativeOutputDir, `schema.prisma`)}');
 `
-
     return code
   }
   public toTS(): string {
