@@ -4,15 +4,16 @@ import path from 'path'
 export function buildDirname(
   clientEngineType: ClientEngineType,
   relativeOutdir: string,
+  runtimePath: string,
 ) {
   if (clientEngineType !== ClientEngineType.DataProxy) {
-    return buildDirnameFind(relativeOutdir)
+    return buildDirnameFind(relativeOutdir, runtimePath)
   }
 
   return buildDirnameRelative(relativeOutdir)
 }
 
-function buildDirnameFind(relativeOutdir: string) {
+function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
   // on serverless envs, relative output dir can be one step lower because of
   // where and how the code is packaged into the lambda like with a build step
   // with platforms like Vercel or Netlify. We want to check this as well.
@@ -22,7 +23,7 @@ function buildDirnameFind(relativeOutdir: string) {
     .join(path.sep)
 
   return `
-const { findSync } = require('./runtime')
+const { findSync } = require('${runtimePath}')
 
 const dirname = findSync(process.cwd(), [
     ${JSON.stringify(relativeOutdir)},
