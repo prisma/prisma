@@ -1,3 +1,5 @@
+/// <reference lib="webworker" />
+
 import { Engine } from '../common/Engine'
 import type {
   EngineConfig,
@@ -6,9 +8,6 @@ import type {
 } from '../common/Engine'
 import EventEmitter from 'events'
 import prismafile from 'prismafile'
-import { Sha256 } from '@aws-crypto/sha256-browser'
-import fetch from 'isomorphic-unfetch'
-import { URL } from 'url'
 
 const BACKOFF_INTERVAL = 250
 const MAX_RETRIES = 5
@@ -34,7 +33,7 @@ function getClientVersion(config: EngineConfig) {
     return version
   }
 
-  return '3.0.2' // and we default it to this one if does not
+  return '3.0.1' // and we default it to this one if does not
 }
 
 /**
@@ -43,11 +42,9 @@ function getClientVersion(config: EngineConfig) {
  * @returns
  */
 async function createSchemaHash(inlineSchema: string) {
-  const hasher = new Sha256()
+  const hash = await crypto.subtle.digest('SHA-256', Buffer.from(inlineSchema))
 
-  hasher.update(inlineSchema)
-
-  return Buffer.from(await hasher.digest()).toString('hex')
+  return Buffer.from(hash).toString('hex')
 }
 
 /**
@@ -212,7 +209,9 @@ export class DataProxyEngine extends Engine {
       // was not uploaded yet.
       if (res.status === 404) {
         await this.uploadSchema()
-        throw new Error('Schema (re)uploaded')
+
+        // return await this.requestInternal(body, headers, attempt)
+        throw new Error(JSON.stringify(res))
       }
 
       if (!res.ok) {
