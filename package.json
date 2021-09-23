@@ -66,6 +66,7 @@
     "eventemitter3": "^4.0.7",
     "events": "^3.3.0",
     "execa": "5.1.1",
+    "fake-fs": "^0.5.0",
     "fs-monkey": "1.0.3",
     "glob": "7.1.7",
     "globby": "11.0.4",
