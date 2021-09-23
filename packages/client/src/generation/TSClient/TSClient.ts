@@ -19,6 +19,10 @@ import { escapeJson, ExportCollector } from './helpers'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
+import { buildDirname } from '../utils/buildDirname'
+import { buildRequirePath } from '../utils/buildRequirePath'
+import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
+import fs from 'fs'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -46,7 +50,8 @@ export class TSClient implements Generatable {
   public toJS(): string {
     const { generator, sqliteDatasourceOverrides, outputDir, schemaDir } =
       this.options
-    const schemaPath = path.join(schemaDir, 'prisma.schema')
+    const runtimePath = this.options.runtimePath
+    const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -57,7 +62,7 @@ export class TSClient implements Generatable {
         path.relative(outputDir, envPaths.schemaEnvPath),
     }
 
-    const config: Omit<GetPrismaClientOptions, 'document'> = {
+    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
       sqliteDatasourceOverrides,
@@ -66,7 +71,6 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      dirname: '/',
     }
 
     // This ensures that any engine override is propagated to the generated clients config
@@ -77,24 +81,12 @@ export class TSClient implements Generatable {
 
     // get relative output dir for it to be preserved even after bundling, or
     // being moved around as long as we keep the same project dir structure.
-    const relativeOutputDir = path.relative(process.cwd(), outputDir)
-
-    // on serverless envs, relative output dir can be one step lower because of
-    // where and how the code is packaged into the lambda like with a build step
-    // with platforms like Vercel or Netlify. We want to check this as well.
-    const slsRelativeOutputDir = path
-      .relative(process.cwd(), outputDir)
-      .split(path.sep)
-      .slice(1)
-      .join(path.sep)
+    const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 
-// folder where the generated client is found
-const dirname = findSync(process.cwd(), [
-  ${JSON.stringify(relativeOutputDir)},
-  ${JSON.stringify(slsRelativeOutputDir)},
-], ['d'], ['d'], 1)[0] || __dirname
+${buildRequirePath(clientEngineType)}
+${buildDirname(clientEngineType, relativeOutdir, runtimePath)}
 
 /**
  * Enums
@@ -131,33 +123,22 @@ const dmmfString = ${JSON.stringify(this.dmmfString)}
 const dmmf = JSON.parse(dmmfString)
 exports.Prisma.dmmf = JSON.parse(dmmfString)
 
+
+
 /**
  * Create the Client
  */
-
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
 
-/**
- * Only for env conflict warning
- * loading of env variable occurs in getPrismaClient
- */
-const envPaths = {
-  rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
-  schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(dirname, config.relativeEnvPaths.schemaEnvPath)
-}
-warnEnvConflicts(envPaths)
+${buildWarnEnvConflicts(runtimePath)}
 
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
 
-${buildNFTAnnotations(
-  clientEngineType,
-  this.options.platforms,
-  relativeOutputDir,
-)}
+${buildNFTAnnotations(clientEngineType, this.options.platforms, relativeOutdir)}
 `
     return code
   }
