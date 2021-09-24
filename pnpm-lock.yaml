@@ -316,6 +316,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       arg: 5.0.1
+      base64-js: ^1.5.1
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.8.53
@@ -379,6 +380,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       arg: 5.0.1
+      base64-js: 1.5.1
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.8.53
