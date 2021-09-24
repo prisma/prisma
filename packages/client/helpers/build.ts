@@ -56,11 +56,12 @@ const proxyBuildConfig: BuildOptions = {
 }
 
 /**
- * Bundle all type definitions into a single one
+ * Bundle all type definitions by using the API Extractor from RushStack
  * @param filename the source d.ts to bundle
  * @param outfile the output bundled file
  */
 function bundleTypeDefinitions(filename: string, outfile: string) {
+  // we give the config in its raw form instead of a file
   const extractorConfig = ExtractorConfig.prepare({
     configObject: {
       projectFolder: path.join(__dirname, '..'),
@@ -86,11 +87,13 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
     configObjectFullPath: undefined,
   })
 
+  // here we trigger the "command line" interface equivalent
   const extractorResult = Extractor.invoke(extractorConfig, {
     showVerboseMessages: true,
     localBuild: true,
   })
 
+  // we exit the process immediately if there were errors
   if (extractorResult.succeeded === false) {
     console.error(`API Extractor completed with errors`)
     process.exit(1)
