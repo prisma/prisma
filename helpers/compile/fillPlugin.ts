@@ -3,31 +3,7 @@ import resolve from 'resolve'
 import path from 'path'
 import crypto from 'crypto'
 
-const STREAM_LIB = 'readable-stream/lib/_stream_'
-
-type LoadCache = { [K in string]: Promise<string> }
-
-const loader = (cache: LoadCache) => async (module: string) => {
-  if (cache[module]) return cache[module]
-
-  const modulePath = resolve.sync(module, { includeCoreModules: false })
-  const filename = `${crypto.randomBytes(16).toString('hex')}.js`
-  const outdir = path.join(path.sep, 'tmp', 'esbuild')
-
-  return (cache[module] = (async () => {
-    await esbuild.build({
-      format: 'cjs',
-      platform: 'node',
-      entryPoints: [path.basename(modulePath)],
-      outfile: path.join(outdir, filename),
-      absWorkingDir: path.dirname(modulePath),
-      bundle: true,
-      minify: true,
-    })
-
-    return path.join(outdir, filename)
-  })())
-}
+type LoadCache = { [K in string]: string }
 
 type Fillers = {
   [k in string]: {
@@ -38,45 +14,155 @@ type Fillers = {
   }
 }
 
+/**
+ * Bundle a polyfill with all its dependencies
+ * @param cache to serve from
+ * @param module to be compiled
+ * @returns the path to the bundle
+ */
+const loader = (cache: LoadCache) => (module: string) => {
+  if (cache[module]) return cache[module]
+
+  const modulePkg = `${module}/package.json`
+  const resolveOpt = { includeCoreModules: false }
+  const modulePath = path.dirname(resolve.sync(modulePkg, resolveOpt))
+  const filename = `${module}${crypto.randomBytes(4).toString('hex')}.js`
+  const outfile = path.join(path.sep, 'tmp', 'esbuild', filename)
+
+  esbuild.buildSync({
+    format: 'cjs',
+    platform: 'node',
+    outfile: outfile,
+    entryPoints: [modulePath],
+    absWorkingDir: modulePath,
+    mainFields: ['browser', 'main'],
+    bundle: true,
+    minify: true,
+  })
+
+  return (cache[module] = outfile)
+}
+
+/**
+ * Creates a RegExp for filtering injections
+ * @param fillers to be filtered
+ * @returns
+ */
+function createImportFilter(fillers: Fillers) {
+  const fillerNames = Object.keys(fillers)
+
+  return new RegExp(`^${fillerNames.join('\\/?$|^')}\\/?$`)
+}
+
+/**
+ * Looks through the fillers and applies their `define` or `inject` (if they
+ * have such a field to the esbuild `options` that we passed.
+ * @param options from esbuild
+ * @param fillers to be scanned
+ */
+function setInjectionsAndDefinitions(
+  fillers: Fillers,
+  options: esbuild.BuildOptions,
+) {
+  const fillerNames = Object.keys(fillers)
+
+  // we make sure that it is not empty
+  options.define = options.define ?? {}
+  options.inject = options.inject ?? []
+
+  // we scan through fillers and apply
+  for (const fillerName of fillerNames) {
+    const filler = fillers[fillerName]
+
+    if (filler.define) {
+      options.define[fillerName] = filler.define
+    }
+
+    if (filler.inject) {
+      options.inject.push(filler.inject)
+    }
+  }
+}
+
+/**
+ * Handles the resolution step where esbuild resolves the imports before
+ * bundling them. This allows us to inject a filler via its `path` if it was
+ * provided. If not, we proceed to the next `onLoad` step.
+ * @param fillers to use the path from
+ * @param args from esbuild
+ * @returns
+ */
+function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs) {
+  // removes trailing slashes in imports paths
+  const path = args.path.replace(/\/$/, '')
+  const item = fillers[path]
+
+  // if a path is provided, we just replace it
+  if (item.path !== undefined) {
+    return { path: item.path }
+  }
+
+  // if not, we defer action to the loaders cb
+  return {
+    path: path,
+    namespace: 'fill-plugin',
+    pluginData: args.importer,
+  }
+}
+
+/**
+ * Handles the load step where esbuild loads the contents of the imports before
+ * bundling them. This allows us to inject a filler via its `contents` if it was
+ * provided. If not, the polyfill is empty and we display an error.
+ * @param fillers to use the contents from
+ * @param args from esbuild
+ */
+function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs) {
+  // display useful info if no shim has been found
+  if (fillers[args.path].contents === undefined) {
+    throw `no shim for "${args.path}" imported by "${args.pluginData}"`
+  }
+
+  return fillers[args.path] // inject the contents
+}
+
 // https://v2.parceljs.org/features/node-emulation/
 // https://github.com/Richienb/node-polyfill-webpack-plugin/blob/master/index.js
-const fillPlugin = (
-  fillerOverrides: Fillers,
-  cache: LoadCache = {},
-): esbuild.Plugin => ({
+
+/**
+ * esbuild plugin that provides a simple way to use esbuild's injection
+ * capabilities while providing sensible defaults for node polyfills.
+ * @param fillerOverrides override default fillers
+ * @returns
+ */
+const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
   name: 'fillPlugin',
-  async setup(build) {
-    const load = loader(cache)
-    const options = build.initialOptions
+  setup(build) {
+    const load = loader({})
     const fillers: Fillers = {
       // enabled
-      assert: { path: await load('assert-browserify') },
-      buffer: { path: await load('buffer') },
-      constants: { path: await load('constants-browserify') },
-      crypto: { path: await load('crypto-browserify') },
-      domain: { path: await load('domain-browser') },
-      events: { path: await load('eventemitter3') },
-      http: { path: await load('stream-http') },
-      https: { path: await load('https-browserify') },
-      inherits: { path: await load('inherits') },
-      os: { path: await load('os-browserify/browser') },
-      path: { path: await load('path-browserify') },
-      punycode: { path: await load('punycode') },
-      querystring: { path: await load('querystring-es3') },
-      stream: { path: await load('stream-browserify') },
-      _stream_duplex: { path: await load(`${STREAM_LIB}duplex`) },
-      _stream_passthrough: { path: await load(`${STREAM_LIB}passthrough`) },
-      _stream_readable: { path: await load(`${STREAM_LIB}readable`) },
-      _stream_transform: { path: await load(`${STREAM_LIB}transform`) },
-      _stream_writable: { path: await load(`${STREAM_LIB}writable`) },
-      string_decoder: { path: await load('string_decoder') },
-      sys: { path: await load('util') },
-      timers: { path: await load('timers-browserify') },
-      tty: { path: await load('tty-browserify') },
-      url: { path: await load('url') },
-      util: { path: await load('util') },
-      vm: { path: await load('vm-browserify') },
-      zlib: { path: await load('browserify-zlib') },
+      assert: { path: load('assert-browserify') },
+      buffer: { path: load('buffer') },
+      constants: { path: load('constants-browserify') },
+      crypto: { path: load('crypto-browserify') },
+      domain: { path: load('domain-browser') },
+      events: { path: load('eventemitter3') },
+      http: { path: load('stream-http') },
+      https: { path: load('https-browserify') },
+      inherits: { path: load('inherits') },
+      os: { path: load('os-browserify') },
+      path: { path: load('path-browserify') },
+      punycode: { path: load('punycode') },
+      querystring: { path: load('querystring-es3') },
+      stream: { path: load('readable-stream') },
+      string_decoder: { path: load('string_decoder') },
+      sys: { path: load('util') },
+      timers: { path: load('timers-browserify') },
+      tty: { path: load('tty-browserify') },
+      url: { path: load('url') },
+      util: { path: load('util') },
+      vm: { path: load('vm-browserify') },
+      zlib: { path: load('browserify-zlib') },
 
       // no shims
       fs: { contents: '' },
@@ -94,63 +180,33 @@ const fillPlugin = (
       child_process: { contents: '' },
 
       // globals
-      Buffer: { inject: await load('buffer') },
+      Buffer: { inject: load('buffer') },
       process: {
-        path: await load('process/browser'),
-        inject: await load('process/browser'),
+        path: load('process'),
+        inject: load('process'),
       },
 
       // not needed
-      // console: {
-      //   path: await load('console-browserify'),
-      //   inject: await load('console-browserify'),
-      // },
-      // __dirname: { define: '/' },
-      // __filename: { define: '/index.js' },
-      // clearImmediate: { define: '' },
-      // clearInterval: { define: '' },
+      // console: { },
+      // __dirname: { },
+      // __filename: { },
+      // clearImmediate: { },
+      // clearInterval: { },
 
       // overrides
       ...fillerOverrides,
     }
 
-    const fillerNames = Object.keys(fillers)
-    const filter = new RegExp(`^${fillerNames.join('$|^')}$`)
+    setInjectionsAndDefinitions(fillers, build.initialOptions)
 
-    options.define = options.define ?? {}
-    options.inject = options.inject ?? []
-    for (const fillerName of fillerNames) {
-      const filler = fillers[fillerName]
-      if (filler.define) options.define[fillerName] = filler.define
-      if (filler.inject) options.inject.push(filler.inject)
-    }
-
-    build.onResolve({ filter }, (args) => {
-      // removes trailing slashes in imports paths
-      const path = args.path.replace(/\/$/, '')
-      const item = fillers[path]
-
-      // if a path is provided, we just replace it
-      if (item.path !== undefined) {
-        return { path: item.path }
-      }
-
-      // if not, we defer action to the loaders cb
-      return {
-        path: path,
-        namespace: 'fill-plugin',
-        pluginData: args.importer,
-      }
+    // allows us to change the path of a filtered import by another
+    build.onResolve({ filter: createImportFilter(fillers) }, (args) => {
+      return onResolve(fillers, args)
     })
 
-    // we trigger the load cb for the created namespace
+    // if no path was provided it defers to virtual nsp `fill-plugin`
     build.onLoad({ filter: /.*/, namespace: 'fill-plugin' }, (args) => {
-      // we display useful info if no shim has been found
-      if (fillers[args.path].contents === undefined) {
-        throw `no shim for "${args.path}" imported by "${args.pluginData}"`
-      }
-
-      return fillers[args.path] // inject the contents
+      return onLoad(fillers, args)
     })
   },
 })
