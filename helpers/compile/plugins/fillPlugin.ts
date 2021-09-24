@@ -126,12 +126,11 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs) {
   return fillers[args.path] // inject the contents
 }
 
-// https://v2.parceljs.org/features/node-emulation/
-// https://github.com/Richienb/node-polyfill-webpack-plugin/blob/master/index.js
-
 /**
  * esbuild plugin that provides a simple way to use esbuild's injection
  * capabilities while providing sensible defaults for node polyfills.
+ * @see https://v2.parceljs.org/features/node-emulation/
+ * @see https://github.com/Richienb/node-polyfill-webpack-plugin/blob/master/index.js
  * @param fillerOverrides override default fillers
  * @returns
  */
@@ -197,6 +196,7 @@ const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
       ...fillerOverrides,
     }
 
+    // our first step is to update options with basic injections
     setInjectionsAndDefinitions(fillers, build.initialOptions)
 
     // allows us to change the path of a filtered import by another
