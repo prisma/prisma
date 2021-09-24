@@ -12,8 +12,8 @@ const generatorBuildConfig: BuildOptions = {
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
+  external: external,
   define: { 'globalThis.NOT_PROXY': 'true' },
-  plugins: [externalPlugin],
 }
 
 // we define the config for runtime
