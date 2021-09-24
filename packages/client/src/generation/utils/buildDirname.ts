@@ -1,6 +1,13 @@
 import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
 import path from 'path'
 
+/**
+ * Builds a `dirname` variable that holds the location of the generated client.
+ * @param clientEngineType
+ * @param relativeOutdir
+ * @param runtimePath
+ * @returns
+ */
 export function buildDirname(
   clientEngineType: ClientEngineType,
   relativeOutdir: string,
@@ -10,13 +17,23 @@ export function buildDirname(
     return buildDirnameFind(relativeOutdir, runtimePath)
   }
 
-  return buildDirnameRelative(relativeOutdir)
+  return buildDirnameRelative()
 }
 
+/**
+ * Builds a `dirname` variable that will try to locate the generated client.
+ * It's useful on serverless envs, where relative output dir can be one step
+ * lower because of where and how the code is packaged into the lambda like with
+ * a build step for platforms like Vercel or Netlify. On top of that, the
+ * feature is especially useful for Next.js/Webpack users since the client gets
+ * moved and copied out of its original spot. It all fails, it falls-back to
+ * `__dirname`, which is never available on bundles.
+ * @param relativeOutdir
+ * @param runtimePath
+ * @returns
+ */
 function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
-  // on serverless envs, relative output dir can be one step lower because of
-  // where and how the code is packaged into the lambda like with a build step
-  // with platforms like Vercel or Netlify. We want to check this as well.
+  // potential client location on serverless envs
   const slsRelativeOutputDir = relativeOutdir
     .split(path.sep)
     .slice(1)
@@ -31,6 +48,10 @@ const dirname = findSync(process.cwd(), [
 ], ['d'], ['d'], 1)[0] || __dirname`
 }
 
-function buildDirnameRelative(relativeOutdir: string) {
-  return `const dirname = '${relativeOutdir}'`
+/**
+ * Builds a simple `dirname` for when it is not important to have one.
+ * @returns
+ */
+function buildDirnameRelative() {
+  return `const dirname = '/'`
 }
