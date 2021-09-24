@@ -17,11 +17,11 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a",
+    "@prisma/engines-version": "3.2.0-8.b3267b043a190a585bd06e9e91855e135eb7b1c6",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@types/jest": "27.0.1",
-    "@types/node": "12.20.24",
+    "@types/jest": "27.0.2",
+    "@types/node": "12.20.26",
     "@types/pg": "8.6.1",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.7",
@@ -37,7 +37,7 @@
     "eslint-plugin-prettier": "4.0.0",
     "fs-jetpack": "4.1.1",
     "glob": "7.1.7",
-    "jest": "27.1.0",
+    "jest": "27.2.1",
     "lint-staged": "11.1.2",
     "make-dir": "3.1.0",
     "mariadb": "2.5.4",
@@ -56,7 +56,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.1.0-2.eb8eb4c97238c32c9e71756e76d59ed5e502185a",
+    "@prisma/get-platform": "3.2.0-8.b3267b043a190a585bd06e9e91855e135eb7b1c6",
     "@sindresorhus/slugify": "1.1.2",
     "execa": "5.1.1",
     "global-dirs": "3.0.0",

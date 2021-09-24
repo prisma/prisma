@@ -27,7 +27,6 @@ import pMap from 'p-map'
 import path from 'path'
 import { getConfig, getDMMF } from '.'
 import { Generator } from './Generator'
-import { engineVersions } from './getAllVersions'
 import { pick } from './pick'
 import type { GeneratorPaths } from './predefinedGeneratorResolvers'
 import { predefinedGeneratorResolvers } from './predefinedGeneratorResolvers'
@@ -54,6 +53,10 @@ type BinaryPathsOverride = {
   [P in EngineType]?: string
 }
 
+// From https://github.com/prisma/prisma/blob/eb4563aea6fb6e593ae48106a74f716ce3dc6752/packages/cli/src/Generate.ts#L167-L172
+// versions are set like:
+// version: enginesVersion,
+// cliVersion: pkg.version,
 export type GetGeneratorOptions = {
   schemaPath: string
   providerAliases?: ProviderAliases
@@ -713,10 +716,9 @@ function getEngineVersionForGenerator(
   manifest?: GeneratorManifest,
   defaultVersion?: string | undefined,
 ): string {
-  let neededVersion: string = manifest!.requiresEngineVersion!
-  if (manifest?.version && engineVersions[manifest?.version]) {
-    neededVersion = engineVersions[manifest?.version]
-  }
+  let neededVersion = manifest?.requiresEngineVersion
+
   neededVersion = neededVersion ?? defaultVersion // default to CLI version otherwise, if not provided
+
   return neededVersion ?? 'latest'
 }

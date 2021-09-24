@@ -7,17 +7,17 @@ import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 export async function handlePanic(
   error: RustPanic,
   cliVersion: string,
-  binaryVersion: string,
+  engineVersion: string,
   command: string,
 ): Promise<void> {
   if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
     throw error
   }
 
-  await panicDialog(error, cliVersion, binaryVersion, command)
+  await panicDialog(error, cliVersion, engineVersion, command)
 }
 
-async function panicDialog(error, cliVersion, binaryVersion, command) {
+async function panicDialog(error, cliVersion, engineVersion, command) {
   const errorMessage = error.message
     .split('\n')
     .slice(0, Math.max(20, process.stdout.rows))
@@ -60,7 +60,7 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     let reportId: number | void
     try {
       console.log('Submitting...')
-      reportId = await sendPanic(error, cliVersion, binaryVersion)
+      reportId = await sendPanic(error, cliVersion, engineVersion)
     } catch (error) {
       console.log(reportFailedMessage)
     }
@@ -78,7 +78,7 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     prompt: !response.value,
     error,
     cliVersion,
-    binaryVersion,
+    engineVersion,
     command,
   })
 }
