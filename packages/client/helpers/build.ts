@@ -1,7 +1,6 @@
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
-import { fillPlugin } from '../../../helpers/compile/fillPlugin'
-import { externalPlugin } from '../../../helpers/compile/externalPlugin'
+import { fillPlugin } from '../../../helpers/compile/plugins/fillPlugin'
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 import path from 'path'
 
@@ -104,7 +103,9 @@ void build([
   browserBuildConfig,
   proxyBuildConfig,
 ]).then(() => {
-  bundleTypeDefinitions('declaration/index', 'runtime/index')
-  bundleTypeDefinitions('declaration/index', 'runtime/proxy')
-  bundleTypeDefinitions('declaration/index-browser', 'runtime/index-browser')
+  if (process.env.DEV !== 'true') {
+    bundleTypeDefinitions('declaration/index', 'runtime/index')
+    bundleTypeDefinitions('declaration/index', 'runtime/proxy')
+    bundleTypeDefinitions('declaration/index-browser', 'runtime/index-browser')
+  }
 })
