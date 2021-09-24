@@ -5,6 +5,7 @@ import type {
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
+import type { Platform } from '@prisma/sdk'
 import { getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
@@ -89,8 +90,8 @@ export async function buildClient({
     generator,
     platforms:
       clientEngineType === ClientEngineType.Library
-        ? Object.keys(binaryPaths.libqueryEngine!)
-        : Object.keys(binaryPaths.queryEngine!),
+        ? (Object.keys(binaryPaths.libqueryEngine!) as Platform[])
+        : (Object.keys(binaryPaths.queryEngine!) as Platform[]),
     schemaDir,
     outputDir,
     clientVersion,
