@@ -229,7 +229,7 @@ export interface GetPrismaClientOptions {
   /**
    * The contents of the schema encoded into a string
    */
-  inlineSchema: string
+  inlineSchema?: string
 }
 
 const actionOperationMap = {
