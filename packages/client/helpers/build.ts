@@ -46,7 +46,7 @@ const proxyBuildConfig: BuildOptions = {
     fillPlugin({
       // TODO no tree shaking on wrapper pkgs
       '@prisma/get-platform': { contents: '' },
-      // these cannot be exported anymore
+      // these can not be exported any longer
       './warnEnvConflicts': { contents: '' },
       './utils/find': { contents: '' },
     }),
