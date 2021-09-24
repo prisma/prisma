@@ -34,7 +34,7 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getEsmOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getEsmOutDir(options),
-  emitProjectTypes: false,
+  emitProjectTypes: false, // just build it on the next pass
 })
 
 /**
@@ -65,7 +65,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
  * - 1. The code gets compiled to an optimized tree-shaken esm output
  * - 2. We take that output and compile it to an optimized cjs output
  * @param options the original build options
- * @returns if options = [a, b], we get [a/esm, a/cjs, b/esm, b/cjs]
+ * @returns if options = [a, b], we get [a-esm, a-cjs, b-esm, b-cjs]
  */
 function createBuildOptions(options: BuildOptions[]) {
   return flatten(
@@ -157,7 +157,7 @@ function handleBuildErrors(result?: Error | execa.ExecaReturnValue) {
  * @param options
  */
 export function build(options: BuildOptions[]) {
-  void transduce.async(
+  return transduce.async(
     createBuildOptions(options),
     pipe.async(
       computeOptions,
@@ -208,7 +208,7 @@ function stripOwnOptions(options: BuildOptions) {
 }
 
 // wrapper around execa to run our build cmds
-function run(command: string) {
+export function run(command: string) {
   return execa.command(command, {
     preferLocal: true,
     shell: true,
