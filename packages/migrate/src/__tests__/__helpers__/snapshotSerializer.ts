@@ -1,4 +1,4 @@
-const stripAnsi = require('strip-ansi')
+import stripAnsi from 'strip-ansi'
 
 function normalizeMigrateTimestamps(str) {
   return str.replace(/\d{14}/g, '20201231000000')
@@ -18,23 +18,20 @@ function normalizeMs(str) {
   return str.replace(/\d{1,3}ms/g, 'XXms')
 }
 
-const serializer = {
-  test(value) {
-    return typeof value === 'string' || value instanceof Error
-  },
-  serialize(value) {
-    const message =
-      typeof value === 'string'
-        ? value
-        : value instanceof Error
-        ? value.message
-        : ''
-    return normalizeDbUrl(
-      normalizeMs(
-        normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
-      ),
-    )
-  },
+export function test(value) {
+  return typeof value === 'string' || value instanceof Error
 }
 
-module.exports = serializer
+export function serialize(value) {
+  const message =
+    typeof value === 'string'
+      ? value
+      : value instanceof Error
+      ? value.message
+      : ''
+  return normalizeDbUrl(
+    normalizeMs(
+      normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
+    ),
+  )
+}
