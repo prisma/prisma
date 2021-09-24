@@ -1,8 +1,8 @@
-const path = require('path')
-const replaceAll = require('replace-string') // sindre's replaceAll polyfill
-const stripAnsi = require('strip-ansi')
-const { platforms } = require('@prisma/get-platform')
-const escapeString = require('escape-string-regexp')
+import path from 'path'
+import replaceAll from 'replace-string' // sindre's replaceAll polyfill
+import stripAnsi from 'strip-ansi'
+import { platforms } from '@prisma/get-platform'
+import escapeString from 'escape-string-regexp'
 
 function trimErrorPaths(str) {
   const parentDir = path.dirname(path.dirname(__dirname))
@@ -44,39 +44,10 @@ function normalizeMs(str) {
   return str.replace(/\d{1,3}ms/g, 'XXms')
 }
 
-const serializer = {
-  test(value) {
-    return typeof value === 'string' || value instanceof Error
-  },
-  serialize(value) {
-    const message =
-      typeof value === 'string'
-        ? value
-        : value instanceof Error
-        ? value.message
-        : ''
-    return prepareSchemaForSnapshot(
-      normalizeGithubLinks(
-        normalizeRustError(
-          normalizeMs(
-            normalizeTmpDir(
-              normalizeGithubLinks(
-                normalizeToUnixPaths(
-                  removePlatforms(trimErrorPaths(stripAnsi(message))),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    )
-  },
-}
-
 /**
  * Replace dynamic variable bits of Prisma schema with static strings.
  */
-export function prepareSchemaForSnapshot(schema: string): string {
+function prepareSchemaForSnapshot(schema: string): string {
   const urlRegex = /url\s*=\s*.+/
   const outputRegex = /output\s*=\s*.+/
   return schema
@@ -95,4 +66,30 @@ export function prepareSchemaForSnapshot(schema: string): string {
     .join('\n')
 }
 
-module.exports = serializer
+export function test(value) {
+  return typeof value === 'string' || value instanceof Error
+}
+
+export function serialize(value) {
+  const message =
+    typeof value === 'string'
+      ? value
+      : value instanceof Error
+      ? value.message
+      : ''
+  return prepareSchemaForSnapshot(
+    normalizeGithubLinks(
+      normalizeRustError(
+        normalizeMs(
+          normalizeTmpDir(
+            normalizeGithubLinks(
+              normalizeToUnixPaths(
+                removePlatforms(trimErrorPaths(stripAnsi(message))),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  )
+}
