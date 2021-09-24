@@ -2,6 +2,8 @@ import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/fillPlugin'
 import { externalPlugin } from '../../../helpers/compile/externalPlugin'
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
+import path from 'path'
 
 const external = ['_http_common', 'spdx-license-ids', 'spdx-exceptions']
 
@@ -54,9 +56,55 @@ const proxyBuildConfig: BuildOptions = {
   logLevel: 'error',
 }
 
-build([
+/**
+ * Bundle all type definitions into a single one
+ * @param filename the source d.ts to bundle
+ * @param outfile the output bundled file
+ */
+function bundleTypeDefinitions(filename: string, outfile: string) {
+  const extractorConfig = ExtractorConfig.prepare({
+    configObject: {
+      projectFolder: path.join(__dirname, '..'),
+      mainEntryPointFilePath: `${filename}.d.ts`,
+      bundledPackages: [
+        'decimal.js',
+        'sql-template-tag',
+        '@prisma/engine-core',
+        '@prisma/generator-helper',
+      ],
+      compiler: {
+        tsconfigFilePath: 'tsconfig.build.json',
+      },
+      dtsRollup: {
+        enabled: true,
+        untrimmedFilePath: `${outfile}.d.ts`,
+      },
+      tsdocMetadata: {
+        enabled: false,
+      },
+    },
+    packageJsonFullPath: path.join(__dirname, '..', 'package.json'),
+    configObjectFullPath: undefined,
+  })
+
+  const extractorResult = Extractor.invoke(extractorConfig, {
+    showVerboseMessages: true,
+    localBuild: true,
+  })
+
+  if (extractorResult.succeeded === false) {
+    console.error(`API Extractor completed with errors`)
+    process.exit(1)
+  }
+}
+
+void build([
   generatorBuildConfig,
   runtimeBuildConfig,
   browserBuildConfig,
   proxyBuildConfig,
-])
+]).then(() => {
+  bundleTypeDefinitions('declaration/index', 'runtime/index')
+  bundleTypeDefinitions('declaration/index', 'runtime/proxy')
+  bundleTypeDefinitions('declaration/index-browser', 'runtime/index-browser')
+})

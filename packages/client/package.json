@@ -60,6 +60,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
+    "@microsoft/api-extractor": "7.18.11",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "3.2.0-34.afdab2f10860244038c4e32458134112852d4dad",
