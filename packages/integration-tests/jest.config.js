@@ -8,5 +8,5 @@ module.exports = {
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
   // todo duplicated serializer from client package, should share
   snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
-  setupFiles: ['./src/__tests__/__helpers__/segfaultHandler.ts'],
+  setupFiles: [],
 }
