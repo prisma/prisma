@@ -21,6 +21,18 @@ function backOff(n: number): Promise<number> {
 }
 
 /**
+ * Detects the runtime environment
+ * @returns
+ */
+export function getRuntime() {
+  if (typeof self === undefined) {
+    return 'node'
+  }
+
+  return 'browser'
+}
+
+/**
  * Determine the client version to be sent to the DataProxy
  * @param config
  * @returns
@@ -37,14 +49,27 @@ function getClientVersion(config: EngineConfig) {
 }
 
 /**
- * Create a SHA256 hash from an `inlineSchema`
+ * Create a SHA256 hash from an `inlineSchema` with the methods available on the
+ * runtime. We don't polyfill this so we can keep bundles as small as possible.
  * @param inlineSchema
  * @returns
  */
 async function createSchemaHash(inlineSchema: string) {
-  const hash = await crypto.subtle.digest('SHA-256', Buffer.from(inlineSchema))
+  const schemaBuffer = Buffer.from(inlineSchema)
+  const runtime = getRuntime()
 
-  return Buffer.from(hash).toString('hex')
+  if (runtime === 'node') {
+    const crypto = (0, eval)(`require('crypto')`) // don't bundle
+    const hash = crypto.createHash('sha256').update(schemaBuffer)
+
+    return hash.digest('hex')
+  } else if (runtime === 'browser') {
+    const hash = await crypto.subtle.digest('SHA-256', schemaBuffer)
+
+    return Buffer.from(hash).toString('hex')
+  }
+
+  return ''
 }
 
 /**
