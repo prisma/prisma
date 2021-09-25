@@ -72,7 +72,7 @@
     "@timsuchanek/copy": "1.4.5",
     "@types/jest": "27.0.2",
     "@types/rimraf": "3.0.2",
-    "@types/ws": "7.4.7",
+    "@types/ws": "8.2.0",
     "@typescript-eslint/eslint-plugin": "4.29.3",
     "@typescript-eslint/parser": "4.29.3",
     "chalk": "4.1.2",
