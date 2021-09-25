@@ -325,7 +325,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           config.relativeEnvPaths.schemaEnvPath &&
           path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
-      const loadedEnv = tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+
+      const loadedEnv =
+        globalThis.NOT_PROXY && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
         const internal = options.__internal ?? {}
