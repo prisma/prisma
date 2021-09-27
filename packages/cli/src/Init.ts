@@ -57,7 +57,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -119,7 +119,7 @@ export class Init implements Command {
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQLServer (Preview) or MongoDB (Preview)
+  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB (Preview)
                   --url   Define a custom datasource url
 
   ${chalk.bold('Examples')}
