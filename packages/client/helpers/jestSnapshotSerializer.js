@@ -30,6 +30,13 @@ function normalizeGithubLinks(str) {
   )
 }
 
+function normalizeTsClientStackTrace(str) {
+  return str.replace(
+    /(\/client\/src\/__tests__\/.*\/test.ts)(:\d*:\d*)/g,
+    '$1:0:0',
+  )
+}
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -42,7 +49,11 @@ const serializer = {
         ? value.message
         : ''
     return normalizeGithubLinks(
-      normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message)))),
+      normalizeToUnixPaths(
+        removePlatforms(
+          normalizeTsClientStackTrace(trimErrorPaths(stripAnsi(message))),
+        ),
+      ),
     )
   },
 }

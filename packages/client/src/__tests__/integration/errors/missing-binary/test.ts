@@ -44,9 +44,13 @@ test('missing-binary', async () => {
       await prisma.user.findMany()
     }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.findMany()\` invocation:
+            Invalid \`prisma.user.findMany()\` invocation in
+            /client/src/__tests__/integration/errors/missing-binary/test.ts:0:0
 
-
+              41 // When updating snapshots this is sensitive to OS, here Linux
+              42 // macOS will update extension to .dylib.node, but we need to kepp .so.node for CI
+              43 await expect(async () => {
+            → 44   await prisma.user.findMany(
               Query engine library for current platform "TEST_PLATFORM" could not be found.
             You incorrectly pinned it to TEST_PLATFORM
 
