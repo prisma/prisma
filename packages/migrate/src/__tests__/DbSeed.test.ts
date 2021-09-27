@@ -11,8 +11,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                    🌱  The seed command has been executed.
-                                                                                                                                                      `)
+                                                                                                                                                                                                🌱  The seed command has been executed.
+                                                                                                                                                                `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -37,7 +37,7 @@ describe('seed', () => {
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
-      `ReferenceError: BROKEN_CODE_SHOULD_ERROR is not defined`,
+      'An error occured while running the seed command:',
     )
     expect(mockExit).toBeCalledWith(1)
   })
@@ -48,8 +48,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  The seed command has been executed.
-                                                                                                                                                                          `)
+                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
@@ -66,8 +66,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  The seed command has been executed.
-                                                                                                                                                                          `)
+                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
@@ -88,37 +88,37 @@ describe('seed - legacy', () => {
       await DbSeed.new().parse([])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+        To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-1. Open the package.json of your project
-2. Add one of the following examples to your package.json:
+        1. Open the package.json of your project
+        2. Add one of the following examples to your package.json:
 
-TypeScript:
-\`\`\`
-"prisma": {
-  "seed": "ts-node ./prisma/seed.ts"
-}
-\`\`\`
-And install the required dependencies by running:
-npm i -D ts-node typescript @types/node
+        TypeScript:
+        \`\`\`
+        "prisma": {
+          "seed": "ts-node ./prisma/seed.ts"
+        }
+        \`\`\`
+        And install the required dependencies by running:
+        npm i -D ts-node typescript @types/node
 
-JavaScript:
-\`\`\`
-"prisma": {
-  "seed": "node ./prisma/seed.js"
-}
-\`\`\`
+        JavaScript:
+        \`\`\`
+        "prisma": {
+          "seed": "node ./prisma/seed.js"
+        }
+        \`\`\`
 
-Bash:
-\`\`\`
-"prisma": {
-  "seed": "./prisma/seed.sh"
-}
-\`\`\`
-And run \`chmod +x prisma/seed.sh\` to make it executable.
-More information in our documentation:
-https://pris.ly/d/seeding
-`)
+        Bash:
+        \`\`\`
+        "prisma": {
+          "seed": "./prisma/seed.sh"
+        }
+        \`\`\`
+        And run \`chmod +x prisma/seed.sh\` to make it executable.
+        More information in our documentation:
+        https://pris.ly/d/seeding
+      `)
     }
 
     expect(
@@ -162,8 +162,8 @@ https://pris.ly/d/seeding
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-            🌱  The seed command has been executed.
-          `)
+                        🌱  The seed command has been executed.
+                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
@@ -184,8 +184,8 @@ https://pris.ly/d/seeding
     const result = DbSeed.new().parse(['--schema=./some-folder/schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                            🌱  The seed command has been executed.
-                                                                                                                                                                          `)
+                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                    `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
@@ -204,19 +204,19 @@ https://pris.ly/d/seeding
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-1. Open the package.json of your project
-2. Add the following example to it:
-\`\`\`
-"prisma": {
-  "seed": "node custom-folder/seed.js"
-}
-\`\`\`
+            1. Open the package.json of your project
+            2. Add the following example to it:
+            \`\`\`
+            "prisma": {
+              "seed": "node custom-folder/seed.js"
+            }
+            \`\`\`
 
-More information in our documentation:
-https://pris.ly/d/seeding
-`)
+            More information in our documentation:
+            https://pris.ly/d/seeding
+          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
@@ -230,22 +230,22 @@ https://pris.ly/d/seeding
 
     const result = DbSeed.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
-To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+            To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
 
-1. Open the package.json of your project
-2. Add the following example to it:
-\`\`\`
-"prisma": {
-  "seed": "ts-node prisma/seed.ts"
-}
-\`\`\`
+            1. Open the package.json of your project
+            2. Add the following example to it:
+            \`\`\`
+            "prisma": {
+              "seed": "ts-node prisma/seed.ts"
+            }
+            \`\`\`
 
-3. Install the required dependencies by running:
-npm i -D ts-node typescript @types/node
+            3. Install the required dependencies by running:
+            npm i -D ts-node typescript @types/node
 
-More information in our documentation:
-https://pris.ly/d/seeding
-`)
+            More information in our documentation:
+            https://pris.ly/d/seeding
+          `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

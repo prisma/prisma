@@ -805,7 +805,7 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
-      `ReferenceError: BROKEN_CODE_SHOULD_ERROR is not defined`,
+      `An error occured while running the seed command:`,
     )
   })
 
