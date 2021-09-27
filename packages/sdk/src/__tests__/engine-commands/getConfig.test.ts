@@ -16,6 +16,10 @@ describe('getConfig', () => {
       }`,
     })
 
+    expect(config.datasources).toHaveLength(1)
+    expect(config.datasources[0].provider).toEqual('sqlite')
+    expect(config.generators).toHaveLength(0)
+    expect(config.warnings).toHaveLength(0)
     expect(config).toMatchSnapshot()
   })
 
@@ -66,6 +70,9 @@ describe('getConfig', () => {
     }`,
     })
 
+    expect(config.datasources).toHaveLength(1)
+    expect(config.generators).toHaveLength(1)
+    expect(config.warnings).toHaveLength(0)
     expect(config).toMatchSnapshot()
   })
 
@@ -97,5 +104,107 @@ describe('getConfig', () => {
     })
 
     expect(config).toMatchSnapshot()
+  })
+  test('with engineType="binary"', async () => {
+    const binaryConfig = await getConfig({
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:../hello.db"
+      }
+
+      generator gen {
+        provider = "fancy-provider"
+        engineType = "binary"
+      }
+
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
+
+    expect(binaryConfig).toMatchInlineSnapshot(`
+Object {
+  "datasources": Array [
+    Object {
+      "activeProvider": "sqlite",
+      "name": "db",
+      "provider": "sqlite",
+      "url": Object {
+        "fromEnvVar": null,
+        "value": "file:../hello.db",
+      },
+    },
+  ],
+  "generators": Array [
+    Object {
+      "binaryTargets": Array [],
+      "config": Object {
+        "engineType": "binary",
+      },
+      "name": "gen",
+      "output": null,
+      "previewFeatures": Array [],
+      "provider": Object {
+        "fromEnvVar": null,
+        "value": "fancy-provider",
+      },
+    },
+  ],
+  "warnings": Array [],
+}
+`)
+  })
+  test('with engineType="library"', async () => {
+    const libraryConfig = await getConfig({
+      datamodel: `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:../hello.db"
+      }
+
+      generator gen {
+        provider = "fancy-provider"
+        engineType = "library"
+      }
+
+      model A {
+        id Int @id
+        name String
+      }`,
+    })
+
+    expect(libraryConfig).toMatchInlineSnapshot(`
+Object {
+  "datasources": Array [
+    Object {
+      "activeProvider": "sqlite",
+      "name": "db",
+      "provider": "sqlite",
+      "url": Object {
+        "fromEnvVar": null,
+        "value": "file:../hello.db",
+      },
+    },
+  ],
+  "generators": Array [
+    Object {
+      "binaryTargets": Array [],
+      "config": Object {
+        "engineType": "library",
+      },
+      "name": "gen",
+      "output": null,
+      "previewFeatures": Array [],
+      "provider": Object {
+        "fromEnvVar": null,
+        "value": "fancy-provider",
+      },
+    },
+  ],
+  "warnings": Array [],
+}
+`)
   })
 })

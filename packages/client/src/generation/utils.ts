@@ -4,6 +4,7 @@ import indent from 'indent-string'
 import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
+import { ClientEngineType } from '../runtime/utils/getClientEngineType'
 
 export enum Projection {
   select = 'select',
@@ -366,7 +367,7 @@ export function unique<T>(arr: T[]): T[] {
   return result
 }
 export function buildNFTEngineAnnotations(
-  isNodeAPI: boolean,
+  clientEngineType: ClientEngineType,
   platforms: Platform[],
   cwdDirname: string,
 ) {
@@ -374,17 +375,18 @@ export function buildNFTEngineAnnotations(
     platforms = ['rhel-openssl-1.0.x']
   }
 
-  const getName = (p: Platform) =>
-    isNodeAPI ? getNodeAPIName(p, 'fs') : `query-engine-${p}`
-  return `${
-    platforms
-      ? platforms
-          .map(
-            (p) => `path.join(__dirname, '${getName(p)}');
-path.join(process.cwd(), './${path.join(cwdDirname, getName(p))}');
-`,
-          )
-          .join('\n')
-      : ''
-  }`
+  const getQueryEngineFilename = (p: Platform) =>
+    clientEngineType === ClientEngineType.Binary
+      ? `query-engine-${p}`
+      : getNodeAPIName(p, 'fs')
+
+  const buildAnnotation = (p: Platform) => {
+    return `path.join(__dirname, '${getQueryEngineFilename(p)}');
+path.join(process.cwd(), './${path.join(
+      cwdDirname,
+      getQueryEngineFilename(p),
+    )}')`
+  }
+
+  return platforms ? platforms.map(buildAnnotation).join('\n') : ''
 }

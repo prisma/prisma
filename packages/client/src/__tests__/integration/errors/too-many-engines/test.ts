@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('raw-transaction: queryRaw', async () => {
+test('too-many-engines warning', async () => {
   const PrismaClient = await getTestClient()
   const oldConsoleWarn = console.warn
   const warnings: any[] = []
@@ -18,16 +18,12 @@ test('raw-transaction: queryRaw', async () => {
   for (const client of clients) {
     client.$disconnect()
   }
-  if (process.env.PRISMA_FORCE_NAPI) {
-    // TODO Should this really not be implemented? https://github.com/prisma/prisma/issues/7814
-    expect(warnings).toMatchInlineSnapshot(`Array []`)
-  } else {
-    expect(warnings).toMatchInlineSnapshot(`
-      Array [
-        warn(prisma-client) Already 10 Prisma Clients are actively running.,
-      ]
-    `)
-  }
+
+  expect(warnings).toMatchInlineSnapshot(`
+    Array [
+      warn(prisma-client) Already 10 Prisma Clients are actively running.,
+    ]
+  `)
 
   console.warn = oldConsoleWarn
 })

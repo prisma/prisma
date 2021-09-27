@@ -15,24 +15,23 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@types/debug": "4.1.7",
-    "@types/jest": "26.0.24",
-    "@types/node": "12.20.17",
-    "@typescript-eslint/eslint-plugin": "4.28.5",
-    "@typescript-eslint/parser": "4.28.5",
+    "@types/jest": "27.0.2",
+    "@types/node": "12.20.26",
+    "@typescript-eslint/eslint-plugin": "4.29.3",
+    "@typescript-eslint/parser": "4.29.3",
     "esbuild": "0.12.16",
-    "eslint": "7.31.0",
+    "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.4.0",
-    "eslint-plugin-prettier": "3.4.0",
+    "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "glob": "7.1.7",
-    "jest": "27.0.6",
-    "lint-staged": "11.1.1",
+    "jest": "27.2.1",
+    "lint-staged": "11.1.2",
     "prettier": "2.3.2",
     "strip-ansi": "6.0.0",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.0.5",
     "typescript": "4.3.5"
   },
   "scripts": {
@@ -50,6 +49,7 @@
     "dist"
   ],
   "dependencies": {
+    "@types/debug": "4.1.7",
     "debug": "4.3.2",
     "ms": "2.1.3"
   },

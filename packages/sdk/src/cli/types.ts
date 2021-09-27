@@ -28,7 +28,7 @@ export type GeneratorOptions = {
   otherGenerators: GeneratorConfig[]
   cwd: string
   dmmf: any
-  dataSources: any
+  datasources: any
   datamodel: string
 }
 

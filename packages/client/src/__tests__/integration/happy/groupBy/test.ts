@@ -98,39 +98,6 @@ describe('groupBy', () => {
     expect(user).toMatchSnapshot()
   })
 
-  test('name and aggregations (legacy)', async () => {
-    try {
-      const user = await prisma.user.groupBy({
-        by: ['name'],
-        where: {
-          age: {
-            gt: -1,
-          },
-        },
-        // skip: 0,
-        // take: 10000,
-        avg: {
-          age: true,
-        },
-        count: {
-          // age: true,
-          _all: true,
-        },
-        max: {
-          age: true,
-        },
-        min: {
-          age: true,
-        },
-        sum: {
-          age: true,
-        },
-      })
-    } catch (e) {
-      expect(e).toMatchSnapshot()
-    }
-  })
-
   test('name and with count', async () => {
     const user = await prisma.user.groupBy({
       by: ['name'],
@@ -145,16 +112,5 @@ describe('groupBy', () => {
         },
       ]
     `)
-  })
-
-  test('name and with count (legacy)', async () => {
-    try {
-      const user = await prisma.user.groupBy({
-        by: ['name'],
-        count: true,
-      })
-    } catch (e) {
-      expect(e).toMatchSnapshot()
-    }
   })
 })

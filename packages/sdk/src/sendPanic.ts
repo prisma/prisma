@@ -21,7 +21,7 @@ tmp.setGracefulCleanup()
 export async function sendPanic(
   error: RustPanic,
   cliVersion: string,
-  binaryVersion: string,
+  engineVersion: string,
 ): Promise<number | void> {
   try {
     let schema: undefined | string
@@ -71,7 +71,7 @@ export async function sendPanic(
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
-      binaryVersion,
+      binaryVersion: engineVersion,
       command: getCommand(),
       jsStackTrace: stripAnsi(error.stack || error.message),
       rustStackTrace: error.rustStack,

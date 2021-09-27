@@ -1,0 +1,39 @@
+# Disable PR comments for now
+comment: false
+
+# About `carryforward: true`
+# https://docs.codecov.com/docs/carryforward-flags
+
+flags:
+  cli:
+    carryforward: true
+    paths:
+      - packages/cli/
+  client:
+    carryforward: true
+    paths:
+      - packages/client/
+  debug:
+    carryforward: true
+    paths:
+      - packages/debug/
+  engine-core:
+    carryforward: true
+    paths:
+      - packages/engine-core/
+  generator-helper:
+    carryforward: true
+    paths:
+      - packages/generator-helper/
+  integration-tests:
+    carryforward: true
+    paths:
+      - packages/integration-tests/
+  migrate:
+    carryforward: true
+    paths:
+      - packages/migrate/
+  sdk:
+    carryforward: true
+    paths:
+      - packages/sdk/

@@ -4,10 +4,7 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 import { getSchemaDir } from './cli/getSchema'
-import {
-  databaseTypeToConnectorType,
-  protocolToDatabaseType,
-} from './convertCredentials'
+import { protocolToConnectorType } from './convertCredentials'
 import { resolveBinary } from './resolveBinary'
 
 const exists = promisify(fs.exists)
@@ -38,6 +35,8 @@ type LogLevel = 'INFO' | 'ERROR' | 'DEBUG' | 'WARN'
 interface LogFields {
   message: string
   git_hash?: string
+  /// Hint from the engine to the CLI to log this line.
+  migrate_action?: 'log'
   // Only for ERROR level messages
   is_panic?: boolean
   error_code?: string
@@ -89,9 +88,7 @@ export async function canConnectToDatabase(
     )
   }
 
-  const provider = databaseTypeToConnectorType(
-    protocolToDatabaseType(`${connectionString.split(':')[0]}:`),
-  )
+  const provider = protocolToConnectorType(`${connectionString.split(':')[0]}:`)
 
   if (provider === 'sqlite') {
     const sqliteExists = await doesSqliteDbExist(connectionString, cwd)
@@ -115,7 +112,10 @@ export async function canConnectToDatabase(
   } catch (e) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find((it) => it.level === 'ERROR')
+      const error = logs.find(
+        (it) =>
+          it.level === 'ERROR' && it.target === 'migration_engine::logger',
+      )
 
       if (error && error.fields.error_code && error.fields.message) {
         return {
@@ -165,7 +165,10 @@ export async function createDatabase(
   } catch (e) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find((it) => it.level === 'ERROR')
+      const error = logs.find(
+        (it) =>
+          it.level === 'ERROR' && it.target === 'migration_engine::logger',
+      )
 
       if (error && error.fields.error_code && error.fields.message) {
         throw new Error(`${error.fields.error_code}: ${error.fields.message}`)

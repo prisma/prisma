@@ -29,7 +29,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.2"
+    "node": ">=12.6"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -63,41 +63,41 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "2.29.0-5.8062e306decdf2fe2c2dcb8409c513a2023c8653",
+    "@prisma/fetch-engine": "3.2.0-9.150e82a7b6c98c6c48c5fa380927d95e7e5d5f14",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.29.0-5.8062e306decdf2fe2c2dcb8409c513a2023c8653",
+    "@prisma/get-platform": "3.2.0-9.150e82a7b6c98c6c48c5fa380927d95e7e5d5f14",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio-server": "0.418.0",
+    "@prisma/studio-server": "0.435.0",
     "@timsuchanek/copy": "1.4.5",
-    "@types/jest": "26.0.24",
-    "@types/rimraf": "3.0.1",
-    "@types/ws": "7.4.7",
-    "@typescript-eslint/eslint-plugin": "4.28.5",
-    "@typescript-eslint/parser": "4.28.5",
-    "chalk": "4.1.1",
+    "@types/jest": "27.0.2",
+    "@types/rimraf": "3.0.2",
+    "@types/ws": "8.2.0",
+    "@typescript-eslint/eslint-plugin": "4.29.3",
+    "@typescript-eslint/parser": "4.29.3",
+    "chalk": "4.1.2",
     "checkpoint-client": "1.1.20",
     "dotenv": "10.0.0",
     "esbuild": "0.8.53",
     "escape-string-regexp": "4.0.0",
-    "eslint": "7.31.0",
+    "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "24.4.0",
-    "eslint-plugin-prettier": "3.4.0",
+    "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
-    "fs-jetpack": "4.1.0",
+    "fs-jetpack": "4.1.1",
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "indent-string": "4.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.0.6",
+    "jest": "27.2.1",
     "line-replace": "2.0.1",
-    "lint-staged": "11.1.1",
+    "lint-staged": "11.1.2",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
-    "node-fetch": "2.6.1",
+    "node-fetch": "2.6.4",
     "open": "7.4.2",
     "pg": "8.7.1",
     "pkg-up": "3.1.0",
@@ -107,16 +107,13 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
-    "ts-jest": "27.0.4",
+    "ts-jest": "27.0.5",
     "typescript": "4.3.5"
   },
   "scripts": {
     "dev": "DEV=true node helpers/build.js",
     "build": "node helpers/build.js",
-    "test:commands": "./fixtures/test.sh && jest --maxConcurrency=1",
-    "test-update": "pnpm run test:commands -- -u",
-    "test": "pnpm run test:commands",
-    "jest": "jest",
+    "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
@@ -127,7 +124,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "2.29.0-5.8062e306decdf2fe2c2dcb8409c513a2023c8653"
+    "@prisma/engines": "3.2.0-9.150e82a7b6c98c6c48c5fa380927d95e7e5d5f14"
   },
   "lint-staged": {
     "*.ts": [

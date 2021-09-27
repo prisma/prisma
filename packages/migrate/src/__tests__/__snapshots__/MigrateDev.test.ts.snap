@@ -138,17 +138,15 @@ exports[`sqlite invalid schema 3`] = `Array []`;
 
 exports[`sqlite invalid schema 4`] = `Array []`;
 
-exports[`sqlite multple seed files 3`] = ``;
-
-exports[`sqlite one broken seed file 3`] = ``;
+exports[`sqlite one broken seed.js file 3`] = ``;
 
 exports[`sqlite one seed file --skip-seed 3`] = ``;
 
 exports[`sqlite one seed file --skip-seed 4`] = ``;
 
-exports[`sqlite one seed file 3`] = ``;
+exports[`sqlite one seed.ts file 3`] = ``;
 
-exports[`sqlite one seed file 4`] = ``;
+exports[`sqlite one seed.ts file 4`] = ``;
 
 exports[`sqlite provider array should fail 3`] = `Array []`;
 

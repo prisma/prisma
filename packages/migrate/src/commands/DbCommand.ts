@@ -6,7 +6,6 @@ import {
   HelpError,
   isError,
   unknownCommand,
-  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 
@@ -32,7 +31,7 @@ ${chalk.bold('Options')}
 ${chalk.bold('Commands')}
         pull   Pull the state from the database to the Prisma schema using introspection
         push   Push the state from Prisma schema to the database during prototyping
-        seed   Seed your database ${chalk.dim('(preview)')} 
+        seed   Seed your database
 
 ${chalk.bold('Examples')}
 
@@ -43,7 +42,7 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma db push
 
   Using prisma db seed
-  ${chalk.dim('$')} prisma db seed --preview-feature
+  ${chalk.dim('$')} prisma db seed
 `)
 
   private constructor(private readonly cmds: Commands) {}

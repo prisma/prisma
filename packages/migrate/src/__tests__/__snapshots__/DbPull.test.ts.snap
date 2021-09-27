@@ -3,11 +3,11 @@
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:5432;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT"
+  url      = "sqlserver://localhost:5432;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 }
 
 model jobs {
-  job_id      Int       @id @default(autoincrement())
+  job_id      Int       @id(map: "PK__jobs__CustomNameToAvoidRandomNumber") @default(autoincrement())
   customer_id Int?
   description String?   @db.VarChar(200)
   created_at  DateTime?
@@ -24,7 +24,7 @@ datasource db {
 }
 
 model jobs {
-  job_id      Int       @id @default(autoincrement())
+  job_id      Int       @id(map: "PK__jobs__CustomNameToAvoidRandomNumber") @default(autoincrement())
   customer_id Int?
   description String?   @db.VarChar(200)
   created_at  DateTime?
@@ -51,18 +51,18 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
-  userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  email   String   @unique
+  email   String   @unique(map: "User.email")
   id      Int      @id @default(autoincrement())
   name    String?
   posts   Post[]
@@ -90,18 +90,18 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  author    User     @relation(fields: [authorId], references: [id])
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
-  userId Int     @unique
-  user   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  email   String   @unique
+  email   String   @unique(map: "User.email")
   id      Int      @id @default(autoincrement())
   name    String?
   posts   Post[]
@@ -133,18 +133,18 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  User      User     @relation(fields: [authorId], references: [id])
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
-  userId Int     @unique
-  User   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique(map: "Profile.userId")
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  email   String   @unique
+  email   String   @unique(map: "User.email")
   id      Int      @id @default(autoincrement())
   name    String?
   Post    Post[]
@@ -167,7 +167,7 @@ datasource db {
 }
 
 model AwesomeUser {
-  email    String           @unique
+  email    String           @unique(map: "User.email")
   id       Int              @id @default(autoincrement())
   name     String?
   newPosts AwesomeNewPost[]
@@ -183,7 +183,7 @@ model AwesomeNewPost {
   id        Int         @id @default(autoincrement())
   published Boolean     @default(false)
   title     String
-  author    AwesomeUser @relation(fields: [authorId], references: [id])
+  author    AwesomeUser @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
   @@map("Post")
 }
@@ -191,8 +191,8 @@ model AwesomeNewPost {
 model AwesomeProfile {
   bio    String?
   id     Int         @id @default(autoincrement())
-  userId Int         @unique
-  user   AwesomeUser @relation(fields: [userId], references: [id])
+  userId Int         @unique(map: "Profile.userId")
+  user   AwesomeUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("Profile")
 }
@@ -219,18 +219,18 @@ model Post {
   id        Int      @id @default(autoincrement())
   published Boolean  @default(false)
   title     String
-  User      User     @relation(fields: [authorId], references: [id])
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
 }
 
 model Profile {
   bio    String?
   id     Int     @id @default(autoincrement())
-  userId Int     @unique
-  User   User    @relation(fields: [userId], references: [id])
+  userId Int     @unique(map: "Profile.userId")
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model User {
-  email   String   @unique
+  email   String   @unique(map: "User.email")
   id      Int      @id @default(autoincrement())
   name    String?
   Post    Post[]
@@ -254,7 +254,7 @@ model your_log {
   ip_address   String   @db.VarChar(41)
   country_code String   @db.Char(2)
 
-  @@index([shorturl], name: "shorturl")
+  @@index([shorturl], map: "shorturl")
 }
 
 model your_options {
@@ -263,7 +263,7 @@ model your_options {
   option_value String @db.LongText
 
   @@id([option_id, option_name])
-  @@index([option_name], name: "option_name")
+  @@index([option_name], map: "option_name")
 }
 
 model your_url {
@@ -274,8 +274,8 @@ model your_url {
   ip        String   @db.VarChar(41)
   clicks    Int      @db.UnsignedInt
 
-  @@index([ip], name: "ip")
-  @@index([timestamp], name: "timestamp")
+  @@index([ip], map: "ip")
+  @@index([timestamp], map: "timestamp")
 }
 
 
@@ -297,7 +297,7 @@ model your_log {
   ip_address   String   @db.VarChar(41)
   country_code String   @db.Char(2)
 
-  @@index([shorturl], name: "shorturl")
+  @@index([shorturl], map: "shorturl")
 }
 
 model your_options {
@@ -306,7 +306,7 @@ model your_options {
   option_value String @db.LongText
 
   @@id([option_id, option_name])
-  @@index([option_name], name: "option_name")
+  @@index([option_name], map: "option_name")
 }
 
 model your_url {
@@ -317,8 +317,8 @@ model your_url {
   ip        String   @db.VarChar(41)
   clicks    Int      @db.UnsignedInt
 
-  @@index([ip], name: "ip")
-  @@index([timestamp], name: "timestamp")
+  @@index([ip], map: "ip")
+  @@index([timestamp], map: "timestamp")
 }
 
 
@@ -346,7 +346,7 @@ model Post {
 
 model User {
   id    String  @id
-  email String  @unique
+  email String  @unique(map: "User.email")
   name  String?
   Post  Post[]
 }
@@ -381,7 +381,7 @@ model Post {
 
 model User {
   id    String  @id
-  email String  @unique
+  email String  @unique(map: "User.email")
   name  String?
   Post  Post[]
 }

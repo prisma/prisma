@@ -1,15 +1,16 @@
 name: Benchmark
-# Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
+# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/master/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/.buildkite/publish/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - "*.md"
+      - ".devcontainer/**"
       - ".vscode/**"
       - "docs/**"
       - "examples/**"

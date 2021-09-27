@@ -6,6 +6,7 @@ const ESBUILD_DEFAULT = {
   platform: 'node',
   target: 'es2018',
   external: ['_http_common'],
+  keepNames: true,
   tsconfig: 'tsconfig.build.json',
 }
 

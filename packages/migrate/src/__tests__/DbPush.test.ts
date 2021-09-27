@@ -93,7 +93,6 @@ describe('push', () => {
 
       SQLite database dev.db created at file:dev.db
 
-
       🚀  Your database is now in sync with your schema. Done in XXms
     `)
     expect(
@@ -193,7 +192,17 @@ describe('push', () => {
     prompt.inject(['y'])
 
     const result = DbPush.new().parse([])
+
+    const sqliteDbSizeBefore = ctx.fs.inspect('prisma/dev.db')!.size
+
     await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    const sqliteDbSizeAfter = ctx.fs.inspect('prisma/dev.db')!.size
+
+    expect(sqliteDbSizeBefore).toBeGreaterThan(10000)
+    expect(sqliteDbSizeAfter).toBeGreaterThan(10000)
+    expect(sqliteDbSizeAfter).toBeLessThan(sqliteDbSizeBefore)
+
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -263,14 +272,14 @@ describe('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                        ⚠️ We found changes that cannot be executed:
+                                    ⚠️ We found changes that cannot be executed:
 
-                          • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                      • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                        Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-                        All data will be lost.
-                                
-                    `)
+                                    Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+                                    All data will be lost.
+                                            
+                              `)
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

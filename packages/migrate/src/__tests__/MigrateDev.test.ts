@@ -369,7 +369,6 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -417,7 +416,6 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
       The following migration(s) have been applied:
 
       migrations/
@@ -446,7 +444,6 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-
       The following migration(s) have been applied:
 
       migrations/
@@ -472,9 +469,7 @@ describe('sqlite', () => {
       await MigrateDev.new().parse([])
     } catch (e) {
       expect(e.code).toEqual('P3006')
-      expect(e.message).toContain(
-        'Error querying the database: near "BROKEN": syntax error',
-      )
+      expect(e.message).toContain('near "BROKEN": syntax error')
     }
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
@@ -604,14 +599,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                            ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                            You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                                            Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                                          `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -667,10 +662,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-            ⚠️  Warnings for the current datasource:
+                                                                                                                                                            ⚠️  Warnings for the current datasource:
 
-              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-        `)
+                                                                                                                                                              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -691,10 +686,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-            ⚠️  Warnings for the current datasource:
+                                                                                                                                                            ⚠️  Warnings for the current datasource:
 
-              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-        `)
+                                                                                                                                                              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -728,9 +723,8 @@ describe('sqlite', () => {
     ).toMatchInlineSnapshot(``)
   })
 
-  it('one seed file', async () => {
-    ctx.fixture('edited-and-draft')
-    fs.write('prisma/seed.js', 'console.log("Hello from generated seed")')
+  it('one seed.ts file', async () => {
+    ctx.fixture('seed-sqlite-ts')
 
     prompt.inject(['y'])
 
@@ -740,18 +734,18 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
 
-      The following migration(s) have been applied:
+      Running seed command \`ts-node prisma/seed.ts\` ...
+
+      🌱  The seed command has been executed.
+
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
-        └─ 20201231000000_test/
+        └─ 20201231000000_/
           └─ migration.sql
-        └─ 20201231000000_draft/
-          └─ migration.sql
-
-      Running seed from "prisma/seed.js" ...
 
       Your database is now in sync with your schema.
     `)
@@ -760,8 +754,7 @@ describe('sqlite', () => {
   })
 
   it('one seed file --skip-seed', async () => {
-    ctx.fixture('edited-and-draft')
-    fs.write('prisma/seed.js', 'console.log("Hello from generated seed")')
+    ctx.fixture('seed-sqlite-ts')
 
     prompt.inject(['y'])
 
@@ -771,15 +764,12 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-
-      The following migration(s) have been applied:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
-        └─ 20201231000000_test/
-          └─ migration.sql
-        └─ 20201231000000_draft/
+        └─ 20201231000000_/
           └─ migration.sql
 
       Your database is now in sync with your schema.
@@ -788,9 +778,9 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
   })
 
-  it('one broken seed file', async () => {
-    ctx.fixture('edited-and-draft')
-    fs.write('prisma/seed.js', 'BROKENCODE;;;;;')
+  it('one broken seed.js file', async () => {
+    ctx.fixture('seed-sqlite-js')
+    fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
     prompt.inject(['y'])
 
@@ -800,60 +790,71 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
 
-      The following migration(s) have been applied:
+      Running seed command \`node prisma/seed.js\` ...
+
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
-        └─ 20201231000000_test/
+        └─ 20201231000000_/
           └─ migration.sql
-        └─ 20201231000000_draft/
-          └─ migration.sql
-
-      Running seed from "prisma/seed.js" ...
 
       Your database is now in sync with your schema.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
-      'Command failed with exit code 1',
+      `ReferenceError: BROKEN_CODE_SHOULD_ERROR is not defined`,
     )
   })
 
-  it('multple seed files', async () => {
-    ctx.fixture('edited-and-draft')
-    fs.write('prisma/seed.sh', 'echo "Hello from generated seed"')
-    fs.write('prisma/seed.js', 'console.log("Hello from generated seed")')
-
-    prompt.inject(['y'])
+  it('legacy seed (no config in package.json)', async () => {
+    ctx.fixture('seed-sqlite-legacy')
+    ctx.fs.remove('prisma/seed.js')
+    // ctx.fs.remove('prisma/seed.ts')
+    ctx.fs.remove('prisma/seed.sh')
+    prompt.inject(['y']) // simulate user yes input
 
     const result = MigrateDev.new().parse([])
-
     await expect(result).resolves.toMatchInlineSnapshot(``)
+
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-
-      The following migration(s) have been applied:
+      The following migration(s) have been created and applied from new schema changes:
 
       migrations/
-        └─ 20201231000000_test/
+        └─ 20201231000000_/
           └─ migration.sql
-        └─ 20201231000000_draft/
-          └─ migration.sql
-
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join())
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Error: More than one seed file was found in \`prisma\` directory.
-      This command only supports one seed file: Use \`seed.ts\`, \`.js\` or \`.sh\`.
+
+      prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
+
+      1. Open the package.json of your project
+      2. Add the following example to it:
+      \`\`\`
+      "prisma": {
+        "seed": "ts-node prisma/seed.ts"
+      }
+      \`\`\`
+
+      3. Install the required dependencies by running:
+      npm i -D ts-node typescript @types/node
+
+      More information in our documentation:
+      https://pris.ly/d/seeding
+
     `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
   })
 
   it('provider switch: postgresql to sqlite', async () => {

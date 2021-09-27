@@ -8,6 +8,7 @@ import { DMMFClass } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
 import { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { getClientEngineType } from '../../runtime/utils/getClientEngineType'
 import { buildNFTEngineAnnotations } from '../utils'
 import { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
@@ -66,13 +67,10 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
     }
-
-    // Node-API env var
-    if (
-      process.env.PRISMA_FORCE_NAPI &&
-      !config.generator?.previewFeatures.includes('nApi')
-    ) {
-      config.generator?.previewFeatures.push('nApi')
+    // This ensures that any engine override is propagated to the generated clients config
+    const clientEngineType = getClientEngineType(config.generator!)
+    if (config.generator) {
+      config.generator.config.engineType = clientEngineType
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -92,8 +90,8 @@ export class TSClient implements Generatable {
 
 // folder where the generated client is found
 const dirname = findSync(process.cwd(), [
-  '${JSON.stringify(relativeOutputDir)}',
-  '${JSON.stringify(slsRelativeOutputDir)}',
+  ${JSON.stringify(relativeOutputDir)},
+  ${JSON.stringify(slsRelativeOutputDir)},
 ], ['d'], ['d'], 1)[0] || __dirname
 
 /**
@@ -160,7 +158,7 @@ Object.assign(exports, Prisma)
  * The process.cwd() annotation is only needed for https://github.com/vercel/vercel/tree/master/packages/now-next
 **/
 ${buildNFTEngineAnnotations(
-  this.options.generator?.previewFeatures?.includes('nApi') ?? false,
+  clientEngineType,
   this.options.platforms as Platform[],
   relativeOutputDir,
 )}

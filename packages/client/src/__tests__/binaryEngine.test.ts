@@ -1,11 +1,15 @@
-import { BinaryEngine } from '@prisma/engine-core/dist/BinaryEngine'
+import { BinaryEngine } from '@prisma/engine-core'
 import path from 'path'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../runtime/utils/getClientEngineType'
 
 describe('BinaryEngine', () => {
   test('should error correctly with invalid flags', async () => {
     // Skip for Node-API library
     // TODO Better scoping when to run this test so this conditional is not necessary
-    if (process.env.PRISMA_FORCE_NAPI === 'true') {
+    if (getClientEngineType() === ClientEngineType.Library) {
       return
     }
 
