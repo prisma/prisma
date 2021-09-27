@@ -45,9 +45,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.2.0-12.bbd74e2510b36f4c0fb6760671f8f5c0735360b8",
+    "@prisma/engines": "3.2.0-13.026dd3f4c44a745a6498d84648c8478bfea157a8",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.2.0-12.bbd74e2510b36f4c0fb6760671f8f5c0735360b8",
+    "@prisma/get-platform": "3.2.0-13.026dd3f4c44a745a6498d84648c8478bfea157a8",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
