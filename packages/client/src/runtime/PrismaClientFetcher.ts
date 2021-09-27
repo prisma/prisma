@@ -6,18 +6,37 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { Dataloader } from './Dataloader'
-import { RequestParams, Unpacker } from './getPrismaClient'
+import { DataLoader } from './DataLoader'
+import { Unpacker } from './getPrismaClient'
+import { EngineMiddleware } from './MiddlewareHandler'
 import { Args, Document, unpack } from './query'
 import { printStack } from './utils/printStack'
-import { throwIfNotFound } from './utils/rejectOnNotFound'
+import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 const debug = Debug('prisma:client:fetcher')
+
+export type RequestParams = {
+  document: Document
+  dataPath: string[]
+  rootField: string
+  typeName: string
+  isList: boolean
+  clientMethod: string
+  callsite?: string
+  rejectOnNotFound?: RejectOnNotFound
+  runInTransaction?: boolean
+  showColors?: boolean
+  engineHook?: EngineMiddleware
+  args: any
+  headers?: Record<string, string>
+  transactionId?: number
+  unpacker?: Unpacker
+}
 
 export class PrismaClientFetcher {
   prisma: any
   debug: boolean
   hooks: any
-  dataloader: Dataloader<{
+  dataloader: DataLoader<{
     document: Document
     runInTransaction?: boolean
     transactionId?: number
@@ -28,11 +47,11 @@ export class PrismaClientFetcher {
     this.prisma = prisma
     this.debug = enableDebug
     this.hooks = hooks
-    this.dataloader = new Dataloader({
+    this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
-        return this.prisma._engine.requestBatch(queries, runTransaction)
+        return this.prisma._engine.requestBatch(queries, {}, runTransaction)
       },
       singleLoader: (request) => {
         const query = String(request.document)
@@ -47,7 +66,7 @@ export class PrismaClientFetcher {
         }
 
         if (!request.document.children[0].name.startsWith('findUnique')) {
-          return null
+          return undefined
         }
 
         const selectionSet = request.document.children[0].children!.join(',')

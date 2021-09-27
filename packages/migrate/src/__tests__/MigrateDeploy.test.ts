@@ -54,7 +54,6 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
-
       No migration found in prisma/migrations
 
     `)
@@ -89,7 +88,6 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
-
 
       1 migration found in prisma/migrations
 

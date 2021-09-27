@@ -37,7 +37,6 @@ const dmmf: DMMF.Document = {
             name: 'author',
             relationFromFields: ['authorId'],
             relationName: 'PostToUser',
-            relationOnDelete: 'NONE',
             relationToFields: ['id'],
             type: 'User',
           },
@@ -82,10 +81,10 @@ const dmmf: DMMF.Document = {
             type: 'Boolean',
           },
         ],
-        idFields: [],
         isEmbedded: false,
         isGenerated: false,
         name: 'Post',
+        primaryKey: null,
         uniqueFields: [],
         uniqueIndexes: [],
       },
@@ -135,15 +134,14 @@ const dmmf: DMMF.Document = {
             name: 'posts',
             relationFromFields: [],
             relationName: 'PostToUser',
-            relationOnDelete: 'NONE',
             relationToFields: [],
             type: 'Post',
           },
         ],
-        idFields: [],
         isEmbedded: false,
         isGenerated: false,
         name: 'User',
+        primaryKey: null,
         uniqueFields: [],
         uniqueIndexes: [],
       },
@@ -386,6 +384,19 @@ const dmmf: DMMF.Document = {
               inputTypes: [
                 {
                   isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserOrderByWithRelationInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'author',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
                   location: 'enumTypes',
                   namespace: 'prisma',
                   type: 'SortOrder',
@@ -422,7 +433,7 @@ const dmmf: DMMF.Document = {
               name: 'published',
             },
           ],
-          name: 'PostOrderByInput',
+          name: 'PostOrderByWithRelationInput',
         },
         {
           constraints: {
@@ -444,6 +455,132 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 0,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostCountOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostAvgOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_avg',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostMaxOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostMinOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostSumOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_sum',
+            },
+          ],
+          name: 'PostOrderByWithAggregationInput',
         },
         {
           constraints: {
@@ -718,8 +855,21 @@ const dmmf: DMMF.Document = {
               isRequired: false,
               name: 'email',
             },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'PostOrderByRelationAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'posts',
+            },
           ],
-          name: 'UserOrderByInput',
+          name: 'UserOrderByWithRelationInput',
         },
         {
           constraints: {
@@ -753,6 +903,106 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'UserWhereUniqueInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 0,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCountOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_count',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserAvgOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_avg',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserMaxOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_max',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserMinOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_min',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserSumOrderByAggregateInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_sum',
+            },
+          ],
+          name: 'UserOrderByWithAggregationInput',
         },
         {
           constraints: {
@@ -1905,6 +2155,259 @@ const dmmf: DMMF.Document = {
         },
         {
           constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostCountOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+          ],
+          name: 'PostAvgOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostMaxOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'title',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'published',
+            },
+          ],
+          name: 'PostMinOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'authorId',
+            },
+          ],
+          name: 'PostSumOrderByAggregateInput',
+        },
+        {
+          constraints: {
             maxNumFields: null,
             minNumFields: null,
           },
@@ -2025,24 +2528,6 @@ const dmmf: DMMF.Document = {
               name: '_count',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'count',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2054,24 +2539,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_avg',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedFloatFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'avg',
             },
             {
               inputTypes: [
@@ -2087,24 +2554,6 @@ const dmmf: DMMF.Document = {
               name: '_sum',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'sum',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2118,24 +2567,6 @@ const dmmf: DMMF.Document = {
               name: '_min',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'min',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2147,24 +2578,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_max',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'max',
             },
           ],
           name: 'IntWithAggregatesFilter',
@@ -2340,24 +2753,6 @@ const dmmf: DMMF.Document = {
               name: '_count',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'count',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2371,24 +2766,6 @@ const dmmf: DMMF.Document = {
               name: '_min',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedStringFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'min',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2400,24 +2777,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_max',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedStringFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'max',
             },
           ],
           name: 'StringWithAggregatesFilter',
@@ -2472,24 +2831,6 @@ const dmmf: DMMF.Document = {
               name: '_count',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'count',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2503,24 +2844,6 @@ const dmmf: DMMF.Document = {
               name: '_min',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedBoolFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'min',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -2532,24 +2855,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_max',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedBoolFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'max',
             },
           ],
           name: 'BoolWithAggregatesFilter',
@@ -2601,6 +2906,177 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostListRelationFilter',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: '_count',
+            },
+          ],
+          name: 'PostOrderByRelationAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserCountOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+          ],
+          name: 'UserAvgOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserMaxOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'email',
+            },
+          ],
+          name: 'UserMinOrderByAggregateInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'enumTypes',
+                  namespace: 'prisma',
+                  type: 'SortOrder',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'id',
+            },
+          ],
+          name: 'UserSumOrderByAggregateInput',
         },
         {
           constraints: {
@@ -3902,24 +4378,6 @@ const dmmf: DMMF.Document = {
               name: '_count',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'count',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -3931,24 +4389,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_avg',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedFloatFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'avg',
             },
             {
               inputTypes: [
@@ -3964,24 +4404,6 @@ const dmmf: DMMF.Document = {
               name: '_sum',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'sum',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -3995,24 +4417,6 @@ const dmmf: DMMF.Document = {
               name: '_min',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'min',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -4024,24 +4428,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_max',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'max',
             },
           ],
           name: 'NestedIntWithAggregatesFilter',
@@ -4315,24 +4701,6 @@ const dmmf: DMMF.Document = {
               name: '_count',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'count',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -4346,24 +4714,6 @@ const dmmf: DMMF.Document = {
               name: '_min',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedStringFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'min',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -4375,24 +4725,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_max',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedStringFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'max',
             },
           ],
           name: 'NestedStringWithAggregatesFilter',
@@ -4447,24 +4779,6 @@ const dmmf: DMMF.Document = {
               name: '_count',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedIntFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'count',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -4478,24 +4792,6 @@ const dmmf: DMMF.Document = {
               name: '_min',
             },
             {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedBoolFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'min',
-            },
-            {
               inputTypes: [
                 {
                   isList: false,
@@ -4507,24 +4803,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: '_max',
-            },
-            {
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'NestedBoolFilter',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'max',
             },
           ],
           name: 'NestedBoolWithAggregatesFilter',
@@ -5489,13 +5767,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5562,6 +5840,17 @@ const dmmf: DMMF.Document = {
                 type: 'Post',
               },
             },
+            {
+              args: [],
+              isNullable: true,
+              name: '_count',
+              outputType: {
+                isList: false,
+                location: 'outputObjectTypes',
+                namespace: 'prisma',
+                type: 'UserCountOutputType',
+              },
+            },
           ],
           name: 'User',
         },
@@ -5590,13 +5879,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5684,13 +5973,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5778,13 +6067,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -5859,13 +6148,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithAggregationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'PostOrderByInput',
+                      type: 'PostOrderByWithAggregationInput',
                     },
                   ],
                   isNullable: false,
@@ -5984,13 +6273,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -6078,13 +6367,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -6172,13 +6461,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithRelationInput',
                     },
                   ],
                   isNullable: false,
@@ -6253,13 +6542,13 @@ const dmmf: DMMF.Document = {
                       isList: true,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithAggregationInput',
                     },
                     {
                       isList: false,
                       location: 'inputObjectTypes',
                       namespace: 'prisma',
-                      type: 'UserOrderByInput',
+                      type: 'UserOrderByWithAggregationInput',
                     },
                   ],
                   isNullable: false,
@@ -6988,40 +7277,8 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'count',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'PostCountAggregateOutputType',
-              },
-            },
-            {
-              args: [],
               isNullable: true,
               name: '_avg',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'PostAvgAggregateOutputType',
-              },
-            },
-            {
-              args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -7042,22 +7299,6 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'sum',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'PostSumAggregateOutputType',
-              },
-            },
-            {
-              args: [],
               isNullable: true,
               name: '_min',
               outputType: {
@@ -7069,40 +7310,8 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'min',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'PostMinAggregateOutputType',
-              },
-            },
-            {
-              args: [],
               isNullable: true,
               name: '_max',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'PostMaxAggregateOutputType',
-              },
-            },
-            {
-              args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -7228,40 +7437,8 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'count',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'UserCountAggregateOutputType',
-              },
-            },
-            {
-              args: [],
               isNullable: true,
               name: '_avg',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'UserAvgAggregateOutputType',
-              },
-            },
-            {
-              args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'avg',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -7282,22 +7459,6 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'sum',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'UserSumAggregateOutputType',
-              },
-            },
-            {
-              args: [],
               isNullable: true,
               name: '_min',
               outputType: {
@@ -7309,40 +7470,8 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'min',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'UserMinAggregateOutputType',
-              },
-            },
-            {
-              args: [],
               isNullable: true,
               name: '_max',
-              outputType: {
-                isList: false,
-                location: 'outputObjectTypes',
-                namespace: 'prisma',
-                type: 'UserMaxAggregateOutputType',
-              },
-            },
-            {
-              args: [],
-              deprecation: {
-                reason:
-                  'Aggregation keywords got unified to use underscore as prefix to prevent field clashes.',
-                sinceVersion: '2.23',
-              },
-              isNullable: true,
-              name: 'max',
               outputType: {
                 isList: false,
                 location: 'outputObjectTypes',
@@ -7642,6 +7771,21 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'PostMaxAggregateOutputType',
+        },
+        {
+          fields: [
+            {
+              args: [],
+              isNullable: false,
+              name: 'posts',
+              outputType: {
+                isList: false,
+                location: 'scalar',
+                type: 'Int',
+              },
+            },
+          ],
+          name: 'UserCountOutputType',
         },
         {
           fields: [

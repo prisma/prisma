@@ -1,8 +1,0 @@
-generator gen {
-  provider = "prisma-client-js"
-  output   = "./generated/client"
-}
-
-model User {
-  id Int @id
-}

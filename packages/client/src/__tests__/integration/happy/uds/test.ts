@@ -75,11 +75,11 @@ test('blog', async () => {
    */
 
   // Test queryRaw(string)
-  const rawQuery = await db.$queryRaw('SELECT 1')
+  const rawQuery = await db.$queryRawUnsafe('SELECT 1')
   expect(rawQuery[0]['1']).toBe(1)
 
   // Test queryRaw(string, values)
-  const rawQueryWithValues = await db.$queryRaw(
+  const rawQueryWithValues = await db.$queryRawUnsafe(
     'SELECT $1 AS name, $2 AS id',
     'Alice',
     42,
@@ -115,7 +115,7 @@ test('blog', async () => {
    */
 
   // Test .$executeRaw((string)
-  const executeRaw = await db.$executeRaw(
+  const executeRaw = await db.$executeRawUnsafe(
     'UPDATE User SET name = $1 WHERE id = $2',
     'name',
     'id',
@@ -123,7 +123,7 @@ test('blog', async () => {
   expect(executeRaw).toBe(0)
 
   // Test .$executeRaw((string, values)
-  const executeRawWithValues = await db.$executeRaw(
+  const executeRawWithValues = await db.$executeRawUnsafe(
     'UPDATE User SET name = $1 WHERE id = $2',
     'Alice',
     'id',

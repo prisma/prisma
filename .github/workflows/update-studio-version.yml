@@ -1,5 +1,5 @@
 
-name: update-studio-version
+name: Update Studio Version
 on:
   workflow_dispatch:
     inputs:

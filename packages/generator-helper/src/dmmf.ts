@@ -45,7 +45,10 @@ export namespace DMMF {
     name: string
     fields: string[]
   }
-
+  export interface PrimaryKey {
+    name: string | null
+    fields: string[]
+  }
   export interface Model {
     name: string
     isEmbedded: boolean
@@ -55,7 +58,7 @@ export namespace DMMF {
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     documentation?: string
-    idFields: string[]
+    primaryKey: PrimaryKey | null
     [key: string]: any // safe net for additional new props
   }
 

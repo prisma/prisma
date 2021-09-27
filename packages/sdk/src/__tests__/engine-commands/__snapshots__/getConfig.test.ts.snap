@@ -6,9 +6,7 @@ Object {
     Object {
       "activeProvider": "postgresql",
       "name": "db",
-      "provider": Array [
-        "postgresql",
-      ],
+      "provider": "postgresql",
       "url": Object {
         "fromEnvVar": "SOMETHING-SOMETHING-1234",
         "value": null,
@@ -26,9 +24,7 @@ Object {
     Object {
       "activeProvider": "postgresql",
       "name": "db",
-      "provider": Array [
-        "postgresql",
-      ],
+      "provider": "postgresql",
       "url": Object {
         "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
         "value": "postgres://user:password@something:5432/db",
@@ -46,9 +42,7 @@ Object {
     Object {
       "activeProvider": "sqlite",
       "name": "db",
-      "provider": Array [
-        "sqlite",
-      ],
+      "provider": "sqlite",
       "url": Object {
         "fromEnvVar": null,
         "value": "file:../hello.db",
@@ -66,9 +60,7 @@ Object {
     Object {
       "activeProvider": "sqlite",
       "name": "db",
-      "provider": Array [
-        "sqlite",
-      ],
+      "provider": "sqlite",
       "url": Object {
         "fromEnvVar": null,
         "value": "file:dev.db",
