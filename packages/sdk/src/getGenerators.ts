@@ -160,7 +160,12 @@ export async function getGenerators({
 
   if (
     config.datasources.some((d) => d.provider === 'mongodb') &&
-    !previewFeatures.includes('mongoDb')
+    !config.generators.some((g) => {
+      return g.previewFeatures.some(
+        (previewFeature) =>
+          previewFeature.toLowerCase() === 'mongoDb'.toLowerCase(),
+      )
+    })
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
   }
