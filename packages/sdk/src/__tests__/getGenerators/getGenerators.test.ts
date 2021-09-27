@@ -682,8 +682,8 @@ You can define the feature flag like this:
 
 generator client {
     provider = \\"prisma-client-js\\"
-    previewFeatures = [\\"mongodb\\"]
-  }
+    previewFeatures = [\\"mongoDb\\"]
+}
 
 More information in our documentation:
 https://pris.ly/d/prisma-schema
@@ -712,20 +712,20 @@ https://pris.ly/d/prisma-schema
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        In order to use the mongodb provider,
-        you need to set the mongodb feature flag.
-        You can define the feature flag like this:
+"
+In order to use the mongodb provider,
+you need to set the mongodb feature flag.
+You can define the feature flag like this:
 
-        generator client {
-            provider = \\"prisma-client-js\\"
-            previewFeatures = [\\"mongodb\\"]
-          }
+generator client {
+    provider = \\"prisma-client-js\\"
+    previewFeatures = [\\"mongoDb\\"]
+}
 
-        More information in our documentation:
-        https://pris.ly/d/prisma-schema
-        "
-      `)
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
     }
   })
 
