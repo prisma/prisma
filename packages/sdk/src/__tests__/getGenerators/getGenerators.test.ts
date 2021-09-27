@@ -654,4 +654,101 @@ describe('getGenerators', () => {
       `)
     }
   })
+
+  test('fail if mongoDb not found in previewFeatures - prisma-client-js - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'missing-mongoDb-from-previewFeatures-client-js.prisma',
+        ),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+"
+In order to use the mongodb provider,
+you need to set the mongodb feature flag.
+You can define the feature flag like this:
+
+generator client {
+    provider = \\"prisma-client-js\\"
+    previewFeatures = [\\"mongodb\\"]
+  }
+
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
+    }
+  })
+
+  test('fail if mongoDb not found in previewFeatures - prisma-client-go - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'missing-mongoDb-from-previewFeatures-client-go.prisma',
+        ),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        In order to use the mongodb provider,
+        you need to set the mongodb feature flag.
+        You can define the feature flag like this:
+
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"mongodb\\"]
+          }
+
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
+    }
+  })
+
+  test('go should succeed with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'mongoDb-from-previewFeatures-client-go.prisma',
+        ),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toContain('cannot find package')
+    }
+  })
 })
