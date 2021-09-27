@@ -11,8 +11,8 @@ You can define the feature flag like this:
 ${chalk.bold(
   highlightDatamodel(`generator client {
     provider = "prisma-client-js"
-    previewFeatures = ["mongodb"]
-  }`),
+    previewFeatures = ["mongoDb"]
+}`),
 )}
 
 More information in our documentation:
