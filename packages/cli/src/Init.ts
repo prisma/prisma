@@ -276,15 +276,15 @@ export class Init implements Command {
     const gitignorePath = path.join(outputDir, '.gitignore')
     try {
       fs.writeFileSync(gitignorePath, defaultGitIgnore(), { flag: 'wx' })
-    } catch (error) {
-      if (error.code === 'EEXIST') {
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === 'EEXIST') {
         warnings.push(
           `${chalk.yellow(
             'warn',
-          )} You already have a .gitignore. Don't forget to exclude .env`,
+          )} You already have a .gitignore. Don't forget to exclude .env to not commit any secret.`,
         )
       } else {
-        console.error('Failed to write .gitignore file, reason: ', error)
+        console.error('Failed to write .gitignore file, reason: ', e)
       }
     }
 
