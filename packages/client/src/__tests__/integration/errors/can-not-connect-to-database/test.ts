@@ -20,9 +20,13 @@ describe('can-not-connect-to-database', () => {
     } catch (err) {
       expect(err).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.findUnique()\` invocation:
+Invalid \`prisma.user.findUnique()\` invocation in
+/client/src/__tests__/integration/errors/can-not-connect-to-database/test.ts:0:0
 
-
+  12 test('auto-connect', async () => {
+  13   expect.assertions(1)
+  14   try {
+→ 15     await prisma.user.findUnique(
   Can't reach database server at \`localhost\`:\`5444\`
 
 Please make sure your database server is running at \`localhost\`:\`5444\`.
