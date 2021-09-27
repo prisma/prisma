@@ -1,3 +1,4 @@
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
@@ -497,17 +498,15 @@ describe('getGenerators', () => {
     }
 
     const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
-    const queryEngine = await resolveBinary(
-      process.env.PRISMA_FORCE_NAPI === 'true'
-        ? BinaryType.libqueryEngine
-        : BinaryType.queryEngine,
-    )
+
+    const queryEngineBinaryType = getCliQueryEngineBinaryType()
+    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       providerAliases: aliases,
       binaryPathsOverride: {
-        queryEngine,
+        queryEngine: queryEnginePath,
       },
     })
 
@@ -516,7 +515,7 @@ describe('getGenerators', () => {
     const platform = await getPlatform()
 
     // we override queryEngine, so its paths should be equal to the one of the generator
-    expect(options[0]?.queryEngine?.[platform]).toBe(queryEngine)
+    expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
     // we did not override the migrationEngine, so their paths should not be equal
     expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
 
@@ -653,6 +652,105 @@ describe('getGenerators', () => {
         https://pris.ly/d/prisma-schema
         "
       `)
+    }
+  })
+
+  test('fail if mongoDb not found in previewFeatures - prisma-client-js - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'missing-mongoDb-from-previewFeatures-client-js.prisma',
+        ),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+"
+In order to use the mongodb provider,
+you need to set the mongodb feature flag.
+You can define the feature flag like this:
+
+generator client {
+    provider = \\"prisma-client-js\\"
+    previewFeatures = [\\"mongodb\\"]
+  }
+
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
+    }
+  })
+
+  test('fail if mongoDb not found in previewFeatures - prisma-client-go - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'missing-mongoDb-from-previewFeatures-client-go.prisma',
+        ),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        In order to use the mongodb provider,
+        you need to set the mongodb feature flag.
+        You can define the feature flag like this:
+
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"mongodb\\"]
+          }
+
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
+    }
+  })
+
+  test('should not be blocked with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(
+          __dirname,
+          'mongoDb-from-previewFeatures-client-go.prisma',
+        ),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toContain(
+        'Generator at go run github.com/prisma/prisma-client-go could not start',
+      )
     }
   })
 })

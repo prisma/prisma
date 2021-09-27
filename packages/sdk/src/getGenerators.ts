@@ -4,7 +4,7 @@ import {
   getOriginalBinaryTargetsValue,
   printGeneratorConfig,
 } from '@prisma/engine-core'
-import { enginesVersion } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import {
   BinaryDownloadConfiguration,
   BinaryType,
@@ -27,7 +27,6 @@ import pMap from 'p-map'
 import path from 'path'
 import { getConfig, getDMMF } from '.'
 import { Generator } from './Generator'
-import { engineVersions } from './getAllVersions'
 import { pick } from './pick'
 import {
   GeneratorPaths,
@@ -56,6 +55,10 @@ type BinaryPathsOverride = {
   [P in EngineType]?: string
 }
 
+// From https://github.com/prisma/prisma/blob/eb4563aea6fb6e593ae48106a74f716ce3dc6752/packages/cli/src/Generate.ts#L167-L172
+// versions are set like:
+// version: enginesVersion,
+// cliVersion: pkg.version,
 export type GetGeneratorOptions = {
   schemaPath: string
   providerAliases?: ProviderAliases
@@ -96,10 +99,7 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  const queryEngineBinaryType =
-    process.env.PRISMA_FORCE_NAPI === 'true'
-      ? BinaryType.libqueryEngine
-      : BinaryType.queryEngine
+  const queryEngineBinaryType = getCliQueryEngineBinaryType()
 
   const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
   let prismaPath: string | undefined = binaryPathsOverride?.[queryEngineType]
@@ -160,7 +160,12 @@ export async function getGenerators({
 
   if (
     config.datasources.some((d) => d.provider === 'mongodb') &&
-    !previewFeatures.includes('mongoDb')
+    !config.generators.some((g) => {
+      return g.previewFeatures.some(
+        (previewFeature) =>
+          previewFeature.toLowerCase() === 'mongoDb'.toLowerCase(),
+      )
+    })
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
   }
@@ -718,10 +723,9 @@ function getEngineVersionForGenerator(
   manifest?: GeneratorManifest,
   defaultVersion?: string | undefined,
 ): string {
-  let neededVersion: string = manifest!.requiresEngineVersion!
-  if (manifest?.version && engineVersions[manifest?.version]) {
-    neededVersion = engineVersions[manifest?.version]
-  }
+  let neededVersion = manifest?.requiresEngineVersion
+
   neededVersion = neededVersion ?? defaultVersion // default to CLI version otherwise, if not provided
+
   return neededVersion ?? 'latest'
 }

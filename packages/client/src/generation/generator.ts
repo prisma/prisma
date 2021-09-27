@@ -5,6 +5,10 @@ import { parseEnvValue } from '@prisma/sdk'
 import { generateClient } from './generateClient'
 import { getDMMF } from './getDMMF'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../runtime/utils/getClientEngineType'
 const debug = Debug('prisma:client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
@@ -16,8 +20,7 @@ if (require.main === module) {
   generatorHandler({
     onManifest(config) {
       const requiredEngine =
-        config?.previewFeatures?.includes('nApi') ||
-        process.env.PRISMA_FORCE_NAPI === 'true'
+        getClientEngineType(config) === ClientEngineType.Library
           ? 'libqueryEngine'
           : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)

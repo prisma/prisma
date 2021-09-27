@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import { NodeAPILibraryTypes } from '@prisma/engine-core'
+import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
@@ -40,10 +41,9 @@ export class GetConfigError extends Error {
 export async function getConfig(
   options: GetConfigOptions,
 ): Promise<ConfigMetaFormat> {
-  const useNodeAPI = process.env.PRISMA_FORCE_NAPI === 'true'
-
+  const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let data: ConfigMetaFormat | undefined
-  if (useNodeAPI) {
+  if (cliEngineBinaryType === BinaryType.libqueryEngine) {
     data = await getConfigNodeAPI(options)
   } else {
     data = await getConfigBinary(options)
@@ -73,7 +73,7 @@ async function getConfigNodeAPI(
     options.prismaPath,
   )
   await isNodeAPISupported()
-  debug(`Using Node-API Query Engine at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
   try {
     const NodeAPIQueryEngineLibrary =
       load<NodeAPILibraryTypes.Library>(queryEnginePath)
@@ -113,7 +113,7 @@ async function getConfigBinary(
     BinaryType.queryEngine,
     options.prismaPath,
   )
-  debug(`Using Query Engine Binary at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
     let tempDatamodelPath: string | undefined = options.datamodelPath

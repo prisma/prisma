@@ -34,7 +34,7 @@ Note for Windows: Use the latest version of [Git Bash](https://gitforwindows.org
 
 ## General Prerequisites
 
-1. Node.js `>=12.2` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Node.js `>=12.6` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 1. Install [`yarn@1`](https://classic.yarnpkg.com/en/docs/install/) (for building a "pack" version of the client)
 1. Install [`pnpm@6`](https://pnpm.js.org/) (for installing npm dependencies)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing test databases)
@@ -225,12 +225,6 @@ Changes to `query.ts` will then be reflected when running `fixtures/blog/main.ts
 
 1. `cd packages/migrate/fixtures/blog`
 1. `ts-node ../../src/bin.ts dev`
-
-### Developing `prisma init` Command
-
-1. `cd packages/introspection`
-1. `mkdir test && cd test`
-1. `ts-node ../src/bin.ts`
 
 ### Developing `prisma` CLI
 

@@ -1,17 +1,22 @@
+import {
+  ClientEngineType,
+  getClientEngineType,
+} from '../../../../runtime/utils/getClientEngineType'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {
   // TODO triggerPanic has not been implemented for Node-API: https://github.com/prisma/prisma/issues/7810
-  if (process.env.PRISMA_FORCE_NAPI === 'true') {
+  if (getClientEngineType() === ClientEngineType.Library) {
     return
   }
+
   expect.assertions(1)
 
   const PrismaClient = await getTestClient()
   const db = new PrismaClient({
     __internal: {
       engine: {
-        enableEngineDebugMode: true,
+        allowTriggerPanic: true,
       },
     },
     errorFormat: 'minimal',

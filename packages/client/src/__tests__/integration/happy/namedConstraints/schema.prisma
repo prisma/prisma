@@ -4,8 +4,7 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["namedConstraints"]
+  provider = "prisma-client-js"
 }
 
 model AtAtId {

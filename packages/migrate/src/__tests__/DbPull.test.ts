@@ -175,48 +175,48 @@ describe('common/sqlite', () => {
     ).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toMatchInlineSnapshot(`
-          generator client {
-            provider = "prisma-client-js"
-            output   = "../generated/client"
-          }
+      generator client {
+        provider = "prisma-client-js"
+        output   = "../generated/client"
+      }
 
-          datasource db {
-            provider = "sqlite"
-            url      = "file:dev.db"
-          }
+      datasource db {
+        provider = "sqlite"
+        url      = "file:dev.db"
+      }
 
-          model AwesomeUser {
-            email    String           @unique
-            id       Int              @id @default(autoincrement())
-            name     String?
-            newPosts AwesomeNewPost[]
-            profile  AwesomeProfile?
+      model AwesomeUser {
+        email    String           @unique(map: "User.email")
+        id       Int              @id @default(autoincrement())
+        name     String?
+        newPosts AwesomeNewPost[]
+        profile  AwesomeProfile?
 
-            @@map("User")
-          }
+        @@map("User")
+      }
 
-          model AwesomeNewPost {
-            authorId  Int
-            content   String?
-            createdAt DateTime    @default(now())
-            id        Int         @id @default(autoincrement())
-            published Boolean     @default(false)
-            title     String
-            author    AwesomeUser @relation(fields: [authorId], references: [id])
+      model AwesomeNewPost {
+        authorId  Int
+        content   String?
+        createdAt DateTime    @default(now())
+        id        Int         @id @default(autoincrement())
+        published Boolean     @default(false)
+        title     String
+        author    AwesomeUser @relation(fields: [authorId], references: [id], onDelete: Cascade)
 
-            @@map("Post")
-          }
+        @@map("Post")
+      }
 
-          model AwesomeProfile {
-            bio    String?
-            id     Int         @id @default(autoincrement())
-            userId Int         @unique
-            user   AwesomeUser @relation(fields: [userId], references: [id])
+      model AwesomeProfile {
+        bio    String?
+        id     Int         @id @default(autoincrement())
+        userId Int         @unique(map: "Profile.userId")
+        user   AwesomeUser @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-            @@map("Profile")
-          }
+        @@map("Profile")
+      }
 
-      `)
+    `)
   })
 
   it('should succeed and keep changes to valid schema and output warnings when using --print', async () => {
@@ -239,14 +239,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                    // *** WARNING ***
-                                                                    // 
-                                                                    // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                    // - Model "AwesomeNewPost"
-                                                                    // - Model "AwesomeProfile"
-                                                                    // - Model "AwesomeUser"
-                                                                    // 
-                                            `)
+                                                                          // *** WARNING ***
+                                                                          // 
+                                                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                          // - Model "AwesomeNewPost"
+                                                                          // - Model "AwesomeProfile"
+                                                                          // - Model "AwesomeUser"
+                                                                          // 
+                                                `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
       originalSchema,
@@ -284,18 +284,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                P4001 The introspected database was empty: 
+P4001 The introspected database was empty: 
 
-                                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                                                                To fix this, you have two options:
+To fix this, you have two options:
 
-                                                                - manually create a table in your database (using SQL).
-                                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+- manually create a table in your database (using SQL).
+- make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                                Then you can run prisma db pull again. 
+Then you can run prisma db pull again. 
 
-                                                    `)
+`)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -318,18 +318,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                P4001 The introspected database was empty: 
+P4001 The introspected database was empty: 
 
-                                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                                                                To fix this, you have two options:
+To fix this, you have two options:
 
-                                                                - manually create a table in your database (using SQL).
-                                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+- manually create a table in your database (using SQL).
+- make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                                Then you can run prisma db pull again. 
+Then you can run prisma db pull again. 
 
-                                                    `)
+`)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -368,12 +368,12 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-                      P1012 Introspection failed as your current Prisma schema file is invalid
+P1012 Introspection failed as your current Prisma schema file is invalid
 
-                      Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-                      Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
-                  `)
+`)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -570,7 +570,7 @@ describe('SQL Server', () => {
   }
   const JDBC_URI =
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-    'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;encrypt=DANGER_PLAINTEXT'
+    'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams).catch((e) => {

@@ -77,52 +77,13 @@ function parsePackageManagerName(userAgent) {
 }
 
 export function main() {
-  if (__dirname.includes(`@prisma${path.sep}cli`)) {
-    console.error(
-      drawBox({
-        str: `
-  The package ${white('@prisma/cli')} has been renamed to ${white('prisma')}.
-  
-  Please uninstall ${white('@prisma/cli')} first.
-  Then install ${white('prisma')} to continue using ${b('Prisma CLI')}:
-  
-      # Uninstall old CLI
-      ${white(
-        getPackageManagerName() === 'yarn'
-          ? 'yarn remove @prisma/cli'
-          : 'npm uninstall @prisma/cli',
-      )}
-  
-      # Install new CLI
-      ${white(
-        getPackageManagerName() === 'yarn'
-          ? `yarn add prisma --dev`
-          : `npm install prisma --save-dev`,
-      )}
-  
-      # Invoke via npx
-      ${white(
-        getPackageManagerName() === 'yarn'
-          ? `yarn prisma --help`
-          : 'npx prisma --help',
-      )}
-  
-  Learn more here: https://github.com/prisma/prisma/releases/tag/2.16.0
-  `,
-        verticalPadding: 1,
-        horizontalPadding: 3,
-      }),
-    )
-    process.exit(1)
-  }
-
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
   const nodeMinorVersion = parseInt(nodeVersions[1])
-  if (nodeMajorVersion < 12 || (nodeMajorVersion === 12 && nodeMinorVersion < 2)) {
+  if (nodeMajorVersion < 12 || (nodeMajorVersion === 12 && nodeMinorVersion < 6)) {
     console.error(
       drawBox({
-        str: `Prisma only supports Node.js >= 12.2`,
+        str: `Prisma only supports Node.js >= 12.6`,
         verticalPadding: 1,
         horizontalPadding: 3,
       }),
@@ -157,10 +118,10 @@ Then install ${white('prisma')} to continue using ${b('Prisma 2.0')}:
 
    # Uninstall old CLI
    ${white(
-     installedGlobally.pkgManager === 'yarn'
-       ? 'yarn global remove prisma2'
-       : 'npm uninstall -g prisma2',
-   )}
+      installedGlobally.pkgManager === 'yarn'
+        ? 'yarn global remove prisma2'
+        : 'npm uninstall -g prisma2',
+    )}
 
    # Install new CLI
    ${white(`npm install prisma${isDev ? '@dev' : ''} --save-dev`)}

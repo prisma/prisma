@@ -27,7 +27,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   const activeDatasource = config.datasources[0]
   const url = activeDatasource.url.value
 
-  if (url.startsWith('sqlserver') || url.startsWith('jdbc:sqlserver')) {
+  if (activeDatasource.provider === 'sqlserver') {
     return {
       name: activeDatasource.name,
       schemaWord: 'database',
@@ -135,15 +135,20 @@ export async function ensureDatabaseExists(
   }
   if (forceCreate) {
     if (await createDatabase(activeDatasource.url.value, schemaDir)) {
+      // URI parsing is not implemented for SQL server yet
+      if (activeDatasource.provider === 'sqlserver') {
+        return `SQL Server database created.\n`
+      }
+
       const credentials = uriToCredentials(activeDatasource.url.value)
       const { schemaWord, dbType, dbName } =
         getDbinfoFromCredentials(credentials)
       if (dbType && dbType !== 'SQL Server') {
         return `${dbType} ${schemaWord} ${chalk.bold(
           dbName,
-        )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+        )} created at ${chalk.bold(getDbLocation(credentials))}`
       } else {
-        return `${schemaWord} created.\n`
+        return `${schemaWord} created.`
       }
     }
   } else {
