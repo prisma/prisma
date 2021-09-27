@@ -173,7 +173,7 @@ jobs:
   # CLIENT (types tests only)
   #
   client-types:
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ubuntu-20.04
 
     needs: detect_jobs_to_run

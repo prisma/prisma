@@ -92,7 +92,7 @@ importers:
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.2
       '@types/rimraf': 3.0.2
-      '@types/ws': 7.4.7
+      '@types/ws': 8.2.0
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       chalk: 4.1.2
@@ -143,7 +143,7 @@ importers:
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.2
       '@types/rimraf': 3.0.2
-      '@types/ws': 7.4.7
+      '@types/ws': 8.2.0
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       chalk: 4.1.2
@@ -2062,8 +2062,8 @@ packages:
       '@types/node': 12.20.20
     dev: true
 
-  /@types/ws/7.4.7:
-    resolution: {integrity: sha512-JQbbmxZTZehdc2iszGKs5oC3NFnjeay7mtAWrdt7qNtAVK0g19muApzAy4bm9byz79xa2ZnO/BOBC2R8RC5Lww==}
+  /@types/ws/8.2.0:
+    resolution: {integrity: sha512-cyeefcUCgJlEk+hk2h3N+MqKKsPViQgF5boi9TTHSK+PoR9KWBb/C5ccPcDyAqgsbAYHTwulch725DV84+pSpg==}
     dependencies:
       '@types/node': 16.7.1
     dev: true
