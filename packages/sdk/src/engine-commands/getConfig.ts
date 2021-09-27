@@ -73,7 +73,7 @@ async function getConfigNodeAPI(
     options.prismaPath,
   )
   await isNodeAPISupported()
-  debug(`Using Node-API Query Engine at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
   try {
     const NodeAPIQueryEngineLibrary =
       load<NodeAPILibraryTypes.Library>(queryEnginePath)
@@ -113,7 +113,7 @@ async function getConfigBinary(
     BinaryType.queryEngine,
     options.prismaPath,
   )
-  debug(`Using Query Engine Binary at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
     let tempDatamodelPath: string | undefined = options.datamodelPath

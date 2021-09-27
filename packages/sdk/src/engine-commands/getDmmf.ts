@@ -52,7 +52,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   )
   await isNodeAPISupported()
 
-  debug(`Using Node-API Query Engine at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
   const NodeAPIQueryEngineLibrary =
     load<NodeAPILibraryTypes.Library>(queryEnginePath)
   const datamodel =
@@ -76,7 +76,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     BinaryType.queryEngine,
     options.prismaPath,
   )
-  debug(`Using Query Engine Binary at: ${queryEnginePath}`)
+  debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
     let tempDatamodelPath: string | undefined = options.datamodelPath
@@ -176,6 +176,9 @@ function addMissingOpenSSLInfo(message: string) {
   }
   return message
 }
+
+// See also removedFlags at
+// https://github.com/prisma/prisma/blob/main/packages/engine-core/src/binary/BinaryEngine.ts#L174
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
   const getMessage = (flag: string) =>
     `${chalk.blueBright(
@@ -187,11 +190,17 @@ function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
     atomicNumberOperations: getMessage('atomicNumberOperations'),
     connectOrCreate: getMessage('connectOrCreate'),
     transaction: getMessage('transaction'),
+    nApi: getMessage('nApi'),
     transactionApi: getMessage('transactionApi'),
     uncheckedScalarInputs: getMessage('uncheckedScalarInputs'),
     nativeTypes: getMessage('nativeTypes'),
     createMany: getMessage('createMany'),
     groupBy: getMessage('groupBy'),
+    referentialActions: getMessage('referentialActions'),
+    microsoftSqlServer: getMessage('microsoftSqlServer'),
+    selectRelationCount: getMessage('selectRelationCount'),
+    orderByRelation: getMessage('orderByRelation'),
+    orderByAggregateGroup: getMessage('orderByAggregateGroup'),
   }
 
   previewFeatures?.forEach((f) => {

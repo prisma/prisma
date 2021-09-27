@@ -33,11 +33,6 @@ export function getErrorMessageWithLink({
 
 ${moreInfo}
 
-## Query
-\`\`\`
-${query ? maskQuery(query) : ''}
-\`\`\`
-
 ## Logs
 \`\`\`
 ${logs}
@@ -51,6 +46,11 @@ ${logs}
 ## Schema
 \`\`\`prisma
 // PLEASE ADD YOUR SCHEMA HERE IF POSSIBLE
+\`\`\`
+
+## Prisma Engine Query
+\`\`\`
+${query ? maskQuery(query) : ''}
 \`\`\`
 `,
   )

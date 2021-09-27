@@ -10,6 +10,7 @@ on:
       # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - "*.md"
+      - ".devcontainer/**"
       - ".vscode/**"
       - "docs/**"
       - "examples/**"

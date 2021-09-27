@@ -146,9 +146,9 @@ export async function ensureDatabaseExists(
       if (dbType && dbType !== 'SQL Server') {
         return `${dbType} ${schemaWord} ${chalk.bold(
           dbName,
-        )} created at ${chalk.bold(getDbLocation(credentials))}\n`
+        )} created at ${chalk.bold(getDbLocation(credentials))}`
       } else {
-        return `${schemaWord} created.\n`
+        return `${schemaWord} created.`
       }
     }
   } else {

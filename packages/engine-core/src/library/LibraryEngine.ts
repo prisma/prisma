@@ -17,11 +17,11 @@ import {
   EngineConfig,
   EngineEventType,
 } from '../common/Engine'
-import { RequestError } from '../common/errors/types/RequestError'
-import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import {
   ConfigMetaFormat,
@@ -36,11 +36,14 @@ import {
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
-import { QueryEngineInstance, QueryEngineConstructor } from './types/Library'
-import { Library } from './types/Library'
+import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
-import type * as Tx from '../common/types/Transaction'
+import {
+  Library,
+  QueryEngineConstructor,
+  QueryEngineInstance,
+} from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -52,6 +55,8 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
+const engines: LibraryEngine[] = []
+
 export class LibraryEngine extends Engine {
   private engine?: QueryEngineInstance
   private libraryInstantiationPromise?: Promise<void>
@@ -93,14 +98,28 @@ export class LibraryEngine extends Engine {
     this.datasourceOverrides = config.datasources
       ? this.convertDatasources(config.datasources)
       : {}
-    if (config.enableEngineDebugMode) {
+    if (config.enableDebugLogs) {
       this.logLevel = 'debug'
       // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
-    initHooks(this)
-  }
 
+    initHooks()
+    engines.push(this)
+    this.checkForTooManyEngines()
+  }
+  private checkForTooManyEngines() {
+    if (engines.length >= 10) {
+      const runningEngines = engines.filter((e) => e.engine)
+      if (runningEngines.length === 10) {
+        console.warn(
+          `${chalk.yellow(
+            'warn(prisma-client)',
+          )} Already 10 Prisma Clients are actively running.`,
+        )
+      }
+    }
+  }
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
@@ -296,9 +315,7 @@ You may have to run ${chalk.greenBright(
   private parseInitError(str: string): SyncRustError | string {
     try {
       const error = JSON.parse(str)
-      if (typeof error.is_panic !== 'undefined') {
-        return error
-      }
+      return error
     } catch (e) {
       //
     }
@@ -308,9 +325,7 @@ You may have to run ${chalk.greenBright(
   private parseRequestError(str: string): RustRequestError | string {
     try {
       const error = JSON.parse(str)
-      if (typeof error.is_panic !== 'undefined') {
-        return error
-      }
+      return error
     } catch (e) {
       //
     }
@@ -343,19 +358,35 @@ You may have to run ${chalk.greenBright(
       debug(
         `library already starting, this.libraryStarted: ${this.libraryStarted}`,
       )
-      await this.libraryStartingPromise
-      if (this.libraryStarted) {
-        return
-      }
+      return this.libraryStartingPromise
     }
     if (!this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStartingPromise = new Promise(async (res) => {
+      this.libraryStartingPromise = new Promise((resolve, reject) => {
         debug('library starting')
-        await this.engine?.connect({ enableRawQueries: true })
-        this.libraryStarted = true
-        debug('library started')
-        res()
+        this.engine
+          ?.connect({ enableRawQueries: true })
+          .then(() => {
+            this.libraryStarted = true
+            this.libraryStartingPromise = undefined
+            debug('library started')
+            resolve()
+          })
+          .catch((err) => {
+            const error = this.parseInitError(err.message)
+            // The error message thrown by the query engine should be a stringified JSON
+            // if parsing fails then we just reject the error
+            if (typeof error === 'string') {
+              reject(err)
+            } else {
+              reject(
+                new PrismaClientInitializationError(
+                  error.message,
+                  this.config.clientVersion!,
+                  error.error_code,
+                ),
+              )
+            }
+          })
       })
       return this.libraryStartingPromise
     }
@@ -364,28 +395,28 @@ You may have to run ${chalk.greenBright(
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
-    debug(`library stopping, this.libraryStarted: ${this.libraryStarted}`)
     if (this.libraryStoppingPromise) {
-      debug('library is already disconnecting')
-      await this.libraryStoppingPromise
-      if (!this.libraryStarted) {
-        this.libraryStoppingPromise = undefined
-        return
-      }
+      debug('library is already stopping')
+      return this.libraryStoppingPromise
     }
 
     if (this.libraryStarted) {
       // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (res) => {
-        await new Promise((r) => setTimeout(r, 5))
-        debug('library stopping')
-        await this.engine?.disconnect()
-        this.libraryStarted = false
-        debug('library stopped')
-        res()
+      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
+        try {
+          await new Promise((r) => setTimeout(r, 5))
+          debug('library stopping')
+          await this.engine?.disconnect()
+          this.libraryStarted = false
+          this.libraryStoppingPromise = undefined
+          debug('library stopped')
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
       })
+      return this.libraryStoppingPromise
     }
-    return this.libraryStoppingPromise
   }
 
   getConfig(): Promise<ConfigMetaFormat> {
@@ -427,12 +458,12 @@ You may have to run ${chalk.greenBright(
     headers: QueryEngineRequestHeaders = {},
     numTry = 1,
   ): Promise<{ data: T; elapsed: number }> {
-    try {
-      debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-      const request: QueryEngineRequest = { query, variables: {} }
-      const queryStr = JSON.stringify(request)
-      const headerStr = JSON.stringify(headers)
+    debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
+    const request: QueryEngineRequest = { query, variables: {} }
+    const queryStr = JSON.stringify(request)
+    const headerStr = JSON.stringify(headers)
 
+    try {
       await this.start()
       this.executingQueryPromise = this.engine?.query(
         queryStr,
@@ -460,6 +491,9 @@ You may have to run ${chalk.greenBright(
       // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
       return { data, elapsed: 0 }
     } catch (e) {
+      if (e instanceof PrismaClientInitializationError) {
+        throw e
+      }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
         throw e
@@ -679,10 +713,13 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
   }
 }
 
-function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
+function hookProcess(handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
-    await engine.runBeforeExit()
+    for (const engine of engines) {
+      await engine.runBeforeExit()
+    }
+    engines.splice(0, engines.length)
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
@@ -690,12 +727,15 @@ function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
     }
   })
 }
-
-function initHooks(engine: LibraryEngine) {
-  hookProcess(engine, 'beforeExit')
-  hookProcess(engine, 'exit')
-  hookProcess(engine, 'SIGINT', true)
-  hookProcess(engine, 'SIGUSR1', true)
-  hookProcess(engine, 'SIGUSR2', true)
-  hookProcess(engine, 'SIGTERM', true)
+let hooksInitialized = false
+function initHooks() {
+  if (!hooksInitialized) {
+    hookProcess('beforeExit')
+    hookProcess('exit')
+    hookProcess('SIGINT', true)
+    hookProcess('SIGUSR1', true)
+    hookProcess('SIGUSR2', true)
+    hookProcess('SIGTERM', true)
+    hooksInitialized = true
+  }
 }

@@ -421,7 +421,7 @@ async function getNewPatchDevVersion(
 }
 
 function getMaxDevVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -436,7 +436,7 @@ function getMaxDevVersionIncrement(versions: string[]): number {
 }
 
 function getMaxIntegrationVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-integration.*\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-integration.*\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -453,7 +453,7 @@ function getMaxIntegrationVersionIncrement(versions: string[]): number {
 
 // TODO: Adjust this for stable releases
 function getMaxPatchVersionIncrement(versions: string[]): number {
-  const regex = /2\.\d+\.\d+-dev\.(\d+)/
+  const regex = /\d+\.\d+\.\d+-dev\.(\d+)/
   const increments = versions
     .filter((v) => v.trim().length > 0)
     .map((v) => {
@@ -523,8 +523,8 @@ function getSemverFromPatchBranch(version: string) {
 
   if (match) {
     return {
-      major: Number(match[0]),
-      minor: Number(match[1]),
+      major: Number(match[1]),
+      minor: Number(match[2]),
     }
   }
 
@@ -856,7 +856,7 @@ async function testPackages(
   packages: Packages,
   publishOrder: string[][],
 ): Promise<void> {
-  let order = flatten(publishOrder)
+  const order = flatten(publishOrder)
 
   // If parallelism is set in build-kite we split the testing
   //  Job 0 - Node-API Library
@@ -869,7 +869,7 @@ async function testPackages(
     console.log('BUILDKITE_PARALLEL_JOB === 0 - Node-API Library')
   } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
     console.log('BUILDKITE_PARALLEL_JOB === 1 - Binary')
-  } 
+  }
 
   console.log(chalk.bold(`\nRun ${chalk.cyanBright('tests')}. Testing order:`))
   console.log(order)
@@ -918,12 +918,11 @@ async function newVersion(pkg: Package, prisma2Version: string) {
   return isPrisma2OrPhoton ? prisma2Version : await patch(pkg)
 }
 
+// Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
 const semverRegex =
   /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
 
 function patchVersion(version: string) {
-  // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
-
   const match = semverRegex.exec(version)
   if (match?.groups) {
     return `${match.groups.major}.${match.groups.minor}.${
@@ -1290,7 +1289,7 @@ function getPatchBranch() {
     const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
     console.debug('versions from patch branch:', versions)
 
-    if (versions?.minor) {
+    if (versions !== undefined) {
       return process.env.BUILDKITE_BRANCH
     }
   }

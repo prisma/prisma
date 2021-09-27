@@ -16,7 +16,7 @@ test('error-link', async () => {
   const db = new PrismaClient({
     __internal: {
       engine: {
-        enableEngineDebugMode: true,
+        allowTriggerPanic: true,
       },
     },
     errorFormat: 'minimal',

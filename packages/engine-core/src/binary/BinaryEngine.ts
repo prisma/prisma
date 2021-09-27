@@ -86,7 +86,7 @@ export class BinaryEngine extends Engine {
   private flags: string[]
   private port?: number
   private enableDebugLogs: boolean
-  private enableEngineDebugMode: boolean
+  private allowTriggerPanic: boolean
   private child?: ChildProcessByStdio<null, Readable, Readable>
   private clientVersion?: string
   private lastPanic?: Error
@@ -140,7 +140,7 @@ export class BinaryEngine extends Engine {
     previewFeatures,
     engineEndpoint,
     enableDebugLogs,
-    enableEngineDebugMode,
+    allowTriggerPanic,
     dirname,
     useUds,
     activeProvider,
@@ -152,7 +152,7 @@ export class BinaryEngine extends Engine {
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
-    this.enableEngineDebugMode = enableEngineDebugMode ?? false
+    this.allowTriggerPanic = allowTriggerPanic ?? false
     this.datamodelPath = datamodelPath
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
@@ -171,6 +171,9 @@ export class BinaryEngine extends Engine {
     this.connection = new Connection()
 
     initHooks()
+
+    // See also warnOnDeprecatedFeatureFlag at
+    // https://github.com/prisma/prisma/blob/main/packages/sdk/src/engine-commands/getDmmf.ts#L179
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -185,6 +188,8 @@ export class BinaryEngine extends Engine {
       'nativeTypes',
       'createMany',
       'groupBy',
+      'referentialActions',
+      'microsoftSqlServer',
     ]
     const removedFlagsUsed = this.previewFeatures.filter((e) =>
       removedFlags.includes(e),
@@ -602,9 +607,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const prismaPath = await this.getPrismaPath()
 
-        const debugFlag = this.enableEngineDebugMode ? ['--debug'] : []
+        const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = [...debugFlag, '--enable-raw-queries', ...this.flags]
+        const flags = ['--enable-raw-queries', ...this.flags, ...additionalFlag]
 
         if (this.useUds) {
           flags.push('--unix-path', this.socketPath!)
