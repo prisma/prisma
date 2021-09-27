@@ -729,7 +729,7 @@ https://pris.ly/d/prisma-schema
     }
   })
 
-  test('go should succeed with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
+  test('should not be blocked with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
     expect.assertions(1)
     const aliases = {
       'predefined-generator': {
@@ -748,7 +748,9 @@ https://pris.ly/d/prisma-schema
         skipDownload: true,
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toContain('cannot find package')
+      expect(stripAnsi(e.message)).toContain(
+        'Generator at go run github.com/prisma/prisma-client-go could not start',
+      )
     }
   })
 })
