@@ -56,7 +56,9 @@ declare global {
   var NOT_PROXY: {}
 }
 
-global.NOT_PROXY = true
+// @ts-ignore esbuild trick to set a default
+// eslint-disable-next-line no-self-assign
+;(globalThis = globalThis).NOT_PROXY = true
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
