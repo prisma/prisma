@@ -34,7 +34,6 @@ importers:
       create-hash: ^1.2.0
       create-hmac: ^1.1.7
       crypto-browserify: 3.12.0
-      debug: 4.3.2
       diffie-hellman: ^5.0.3
       domain-browser: ^4.22.0
       es6-object-assign: ^1.1.0
@@ -99,7 +98,7 @@ importers:
       xtend: ^4.0.2
     devDependencies:
       '@sindresorhus/slugify': 1.1.2
-      '@slack/webhook': 6.0.0_debug@4.3.2
+      '@slack/webhook': 6.0.0
       '@types/benchmark': 2.1.1
       '@types/debug': 4.1.7
       '@types/glob': 7.1.4
@@ -128,7 +127,6 @@ importers:
       create-hash: 1.2.0
       create-hmac: 1.1.7
       crypto-browserify: 3.12.0
-      debug: 4.3.2
       diffie-hellman: 5.0.3
       domain-browser: 4.22.0
       es6-object-assign: 1.1.0
@@ -437,7 +435,6 @@ importers:
       '@types/node': 12.20.26
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
-      debug: 4.3.2
       esbuild: 0.12.25
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -455,7 +452,6 @@ importers:
       typescript: 4.3.5
     dependencies:
       '@types/debug': 4.1.7
-      debug: 4.3.2
       ms: 2.1.3
     devDependencies:
       '@types/jest': 27.0.2
@@ -2045,13 +2041,13 @@ packages:
     engines: {node: '>= 8.9.0', npm: '>= 5.5.1'}
     dev: true
 
-  /@slack/webhook/6.0.0_debug@4.3.2:
+  /@slack/webhook/6.0.0:
     resolution: {integrity: sha512-2fohfhLI9lkAmOSWt1R457JBsB3iFNqahu4GqdFZRtcp/bT+xeG/kPn/hQa78JS74poRjWTt5G/qJjNaWMGOEQ==}
     engines: {node: '>= 12.13.0', npm: '>= 6.12.0'}
     dependencies:
       '@slack/types': 1.10.0
       '@types/node': 14.17.11
-      axios: 0.21.1_debug@4.3.2
+      axios: 0.21.1
     transitivePeerDependencies:
       - debug
     dev: true
@@ -2963,6 +2959,14 @@ packages:
     resolution: {integrity: sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==}
     dev: true
     optional: true
+
+  /axios/0.21.1:
+    resolution: {integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==}
+    dependencies:
+      follow-redirects: 1.14.2
+    transitivePeerDependencies:
+      - debug
+    dev: true
 
   /axios/0.21.1_debug@4.3.2:
     resolution: {integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==}
@@ -4479,6 +4483,16 @@ packages:
 
   /flatted/3.2.2:
     resolution: {integrity: sha512-JaTY/wtrcSyvXJl4IMFHPKyFur1sE9AUqc0QnhOaJ0CxHtAoIV8pYDzeEfAaNEtGkOfq4gr3LBFmdXW5mOQFnA==}
+    dev: true
+
+  /follow-redirects/1.14.2:
+    resolution: {integrity: sha512-yLR6WaE2lbF0x4K2qE2p9PEXKLDjUjnR/xmjS3wHAYxtlsI9MLLBJUZirAHKzUZDGLxje7w/cXR49WOUo4rbsA==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      debug: '*'
+    peerDependenciesMeta:
+      debug:
+        optional: true
     dev: true
 
   /follow-redirects/1.14.2_debug@4.3.2:

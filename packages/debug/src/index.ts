@@ -1,4 +1,3 @@
-import 'debug'
 import DebugNode from './node'
 
 const cache: any[] = []
