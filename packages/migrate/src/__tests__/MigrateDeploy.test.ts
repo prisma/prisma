@@ -90,6 +90,7 @@ describe('sqlite', () => {
       SQLite database dev.db created at file:dev.db
 
       1 migration found in prisma/migrations
+      Applying migration \`20201231000000_init\`
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
