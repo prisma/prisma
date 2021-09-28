@@ -37,7 +37,7 @@ importers:
       diffie-hellman: ^5.0.3
       domain-browser: ^4.22.0
       es6-object-assign: ^1.1.0
-      esbuild: 0.12.25
+      esbuild: 0.13.2
       esbuild-register: 3.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -130,8 +130,8 @@ importers:
       diffie-hellman: 5.0.3
       domain-browser: 4.22.0
       es6-object-assign: 1.1.0
-      esbuild: 0.12.25
-      esbuild-register: 3.0.0_esbuild@0.12.25
+      esbuild: 0.13.2
+      esbuild-register: 3.0.0_esbuild@0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -211,7 +211,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       dotenv: 10.0.0
-      esbuild: 0.8.53
+      esbuild: 0.13.2
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -263,7 +263,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       dotenv: 10.0.0
-      esbuild: 0.8.53
+      esbuild: 0.13.2
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
@@ -320,7 +320,7 @@ importers:
       base64-js: ^1.5.1
       chalk: 4.1.2
       decimal.js: 10.3.1
-      esbuild: 0.8.53
+      esbuild: 0.13.2
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -385,7 +385,7 @@ importers:
       base64-js: 1.5.1
       chalk: 4.1.2
       decimal.js: 10.3.1
-      esbuild: 0.8.53
+      esbuild: 0.13.2
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
@@ -434,7 +434,7 @@ importers:
       '@types/node': 12.20.27
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
-      esbuild: 0.12.25
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -457,7 +457,7 @@ importers:
       '@types/node': 12.20.27
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -488,7 +488,7 @@ importers:
       chalk: 4.1.2
       cross-fetch: ^3.1.4
       crypto-js: ^4.1.1
-      esbuild: 0.12.25
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -535,7 +535,7 @@ importers:
       '@types/node': 12.20.24
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -559,7 +559,7 @@ importers:
       '@typescript-eslint/parser': 4.29.3
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -582,7 +582,7 @@ importers:
       '@types/node': 12.20.27
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -611,7 +611,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       decimal.js: 10.3.1
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -651,7 +651,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       decimal.js: 10.3.1
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
@@ -695,7 +695,7 @@ importers:
       '@typescript-eslint/parser': 4.29.3
       chalk: 4.1.2
       del: 6.0.0
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -756,7 +756,7 @@ importers:
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
       chalk: 4.1.2
       del: 6.0.0
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -781,10 +781,10 @@ importers:
     specifiers:
       '@prisma/client': workspace:*
       '@types/jest': 27.0.2
-      '@types/node': 14.17.19
-      '@typescript-eslint/eslint-plugin': 4.32.0
-      '@typescript-eslint/parser': 4.32.0
-      esbuild: 0.12.16
+      '@types/node': 14.17.18
+      '@typescript-eslint/eslint-plugin': 4.31.2
+      '@typescript-eslint/parser': 4.31.2
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -801,10 +801,10 @@ importers:
     devDependencies:
       '@prisma/client': link:../client
       '@types/jest': 27.0.2
-      '@types/node': 14.17.19
-      '@typescript-eslint/eslint-plugin': 4.32.0_1eacf2495a01e8a68ffa99482308e8ec
-      '@typescript-eslint/parser': 4.32.0_eslint@7.32.0+typescript@4.4.3
-      esbuild: 0.12.16
+      '@types/node': 14.17.18
+      '@typescript-eslint/eslint-plugin': 4.31.2_3815fab247b4312be6d1f55eb1f81298
+      '@typescript-eslint/parser': 4.31.2_eslint@7.32.0+typescript@4.4.3
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -841,7 +841,7 @@ importers:
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
       dotenv: 10.0.0
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -920,7 +920,7 @@ importers:
       '@types/tar': 4.0.5
       '@typescript-eslint/eslint-plugin': 4.29.3_fd14c0002fbbfb85b8a0070d0dffb93d
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.3.5
-      esbuild: 0.12.16
+      esbuild: 0.13.2
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -2280,86 +2280,6 @@ packages:
       untildify: 4.0.0
     transitivePeerDependencies:
       - '@prisma/client'
-      - supports-color
-    dev: true
-
-  /@prisma/studio-transports/0.423.0:
-    resolution: {integrity: sha512-uEJm9Zjar/ykfC8JMXpEdwsZ5yFi+okEqpkUpJcXGr9Tv/nj/3KgM+tg7ZY2ARCDu0R6hrhz/3SxcMafpHswdQ==}
-    dev: true
-
-  /@rushstack/node-core-library/3.41.0:
-    resolution: {integrity: sha512-JxdmqR+SHU04jTDaZhltMZL3/XTz2ZZM47DTN+FSPUGUVp6WmxLlvJnT5FoHrOZWUjL/FoIlZUdUPTSXjTjIcg==}
-    dependencies:
-      '@types/node': 12.20.24
-      colors: 1.2.5
-      fs-extra: 7.0.1
-      import-lazy: 4.0.0
-      jju: 1.4.0
-      resolve: 1.17.0
-      semver: 7.3.5
-      timsort: 0.3.0
-      z-schema: 3.18.4
-    dev: true
-
-  /@rushstack/rig-package/0.3.1:
-    resolution: {integrity: sha512-DXQmrPWOCNoE2zPzHCShE1y47FlgbAg48wpaY058Qo/yKDzL0GlEGf5Ra2NIt22pMcp0R/HHh+kZGbqTnF4CrA==}
-    dependencies:
-      resolve: 1.17.0
-      strip-json-comments: 3.1.1
-    dev: true
-
-  /@rushstack/ts-command-line/4.9.1:
-    resolution: {integrity: sha512-zzoWB6OqVbMjnxlxbAUqbZqDWITUSHqwFCx7JbH5CVrjR9kcsB4NeWkN1I8GcR92beiOGvO3yPlB2NRo5Ugh+A==}
-    dependencies:
-      '@types/argparse': 1.0.38
-      argparse: 1.0.10
-      colors: 1.2.5
-      string-argv: 0.3.1
-    dev: true
-
-  /@sentry/core/6.2.5:
-    resolution: {integrity: sha512-I+AkgIFO6sDUoHQticP6I27TT3L+i6TUS03in3IEtpBcSeP2jyhlxI8l/wdA7gsBqUPdQ4GHOOaNgtFIcr8qag==}
-    engines: {node: '>=6'}
-    dependencies:
-      '@sentry/hub': 6.2.5
-      '@sentry/minimal': 6.2.5
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
-      tslib: 1.14.1
-    dev: true
-
-  /@sentry/hub/6.2.5:
-    resolution: {integrity: sha512-YlEFdEhcfqpl2HC+/dWXBsBJEljyMzFS7LRRjCk8QANcOdp9PhwQjwebUB4/ulOBjHPP2WZk7fBBd/IKDasTUg==}
-    engines: {node: '>=6'}
-    dependencies:
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
-      tslib: 1.14.1
-    dev: true
-
-  /@sentry/minimal/6.2.5:
-    resolution: {integrity: sha512-RKP4Qx3p7Cv0oX1cPKAkNVFYM7p2k1t32cNk1+rrVQS4hwlJ7Eg6m6fsqsO+85jd6Ne/FnyYsfo9cDD3ImTlWQ==}
-    engines: {node: '>=6'}
-    dependencies:
-      '@sentry/hub': 6.2.5
-      '@sentry/types': 6.2.5
-      tslib: 1.14.1
-    dev: true
-
-  /@sentry/node/6.2.5:
-    resolution: {integrity: sha512-/iM3khzGnUH713VFhZBAEYJhb/saEQSVz7Udogml+O7mFQ4rutnwJhgoGcB9YYrwMv2m7qOSszkdZbemDV6k2g==}
-    engines: {node: '>=6'}
-    dependencies:
-      '@sentry/core': 6.2.5
-      '@sentry/hub': 6.2.5
-      '@sentry/tracing': 6.2.5
-      '@sentry/types': 6.2.5
-      '@sentry/utils': 6.2.5
-      cookie: 0.4.1
-      https-proxy-agent: 5.0.0
-      lru_map: 0.3.3
-      tslib: 1.14.1
-    transitivePeerDependencies:
       - supports-color
     dev: true
 
@@ -4395,25 +4315,164 @@ packages:
     resolution: {integrity: sha1-wsNYJlYkfDnqEHyx5mUrb58kUjw=}
     dev: true
 
-  /esbuild-register/3.0.0_esbuild@0.12.25:
+  /esbuild-android-arm64/0.13.2:
+    resolution: {integrity: sha512-Eh2paXUWYqf5JgikdkC0LnhtjSC8tGAz/L2kJRlMC0o3DzOBIxcmT2fdzBerdhW4roY0bOExfcO6deI1qsxI/A==}
+    cpu: [arm64]
+    os: [android]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-darwin-64/0.13.2:
+    resolution: {integrity: sha512-jqp6uXHIIAWZ8kxRqFjxyMmIE1cuSbINellwwigOgk44eLg74ls82oqjY72MbDAowPivQkOU/fF7tsyaGQf5Zg==}
+    cpu: [x64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-darwin-arm64/0.13.2:
+    resolution: {integrity: sha512-bD4oAyPZdzOWEA/JoX0sAitOhjJRwhomhWMeyRyowtlVQhQleG2ijRUKTvkq4CAvSobrW5EnZxjvHNKJ5L7zJg==}
+    cpu: [arm64]
+    os: [darwin]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-freebsd-64/0.13.2:
+    resolution: {integrity: sha512-fFJ0yc3lZyfwca+F5OPN/s+izozWryUQpN8aUMIdUkOa7UKX0h3xXrKnkDgdOo8vy3d1A6zHH0/4f2VJfEzLCg==}
+    cpu: [x64]
+    os: [freebsd]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-freebsd-arm64/0.13.2:
+    resolution: {integrity: sha512-DWBZauEfjmqdfWxIacI+KBEim3ulOjtvK+WVm1bX67XlfyUVIkD915OIfT2EBhQUWmv+Z0tZZwskSMNj5DKojw==}
+    cpu: [arm64]
+    os: [freebsd]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-linux-32/0.13.2:
+    resolution: {integrity: sha512-Gt2rNqqRCRh1QQC2d83KP0iWIXWQYpns7l2+41a1n0PQxXkQ5AarpjjL9mUzdXtcZauNXbUvWwBKAuBTCW+XQg==}
+    cpu: [ia32]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-linux-64/0.13.2:
+    resolution: {integrity: sha512-yT0D5Xly8oGHuqq975k1XUyULHzk3fN/ZlTY+awlU+nCFsYPZ43NE5msGpxlNQu8i6KOXQEke5GXN3y5d+Zd4g==}
+    cpu: [x64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-linux-arm/0.13.2:
+    resolution: {integrity: sha512-KXeyotqj9jbvCjbSpwnxDE8E8jKoBgrgbJpOvvY5Zz7Pp2fAwu/94vWQtE/jPEJndY4C4MSs+ryJLFWzmLOa4w==}
+    cpu: [arm]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-linux-arm64/0.13.2:
+    resolution: {integrity: sha512-qwXL+3NDCWiC8RMKBBETpuOWdC+pUAUS+pwg9jJmapYblLdVKkyRtwF/ogj06TdYs6riSSNikW8HK/Xs0HHbbQ==}
+    cpu: [arm64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-linux-mips64le/0.13.2:
+    resolution: {integrity: sha512-sx8eheRX2XC2ppNAsbQm8/VUcU8XPYGpJK0BEyRefqHONz6u5Ib2guUdOz2Wh4YlbA7oOd482lHjprXSTwUcrQ==}
+    cpu: [mips64el]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-linux-ppc64le/0.13.2:
+    resolution: {integrity: sha512-y8iZ3qy2TIAKKsZ6xSopCztHOtGW9oiYDl22vQ0UIoVWjnfRKrbSzX7Y2F94y32hSvRWle6OhAIC+UpS5nQmIA==}
+    cpu: [ppc64]
+    os: [linux]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-openbsd-64/0.13.2:
+    resolution: {integrity: sha512-g6AYrjBeV9OK624bw0KQ1TjHJQSW+X1Yicyd1NvDWqSFpMqKAjw7EUX4tA87mOFqv8BflPGr4f43ySgNvSVzIw==}
+    cpu: [x64]
+    os: [openbsd]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-register/3.0.0_esbuild@0.13.2:
     resolution: {integrity: sha512-No7U3ZUd6gPrrC6gqdb3XFcf2lNqzn8nvQXcgcyOl8szMVuN6YUvOplnmakxWyogI9d8SiJMl0uzBzJck+Aoxw==}
     peerDependencies:
       esbuild: '>=0.12 <1'
     dependencies:
-      esbuild: 0.12.25
+      esbuild: 0.13.2
       jsonc-parser: 3.0.0
     dev: true
 
-  /esbuild/0.12.16:
-    resolution: {integrity: sha512-XqI9cXP2bmQ6MREIqrYBb13KfYFSERsV1+e5jSVWps8dNlLZK+hln7d0mznzDIpfISsg/AgQW0DW3kSInXWhrg==}
-    hasBin: true
+  /esbuild-sunos-64/0.13.2:
+    resolution: {integrity: sha512-hIXvFIyrqwFd6v62XSra0ctCUXDS9Tu5D6QYbvnbhEoBmvD/TmEJRYRH48/+xmRifKJLzu6aegcrjAsDmaww7g==}
+    cpu: [x64]
+    os: [sunos]
     requiresBuild: true
     dev: true
+    optional: true
 
-  /esbuild/0.12.25:
-    resolution: {integrity: sha512-woie0PosbRSoN8gQytrdCzUbS2ByKgO8nD1xCZkEup3D9q92miCze4PqEI9TZDYAuwn6CruEnQpJxgTRWdooAg==}
+  /esbuild-windows-32/0.13.2:
+    resolution: {integrity: sha512-Y767LG0NFkw0sPoDVOTKC5gaj4vURjjWfSCCDV5awpXXxBKOF2zsIp3aia4KvVoivoSSeRPk3emDd0OPHuPrKg==}
+    cpu: [ia32]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-windows-64/0.13.2:
+    resolution: {integrity: sha512-01b59kVJUMasctn6lzswC0drchr7zO75QtF22o5w0nlOw0Zorw0loY/8i5choFuWc30gXJId9qBSc1zPvt7uEw==}
+    cpu: [x64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild-windows-arm64/0.13.2:
+    resolution: {integrity: sha512-HxyY604ytmh8NkPYyS1TdIB/bFS7DWd1hP90e8Ovo/elEdN5I13h0tyIatDYZkXKS0Ztk+9T/3h6K0fI1a/4tQ==}
+    cpu: [arm64]
+    os: [win32]
+    requiresBuild: true
+    dev: true
+    optional: true
+
+  /esbuild/0.13.2:
+    resolution: {integrity: sha512-/tpIqo45hyRREGqh7hsIut8GwY1X2n9IhKbIwRIXUO6IohzG3/RarSGX7dT2eNvYzIbQmelpX+ZyuIphE5u+Bw==}
     hasBin: true
     requiresBuild: true
+    optionalDependencies:
+      esbuild-android-arm64: 0.13.2
+      esbuild-darwin-64: 0.13.2
+      esbuild-darwin-arm64: 0.13.2
+      esbuild-freebsd-64: 0.13.2
+      esbuild-freebsd-arm64: 0.13.2
+      esbuild-linux-32: 0.13.2
+      esbuild-linux-64: 0.13.2
+      esbuild-linux-arm: 0.13.2
+      esbuild-linux-arm64: 0.13.2
+      esbuild-linux-mips64le: 0.13.2
+      esbuild-linux-ppc64le: 0.13.2
+      esbuild-openbsd-64: 0.13.2
+      esbuild-sunos-64: 0.13.2
+      esbuild-windows-32: 0.13.2
+      esbuild-windows-64: 0.13.2
+      esbuild-windows-arm64: 0.13.2
     dev: true
 
   /escalade/3.1.1:

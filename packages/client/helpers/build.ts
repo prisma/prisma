@@ -12,7 +12,6 @@ const generatorBuildConfig: BuildOptions = {
   outfile: 'generator-build/index',
   bundle: true,
   external: external,
-  define: { 'globalThis.NOT_PROXY': 'true' },
 }
 
 // we define the config for runtime
@@ -31,7 +30,6 @@ const browserBuildConfig: BuildOptions = {
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
   external: external,
-  define: { 'globalThis.NOT_PROXY': 'true' },
 }
 
 // we define the config for proxy
@@ -44,13 +42,18 @@ const proxyBuildConfig: BuildOptions = {
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },
   plugins: [
-    fillPlugin({
-      // TODO no tree shaking on wrapper pkgs
-      '@prisma/get-platform': { contents: '' },
-      // these can not be exported any longer
-      './warnEnvConflicts': { contents: '' },
-      './utils/find': { contents: '' },
-    }),
+    fillPlugin(
+      {
+        // TODO no tree shaking on wrapper pkgs
+        '@prisma/get-platform': { contents: '' },
+        // these can not be exported any longer
+        './warnEnvConflicts': { contents: '' },
+        './utils/find': { contents: '' },
+      },
+      // we only trigger it on the first step (esm)
+      // because that is where tree-shaking happens
+      (options) => options.format === 'esm',
+    ),
   ],
   logLevel: 'error',
 }
