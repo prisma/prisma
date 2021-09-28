@@ -141,7 +141,7 @@ const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
   setup(build) {
     const fillers: Fillers = {
       // enabled
-      //   assert: { path: load('assert-browserify') },
+      assert: { path: load('assert-browserify') },
       buffer: { path: load('buffer') },
       constants: { path: load('constants-browserify') },
       crypto: { path: load('crypto-browserify') },
@@ -185,6 +185,9 @@ const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
       },
       process: {
         inject: path.join(__dirname, 'fillers', 'process.ts'),
+      },
+      global: {
+        define: '{}',
       },
 
       // not needed
