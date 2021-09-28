@@ -175,8 +175,9 @@ ${chalk.bold('Examples')}
           devDiagnostic.action.reason,
         )
 
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info() // empty line
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
@@ -200,6 +201,7 @@ ${chalk.bold('Examples')}
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
+        console.info() // empty line
         console.info(
           `The following migration(s) have been applied:\n\n${chalk(
             printFilesFromMigrationIds('migrations', appliedMigrationNames, {
@@ -244,6 +246,7 @@ ${chalk.bold('Examples')}
           // Only used to help users to setup their seeds from old way to new package.json config
           const schemaPath = await getSchemaPath(args['--schema'])
 
+          // TODO
           const message = await verifySeedConfigAndReturnMessage(schemaPath)
           // warn because setup of the feature needs to be done
           if (message) {
