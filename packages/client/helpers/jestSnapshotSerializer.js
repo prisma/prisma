@@ -30,6 +30,22 @@ function normalizeGithubLinks(str) {
   )
 }
 
+function normalizeTsClientStackTrace(str) {
+  return str.replace(
+    /(\/client\/src\/__tests__\/.*test.ts)(:\d*:\d*)/,
+    '$1:0:0',
+  )
+}
+
+// When updating snapshots this is sensitive to OS
+// macOS will update extension to .dylib.node, but CI uses .so.node for example
+function normalizeNodeApiLibFilePath(str) {
+  return str.replace(
+    /(libquery_engine-TEST_PLATFORM.)(.*)(.node)/,
+    '$1LIBRARY_TYPE$3',
+  )
+}
+
 const serializer = {
   test(value) {
     return typeof value === 'string' || value instanceof Error
@@ -42,7 +58,13 @@ const serializer = {
         ? value.message
         : ''
     return normalizeGithubLinks(
-      normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message)))),
+      normalizeToUnixPaths(
+        normalizeNodeApiLibFilePath(
+          removePlatforms(
+            normalizeTsClientStackTrace(trimErrorPaths(stripAnsi(message))),
+          ),
+        ),
+      ),
     )
   },
 }
