@@ -126,6 +126,8 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs) {
   return fillers[args.path] // inject the contents
 }
 
+const load = loader({})
+
 /**
  * esbuild plugin that provides a simple way to use esbuild's injection
  * capabilities while providing sensible defaults for node polyfills.
@@ -137,10 +139,9 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs) {
 const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
-    const load = loader({})
     const fillers: Fillers = {
       // enabled
-      assert: { path: load('assert-browserify') },
+      //   assert: { path: load('assert-browserify') },
       buffer: { path: load('buffer') },
       constants: { path: load('constants-browserify') },
       crypto: { path: load('crypto-browserify') },
@@ -179,10 +180,11 @@ const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
       child_process: { contents: '' },
 
       // globals
-      Buffer: { inject: load('buffer') },
+      Buffer: {
+        inject: path.join(__dirname, 'fillers', 'buffer.ts'),
+      },
       process: {
-        path: load('process'),
-        inject: load('process'),
+        inject: path.join(__dirname, 'fillers', 'process.ts'),
       },
 
       // not needed
