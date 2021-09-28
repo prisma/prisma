@@ -136,9 +136,15 @@ const load = loader({})
  * @param fillerOverrides override default fillers
  * @returns
  */
-const fillPlugin = (fillerOverrides: Fillers): esbuild.Plugin => ({
+const fillPlugin = (
+  fillerOverrides: Fillers,
+  triggerPredicate: (options: esbuild.BuildOptions) => boolean,
+): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
+    // in some cases, we just want to run this once (eg. on esm)
+    if (triggerPredicate(build.initialOptions) === false) return
+
     const fillers: Fillers = {
       // enabled
       assert: { path: load('assert-browserify') },
