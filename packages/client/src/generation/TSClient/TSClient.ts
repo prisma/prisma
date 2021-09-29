@@ -30,6 +30,7 @@ export interface TSClientOptions {
   engineVersion: string
   document: DMMF.Document
   runtimePath: string
+  runtimeName: string
   browser?: boolean
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
@@ -48,9 +49,15 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFClass(klona(options.document))
   }
   public toJS(): string {
-    const { generator, sqliteDatasourceOverrides, outputDir, schemaDir } =
-      this.options
-    const runtimePath = this.options.runtimePath
+    const {
+      platforms,
+      generator,
+      sqliteDatasourceOverrides,
+      outputDir,
+      schemaDir,
+      runtimePath,
+      runtimeName,
+    } = this.options
     const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -127,11 +134,11 @@ exports.Prisma.dmmf = JSON.parse(dmmfString)
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${buildWarnEnvConflicts(clientEngineType, runtimePath)}
+${buildWarnEnvConflicts(clientEngineType, runtimePath, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(clientEngineType, this.options.platforms, relativeOutdir)}
+${buildNFTAnnotations(clientEngineType, platforms, relativeOutdir)}
 `
     return code
   }
@@ -286,7 +293,11 @@ export const dmmf: runtime.DMMF.Document;
   }
 
   public toBrowserJS(): string {
-    const code = `${commonCodeJS({ ...this.options, browser: true })}
+    const code = `${commonCodeJS({
+      ...this.options,
+      runtimeName: 'index-browser',
+      browser: true,
+    })}
 /**
  * Enums
  */
