@@ -3,12 +3,6 @@ process.env.GITHUB_ACTIONS = '1'
 import fs from 'fs-jetpack'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { consoleContext, Context } from './__helpers__/context'
-import { tearDownMysql } from '../utils/setupMysql'
-import {
-  SetupParams,
-  setupPostgres,
-  tearDownPostgres,
-} from '../utils/setupPostgres'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
@@ -56,6 +50,7 @@ describe('sqlite', () => {
 
       No migration found in prisma/migrations
 
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
@@ -91,10 +86,13 @@ describe('sqlite', () => {
 
       1 migration found in prisma/migrations
 
+      Applying migration \`20201231000000_init\`
+
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations
+
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -118,6 +116,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

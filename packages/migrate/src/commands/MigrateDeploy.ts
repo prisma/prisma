@@ -5,8 +5,6 @@ import {
   getSchemaPath,
   HelpError,
   isError,
-  getCommandWithExecutor,
-  link,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
@@ -138,6 +136,7 @@ ${editedMigrationNames.join('\n')}`,
 
     let migrationIds: string[]
     try {
+      console.info() // empty line
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
