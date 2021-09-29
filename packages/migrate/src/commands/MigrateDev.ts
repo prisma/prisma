@@ -243,14 +243,9 @@ ${chalk.bold('Examples')}
         } else {
           // Only used to help users to setup their seeds from old way to new package.json config
           const schemaPath = await getSchemaPath(args['--schema'])
-
-          const message = await verifySeedConfigAndReturnMessage(schemaPath)
-          // warn because setup of the feature needs to be done
-          if (message) {
-            console.warn() // empty line
-            logger.warn(message)
-            console.warn() // empty line
-          }
+          // we don't want to output the returned warning message
+          // but we still want to run it for `legacyTsNodeScriptWarning()`
+          await verifySeedConfigAndReturnMessage(schemaPath)
         }
       } catch (e) {
         console.error(e)
