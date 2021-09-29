@@ -369,6 +369,16 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Blog
+        - _Migration
+
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -395,6 +405,16 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Blog
+        - _Migration
+
 
       Reset cancelled.
     `)
@@ -416,6 +436,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      The migration \`20201231000000_test\` was modified after it was applied.
       The following migration(s) have been applied:
 
       migrations/
@@ -443,6 +464,17 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      - Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Blog
+
+      - The migrations recorded in the database diverge from the local migrations directory.
 
       The following migration(s) have been applied:
 
@@ -599,14 +631,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -662,10 +694,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                  ⚠️  Warnings for the current datasource:
+                                                                                                                                                                        ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                            `)
+                                                                                                                                                                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -686,10 +718,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                  ⚠️  Warnings for the current datasource:
+                                                                                                                                                                        ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                            `)
+                                                                                                                                                                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -736,6 +768,19 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+      Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Post
+        - User
+
+      [*] Changed the \`User\` table
+        [+] Added unique index on columns (email)
+
 
       Running seed command \`ts-node prisma/seed.ts\` ...
 
@@ -766,6 +811,19 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+      Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Post
+        - User
+
+      [*] Changed the \`User\` table
+        [+] Added unique index on columns (email)
+
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -791,6 +849,19 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Post
+        - User
+
+      [*] Changed the \`User\` table
+        [+] Added unique index on columns (email)
 
 
       Running seed command \`node prisma/seed.js\` ...
@@ -823,6 +894,19 @@ describe('sqlite', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - Post
+        - User
+
+      [*] Changed the \`User\` table
+        [+] Added unique index on columns (email)
 
       The following migration(s) have been created and applied from new schema changes:
 
