@@ -75,14 +75,16 @@ async function getConfigNodeAPI(
   await isNodeAPISupported()
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
   try {
-    const NodeAPIQueryEngineLibrary =
-      load<NodeAPILibraryTypes.Library>(queryEnginePath)
-    data = await NodeAPIQueryEngineLibrary.getConfig({
+    let NodeAPIQueryEngineLibrary = load<
+      NodeAPILibraryTypes.Library | undefined
+    >(queryEnginePath)
+    data = await NodeAPIQueryEngineLibrary!.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},
       ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
       env: process.env,
     })
+    NodeAPIQueryEngineLibrary = undefined
   } catch (e) {
     let error
     try {
