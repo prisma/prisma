@@ -53,20 +53,22 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   await isNodeAPISupported()
 
   debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
-  const NodeAPIQueryEngineLibrary =
-    load<NodeAPILibraryTypes.Library>(queryEnginePath)
+  let NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library | undefined>(
+    queryEnginePath,
+  )
   const datamodel =
     options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
   let dmmf: DMMF.Document | undefined
   try {
     dmmf = JSON.parse(
-      await NodeAPIQueryEngineLibrary.dmmf(datamodel),
+      await NodeAPIQueryEngineLibrary!.dmmf(datamodel),
     ) as DMMF.Document
   } catch (e) {
     const error = JSON.parse(e.message)
     const message = addMissingOpenSSLInfo(error.message)
     throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
   }
+  NodeAPIQueryEngineLibrary = undefined
   return dmmf
 }
 
