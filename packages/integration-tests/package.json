@@ -31,7 +31,7 @@
     "execa": "5.1.1",
     "fs-jetpack": "4.1.1",
     "glob": "7.1.7",
-    "jest": "27.2.3",
+    "jest": "27.2.4",
     "lint-staged": "11.1.2",
     "mariadb": "2.5.4",
     "mssql": "7.2.1",
