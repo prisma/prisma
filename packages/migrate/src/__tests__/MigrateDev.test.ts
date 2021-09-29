@@ -620,14 +620,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -684,10 +684,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                              ⚠️  Warnings for the current datasource:
+                                                                                                                                                                  ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                    `)
+                                                                                                                                                                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                            `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -708,10 +708,10 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                                                                                              ⚠️  Warnings for the current datasource:
+                                                                                                                                                                  ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                    `)
+                                                                                                                                                                    • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                            `)
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
@@ -833,7 +833,7 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(
-      `ReferenceError: BROKEN_CODE_SHOULD_ERROR is not defined`,
+      `An error occured while running the seed command:`,
     )
   })
 
@@ -862,26 +862,9 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-
-                        prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
-
-                        1. Open the package.json of your project
-                        2. Add the following example to it:
-                        \`\`\`
-                        "prisma": {
-                          "seed": "ts-node prisma/seed.ts"
-                        }
-                        \`\`\`
-
-                        3. Install the required dependencies by running:
-                        npm i -D ts-node typescript @types/node
-
-                        More information in our documentation:
-                        https://pris.ly/d/seeding
-
-                `)
+    expect(
+      ctx.mocked['console.warn'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

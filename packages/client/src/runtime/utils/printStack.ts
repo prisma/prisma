@@ -74,7 +74,7 @@ function parseStack({
 
   const stack = stackTraceParser.parse(callsite)
   // TODO: more resilient logic to check that it's not relative to cwd
-  const trace = stack.reverse().find((t) => {
+  const trace = stack.find((t) => {
     // Here we are trying to find the location in the users code which caused the error
     return (
       t.file &&
