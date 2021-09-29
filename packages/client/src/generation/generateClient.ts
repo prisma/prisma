@@ -42,10 +42,10 @@ export interface GenerateClientOptions {
   projectRoot?: string
   datamodel: string
   datamodelPath: string
-  browser?: boolean
   schemaDir?: string
   transpile?: boolean
   runtimePath?: string
+  runtimeName?: string
   outputDir: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
@@ -68,7 +68,7 @@ export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
   runtimePath = '@prisma/client/runtime',
-  browser = false,
+  runtimeName = 'index',
   binaryPaths,
   outputDir,
   generator,
@@ -85,7 +85,7 @@ export async function buildClient({
   const client = new TSClient({
     document,
     runtimePath,
-    browser,
+    runtimeName,
     datasources: datasources,
     generator,
     platforms:
@@ -143,7 +143,7 @@ export async function generateClient({
   outputDir,
   transpile,
   runtimePath,
-  browser,
+  runtimeName,
   generator,
   dmmf,
   datasources,
@@ -161,7 +161,7 @@ export async function generateClient({
 
   // we make sure that we point to the right engine build
   if (clientEngineType === ClientEngineType.DataProxy) {
-    runtimePath = `${runtimePath}/proxy`
+    runtimeName = 'proxy'
   }
 
   const finalOutputDir = useDotPrisma
@@ -177,7 +177,7 @@ export async function generateClient({
     schemaDir,
     transpile,
     runtimePath,
-    browser,
+    runtimeName,
     outputDir: finalOutputDir,
     generator,
     dmmf,

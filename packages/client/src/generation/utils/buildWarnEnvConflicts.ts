@@ -10,10 +10,11 @@ import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
 export function buildWarnEnvConflicts(
   clientEngineType: ClientEngineType,
   runtimePath: string,
+  runtimeName: string,
 ) {
   if (clientEngineType !== ClientEngineType.DataProxy) {
     return `
-const { warnEnvConflicts } = require('${runtimePath}')
+const { warnEnvConflicts } = require('${runtimePath}/${runtimeName}')
 
 warnEnvConflicts({
     rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
