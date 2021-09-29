@@ -1098,7 +1098,7 @@ new PrismaClient({
             return nextMiddleware(changedParams, consumer)
           }
 
-          const changedInternalParams = { ...internalParams, ...params }
+          const changedInternalParams = { ...internalParams, ...changedParams }
 
           // TODO remove this once LRT is the default transaction mode
           if (index > 0 && !this._hasPreviewFlag('interactiveTransactions')) {
