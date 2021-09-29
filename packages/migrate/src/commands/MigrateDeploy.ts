@@ -99,11 +99,16 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
-    if (wasDbCreated) {
+    try {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
+      if (wasDbCreated) {
+        console.info() // empty line
+        console.info(wasDbCreated)
+      }
+    } catch (e) {
       console.info() // empty line
-      console.info(wasDbCreated)
+      throw e
     }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
