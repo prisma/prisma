@@ -413,7 +413,7 @@ export class IntrospectionEngine {
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
-              let message = `${chalk.redBright(response.error.data.message)}\n`
+              let message = `${response.error.data.message}\n`
               if (response.error.data?.error_code) {
                 message =
                   chalk.redBright(`${response.error.data.error_code}\n\n`) +
@@ -477,13 +477,8 @@ export class IntrospectionEngine {
 }
 
 function serializePanic(log): string {
-  return `${chalk.red.bold(
-    'Error in introspection engine.\nReason: ',
-  )}${chalk.red(
-    `${log.reason} in ${chalk.underline(
-      `${log.file}:${log.line}:${log.column}`,
-    )}`,
-  )}
+  return `${chalk.red.bold('Error in introspection engine.\nReason: ')}
+${log.reason} in ${chalk.underline(`${log.file}:${log.line}:${log.column}`)}
 
 Please create an issue in the ${chalk.bold('prisma')} repo with the error 🙏:
 ${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`

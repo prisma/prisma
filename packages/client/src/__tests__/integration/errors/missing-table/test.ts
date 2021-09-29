@@ -9,7 +9,7 @@ test('missing-table', async () => {
     .toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`expect(prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-table/test.ts:8:28
+          /client/src/__tests__/integration/errors/missing-table/test.ts:0:0
 
              5 const PrismaClient = await getTestClient()
              6 const prisma = new PrismaClient()

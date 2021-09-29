@@ -212,8 +212,9 @@ Then you can run ${chalk.green(
         // Schema Parsing Error
         console.info() // empty line
         throw new Error(`${chalk.red(
-          `${e.code} Introspection failed as your current Prisma schema file is invalid`,
-        )}\n
+          `${e.code}`,
+        )} Introspection failed as your current Prisma schema file is invalid
+
 Please fix your current schema manually, use ${chalk.green(
           getCommandWithExecutor('prisma validate'),
         )} to confirm it is valid and then run this command again.
@@ -222,6 +223,7 @@ Or run this command with the ${chalk.green(
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
+      console.info() // empty line
       throw e
     }
 

@@ -182,12 +182,12 @@ it('push', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 1,
-            unexecutable: Array [],
-            warnings: Array [],
-          }
-        `)
+Object {
+  executedSteps: 1,
+  unexecutable: Array [],
+  warnings: Array [],
+}
+`)
   migrate.stop()
 })
 
@@ -391,12 +391,12 @@ it('devDiagnostic - createMigration', async () => {
     migrationsDirectoryPath: migrate.migrationsDirectoryPath,
   })
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            action: Object {
-              tag: createMigration,
-            },
-          }
-        `)
+Object {
+  action: Object {
+    tag: createMigration,
+  },
+}
+`)
 
   migrate.stop()
 })

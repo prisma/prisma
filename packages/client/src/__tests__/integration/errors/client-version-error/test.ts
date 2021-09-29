@@ -10,7 +10,7 @@ test('client-version-error', async () => {
     expect(e).toMatchInlineSnapshot(`
 
 Invalid \`prisma.user.findMany()\` invocation in
-/client/src/__tests__/integration/errors/client-version-error/test.ts:7:23
+/client/src/__tests__/integration/errors/client-version-error/test.ts:0:0
 
    4 const PrismaClient = await getTestClient()
    5 const prisma = new PrismaClient()

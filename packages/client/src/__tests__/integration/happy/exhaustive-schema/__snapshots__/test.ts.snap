@@ -14160,6 +14160,7 @@ export namespace Prisma {
 
   export type OptionalSide1WhereUniqueInput = {
     id?: number
+    optionalSide2Id?: number
   }
 
   export type OptionalSide1OrderByWithAggregationInput = {

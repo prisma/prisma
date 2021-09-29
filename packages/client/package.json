@@ -63,10 +63,10 @@
     "@microsoft/api-extractor": "7.18.11",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.2.0-8.b3267b043a190a585bd06e9e91855e135eb7b1c6",
-    "@prisma/fetch-engine": "3.2.0-8.b3267b043a190a585bd06e9e91855e135eb7b1c6",
+    "@prisma/engines": "3.2.0-27.8a8bb09b003449c13728126bce82a9ed75da0047",
+    "@prisma/fetch-engine": "3.2.0-27.8a8bb09b003449c13728126bce82a9ed75da0047",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.2.0-8.b3267b043a190a585bd06e9e91855e135eb7b1c6",
+    "@prisma/get-platform": "3.2.0-27.8a8bb09b003449c13728126bce82a9ed75da0047",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -74,7 +74,7 @@
     "@types/jest": "27.0.2",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.8",
-    "@types/node": "12.20.26",
+    "@types/node": "12.20.27",
     "@types/pg": "8.6.1",
     "@typescript-eslint/eslint-plugin": "4.29.3",
     "@typescript-eslint/parser": "4.29.3",
@@ -97,7 +97,7 @@
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
-    "jest": "27.2.1",
+    "jest": "27.2.4",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.4",
     "lint-staged": "11.1.2",
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.2.0-8.b3267b043a190a585bd06e9e91855e135eb7b1c6"
+    "@prisma/engines-version": "3.2.0-27.8a8bb09b003449c13728126bce82a9ed75da0047"
   },
   "lint-staged": {
     "*.ts": [

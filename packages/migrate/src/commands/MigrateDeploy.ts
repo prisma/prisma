@@ -1,13 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import {
-  arg,
-  format,
-  getSchemaPath,
-  HelpError,
-  isError,
-  getCommandWithExecutor,
-  link,
-} from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { Migrate } from '../Migrate'
@@ -99,11 +91,16 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
-    if (wasDbCreated) {
+    try {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
+      if (wasDbCreated) {
+        console.info() // empty line
+        console.info(wasDbCreated)
+      }
+    } catch (e) {
       console.info() // empty line
-      console.info(wasDbCreated)
+      throw e
     }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
@@ -138,6 +135,7 @@ ${editedMigrationNames.join('\n')}`,
 
     let migrationIds: string[]
     try {
+      console.info() // empty line
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {

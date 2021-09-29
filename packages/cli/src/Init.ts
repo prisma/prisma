@@ -57,7 +57,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -119,7 +119,7 @@ export class Init implements Command {
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQLServer (Preview) or MongoDB (Preview)
+  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB (Preview)
                   --url   Define a custom datasource url
 
   ${chalk.bold('Examples')}
@@ -249,7 +249,7 @@ export class Init implements Command {
       defaultSchema(provider),
     )
 
-    let warning
+    const warnings: string[] = []
     const envPath = path.join(outputDir, '.env')
     if (!fs.existsSync(envPath)) {
       fs.writeFileSync(envPath, defaultEnv(url))
@@ -257,12 +257,14 @@ export class Init implements Command {
       const envFile = fs.readFileSync(envPath, { encoding: 'utf8' })
       const config = dotenv.parse(envFile) // will return an object
       if (Object.keys(config).includes('DATABASE_URL')) {
-        warning = `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(
-          url,
-          false,
-        )} but this environment variable already exists in ${chalk.bold(
-          path.relative(outputDir, envPath),
-        )}`
+        warnings.push(
+          `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(
+            url,
+            false,
+          )} but this environment variable already exists in ${chalk.bold(
+            path.relative(outputDir, envPath),
+          )}`,
+        )
       } else {
         fs.appendFileSync(
           envPath,
@@ -271,10 +273,19 @@ export class Init implements Command {
       }
     }
 
+    const gitignorePath = path.join(outputDir, '.gitignore')
     try {
-      fs.writeFileSync(path.join(outputDir, '.gitignore'), defaultGitIgnore())
-    } catch (error) {
-      console.error('Failed to write .gitignore file, reason: ', error)
+      fs.writeFileSync(gitignorePath, defaultGitIgnore(), { flag: 'wx' })
+    } catch (e) {
+      if ((e as NodeJS.ErrnoException).code === 'EEXIST') {
+        warnings.push(
+          `${chalk.yellow(
+            'warn',
+          )} You already have a .gitignore. Don't forget to exclude .env to not commit any secret.`,
+        )
+      } else {
+        console.error('Failed to write .gitignore file, reason: ', e)
+      }
     }
 
     const steps: string[] = []
@@ -320,7 +331,7 @@ export class Init implements Command {
     return `
 ✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
-${warning && logger.should.warn ? '\n' + warning + '\n' : ''}
+${warnings.length > 0 && logger.should.warn ? `\n${warnings.join('\n')}\n` : ''}
 Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
