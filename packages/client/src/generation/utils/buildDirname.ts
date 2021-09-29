@@ -17,7 +17,7 @@ export function buildDirname(
     return buildDirnameFind(relativeOutdir, runtimePath)
   }
 
-  return buildDirnameRelative()
+  return buildDirnameDefault()
 }
 
 /**
@@ -52,6 +52,6 @@ const dirname = findSync(process.cwd(), [
  * Builds a simple `dirname` for when it is not important to have one.
  * @returns
  */
-function buildDirnameRelative() {
+function buildDirnameDefault() {
   return `const dirname = '/'`
 }
