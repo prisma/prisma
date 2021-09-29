@@ -591,7 +591,7 @@ importers:
       resolve-pkg: 2.0.0
       sqlite-async: 1.1.1
       sqlite3: 5.0.2
-      strip-ansi: 6.0.0
+      strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tempy: 1.0.1
       ts-jest: 27.0.5
@@ -610,7 +610,7 @@ importers:
       pkg-up: 3.1.0
       prompts: 2.4.1
       resolve-pkg: 2.0.0
-      strip-ansi: 6.0.0
+      strip-ansi: 6.0.1
       strip-indent: 3.0.0
     devDependencies:
       '@prisma/engines-version': 3.2.0-17.fa58675e5e9b56d806615b0019f7e28426a514e7
@@ -733,8 +733,8 @@ importers:
       resolve: 1.20.0
       rimraf: 3.0.2
       shell-quote: 1.7.2
-      string-width: 4.2.2
-      strip-ansi: 6.0.0
+      string-width: 4.2.3
+      strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tar: 6.1.11
       temp-dir: 2.0.0
@@ -772,8 +772,8 @@ importers:
       resolve: 1.20.0
       rimraf: 3.0.2
       shell-quote: 1.7.2
-      string-width: 4.2.2
-      strip-ansi: 6.0.0
+      string-width: 4.2.3
+      strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tar: 6.1.11
       temp-dir: 2.0.0
@@ -2673,7 +2673,6 @@ packages:
   /ansi-regex/5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
     engines: {node: '>=8'}
-    dev: true
 
   /ansi-regex/6.0.1:
     resolution: {integrity: sha512-n5M855fKb2SsfMIiFFoVrABHJC8QtHwVx+mHWP3QcEqBHYienj5dHSgjbxtC0WEZXYt4wcD6zrQElDPhFuZgfA==}
@@ -7520,6 +7519,15 @@ packages:
       is-fullwidth-code-point: 3.0.0
       strip-ansi: 6.0.0
 
+  /string-width/4.2.3:
+    resolution: {integrity: sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g==}
+    engines: {node: '>=8'}
+    dependencies:
+      emoji-regex: 8.0.0
+      is-fullwidth-code-point: 3.0.0
+      strip-ansi: 6.0.1
+    dev: false
+
   /string_decoder/1.1.1:
     resolution: {integrity: sha512-n/ShnvDi6FHbbVfviro+WojiFzv+s8MPMHBczVePfUpDJLwoLT0ht1l4YwBCbi8pJAveEEdnkHyPyTP/mzRfwg==}
     dependencies:
@@ -7551,6 +7559,13 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       ansi-regex: 5.0.0
+
+  /strip-ansi/6.0.1:
+    resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
+    engines: {node: '>=8'}
+    dependencies:
+      ansi-regex: 5.0.1
+    dev: false
 
   /strip-ansi/7.0.1:
     resolution: {integrity: sha512-cXNxvT8dFNRVfhVME3JAe98mkXDYN2O1l7jmcwMnOslDeESg1rF/OZMtK0nRAhiari1unG5cD4jG3rapUAkLbw==}
