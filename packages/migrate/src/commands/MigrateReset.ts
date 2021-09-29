@@ -130,6 +130,8 @@ ${chalk.bold('Examples')}
         )}.`,
       })
 
+      console.info() // empty line
+
       if (!confirmation.value) {
         console.info('Reset cancelled.')
         process.exit(0)
@@ -153,6 +155,7 @@ ${chalk.bold('Examples')}
     if (migrationIds.length === 0) {
       console.info(`${chalk.green('Database reset successful\n')}`)
     } else {
+      console.info() // empty line
       console.info(
         `${chalk.green('Database reset successful')}
 
