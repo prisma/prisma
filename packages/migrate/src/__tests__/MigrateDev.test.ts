@@ -145,6 +145,7 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+      Applying migration \`20201231000000_first\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -174,6 +175,7 @@ describe('sqlite', () => {
 
       SQLite database dev.db created at file:dev.db
 
+      Applying migration \`20201231000000_xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -270,6 +272,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Applying migration \`20201231000000_some_draft\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -344,6 +348,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Applying migration \`20201231000000_first\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -369,6 +375,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -416,6 +424,10 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+      Applying migration \`20201231000000_test\`
+      Applying migration \`20201231000000_draft\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -444,11 +456,15 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+      Applying migration \`20201231000000_draft\`
+
       The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_draft/
           └─ migration.sql
+      Applying migration \`20201231000000_new_change\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -553,6 +569,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Applying migration \`20201231000000_draft\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -575,11 +593,14 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+      Applying migration \`20201231000000_draft\`
+
       The following migration(s) have been applied:
 
       migrations/
         └─ 20201231000000_draft/
           └─ migration.sql
+      Applying migration \`20201231000000_\`
 
       The following migration(s) have been created and applied from new schema changes:
 
@@ -651,6 +672,7 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -737,10 +759,12 @@ describe('sqlite', () => {
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
 
+
       Running seed command \`ts-node prisma/seed.ts\` ...
 
       🌱  The seed command has been executed.
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -766,6 +790,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -793,8 +819,10 @@ describe('sqlite', () => {
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
 
+
       Running seed command \`node prisma/seed.js\` ...
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -824,6 +852,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -913,6 +943,7 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -935,6 +966,7 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -955,6 +987,7 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -978,6 +1011,7 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
+      Applying migration \`20201231000000_first\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1044,6 +1078,8 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
+      Applying migration \`20201231000000_first\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -1066,6 +1102,7 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
+      Applying migration \`20201231000000_first\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1140,6 +1177,7 @@ describe('mysql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1162,6 +1200,7 @@ describe('mysql', () => {
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1182,6 +1221,7 @@ describe('mysql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1271,6 +1311,8 @@ describe('mysql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 
+      Applying migration \`20201231000000_first\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -1293,6 +1335,7 @@ describe('mysql', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 
+      Applying migration \`20201231000000_first\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1347,6 +1390,7 @@ describe('SQL Server', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db" - SQL Server
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1369,6 +1413,7 @@ describe('SQL Server', () => {
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db" - SQL Server
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1389,6 +1434,7 @@ describe('SQL Server', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db" - SQL Server
 
+      Applying migration \`20201231000000_\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/
@@ -1478,6 +1524,8 @@ describe('SQL Server', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db" - SQL Server
 
+      Applying migration \`20201231000000_first\`
+
       The following migration(s) have been applied:
 
       migrations/
@@ -1500,6 +1548,7 @@ describe('SQL Server', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db" - SQL Server
 
+      Applying migration \`20201231000000_first\`
       The following migration(s) have been created and applied from new schema changes:
 
       migrations/

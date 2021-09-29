@@ -175,8 +175,9 @@ ${chalk.bold('Examples')}
           devDiagnostic.action.reason,
         )
 
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info() // empty line
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
@@ -200,6 +201,7 @@ ${chalk.bold('Examples')}
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
+        console.info() // empty line
         console.info(
           `The following migration(s) have been applied:\n\n${chalk(
             printFilesFromMigrationIds('migrations', appliedMigrationNames, {

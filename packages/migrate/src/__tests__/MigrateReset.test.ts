@@ -77,6 +77,9 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+      Applying migration \`20201231000000_init\`
+
       Database reset successful
 
       The following migration(s) have been applied:
@@ -99,6 +102,8 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -126,6 +131,8 @@ describe('reset', () => {
 
       SQLite database dev.db created at file:dev.db
 
+      Applying migration \`20201231000000_init\`
+
       Database reset successful
 
       The following migration(s) have been applied:
@@ -152,6 +159,7 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
       Database reset successful
 
     `)
@@ -172,6 +180,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
       Reset cancelled.
     `)
@@ -206,6 +215,7 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
       Database reset successful
 
     `)
@@ -237,6 +247,7 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
       Database reset successful
 
 
@@ -263,6 +274,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
 
       Database reset successful
 
@@ -293,6 +305,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
 
       Database reset successful
 
