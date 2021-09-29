@@ -11,8 +11,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                🌱  The seed command has been executed.
-                                                                                                                                                                `)
+                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                    `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -48,8 +48,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                        🌱  The seed command has been executed.
-                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                🌱  The seed command has been executed.
+                                                                                                                                                                                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
@@ -66,8 +66,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                        🌱  The seed command has been executed.
-                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                🌱  The seed command has been executed.
+                                                                                                                                                                                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
@@ -162,8 +162,8 @@ https://pris.ly/d/seeding
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                        🌱  The seed command has been executed.
-                    `)
+                                                🌱  The seed command has been executed.
+                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
@@ -184,8 +184,8 @@ https://pris.ly/d/seeding
     const result = DbSeed.new().parse(['--schema=./some-folder/schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                        🌱  The seed command has been executed.
-                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                🌱  The seed command has been executed.
+                                                                                                                                                                                                        `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)

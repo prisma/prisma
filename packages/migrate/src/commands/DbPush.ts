@@ -112,11 +112,16 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     const migrate = new Migrate(schemaPath)
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
-    if (wasDbCreated) {
-      console.info()
-      console.info(wasDbCreated)
+    try {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+      if (wasDbCreated) {
+        console.info() // empty line
+        console.info(wasDbCreated)
+      }
+    } catch (e) {
+      console.info() // empty line
+      throw e
     }
 
     let wasDatabaseReset = false
