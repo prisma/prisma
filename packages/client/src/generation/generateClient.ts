@@ -44,7 +44,7 @@ export interface GenerateClientOptions {
   datamodelPath: string
   schemaDir?: string
   transpile?: boolean
-  runtimePath?: string
+  runtimeDir?: string
   runtimeName?: string
   outputDir: string
   generator?: GeneratorConfig
@@ -67,7 +67,7 @@ export interface BuildClientResult {
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
-  runtimePath = '@prisma/client/runtime',
+  runtimeDir = '@prisma/client/runtime',
   runtimeName = 'index',
   binaryPaths,
   outputDir,
@@ -84,7 +84,7 @@ export async function buildClient({
 
   const client = new TSClient({
     document,
-    runtimePath,
+    runtimeDir,
     runtimeName,
     datasources: datasources,
     generator,
@@ -142,7 +142,7 @@ export async function generateClient({
   schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
   outputDir,
   transpile,
-  runtimePath,
+  runtimeDir,
   runtimeName,
   generator,
   dmmf,
@@ -154,10 +154,10 @@ export async function generateClient({
   engineVersion,
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
+  const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
-  runtimePath =
-    runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
+  runtimeDir =
+    runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   // we make sure that we point to the right engine build
   if (clientEngineType === ClientEngineType.DataProxy) {
@@ -176,7 +176,7 @@ export async function generateClient({
     datamodelPath,
     schemaDir,
     transpile,
-    runtimePath,
+    runtimeDir: runtimeDir,
     runtimeName,
     outputDir: finalOutputDir,
     generator,

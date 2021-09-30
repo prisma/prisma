@@ -8,6 +8,7 @@ import { DMMFClass } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
 import { getClientEngineType } from '../../runtime/utils/getClientEngineType'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
@@ -23,13 +24,14 @@ import { buildDirname } from '../utils/buildDirname'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import fs from 'fs'
+import type { EnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
 
 export interface TSClientOptions {
   projectRoot: string
   clientVersion: string
   engineVersion: string
   document: DMMF.Document
-  runtimePath: string
+  runtimeDir: string
   runtimeName: string
   browser?: boolean
   datasources: InternalDatasource[]
@@ -39,6 +41,28 @@ export interface TSClientOptions {
   schemaDir: string
   outputDir: string
   activeProvider: string
+}
+
+/**
+ * Utility to conditionally add items to `config`
+ * @param engineType
+ * @param schemaPath
+ * @param envPaths
+ * @returns
+ */
+function conditionalConfig(
+  engineType: ClientEngineType,
+  schemaPath: string,
+  envPaths: EnvPaths,
+) {
+  if (engineType === ClientEngineType.DataProxy) {
+    return {
+      inlineSchema: fs.readFileSync(schemaPath).toString('base64'),
+      inlineEnv: tryLoadEnvs(envPaths, { conflictCheck: 'warn' }),
+    }
+  }
+
+  return {}
 }
 
 export class TSClient implements Generatable {
@@ -55,7 +79,7 @@ export class TSClient implements Generatable {
       sqliteDatasourceOverrides,
       outputDir,
       schemaDir,
-      runtimePath,
+      runtimeDir,
       runtimeName,
     } = this.options
     const schemaPath = path.join(schemaDir, 'schema.prisma')
@@ -69,6 +93,12 @@ export class TSClient implements Generatable {
         path.relative(outputDir, envPaths.schemaEnvPath),
     }
 
+    // This ensures that any engine override is propagated to the generated clients config
+    const engineType = getClientEngineType(generator!)
+    if (generator) {
+      generator.config.engineType = engineType
+    }
+
     const config: Omit<GetPrismaClientConfig, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
@@ -78,14 +108,7 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      inlineSchema: fs.readFileSync(schemaPath).toString('base64'),
-      inlineEnv: tryLoadEnvs(envPaths, { conflictCheck: 'warn' }),
-    }
-
-    // This ensures that any engine override is propagated to the generated clients config
-    const clientEngineType = getClientEngineType(config.generator!)
-    if (config.generator) {
-      config.generator.config.engineType = clientEngineType
+      ...conditionalConfig(engineType, schemaPath, envPaths),
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -93,8 +116,8 @@ export class TSClient implements Generatable {
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(clientEngineType)}
-${buildDirname(clientEngineType, relativeOutdir, runtimePath)}
+${buildRequirePath(engineType)}
+${buildDirname(engineType, relativeOutdir, runtimeDir)}
 /**
  * Enums
  */
@@ -135,11 +158,11 @@ exports.Prisma.dmmf = JSON.parse(dmmfString)
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${buildWarnEnvConflicts(clientEngineType, runtimePath, runtimeName)}
+${buildWarnEnvConflicts(engineType, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(clientEngineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
 `
     return code
   }

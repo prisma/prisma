@@ -1,7 +1,7 @@
 import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
-  runtimePath,
+  runtimeDir,
   runtimeName,
   browser,
   clientVersion,
@@ -13,7 +13,7 @@ ${
     ? `
 const {
   Decimal
-} = require('${runtimePath}/${runtimeName}')
+} = require('${runtimeDir}/${runtimeName}')
 `
     : `
 const {
@@ -28,7 +28,7 @@ const {
   join,
   raw,
   Decimal
-} = require('${runtimePath}/${runtimeName}')
+} = require('${runtimeDir}/${runtimeName}')
 `
 }
 
@@ -94,13 +94,13 @@ In case this error is unexpected for you, please report it in https://github.com
 }
 
 export const commonCodeTS = ({
-  runtimePath,
+  runtimeDir,
   runtimeName,
   clientVersion,
   engineVersion,
 }: TSClientOptions) => ({
   tsWithoutNamespace:
-    () => `import * as runtime from '${runtimePath}/${runtimeName}';
+    () => `import * as runtime from '${runtimeDir}/${runtimeName}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
