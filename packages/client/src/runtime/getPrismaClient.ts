@@ -47,6 +47,7 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
 import { PrismaClientValidationError } from '.'
+import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -213,7 +214,12 @@ export type LogEvent = {
 }
 /* End Types for Logging */
 
-export interface GetPrismaClientOptions {
+/**
+ * Config that is stored into the generated client. When the generated client is
+ * loaded, this same config is passed to {@link getPrismaClient} which creates a
+ * closure with that config around a non-instantiated [[PrismaClient]].
+ */
+export interface GetPrismaClientConfig {
   document: DMMF.Document
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
@@ -230,8 +236,15 @@ export interface GetPrismaClientOptions {
 
   /**
    * The contents of the schema encoded into a string
+   * @remarks only used for the purpose of data proxy
    */
   inlineSchema?: string
+
+  /**
+   * The contents of the schema encoded into a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineEnv?: LoadedEnv
 }
 
 const actionOperationMap = {
@@ -288,7 +301,7 @@ export interface Client {
   $transaction(input: any, options?: any)
 }
 
-export function getPrismaClient(config: GetPrismaClientOptions) {
+export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient implements Client {
     _dmmf: DMMFClass
     _engine: Engine
@@ -405,7 +418,8 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
                     typeof o === 'string' ? o === 'query' : o.level === 'query',
                   ),
             ),
-          env: loadedEnv ? loadedEnv.parsed : {},
+          // we attempt to load env with fs -> attempt inline env -> default
+          env: loadedEnv ? loadedEnv.parsed : config.inlineEnv?.parsed ?? {},
           flags: [],
           clientVersion: config.clientVersion,
           previewFeatures: mapPreviewFeatures(this._previewFeatures),
