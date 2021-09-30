@@ -55,7 +55,7 @@
     "diffie-hellman": "^5.0.3",
     "domain-browser": "^4.22.0",
     "es6-object-assign": "^1.1.0",
-    "esbuild": "0.13.2",
+    "esbuild": "0.12.29",
     "esbuild-register": "3.0.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
