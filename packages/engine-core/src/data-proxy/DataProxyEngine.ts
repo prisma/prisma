@@ -24,7 +24,7 @@ function backOff(n: number): Promise<number> {
  * Detects the runtime environment
  * @returns
  */
-export function getRuntime() {
+export function getRuntimeName() {
   if (typeof self === undefined) {
     return 'node'
   }
@@ -56,14 +56,14 @@ function getClientVersion(config: EngineConfig) {
  */
 async function createSchemaHash(inlineSchema: string) {
   const schemaBuffer = Buffer.from(inlineSchema)
-  const runtime = getRuntime()
+  const runtimeName = getRuntimeName()
 
-  if (runtime === 'node') {
+  if (runtimeName === 'node') {
     const crypto = (0, eval)(`require('crypto')`) // don't bundle
     const hash = crypto.createHash('sha256').update(schemaBuffer)
 
     return hash.digest('hex')
-  } else if (runtime === 'browser') {
+  } else if (runtimeName === 'browser') {
     const hash = await crypto.subtle.digest('SHA-256', schemaBuffer)
 
     return Buffer.from(hash).toString('hex')
@@ -87,6 +87,7 @@ export class DataProxyEngine extends Engine {
   private inlineSchema: string
   private config: EngineConfig
   private logEmitter: EventEmitter
+  private env: { [k: string]: string }
 
   private clientVersion!: string
   private headers!: { Authorization: string }
@@ -98,6 +99,7 @@ export class DataProxyEngine extends Engine {
     super()
 
     this.config = config
+    this.env = this.config.env ?? {}
     this.inlineSchema = config.inlineSchema ?? ''
 
     this.logEmitter = new EventEmitter()
@@ -107,10 +109,8 @@ export class DataProxyEngine extends Engine {
   }
 
   /**
-   * !\ Asynchronous constructor that fulfills the contract expressed by
-   * properties that are marked with `!`. Any function that depends on these
-   * properties needs to start with `await this.initPromise`, else type-safety
-   * is broken. This pattern essentially makes the whole class `async`.
+   * !\ Asynchronous constructor that inits the properties marked with `!`.
+   * So any function that uses such a property needs to await `initPromise`.
    */
   private async init() {
     // we use inline schema to get a hash from it as well as its original content
@@ -118,7 +118,7 @@ export class DataProxyEngine extends Engine {
     this.schemaText = decodeInlineSchema(this.inlineSchema)
 
     // we set the network stuff up for the engine to make http calls to the proxy
-    const [host, apiKey] = extractHostAndApiKey(this.schemaText)
+    const [host, apiKey] = extractHostAndApiKey(this.schemaText, this.env)
     this.clientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
@@ -267,7 +267,10 @@ export class DataProxyEngine extends Engine {
 // Regex + prismafile feels fragile...
 // TODO: build a minimal single-purpose (URL extraction)
 // and well-tested TS schema parser
-function extractHostAndApiKey(schemaText: string) {
+function extractHostAndApiKey(
+  schemaText: string,
+  env: { [k: string]: string },
+) {
   // Extract the datasource block so we feed prismafile with minimal input
   const strippedToDatasource = /datasource[ \t]+[^\s]+[ \t]+\{[^}]+}/.exec(
     schemaText,
@@ -317,7 +320,7 @@ function extractHostAndApiKey(schemaText: string) {
 
         if (envVarName.length > 0) {
           // Datasource URL in environment
-          url = process.env[envVarName] ?? ''
+          url = env[envVarName] ?? ''
         }
       }
     }

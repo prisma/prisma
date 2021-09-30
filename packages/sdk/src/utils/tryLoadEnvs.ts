@@ -10,11 +10,20 @@ type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined
 }
 
-interface LoadEnvResult {
+// non-exported type from dotenv
+interface DotenvLoadEnvResult {
   message: string
   path: string
   dotenvResult: DotenvResult
 }
+
+// our type for loaded env data
+export type LoadedEnv = {
+  message: string
+  parsed: {
+    [x: string]: string
+  }
+} | void
 
 export function tryLoadEnvs(
   {
@@ -27,14 +36,14 @@ export function tryLoadEnvs(
   opts: { conflictCheck: 'warn' | 'error' | 'none' } = {
     conflictCheck: 'none',
   },
-) {
+): LoadedEnv {
   const rootEnvInfo = loadEnv(rootEnvPath)
   if (opts.conflictCheck !== 'none') {
     // This will throw an error if there are conflicts
     checkForConflicts(rootEnvInfo, schemaEnvPath, opts.conflictCheck)
   }
   // Only load the schema .env if it is not the same as root
-  let schemaEnvInfo: LoadEnvResult | null = null
+  let schemaEnvInfo: DotenvLoadEnvResult | null = null
   if (!pathsEqual(rootEnvInfo?.path, schemaEnvPath)) {
     schemaEnvInfo = loadEnv(schemaEnvPath)
   }
@@ -67,7 +76,7 @@ export function tryLoadEnvs(
  * Will throw an error if the file at `envPath` has env conflicts with `rootEnv`
  */
 function checkForConflicts(
-  rootEnvInfo: LoadEnvResult | null,
+  rootEnvInfo: DotenvLoadEnvResult | null,
   envPath: string | null | undefined,
   type: 'warn' | 'error',
 ) {
@@ -123,7 +132,7 @@ Env vars from ${chalk.underline(
 
 export function loadEnv(
   envPath: string | null | undefined,
-): LoadEnvResult | null {
+): DotenvLoadEnvResult | null {
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
