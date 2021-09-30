@@ -1,12 +1,12 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getEnvPaths } from '@prisma/sdk'
+import { getEnvPaths, tryLoadEnvs } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
 import { DMMFClass } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
-import type { GetPrismaClientOptions } from '../../runtime/getPrismaClient'
+import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { getClientEngineType } from '../../runtime/utils/getClientEngineType'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
@@ -69,7 +69,7 @@ export class TSClient implements Generatable {
         path.relative(outputDir, envPaths.schemaEnvPath),
     }
 
-    const config: Omit<GetPrismaClientOptions, 'document' | 'dirname'> = {
+    const config: Omit<GetPrismaClientConfig, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
       sqliteDatasourceOverrides,
@@ -79,6 +79,7 @@ export class TSClient implements Generatable {
       datasourceNames: this.options.datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
       inlineSchema: fs.readFileSync(schemaPath).toString('base64'),
+      inlineEnv: tryLoadEnvs(envPaths, { conflictCheck: 'warn' }),
     }
 
     // This ensures that any engine override is propagated to the generated clients config
