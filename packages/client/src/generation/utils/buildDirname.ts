@@ -5,16 +5,16 @@ import path from 'path'
  * Builds a `dirname` variable that holds the location of the generated client.
  * @param clientEngineType
  * @param relativeOutdir
- * @param runtimePath
+ * @param runtimeDir
  * @returns
  */
 export function buildDirname(
   clientEngineType: ClientEngineType,
   relativeOutdir: string,
-  runtimePath: string,
+  runtimeDir: string,
 ) {
   if (clientEngineType !== ClientEngineType.DataProxy) {
-    return buildDirnameFind(relativeOutdir, runtimePath)
+    return buildDirnameFind(relativeOutdir, runtimeDir)
   }
 
   return buildDirnameDefault()

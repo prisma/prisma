@@ -6,6 +6,12 @@ import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 
 const debug = Debug('prisma:loadEnv')
+
+export type EnvPaths = {
+  rootEnvPath: string | null
+  schemaEnvPath: string | undefined
+}
+
 /**
  *  1. Search in project root
  *  1. Schema
@@ -19,7 +25,7 @@ const debug = Debug('prisma:loadEnv')
 export function getEnvPaths(
   schemaPath?: string | null,
   opts: { cwd: string } = { cwd: process.cwd() },
-) {
+): EnvPaths {
   const rootEnvPath = getProjectRootEnvPath({ cwd: opts.cwd }) ?? null
   const schemaEnvPathFromArgs = schemaPathToEnvPath(schemaPath)
   const schemaEnvPathFromPkgJson = schemaPathToEnvPath(

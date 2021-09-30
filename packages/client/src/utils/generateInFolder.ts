@@ -139,7 +139,7 @@ export async function generateInFolder({
     ...config,
     outputDir,
     schemaDir: path.dirname(schemaPath),
-    runtimePath,
+    runtimeDir: runtimePath,
     transpile,
     testMode: true,
     datamodelPath: schemaPath,
