@@ -171,7 +171,7 @@ const fillPlugin = (
       zlib: { path: load('browserify-zlib') },
 
       // no shims
-      fs: { contents: '' },
+      fs: { path: path.join(__dirname, 'fillers', 'fs.ts') },
       http2: { contents: '' },
       dns: { contents: '' },
       dgram: { contents: '' },
