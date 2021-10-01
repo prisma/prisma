@@ -56,6 +56,7 @@ services:
       - mariadb
       - mssql
       - mongo
+      - mongo-seed
 
   postgres:
     image: postgres:10
