@@ -1,0 +1,12 @@
+[
+  {
+    "name": "Jane Smith",
+    "email": "1@prisma.io",
+    "admin": true
+  },
+  {
+    "name": "John Smith",
+    "email": "2@prisma.io",
+    "admin": false
+  }
+]

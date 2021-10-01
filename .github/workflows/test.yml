@@ -244,7 +244,7 @@ jobs:
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-      
+
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
@@ -373,7 +373,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo
 
       - name: Set CLI Engine Type
         run: |
@@ -417,6 +417,7 @@ jobs:
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27017/tests?authSource=admin'
 
       - uses: codecov/codecov-action@v2
         with:
@@ -447,7 +448,7 @@ jobs:
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-      
+
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV

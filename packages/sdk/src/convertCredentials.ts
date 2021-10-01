@@ -166,6 +166,7 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
     case 'postgresql:':
     case 'postgres:':
       return 'postgresql'
+    case 'mongodb+srv:':
     case 'mongodb:':
       return 'mongodb'
     case 'mysql:':
