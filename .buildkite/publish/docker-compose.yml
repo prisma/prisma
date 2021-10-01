@@ -132,7 +132,7 @@ services:
       - '27017:27017'
 
   mongo-seed:
-    build: ../docker/mongo-seed
+    build: ../../docker/mongo-seed
     links:
       - mongo
 
