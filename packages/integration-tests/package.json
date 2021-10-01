@@ -9,7 +9,7 @@
   "repository": "git@github.com:prisma/prisma.git",
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@prisma/get-platform": "3.2.0-28.c53b44e5f16eb1a2de6ccf122e5dda804e1983c3",
+    "@prisma/get-platform": "3.2.0-30.1ad68fe5b5d41676c33f9f58ff51739e4ea6c32d",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
