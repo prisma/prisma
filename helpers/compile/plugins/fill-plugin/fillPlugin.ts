@@ -195,6 +195,9 @@ const fillPlugin = (
       global: {
         define: '{}',
       },
+      globalThis: {
+        define: '{}',
+      },
 
       // not needed
       // console: { },
