@@ -46,6 +46,7 @@ services:
       - mysql_isolated
       - mariadb
       - mssql
+      - mongo
 
   postgres:
     image: postgres:10

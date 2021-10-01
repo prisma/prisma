@@ -618,8 +618,6 @@ describe('SQL Server', () => {
 })
 
 describe('MongoDB', () => {
-  process.env.DEBUG = '*'
-
   const MONGO_URI =
     process.env.TEST_MONGO_URI ||
     'mongodb://root:prisma@localhost:27017/tests?authSource=admin'
