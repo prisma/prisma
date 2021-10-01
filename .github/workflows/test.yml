@@ -373,7 +373,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo mongo-seed
 
       - name: Set CLI Engine Type
         run: |
