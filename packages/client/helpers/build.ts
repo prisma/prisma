@@ -37,7 +37,7 @@ const proxyBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/proxy',
   bundle: true,
-  minify: true,
+  // minify: true,
   legalComments: 'none',
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },
@@ -46,6 +46,8 @@ const proxyBuildConfig: BuildOptions = {
       {
         // TODO no tree shaking on wrapper pkgs
         '@prisma/get-platform': { contents: '' },
+        // TODO how do we get debug to work ?
+        'supports-color': { contents: '' },
         // these can not be exported any longer
         './warnEnvConflicts': { contents: '' },
         './utils/find': { contents: '' },
