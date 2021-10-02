@@ -52,6 +52,7 @@
     "create-hash": "^1.2.0",
     "create-hmac": "^1.1.7",
     "crypto-browserify": "3.12.0",
+    "debug": "4.3.2",
     "diffie-hellman": "^5.0.3",
     "domain-browser": "^4.22.0",
     "es6-object-assign": "^1.1.0",
