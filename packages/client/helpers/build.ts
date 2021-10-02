@@ -72,6 +72,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
       bundledPackages: [
         'decimal.js',
         'sql-template-tag',
+        '@prisma/sdk',
         '@prisma/engine-core',
         '@prisma/generator-helper',
       ],
