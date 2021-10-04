@@ -310,21 +310,9 @@ describe('reset', () => {
       Database reset successful
 
     `)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
-
-      1. Open the package.json of your project
-      2. Add the following example to it:
-      \`\`\`
-      "prisma": {
-        "seed": "prisma/seed.sh"
-      }
-      \`\`\`
-      And run \`chmod +x prisma/seed.sh\` to make it executable.
-      More information in our documentation:
-      https://pris.ly/d/seeding
-    `)
+    expect(
+      ctx.mocked['console.warn'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
