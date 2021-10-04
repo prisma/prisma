@@ -196,7 +196,7 @@ ${chalk.bold(
 
 ${chalk.bold('To fix this, you have two options:')}
 
-- manually create a table in your database (using SQL).
+- manually create a table in your database.
 - make sure the database connection URL inside the ${chalk.bold(
             'datasource',
           )} block in ${chalk.bold(
@@ -269,14 +269,7 @@ Or run this command with the ${chalk.green(
             message += warning.affected
               .map((it) => `- Enum "${it.enm}", value: "${it.value}"`)
               .join('\n')
-          } else if (
-            warning.code === 5 ||
-            warning.code === 6 ||
-            warning.code === 8 ||
-            warning.code === 11 ||
-            warning.code === 12 ||
-            warning.code === 13
-          ) {
+          } else if ([5, 6, 8, 11, 12, 13].includes(warning.code)) {
             message += warning.affected
               .map((it) => `- Model "${it.model}", field: "${it.field}"`)
               .join('\n')
@@ -284,9 +277,17 @@ Or run this command with the ${chalk.green(
             message += warning.affected
               .map((it) => `- Model "${it.model}"`)
               .join('\n')
-          } else if (warning.code === 9 || warning.code === 10) {
+          } else if ([9, 10].includes(warning.code)) {
             message += warning.affected
               .map((it) => `- Enum "${it.enm}"`)
+              .join('\n')
+          } else if (warning.code === 101) {
+            // same as 3 but special case until name is removed
+            message += warning.affected.name
+              .map(
+                (it) =>
+                  `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`,
+              )
               .join('\n')
           } else if (warning.affected) {
             // Output unhandled warning

@@ -1,5 +1,29 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`MongoDB basic introspection --url 2`] = ``;
+
+exports[`MongoDB basic introspection 1`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+datasource my_db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI")
+}
+
+model users {
+  id    String  @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  admin Boolean
+  email String
+  name  String
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
