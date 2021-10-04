@@ -239,14 +239,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                          // *** WARNING ***
-                                                                          // 
-                                                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                          // - Model "AwesomeNewPost"
-                                                                          // - Model "AwesomeProfile"
-                                                                          // - Model "AwesomeUser"
-                                                                          // 
-                                                `)
+                                                                                      // *** WARNING ***
+                                                                                      // 
+                                                                                      // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                      // - Model "AwesomeNewPost"
+                                                                                      // - Model "AwesomeProfile"
+                                                                                      // - Model "AwesomeUser"
+                                                                                      // 
+                                                        `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
       originalSchema,
@@ -284,18 +284,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            P4001 The introspected database was empty: 
+                        P4001 The introspected database was empty: 
 
-            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-            To fix this, you have two options:
+                        To fix this, you have two options:
 
-            - manually create a table in your database.
-            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                        - manually create a table in your database.
+                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-            Then you can run prisma db pull again. 
+                        Then you can run prisma db pull again. 
 
-          `)
+                    `)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -318,18 +318,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            P4001 The introspected database was empty: 
+                        P4001 The introspected database was empty: 
 
-            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-            To fix this, you have two options:
+                        To fix this, you have two options:
 
-            - manually create a table in your database.
-            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                        - manually create a table in your database.
+                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-            Then you can run prisma db pull again. 
+                        Then you can run prisma db pull again. 
 
-          `)
+                    `)
 
     expect(
       ctx.mocked['console.log'].mock.calls.join('\n'),
@@ -646,6 +646,50 @@ describe('MongoDB', () => {
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection with --force', async () => {
+    ctx.fixture('schema-only-mongodb')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--force'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+
+      Introspecting based on datasource defined in prisma/schema.prisma …
+
+      ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  test('re-introspection should error (not supported)', async () => {
+    ctx.fixture('schema-only-mongodb')
+    const introspect = new DbPull()
+    const result = introspect.parse([])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
+            You can explicitely ignore and override your current local schema file with prisma db pull --force
+            Some information will be lost (relations, comments, mapped fields, @ignore...), follow https://github.com/prisma/prisma/issues/9585 for more info.
+          `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+
+      Introspecting based on datasource defined in prisma/schema.prisma …
+    `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

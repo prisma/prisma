@@ -347,12 +347,15 @@ Learn more about the upgrade process in the docs:\n${link(
           ignoreEnvVarErrors: true,
         })
 
-        if (config.datasources[0].provider === 'mongodb') {
+        if (!args['--force'] && config.datasources[0].provider === 'mongodb') {
+          engine.stop()
           throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
-          You can explicitely override your current local schema file with ${chalk.green(
+You can explicitely ignore and override your current local schema file with ${chalk.green(
             getCommandWithExecutor('prisma db pull --force'),
           )}
-          Some information will be lost (relations, comments, mapped fields...), follow https://github.com/prisma/prisma/issues/9587 for more info.`)
+Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
+            'https://github.com/prisma/prisma/issues/9585',
+          )} for more info.`)
         }
       }
       schemaPath = schemaPath || 'schema.prisma'

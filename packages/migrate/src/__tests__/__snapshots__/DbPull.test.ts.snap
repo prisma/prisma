@@ -24,6 +24,10 @@ model users {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
+exports[`MongoDB introspection with --force 2`] = ``;
+
+exports[`MongoDB re-introspection should error (not supported) 2`] = ``;
+
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
