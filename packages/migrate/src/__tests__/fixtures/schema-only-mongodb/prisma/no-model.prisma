@@ -1,0 +1,9 @@
+datasource my_db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI") 
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}

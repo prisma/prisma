@@ -2,7 +2,9 @@
 
 exports[`MongoDB basic introspection --url 2`] = ``;
 
-exports[`MongoDB basic introspection 1`] = `
+exports[`MongoDB basic introspection 1`] = ``;
+
+exports[`MongoDB introspection --print 1`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["mongoDb"]

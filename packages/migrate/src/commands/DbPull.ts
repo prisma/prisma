@@ -347,7 +347,15 @@ Learn more about the upgrade process in the docs:\n${link(
           ignoreEnvVarErrors: true,
         })
 
-        if (!args['--force'] && config.datasources[0].provider === 'mongodb') {
+        const modelRegex = /\s*model\s*(\w+)\s*{/
+        const modelMatch = modelRegex.exec(schema)
+        const isReintrospection = modelMatch
+
+        if (
+          isReintrospection &&
+          !args['--force'] &&
+          config.datasources[0].provider === 'mongodb'
+        ) {
           engine.stop()
           throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
 You can explicitely ignore and override your current local schema file with ${chalk.green(

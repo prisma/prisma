@@ -239,14 +239,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                      // *** WARNING ***
-                                                                                      // 
-                                                                                      // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                      // - Model "AwesomeNewPost"
-                                                                                      // - Model "AwesomeProfile"
-                                                                                      // - Model "AwesomeUser"
-                                                                                      // 
-                                                        `)
+                                                                                                        // *** WARNING ***
+                                                                                                        // 
+                                                                                                        // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                        // - Model "AwesomeNewPost"
+                                                                                                        // - Model "AwesomeProfile"
+                                                                                                        // - Model "AwesomeUser"
+                                                                                                        // 
+                                                                    `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
       originalSchema,
@@ -625,6 +625,27 @@ describe('MongoDB', () => {
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
+    await introspect.parse(['--schema=./prisma/no-model.prisma'])
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
+      .toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/no-model.prisma
+      Datasource "my_db"
+
+      Introspecting based on datasource defined in prisma/no-model.prisma …
+
+      ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
+    `)
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection --print', async () => {
+    ctx.fixture('schema-only-mongodb')
+    const introspect = new DbPull()
     await introspect.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(
@@ -676,7 +697,9 @@ describe('MongoDB', () => {
   test('re-introspection should error (not supported)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
-    const result = introspect.parse([])
+    await introspect.parse(['--schema=./prisma/no-model.prisma'])
+    // now re-introspection
+    const result = introspect.parse(['--schema=./prisma/no-model.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
             You can explicitely ignore and override your current local schema file with prisma db pull --force
@@ -685,10 +708,18 @@ describe('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
+      Prisma schema loaded from prisma/no-model.prisma
       Datasource "my_db"
 
-      Introspecting based on datasource defined in prisma/schema.prisma …
+      Introspecting based on datasource defined in prisma/no-model.prisma …
+
+      ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXms
+            
+      Run prisma generate to generate Prisma Client.
+      Prisma schema loaded from prisma/no-model.prisma
+      Datasource "my_db"
+
+      Introspecting based on datasource defined in prisma/no-model.prisma …
     `)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
