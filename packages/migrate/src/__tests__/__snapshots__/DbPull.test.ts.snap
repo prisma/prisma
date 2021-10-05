@@ -2,7 +2,9 @@
 
 exports[`MongoDB basic introspection --url 2`] = ``;
 
-exports[`MongoDB basic introspection 1`] = `
+exports[`MongoDB basic introspection 1`] = ``;
+
+exports[`MongoDB introspection --print 1`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["mongoDb"]
@@ -23,6 +25,10 @@ model users {
 
 // introspectionSchemaVersion: NonPrisma,
 `;
+
+exports[`MongoDB introspection with --force 2`] = ``;
+
+exports[`MongoDB re-introspection should error (not supported) 2`] = ``;
 
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
