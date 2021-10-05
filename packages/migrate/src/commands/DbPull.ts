@@ -6,6 +6,8 @@ import {
   arg,
   link,
   drawBox,
+  getSchema,
+  getConfig,
   getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -338,6 +340,32 @@ Learn more about the upgrade process in the docs:\n${link(
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
+      if (schemaPath) {
+        const schema = await getSchema(args['--schema'])
+        const config = await getConfig({
+          datamodel: schema,
+          ignoreEnvVarErrors: true,
+        })
+
+        const modelRegex = /\s*model\s*(\w+)\s*{/
+        const modelMatch = modelRegex.exec(schema)
+        const isReintrospection = modelMatch
+
+        if (
+          isReintrospection &&
+          !args['--force'] &&
+          config.datasources[0].provider === 'mongodb'
+        ) {
+          engine.stop()
+          throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
+You can explicitely ignore and override your current local schema file with ${chalk.green(
+            getCommandWithExecutor('prisma db pull --force'),
+          )}
+Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
+            'https://github.com/prisma/prisma/issues/9585',
+          )} for more info.`)
+        }
+      }
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 
