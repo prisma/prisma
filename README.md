@@ -1,5 +1,3 @@
-![Prisma](https://i.imgur.com/h6UIYTu.png)
-
 <div align="center">
   <h1>Prisma</h1>
   <a href="https://www.npmjs.com/package/prisma"><img src="https://img.shields.io/npm/v/prisma.svg?style=flat" /></a>
