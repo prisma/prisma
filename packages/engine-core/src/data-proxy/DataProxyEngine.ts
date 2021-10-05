@@ -7,7 +7,6 @@ import type {
   GetConfigResult,
 } from '../common/Engine'
 import EventEmitter from 'events'
-import prismafile from 'prismafile'
 
 const BACKOFF_INTERVAL = 250
 const MAX_RETRIES = 5
@@ -45,7 +44,7 @@ function getClientVersion(config: EngineConfig) {
     return version
   }
 
-  return '3.1.1' // and we default it to this one if does not
+  return '3.2.0' // and we default it to this one if does not
 }
 
 /**
@@ -83,6 +82,7 @@ function decodeInlineSchema(inlineSchema: string) {
 
 export class DataProxyEngine extends Engine {
   private initPromise: Promise<void>
+  private initialSchemaUploadPromise: Promise<void>
   private inlineSchema: string
   private config: EngineConfig
   private logEmitter: EventEmitter
@@ -105,6 +105,7 @@ export class DataProxyEngine extends Engine {
     this.logEmitter.on('error', () => {})
 
     this.initPromise = this.init()
+    this.initialSchemaUploadPromise = this.uploadSchema()
   }
 
   /**
@@ -121,8 +122,6 @@ export class DataProxyEngine extends Engine {
     this.clientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
-
-    await this.initUploadSchema()
   }
 
   version() {
@@ -162,7 +161,10 @@ export class DataProxyEngine extends Engine {
     } as GetConfigResult
   }
 
-  private async initUploadSchema() {
+  private async uploadSchema() {
+    await this.initialSchemaUploadPromise
+    await this.initPromise
+
     const res = await fetch(await this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
@@ -229,13 +231,11 @@ export class DataProxyEngine extends Engine {
         body: JSON.stringify(body),
       })
 
-      // 404 on the GraphQL endpoint may mean that the schema
-      // was not uploaded yet.
+      // 404 on the GraphQL, so we re-upload schema & retry
       if (res.status === 404) {
-        await this.initUploadSchema()
+        await this.uploadSchema()
 
-        // return await this.requestInternal(body, headers, attempt)
-        throw new Error(JSON.stringify(res))
+        throw new Error('Schema (re)uploaded')
       }
 
       if (!res.ok) {
@@ -263,94 +263,34 @@ export class DataProxyEngine extends Engine {
   }
 }
 
-// Regex + prismafile feels fragile...
-// TODO: build a minimal single-purpose (URL extraction)
-// and well-tested TS schema parser
+const datasourceRegexp =
+  /datasource.*?url(?:\s|\t)*=(?:\s|\t)*(?:(?:"(?<url>.*?)")|(?:env\("(?<env>\w+)"\)))/gs
+
 function extractHostAndApiKey(
   schemaText: string,
-  env: { [k: string]: string },
+  env: { [k: string]: string | undefined },
 ) {
-  // Extract the datasource block so we feed prismafile with minimal input
-  const strippedToDatasource = /datasource[ \t]+[^\s]+[ \t]+\{[^}]+}/.exec(
-    schemaText,
-  )
-  if (!strippedToDatasource) {
-    throw new Error('Could not find a valid datasource block in the schema')
-  }
+  const groups = datasourceRegexp.exec(schemaText)?.groups
 
-  const datasourceText = strippedToDatasource[0]
-  if (typeof datasourceText !== 'string' || datasourceText.length < 1) {
-    throw new Error('Could not find a valid datasource block in the schema')
-  }
-
-  // Use prismafile to determine the URL
-  let url = ''
-  try {
-    const schemaAst = prismafile.parse(datasourceText)
-    const [datasource] = schemaAst.blocks.filter(
-      (b) => b.type === 'datasource',
-    ) as any[]
-
-    // Datasource type is not exported from prismafile, so from now on
-    // we're in any-land. Hence the dirtiness and the big try/catch around.
-
-    const urlAssignment = datasource.assignments.find(
-      (a: any) => a.key?.type === 'identifier' && a.key?.name === 'url',
-    )
-
-    if (!urlAssignment || !urlAssignment.value) {
-      throw new Error('No assignment found')
-    }
-
-    const { type, value, name, arguments: args } = urlAssignment.value
-
-    if (type === 'string_value' && typeof value === 'string') {
-      url = value // Datasource URL directly in the schema
-    } else if (
-      type === 'function_value' &&
-      name?.type === 'identifier' &&
-      name.name === 'env' &&
-      Array.isArray(args)
-    ) {
-      const arg = args[0]
-
-      if (arg?.type === 'string_value' && typeof arg.value === 'string') {
-        const envVarName = arg.value.trim()
-
-        if (envVarName.length > 0) {
-          // Datasource URL in environment
-          url = env[envVarName] ?? ''
-        }
-      }
-    }
-
-    url = url.trim()
-    if (url.length < 1) {
-      throw new Error('No URL in schema nor environment')
-    }
-  } catch (err) {
+  if (groups === undefined) {
     throw new Error('Could not extract URL of the datasource')
   }
 
-  let parsed: URL
+  let url: URL
   try {
-    parsed = new URL(url)
-  } catch (err) {
+    url = new URL(groups?.url ?? env[groups?.env ?? ''])
+  } catch {
     throw new Error('Could not parse URL of the datasource')
   }
 
-  const { protocol, host, searchParams } = parsed
+  const { protocol, host, searchParams } = url
 
   if (protocol !== 'prisma:') {
     throw new Error('Datasource URL should use prisma:// protocol')
   }
 
-  if (host.length < 1) {
-    throw new Error('No valid host found in the datasource URL')
-  }
-
   const apiKey = searchParams.get('api_key')
-  if (!apiKey || apiKey.length < 1) {
+  if (apiKey === null || apiKey.length < 1) {
     throw new Error('No valid API key found in the datasource URL')
   }
 
