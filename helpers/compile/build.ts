@@ -30,6 +30,8 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
     ignore: ['./src/__tests__/**/*'],
   }),
   mainFields: ['module', 'main'],
+  incremental: process.env.WATCH === 'true',
+  watch: process.env.WATCH === 'true',
   ...options,
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getEsmOutFile(options) : undefined,
@@ -50,6 +52,8 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.mjs'],
   mainFields: ['module'],
+  incremental: process.env.WATCH === 'true',
+  watch: process.env.WATCH === 'true',
   ...options,
   // override the path to point it to the previously built esm
   entryPoints: options.outfile
