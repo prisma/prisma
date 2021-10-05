@@ -45,7 +45,7 @@ function getClientVersion(config: EngineConfig) {
     return version
   }
 
-  return '3.0.1' // and we default it to this one if does not
+  return '3.1.1' // and we default it to this one if does not
 }
 
 /**
@@ -81,7 +81,6 @@ function decodeInlineSchema(inlineSchema: string) {
   return Buffer.from(inlineSchema, 'base64').toString()
 }
 
-// TODO: move to @prisma/engine-core
 export class DataProxyEngine extends Engine {
   private initPromise: Promise<void>
   private inlineSchema: string
@@ -122,6 +121,8 @@ export class DataProxyEngine extends Engine {
     this.clientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
+
+    await this.initUploadSchema()
   }
 
   version() {
@@ -161,9 +162,7 @@ export class DataProxyEngine extends Engine {
     } as GetConfigResult
   }
 
-  private async uploadSchema() {
-    await this.initPromise
-
+  private async initUploadSchema() {
     const res = await fetch(await this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
@@ -233,7 +232,7 @@ export class DataProxyEngine extends Engine {
       // 404 on the GraphQL endpoint may mean that the schema
       // was not uploaded yet.
       if (res.status === 404) {
-        await this.uploadSchema()
+        await this.initUploadSchema()
 
         // return await this.requestInternal(body, headers, attempt)
         throw new Error(JSON.stringify(res))
