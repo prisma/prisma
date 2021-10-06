@@ -14,26 +14,30 @@ export type BuildOptions = esbuild.BuildOptions & {
   outbase?: never // we don't support this
 }
 
-/**
- * Apply defaults defaults allow us to build tree-shaken esm
- * @param options the original build options
- */
-const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
-  format: 'esm',
-  platform: 'node',
+const DEFAULT_BUILD_OPTIONS = {
+  platform: 'node' as esbuild.Platform,
   target: 'es2018',
   keepNames: true,
   tsconfig: process.env.WATCH
     ? path.join(__dirname, '..', '..', 'tsconfig.watch.json')
     : 'tsconfig.build.json',
+  incremental: process.env.WATCH === 'true',
+  watch: process.env.WATCH === 'true',
+}
+
+/**
+ * Apply defaults defaults allow us to build tree-shaken esm
+ * @param options the original build options
+ */
+const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
+  ...DEFAULT_BUILD_OPTIONS,
+  format: 'esm',
   outExtension: { '.js': '.mjs' },
   resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
   mainFields: ['module', 'main'],
-  incremental: process.env.WATCH === 'true',
-  watch: process.env.WATCH === 'true',
   ...options,
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getEsmOutFile(options) : undefined,
@@ -46,18 +50,11 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
  * @param options the original build options
  */
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
+  ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  platform: 'node',
-  target: 'es2018',
-  keepNames: true,
-  tsconfig: process.env.WATCH
-    ? path.join(__dirname, '..', '..', 'tsconfig.watch.json')
-    : 'tsconfig.build.json',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.mjs'],
   mainFields: ['module'],
-  incremental: process.env.WATCH === 'true',
-  watch: process.env.WATCH === 'true',
   ...options,
   // override the path to point it to the previously built esm
   entryPoints: options.outfile
