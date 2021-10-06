@@ -1,4 +1,4 @@
-import type { ConfigMetaFormat } from '@prisma/sdk/dist/engine-commands'
+import type { ConfigMetaFormat } from '../../../engine-commands'
 
 import { mongoFeatureFlagMissingMessage } from './mongoFeatureFlagMissingMessage'
 import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage'
