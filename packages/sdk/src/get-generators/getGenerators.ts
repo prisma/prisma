@@ -5,45 +5,42 @@ import {
   printGeneratorConfig,
 } from '@prisma/engine-core'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import type { DownloadOptions } from '@prisma/fetch-engine'
+import { download } from '@prisma/fetch-engine'
 import type {
-  BinaryDownloadConfiguration,
-  DownloadOptions,
-} from '@prisma/fetch-engine'
-import { BinaryType, download } from '@prisma/fetch-engine'
-import type {
-  BinaryPaths,
   BinaryTargetsEnvValue,
   EngineType,
   GeneratorConfig,
-  GeneratorManifest,
   GeneratorOptions,
 } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
-import makeDir from 'make-dir'
 import pMap from 'p-map'
 import path from 'path'
-import { getConfig, getDMMF } from '.'
-import { Generator } from './Generator'
-import { pick } from './pick'
-import type { GeneratorPaths } from './predefinedGeneratorResolvers'
-import { predefinedGeneratorResolvers } from './predefinedGeneratorResolvers'
-import { resolveOutput } from './resolveOutput'
-import { extractPreviewFeatures } from './utils/extractPreviewFeatures'
-import { mapPreviewFeatures } from './utils/mapPreviewFeatures'
-import { missingDatasource } from './utils/missingDatasource'
+import { getConfig, getDMMF } from '..'
+import { Generator } from '../Generator'
+import { pick } from '../pick'
+import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
+import { predefinedGeneratorResolvers } from '../predefinedGeneratorResolvers'
+import { resolveOutput } from '../resolveOutput'
+import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
+import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
+import { missingDatasource } from '../utils/missingDatasource'
 import {
   missingModelMessage,
   missingModelMessageMongoDB,
-} from './utils/missingGeneratorMessage'
-import { mongoFeatureFlagMissingMessage } from './utils/mongoFeatureFlagMissingMessage'
+} from '../utils/missingGeneratorMessage'
 import {
   parseBinaryTargetsEnvValue,
   parseEnvValue,
-} from './utils/parseEnvValue'
-import { printConfigWarnings } from './utils/printConfigWarnings'
+} from '../utils/parseEnvValue'
+import { printConfigWarnings } from '../utils/printConfigWarnings'
+import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
+import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
+import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
+import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
 
 const debug = Debug('prisma:getGenerators')
 
@@ -156,17 +153,7 @@ export async function getGenerators({
     throw new Error(missingModelMessage)
   }
 
-  if (
-    config.datasources.some((d) => d.provider === 'mongodb') &&
-    !config.generators.some((g) => {
-      return g.previewFeatures.some(
-        (previewFeature) =>
-          previewFeature.toLowerCase() === 'mongoDb'.toLowerCase(),
-      )
-    })
-  ) {
-    throw new Error(mongoFeatureFlagMissingMessage)
-  }
+  checkFeatureFlags(config)
 
   const generatorConfigs = overrideGenerators || config.generators
 
@@ -419,113 +406,13 @@ type NeededVersions = {
   }
 }
 
-type GetBinaryPathsByVersionInput = {
+export type GetBinaryPathsByVersionInput = {
   neededVersions: NeededVersions
   platform: Platform
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-}
-
-async function getBinaryPathsByVersion({
-  neededVersions,
-  platform,
-  version,
-  printDownloadProgress,
-  skipDownload,
-  binaryPathsOverride,
-}: GetBinaryPathsByVersionInput): Promise<Record<string, BinaryPaths>> {
-  const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
-
-  // make sure, that at least the current platform is being fetched
-  for (const currentVersion in neededVersions) {
-    binaryPathsByVersion[currentVersion] = {}
-
-    // ensure binaryTargets are set correctly
-    const neededVersion = neededVersions[currentVersion]
-
-    if (neededVersion.binaryTargets.length === 0) {
-      neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
-    }
-
-    if (
-      process.env.NETLIFY &&
-      !neededVersion.binaryTargets.find(
-        (object) => object.value === 'rhel-openssl-1.0.x',
-      )
-    ) {
-      neededVersion.binaryTargets.push({
-        fromEnvVar: null,
-        value: 'rhel-openssl-1.0.x',
-      })
-    }
-
-    // download
-    let binaryTargetBaseDir = eval(`require('path').join(__dirname, '..')`)
-
-    if (version !== currentVersion) {
-      binaryTargetBaseDir = path.join(
-        binaryTargetBaseDir,
-        `./engines/${currentVersion}/`,
-      )
-      await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
-    }
-
-    const binariesConfig: BinaryDownloadConfiguration =
-      neededVersion.engines.reduce((acc, curr) => {
-        // only download the binary, of not already covered by the `binaryPathsOverride`
-        if (!binaryPathsOverride?.[curr]) {
-          acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
-        }
-        return acc
-      }, Object.create(null))
-
-    if (Object.values(binariesConfig).length > 0) {
-      // Convert BinaryTargetsEnvValue[] to Platform[]
-      const platforms: Platform[] = neededVersion.binaryTargets.map(
-        (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as Platform,
-      )
-
-      const downloadParams: DownloadOptions = {
-        binaries: binariesConfig,
-        binaryTargets: platforms,
-        showProgress:
-          typeof printDownloadProgress === 'boolean'
-            ? printDownloadProgress
-            : true,
-        version:
-          currentVersion && currentVersion !== 'latest'
-            ? currentVersion
-            : enginesVersion,
-        skipDownload,
-      }
-
-      const binaryPathsWithEngineType = await download(downloadParams)
-      const binaryPaths: BinaryPaths = mapKeys(
-        binaryPathsWithEngineType,
-        binaryTypeToEngineType,
-      )
-      binaryPathsByVersion[currentVersion] = binaryPaths
-    }
-
-    if (binaryPathsOverride) {
-      const overrideEngines = Object.keys(binaryPathsOverride)
-      const enginesCoveredByOverride = neededVersion.engines.filter((engine) =>
-        overrideEngines.includes(engine),
-      )
-      if (enginesCoveredByOverride.length > 0) {
-        for (const engine of enginesCoveredByOverride) {
-          const enginePath = binaryPathsOverride[engine]!
-          binaryPathsByVersion[currentVersion][engine] = {
-            [platform]: enginePath,
-          }
-        }
-      }
-    }
-  }
-
-  return binaryPathsByVersion
 }
 
 /**
@@ -661,69 +548,4 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
       }
     }
   }
-}
-
-function engineTypeToBinaryType(engineType: EngineType): BinaryType {
-  if (engineType === 'introspectionEngine') {
-    return BinaryType.introspectionEngine
-  }
-
-  if (engineType === 'migrationEngine') {
-    return BinaryType.migrationEngine
-  }
-
-  if (engineType === 'queryEngine') {
-    return BinaryType.queryEngine
-  }
-  if (engineType === 'libqueryEngine') {
-    return BinaryType.libqueryEngine
-  }
-  if (engineType === 'prismaFmt') {
-    return BinaryType.prismaFmt
-  }
-
-  throw new Error(`Could not convert engine type ${engineType}`)
-}
-
-function binaryTypeToEngineType(binaryType: string): EngineType {
-  if (binaryType === BinaryType.introspectionEngine) {
-    return 'introspectionEngine'
-  }
-
-  if (binaryType === BinaryType.migrationEngine) {
-    return 'migrationEngine'
-  }
-  if (binaryType === BinaryType.libqueryEngine) {
-    return 'libqueryEngine'
-  }
-  if (binaryType === BinaryType.queryEngine) {
-    return 'queryEngine'
-  }
-
-  if (binaryType === BinaryType.prismaFmt) {
-    return 'prismaFmt'
-  }
-
-  throw new Error(`Could not convert binary type ${binaryType}`)
-}
-
-function mapKeys<T extends object>(
-  obj: T,
-  mapper: (key: keyof T) => string,
-): any {
-  return Object.entries(obj).reduce((acc, [key, value]) => {
-    acc[mapper(key as keyof T)] = value
-    return acc
-  }, {})
-}
-
-function getEngineVersionForGenerator(
-  manifest?: GeneratorManifest,
-  defaultVersion?: string | undefined,
-): string {
-  let neededVersion = manifest?.requiresEngineVersion
-
-  neededVersion = neededVersion ?? defaultVersion // default to CLI version otherwise, if not provided
-
-  return neededVersion ?? 'latest'
 }
