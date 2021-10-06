@@ -23,7 +23,9 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
   platform: 'node',
   target: 'es2018',
   keepNames: true,
-  tsconfig: 'tsconfig.build.json',
+  tsconfig: process.env.WATCH
+    ? path.join(__dirname, '..', '..', 'tsconfig.watch.json')
+    : 'tsconfig.build.json',
   outExtension: { '.js': '.mjs' },
   resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
@@ -48,7 +50,9 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   platform: 'node',
   target: 'es2018',
   keepNames: true,
-  tsconfig: 'tsconfig.build.json',
+  tsconfig: process.env.WATCH
+    ? path.join(__dirname, '..', '..', 'tsconfig.watch.json')
+    : 'tsconfig.build.json',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.mjs'],
   mainFields: ['module'],
