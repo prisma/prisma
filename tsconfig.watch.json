@@ -1,0 +1,23 @@
+{
+  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    "baseUrl": "./packages/",
+    "paths": {
+      "@prisma/client/*": ["client/src/runtime"],
+      "@prisma/sdk": ["sdk/src"],
+      "@prisma/sdk/dist/*": ["sdk/src/*"],
+      "@prisma/migrate": ["migrate/src"],
+      "@prisma/generator-helper": ["generator-helper/src"],
+      "@prisma/engine-core": ["engine-core/src"],
+      "@prisma/engine-core/dist/*": ["engine-core/src/*"],
+      "@prisma/debug": ["debug/src"],
+      "@prisma/cli": ["cli/src"],
+    }
+  },
+  "include": ["**/*"],
+  "exclude": [
+    "**/dist",
+    "**/build",
+    "**/node_modules"
+  ]
+}
