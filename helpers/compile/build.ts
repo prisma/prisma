@@ -16,7 +16,6 @@ export type BuildOptions = esbuild.BuildOptions & {
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node' as esbuild.Platform,
-  target: 'es2018',
   keepNames: true,
   tsconfig: process.env.WATCH
     ? path.join(__dirname, '..', '..', 'tsconfig.watch.json')
@@ -32,6 +31,7 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'esm',
+  target: 'esnext',
   outExtension: { '.js': '.mjs' },
   resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
@@ -52,6 +52,7 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
+  target: 'es2018',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.mjs'],
   mainFields: ['module'],
