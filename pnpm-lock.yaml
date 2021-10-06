@@ -225,10 +225,12 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.5.4
       mssql: 7.2.1
+      node-fetch: 2.6.1
       pg: 8.7.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
       prettier: 2.3.2
+      prismafile: 1.0.11
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.56.3
@@ -287,10 +289,12 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.5.4
       mssql: 7.2.1
+      node-fetch: 2.6.1
       pg: 8.7.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
       prettier: 2.3.2
+      prismafile: 1.0.11
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.56.3
@@ -1911,7 +1915,6 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -6903,6 +6906,10 @@ packages:
 
   /prettysize/2.0.0:
     resolution: {integrity: sha512-VVtxR7sOh0VsG8o06Ttq5TrI1aiZKmC+ClSn4eBPaNf4SHr5lzbYW+kYGX3HocBL/MfpVrRfFZ9V3vCbLaiplg==}
+
+  /prismafile/1.0.11:
+    resolution: {integrity: sha512-yc2+INfJUERvQ5aj9FoSxpF+Gqxirdpj0/hN8cwBLoRg9ju4eOLTmKmNDzOA5w94N/xJpeulVpngmZX24X3pSg==}
+    dev: true
 
   /process-nextick-args/2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
