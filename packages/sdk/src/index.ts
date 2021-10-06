@@ -30,8 +30,8 @@ export { drawBox } from './drawBox'
 export * from './engine-commands'
 export { Generator } from './Generator'
 export { getCommandWithExecutor } from './getCommandWithExecutor'
-export { getGenerator, getGenerators } from './getGenerators'
-export type { ProviderAliases } from './getGenerators'
+export { getGenerator, getGenerators } from './get-generators/getGenerators'
+export type { ProviderAliases } from './get-generators/getGenerators'
 export { getPackedPackage } from './getPackedPackage'
 export {
   highlightDatamodel,
