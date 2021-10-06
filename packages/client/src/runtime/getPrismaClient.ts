@@ -49,6 +49,8 @@ import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
 import { PrismaClientValidationError } from '.'
+import { DataProxyEngine } from './DataProxyEngine'
+
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -443,9 +445,11 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
-    private getEngine() {
+    private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Binary) {
         return new BinaryEngine(this._engineConfig)
+      } else if (this._clientEngineType === ClientEngineType.DataProxy) {
+        return new DataProxyEngine(this._engineConfig)
       } else {
         return new LibraryEngine(this._engineConfig)
       }
