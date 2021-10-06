@@ -477,10 +477,12 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return 'PrismaClient'
     }
     private getEngine(): Engine {
-      if (this._clientEngineType === ClientEngineType.Binary) {
+      if (this._clientEngineType === ClientEngineType.Library) {
+        return globalThis.NOT_PROXY && new LibraryEngine(this._engineConfig)
+      } else if (this._clientEngineType === ClientEngineType.Binary) {
         return globalThis.NOT_PROXY && new BinaryEngine(this._engineConfig)
       } else {
-        return globalThis.NOT_PROXY && new LibraryEngine(this._engineConfig)
+        return new DataProxyEngine(this._engineConfig)
       }
     }
 
