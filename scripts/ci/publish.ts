@@ -363,8 +363,9 @@ async function getNewIntegrationVersion(
   return version
 }
 
-async function getCurrentPatchForPatchVersions(patchVersions: any): Promise<number> { // TODO correct type
-
+async function getCurrentPatchForPatchVersions(
+  patchVersions: any,
+): Promise<number> {
   let versions = JSON.parse(
     await runResult('.', 'npm show @prisma/client@* version --json'),
   )
@@ -390,7 +391,12 @@ async function getCurrentPatchForPatchVersions(patchVersions: any): Promise<numb
       }
       return null
     })
-    .filter((group) => group && group.minor === patchVersions.minor && group.major === patchVersions.major)
+    .filter(
+      (group) =>
+        group &&
+        group.minor === patchVersions.minor &&
+        group.major === patchVersions.major,
+    )
 
   if (relevantVersions.length === 0) {
     return 0
