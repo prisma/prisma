@@ -363,6 +363,10 @@ async function getNewIntegrationVersion(
   return version
 }
 
+// This function gets the current "patchMajorMinor" (major and minor of the patch branch),
+// then retrieves the current versions of @prisma/client from npm,
+// and filters that array down to the major and minor of the patch branch
+// to figure out what the current highest patch number there currently is
 async function getCurrentPatchForPatchVersions(patchMajorMinor: {
   major: number
   minor: number
