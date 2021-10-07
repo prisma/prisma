@@ -363,7 +363,14 @@ async function getNewIntegrationVersion(
   return version
 }
 
-async function getCurrentPatchForMinor(minor: number): Promise<number> {
+// This function gets the current "patchMajorMinor" (major and minor of the patch branch),
+// then retrieves the current versions of @prisma/client from npm,
+// and filters that array down to the major and minor of the patch branch
+// to figure out what the current highest patch number there currently is
+async function getCurrentPatchForPatchVersions(patchMajorMinor: {
+  major: number
+  minor: number
+}): Promise<number> {
   let versions = JSON.parse(
     await runResult('.', 'npm show @prisma/client@* version --json'),
   )
@@ -389,7 +396,12 @@ async function getCurrentPatchForMinor(minor: number): Promise<number> {
       }
       return null
     })
-    .filter((group) => group && group.minor === minor)
+    .filter(
+      (group) =>
+        group &&
+        group.minor === patchMajorMinor.minor &&
+        group.major === patchMajorMinor.major,
+    )
 
   if (relevantVersions.length === 0) {
     return 0
@@ -407,13 +419,13 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const patchVersions = getSemverFromPatchBranch(patchBranch)
-  if (!patchVersions) {
-    throw new Error(`Could not get versions for ${patchBranch}`)
+  const patchMajorMinor = getSemverFromPatchBranch(patchBranch)
+  if (!patchMajorMinor) {
+    throw new Error(`Could not get major and minor for ${patchBranch}`)
   }
-  const currentPatch = await getCurrentPatchForMinor(patchVersions.minor)
+  const currentPatch = await getCurrentPatchForPatchVersions(patchMajorMinor)
   const newPatch = currentPatch + 1
-  const newVersion = `${patchVersions.major}.${patchVersions.minor}.${newPatch}`
+  const newVersion = `${patchMajorMinor.major}.${patchMajorMinor.minor}.${newPatch}`
   const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
 
@@ -1241,13 +1253,6 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   }
 }
 
-if (!module.parent) {
-  publish().catch((e) => {
-    console.error(chalk.red.bold('Error: ') + (e.stack || e.message))
-    process.exit(1)
-  })
-}
-
 async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
 }
@@ -1357,4 +1362,11 @@ async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
     author: jsonData.commit?.author.name || '',
     hash,
   }
+}
+
+if (require.main === module) {
+  publish().catch((e) => {
+    console.error(chalk.red.bold('Error: ') + (e.stack || e.message))
+    process.exit(1)
+  })
 }
