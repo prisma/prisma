@@ -363,9 +363,10 @@ async function getNewIntegrationVersion(
   return version
 }
 
-async function getCurrentPatchForPatchVersions(
-  patchVersions: any,
-): Promise<number> {
+async function getCurrentPatchForPatchVersions(patchMajorMinor: {
+  major: number
+  minor: number
+}): Promise<number> {
   let versions = JSON.parse(
     await runResult('.', 'npm show @prisma/client@* version --json'),
   )
@@ -394,8 +395,8 @@ async function getCurrentPatchForPatchVersions(
     .filter(
       (group) =>
         group &&
-        group.minor === patchVersions.minor &&
-        group.major === patchVersions.major,
+        group.minor === patchMajorMinor.minor &&
+        group.major === patchMajorMinor.major,
     )
 
   if (relevantVersions.length === 0) {
@@ -414,13 +415,13 @@ async function getNewPatchDevVersion(
   packages: Packages,
   patchBranch: string,
 ): Promise<string> {
-  const patchVersions = getSemverFromPatchBranch(patchBranch)
-  if (!patchVersions) {
-    throw new Error(`Could not get versions for ${patchBranch}`)
+  const patchMajorMinor = getSemverFromPatchBranch(patchBranch)
+  if (!patchMajorMinor) {
+    throw new Error(`Could not get major and minor for ${patchBranch}`)
   }
-  const currentPatch = await getCurrentPatchForPatchVersions(patchVersions)
+  const currentPatch = await getCurrentPatchForPatchVersions(patchMajorMinor)
   const newPatch = currentPatch + 1
-  const newVersion = `${patchVersions.major}.${patchVersions.minor}.${newPatch}`
+  const newVersion = `${patchMajorMinor.major}.${patchMajorMinor.minor}.${newPatch}`
   const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
 
@@ -1248,13 +1249,6 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   }
 }
 
-if (!module.parent) {
-  publish().catch((e) => {
-    console.error(chalk.red.bold('Error: ') + (e.stack || e.message))
-    process.exit(1)
-  })
-}
-
 async function getBranch(dir: string) {
   return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
 }
@@ -1364,4 +1358,11 @@ async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
     author: jsonData.commit?.author.name || '',
     hash,
   }
+}
+
+if (require.main === module) {
+  publish().catch((e) => {
+    console.error(chalk.red.bold('Error: ') + (e.stack || e.message))
+    process.exit(1)
+  })
 }
