@@ -122,8 +122,8 @@ export class Model implements Generatable {
     const groupByArgsName = getGroupByArgsName(model.name)
 
     return `
-    
-    
+
+
 export type ${groupByArgsName} = {
 ${indent(
   groupByRootField.args
@@ -156,15 +156,15 @@ type ${getGroupByPayloadName(
       model.name,
     )}<T extends ${groupByArgsName}> = Promise<
   Array<
-    PickArray<${groupByType.name}, T['by']> & 
+    PickArray<${groupByType.name}, T['by']> &
       {
-        [P in ((keyof T) & (keyof ${groupByType.name}))]: P extends '_count' 
-          ? T[P] extends boolean 
-            ? number 
-            : GetScalarType<T[P], ${groupByType.name}[P]> 
+        [P in ((keyof T) & (keyof ${groupByType.name}))]: P extends '_count'
+          ? T[P] extends boolean
+            ? number
+            : GetScalarType<T[P], ${groupByType.name}[P]>
           : GetScalarType<T[P], ${groupByType.name}[P]>
       }
-    > 
+    >
   >
 `
   }
@@ -300,8 +300,15 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
+    const docs = model.documentation
+      ? `\n *\n * ${model.documentation
+          ?.split('\n')
+          .join('\n *')
+          .replace('*/', '')}`
+      : ''
+
     return `/**
- * Model ${model.name}
+ * Model ${model.name}${docs}
  */
 
 export type ${model.name} = {
@@ -506,7 +513,7 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
 /**
  * The delegate class that acts as a "Promise-like" for ${name}.
  * Why is this prefixed with \`Prisma__\`?
- * Because we want to prevent naming conflicts as mentioned in 
+ * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
 export class Prisma__${name}Client<T> implements PrismaPromise<T> {
