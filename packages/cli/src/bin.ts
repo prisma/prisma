@@ -255,7 +255,7 @@ process.on('SIGINT', () => {
 /**
  * Run our program
  */
-if (require.main === module) {
+if (process.argv[1] === __filename) {
   main()
     .then((code) => {
       if (code !== 0) {
