@@ -1,8 +1,38 @@
-# Where should I write the test?
+# Testing
 
-Something is broken? You built a new feature? Time to write a test!
+## Local databases for tests
 
-But where?
+To run tests requiring a database, start the test databases using Docker, see [Docker](./docker/README.md).
+
+## Jest tips
+
+1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
+
+   ```sh
+   pnpm run jest <fileNamePattern> -t <testNamePattern>
+   ```
+
+   and to update snapshots use the -u option like this:
+
+   ```sh
+   pnpm run jest <fileNamePattern> -- -u
+   ```
+
+1. Some integration tests in these packages use [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout). If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:
+
+   ```sh
+   pnpm run jest integrate.sqlite -t 'findOne where PK'
+   ```
+
+   Also you can piggy back flags onto existing npm scripts. For example the above could be rewritten as:
+
+   ```sh
+   pnpm run test:sqlite -t 'findOne where PK'
+   ```
+
+## Where should I find and write tests?
+
+Something is broken? You built a new feature? It's time to write a test! But where?
 
 Everything related to working with specific frameworks like Next.js or deploying to Netlify should be covered by an [End-to-End Test](https://github.com/prisma/e2e-tests).
 
@@ -35,20 +65,22 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - Engine commands (`getDMMF`, `getConfig`) (snapshots)
   - getGenerators (central function for generation)
   - introspection (snapshots)
-- **`integration-tests`**
+- **`integration-tests`** (Prisma Client & Introspection)
   - Integration tests for basic query and mutation functionality
   - All databases that we support are covered here:
     - mariadb
-    - mssql
+    - mssql (SQL Server)
     - mysql
     - postgresql
     - sqlite
   - While these tests also test the client itself, they're rather just our base to make sure that basic query engine functionality actually works in the Prisma Client
   - When you want to test very specific queries for a new feature, you can write an integration test in the `client` package, as that's usually easier
 
-### So you just got a reproduction for the client...
+## So you just got a reproduction for the client
 
-If the users did their homework and provide a reproduction repository, you usually just want to turn that into an integration test in the `client` package. If it's about an ugly error, that could be handled nicer, it should go into `integration/errors`. If it's about making sure, that a specific feature works as intended, you can create a new test case in `integration/happy`.
+If the users did their homework and provide a reproduction repository, you usually just want to turn that into an integration test in the `client` package.
+If it's about an ugly error, that could be handled nicer, it should go into `integration/errors`.
+If it's about making sure, that a specific feature works as intended, you can create a new test case in `integration/happy`.
 
 The `integration/happy/minimal` test is always a good start if you just want to test the JS interface of the client.
 
