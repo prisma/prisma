@@ -363,7 +363,8 @@ async function getNewIntegrationVersion(
   return version
 }
 
-async function getCurrentPatchForMinor(minor: number): Promise<number> {
+async function getCurrentPatchForPatchVersions(patchVersions: any): Promise<number> { // TODO correct type
+
   let versions = JSON.parse(
     await runResult('.', 'npm show @prisma/client@* version --json'),
   )
@@ -389,7 +390,7 @@ async function getCurrentPatchForMinor(minor: number): Promise<number> {
       }
       return null
     })
-    .filter((group) => group && group.minor === minor)
+    .filter((group) => group && group.minor === patchVersions.minor && group.major === patchVersions.major)
 
   if (relevantVersions.length === 0) {
     return 0
@@ -411,7 +412,7 @@ async function getNewPatchDevVersion(
   if (!patchVersions) {
     throw new Error(`Could not get versions for ${patchBranch}`)
   }
-  const currentPatch = await getCurrentPatchForMinor(patchVersions.minor)
+  const currentPatch = await getCurrentPatchForPatchVersions(patchVersions)
   const newPatch = currentPatch + 1
   const newVersion = `${patchVersions.major}.${patchVersions.minor}.${newPatch}`
   const versions = [...(await getAllVersions(packages, 'dev', newVersion))]
