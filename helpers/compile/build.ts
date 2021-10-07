@@ -7,6 +7,7 @@ import { handle } from '../blaze/handle'
 import { transduce } from '../blaze/transduce'
 import glob from 'glob'
 import path from 'path'
+import { watch as createWatcher } from 'chokidar'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
@@ -15,14 +16,12 @@ export type BuildOptions = esbuild.BuildOptions & {
 }
 
 const DEFAULT_BUILD_OPTIONS = {
-  platform: 'node' as esbuild.Platform,
+  platform: 'node',
   keepNames: true,
-  tsconfig: process.env.WATCH
-    ? path.join(__dirname, '..', '..', 'tsconfig.watch.json')
-    : 'tsconfig.build.json',
+  logLevel: 'error',
+  tsconfig: 'tsconfig.build.json',
   incremental: process.env.WATCH === 'true',
-  watch: process.env.WATCH === 'true',
-}
+} as const
 
 /**
  * Apply defaults defaults allow us to build tree-shaken esm
@@ -63,7 +62,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
     : glob.sync(`./${getEsmOutDir(options)}/**/*.mjs`),
   // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
-  emitProjectTypes: process.env.DEV !== 'true',
+  emitProjectTypes: options.emitProjectTypes ?? process.env.DEV !== 'true',
 })
 
 /**
@@ -162,8 +161,8 @@ function handleBuildErrors(result?: Error | execa.ExecaReturnValue) {
  * Execution pipeline that applies a set actions
  * @param options
  */
-export function build(options: BuildOptions[]) {
-  return transduce.async(
+export async function build(options: BuildOptions[]) {
+  await transduce.async(
     createBuildOptions(options),
     pipe.async(
       computeOptions,
@@ -174,6 +173,20 @@ export function build(options: BuildOptions[]) {
       handleBuildErrors,
     ),
   )
+
+  console.log('compiled')
+
+  if (process.env.WATCH) {
+    watch(options)
+  }
+}
+
+function watch(options: BuildOptions[]) {
+  const watcher = createWatcher(['**/*'])
+
+  watcher.on('change', () => {
+    
+  })
 }
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
