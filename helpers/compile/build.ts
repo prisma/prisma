@@ -3,15 +3,15 @@ import * as esbuild from 'esbuild'
 import { flatten } from '../blaze/flatten'
 import { pipe } from '../blaze/pipe'
 import { map } from '../blaze/map'
-import { handle } from '../blaze/handle'
 import { transduce } from '../blaze/transduce'
 import glob from 'glob'
 import path from 'path'
 import { watch as createWatcher } from 'chokidar'
+import { tscPlugin } from './plugins/tscPlugin'
+import { exitOnError } from './plugins/exitOnError'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
-  emitProjectTypes?: boolean
   outbase?: never // we don't support this
 }
 
@@ -41,7 +41,7 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getEsmOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getEsmOutDir(options),
-  emitProjectTypes: false, // just build it on the next pass
+  plugins: [...(options.plugins ?? []), exitOnError],
 })
 
 /**
@@ -62,7 +62,8 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
     : glob.sync(`./${getEsmOutDir(options)}/**/*.mjs`),
   // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
-  emitProjectTypes: options.emitProjectTypes ?? process.env.DEV !== 'true',
+  // we only produce typescript types on the second run (cjs)
+  plugins: [...(options.plugins ?? []), tscPlugin, exitOnError],
 })
 
 /**
@@ -87,16 +88,14 @@ function createBuildOptions(options: BuildOptions[]) {
  * the previous build has finished. We get the build options from the deferred.
  */
 function computeOptions(options: () => BuildOptions) {
-  return handle(() => options())
+  return options()
 }
 
 /**
  * Extensions are not automatically by esbuild set for `options.outfile`. We
  * look at the set `options.outExtension` and we add that to `options.outfile`.
  */
-function addExtensionFormat(options: BuildOptions | Error) {
-  if (options instanceof Error) return options
-
+function addExtensionFormat(options: BuildOptions) {
   if (options.outfile && options.outExtension) {
     const ext = options.outExtension['.js']
 
@@ -109,9 +108,7 @@ function addExtensionFormat(options: BuildOptions | Error) {
 /**
  * If we don't have `options.outfile`, we default `options.outdir`
  */
-function addDefaultOutDir(options: BuildOptions | Error) {
-  if (options instanceof Error) return options
-
+function addDefaultOutDir(options: BuildOptions) {
   if (options.outfile === undefined) {
     options.outdir = getOutDir(options)
   }
@@ -122,70 +119,59 @@ function addDefaultOutDir(options: BuildOptions | Error) {
 /**
  * Execute esbuild with all the configurations we pass
  */
-async function executeEsBuild(options: BuildOptions | Error) {
-  if (options instanceof Error) return options
-
-  const result = await handle.async(() => {
-    return esbuild.build(stripOwnOptions(options))
-  })
-
-  if (result instanceof Error) return result
-
-  return options
+async function executeEsBuild(options: BuildOptions) {
+  return esbuild.build(options)
 }
 
 /**
- * When it's requested we also generate project types
- */
-function emitProjectTypes(options: BuildOptions | Error) {
-  if (options instanceof Error) return options
-
-  if (options.emitProjectTypes === true) {
-    return handle.async(() => run(`tsc --build ${options.tsconfig}`))
-  }
-
-  return undefined
-}
-
-/**
- * Detect build errors and exit the process if needed
- */
-function handleBuildErrors(result?: Error | execa.ExecaReturnValue) {
-  if (result instanceof Error) {
-    console.log(result.message)
-    process.exit(1)
-  }
-}
-
-/**
- * Execution pipeline that applies a set actions
+ * Execution pipeline that applies a set of actions
  * @param options
  */
-export async function build(options: BuildOptions[]) {
-  await transduce.async(
+async function executeBuild(options: BuildOptions[]) {
+  return transduce.async(
     createBuildOptions(options),
     pipe.async(
       computeOptions,
       addExtensionFormat,
       addDefaultOutDir,
       executeEsBuild,
-      emitProjectTypes,
-      handleBuildErrors,
     ),
   )
-
-  console.log('compiled')
-
-  if (process.env.WATCH) {
-    watch(options)
-  }
 }
 
-function watch(options: BuildOptions[]) {
-  const watcher = createWatcher(['**/*'])
+/**
+ * Executes the build and starts a watcher if needed
+ * @param options
+ */
+export async function build(options: BuildOptions[]) {
+  const builds = await executeBuild(options)
 
-  watcher.on('change', () => {
-    
+  if (process.env.WATCH) watch(builds)
+}
+
+/**
+ *
+ * @param builds
+ */
+function watch(builds: esbuild.BuildResult[]) {
+  const watcher = createWatcher(
+    ['src/**/*', 'node_modules/@prisma/*/dist/**/*'],
+    {
+      ignoreInitial: true,
+    },
+  )
+
+  let isRebuilding = false
+  watcher.on('change', async () => {
+    if (isRebuilding) return
+
+    isRebuilding = true
+    console.time('rebuild')
+    for (const build of builds) {
+      await build.rebuild?.()
+    }
+    isRebuilding = false
+    console.timeEnd('rebuild')
   })
 }
 
@@ -215,15 +201,6 @@ function getEsmOutFile(options: BuildOptions) {
   }
 
   return undefined
-}
-
-// remove our options from the esbuild options
-function stripOwnOptions(options: BuildOptions) {
-  const _options = { ...options }
-
-  delete _options.emitProjectTypes
-
-  return _options
 }
 
 // wrapper around execa to run our build cmds
