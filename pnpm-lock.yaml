@@ -9,7 +9,7 @@ importers:
       '@types/benchmark': 2.1.1
       '@types/debug': 4.1.7
       '@types/graphviz': 0.0.34
-      '@types/node': 14.17.19
+      '@types/node': 14.17.21
       '@types/redis': 2.8.32
       '@typescript-eslint/eslint-plugin': 4.31.2
       '@typescript-eslint/parser': 4.31.2
@@ -46,7 +46,7 @@ importers:
       '@types/benchmark': 2.1.1
       '@types/debug': 4.1.7
       '@types/graphviz': 0.0.34
-      '@types/node': 14.17.19
+      '@types/node': 14.17.21
       '@types/redis': 2.8.32
       '@typescript-eslint/eslint-plugin': 4.31.2_3815fab247b4312be6d1f55eb1f81298
       '@typescript-eslint/parser': 4.31.2_eslint@7.32.0+typescript@4.4.3
@@ -75,7 +75,7 @@ importers:
       redis-lock: 0.1.4
       semver: 7.3.5
       staged-git-files: 1.2.0
-      ts-node: 10.2.1_939a8946a34f58c4fd62eef48ed7c2d9
+      ts-node: 10.2.1_7c67805a289289ea5dd4a92d4df14610
       typescript: 4.4.3
 
   packages/cli:
@@ -197,7 +197,7 @@ importers:
       '@types/jest': 27.0.2
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/pg': 8.6.1
       '@typescript-eslint/eslint-plugin': 4.31.2
       '@typescript-eslint/parser': 4.31.2
@@ -259,7 +259,7 @@ importers:
       '@types/jest': 27.0.2
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/pg': 8.6.1
       '@typescript-eslint/eslint-plugin': 4.31.2_3815fab247b4312be6d1f55eb1f81298
       '@typescript-eslint/parser': 4.31.2_eslint@7.32.0+typescript@4.4.3
@@ -302,7 +302,7 @@ importers:
       strip-ansi: 6.0.0
       strip-indent: 3.0.0
       ts-jest: 27.0.5_52a571d76319e63aeaa66dc9db9e90cc
-      ts-node: 10.2.1_bc8396cfce27f81f66a8434b4cc36a73
+      ts-node: 10.2.1_c99a46ee0750fb2313284a3bf8760f3d
       tsd: 0.17.0
       typescript: 4.4.3
 
@@ -310,7 +310,7 @@ importers:
     specifiers:
       '@types/debug': 4.1.7
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       debug: 4.3.2
@@ -335,7 +335,7 @@ importers:
       ms: 2.1.3
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@typescript-eslint/eslint-plugin': 4.29.3_ae581dea7e7e7b25f1c19a5c5e248352
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.4.3
       esbuild: 0.12.16
@@ -360,7 +360,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.3.0-5.17c5b9131df745a2e82a69fe3ebdaeaa0d92c6a3
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       chalk: 4.1.2
@@ -399,7 +399,7 @@ importers:
       undici: 3.3.6
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@typescript-eslint/eslint-plugin': 4.29.3_ae581dea7e7e7b25f1c19a5c5e248352
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.4.3
       esbuild: 0.12.16
@@ -421,7 +421,7 @@ importers:
       '@prisma/debug': workspace:*
       '@types/cross-spawn': 6.0.2
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@typescript-eslint/eslint-plugin': 4.29.3
       '@typescript-eslint/parser': 4.29.3
       chalk: 4.1.2
@@ -446,7 +446,7 @@ importers:
       cross-spawn: 7.0.3
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@typescript-eslint/eslint-plugin': 4.29.3_ae581dea7e7e7b25f1c19a5c5e248352
       '@typescript-eslint/parser': 4.29.3_eslint@7.32.0+typescript@4.4.3
       esbuild: 0.12.16
@@ -460,7 +460,7 @@ importers:
       lint-staged: 11.1.2
       prettier: 2.4.1
       ts-jest: 27.0.5_52a571d76319e63aeaa66dc9db9e90cc
-      ts-node: 10.2.1_bc8396cfce27f81f66a8434b4cc36a73
+      ts-node: 10.2.1_c99a46ee0750fb2313284a3bf8760f3d
       typescript: 4.4.3
 
   packages/integration-tests:
@@ -472,7 +472,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.0.2
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/pg': 8.6.1
       '@types/sqlite3': 3.1.7
       '@typescript-eslint/eslint-plugin': 4.31.2
@@ -513,7 +513,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.0.2
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/pg': 8.6.1
       '@types/sqlite3': 3.1.7
       '@typescript-eslint/eslint-plugin': 4.31.2_3815fab247b4312be6d1f55eb1f81298
@@ -543,7 +543,7 @@ importers:
       strip-ansi: 6.0.0
       tempy: 1.0.1
       ts-jest: 27.0.5_52a571d76319e63aeaa66dc9db9e90cc
-      ts-node: 10.2.1_bc8396cfce27f81f66a8434b4cc36a73
+      ts-node: 10.2.1_c99a46ee0750fb2313284a3bf8760f3d
       typescript: 4.4.3
       verror: 1.10.0
 
@@ -556,7 +556,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/pg': 8.6.1
       '@types/prompts': 2.0.14
       '@types/sqlite3': 3.1.7
@@ -617,7 +617,7 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/sdk': link:../sdk
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/pg': 8.6.1
       '@types/prompts': 2.0.14
       '@types/sqlite3': 3.1.7
@@ -698,7 +698,7 @@ importers:
       '@prisma/get-platform': 3.3.0-5.17c5b9131df745a2e82a69fe3ebdaeaa0d92c6a3
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
       '@types/tar': 4.0.5
@@ -783,7 +783,7 @@ importers:
       tmp: 0.2.1
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
       '@types/tar': 4.0.5
@@ -800,7 +800,7 @@ importers:
       lint-staged: 11.1.2
       prettier: 2.4.1
       ts-jest: 27.0.5_52a571d76319e63aeaa66dc9db9e90cc
-      ts-node: 10.2.1_bc8396cfce27f81f66a8434b4cc36a73
+      ts-node: 10.2.1_c99a46ee0750fb2313284a3bf8760f3d
       typescript: 4.4.3
 
 packages:
@@ -1908,6 +1908,7 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -2144,8 +2145,8 @@ packages:
   /@types/node/12.20.20:
     resolution: {integrity: sha512-kqmxiJg4AT7rsSPIhO6eoBIx9mNwwpeH42yjtgQh6X2ANSpLpvToMXv+LMFdfxpwG1FZXZ41OGZMiUAtbBLEvg==}
 
-  /@types/node/12.20.27:
-    resolution: {integrity: sha512-qZdePUDSLAZRXXV234bLBEUM0nAQjoxbcSwp1rqSMUe1rZ47mwU6OjciR/JvF1Oo8mc0ys6GE0ks0HGgqAZoGg==}
+  /@types/node/12.20.28:
+    resolution: {integrity: sha512-cBw8gzxUPYX+/5lugXIPksioBSbE42k0fZ39p+4yRzfYjN6++eq9kAPdlY9qm+MXyfbk9EmvCYAYRn380sF46w==}
     dev: true
 
   /@types/node/14.17.11:
@@ -2154,6 +2155,10 @@ packages:
 
   /@types/node/14.17.19:
     resolution: {integrity: sha512-jjYI6NkyfXykucU6ELEoT64QyKOdvaA6enOqKtP4xUsGY0X0ZUZz29fUmrTRo+7v7c6TgDu82q3GHHaCEkqZwA==}
+    dev: true
+
+  /@types/node/14.17.21:
+    resolution: {integrity: sha512-zv8ukKci1mrILYiQOwGSV4FpkZhyxQtuFWGya2GujWg+zVAeRQ4qbaMmWp9vb9889CFA8JECH7lkwCL6Ygg8kA==}
     dev: true
 
   /@types/node/16.7.1:
@@ -4838,6 +4843,7 @@ packages:
   /jest-cli/27.2.3_ts-node@10.2.1:
     resolution: {integrity: sha512-QHXxxqE1zxMlti6wIHSbkl4Brg5Dnc0xzAVqRlVa6y2Ygv2X4ejhfMjl4VB5gWeHNsVA9C+KOm8TawpjZX8d3g==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -4867,6 +4873,7 @@ packages:
   /jest-cli/27.2.4_ts-node@10.2.1:
     resolution: {integrity: sha512-4kpQQkg74HYLaXo3nzwtg4PYxSLgL7puz1LXHj5Tu85KmlIpxQFjRkXlx4V47CYFFIDoyl3rHA/cXOxUWyMpNg==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -4923,7 +4930,7 @@ packages:
       jest-validate: 27.2.3
       micromatch: 4.0.4
       pretty-format: 27.2.3
-      ts-node: 10.2.1_939a8946a34f58c4fd62eef48ed7c2d9
+      ts-node: 10.2.1_7c67805a289289ea5dd4a92d4df14610
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -4961,7 +4968,7 @@ packages:
       jest-validate: 27.2.4
       micromatch: 4.0.4
       pretty-format: 27.2.4
-      ts-node: 10.2.1_939a8946a34f58c4fd62eef48ed7c2d9
+      ts-node: 10.2.1_7c67805a289289ea5dd4a92d4df14610
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -5651,6 +5658,7 @@ packages:
   /jest/27.2.3_ts-node@10.2.1:
     resolution: {integrity: sha512-r4ggA29J5xUg93DpvbsX+AXlFMWE3hZ5Y6BfgTl8PJvWelVezNPkmrsixuGoDBTHTCwScRSH0O4wsoeUgLie2w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -5671,6 +5679,7 @@ packages:
   /jest/27.2.4_ts-node@10.2.1:
     resolution: {integrity: sha512-h4uqb1EQLfPulWyUFFWv9e9Nn8sCqsJ/j3wk/KCY0p4s4s0ICCfP3iMf6hRf5hEhsDyvyrCgKiZXma63gMz16A==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -7864,6 +7873,7 @@ packages:
   /ts-jest/27.0.5_3f00e57d4cc005a60af484dfb2e33bba:
     resolution: {integrity: sha512-lIJApzfTaSSbtlksfFNHkWOzLJuuSm4faFAfo5kvzOiRAuoN4/eKxVJ2zEAho8aecE04qX6K1pAzfH5QHL1/8w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@types/jest': ^27.0.0
@@ -7894,6 +7904,7 @@ packages:
   /ts-jest/27.0.5_52a571d76319e63aeaa66dc9db9e90cc:
     resolution: {integrity: sha512-lIJApzfTaSSbtlksfFNHkWOzLJuuSm4faFAfo5kvzOiRAuoN4/eKxVJ2zEAho8aecE04qX6K1pAzfH5QHL1/8w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@types/jest': ^27.0.0
@@ -7921,9 +7932,10 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
-  /ts-node/10.2.1_939a8946a34f58c4fd62eef48ed7c2d9:
+  /ts-node/10.2.1_7c67805a289289ea5dd4a92d4df14610:
     resolution: {integrity: sha512-hCnyOyuGmD5wHleOQX6NIjJtYVIO8bPP8F2acWkB4W06wdlkgyvJtubO/I9NkI88hCFECbsEgoLc0VNkYmcSfw==}
     engines: {node: '>=12.0.0'}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -7940,7 +7952,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 14.17.19
+      '@types/node': 14.17.21
       acorn: 8.4.1
       acorn-walk: 8.1.1
       arg: 4.1.3
@@ -7951,9 +7963,10 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-node/10.2.1_bc8396cfce27f81f66a8434b4cc36a73:
+  /ts-node/10.2.1_c99a46ee0750fb2313284a3bf8760f3d:
     resolution: {integrity: sha512-hCnyOyuGmD5wHleOQX6NIjJtYVIO8bPP8F2acWkB4W06wdlkgyvJtubO/I9NkI88hCFECbsEgoLc0VNkYmcSfw==}
     engines: {node: '>=12.0.0'}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -7970,7 +7983,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 12.20.27
+      '@types/node': 12.20.28
       acorn: 8.4.1
       acorn-walk: 8.1.1
       arg: 4.1.3
