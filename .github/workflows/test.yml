@@ -68,7 +68,7 @@ jobs:
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
       - uses: fkirc/skip-duplicate-actions@v3.4.1
@@ -78,7 +78,7 @@ jobs:
   #
   lint:
     timeout-minutes: 7
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     # Ignore if renovate (dependency update)
     if: "!contains(github.actor, 'renovate')"
 
@@ -118,7 +118,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [ubuntu-latest] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -173,8 +173,8 @@ jobs:
   # CLIENT (types tests only)
   #
   client-types:
-    timeout-minutes: 10
-    runs-on: ubuntu-20.04
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -221,7 +221,7 @@ jobs:
   #
   integration-tests:
     timeout-minutes: 20
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
@@ -244,7 +244,7 @@ jobs:
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-      
+
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
@@ -310,7 +310,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [ubuntu-latest] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -367,13 +367,13 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [ubuntu-latest] # macos-latest, windows-latest
         node: [12]
 
     steps:
       - uses: actions/checkout@v2
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo mongo-seed
 
       - name: Set CLI Engine Type
         run: |
@@ -417,6 +417,7 @@ jobs:
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27017/tests?authSource=admin'
 
       - uses: codecov/codecov-action@v2
         with:
@@ -438,7 +439,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [ubuntu-latest] # macos-latest, windows-latest
         node: [12]
 
     steps:
@@ -447,7 +448,7 @@ jobs:
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-      
+
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
@@ -494,7 +495,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04] # macos-latest, windows-latest
+        os: [ubuntu-latest] # macos-latest, windows-latest
         node: [12]
 
     steps:

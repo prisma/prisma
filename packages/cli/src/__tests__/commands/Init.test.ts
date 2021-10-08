@@ -36,7 +36,7 @@ test('works with url param', async () => {
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="file:dev.db"
@@ -59,7 +59,7 @@ test('works with provider param - postgresql', async () => {
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
@@ -82,7 +82,7 @@ test('works with provider param - mysql', async () => {
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
@@ -105,7 +105,7 @@ test('works with provider param - SQLITE', async () => {
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="file:./dev.db"
@@ -128,7 +128,7 @@ test('works with provider param - SqlServer', async () => {
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;"
@@ -151,7 +151,7 @@ test('works with provider param - MongoDB', async () => {
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server (Preview) and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority"
@@ -204,4 +204,14 @@ test('writes a minimal .gitignore file', async () => {
   expect(gitignore).toMatch(defaultGitIgnore())
 
   expect(gitignore).toMatchSnapshot()
+})
+
+test('ignore .gitignore file if already present (do not override)', async () => {
+  ctx.fixture('init')
+  const gitignorePath = join(ctx.tmpDir, '.gitignore')
+  fs.writeFileSync(gitignorePath, `# This should not be overriden`)
+  const gitignoreBefore = fs.readFileSync(gitignorePath, 'utf-8')
+  await ctx.cli('init')
+  const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')
+  expect(gitignoreAfter).toEqual(gitignoreBefore)
 })

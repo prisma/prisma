@@ -7,8 +7,3 @@ generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["mongoDb"]
 }
-
-model User {
-  id   Int    @id @map("_id")
-  name String
-}

@@ -148,7 +148,7 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   try {
     await execa.command(command, {
       stdout: 'inherit',
-      stderr: 'pipe',
+      stderr: 'inherit',
     })
   } catch (_e) {
     const e = _e as execa.ExecaError

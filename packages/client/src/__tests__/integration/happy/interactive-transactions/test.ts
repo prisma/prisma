@@ -44,11 +44,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.findMany()\` invocation:
+Invalid \`prisma.user.findMany()\` invocation in
+/client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-          `)
+  39 
+  40 await new Promise((res) => setTimeout(res, 6000))
+  41 
+→ 42 return prisma.user.findMany(
+  Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+`)
   })
 
   /**
@@ -75,11 +79,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.findMany()\` invocation:
+Invalid \`prisma.user.findMany()\` invocation in
+/client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-          `)
+   69 
+   70 await new Promise((res) => setTimeout(res, 600))
+   71 
+→  72 return prisma.user.findMany(
+  Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+`)
   })
 
   /**
@@ -210,11 +218,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation:
+Invalid \`prisma.user.create()\` invocation in
+/client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-
-              Unique constraint failed on the fields: (\`email\`)
-          `)
+  209   },
+  210 })
+  211 
+→ 212 await prisma.user.create(
+  Unique constraint failed on the fields: (\`email\`)
+`)
 
     const users = await prisma.user.findMany()
 
@@ -240,11 +252,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation:
+Invalid \`transactionBoundPrisma.user.create()\` invocation in
+/client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
-          `)
+  243 })
+  244 
+  245 const result = prisma.$transaction(async () => {
+→ 246   await transactionBoundPrisma.user.create(
+  Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+`)
 
     const users = await prisma.user.findMany()
 
@@ -292,9 +308,13 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-Invalid \`prisma.user.create()\` invocation:
+Invalid \`prisma.user.create()\` invocation in
+/client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-
+  294  */
+  295 test('batching rollback', async () => {
+  296   const result = prisma.$transaction([
+→ 297     prisma.user.create(
   Unique constraint failed on the fields: (\`email\`)
 `)
 
@@ -386,9 +406,13 @@ Invalid \`prisma.executeRaw()\` invocation:
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-Invalid \`prisma.user.create()\` invocation:
+Invalid \`prisma.user.create()\` invocation in
+/client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-
+  392 })
+  393 
+  394 const result = prisma.$transaction([
+→ 395   prisma.user.create(
   Unique constraint failed on the fields: (\`email\`)
 `)
 

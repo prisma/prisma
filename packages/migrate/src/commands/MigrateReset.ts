@@ -130,6 +130,8 @@ ${chalk.bold('Examples')}
         )}.`,
       })
 
+      console.info() // empty line
+
       if (!confirmation.value) {
         console.info('Reset cancelled.')
         process.exit(0)
@@ -153,6 +155,7 @@ ${chalk.bold('Examples')}
     if (migrationIds.length === 0) {
       console.info(`${chalk.green('Database reset successful\n')}`)
     } else {
+      console.info() // empty line
       console.info(
         `${chalk.green('Database reset successful')}
 
@@ -190,12 +193,9 @@ The following migration(s) have been applied:\n\n${chalk(
       } else {
         // Only used to help users to setup their seeds from old way to new package.json config
         const schemaPath = await getSchemaPath(args['--schema'])
-
-        const message = await verifySeedConfigAndReturnMessage(schemaPath)
-        // warn because setup of the feature needs to be done
-        if (message) {
-          logger.warn(message)
-        }
+        // we don't want to output the returned warning message
+        // but we still want to run it for `legacyTsNodeScriptWarning()`
+        await verifySeedConfigAndReturnMessage(schemaPath)
       }
     }
 

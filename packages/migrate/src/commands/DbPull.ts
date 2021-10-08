@@ -6,6 +6,8 @@ import {
   arg,
   link,
   drawBox,
+  getSchema,
+  getConfig,
   getCommandWithExecutor,
 } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -196,7 +198,7 @@ ${chalk.bold(
 
 ${chalk.bold('To fix this, you have two options:')}
 
-- manually create a table in your database (using SQL).
+- manually create a table in your database.
 - make sure the database connection URL inside the ${chalk.bold(
             'datasource',
           )} block in ${chalk.bold(
@@ -212,8 +214,9 @@ Then you can run ${chalk.green(
         // Schema Parsing Error
         console.info() // empty line
         throw new Error(`${chalk.red(
-          `${e.code} Introspection failed as your current Prisma schema file is invalid`,
-        )}\n
+          `${e.code}`,
+        )} Introspection failed as your current Prisma schema file is invalid
+
 Please fix your current schema manually, use ${chalk.green(
           getCommandWithExecutor('prisma validate'),
         )} to confirm it is valid and then run this command again.
@@ -222,6 +225,7 @@ Or run this command with the ${chalk.green(
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
 
+      console.info() // empty line
       throw e
     }
 
@@ -267,14 +271,7 @@ Or run this command with the ${chalk.green(
             message += warning.affected
               .map((it) => `- Enum "${it.enm}", value: "${it.value}"`)
               .join('\n')
-          } else if (
-            warning.code === 5 ||
-            warning.code === 6 ||
-            warning.code === 8 ||
-            warning.code === 11 ||
-            warning.code === 12 ||
-            warning.code === 13
-          ) {
+          } else if ([5, 6, 8, 11, 12, 13].includes(warning.code)) {
             message += warning.affected
               .map((it) => `- Model "${it.model}", field: "${it.field}"`)
               .join('\n')
@@ -282,9 +279,17 @@ Or run this command with the ${chalk.green(
             message += warning.affected
               .map((it) => `- Model "${it.model}"`)
               .join('\n')
-          } else if (warning.code === 9 || warning.code === 10) {
+          } else if ([9, 10].includes(warning.code)) {
             message += warning.affected
               .map((it) => `- Enum "${it.enm}"`)
+              .join('\n')
+          } else if (warning.code === 101) {
+            // same as 3 but special case until name is removed
+            message += warning.affected.name
+              .map(
+                (it) =>
+                  `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`,
+              )
               .join('\n')
           } else if (warning.affected) {
             // Output unhandled warning
@@ -335,6 +340,32 @@ Learn more about the upgrade process in the docs:\n${link(
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
+      if (schemaPath) {
+        const schema = await getSchema(args['--schema'])
+        const config = await getConfig({
+          datamodel: schema,
+          ignoreEnvVarErrors: true,
+        })
+
+        const modelRegex = /\s*model\s*(\w+)\s*{/
+        const modelMatch = modelRegex.exec(schema)
+        const isReintrospection = modelMatch
+
+        if (
+          isReintrospection &&
+          !args['--force'] &&
+          config.datasources[0].provider === 'mongodb'
+        ) {
+          engine.stop()
+          throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
+You can explicitely ignore and override your current local schema file with ${chalk.green(
+            getCommandWithExecutor('prisma db pull --force'),
+          )}
+Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
+            'https://github.com/prisma/prisma/issues/9585',
+          )} for more info.`)
+        }
+      }
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 

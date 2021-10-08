@@ -213,9 +213,13 @@ Array [
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-Invalid \`prisma.user.findMany()\` invocation:
+Invalid \`prisma.user.findMany()\` invocation in
+/client/src/__tests__/integration/happy/full-text-search/test.ts:0:0
 
-
+  203  * Use an invalid operator
+  204  */
+  205 test('bad operator', async () => {
+→ 206   const result = prisma.user.findMany(
   Error occurred during query execution:
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState("42601"), message: "syntax error in tsquery: \\"0 1\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(514), routine: Some("makepol") }) }) })
 `)
