@@ -232,7 +232,7 @@ importers:
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.57.0
-      rollup-plugin-dts: 3.0.2
+      rollup-plugin-dts: 4.0.0
       sort-keys: 4.2.0
       source-map-support: 0.5.20
       sql-template-tag: 4.0.0
@@ -294,7 +294,7 @@ importers:
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.57.0
-      rollup-plugin-dts: 3.0.2_rollup@2.57.0+typescript@4.4.3
+      rollup-plugin-dts: 4.0.0_rollup@2.57.0+typescript@4.4.3
       sort-keys: 4.2.0
       source-map-support: 0.5.20
       sql-template-tag: 4.0.0
@@ -1908,6 +1908,7 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -4838,6 +4839,7 @@ packages:
   /jest-cli/27.2.3_ts-node@10.2.1:
     resolution: {integrity: sha512-QHXxxqE1zxMlti6wIHSbkl4Brg5Dnc0xzAVqRlVa6y2Ygv2X4ejhfMjl4VB5gWeHNsVA9C+KOm8TawpjZX8d3g==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -4867,6 +4869,7 @@ packages:
   /jest-cli/27.2.4_ts-node@10.2.1:
     resolution: {integrity: sha512-4kpQQkg74HYLaXo3nzwtg4PYxSLgL7puz1LXHj5Tu85KmlIpxQFjRkXlx4V47CYFFIDoyl3rHA/cXOxUWyMpNg==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -5651,6 +5654,7 @@ packages:
   /jest/27.2.3_ts-node@10.2.1:
     resolution: {integrity: sha512-r4ggA29J5xUg93DpvbsX+AXlFMWE3hZ5Y6BfgTl8PJvWelVezNPkmrsixuGoDBTHTCwScRSH0O4wsoeUgLie2w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -5671,6 +5675,7 @@ packages:
   /jest/27.2.4_ts-node@10.2.1:
     resolution: {integrity: sha512-h4uqb1EQLfPulWyUFFWv9e9Nn8sCqsJ/j3wk/KCY0p4s4s0ICCfP3iMf6hRf5hEhsDyvyrCgKiZXma63gMz16A==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
     peerDependenciesMeta:
@@ -7171,12 +7176,12 @@ packages:
     dependencies:
       glob: 7.1.7
 
-  /rollup-plugin-dts/3.0.2_rollup@2.57.0+typescript@4.4.3:
-    resolution: {integrity: sha512-hswlsdWu/x7k5pXzaLP6OvKRKcx8Bzprksz9i9mUe72zvt8LvqAb/AZpzs6FkLgmyRaN8B6rUQOVtzA3yEt9Yw==}
-    engines: {node: '>=v12.22.1'}
+  /rollup-plugin-dts/4.0.0_rollup@2.57.0+typescript@4.4.3:
+    resolution: {integrity: sha512-tgUC8CxVgtlLDVloUEA9uACVaxjJHuYxlDSTp1LdCexA0bJx+RuMi45RjdLG9RTCgZlV5YBh3O7P2u6dS1KlnA==}
+    engines: {node: '>=v12.22.5'}
     peerDependencies:
-      rollup: ^2.48.0
-      typescript: ^4.2.4
+      rollup: ^2.56.3
+      typescript: ^4.4.2
     dependencies:
       magic-string: 0.25.7
       rollup: 2.57.0
@@ -7864,6 +7869,7 @@ packages:
   /ts-jest/27.0.5_3f00e57d4cc005a60af484dfb2e33bba:
     resolution: {integrity: sha512-lIJApzfTaSSbtlksfFNHkWOzLJuuSm4faFAfo5kvzOiRAuoN4/eKxVJ2zEAho8aecE04qX6K1pAzfH5QHL1/8w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@types/jest': ^27.0.0
@@ -7894,6 +7900,7 @@ packages:
   /ts-jest/27.0.5_52a571d76319e63aeaa66dc9db9e90cc:
     resolution: {integrity: sha512-lIJApzfTaSSbtlksfFNHkWOzLJuuSm4faFAfo5kvzOiRAuoN4/eKxVJ2zEAho8aecE04qX6K1pAzfH5QHL1/8w==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+    hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@types/jest': ^27.0.0
@@ -7924,6 +7931,7 @@ packages:
   /ts-node/10.2.1_939a8946a34f58c4fd62eef48ed7c2d9:
     resolution: {integrity: sha512-hCnyOyuGmD5wHleOQX6NIjJtYVIO8bPP8F2acWkB4W06wdlkgyvJtubO/I9NkI88hCFECbsEgoLc0VNkYmcSfw==}
     engines: {node: '>=12.0.0'}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
@@ -7954,6 +7962,7 @@ packages:
   /ts-node/10.2.1_bc8396cfce27f81f66a8434b4cc36a73:
     resolution: {integrity: sha512-hCnyOyuGmD5wHleOQX6NIjJtYVIO8bPP8F2acWkB4W06wdlkgyvJtubO/I9NkI88hCFECbsEgoLc0VNkYmcSfw==}
     engines: {node: '>=12.0.0'}
+    hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
       '@swc/wasm': '>=1.2.50'
