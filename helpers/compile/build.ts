@@ -151,28 +151,29 @@ export async function build(options: BuildOptions[]) {
 }
 
 /**
- *
+ * Executes the build and rebuilds what is necessary
  * @param builds
  */
 function watch(builds: esbuild.BuildResult[]) {
   const watcher = createWatcher(
-    ['src/**/*', 'node_modules/@prisma/*/dist/**/*'],
+    ['src/**/*.{j,t}s', 'node_modules/@prisma/*/{dist,build,runtime}/*'],
     {
+      ignored: ['src/__tests__/**/*', '**/{dist,build,runtime}/*.d.ts'],
       ignoreInitial: true,
     },
   )
 
-  let isRebuilding = false
-  watcher.on('change', async () => {
-    if (isRebuilding) return
+  let rebuilding = false
+  watcher.on('all', async () => {
+    if (rebuilding) return
 
-    isRebuilding = true
+    rebuilding = true
     console.time('rebuild')
     for (const build of builds) {
       await build.rebuild?.()
     }
-    isRebuilding = false
     console.timeEnd('rebuild')
+    rebuilding = false
   })
 }
 
