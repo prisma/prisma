@@ -232,7 +232,7 @@ importers:
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.57.0
-      rollup-plugin-dts: 3.0.2
+      rollup-plugin-dts: 4.0.0
       sort-keys: 4.2.0
       source-map-support: 0.5.20
       sql-template-tag: 4.0.0
@@ -294,7 +294,7 @@ importers:
       replace-string: 3.1.0
       rimraf: 3.0.2
       rollup: 2.57.0
-      rollup-plugin-dts: 3.0.2_rollup@2.57.0+typescript@4.4.3
+      rollup-plugin-dts: 4.0.0_rollup@2.57.0+typescript@4.4.3
       sort-keys: 4.2.0
       source-map-support: 0.5.20
       sql-template-tag: 4.0.0
@@ -7180,12 +7180,12 @@ packages:
     dependencies:
       glob: 7.1.7
 
-  /rollup-plugin-dts/3.0.2_rollup@2.57.0+typescript@4.4.3:
-    resolution: {integrity: sha512-hswlsdWu/x7k5pXzaLP6OvKRKcx8Bzprksz9i9mUe72zvt8LvqAb/AZpzs6FkLgmyRaN8B6rUQOVtzA3yEt9Yw==}
-    engines: {node: '>=v12.22.1'}
+  /rollup-plugin-dts/4.0.0_rollup@2.57.0+typescript@4.4.3:
+    resolution: {integrity: sha512-tgUC8CxVgtlLDVloUEA9uACVaxjJHuYxlDSTp1LdCexA0bJx+RuMi45RjdLG9RTCgZlV5YBh3O7P2u6dS1KlnA==}
+    engines: {node: '>=v12.22.5'}
     peerDependencies:
-      rollup: ^2.48.0
-      typescript: ^4.2.4
+      rollup: ^2.56.3
+      typescript: ^4.4.2
     dependencies:
       magic-string: 0.25.7
       rollup: 2.57.0

@@ -106,7 +106,7 @@
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
     "rollup": "2.57.0",
-    "rollup-plugin-dts": "3.0.2",
+    "rollup-plugin-dts": "4.0.0",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.20",
     "sql-template-tag": "4.0.0",
