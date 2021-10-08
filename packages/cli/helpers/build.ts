@@ -28,13 +28,6 @@ const resolveHelperPlugin: esbuild.Plugin = {
     build.onResolve({ filter: /^@prisma\/sdk$/ }, () => {
       return { path: require.resolve('@prisma/sdk') }
     })
-    // // similar issue for spdx packages coming from pkg-up
-    // build.onResolve({ filter: /^spdx-exceptions/ }, () => {
-    //   return { path: require.resolve('spdx-exceptions') }
-    // })
-    // build.onResolve({ filter: /^spdx-license-ids/ }, () => {
-    //   return { path: require.resolve('spdx-license-ids') }
-    // })
   },
 }
 

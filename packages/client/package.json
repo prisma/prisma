@@ -115,8 +115,6 @@
     "rollup-plugin-dts": "3.0.2",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.19",
-    "spdx-exceptions": "^2.3.0",
-    "spdx-license-ids": "^3.0.10",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.0",

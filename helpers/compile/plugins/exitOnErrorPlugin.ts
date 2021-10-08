@@ -1,6 +1,6 @@
 import type * as esbuild from 'esbuild'
 
-export const exitOnError: esbuild.Plugin = {
+export const exitOnErrorPlugin: esbuild.Plugin = {
   name: 'exitOnError',
   setup(build) {
     if (process.env.WATCH === 'true') return

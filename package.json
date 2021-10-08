@@ -102,6 +102,8 @@
     "resolve": "1.20.0",
     "safe-buffer": "^5.2.1",
     "semver": "7.3.5",
+    "spdx-exceptions": "^2.3.0",
+    "spdx-license-ids": "^3.0.10",
     "staged-git-files": "1.2.0",
     "stream-browserify": "^3.0.0",
     "stream-http": "^3.2.0",

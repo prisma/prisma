@@ -7,25 +7,12 @@ import type * as esbuild from 'esbuild'
 
 const external = ['_http_common']
 
-const resolveHelperPlugin: esbuild.Plugin = {
-  name: 'resolveHelperPlugin',
-  setup(build) {
-    build.onResolve({ filter: /^spdx-exceptions/ }, () => {
-      return { path: require.resolve('spdx-exceptions') }
-    })
-    build.onResolve({ filter: /^spdx-license-ids/ }, () => {
-      return { path: require.resolve('spdx-license-ids') }
-    })
-  },
-}
-
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
   external: external,
-  plugins: [resolveHelperPlugin],
 }
 
 // we define the config for runtime
@@ -35,7 +22,6 @@ const runtimeBuildConfig: BuildOptions = {
   bundle: true,
   external: external,
   define: { 'globalThis.NOT_PROXY': 'true' },
-  plugins: [resolveHelperPlugin],
 }
 
 // we define the config for browser
@@ -45,7 +31,6 @@ const browserBuildConfig: BuildOptions = {
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
   external: external,
-  plugins: [resolveHelperPlugin],
 }
 
 // we define the config for proxy
@@ -58,7 +43,6 @@ const proxyBuildConfig: BuildOptions = {
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },
   plugins: [
-    resolveHelperPlugin,
     fillPlugin(
       {
         // TODO no tree shaking on wrapper pkgs
