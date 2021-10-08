@@ -111,8 +111,6 @@
     "replace-string": "3.1.0",
     "resolve-pkg": "2.0.0",
     "rimraf": "3.0.2",
-    "spdx-exceptions": "^2.3.0",
-    "spdx-license-ids": "^3.0.10",
     "strip-ansi": "6.0.0",
     "tempy": "1.0.1",
     "ts-jest": "27.0.5",
