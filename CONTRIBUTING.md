@@ -97,7 +97,7 @@ We have two kinds of integration tests:
 
 #### Prisma Client folder-based integration tests (`./client`)
 
-The integration tests consisting of mini project are located in [`src/client/src/__tests__/integration`](./packages/client/src/__tests__/integration)
+The integration tests consisting of mini projects are located in [`src/client/src/__tests__/integration`](./packages/client/src/__tests__/integration)
 
 Run the tests:
 
