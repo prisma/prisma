@@ -6,7 +6,6 @@
   "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
-    "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>"
   ],
   "homepage": "https://www.prisma.io",
