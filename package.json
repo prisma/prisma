@@ -33,8 +33,8 @@
     "@types/graphviz": "0.0.34",
     "@types/node": "14.17.19",
     "@types/redis": "2.8.32",
-    "@typescript-eslint/eslint-plugin": "4.29.3",
-    "@typescript-eslint/parser": "4.29.3",
+    "@typescript-eslint/eslint-plugin": "4.31.2",
+    "@typescript-eslint/parser": "4.31.2",
     "arg": "5.0.1",
     "batching-toposort": "1.2.0",
     "benchmark": "2.1.4",
@@ -44,7 +44,7 @@
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-jest": "24.4.2",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "globby": "11.0.4",
@@ -55,12 +55,12 @@
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.1",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "semver": "7.3.5",
     "staged-git-files": "1.2.0",
     "ts-node": "10.2.1",
-    "typescript": "4.3.5"
+    "typescript": "4.4.3"
   }
 }

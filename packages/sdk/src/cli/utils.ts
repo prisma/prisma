@@ -19,8 +19,8 @@ export function arg<T extends Arg.Spec>(
 ): Arg.Result<T> | Error {
   try {
     return Arg(spec, { argv, stopAtPositional, permissive })
-  } catch (err) {
-    return err
+  } catch (e: any) {
+    return e
   }
 }
 
