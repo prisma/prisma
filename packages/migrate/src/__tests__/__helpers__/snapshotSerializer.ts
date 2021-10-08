@@ -14,8 +14,8 @@ function normalizeRustError(str) {
     .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
-function normalizeMs(str) {
-  return str.replace(/\d{1,3}ms/g, 'XXms')
+function normalizeTime(str: string): string {
+  return str.replace(/\d+ms/g, 'XXms').replace(/\d+s/g, 'XXs')
 }
 
 const serializer = {
@@ -30,7 +30,7 @@ const serializer = {
         ? value.message
         : ''
     return normalizeDbUrl(
-      normalizeMs(
+      normalizeTime(
         normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
       ),
     )
