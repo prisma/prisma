@@ -1,6 +1,10 @@
 {
   "private": true,
   "license": "Apache-2.0",
+  "maintainers": [
+    "Joël Galeran <galeran@prisma.io>",
+    "Pierre-Antoine Mills <mills@prisma.io>"
+  ],
   "engines": {
     "node": ">=12.6"
   },

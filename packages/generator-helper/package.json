@@ -9,9 +9,8 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
   "maintainers": [
-    "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>",
-    "William Luke <luke@prisma.io>"
+    "Pierre-Antoine Mills <mills@prisma.io>"
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
