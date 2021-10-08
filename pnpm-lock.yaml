@@ -204,6 +204,7 @@ importers:
       '@prisma/studio-server': 0.435.0
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
+      '@types/fs-extra': ^9.0.13
       '@types/jest': 27.0.2
       '@types/rimraf': 3.0.2
       '@types/ws': 8.2.0
@@ -222,6 +223,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
       fast-deep-equal: 3.1.3
+      fs-extra: ^10.0.0
       fs-jetpack: 4.1.1
       get-port: 5.1.1
       global-dirs: 3.0.0
@@ -260,6 +262,7 @@ importers:
       '@prisma/studio-server': 0.435.0
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
+      '@types/fs-extra': 9.0.13
       '@types/jest': 27.0.2
       '@types/rimraf': 3.0.2
       '@types/ws': 8.2.0
@@ -278,6 +281,7 @@ importers:
       eslint-plugin-prettier: 4.0.0_5a48a349ffec60f5257b5f148f5199c3
       execa: 5.1.1
       fast-deep-equal: 3.1.3
+      fs-extra: 10.0.0
       fs-jetpack: 4.1.1
       get-port: 5.1.1
       global-dirs: 3.0.0
@@ -2166,6 +2170,12 @@ packages:
 
   /@types/estree/0.0.50:
     resolution: {integrity: sha512-C6N5s2ZFtuZRj54k2/zyRhNDjJwwcViAM3Nbm8zjBpbqAdZ00mr0CFxvSKeO8Y/e03WVFLpQMdHYVfUd6SB+Hw==}
+    dev: true
+
+  /@types/fs-extra/9.0.13:
+    resolution: {integrity: sha512-nEnwB++1u5lVDM2UI4c1+5R+FYaKfaAzS4OococimjVm3nQw3TuzH5UNsocrcTBbhnerblyHj4A49qXbIiZdpA==}
+    dependencies:
+      '@types/node': 16.10.3
     dev: true
 
   /@types/geojson/7946.0.8:
@@ -4781,6 +4791,15 @@ packages:
   /fs-constants/1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
 
+  /fs-extra/10.0.0:
+    resolution: {integrity: sha512-C5owb14u9eJwizKGdchcDUQeFtlSHHthBk8pbX9Vc1PFZrLombudjDnNns88aYslCyF6IY5SUw3Roz6xShcEIQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      graceful-fs: 4.2.8
+      jsonfile: 6.1.0
+      universalify: 2.0.0
+    dev: true
+
   /fs-extra/7.0.1:
     resolution: {integrity: sha512-YJDaCJZEnBmcbw13fvdAM9AwNOJwOzrE4pqMqBq5nFiEqXUqHwlK4B+3pUw6JNvfSPtX05xFHtYy/1ni01eGCw==}
     engines: {node: '>=6 <7 || >=8'}
@@ -6238,6 +6257,14 @@ packages:
 
   /jsonfile/4.0.0:
     resolution: {integrity: sha1-h3Gq4HmbZAdrdmQPygWPnBDjPss=}
+    optionalDependencies:
+      graceful-fs: 4.2.8
+    dev: true
+
+  /jsonfile/6.1.0:
+    resolution: {integrity: sha512-5dgndWOriYSm5cnYaJNhalLNDKOqFwyDB/rr1E9ZsGciGvKPs8R2xYGCacuf3z6K1YKDz182fd+fY3cn3pMqXQ==}
+    dependencies:
+      universalify: 2.0.0
     optionalDependencies:
       graceful-fs: 4.2.8
     dev: true
@@ -9014,6 +9041,11 @@ packages:
   /universalify/0.1.2:
     resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
     engines: {node: '>= 4.0.0'}
+    dev: true
+
+  /universalify/2.0.0:
+    resolution: {integrity: sha512-hAZsKq7Yy11Zu1DE0OzWjw7nnLZmJZYTDZZyEFHZdUhV8FkH5MCfoU1XMaxXovpyW5nq5scPqq0ZDP9Zyl04oQ==}
+    engines: {node: '>= 10.0.0'}
     dev: true
 
   /unpipe/1.0.0:
