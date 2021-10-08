@@ -9,17 +9,22 @@ To run tests requiring a database, start the test databases using Docker, see [D
 - Create a `.envrc` in the root directory of the project with this content:
 
 ```sh
+export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
+export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
 export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
 export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
-export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
 
+export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
+export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
 export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
 export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
-export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
 
+export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
+
+export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/tests" # for `mssql` lib used in some tests
+export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=tests;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=tests;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
 export TEST_MONGO_URI="mongodb://root:prisma@localhost:27017/tests?authSource=admin"
 ```
