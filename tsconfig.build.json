@@ -12,11 +12,8 @@
     "noUncheckedIndexedAccess": false,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": false,
     "skipDefaultLibCheck": true
   },
-  "exclude": [
-    "**/dist",
-    "**/node_modules",
-    "**/src/__tests__"
-  ]
+  "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
 }

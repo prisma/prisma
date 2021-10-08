@@ -167,7 +167,8 @@ export async function run(
       cwd,
       stdio: 'inherit',
     })
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     throw new Error(
       chalk.bold.red(
         `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
@@ -189,7 +190,8 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
       shell: true,
     })
     return result.stdout
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     throw new Error(
       chalk.red(
         `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,

@@ -62,7 +62,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
     dmmf = JSON.parse(
       await NodeAPIQueryEngineLibrary.dmmf(datamodel),
     ) as DMMF.Document
-  } catch (e) {
+  } catch (e: any) {
     const error = JSON.parse(e.message)
     const message = addMissingOpenSSLInfo(error.message)
     throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
@@ -125,7 +125,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const stdout = result.stdout.slice(firstCurly)
 
     return JSON.parse(stdout)
-  } catch (e) {
+  } catch (e: any) {
     debug('getDMMF failed', e)
     // If this unlikely event happens, try it at least once more
     if (
@@ -140,6 +140,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         retry: options.retry - 1,
       })
     }
+
     const output = e.stderr || e.stdout
     if (output) {
       let json

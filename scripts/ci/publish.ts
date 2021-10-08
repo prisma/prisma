@@ -112,7 +112,8 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
       shell: true,
     })
     return result.stdout
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     throw new Error(
       chalk.red(
         `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
@@ -153,7 +154,8 @@ async function run(
         PRISMA_SKIP_POSTINSTALL_GENERATE: 'true',
       },
     })
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     throw new Error(
       chalk.red(
         `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
