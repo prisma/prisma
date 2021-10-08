@@ -4,7 +4,7 @@ import arg from 'arg'
 import topo from 'batching-toposort'
 import chalk from 'chalk'
 import execa from 'execa'
-import { promises as fs } from 'fs'
+import { promises as fs, existsSync } from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'
 import pMap from 'p-map'
@@ -14,7 +14,6 @@ import path from 'path'
 import redis from 'redis'
 import semver from 'semver'
 import { promisify } from 'util'
-import { cloneOrPull } from '../setup'
 import { unique } from './unique'
 
 export type Commit = {
@@ -641,7 +640,7 @@ async function publish() {
       console.log(changes.map((c) => `  ${c}`).join('\n'))
     }
 
-    let prisma2Version
+    let prismaVersion
     let tag: undefined | string
     let tagForE2ECheck: undefined | string
 
@@ -653,32 +652,37 @@ async function publish() {
 
     // For branches that are named "integration/" we publish to the integration npm tag
     if (branch && branch.startsWith('integration/')) {
-      prisma2Version = await getNewIntegrationVersion(packages, branch)
+      prismaVersion = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
     }
     // Is it a patch branch? (Like 2.20.x)
     else if (patchBranch) {
-      prisma2Version = await getNewPatchDevVersion(packages, patchBranch)
+      prismaVersion = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
       if (args['--release']) {
         tagForE2ECheck = 'patch-dev' //?
-        prisma2Version = args['--release']
+        prismaVersion = args['--release']
         tag = 'latest'
       }
     } else if (args['--release']) {
-      prisma2Version = args['--release']
+      prismaVersion = args['--release']
       tag = 'latest'
       tagForE2ECheck = 'dev'
     } else {
-      prisma2Version = await getNewDevVersion(packages)
+      prismaVersion = await getNewDevVersion(packages)
       tag = 'dev'
     }
 
-    console.log({ patchBranch, tag, tagForE2ECheck, prisma2Version })
+    console.log({
+      patchBranch,
+      tag,
+      tagForE2ECheck,
+      prisma2Version: prismaVersion,
+    })
 
     const packagesWithVersions = await getNewPackageVersions(
       packages,
-      prisma2Version,
+      prismaVersion,
     )
 
     if (process.env.UPDATE_STUDIO) {
@@ -736,7 +740,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
           packagesWithVersions,
           publishOrder,
           true,
-          prisma2Version,
+          prismaVersion,
           tag,
           args['--release'],
         )
@@ -749,7 +753,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
         packagesWithVersions,
         publishOrder,
         dryRun,
-        prisma2Version,
+        prismaVersion,
         tag,
         args['--release'],
       )
@@ -764,7 +768,7 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
 
       try {
         await sendSlackMessage({
-          version: prisma2Version,
+          version: prismaVersion,
           enginesCommit: enginesCommitInfo,
           prismaCommit: prismaCommitInfo,
         })
@@ -774,7 +778,12 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
 
       if (!process.env.PATCH_BRANCH && !args['--dry-run']) {
         try {
-          await tagEnginesRepo(prisma2Version, enginesCommit, dryRun)
+          await tagEnginesRepo(
+            prismaVersion,
+            enginesCommit,
+            patchBranch,
+            dryRun,
+          )
         } catch (e) {
           console.error(e)
         }
@@ -808,17 +817,45 @@ async function getEnginesCommit(): Promise<string> {
 async function tagEnginesRepo(
   prismaVersion: string,
   engineVersion: string,
+  patchBranch: string | null,
   dryRun = false,
 ) {
-  console.log(`Going to tag the engines repo dryRun: ${dryRun}`)
-  /** Get ready */
-  await cloneOrPull('prisma-engines', dryRun)
+  let previousTag: string
 
-  /** Get previous tag */
-  const previousTag = await runResult(
-    'prisma-engines',
-    `git describe --tags --abbrev=0`,
+  console.log(
+    `Going to tag the engines repo with "${prismaVersion}", dryRun: ${dryRun}`,
   )
+  /** Get ready */
+  await cloneOrPull('prisma-engines')
+
+  // 3.2.x
+  if (patchBranch) {
+    // 3.2
+    const majorMinor = patchBranch.slice(0, -2)
+    // ['3.2.0', '3.2.1']
+    const patchesPublished: string[] = JSON.parse(
+      await runResult(
+        '.',
+        `npm show @prisma/client@${majorMinor} version --json`,
+      ),
+    )
+
+    console.log({ patchesPublished })
+
+    if (patchesPublished.length > 0) {
+      // 3.2.0
+      previousTag = patchesPublished.pop() as string
+    } else {
+      console.warn('No version found for this patch branch')
+      return
+    }
+  } else {
+    /** Get previous tag */
+    previousTag = await runResult(
+      'prisma-engines',
+      `git describe --tags --abbrev=0`,
+    )
+  }
 
   /** Get commits between previous tag and engines sha1 */
   const changelog = await runResult(
@@ -841,12 +878,15 @@ async function tagEnginesRepo(
       true,
     )
   }
-  await run(
-    '.',
-    `git config --global user.email "prismabots@gmail.com"`,
-    dryRun,
-  )
-  await run('.', `git config --global user.name "prisma-bot"`, dryRun)
+
+  if (process.env.CI) {
+    await run(
+      '.',
+      `git config --global user.email "prismabots@gmail.com"`,
+      dryRun,
+    )
+    await run('.', `git config --global user.name "prisma-bot"`, dryRun)
+  }
 
   /** Tag */
   await run(
@@ -1362,6 +1402,28 @@ async function getCommitInfo(repo: string, hash: string): Promise<CommitInfo> {
     author: jsonData.commit?.author.name || '',
     hash,
   }
+}
+
+function getCommitEnvVar(name: string): string {
+  return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
+}
+
+async function cloneOrPull(repo: string, dryRun = false) {
+  if (existsSync(path.join(__dirname, '../../', repo))) {
+    return run(repo, `git pull --tags`, dryRun)
+  } else {
+    await run('.', `git clone ${repoUrl(repo)}`, dryRun)
+    const envVar = getCommitEnvVar(repo)
+    if (process.env[envVar]) {
+      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
+    }
+  }
+
+  return undefined
+}
+
+function repoUrl(repo: string, org = 'prisma') {
+  return `https://github.com/${org}/${repo}.git`
 }
 
 if (require.main === module) {
