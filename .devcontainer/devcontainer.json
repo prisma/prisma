@@ -2,6 +2,11 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.187.0/containers/typescript-node
 {
 	"name": "Node.js & TypeScript",
+		
+	"features": {
+    		"github": "latest", // GitHub CLI
+	},
+	
 	"build": {
 		"dockerfile": "Dockerfile",
 		// Update 'VARIANT' to pick a Node version: 12, 14, 16
