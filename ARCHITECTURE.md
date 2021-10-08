@@ -18,6 +18,10 @@ ts-node scripts/graph-dependencies.ts
 
 <img src="./graphs/peerDependencies.png">
 
+## Generators
+
+See [Prisma Generators](https://prismaio.notion.site/Prisma-Generators-a2cdf262207a4e9dbcd0e362dfac8dc0)
+
 ## The `DMMF`, or Data Model Meta Format
 
 What the ... is DMMF? It's the Datamodel Meta Format. It is an AST (abstract syntax tree) of the datamodel in the form of JSON.

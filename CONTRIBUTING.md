@@ -10,6 +10,7 @@ We also encourage you to join our sprawling [community](https://www.prisma.io/co
 
 - Contributing Code
   - General Prerequisites
+  - General Setup
   - Prisma Client
     - Initial Setup
     - Building and Running Prisma Client
@@ -19,12 +20,35 @@ We also encourage you to join our sprawling [community](https://www.prisma.io/co
     - Building and Running Prisma Migrate
     - Tests
 - Additional Resources
+- Conventions
+  - Git Commit Messages
+- Legal
 
 ## Contributing Code
 
-A quick overview. Explain the difference between Client and Migrate. Repository structure.
-
 Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines)
+
+## General Prerequisites
+
+1. Install Node.js `>=12.6` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+   - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
+1. Install [`pnpm`](https://pnpm.js.org/) (for installing npm dependencies, using pnpm workspaces)
+1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing databases for our tests)
+1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node.js scripts written in TypeScript)
+1. Install [`direnv`](https://github.com/direnv/direnv/blob/master/docs/installation.md) (for managing .envrc for environment variables)
+
+https://github.com/direnv/direnv/blob/master/docs/installation.md
+
+Copy paste these commands to install the global dependencies:
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+nvm install 14
+npm install --global pnpm@6 ts-node
+# For direnv see https://github.com/direnv/direnv/blob/master/docs/installation.md
+```
+
+## General Setup
 
 To setup and build all the packages, follow these steps:
 
@@ -38,46 +62,30 @@ pnpm run setup
 Note for Windows:
 Use the latest version of [Git Bash](https://gitforwindows.org/)
 
-## General Prerequisites
+## Building packages when you make changes
 
-Step-by-step guide to required installs, env variables, etc.
+In the root directory:
 
-1. Install Node.js `>=12.6` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
-   - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
-1. Install [`pnpm@6`](https://pnpm.js.org/) (for installing npm dependencies, using pnpm workspaces)
-1. Install [`yarn@1`](https://classic.yarnpkg.com/en/docs/install/) (for building a "pack" version of the client)
-1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing databases for our tests)
-1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node.js scripts written in TypeScript)
-1. Install [`direnv`](https://github.com/direnv/direnv/blob/master/docs/installation.md) (for managing .envrc for environment variables)
+- `pnpm run setup` will install and build all the packages
+- `pnpm -r run build` (-r for recursive) will build all the packages
+- `pnpm -r run dev` (-r for recursive) will build all the packages without running `tsc` (Fastest)
 
-https://github.com/direnv/direnv/blob/master/docs/installation.md
+In a package directory, like `packages/client`:
 
-Copy paste these commands to install the global dependencies:
+- `pnpm run build` will build the package
+- `pnpm run dev` will build the package without running `tsc` (Fastest)
 
-```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-nvm install 14
-npm install --global pnpm@6 yarn ts-node
-# For direnv see https://github.com/direnv/direnv/blob/master/docs/installation.md
-```
+Note: Our builder is ESbuild
 
 ## Prisma Client
 
-### Initial Setup
-
-TODO Step-by-step how to get to the first contribution.
+### First contribution
 
 1. `cd packages/client`
-2. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-3. `cd fixtures/blog`
-4. `export DB_URL=YOUR_DATABASE_URL`  
-   For this step you might find our [docker-compose setup](./docker) helpful
-5. `npx prisma db push --skip-generate`
-6. `ts-node main`
-
-### Building and Running Prisma Client
-
-How-to guide.
+1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
+1. `cd fixtures/blog`
+1. `npx prisma db push --skip-generate` will create the database structure
+1. `ts-node main`
 
 ### Tests
 
@@ -114,19 +122,17 @@ Run the tests:
 
 ## Prisma Migrate
 
-### Initial Setup
+### First contribution
 
-Step-by-step how to get to first contribution.
-// TODO
+1. `cd packages/migrate/fixtures/blog` it's a minimal project that can be used to try things out
+1. Then modify some code
+1. `../../src/bin.ts dev` for running `prisma migrate dev`
 
-1. `cd packages/migrate`
+### Tests
 
-### Building and Running Prisma Migrate
+For an overview, adding, running tests & guidelines see [TESTING.md](./TESTING.md).
 
-How-to guide.
-
-1. `cd packages/migrate/fixtures/blog`
-1. `ts-node ../../src/bin.ts dev` for running `prisma migrate dev`
+Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./packages/migrate/src/__tests__/fixtures)
 
 ## Additional Ressources
 
@@ -135,15 +141,16 @@ How-to guide.
 - [Prisma Docs](https://www.prisma.io/docs/)
 - [TablePlus](https://tableplus.com/) is a great GUI for databases, useful for managing sqlite database fixtures for example.
 
+## Prisma CLI
+
 ### Developing `prisma` CLI
 
-// TODO
-
 1. `cd packages/cli`
-<!-- 1. `mkdir test && cd test` -->
-1. `ts-node ../src/bin.ts generate`
+1. `../src/bin.ts generate` to run `prisma generate`
 
-## Git Commit Messages
+## Conventions
+
+### Git Commit Messages
 
 We structure our messages like this:
 
