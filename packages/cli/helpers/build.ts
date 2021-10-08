@@ -1,7 +1,7 @@
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { run } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
-import copy from '@timsuchanek/copy'
+import { copySync } from 'fs-extra'
 import path from 'path'
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
@@ -28,13 +28,13 @@ const resolveHelperPlugin: esbuild.Plugin = {
     build.onResolve({ filter: /^@prisma\/sdk$/ }, () => {
       return { path: require.resolve('@prisma/sdk') }
     })
-    // similar issue for spdx packages coming from pkg-up
-    build.onResolve({ filter: /^spdx-exceptions/ }, () => {
-      return { path: require.resolve('spdx-exceptions') }
-    })
-    build.onResolve({ filter: /^spdx-license-ids/ }, () => {
-      return { path: require.resolve('spdx-license-ids') }
-    })
+    // // similar issue for spdx packages coming from pkg-up
+    // build.onResolve({ filter: /^spdx-exceptions/ }, () => {
+    //   return { path: require.resolve('spdx-exceptions') }
+    // })
+    // build.onResolve({ filter: /^spdx-license-ids/ }, () => {
+    //   return { path: require.resolve('spdx-license-ids') }
+    // })
   },
 }
 
@@ -44,29 +44,24 @@ const resolveHelperPlugin: esbuild.Plugin = {
 const cliLifecyclePlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
+    // we only do this for the first oen of the builds
+    if (build.initialOptions?.format === 'esm') return
+
     build.onStart(async () => {
       // provide a copy of the client for studio to work
-      await run('node ./helpers/copy-prisma-client.js')
+      await run('node -r esbuild-register ./helpers/copy-prisma-client.ts')
     })
 
-    build.onEnd(async (result) => {
-      // we only proceed with this for the second build
-      if (build.initialOptions?.format !== 'cjs') return
-
-      // and only proceed if there were no build errors
-      if (result.errors.length > 0) return
-
+    build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
-      await copy({
-        from: path.join(
-          require.resolve('@prisma/studio/package.json'),
-          '../dist',
-        ),
-        to: './build/public',
-        parallelJobs: process.platform === 'win32' ? 1 : 20,
-        recursive: true,
-        overwrite: true,
-      })
+      copySync(
+        path.join(require.resolve('@prisma/studio/package.json'), '../dist'),
+        './build/public',
+        {
+          recursive: true,
+          overwrite: true,
+        },
+      )
 
       // we copy the contents from checkpoint-client to build
       await copyFile(
@@ -115,13 +110,6 @@ const installBuildConfig: BuildOptions = {
 }
 
 void build([cliBuildConfig, preinstallBuildConfig, installBuildConfig])
-// async function main() {
-//   await esbuild.build(cliBuildConfig)
-//   await esbuild.build(preinstallBuildConfig)
-//   await esbuild.build(installBuildConfig)
-// }
-
-// void main()
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 
