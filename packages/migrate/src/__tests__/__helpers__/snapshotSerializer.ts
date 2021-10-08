@@ -15,7 +15,8 @@ function normalizeRustError(str) {
 }
 
 function normalizeTime(str: string): string {
-  return str.replace(/\d+ms/g, 'XXms').replace(/\d+s/g, 'XXs')
+  // sometimes soneting can take a few seconds when usually it's less than 1s
+  return str.replace(/ \d+(ms|s)/g, ' XXXms')
 }
 
 const serializer = {
