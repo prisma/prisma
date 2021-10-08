@@ -8,7 +8,7 @@ import glob from 'glob'
 import path from 'path'
 import { watch as createWatcher } from 'chokidar'
 import { tscPlugin } from './plugins/tscPlugin'
-import { exitOnErrorPlugin } from './plugins/exitOnErrorPlugin'
+import { onErrorPlugin } from './plugins/onErrorPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 
 export type BuildResult = esbuild.BuildResult
@@ -42,7 +42,7 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getEsmOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getEsmOutDir(options),
-  plugins: [...(options.plugins ?? []), exitOnErrorPlugin, fixImportsPlugin],
+  plugins: [...(options.plugins ?? []), onErrorPlugin, fixImportsPlugin],
 })
 
 /**
@@ -64,7 +64,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
   // we only produce typescript types on the second run (cjs)
-  plugins: [...(options.plugins ?? []), tscPlugin, exitOnErrorPlugin],
+  plugins: [...(options.plugins ?? []), tscPlugin, onErrorPlugin],
 })
 
 /**
