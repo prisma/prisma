@@ -22,6 +22,7 @@ const DEFAULT_BUILD_OPTIONS = {
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   incremental: process.env.WATCH === 'true',
+  metafile: true,
 } as const
 
 /**
@@ -128,7 +129,7 @@ async function executeEsBuild(options: BuildOptions) {
  * Execution pipeline that applies a set of actions
  * @param options
  */
-async function executeBuild(options: BuildOptions[]) {
+export async function build(options: BuildOptions[]) {
   return transduce.async(
     createBuildOptions(options),
     pipe.async(
@@ -136,46 +137,33 @@ async function executeBuild(options: BuildOptions[]) {
       addExtensionFormat,
       addDefaultOutDir,
       executeEsBuild,
+      watch,
     ),
   )
-}
-
-/**
- * Executes the build and starts a watcher if needed
- * @param options
- */
-export async function build(options: BuildOptions[]) {
-  const builds = await executeBuild(options)
-
-  if (process.env.WATCH) watch(builds)
 }
 
 /**
  * Executes the build and rebuilds what is necessary
  * @param builds
  */
-function watch(builds: esbuild.BuildResult[]) {
-  const watcher = createWatcher(
-    ['src/**/*.{j,t}s', 'node_modules/@prisma/*/{dist,build,runtime}/*'],
-    {
-      ignored: ['src/__tests__/**/*', '**/{dist,build,runtime}/*.d.ts'],
-      ignoreInitial: true,
-      usePolling: true,
-    },
-  )
+function watch(
+  build: esbuild.BuildResult | esbuild.BuildIncremental | undefined,
+) {
+  if (process.env.WATCH !== 'true') return build
 
-  let rebuilding = false
-  watcher.on('all', async () => {
-    if (rebuilding) return
-
-    rebuilding = true
-    console.time('rebuild')
-    for (const build of builds) {
-      await build.rebuild?.()
-    }
-    console.timeEnd('rebuild')
-    rebuilding = false
+  const watched = getWatchedFiles(build)
+  const watcher = createWatcher(watched, {
+    ignoreInitial: true,
   })
+
+  watcher.once('all', async () => {
+    const timeBefore = Date.now()
+    watch(await build?.rebuild?.())
+    const timeAfter = Date.now()
+    console.log(`${timeAfter - timeBefore}ms`)
+  })
+
+  return undefined
 }
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -213,4 +201,10 @@ export function run(command: string) {
     shell: true,
     stdio: 'inherit',
   })
+}
+
+function getWatchedFiles(
+  build: esbuild.BuildIncremental | esbuild.BuildResult | undefined,
+) {
+  return Object.keys(build?.metafile?.inputs ?? {})
 }
