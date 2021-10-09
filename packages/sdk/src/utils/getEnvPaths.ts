@@ -54,7 +54,7 @@ function getProjectRootEnvPath(
 ): string | null {
   const pkgJsonPath = findUp.sync((dir) => {
     const pkgPath = path.join(dir, 'package.json')
-    if (findUp.exists(pkgPath)) {
+    if (findUp.sync.exists(pkgPath)) {
       try {
         const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
         if (pkg['name'] !== '.prisma/client') {

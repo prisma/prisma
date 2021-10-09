@@ -162,7 +162,7 @@ export class PrismaClientFetcher {
           return { data: unpackResult, elapsed }
         }
         return unpackResult
-      } catch (e) {
+      } catch (e: any) {
         debug(e)
         let message = e.message
         if (callsite) {

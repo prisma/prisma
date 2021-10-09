@@ -14,8 +14,9 @@ function normalizeRustError(str) {
     .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
-function normalizeMs(str) {
-  return str.replace(/\d{1,3}ms/g, 'XXms')
+function normalizeTime(str: string): string {
+  // sometimes soneting can take a few seconds when usually it's less than 1s
+  return str.replace(/ \d+ms/g, ' XXXms').replace(/ \d+(.\d+)?s/g, ' XXXms')
 }
 
 export function test(value) {
@@ -30,7 +31,7 @@ export function serialize(value) {
       ? value.message
       : ''
   return normalizeDbUrl(
-    normalizeMs(
+    normalizeTime(
       normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
     ),
   )

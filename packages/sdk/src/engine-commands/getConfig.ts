@@ -83,7 +83,7 @@ async function getConfigNodeAPI(
       ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
       env: process.env,
     })
-  } catch (e) {
+  } catch (e: any) {
     let error
     try {
       error = JSON.parse(e.message)
@@ -146,7 +146,7 @@ async function getConfigBinary(
     }
 
     data = JSON.parse(result.stdout)
-  } catch (e) {
+  } catch (e: any) {
     if (e.stderr || e.stdout) {
       const error = e.stderr ? e.stderr : e.stout
       let jsonError, message

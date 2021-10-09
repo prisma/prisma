@@ -99,7 +99,7 @@ Check the status of your database migrations
 
     try {
       await ensureCanConnectToDatabase(schemaPath)
-    } catch (e) {
+    } catch (e: any) {
       console.info() // empty line
       return chalk.red(`Database connection error:
 

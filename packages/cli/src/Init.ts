@@ -317,7 +317,7 @@ export class Init implements Command {
             'postgresql',
           )}, ${chalk.green('mysql')}, ${chalk.green('sqlite')}, ${chalk.green(
             'sqlserver',
-          )} (Preview) or ${chalk.green('mongodb')} (Preview).`,
+          )} or ${chalk.green('mongodb')} (Preview).`,
         )
       }
 
