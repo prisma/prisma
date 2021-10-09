@@ -1,6 +1,10 @@
 {
   "private": true,
   "license": "Apache-2.0",
+  "maintainers": [
+    "Joël Galeran <galeran@prisma.io>",
+    "Pierre-Antoine Mills <mills@prisma.io>"
+  ],
   "engines": {
     "node": ">=12.6"
   },
@@ -28,11 +32,11 @@
     "@types/benchmark": "2.1.1",
     "@types/glob": "7.1.4",
     "@types/graphviz": "0.0.34",
-    "@types/node": "14.17.19",
+    "@types/node": "14.17.21",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.1",
-    "@typescript-eslint/eslint-plugin": "4.29.3",
-    "@typescript-eslint/parser": "4.29.3",
+    "@typescript-eslint/eslint-plugin": "4.31.2",
+    "@typescript-eslint/parser": "4.31.2",
     "arg": "5.0.1",
     "assert": "^2.0.0",
     "assert-browserify": "^2.0.0",
@@ -61,7 +65,7 @@
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-jest": "24.4.2",
     "eslint-plugin-prettier": "4.0.0",
     "eventemitter3": "^4.0.7",
     "events": "^3.3.0",
@@ -88,7 +92,6 @@
     "p-retry": "4.6.1",
     "path-browserify": "^1.0.1",
     "pbkdf2": "^3.1.2",
-    "prettier": "2.3.2",
     "process": "^0.11.10",
     "public-encrypt": "^4.0.3",
     "punycode": "^2.1.1",
@@ -97,6 +100,7 @@
     "randombytes": "^2.1.0",
     "randomfill": "^1.0.4",
     "readable-stream": "^3.6.0",
+    "prettier": "2.4.1",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "resolve": "1.20.0",
@@ -112,10 +116,10 @@
     "ts-node": "10.2.1",
     "ts-toolbelt": "9.6.0",
     "tty-browserify": "^0.0.1",
-    "typescript": "4.3.5",
     "url": "^0.11.0",
     "util": "^0.12.4",
     "vm-browserify": "^1.1.2",
-    "xtend": "^4.0.2"
+    "xtend": "^4.0.2",
+    "typescript": "4.4.3"
   }
 }

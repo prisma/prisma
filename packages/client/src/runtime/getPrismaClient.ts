@@ -468,7 +468,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._bootstrapClient()
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -538,7 +538,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     $connect() {
       try {
         return this._engine.start()
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -560,7 +560,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     $disconnect() {
       try {
         return this._engine.stop()
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -701,7 +701,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           )
           ;(promise as any).isExecuteRaw = true
           return promise
-        } catch (e) {
+        } catch (e: any) {
           e.clientVersion = this._clientVersion
           throw e
         }
@@ -875,7 +875,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           )
           ;(promise as any).isQueryRaw = true
           return promise
-        } catch (e) {
+        } catch (e: any) {
           e.clientVersion = this._clientVersion
           throw e
         }
@@ -1018,7 +1018,7 @@ new PrismaClient({
     private async $___transaction(promises: Array<any>): Promise<any> {
       try {
         return this.$___transactionInternal(promises)
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -1038,9 +1038,8 @@ new PrismaClient({
 
       try {
         return this._transaction(input, options)
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
-
         throw e
       }
     }
@@ -1079,7 +1078,7 @@ new PrismaClient({
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', info)
-      } catch (e) {
+      } catch (e: any) {
         // it went bad, then we rollback the transaction
         await this._engine.transaction('rollback', info)
 
@@ -1159,9 +1158,8 @@ new PrismaClient({
         }
 
         return consumer(params)
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
-
         throw e
       }
     }

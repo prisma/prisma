@@ -5,7 +5,7 @@
 export function load<T>(id: string): T {
   try {
     return require(id) as T
-  } catch (e) {
+  } catch (e: any) {
     throw new Error(`Unable to require(\`${id}\`)\n ${e.message}`)
   }
 }

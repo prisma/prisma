@@ -85,7 +85,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in schema.prisma …
 
-      ✔ Introspected 3 models and wrote them into schema.prisma in XXms
+      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -111,7 +111,7 @@ describe('common/sqlite', () => {
 
       Introspecting …
 
-      ✔ Introspected 3 models and wrote them into schema.prisma in XXms
+      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -159,7 +159,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in prisma/reintrospection.prisma …
 
-      ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXms
+      ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
             
       *** WARNING ***
 
@@ -239,14 +239,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n'))
       .toMatchInlineSnapshot(`
 
-                                                                                                        // *** WARNING ***
-                                                                                                        // 
-                                                                                                        // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                        // - Model "AwesomeNewPost"
-                                                                                                        // - Model "AwesomeProfile"
-                                                                                                        // - Model "AwesomeUser"
-                                                                                                        // 
-                                                                    `)
+                                                                                                              // *** WARNING ***
+                                                                                                              // 
+                                                                                                              // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                              // - Model "AwesomeNewPost"
+                                                                                                              // - Model "AwesomeProfile"
+                                                                                                              // - Model "AwesomeUser"
+                                                                                                              // 
+                                                                        `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(
       originalSchema,
@@ -270,7 +270,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in prisma/schema.prisma …
 
-      ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXms
+      ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -412,7 +412,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in prisma/invalid.prisma …
 
-      ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXms
+      ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -634,7 +634,7 @@ describe('MongoDB', () => {
 
       Introspecting based on datasource defined in prisma/no-model.prisma …
 
-      ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXms
+      ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -685,7 +685,7 @@ describe('MongoDB', () => {
 
       Introspecting based on datasource defined in prisma/schema.prisma …
 
-      ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXms
+      ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -713,7 +713,7 @@ describe('MongoDB', () => {
 
       Introspecting based on datasource defined in prisma/no-model.prisma …
 
-      ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXms
+      ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
       Prisma schema loaded from prisma/no-model.prisma
