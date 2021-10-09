@@ -5,6 +5,7 @@ import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage
 
 export function checkFeatureFlags(config: ConfigMetaFormat) {
   checkMongoFeatureFlag(config)
+  checkProxyFeatureFlag(config)
 }
 
 function checkMongoFeatureFlag(config: ConfigMetaFormat) {
@@ -18,5 +19,19 @@ function checkMongoFeatureFlag(config: ConfigMetaFormat) {
     })
   ) {
     throw new Error(mongoFeatureFlagMissingMessage)
+  }
+}
+
+function checkProxyFeatureFlag(config: ConfigMetaFormat) {
+  if (
+    config.generators.some((g) => g.config.engineType === 'dataproxy') &&
+    !config.generators.some((g) => {
+      return g.previewFeatures.some(
+        (previewFeature) =>
+          previewFeature.toLowerCase() === 'dataProxy'.toLowerCase(),
+      )
+    })
+  ) {
+    throw new Error(proxyFeatureFlagMissingMessage)
   }
 }
