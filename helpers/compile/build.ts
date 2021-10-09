@@ -160,6 +160,7 @@ function watch(builds: esbuild.BuildResult[]) {
     {
       ignored: ['src/__tests__/**/*', '**/{dist,build,runtime}/*.d.ts'],
       ignoreInitial: true,
+      usePolling: true,
     },
   )
 
