@@ -255,22 +255,24 @@ process.on('SIGINT', () => {
 /**
  * Run our program
  */
-main()
-  .then((code) => {
-    if (code !== 0) {
-      process.exit(code)
-    }
-  })
-  .catch((err) => {
-    // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
-    if (typeof err[Symbol.iterator] === 'function') {
-      for (const individualError of err) {
-        handleIndividualError(individualError)
+if (eval('require.main === module')) {
+  main()
+    .then((code) => {
+      if (code !== 0) {
+        process.exit(code)
       }
-    } else {
-      handleIndividualError(err)
-    }
-  })
+    })
+    .catch((err) => {
+      // Sindre's pkg p-map & co are using AggregateError, it is an iterator.
+      if (typeof err[Symbol.iterator] === 'function') {
+        for (const individualError of err) {
+          handleIndividualError(individualError)
+        }
+      } else {
+        handleIndividualError(err)
+      }
+    })
+}
 
 function handleIndividualError(error): void {
   if (error.rustStack) {
