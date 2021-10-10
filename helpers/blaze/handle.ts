@@ -6,7 +6,9 @@ function handleSync<R, E = Error>(fn: () => R): R | E {
   }
 }
 
-async function handleAsync<R, E = Error>(fn: () => Promise<R>): Promise<R | E> {
+async function handleAsync<R, E = Error>(
+  fn: () => Promise<R> | R,
+): Promise<R | E> {
   try {
     return await fn()
   } catch (e: unknown) {
