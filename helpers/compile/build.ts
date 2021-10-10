@@ -10,6 +10,7 @@ import { watch as createWatcher } from 'chokidar'
 import { tscPlugin } from './plugins/tscPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
+import { handle } from '../blaze/handle'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
@@ -43,7 +44,7 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getEsmOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getEsmOutDir(options),
-  plugins: [...(options.plugins ?? []), onErrorPlugin, fixImportsPlugin],
+  plugins: [...(options.plugins ?? []), fixImportsPlugin, onErrorPlugin],
 })
 
 /**
@@ -158,7 +159,19 @@ function watch(
 
   watcher.once('all', async () => {
     const timeBefore = Date.now()
-    watch(await build?.rebuild?.())
+
+    // we handle possible rebuild exceptions
+    const result = await handle.async(() => {
+      return build?.rebuild?.()
+    })
+
+    if (result instanceof Error) {
+      console.error(result.message)
+      watch(build) // re-watch original build
+    } else {
+      watch(result) // watch incremented build
+    }
+
     const timeAfter = Date.now()
     console.log(`${timeAfter - timeBefore}ms`)
   })
