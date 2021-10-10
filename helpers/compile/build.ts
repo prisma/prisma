@@ -27,7 +27,7 @@ const DEFAULT_BUILD_OPTIONS = {
 } as const
 
 /**
- * Apply defaults defaults allow us to build tree-shaken esm
+ * Apply defaults to allow us to build tree-shaken esm
  * @param options the original build options
  */
 const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
@@ -48,7 +48,7 @@ const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
 })
 
 /**
- * Apply defaults to allow to compile tree-shaken esm to cjs
+ * Apply defaults to allow compiling tree-shaken esm to cjs
  * @param options the original build options
  */
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
@@ -152,9 +152,11 @@ function watch(
 ) {
   if (process.env.WATCH !== 'true') return build
 
+  // prepare the incremental builds watcher
   const watched = getWatchedFiles(build)
   const watcher = createWatcher(watched, {
     ignoreInitial: true,
+    useFsEvents: true,
   })
 
   watcher.once('all', async () => {
@@ -216,6 +218,7 @@ export function run(command: string) {
   })
 }
 
+// gets the files to be watched from esbuild
 function getWatchedFiles(
   build: esbuild.BuildIncremental | esbuild.BuildResult | undefined,
 ) {
