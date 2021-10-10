@@ -24,7 +24,8 @@ function checkMongoFeatureFlag(config: ConfigMetaFormat) {
 
 function checkProxyFeatureFlag(config: ConfigMetaFormat) {
   if (
-    config.generators.some((g) => g.config.engineType === 'dataproxy') &&
+    (config.generators.some((g) => g.config.engineType === 'dataproxy') ||
+      process.env.PRISMA_CLIENT_ENGINE_TYPE === 'dataproxy') &&
     !config.generators.some((g) => {
       return g.previewFeatures.some(
         (previewFeature) =>
