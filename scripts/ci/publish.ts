@@ -371,7 +371,7 @@ async function getCurrentPatchForPatchVersions(patchMajorMinor: {
   minor: number
 }): Promise<number> {
   let versions = JSON.parse(
-    await runResult('.', 'npm show @prisma/client@* version --json'),
+    await runResult('.', 'npm view @prisma/client@* version --json'),
   )
 
   // inconsistent npm api
@@ -826,17 +826,18 @@ async function tagEnginesRepo(
     `Going to tag the engines repo with "${prismaVersion}", dryRun: ${dryRun}`,
   )
   /** Get ready */
-  await cloneOrPull('prisma-engines')
+  await cloneOrPull('prisma-engines', dryRun)
 
   // 3.2.x
   if (patchBranch) {
     // 3.2
-    const majorMinor = patchBranch.slice(0, -2)
+    const [major, minor] = patchBranch.split('.')
+    const majorMinor = [major, minor].join('.')
     // ['3.2.0', '3.2.1']
     const patchesPublished: string[] = JSON.parse(
       await runResult(
         '.',
-        `npm show @prisma/client@${majorMinor} version --json`,
+        `npm view @prisma/client@${majorMinor} version --json`,
       ),
     )
 
