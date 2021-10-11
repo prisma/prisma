@@ -222,7 +222,7 @@ export class DataProxyEngine extends Engine {
 
     try {
       this.logEmitter.emit('info', {
-        message: `Calling ${this.url('graphql')} (n=${attempt})`,
+        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
       })
 
       const res = await fetch(await this.url('graphql'), {
