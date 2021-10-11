@@ -270,14 +270,14 @@ function getCircularDependencies(packages: Packages): string[][] {
 
 async function getNewPackageVersions(
   packages: Packages,
-  prisma2Version: string,
+  prismaVersion: string,
 ): Promise<PackagesWithNewVersions> {
   return pReduce(
     Object.values(packages),
     async (acc, p) => {
       acc[p.name] = {
         ...p,
-        newVersion: await newVersion(p, prisma2Version),
+        newVersion: await newVersion(p, prismaVersion),
       }
       return acc
     },
@@ -677,7 +677,7 @@ async function publish() {
       patchBranch,
       tag,
       tagForE2ECheck,
-      prisma2Version: prismaVersion,
+      prismaVersion,
     })
 
     const packagesWithVersions = await getNewPackageVersions(
@@ -962,13 +962,13 @@ function intersection<T>(arr1: T[], arr2: T[]): T[] {
 }
 
 // Parent "version updating function", uses `patch` and `patchVersion`
-async function newVersion(pkg: Package, prisma2Version: string) {
+async function newVersion(pkg: Package, prismaVersion: string) {
   const isPrisma2OrPhoton = [
     '@prisma/cli',
     'prisma',
     '@prisma/client',
   ].includes(pkg.name)
-  return isPrisma2OrPhoton ? prisma2Version : await patch(pkg)
+  return isPrisma2OrPhoton ? prismaVersion : await patch(pkg)
 }
 
 // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
@@ -1042,7 +1042,7 @@ async function publishPackages(
   changedPackages: PackagesWithNewVersions,
   publishOrder: string[][],
   dryRun: boolean,
-  prisma2Version: string,
+  prismaVersion: string,
   tag: string,
   releaseVersion?: string,
 ): Promise<void> {
@@ -1071,7 +1071,7 @@ async function publishPackages(
   console.log(
     chalk.blueBright(
       `\n${chalk.bold.underline(
-        prisma2Version,
+        prismaVersion,
       )}: ${publishStr}(all) ${chalk.bold(
         String(Object.values(packages).length),
       )} packages. Publish order:`,
@@ -1089,7 +1089,7 @@ async function publishPackages(
         `\nThis will ${chalk.underline(
           'release',
         )} a new version of prisma CLI on latest: ${chalk.underline(
-          prisma2Version,
+          prismaVersion,
         )}`,
       ),
     )
@@ -1129,7 +1129,7 @@ async function publishPackages(
 
       const pkgDir = path.dirname(pkg.path)
 
-      const newVersion = prisma2Version
+      const newVersion = prismaVersion
 
       console.log(
         `\nPublishing ${chalk.magentaBright(
