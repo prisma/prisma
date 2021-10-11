@@ -75,7 +75,6 @@ module.exports = {
         "@typescript-eslint/restrict-plus-operands": "off",
         "@typescript-eslint/restrict-template-expressions": "off",
         "jest/no-conditional-expect": "off",
-        "jest/no-try-expect": "off",
         "jest/no-export": "off",
         "@typescript-eslint/no-empty-interface": "off",
       },
