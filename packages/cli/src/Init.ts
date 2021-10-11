@@ -258,10 +258,9 @@ export class Init implements Command {
       const config = dotenv.parse(envFile) // will return an object
       if (Object.keys(config).includes('DATABASE_URL')) {
         warnings.push(
-          `${chalk.yellow('warn')} Prisma would have added ${defaultEnv(
-            url,
-            false,
-          )} but this environment variable already exists in ${chalk.bold(
+          `${chalk.yellow(
+            'warn',
+          )} Prisma would have added DATABASE_URL but it already exists in ${chalk.bold(
             path.relative(outputDir, envPath),
           )}`,
         )
