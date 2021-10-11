@@ -823,7 +823,7 @@ async function tagEnginesRepo(
   let previousTag: string
 
   console.log(
-    `Going to tag the engines repo with "${prismaVersion}", dryRun: ${dryRun}`,
+    `Going to tag the engines repo with "${prismaVersion}", patchBranch: ${patchBranch}, dryRun: ${dryRun}`,
   )
   /** Get ready */
   await cloneOrPull('prisma-engines', dryRun)
