@@ -1,23 +1,23 @@
 export interface Generatable {
-  toJS?(): string
-  toTS(): string
-  toBrowserJS?(): string
-  toTSWithoutNamespace?(): string
+  toJS?(): string | Promise<string>
+  toTS(): string | Promise<string>
+  toBrowserJS?(): string | Promise<string>
+  toTSWithoutNamespace?(): string | Promise<string>
 }
 
-export function JS(gen: Generatable): string {
+export async function JS(gen: Generatable): Promise<string> {
   if (gen.toJS) {
     return gen.toJS()
   }
 
   return ''
 }
-export function BrowserJS(gen: Generatable): string {
+export async function BrowserJS(gen: Generatable): Promise<string> {
   if (gen.toBrowserJS) {
     return gen.toBrowserJS()
   }
   return ''
 }
-export function TS(gen: Generatable): string {
+export async function TS(gen: Generatable): Promise<string> {
   return gen.toTS()
 }
