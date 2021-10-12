@@ -93,11 +93,7 @@ jobs:
         with:
           node-version: '12'
 
-      - run: bash .github/workflows/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
+      - run: pnpm -r i
 
       - run: pnpm run lint
         working-directory: ./
