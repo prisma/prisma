@@ -15,7 +15,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.3.0-8.215205f6035788c67a417d840048eb4e89fdfdfd",
+    "@prisma/engines-version": "3.3.0-9.869b44ea457ba802770bc71428f5a94073a9aac5",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.0.2",
@@ -54,7 +54,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.3.0-8.215205f6035788c67a417d840048eb4e89fdfdfd",
+    "@prisma/get-platform": "3.3.0-9.869b44ea457ba802770bc71428f5a94073a9aac5",
     "@sindresorhus/slugify": "1.1.2",
     "execa": "5.1.1",
     "global-dirs": "3.0.0",
