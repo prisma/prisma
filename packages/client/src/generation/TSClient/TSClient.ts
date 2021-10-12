@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getEnvPaths, tryLoadEnvs } from '@prisma/sdk'
+import { getConfig, getEnvPaths, tryLoadEnvs } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -72,6 +72,7 @@ export class TSClient implements Generatable {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFClass(klona(options.document))
   }
+
   public toJS(): string {
     const {
       platforms,

@@ -101,9 +101,9 @@ export async function buildClient({
   })
 
   const fileMap = {
-    'index.d.ts': TS(client),
-    'index.js': JS(client),
-    'index-browser.js': BrowserJS(client),
+    'index.d.ts': await TS(client),
+    'index.js': await JS(client),
+    'index-browser.js': await BrowserJS(client),
   }
 
   return {
