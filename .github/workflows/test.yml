@@ -95,6 +95,7 @@ jobs:
     
       - uses: pnpm/action-setup@v2.0.1
         with:
+          version: latest
           run_install: |
             - recursive: true
 
