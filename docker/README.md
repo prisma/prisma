@@ -23,7 +23,7 @@ ports:
 
 ### Start
 
-In detached/bacground mode using `-d` (recommended)
+In detached/background mode using `-d` (recommended)
 
 ```
 docker-compose up -d
