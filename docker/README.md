@@ -6,7 +6,7 @@ You will need to change directory before executing the commands below with:
 cd docker
 ```
 
-See [./docker-compose.yml](the Docker Compose configurations for our tests databases locally and also used by GitHub Actions in CI)
+See [the Docker Compose configurations for our tests databases locally and also used by GitHub Actions in CI](./docker-compose.yml).
 
 ## Using docker-compose for databases
 
