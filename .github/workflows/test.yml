@@ -92,8 +92,11 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '12'
-
-      - run: pnpm -r i
+    
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          run_install: |
+            - recursive: true
 
       - run: pnpm run lint
         working-directory: ./
