@@ -11,6 +11,8 @@ import EventEmitter from 'events'
 const BACKOFF_INTERVAL = 250
 const MAX_RETRIES = 5
 
+const id = Math.ceil(Math.random() * 1000)
+
 function backOff(n: number): Promise<number> {
   const baseDelay = Math.pow(2, n) * BACKOFF_INTERVAL
   const jitter = Math.ceil(Math.random() * baseDelay) - Math.ceil(baseDelay / 2)
@@ -144,7 +146,7 @@ export class DataProxyEngine extends Engine {
   private async url(s: string) {
     await this.initPromise
 
-    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}`
+    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${id}`
   }
 
   // TODO: looks like activeProvider is the only thing
@@ -222,7 +224,7 @@ export class DataProxyEngine extends Engine {
 
     try {
       this.logEmitter.emit('info', {
-        message: `Calling ${this.url('graphql')} (n=${attempt})`,
+        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
       })
 
       const res = await fetch(await this.url('graphql'), {
