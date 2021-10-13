@@ -284,11 +284,10 @@ Or run this command with the ${chalk.green(
               .map((it) => `- Enum "${it.enm}"`)
               .join('\n')
           } else if (warning.code === 101) {
-            // same as 3 but special case until name is removed
             message += warning.affected.name
               .map(
                 (it) =>
-                  `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`,
+                  `- Model "${it.model}", field: "${it.field}", chosen data type: "${it.tpe}"`,
               )
               .join('\n')
           } else if (warning.affected) {
