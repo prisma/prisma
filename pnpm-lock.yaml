@@ -589,7 +589,7 @@ importers:
       pg: 8.7.1
       pkg-up: 3.1.0
       prettier: 2.4.1
-      prompts: 2.4.1
+      prompts: 2.4.2
       resolve-pkg: 2.0.0
       sqlite-async: 1.1.1
       sqlite3: 5.0.2
@@ -610,7 +610,7 @@ importers:
       new-github-issue-url: 0.2.1
       open: 7.4.2
       pkg-up: 3.1.0
-      prompts: 2.4.1
+      prompts: 2.4.2
       resolve-pkg: 2.0.0
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -7044,6 +7044,15 @@ packages:
     dependencies:
       kleur: 3.0.3
       sisteransi: 1.0.5
+    dev: true
+
+  /prompts/2.4.2:
+    resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
+    engines: {node: '>= 6'}
+    dependencies:
+      kleur: 3.0.3
+      sisteransi: 1.0.5
+    dev: false
 
   /proxy-addr/2.0.7:
     resolution: {integrity: sha512-llQsMLSUDUPT44jdrU/O37qlnifitDP+ZwrmmZcoSKyLKvtZxpyV0n2/bD/N4tBAAZ/gJEdZU7KMraoK1+XYAg==}
