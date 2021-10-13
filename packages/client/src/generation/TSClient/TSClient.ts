@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getConfig, getEnvPaths, tryLoadEnvs } from '@prisma/sdk'
+import { getEnvPaths } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -8,7 +8,6 @@ import { DMMFClass } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
 import { getClientEngineType } from '../../runtime/utils/getClientEngineType'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
@@ -23,8 +22,8 @@ import { PrismaClientClass } from './PrismaClient'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import fs from 'fs'
-import type { EnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
+import { buildInlineSchema } from '../utils/buildInlineSchema'
+import { buildInlineEnv } from '../utils/buildInlineEnv'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -43,28 +42,6 @@ export interface TSClientOptions {
   activeProvider: string
 }
 
-/**
- * Utility to conditionally add items to `config`
- * @param engineType
- * @param schemaPath
- * @param envPaths
- * @returns
- */
-function conditionalConfig(
-  engineType: ClientEngineType,
-  schemaPath: string,
-  envPaths: EnvPaths,
-) {
-  if (engineType === ClientEngineType.DataProxy) {
-    return {
-      inlineSchema: fs.readFileSync(schemaPath).toString('base64'),
-      inlineEnv: tryLoadEnvs(envPaths, { conflictCheck: 'warn' }),
-    }
-  }
-
-  return {}
-}
-
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFClass
   protected readonly dmmfString: string
@@ -73,7 +50,7 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFClass(klona(options.document))
   }
 
-  public toJS(): string {
+  public async toJS(): Promise<string> {
     const {
       platforms,
       generator,
@@ -82,6 +59,7 @@ export class TSClient implements Generatable {
       schemaDir,
       runtimeDir,
       runtimeName,
+      datasources,
     } = this.options
     const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
@@ -107,9 +85,8 @@ export class TSClient implements Generatable {
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
-      datasourceNames: this.options.datasources.map((d) => d.name),
+      datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      ...conditionalConfig(engineType, schemaPath, envPaths),
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -159,6 +136,8 @@ exports.Prisma.dmmf = JSON.parse(dmmfString)
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
+${await buildInlineSchema(engineType, schemaPath)}
+${buildInlineEnv(engineType, datasources, envPaths)}
 ${buildWarnEnvConflicts(engineType, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient

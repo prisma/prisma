@@ -19,7 +19,7 @@ interface DotenvLoadEnvResult {
 
 // our type for loaded env data
 export type LoadedEnv = {
-  message: string
+  message?: string
   parsed: {
     [x: string]: string
   }
