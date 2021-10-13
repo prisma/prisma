@@ -79,8 +79,6 @@ jobs:
   lint:
     timeout-minutes: 7
     runs-on: ubuntu-latest
-    # Ignore if renovate (dependency update)
-    if: "!contains(github.actor, 'renovate')"
 
     steps:
       - uses: actions/checkout@v2

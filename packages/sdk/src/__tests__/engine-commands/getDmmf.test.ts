@@ -133,13 +133,11 @@ describe('getDMMF', () => {
         @@map("users")
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 
   test('model with autoincrement should fail if mysql', async () => {
@@ -154,13 +152,11 @@ describe('getDMMF', () => {
         @@map("users")
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 
   test('@@unique model', async () => {
@@ -305,12 +301,10 @@ describe('getDMMF', () => {
       COLLABORATOR
     }
     `
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 })
