@@ -1,8 +1,7 @@
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
-const { platforms } = require('@prisma/get-platform')
-const escapeString = require('escape-string-regexp')
+const { platformRegex } = require('@prisma/sdk')
 
 function trimErrorPaths(str) {
   const parentDir = path.dirname(path.dirname(__dirname))
@@ -13,11 +12,6 @@ function trimErrorPaths(str) {
 function normalizeToUnixPaths(str) {
   return replaceAll(str, path.sep, '/')
 }
-
-const platformRegex = new RegExp(
-  '(' + platforms.map((p) => escapeString(p)).join('|') + ')',
-  'g',
-)
 
 function removePlatforms(str) {
   return str.replace(platformRegex, 'TEST_PLATFORM')
