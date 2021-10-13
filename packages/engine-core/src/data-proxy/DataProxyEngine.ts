@@ -84,7 +84,6 @@ function decodeInlineSchema(inlineSchema: string) {
 
 export class DataProxyEngine extends Engine {
   private initPromise: Promise<void>
-  private initialSchemaUploadPromise: Promise<void>
   private inlineSchema: string
   private config: EngineConfig
   private logEmitter: EventEmitter
@@ -107,7 +106,6 @@ export class DataProxyEngine extends Engine {
     this.logEmitter.on('error', () => {})
 
     this.initPromise = this.init()
-    this.initialSchemaUploadPromise = this.uploadSchema()
   }
 
   /**
@@ -164,7 +162,6 @@ export class DataProxyEngine extends Engine {
   }
 
   private async uploadSchema() {
-    await this.initialSchemaUploadPromise
     await this.initPromise
 
     const res = await fetch(await this.url('schema'), {
