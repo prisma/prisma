@@ -102,7 +102,7 @@ function declareInlineEnv(loadedEnv: LoadedEnv) {
       return [
         `(typeof global['${key}'] ? global['${key}'] : undefined)`,
         `process.env['${key}']`,
-        JSON.stringify(value) ?? 'undefined',
+        value ? `'${value}'` : 'undefined',
       ].join(` || `) // the order matters
     },
     2,
