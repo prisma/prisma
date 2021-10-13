@@ -5,19 +5,19 @@ export interface Generatable {
   toTSWithoutNamespace?(): string | Promise<string>
 }
 
-export async function JS(gen: Generatable): Promise<string> {
+export function JS(gen: Generatable): string | Promise<string> {
   if (gen.toJS) {
     return gen.toJS()
   }
 
   return ''
 }
-export async function BrowserJS(gen: Generatable): Promise<string> {
+export function BrowserJS(gen: Generatable): string | Promise<string> {
   if (gen.toBrowserJS) {
     return gen.toBrowserJS()
   }
   return ''
 }
-export async function TS(gen: Generatable): Promise<string> {
+export function TS(gen: Generatable): string | Promise<string> {
   return gen.toTS()
 }
