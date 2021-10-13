@@ -38,7 +38,7 @@ const proxyBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/proxy',
   bundle: true,
-  minify: true,
+  // minify: true,
   legalComments: 'none',
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },
