@@ -25,8 +25,8 @@ function backOff(n: number): Promise<number> {
  * Detects the runtime environment
  * @returns
  */
-export function getRuntimeName() {
-  if (typeof self === undefined) {
+export function getJSRuntimeName() {
+  if (typeof self === 'undefined') {
     return 'node'
   }
 
@@ -57,14 +57,14 @@ function getClientVersion(config: EngineConfig) {
  */
 async function createSchemaHash(inlineSchema: string) {
   const schemaBuffer = Buffer.from(inlineSchema)
-  const runtimeName = getRuntimeName()
+  const jsRuntimeName = getJSRuntimeName()
 
-  if (runtimeName === 'node') {
-    const crypto = (0, eval)(`require('crypto')`) // don't bundle
+  if (jsRuntimeName === 'node') {
+    const crypto = eval(`require('crypto')`) // don't bundle
     const hash = crypto.createHash('sha256').update(schemaBuffer)
 
     return hash.digest('hex')
-  } else if (runtimeName === 'browser') {
+  } else if (jsRuntimeName === 'browser') {
     const hash = await crypto.subtle.digest('SHA-256', schemaBuffer)
 
     return Buffer.from(hash).toString('hex')
