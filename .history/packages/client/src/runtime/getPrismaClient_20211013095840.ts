@@ -259,7 +259,7 @@ export interface Client {
   _engineConfig: EngineConfig
   _clientVersion: string
   _errorFormat: ErrorFormat
-  $setContext(arg: QueryMiddlewareContext)
+  $context(arg: QueryMiddlewareContext)
   $use<T>(
     arg0: Namespace | QueryMiddleware<T>,
     arg1?: QueryMiddleware | EngineMiddleware<T>,
@@ -457,7 +457,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
 	 * Add a context that will be passed to query middleware
 	 * @param context Record<string,string> to pass to middleware
 	 */
-	$setContext(context: QueryMiddlewareContext) {
+	$context(context: QueryMiddlewareContext) {
 		this._context = context;
 	}
 
