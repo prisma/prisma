@@ -96,7 +96,6 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run lint
@@ -145,14 +144,12 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test-notypes
         working-directory: packages/client
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
@@ -198,14 +195,12 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: codecov/codecov-action@v2
@@ -263,7 +258,6 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
@@ -278,7 +272,6 @@ jobs:
         working-directory: packages/integration-tests
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
           TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
@@ -335,14 +328,12 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
         working-directory: packages/sdk
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: codecov/codecov-action@v2
@@ -394,7 +385,6 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
@@ -404,7 +394,6 @@ jobs:
         working-directory: packages/migrate
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
@@ -464,14 +453,12 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
         working-directory: packages/cli
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: codecov/codecov-action@v2
@@ -512,7 +499,6 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
@@ -520,7 +506,6 @@ jobs:
         working-directory: packages/debug
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: codecov/codecov-action@v2
@@ -534,7 +519,6 @@ jobs:
         working-directory: packages/engine-core
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: codecov/codecov-action@v2
@@ -548,7 +532,6 @@ jobs:
         working-directory: packages/generator-helper
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: codecov/codecov-action@v2
