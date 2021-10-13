@@ -44,7 +44,6 @@ jobs:
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
-          SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       #  This is required as setup.sh can modify pnpm-lock.yml
