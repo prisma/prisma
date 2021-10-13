@@ -62,9 +62,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.3.0-9.869b44ea457ba802770bc71428f5a94073a9aac5",
+    "@prisma/fetch-engine": "3.3.0-11.e2511b01748258c309283a2f8736bac7432ece9d",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.3.0-9.869b44ea457ba802770bc71428f5a94073a9aac5",
+    "@prisma/get-platform": "3.3.0-11.e2511b01748258c309283a2f8736bac7432ece9d",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.437.0",
@@ -124,7 +124,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "3.3.0-9.869b44ea457ba802770bc71428f5a94073a9aac5"
+    "@prisma/engines": "3.3.0-11.e2511b01748258c309283a2f8736bac7432ece9d"
   },
   "lint-staged": {
     "*.ts": [
