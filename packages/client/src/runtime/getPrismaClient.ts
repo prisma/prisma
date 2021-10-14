@@ -54,12 +54,12 @@ const ALTER_RE = /^(\s*alter\s)/i
 
 declare global {
   // eslint-disable-next-line no-var
-  var NOT_PRISMA_PROXY: {}
+  var NOT_PRISMA_DATA_PROXY: {}
 }
 
 // @ts-ignore esbuild trick to set a default
 // eslint-disable-next-line no-self-assign
-;(globalThis = globalThis).NOT_PRISMA_PROXY = true
+;(globalThis = globalThis).NOT_PRISMA_DATA_PROXY = true
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
@@ -342,7 +342,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv =
-        globalThis.NOT_PRISMA_PROXY &&
+        globalThis.NOT_PRISMA_DATA_PROXY &&
         tryLoadEnvs(envPaths, { conflictCheck: 'none' })
 
       try {
@@ -480,11 +480,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Library) {
         return (
-          globalThis.NOT_PRISMA_PROXY && new LibraryEngine(this._engineConfig)
+          globalThis.NOT_PRISMA_DATA_PROXY &&
+          new LibraryEngine(this._engineConfig)
         )
       } else if (this._clientEngineType === ClientEngineType.Binary) {
         return (
-          globalThis.NOT_PRISMA_PROXY && new BinaryEngine(this._engineConfig)
+          globalThis.NOT_PRISMA_DATA_PROXY &&
+          new BinaryEngine(this._engineConfig)
         )
       } else {
         return new DataProxyEngine(this._engineConfig)
@@ -1156,7 +1158,7 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        if (globalThis.NOT_PRISMA_PROXY) {
+        if (globalThis.NOT_PRISMA_DATA_PROXY) {
           // async scope https://github.com/prisma/prisma/issues/3148
           const resource = new AsyncResource('prisma-client-request')
           return resource.runInAsyncScope(() => consumer(params))
