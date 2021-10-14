@@ -1,6 +1,5 @@
 import execa from 'execa'
 import chalk from 'chalk'
-import fs from 'fs'
 import path from 'path'
 import pRetry from 'p-retry'
 import pMap from 'p-map'
@@ -10,10 +9,6 @@ import {
   getPackageDependencies,
 } from './ci/publish'
 import fetch from 'node-fetch'
-
-function getCommitEnvVar(name: string): string {
-  return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
-}
 
 async function main() {
   const buildOnly = process.argv[2] === '--build'
@@ -131,24 +126,6 @@ if (!module.parent) {
   })
 }
 
-export async function cloneOrPull(repo: string, dryRun = false) {
-  if (fs.existsSync(path.join(__dirname, '../', repo))) {
-    return run(repo, `git pull origin main`, dryRun)
-  } else {
-    await run('.', `git clone --depth=50 ${repoUrl(repo)}`, dryRun)
-    const envVar = getCommitEnvVar(repo)
-    if (process.env[envVar]) {
-      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
-    }
-  }
-
-  return undefined
-}
-
-function repoUrl(repo: string, org = 'prisma') {
-  return `https://github.com/${org}/${repo}.git`
-}
-
 export async function run(
   cwd: string,
   cmd: string,
@@ -217,11 +194,11 @@ async function checkoutPatchBranches(patchBranch: string) {
   }
 }
 
-function getTagFromPatchBranch(patchBranch: string): string {
-  const [major, minor, patch] = patchBranch.split('.')
-
-  return `${major}.${minor}.0`
-}
+// Unused
+// function getTagFromPatchBranch(patchBranch: string): string {
+//   const [major, minor, patch] = patchBranch.split('.')
+//   return `${major}.${minor}.0`
+// }
 
 async function branchExists(dir: string, branch: string): Promise<boolean> {
   const output = await runResult(dir, `git branch --list ${branch}`)
