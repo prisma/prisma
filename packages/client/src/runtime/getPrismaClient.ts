@@ -361,7 +361,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         let cwd = path.resolve(config.dirname, config.relativePath)
 
         // TODO this logic should not be needed anymore #findSync
-        if (globalThis.NOT_PRISMA_PROXY && !fs.existsSync(cwd)) {
+        if (!fs.existsSync(cwd)) {
           cwd = config.dirname
         }
 
