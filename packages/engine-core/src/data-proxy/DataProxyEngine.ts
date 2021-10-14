@@ -6,82 +6,16 @@ import type {
   EngineEventType,
   GetConfigResult,
 } from '../common/Engine'
-import { request } from './request'
+import { request } from './utils/request'
 import EventEmitter from 'events'
-
-const BACKOFF_INTERVAL = 250
-const MAX_RETRIES = 5
+import { createSchemaHash } from './utils/createSchemaHash'
+import { decodeInlineSchema } from './utils/decodeInlineSchema'
+import { backOff } from './utils/backOff'
+import { getClientVersion } from './utils/getClientVersion'
 
 const id = Math.ceil(Math.random() * 1000)
 
-function backOff(n: number): Promise<number> {
-  const baseDelay = Math.pow(2, n) * BACKOFF_INTERVAL
-  const jitter = Math.ceil(Math.random() * baseDelay) - Math.ceil(baseDelay / 2)
-  const total = baseDelay + jitter
-
-  return new Promise((done) => setTimeout(() => done(total), total))
-}
-
-/**
- * Detects the runtime environment
- * @returns
- */
-export function getJSRuntimeName() {
-  if (typeof self === 'undefined') {
-    return 'node'
-  }
-
-  return 'browser'
-}
-
-/**
- * Determine the client version to be sent to the DataProxy
- * @param config
- * @returns
- */
-function getClientVersion(config: EngineConfig) {
-  const [version, suffix] = config.clientVersion?.split('-') ?? []
-
-  // we expect the version to match the pattern major.minor.patch
-  if (!suffix && /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)) {
-    return version
-  }
-
-  return '3.2.0' // and we default it to this one if does not
-}
-
-/**
- * Create a SHA256 hash from an `inlineSchema` with the methods available on the
- * runtime. We don't polyfill this so we can keep bundles as small as possible.
- * @param inlineSchema
- * @returns
- */
-async function createSchemaHash(inlineSchema: string) {
-  const schemaBuffer = Buffer.from(inlineSchema)
-  const jsRuntimeName = getJSRuntimeName()
-
-  if (jsRuntimeName === 'node') {
-    const crypto = eval(`require('crypto')`) // don't bundle
-    const hash = crypto.createHash('sha256').update(schemaBuffer)
-
-    return hash.digest('hex')
-  } else if (jsRuntimeName === 'browser') {
-    const hash = await crypto.subtle.digest('SHA-256', schemaBuffer)
-
-    return Buffer.from(hash).toString('hex')
-  }
-
-  return ''
-}
-
-/**
- * Decode the contents from an `inlineSchema`
- * @param inlineSchema
- * @returns
- */
-function decodeInlineSchema(inlineSchema: string) {
-  return Buffer.from(inlineSchema, 'base64').toString()
-}
+const MAX_RETRIES = 5
 
 export class DataProxyEngine extends Engine {
   private initPromise: Promise<void>
