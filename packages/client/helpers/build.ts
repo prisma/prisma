@@ -20,7 +20,7 @@ const runtimeBuildConfig: BuildOptions = {
   outfile: 'runtime/index',
   bundle: true,
   external: external,
-  define: { 'globalThis.NOT_PROXY': 'true' },
+  define: { 'globalThis.NOT_PRISMA_PROXY': 'true' },
 }
 
 // we define the config for browser
@@ -40,7 +40,7 @@ const proxyBuildConfig: BuildOptions = {
   minify: true,
   legalComments: 'none',
   external: external,
-  define: { 'globalThis.NOT_PROXY': 'false' },
+  define: { 'globalThis.NOT_PRISMA_PROXY': 'false' },
   plugins: [
     fillPlugin(
       {
