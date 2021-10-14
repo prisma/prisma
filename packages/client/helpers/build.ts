@@ -40,6 +40,7 @@ const proxyBuildConfig: BuildOptions = {
   minify: true,
   legalComments: 'none',
   external: external,
+  // that helps us to tree-shake unused things out
   define: { 'globalThis.NOT_PRISMA_PROXY': 'false' },
   plugins: [
     fillPlugin(
