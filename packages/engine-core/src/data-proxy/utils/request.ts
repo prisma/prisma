@@ -1,5 +1,5 @@
 import type _https from 'https'
-import { getJSRuntimeName } from './DataProxyEngine'
+import { getJSRuntimeName } from './getJSRuntimeName'
 import type { O } from 'ts-toolbelt'
 import type { IncomingMessage } from 'http'
 
