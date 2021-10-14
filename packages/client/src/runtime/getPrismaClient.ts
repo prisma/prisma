@@ -54,12 +54,12 @@ const ALTER_RE = /^(\s*alter\s)/i
 
 declare global {
   // eslint-disable-next-line no-var
-  var NOT_PROXY: {}
+  var NOT_PRISMA_PROXY: {}
 }
 
 // @ts-ignore esbuild trick to set a default
 // eslint-disable-next-line no-self-assign
-;(globalThis = globalThis).NOT_PROXY = true
+;(globalThis = globalThis).NOT_PRISMA_PROXY = true
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
