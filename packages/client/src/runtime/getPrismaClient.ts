@@ -342,7 +342,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       const loadedEnv =
-        globalThis.NOT_PROXY && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+        globalThis.NOT_PRISMA_PROXY &&
+        tryLoadEnvs(envPaths, { conflictCheck: 'none' })
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -360,7 +361,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         let cwd = path.resolve(config.dirname, config.relativePath)
 
         // TODO this logic should not be needed anymore #findSync
-        if (globalThis.NOT_PROXY && !fs.existsSync(cwd)) {
+        if (globalThis.NOT_PRISMA_PROXY && !fs.existsSync(cwd)) {
           cwd = config.dirname
         }
 
@@ -478,9 +479,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     }
     private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Library) {
-        return globalThis.NOT_PROXY && new LibraryEngine(this._engineConfig)
+        return (
+          globalThis.NOT_PRISMA_PROXY && new LibraryEngine(this._engineConfig)
+        )
       } else if (this._clientEngineType === ClientEngineType.Binary) {
-        return globalThis.NOT_PROXY && new BinaryEngine(this._engineConfig)
+        return (
+          globalThis.NOT_PRISMA_PROXY && new BinaryEngine(this._engineConfig)
+        )
       } else {
         return new DataProxyEngine(this._engineConfig)
       }
@@ -1151,7 +1156,7 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        if (globalThis.NOT_PROXY) {
+        if (globalThis.NOT_PRISMA_PROXY) {
           // async scope https://github.com/prisma/prisma/issues/3148
           const resource = new AsyncResource('prisma-client-request')
           return resource.runInAsyncScope(() => consumer(params))
