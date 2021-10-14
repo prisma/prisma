@@ -75,7 +75,7 @@ function loadSelectedEnvVars(envPaths: EnvPaths, envVarNames: string[]) {
 
 /**
  * Creates the necessary declarations to embed env vars directly inside of the
- * generated client. We abuses a custom `JSON.stringify` replacer to transform
+ * generated client. We abuse a custom `JSON.stringify` replacer to transform
  * {@link loadedEnv } into a piece of code. The goal of this is to take that and
  * generate a new object which re-prioritizes the loading of the environment.
  *
@@ -92,21 +92,21 @@ function loadSelectedEnvVars(envPaths: EnvPaths, envVarNames: string[]) {
  * @param loadedEnv
  */
 function declareInlineEnv(loadedEnv: LoadedEnv) {
-  // we use a custom replacer to create the inline env
+  // abuse a custom replacer to create the inline env
   const inlineEnvDeclaration = JSON.stringify(
     loadedEnv,
     (key, value) => {
       if (key === '') return value
       if (key === 'parsed') return value
 
-      return [
-        `(typeof global['${key}'] ? global['${key}'] : undefined)`,
-        `process.env['${key}']`,
-        value ? `'${value}'` : 'undefined',
-      ].join(` || `) // the order matters
+      const cfwEnv = `global['${key}']`
+      const vercelEnv = `process.env['${key}']`
+      const dotEnv = value ? `'${value}'` : 'undefined'
+
+      return `${cfwEnv} || ${vercelEnv} || ${dotEnv}`
     },
     2,
-  ).replace(/"/g, '') // and then we remove the quotes
+  ).replace(/"/g, '') // remove quotes to make code
 
   return `
 config.inlineEnv = ${inlineEnvDeclaration}`
