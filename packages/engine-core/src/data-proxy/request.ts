@@ -1,4 +1,4 @@
-import type Https from 'https'
+import type _https from 'https'
 import { getJSRuntimeName } from './DataProxyEngine'
 import type { O } from 'ts-toolbelt'
 import type { IncomingMessage } from 'http'
@@ -55,7 +55,7 @@ function buildHeaders(options: RequestOptions): RequestOptions['headers'] {
  * @param options
  * @returns
  */
-function buildOptions(options: RequestOptions): Https.RequestOptions {
+function buildOptions(options: RequestOptions): _https.RequestOptions {
   return {
     method: options.method,
     headers: buildHeaders(options),
@@ -74,8 +74,8 @@ function buildResponse(
 ): RequestResponse {
   return {
     json: () => JSON.parse(Buffer.concat(incomingData).toString()),
+    ok: response.statusCode! >= 200 && response.statusCode! < 300,
     status: response.statusCode!,
-    ok: response.statusCode! >= 200 && response.statusCode! <= 300,
     url: response.url!,
   }
 }
@@ -96,7 +96,7 @@ function nodeFetch(
   const incomingData = [] as Buffer[]
 
   return new Promise((resolve, reject) => {
-    const https: typeof Https = eval(`require('https')`)
+    const https: typeof _https = eval(`require('https')`)
 
     // we execute the https request and build a fetch response out of it
     const request = https.request(url, httpsOptions, (response) => {
