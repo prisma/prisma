@@ -6,6 +6,7 @@ import type {
   EngineEventType,
   GetConfigResult,
 } from '../common/Engine'
+import { request } from './request'
 import EventEmitter from 'events'
 
 const BACKOFF_INTERVAL = 250
@@ -164,7 +165,7 @@ export class DataProxyEngine extends Engine {
   private async uploadSchema() {
     await this.initPromise
 
-    const res = await fetch(await this.url('schema'), {
+    const res = await request(await this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
       body: this.config.inlineSchema,
@@ -224,7 +225,7 @@ export class DataProxyEngine extends Engine {
         message: `Calling ${await this.url('graphql')} (n=${attempt})`,
       })
 
-      const res = await fetch(await this.url('graphql'), {
+      const res = await request(await this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
@@ -241,7 +242,7 @@ export class DataProxyEngine extends Engine {
         throw new Error('GraphQL request failed')
       }
 
-      return JSON.parse(await res.text())
+      return res.json()
     } catch (err) {
       if (attempt >= MAX_RETRIES) {
         this.logEmitter.emit('error', {

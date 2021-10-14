@@ -3,7 +3,6 @@ import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 import path from 'path'
-import type * as esbuild from 'esbuild'
 
 const external = ['_http_common']
 
@@ -38,7 +37,7 @@ const proxyBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/proxy',
   bundle: true,
-  // minify: true,
+  minify: true,
   legalComments: 'none',
   external: external,
   define: { 'globalThis.NOT_PROXY': 'false' },

@@ -15,7 +15,8 @@ type Fillers = {
 }
 
 /**
- * Bundle a polyfill with all its dependencies
+ * Bundle a polyfill with all its dependencies. We use paths to files in /tmp
+ * instead of direct contents so that esbuild can include things once only.
  * @param cache to serve from
  * @param module to be compiled
  * @returns the path to the bundle
@@ -92,7 +93,10 @@ function setInjectionsAndDefinitions(
  * @param args from esbuild
  * @returns
  */
-function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs) {
+function onResolve(
+  fillers: Fillers,
+  args: esbuild.OnResolveArgs,
+): esbuild.OnResolveResult {
   // removes trailing slashes in imports paths
   const path = args.path.replace(/\/$/, '')
   const item = fillers[path]
@@ -117,7 +121,10 @@ function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs) {
  * @param fillers to use the contents from
  * @param args from esbuild
  */
-function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs) {
+function onLoad(
+  fillers: Fillers,
+  args: esbuild.OnLoadArgs,
+): esbuild.OnLoadResult {
   // display useful info if no shim has been found
   if (fillers[args.path].contents === undefined) {
     throw `no shim for "${args.path}" imported by "${args.pluginData}"`
