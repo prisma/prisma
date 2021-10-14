@@ -23,27 +23,27 @@ export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
     return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URL")
-}
-
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["mongoDb"]
+}
+
+datasource db {
+  provider = "${provider}"
+  url      = env("DATABASE_URL")
 }
 `
   } else {
     return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "${provider}"
   url      = env("DATABASE_URL")
-}
-
-generator client {
-  provider = "prisma-client-js"
 }
 `
   }
