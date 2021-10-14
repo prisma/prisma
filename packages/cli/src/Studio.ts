@@ -7,7 +7,7 @@ import {
   HelpError,
   isError,
 } from '@prisma/sdk'
-import StudioServer from '@prisma/studio-server'
+import { StudioServer } from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'
 import open from 'open'
@@ -126,7 +126,7 @@ ${chalk.bold('Examples')}
         },
       },
       versions: {
-        prisma2: packageJson.version,
+        prisma: packageJson.version,
         queryEngine: enginesVersion,
       },
     })

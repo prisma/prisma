@@ -47,7 +47,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => 
       expect(e.message).toMatchInlineSnapshot(`
 
 Invalid \`prisma.user.delete()\` invocation in
-/client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlite/test.ts:41:31
+/client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlite/test.ts:0:0
 
   38 expect(await prisma.user.findMany()).toHaveLength(1)
   39 

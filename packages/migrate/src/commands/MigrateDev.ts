@@ -175,8 +175,9 @@ ${chalk.bold('Examples')}
           devDiagnostic.action.reason,
         )
 
+        console.info() // empty line
+
         if (!confirmedReset) {
-          console.info() // empty line
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
@@ -200,6 +201,7 @@ ${chalk.bold('Examples')}
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
+        console.info() // empty line
         console.info(
           `The following migration(s) have been applied:\n\n${chalk(
             printFilesFromMigrationIds('migrations', appliedMigrationNames, {
@@ -243,14 +245,9 @@ ${chalk.bold('Examples')}
         } else {
           // Only used to help users to setup their seeds from old way to new package.json config
           const schemaPath = await getSchemaPath(args['--schema'])
-
-          const message = await verifySeedConfigAndReturnMessage(schemaPath)
-          // warn because setup of the feature needs to be done
-          if (message) {
-            console.warn() // empty line
-            logger.warn(message)
-            console.warn() // empty line
-          }
+          // we don't want to output the returned warning message
+          // but we still want to run it for `legacyTsNodeScriptWarning()`
+          await verifySeedConfigAndReturnMessage(schemaPath)
         }
       } catch (e) {
         console.error(e)
@@ -363,6 +360,7 @@ ${chalk.bold('Examples')}
         )
       }
     } else {
+      console.info() // empty line
       console.info(
         `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
@@ -397,15 +395,13 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     },
     reason: string,
   ): Promise<boolean> {
-    const mssqlMessage = `${reason}
-
-We need to reset the database.
+    const mssqlMessage = `We need to reset the database.
 Do you want to continue? ${chalk.red('All data will be lost')}.`
 
-    const message = `${reason}
-
-We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
+    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
 Do you want to continue? ${chalk.red('All data will be lost')}.`
+
+    console.info(reason)
 
     const confirmation = await prompt({
       type: 'confirm',

@@ -41,7 +41,9 @@ export class IntrospectionError extends Error {
   }
 }
 
-// See https://github.com/prisma/prisma-engines/blob/ReIntrospection/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
+// See prisma-engines
+// SQL https://github.com/prisma/prisma-engines/blob/master/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
+// Mongo https://github.com/prisma/prisma-engines/blob/master/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
 export type IntrospectionWarnings =
   | IntrospectionWarningsUnhandled
   | IntrospectionWarningsInvalidReintro
@@ -58,6 +60,7 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsCuidReintro
   | IntrospectionWarningsUuidReintro
   | IntrospectionWarningsUpdatedAtReintro
+  | IntrospectionWarningsMongoMultipleTypes
 
 type AffectedModel = { model: string }[]
 type AffectedModelAndField = { model: string; field: string }[]
@@ -141,6 +144,17 @@ interface IntrospectionWarningsUuidReintro extends IntrospectionWarning {
 interface IntrospectionWarningsUpdatedAtReintro extends IntrospectionWarning {
   code: 13
   affected: AffectedModelAndField
+}
+
+// MongoDB starts at 101 see
+// https://github.com/prisma/prisma-engines/blob/master/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L39-L43
+interface IntrospectionWarningsMongoMultipleTypes extends IntrospectionWarning {
+  code: 101
+  // TODO delete name and replace by affected when done in
+  // https://github.com/prisma/prisma-engines/blob/9649bb31b5d544122adb9ad21d40d9d1ae1448e6/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L42
+  // and adjust https://github.com/prisma/prisma/blob/main/packages/migrate/src/commands/DbPull.ts#L230
+  name: [affected: AffectedModelAndFieldAndType]
+  // affected: AffectedModelAndFieldAndType
 }
 
 export type IntrospectionSchemaVersion =
@@ -412,7 +426,7 @@ export class IntrospectionEngine {
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
-              let message = `${chalk.redBright(response.error.data.message)}\n`
+              let message = `${response.error.data.message}\n`
               if (response.error.data?.error_code) {
                 message =
                   chalk.redBright(`${response.error.data.error_code}\n\n`) +
@@ -476,13 +490,8 @@ export class IntrospectionEngine {
 }
 
 function serializePanic(log): string {
-  return `${chalk.red.bold(
-    'Error in introspection engine.\nReason: ',
-  )}${chalk.red(
-    `${log.reason} in ${chalk.underline(
-      `${log.file}:${log.line}:${log.column}`,
-    )}`,
-  )}
+  return `${chalk.red.bold('Error in introspection engine.\nReason: ')}
+${log.reason} in ${chalk.underline(`${log.file}:${log.line}:${log.column}`)}
 
 Please create an issue in the ${chalk.bold('prisma')} repo with the error 🙏:
 ${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`

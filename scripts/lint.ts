@@ -84,7 +84,7 @@ async function lintPackage(pkg: string, stagedOnly = false): Promise<boolean> {
     })
     printPkg(chalk.bold.greenBright(`✔️`), pkg)
     return true
-  } catch (e) {
+  } catch (e: any) {
     console.log()
     printPkg(e.stdout, pkg)
     printPkg(e.stderr, pkg)

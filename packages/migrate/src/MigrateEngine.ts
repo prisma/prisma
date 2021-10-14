@@ -276,8 +276,7 @@ export class MigrateEngine {
             const json: MigrateEngineLogLine = JSON.parse(data)
 
             if (json.fields?.migrate_action === 'log') {
-              // TODO uncomment in a separate PR and update snapshots
-              //console.info(json.fields.message)
+              console.info(json.fields.message)
             }
 
             this.messages.push(json.fields.message)
@@ -404,9 +403,7 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${chalk.red(
-    `${log}`,
-  )}
+  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}
 
 Please create an issue with your \`schema.prisma\` at
 ${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`

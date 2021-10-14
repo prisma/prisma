@@ -1,6 +1,10 @@
 {
   "private": true,
   "license": "Apache-2.0",
+  "maintainers": [
+    "Joël Galeran <galeran@prisma.io>",
+    "Pierre-Antoine Mills <mills@prisma.io>"
+  ],
   "engines": {
     "node": ">=12.6"
   },
@@ -26,11 +30,11 @@
     "@slack/webhook": "6.0.0",
     "@types/benchmark": "2.1.1",
     "@types/debug": "4.1.7",
-    "@types/graphviz": "0.0.33",
-    "@types/node": "14.17.15",
+    "@types/graphviz": "0.0.34",
+    "@types/node": "14.17.22",
     "@types/redis": "2.8.32",
-    "@typescript-eslint/eslint-plugin": "4.29.3",
-    "@typescript-eslint/parser": "4.29.3",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
     "arg": "5.0.1",
     "batching-toposort": "1.2.0",
     "benchmark": "2.1.4",
@@ -40,23 +44,23 @@
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-jest": "25.0.5",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "globby": "11.0.4",
     "graphviz": "0.0.9",
     "husky": "7.0.2",
     "is-ci": "3.0.0",
-    "node-fetch": "2.6.2",
+    "node-fetch": "2.6.5",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.1",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "semver": "7.3.5",
     "staged-git-files": "1.2.0",
-    "ts-node": "10.2.1",
-    "typescript": "4.3.5"
+    "ts-node": "10.3.0",
+    "typescript": "4.4.4"
   }
 }

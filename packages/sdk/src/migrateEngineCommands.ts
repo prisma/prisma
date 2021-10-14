@@ -109,7 +109,9 @@ export async function canConnectToDatabase(
       migrationEnginePath,
       engineCommandName: 'can-connect-to-database',
     })
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
+
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
       const error = logs.find(
@@ -162,7 +164,9 @@ export async function createDatabase(
     })
 
     return true
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
+
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
       const error = logs.find(
@@ -213,7 +217,7 @@ export async function dropDatabase(
         )}`,
       )
     }
-  } catch (e) {
+  } catch (e: any) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
 
@@ -257,7 +261,9 @@ export async function execaCommand({
         },
       },
     )
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
+
     if (e.message) {
       e.message = e.message.replace(connectionString, '<REDACTED>')
     }

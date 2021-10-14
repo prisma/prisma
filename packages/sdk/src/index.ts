@@ -77,3 +77,4 @@ export {
 } from './utils/trimBlocksFromSchema'
 export { tryLoadEnvs } from './utils/tryLoadEnvs'
 export { Platform, getPlatform, getNodeAPIName } from '@prisma/get-platform'
+export { platformRegex } from './utils/platformRegex'

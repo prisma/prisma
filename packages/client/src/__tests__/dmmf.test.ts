@@ -357,7 +357,6 @@ describe('dmmf', () => {
         AWESOME
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
@@ -376,6 +375,5 @@ describe('dmmf', () => {
         Validation Error Count: 1
       `)
     }
-    /* eslint-enable jest/no-try-expect */
   })
 })

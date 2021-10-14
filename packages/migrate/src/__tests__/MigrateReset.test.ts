@@ -77,6 +77,9 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
+      Applying migration \`20201231000000_init\`
+
       Database reset successful
 
       The following migration(s) have been applied:
@@ -99,6 +102,8 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      Applying migration \`20201231000000_init\`
 
       Database reset successful
 
@@ -126,6 +131,8 @@ describe('reset', () => {
 
       SQLite database dev.db created at file:dev.db
 
+      Applying migration \`20201231000000_init\`
+
       Database reset successful
 
       The following migration(s) have been applied:
@@ -152,6 +159,7 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
+
       Database reset successful
 
     `)
@@ -172,6 +180,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
 
       Reset cancelled.
     `)
@@ -206,6 +215,7 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
       Database reset successful
 
     `)
@@ -237,6 +247,7 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
       Database reset successful
 
 
@@ -263,6 +274,7 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
 
       Database reset successful
 
@@ -294,24 +306,13 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+
       Database reset successful
 
     `)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
-      prisma:warn To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:
-
-      1. Open the package.json of your project
-      2. Add the following example to it:
-      \`\`\`
-      "prisma": {
-        "seed": "prisma/seed.sh"
-      }
-      \`\`\`
-      And run \`chmod +x prisma/seed.sh\` to make it executable.
-      More information in our documentation:
-      https://pris.ly/d/seeding
-    `)
+    expect(
+      ctx.mocked['console.warn'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(``)

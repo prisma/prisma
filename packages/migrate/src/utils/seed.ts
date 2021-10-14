@@ -148,9 +148,10 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   try {
     await execa.command(command, {
       stdout: 'inherit',
-      stderr: 'pipe',
+      stderr: 'inherit',
     })
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     debug({ e })
     console.error(
       chalk.bold.red(`\nAn error occured while running the seed command:`),
