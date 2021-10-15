@@ -200,6 +200,7 @@ async function checkTypeScriptVersion() {
     const typescriptPath = await resolvePkg('typescript', {
       basedir: process.cwd(),
     })
+    debug('typescriptPath', typescriptPath)
     const typescriptPkg =
       typescriptPath && path.join(typescriptPath, 'package.json')
     if (typescriptPkg && fs.existsSync(typescriptPkg)) {
@@ -211,7 +212,9 @@ async function checkTypeScriptVersion() {
             'TypeScript',
           )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${chalk.bold(
             minVersion,
-          )} or ${chalk.bold('newer')}`,
+          )} or ${chalk.bold('newer')}. ${chalk.dim(
+            `TypeScript found in: ${chalk.bold(typescriptPath)}`,
+          )}`,
         )
       }
     }
