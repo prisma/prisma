@@ -13,7 +13,7 @@ import { decodeInlineSchema } from './utils/decodeInlineSchema'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 
-const id = Math.ceil(Math.random() * 1000)
+const randomDebugId = Math.ceil(Math.random() * 1000)
 
 const MAX_RETRIES = 5
 
@@ -79,7 +79,7 @@ export class DataProxyEngine extends Engine {
   private async url(s: string) {
     await this.initPromise
 
-    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${id}`
+    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${randomDebugId}`
   }
 
   // TODO: looks like activeProvider is the only thing
