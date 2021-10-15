@@ -40,8 +40,12 @@ const proxyBuildConfig: BuildOptions = {
   minify: true,
   legalComments: 'none',
   external: external,
-  // that helps us to tree-shake unused things out
-  define: { 'globalThis.NOT_PRISMA_DATA_PROXY': 'false' },
+  define: {
+    // that helps us to tree-shake unused things out
+    'globalThis.NOT_PRISMA_DATA_PROXY': 'false',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
+  },
   plugins: [
     fillPlugin(
       {
