@@ -79,7 +79,7 @@ export class DataProxyEngine extends Engine {
   private async url(s: string) {
     await this.initPromise
 
-    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${id}`
+    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${randomDebugId}`
   }
 
   // TODO: looks like activeProvider is the only thing
