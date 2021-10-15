@@ -323,6 +323,7 @@ importers:
       '@types/debug': 4.1.7
       '@types/jest': 27.0.2
       '@types/js-levenshtein': 1.1.0
+      '@types/lz-string': ^1.3.34
       '@types/mssql': 6.0.8
       '@types/node': 12.20.29
       '@types/pg': 8.6.1
@@ -351,6 +352,7 @@ importers:
       js-levenshtein: 1.1.6
       klona: 2.0.4
       lint-staged: 11.2.3
+      lz-string: ^1.4.4
       make-dir: 3.1.0
       mariadb: 2.5.4
       mssql: 7.2.1
@@ -389,6 +391,7 @@ importers:
       '@types/debug': 4.1.7
       '@types/jest': 27.0.2
       '@types/js-levenshtein': 1.1.0
+      '@types/lz-string': 1.3.34
       '@types/mssql': 6.0.8
       '@types/node': 12.20.29
       '@types/pg': 8.6.1
@@ -417,6 +420,7 @@ importers:
       js-levenshtein: 1.1.6
       klona: 2.0.4
       lint-staged: 11.2.3
+      lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 2.5.4
       mssql: 7.2.1
@@ -2224,6 +2228,10 @@ packages:
 
   /@types/json-schema/7.0.9:
     resolution: {integrity: sha512-qcUXuemtEu+E5wZSJHNxUXeCZhAfXKQ41D+duX+VYPde7xyEVZci+/oXKJL13tnRs9lR2pr4fod59GT6/X1/yQ==}
+    dev: true
+
+  /@types/lz-string/1.3.34:
+    resolution: {integrity: sha512-j6G1e8DULJx3ONf6NdR5JiR2ZY3K3PaaqiEuKYkLQO0Czfi1AzrtjfnfCROyWGeDd5IVMKCwsgSmMip9OWijow==}
     dev: true
 
   /@types/minimatch/3.0.5:
@@ -5562,7 +5570,7 @@ packages:
       jest-validate: 27.2.5
       micromatch: 4.0.4
       pretty-format: 27.2.5
-      ts-node: 10.3.0_d3b5e14efd4f8d5849106aad1972d34d
+      ts-node: 10.3.0_f30b426146dfe400fa540045fd55ca30
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -6431,6 +6439,11 @@ packages:
 
   /ltgt/2.2.1:
     resolution: {integrity: sha1-81ypHEk/e3PaDgdJUwTxezH4fuU=}
+    dev: true
+
+  /lz-string/1.4.4:
+    resolution: {integrity: sha1-wNjq82BZ9wV5bh40SBHPTEmNOiY=}
+    hasBin: true
     dev: true
 
   /magic-string/0.25.7:

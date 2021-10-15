@@ -26,4 +26,4 @@ export { default as Decimal } from 'decimal.js'
 
 export { findSync } from './utils/find'
 
-export { translateJSONString } from '../generation/utils/buildDMMF'
+export { decompressFromBase64 } from 'lz-string'
