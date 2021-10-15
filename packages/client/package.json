@@ -81,7 +81,6 @@
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
     "esbuild": "0.13.3",
-    "escape-string-regexp": "4.0.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
