@@ -22,7 +22,7 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
-  translateJSONString,
+  decompressFromBase64,
   getPrismaClient,
   sqltag,
   empty,
