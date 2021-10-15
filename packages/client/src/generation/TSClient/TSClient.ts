@@ -24,6 +24,7 @@ import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildInlineEnv } from '../utils/buildInlineEnv'
+import { buildDMMF } from '../utils/buildDMMF'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -119,16 +120,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-
-/**
- * DMMF
- */
-const dmmfString = ${JSON.stringify(this.dmmfString)}
-
-// We are parsing 2 times, as we want independent objects, because
-// DMMFClass introduces circular references in the dmmf object
-const dmmf = JSON.parse(dmmfString)
-exports.Prisma.dmmf = JSON.parse(dmmfString)
+${buildDMMF(engineType, this.dmmfString)}
 
 /**
  * Create the Client
