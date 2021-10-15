@@ -54,7 +54,7 @@ const ALTER_RE = /^(\s*alter\s)/i
 
 declare global {
   // eslint-disable-next-line no-var
-  var NOT_PRISMA_DATA_PROXY: {}
+  var NOT_PRISMA_DATA_PROXY: true
 }
 
 // @ts-ignore esbuild trick to set a default
