@@ -114,8 +114,8 @@ void build([
   proxyBuildConfig,
 ]).then(() => {
   if (process.env.DEV !== 'true') {
-    bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/runtime/index', 'runtime/proxy')
-    bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')
+    bundleTypeDefinitions('declaration/index', 'runtime/index')
+    bundleTypeDefinitions('declaration/index', 'runtime/proxy')
+    bundleTypeDefinitions('declaration/index-browser', 'runtime/index-browser')
   }
 })
