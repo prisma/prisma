@@ -64,7 +64,7 @@ export interface EngineConfig {
   useUds?: boolean
 
   /**
-   * A Base64 string representing the schema
+   * A Base64 string representing the schema when using the DataProxy
    */
   inlineSchema?: string
 
