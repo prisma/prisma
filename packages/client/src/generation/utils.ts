@@ -367,7 +367,7 @@ export function unique<T>(arr: T[]): T[] {
   return result
 }
 export function buildNFTEngineAnnotations(
-  clientEngineType: ClientEngineType,
+  _clientEngineType: ClientEngineType,
   platforms: Platform[],
   cwdDirname: string,
 ) {
@@ -375,17 +375,21 @@ export function buildNFTEngineAnnotations(
     platforms = ['rhel-openssl-1.0.x']
   }
 
-  const getQueryEngineFilename = (p: Platform) =>
-    clientEngineType === ClientEngineType.Binary
-      ? `query-engine-${p}`
-      : getNodeAPIName(p, 'fs')
+  const getQueryEngineFilename1 = (p: Platform) => `query-engine-${p}`
+  const getQueryEngineFilename2 = (p: Platform) => getNodeAPIName(p, 'fs')
 
+  // This is redundant? TODO: investigate NFT and Vercel
   const buildAnnotation = (p: Platform) => {
-    return `path.join(__dirname, '${getQueryEngineFilename(p)}');
+    return `path.join(__dirname, '${getQueryEngineFilename1(p)}');
+path.join(__dirname, '${getQueryEngineFilename2(p)}');
 path.join(process.cwd(), './${path.join(
       cwdDirname,
-      getQueryEngineFilename(p),
-    )}')`
+      getQueryEngineFilename1(p),
+    )}');
+path.join(process.cwd(), './${path.join(
+      cwdDirname,
+      getQueryEngineFilename2(p),
+    )}');`
   }
 
   return platforms ? platforms.map(buildAnnotation).join('\n') : ''
