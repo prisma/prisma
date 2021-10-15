@@ -13,7 +13,7 @@ import { decodeInlineSchema } from './utils/decodeInlineSchema'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 
-const id = Math.ceil(Math.random() * 1000)
+const randomDebugId = Math.ceil(Math.random() * 1000)
 
 const MAX_RETRIES = 5
 
