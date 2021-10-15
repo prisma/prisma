@@ -13,7 +13,7 @@ export const process: NodeJS.Process = {
   addListener: noop(getProcess()),
   allowedNodeEnvironmentFlags: new Set(),
   arch: 'x64',
-  argv: ['/node'],
+  argv: ['/bin/node'],
   argv0: 'node',
   chdir: noop(undefined),
   config: {
