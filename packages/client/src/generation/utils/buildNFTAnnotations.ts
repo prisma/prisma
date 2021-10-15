@@ -4,6 +4,8 @@ import path from 'path'
 import { map } from '../../../../../helpers/blaze/map'
 import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
 
+// NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
+
 /**
  * Build bundler-like annotations so that Vercel automatically uploads the
  * prisma schema as well as the query engine binaries to the deployments.
