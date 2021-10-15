@@ -14,7 +14,8 @@ ${chalk.bold(
     previewFeatures = ["dataProxy"]
 }`),
 )}
-
-More information in our documentation:
-${link('https://pris.ly/d/prisma-schema')}
 `
+
+// TODO
+// More information in our documentation:
+// ${link('https://pris.ly/d/prisma-schema')}

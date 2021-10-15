@@ -480,11 +480,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Library) {
         return (
+          // this is for tree-shaking for esbuild
           globalThis.NOT_PRISMA_DATA_PROXY &&
           new LibraryEngine(this._engineConfig)
         )
       } else if (this._clientEngineType === ClientEngineType.Binary) {
         return (
+          // this is for tree-shaking for esbuild
           globalThis.NOT_PRISMA_DATA_PROXY &&
           new BinaryEngine(this._engineConfig)
         )
