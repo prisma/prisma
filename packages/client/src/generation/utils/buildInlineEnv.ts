@@ -99,7 +99,7 @@ function declareInlineEnv(loadedEnv: LoadedEnv) {
       if (key === '') return value
       if (key === 'parsed') return value
 
-      const cfwEnv = `global['${key}']`
+      const cfwEnv = `typeof global !== 'undefined' && global['${key}']`
       const vercelEnv = `process.env['${key}']`
       const dotEnv = value ? `'${value}'` : 'undefined'
 
