@@ -30,7 +30,7 @@ function getClientVersion() {
   const isMMP = !suffix && /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/.test(version)
 
   // Default to a know version if not major.minor.patch
-  return isMMP ? version : '3.2.1'
+  return isMMP ? version : '3.2.0'
 }
 
 // TODO: move to @prisma/engine-core
