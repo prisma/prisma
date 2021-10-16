@@ -102,6 +102,7 @@ function nodeFetch(
     const request = https.request(url, httpsOptions, (response) => {
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
       response.on('end', () => resolve(buildResponse(incomingData, response)))
+      response.on('error', reject)
     })
 
     request.on('error', reject) // handle errors
