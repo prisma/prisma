@@ -77,7 +77,6 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
       projectFolder: path.join(__dirname, '..'),
       mainEntryPointFilePath: `${filename}.d.ts`,
       bundledPackages: [
-        'lz-string',
         'decimal.js',
         'sql-template-tag',
         '@prisma/sdk',
