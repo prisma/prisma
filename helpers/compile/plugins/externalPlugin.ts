@@ -6,6 +6,7 @@ import type { Plugin } from 'esbuild'
 const externalPlugin: Plugin = {
   name: 'externalPlugin',
   setup(build) {
+    // taken from the author of esbuild repo via an issue
     const onlyPackages = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/
     build.onResolve({ filter: onlyPackages }, (args) => ({
       path: args.path,

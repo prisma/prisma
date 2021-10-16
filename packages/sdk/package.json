@@ -16,6 +16,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "prepublishOnly": "pnpm run build && pnpm run test",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",

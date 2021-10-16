@@ -51,6 +51,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test:integration": "jest integration --maxConcurrency=8 --verbose",
     "test:sqlite": "jest integration.sqlite --maxConcurrency=8 --verbose",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
