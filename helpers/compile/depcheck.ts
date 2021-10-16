@@ -25,6 +25,13 @@ const unusedIgnore = [
 
   // type-only, so it is not detected
   'ts-toolbelt',
+
+  // these are indirectly used by build
+  'buffer',
+  'eventemitter3',
+  'path-browserify',
+  'tty-browserify',
+  'util',
 ]
 
 // packages that aren't missing but are detected

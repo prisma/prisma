@@ -219,7 +219,6 @@ importers:
       debug: 4.3.2
       dotenv: 10.0.0
       esbuild: 0.13.3
-      escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -275,7 +274,6 @@ importers:
       debug: 4.3.2
       dotenv: 10.0.0
       esbuild: 0.13.3
-      escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -334,7 +332,6 @@ importers:
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.13.3
-      escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -402,7 +399,6 @@ importers:
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.13.3
-      escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -627,7 +623,6 @@ importers:
       '@typescript-eslint/parser': 4.33.0
       decimal.js: 10.3.1
       esbuild: 0.13.3
-      escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -667,7 +662,6 @@ importers:
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       decimal.js: 10.3.1
       esbuild: 0.13.3
-      escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -1981,7 +1975,6 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -5570,7 +5563,7 @@ packages:
       jest-validate: 27.2.5
       micromatch: 4.0.4
       pretty-format: 27.2.5
-      ts-node: 10.3.0_f30b426146dfe400fa540045fd55ca30
+      ts-node: 10.3.0_d3b5e14efd4f8d5849106aad1972d34d
     transitivePeerDependencies:
       - bufferutil
       - canvas
