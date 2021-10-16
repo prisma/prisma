@@ -26,4 +26,7 @@ export { default as Decimal } from 'decimal.js'
 
 export { findSync } from './utils/find'
 
-export { decompressFromBase64 } from 'lz-string'
+// ! export bundling fails for this dep, we work around it
+import * as lzString from 'lz-string'
+const decompressFromBase64 = lzString.decompressFromBase64
+export { decompressFromBase64 }

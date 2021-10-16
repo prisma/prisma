@@ -209,7 +209,7 @@ importers:
 
   packages/client:
     specifiers:
-      '@microsoft/api-extractor': 7.18.11
+      '@microsoft/api-extractor': 7.18.16
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': 3.3.0-22.45ee6c6e434b08cb2f775b84e83d815654922707
@@ -271,7 +271,7 @@ importers:
     dependencies:
       '@prisma/engines-version': 3.3.0-22.45ee6c6e434b08cb2f775b84e83d815654922707
     devDependencies:
-      '@microsoft/api-extractor': 7.18.11
+      '@microsoft/api-extractor': 7.18.16
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
       '@prisma/engines': 3.3.0-22.45ee6c6e434b08cb2f775b84e83d815654922707
@@ -1589,24 +1589,24 @@ packages:
     resolution: {integrity: sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==}
     dev: true
 
-  /@microsoft/api-extractor-model/7.13.9:
-    resolution: {integrity: sha512-t/XKTr8MlHRWgDr1fkyCzTQRR5XICf/WzIFs8yw1JLU8Olw99M3by4/dtpOZNskfqoW+J8NwOxovduU2csi4Ww==}
+  /@microsoft/api-extractor-model/7.13.13:
+    resolution: {integrity: sha512-4Hz2TOL4TljsAfMQe7a8tm+Am8+AkrcgkbnH62S9YuaIC3Cw6jE4H2qP8WC2JJInWJP4pg/ZrUlHrtmtgrqn9Q==}
     dependencies:
       '@microsoft/tsdoc': 0.13.2
       '@microsoft/tsdoc-config': 0.15.2
-      '@rushstack/node-core-library': 3.41.0
+      '@rushstack/node-core-library': 3.42.3
     dev: true
 
-  /@microsoft/api-extractor/7.18.11:
-    resolution: {integrity: sha512-WfN5MZry4TrF60OOcGadFDsGECF9JNKNT+8P/8crYAumAYQRitI2cUiQRlCWrgmFgCWNezsNZeI/2BggdnUqcg==}
+  /@microsoft/api-extractor/7.18.16:
+    resolution: {integrity: sha512-f0EcjGgS8IToUHxfQIr4vxGpBhUdaDOhGyddZpZ5K9e/GcGkImfkGeHpYbK043f2bZV3aagTx6NcIawwE72BKA==}
     hasBin: true
     dependencies:
-      '@microsoft/api-extractor-model': 7.13.9
+      '@microsoft/api-extractor-model': 7.13.13
       '@microsoft/tsdoc': 0.13.2
       '@microsoft/tsdoc-config': 0.15.2
-      '@rushstack/node-core-library': 3.41.0
-      '@rushstack/rig-package': 0.3.1
-      '@rushstack/ts-command-line': 4.9.1
+      '@rushstack/node-core-library': 3.42.3
+      '@rushstack/rig-package': 0.3.3
+      '@rushstack/ts-command-line': 4.10.2
       colors: 1.2.5
       lodash: 4.17.21
       resolve: 1.17.0
@@ -1739,8 +1739,8 @@ packages:
     resolution: {integrity: sha512-R0FP4BIsBfaUEVydU1+zcnxJjuElTA6CmKmkKms/lnsxQY7jJIFenXRWIGLOp6f8LJ27FrZyFfIwUMlrvDjrTg==}
     dev: true
 
-  /@rushstack/node-core-library/3.41.0:
-    resolution: {integrity: sha512-JxdmqR+SHU04jTDaZhltMZL3/XTz2ZZM47DTN+FSPUGUVp6WmxLlvJnT5FoHrOZWUjL/FoIlZUdUPTSXjTjIcg==}
+  /@rushstack/node-core-library/3.42.3:
+    resolution: {integrity: sha512-xtiJsHtO4Sf/hVKyf/8d58p3zQh2JAZNs1mmDNCyIlgSRYGdqUkpadvvn5mz7EwF6lwn+xTTaTV5/a32xKjbdw==}
     dependencies:
       '@types/node': 12.20.24
       colors: 1.2.5
@@ -1753,15 +1753,15 @@ packages:
       z-schema: 3.18.4
     dev: true
 
-  /@rushstack/rig-package/0.3.1:
-    resolution: {integrity: sha512-DXQmrPWOCNoE2zPzHCShE1y47FlgbAg48wpaY058Qo/yKDzL0GlEGf5Ra2NIt22pMcp0R/HHh+kZGbqTnF4CrA==}
+  /@rushstack/rig-package/0.3.3:
+    resolution: {integrity: sha512-ElPnChxIkUzcU3ywI0Cl7E1aM+2w6vFpAwM6X+oWk7Cyjf2ofItThje9e5qUBtKqvI9sc5jVsHY1bRC8rVwOqQ==}
     dependencies:
       resolve: 1.17.0
       strip-json-comments: 3.1.1
     dev: true
 
-  /@rushstack/ts-command-line/4.9.1:
-    resolution: {integrity: sha512-zzoWB6OqVbMjnxlxbAUqbZqDWITUSHqwFCx7JbH5CVrjR9kcsB4NeWkN1I8GcR92beiOGvO3yPlB2NRo5Ugh+A==}
+  /@rushstack/ts-command-line/4.10.2:
+    resolution: {integrity: sha512-Weq8B7oJeCQ4ITsaVLhOQombipyg+idpkdkhA6UqLtKvuzq8zTtPpAfhP5ff5L+RCmo1CFCVOBE3i+MvzUR5vA==}
     dependencies:
       '@types/argparse': 1.0.38
       argparse: 1.0.10
@@ -4938,7 +4938,7 @@ packages:
       jest-validate: 27.2.5
       micromatch: 4.0.4
       pretty-format: 27.2.5
-      ts-node: 10.3.0_f30b426146dfe400fa540045fd55ca30
+      ts-node: 10.3.0_d3b5e14efd4f8d5849106aad1972d34d
     transitivePeerDependencies:
       - bufferutil
       - canvas
