@@ -51,7 +51,7 @@ const proxyBuildConfig: BuildOptions = {
       {
         // TODO no tree shaking on wrapper pkgs
         '@prisma/get-platform': { contents: '' },
-        // TODO how do we get debug to work ?
+        // removes un-needed code out of `chalk`
         'supports-color': { contents: '' },
         // these can not be exported any longer
         './warnEnvConflicts': { contents: '' },
