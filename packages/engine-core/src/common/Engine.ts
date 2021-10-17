@@ -4,6 +4,7 @@ import type {
   QueryEngineRequestHeaders,
   QueryEngineResult,
 } from './types/QueryEngine'
+// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
@@ -62,16 +63,22 @@ export interface EngineConfig {
   env?: Record<string, string>
   flags?: string[]
   useUds?: boolean
-
-  /**
-   * A Base64 string representing the schema when using the DataProxy
-   */
-  inlineSchema?: string
-
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
+
+  /**
+   * The contents of the schema encoded into a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineSchema?: string
+
+  /**
+   * The contents of the datasource url saved in a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineDatasources?: any
 }
 
 export type GetConfigResult = {

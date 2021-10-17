@@ -9,9 +9,9 @@ import type {
 import { request } from './utils/request'
 import EventEmitter from 'events'
 import { createSchemaHash } from './utils/createSchemaHash'
-import { decodeInlineSchema } from './utils/decodeInlineSchema'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
+// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 
 const randomDebugId = Math.ceil(Math.random() * 1000)
 
@@ -20,6 +20,7 @@ const MAX_RETRIES = 5
 export class DataProxyEngine extends Engine {
   private initPromise: Promise<void>
   private inlineSchema: string
+  private inlineDatasources: any
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k: string]: string }
@@ -28,7 +29,6 @@ export class DataProxyEngine extends Engine {
   private headers!: { Authorization: string }
   private host!: string
   private schemaHash!: string
-  private schemaText!: string
 
   constructor(config: EngineConfig) {
     super()
@@ -36,6 +36,7 @@ export class DataProxyEngine extends Engine {
     this.config = config
     this.env = this.config.env ?? {}
     this.inlineSchema = config.inlineSchema ?? ''
+    this.inlineDatasources = config.inlineDatasources ?? {}
 
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {})
@@ -48,12 +49,9 @@ export class DataProxyEngine extends Engine {
    * So any function that uses such a property needs to await `initPromise`.
    */
   private async init() {
-    // we use inline schema to get a hash from it as well as its original content
-    this.schemaHash = await createSchemaHash(this.inlineSchema)
-    this.schemaText = decodeInlineSchema(this.inlineSchema)
-
     // we set the network stuff up for the engine to make http calls to the proxy
-    const [host, apiKey] = extractHostAndApiKey(this.schemaText, this.env)
+    const [host, apiKey] = this.extractHostAndApiKey()
+    this.schemaHash = await createSchemaHash(this.inlineSchema)
     this.clientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
@@ -195,38 +193,33 @@ export class DataProxyEngine extends Engine {
   transaction(): Promise<any> {
     throw new Error('Transactions are currently not supported in Data Proxy')
   }
-}
 
-const datasourceRegexp =
-  /datasource.*?url(?:\s|\t)*=(?:\s|\t)*(?:(?:"(?<url>.*?)")|(?:env\("(?<env>\w+)"\)))/gs
+  extractHostAndApiKey() {
+    const mainDatasourceName = Object.keys(this.inlineDatasources)[0]
+    const mainDatasource = this.inlineDatasources[mainDatasourceName]
+    const mainDatasourceURL = mainDatasource?.url.value
+    const mainDatasourceEnv = mainDatasource?.url.fromEnvVar
+    const loadedEnvURL = this.env[mainDatasourceEnv]
+    const dataProxyURL = mainDatasourceURL ?? loadedEnvURL
 
-function extractHostAndApiKey(
-  schemaText: string,
-  env: { [k: string]: string | undefined },
-) {
-  const groups = datasourceRegexp.exec(schemaText)?.groups
+    let url: URL
+    try {
+      url = new URL(dataProxyURL ?? '')
+    } catch {
+      throw new Error('Could not parse URL of the datasource')
+    }
 
-  if (groups === undefined) {
-    throw new Error('Could not extract URL of the datasource')
+    const { protocol, host, searchParams } = url
+
+    if (protocol !== 'prisma:') {
+      throw new Error('Datasource URL should use prisma:// protocol')
+    }
+
+    const apiKey = searchParams.get('api_key')
+    if (apiKey === null || apiKey.length < 1) {
+      throw new Error('No valid API key found in the datasource URL')
+    }
+
+    return [host, apiKey]
   }
-
-  let url: URL
-  try {
-    url = new URL(groups?.url ?? env[groups?.env ?? ''])
-  } catch {
-    throw new Error('Could not parse URL of the datasource')
-  }
-
-  const { protocol, host, searchParams } = url
-
-  if (protocol !== 'prisma:') {
-    throw new Error('Datasource URL should use prisma:// protocol')
-  }
-
-  const apiKey = searchParams.get('api_key')
-  if (apiKey === null || apiKey.length < 1) {
-    throw new Error('No valid API key found in the datasource URL')
-  }
-
-  return [host, apiKey]
 }
