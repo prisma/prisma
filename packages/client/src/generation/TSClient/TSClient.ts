@@ -25,6 +25,7 @@ import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildInlineEnv } from '../utils/buildInlineEnv'
 import { buildDMMF } from '../utils/buildDMMF'
+import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -128,6 +129,7 @@ ${buildDMMF(engineType, this.dmmfString)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
+${buildInlineDatasource(engineType, datasources)}
 ${await buildInlineSchema(engineType, schemaPath)}
 ${buildInlineEnv(engineType, datasources, envPaths)}
 ${buildWarnEnvConflicts(engineType, runtimeDir, runtimeName)}

@@ -33,6 +33,6 @@ export interface InternalDatasource {
 // We could do import { EnvValue } from '../../isdlToDatamodel2'
 // but we don't want to pull that into the runtime build
 export interface EnvValue {
-  fromEnvVar: null | string
-  value: string
+  fromEnvVar: string | null
+  value: string | null
 }

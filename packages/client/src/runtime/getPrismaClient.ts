@@ -48,6 +48,7 @@ import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions
 import { RequestHandler } from './RequestHandler'
 import { PrismaClientValidationError } from '.'
 import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
+import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -91,7 +92,7 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 export type Datasource = {
   url?: string
 }
-export type Datasources = Record<string, Datasource>
+export type Datasources = { [name in string]: Datasource }
 
 export interface PrismaClientOptions {
   /**
@@ -241,10 +242,16 @@ export interface GetPrismaClientConfig {
   inlineSchema?: string
 
   /**
-   * The contents of the schema encoded into a string
+   * The contents of the env saved into a special object
    * @remarks only used for the purpose of data proxy
    */
   inlineEnv?: LoadedEnv
+
+  /**
+   * The contents of the datasource url saved in a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineDatasources?: InlineDatasources
 }
 
 const actionOperationMap = {
@@ -427,6 +434,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           useUds: internal.useUds,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
+          inlineDatasources: config.inlineDatasources,
         }
 
         // Append the mongodb experimental flag if the provider is mongodb

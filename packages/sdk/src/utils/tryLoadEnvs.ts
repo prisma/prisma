@@ -18,12 +18,14 @@ interface DotenvLoadEnvResult {
 }
 
 // our type for loaded env data
-export type LoadedEnv = {
-  message?: string
-  parsed: {
-    [x: string]: string
-  }
-} | void
+export type LoadedEnv =
+  | {
+      message?: string
+      parsed: {
+        [x: string]: string
+      }
+    }
+  | undefined
 
 export function tryLoadEnvs(
   {
@@ -58,7 +60,7 @@ export function tryLoadEnvs(
     return console.error(
       chalk.redBright.bold('Schema Env Error: ') +
         schemaEnvInfo.dotenvResult.error,
-    )
+    ) as undefined
   }
   const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(
     Boolean,
