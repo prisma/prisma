@@ -1,12 +1,6 @@
 import { enginesVersion } from '@prisma/engines'
-import {
-  arg,
-  Command,
-  format,
-  getSchemaPath,
-  HelpError,
-  isError,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError } from '@prisma/sdk'
 import { StudioServer } from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'

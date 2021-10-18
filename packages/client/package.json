@@ -35,8 +35,9 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test": "jest --verbose",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "format": "prettier --write .",
@@ -58,6 +59,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
+    "@microsoft/api-extractor": "7.18.16",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "3.3.0-22.45ee6c6e434b08cb2f775b84e83d815654922707",
@@ -78,7 +80,7 @@
     "arg": "5.0.1",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
-    "esbuild": "0.8.53",
+    "esbuild": "0.13.3",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -95,6 +97,7 @@
     "js-levenshtein": "1.1.6",
     "klona": "2.0.4",
     "lint-staged": "11.2.3",
+    "lz-string": "^1.4.4",
     "make-dir": "3.1.0",
     "mariadb": "2.5.4",
     "mssql": "7.2.1",
@@ -104,8 +107,6 @@
     "prettier": "2.4.1",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.58.0",
-    "rollup-plugin-dts": "4.0.0",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.20",
     "sql-template-tag": "4.0.0",
@@ -133,5 +134,6 @@
       "eslint",
       "prettier --write"
     ]
-  }
+  },
+  "sideEffects": false
 }

@@ -1,11 +1,16 @@
 import Debug from '@prisma/debug'
-import { NodeAPILibraryTypes } from '@prisma/engine-core'
+import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type {
+  DataSource,
+  DMMF,
+  GeneratorConfig,
+} from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
-import execa, { ExecaChildProcess, ExecaReturnValue } from 'execa'
+import type { ExecaChildProcess, ExecaReturnValue } from 'execa'
+import execa from 'execa'
 import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'

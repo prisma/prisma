@@ -18,8 +18,8 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 // IN THE SOFTWARE.
 
-const stream = require('stream'),
-  util = require('util')
+import stream from 'stream'
+import util from 'util'
 
 // convinience API
 export default function byline(readStream, options?: any) {
@@ -69,7 +69,7 @@ function LineStream(this, options) {
     if (!this.encoding) {
       // but we can't do this for old-style streams
       if (src instanceof stream.Readable) {
-        this.encoding = src._readableState.encoding
+        this.encoding = (src as any)._readableState.encoding
       }
     }
   })

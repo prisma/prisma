@@ -2,9 +2,9 @@ import chalk from 'chalk'
 import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
-import { /*dmmf, */ DMMFClass } from './dmmf'
-import { DMMF } from './dmmf-types'
-import {
+import type { /*dmmf, */ DMMFClass } from './dmmf'
+import type { DMMF } from './dmmf-types'
+import type {
   ArgError,
   AtLeastOneError,
   AtMostOneError,
@@ -30,11 +30,11 @@ import { filterObject } from './utils/filterObject'
 import { flatMap } from './utils/flatMap'
 import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
-import {
+import type {
   MissingItem,
-  printJsonWithErrors,
   PrintJsonWithErrorsArgs,
 } from './utils/printJsonErrors'
+import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 

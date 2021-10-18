@@ -2,7 +2,8 @@ import pluralize from 'pluralize'
 import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getAggregateArgsName, getModelArgName, unique } from '../utils'
-import { JSDocMethodBodyCtx, JSDocs } from './jsdoc'
+import type { JSDocMethodBodyCtx } from './jsdoc'
+import { JSDocs } from './jsdoc'
 
 export function getMethodJSDocBody(
   action: DMMF.ModelAction,

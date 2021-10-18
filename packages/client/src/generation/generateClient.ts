@@ -1,11 +1,12 @@
 import { BinaryType } from '@prisma/fetch-engine'
-import {
+import type {
   BinaryPaths,
   DataSource,
   DMMF,
   GeneratorConfig,
 } from '@prisma/generator-helper'
-import { getVersion } from '@prisma/sdk/dist/engine-commands/getVersion'
+import type { Platform } from '@prisma/sdk'
+import { getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -13,8 +14,8 @@ import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
-import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
-import { Dictionary } from '../runtime/utils/common'
+import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
+import type { Dictionary } from '../runtime/utils/common'
 import {
   ClientEngineType,
   getClientEngineType,
@@ -41,10 +42,10 @@ export interface GenerateClientOptions {
   projectRoot?: string
   datamodel: string
   datamodelPath: string
-  browser?: boolean
   schemaDir?: string
   transpile?: boolean
-  runtimePath?: string
+  runtimeDir?: string
+  runtimeName?: string
   outputDir: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
@@ -66,8 +67,8 @@ export interface BuildClientResult {
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
-  runtimePath = '@prisma/client/runtime',
-  browser = false,
+  runtimeDir = '@prisma/client/runtime',
+  runtimeName = 'index',
   binaryPaths,
   outputDir,
   generator,
@@ -83,14 +84,14 @@ export async function buildClient({
 
   const client = new TSClient({
     document,
-    runtimePath,
-    browser,
+    runtimeDir,
+    runtimeName,
     datasources: datasources,
     generator,
     platforms:
       clientEngineType === ClientEngineType.Library
-        ? Object.keys(binaryPaths.libqueryEngine!)
-        : Object.keys(binaryPaths.queryEngine!),
+        ? (Object.keys(binaryPaths.libqueryEngine!) as Platform[])
+        : (Object.keys(binaryPaths.queryEngine!) as Platform[]),
     schemaDir,
     outputDir,
     clientVersion,
@@ -100,9 +101,9 @@ export async function buildClient({
   })
 
   const fileMap = {
-    'index.d.ts': TS(client),
-    'index.js': JS(client),
-    'index-browser.js': BrowserJS(client),
+    'index.d.ts': await TS(client),
+    'index.js': await JS(client),
+    'index-browser.js': await BrowserJS(client),
   }
 
   return {
@@ -141,8 +142,8 @@ export async function generateClient({
   schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
   outputDir,
   transpile,
-  runtimePath,
-  browser,
+  runtimeDir,
+  runtimeName,
   generator,
   dmmf,
   datasources,
@@ -153,10 +154,15 @@ export async function generateClient({
   engineVersion,
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
+  const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
-  runtimePath =
-    runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
+  runtimeDir =
+    runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
+
+  // we make sure that we point to the right engine build
+  if (clientEngineType === ClientEngineType.DataProxy) {
+    runtimeName = 'proxy'
+  }
 
   const finalOutputDir = useDotPrisma
     ? await getDotPrismaDir(outputDir)
@@ -170,8 +176,8 @@ export async function generateClient({
     datamodelPath,
     schemaDir,
     transpile,
-    runtimePath,
-    browser,
+    runtimeDir: runtimeDir,
+    runtimeName,
     outputDir: finalOutputDir,
     generator,
     dmmf,

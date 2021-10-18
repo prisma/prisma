@@ -1,4 +1,6 @@
 export { formatSchema } from './formatSchema'
-export { ConfigMetaFormat, getConfig } from './getConfig'
-export { getDMMF, GetDMMFOptions } from './getDmmf'
+export { getConfig } from './getConfig'
+export type { ConfigMetaFormat } from './getConfig'
+export { getDMMF } from './getDmmf'
+export type { GetDMMFOptions } from './getDmmf'
 export { getVersion } from './getVersion'

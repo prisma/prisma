@@ -1,4 +1,4 @@
-import { FileMap } from '../types'
+import type { FileMap } from '../types'
 import indent from 'indent-string'
 import { printMigrationId } from './printMigrationId'
 

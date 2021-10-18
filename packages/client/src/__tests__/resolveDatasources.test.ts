@@ -1,4 +1,4 @@
-import { DataSource } from '@prisma/generator-helper'
+import type { DataSource } from '@prisma/generator-helper'
 import {
   datasourceToDatasourceOverwrite,
   serializeDatasources,

@@ -1,6 +1,6 @@
 import { drawBox, isCurrentBinInstalledGlobally, logger } from '@prisma/sdk'
 import chalk from 'chalk'
-import { Check } from 'checkpoint-client'
+import type { Check } from 'checkpoint-client'
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 

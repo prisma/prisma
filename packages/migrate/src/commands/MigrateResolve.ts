@@ -1,6 +1,6 @@
+import type { Command } from '@prisma/sdk'
 import {
   arg,
-  Command,
   format,
   getSchemaPath,
   HelpError,

@@ -255,7 +255,7 @@ process.on('SIGINT', () => {
 /**
  * Run our program
  */
-if (require.main === module) {
+if (eval('require.main === module')) {
   main()
     .then((code) => {
       if (code !== 0) {

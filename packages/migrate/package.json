@@ -2,6 +2,7 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
+  "module": "dist/esm/index.mjs",
   "types": "dist/index.d.ts",
   "repository": "git@github.com:prisma/prisma.git",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -26,15 +27,13 @@
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "chalk": "4.1.2",
-    "del": "6.0.0",
-    "esbuild": "0.12.16",
+    "esbuild": "0.13.3",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "25.0.5",
     "eslint-plugin-prettier": "4.0.0",
     "fs-jetpack": "4.2.0",
-    "glob": "7.2.0",
     "jest": "27.2.5",
     "lint-staged": "11.2.3",
     "make-dir": "3.1.0",
@@ -42,8 +41,6 @@
     "mock-stdin": "1.0.0",
     "pg": "8.7.1",
     "prettier": "2.4.1",
-    "sqlite-async": "1.1.2",
-    "sqlite3": "5.0.2",
     "tempy": "1.0.1",
     "ts-jest": "27.0.5",
     "typescript": "4.4.4"
@@ -57,7 +54,6 @@
     "@prisma/get-platform": "3.3.0-22.45ee6c6e434b08cb2f775b84e83d815654922707",
     "@sindresorhus/slugify": "1.1.2",
     "execa": "5.1.1",
-    "global-dirs": "3.0.0",
     "has-yarn": "2.1.0",
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
@@ -65,13 +61,13 @@
     "open": "7.4.2",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
-    "resolve-pkg": "2.0.0",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0"
   },
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "run": "node dist/bin.js",
     "precommit": "lint-staged",
     "format": "prettier --write .",
@@ -89,5 +85,6 @@
       "eslint",
       "prettier --write"
     ]
-  }
+  },
+  "sideEffects": false
 }

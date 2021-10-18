@@ -1,4 +1,5 @@
-import { unstable_getCacheForType, Wakeable } from 'react'
+import type { Wakeable } from 'react'
+import { unstable_getCacheForType } from 'react'
 // @ts-ignore
 import { PrismaClient as PrismaClientConstructor, dmmf } from '.prisma/client'
 

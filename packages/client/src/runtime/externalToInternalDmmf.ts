@@ -1,6 +1,6 @@
-import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
+import type { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
-import { DMMF } from './dmmf-types'
+import type { DMMF } from './dmmf-types'
 import { capitalize, lowerCase } from './utils/common'
 
 export function getCountAggregateOutputName(modelName: string): string {
