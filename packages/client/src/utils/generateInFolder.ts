@@ -115,18 +115,20 @@ export async function generateInFolder({
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
-  const binaryPaths =
-    clientEngineType === ClientEngineType.Library
-      ? {
-          libqueryEngine: {
-            [platform]: queryEngineLibraryPath,
-          },
-        }
-      : {
-          queryEngine: {
-            [platform]: queryEngineBinaryPath,
-          },
-        }
+  const binaryPaths = [
+    ClientEngineType.Library,
+    ClientEngineType.DataProxy,
+  ].includes(clientEngineType)
+    ? {
+        libqueryEngine: {
+          [platform]: queryEngineLibraryPath,
+        },
+      }
+    : {
+        queryEngine: {
+          [platform]: queryEngineBinaryPath,
+        },
+      }
 
   // we make sure that we are in the project root
   // this only applies to generated test clients

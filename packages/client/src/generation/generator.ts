@@ -19,10 +19,12 @@ const clientVersion = pkg.version
 if (require.main === module) {
   generatorHandler({
     onManifest(config) {
-      const requiredEngine =
-        getClientEngineType(config) === ClientEngineType.Library
-          ? 'libqueryEngine'
-          : 'queryEngine'
+      const requiredEngine = [
+        ClientEngineType.Library,
+        ClientEngineType.DataProxy,
+      ].includes(getClientEngineType(config))
+        ? 'libqueryEngine'
+        : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)
       return {
         defaultOutput: '.prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/main/cli/sdk/src/getGenerators.ts

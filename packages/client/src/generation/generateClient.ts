@@ -87,10 +87,11 @@ export async function buildClient({
     browser,
     datasources: datasources,
     generator,
-    platforms:
-      clientEngineType === ClientEngineType.Library
-        ? Object.keys(binaryPaths.libqueryEngine!)
-        : Object.keys(binaryPaths.queryEngine!),
+    platforms: [ClientEngineType.Library, ClientEngineType.DataProxy].includes(
+      clientEngineType,
+    )
+      ? Object.keys(binaryPaths.libqueryEngine!)
+      : Object.keys(binaryPaths.queryEngine!),
     schemaDir,
     outputDir,
     clientVersion,
@@ -235,15 +236,19 @@ export async function generateClient({
       })
     }
   }
-  const enginePath =
-    clientEngineType === ClientEngineType.Library
-      ? binaryPaths.libqueryEngine
-      : binaryPaths.queryEngine
+  const enginePath = [
+    ClientEngineType.Library,
+    ClientEngineType.DataProxy,
+  ].includes(clientEngineType)
+    ? binaryPaths.libqueryEngine
+    : binaryPaths.queryEngine
 
   if (!enginePath) {
     throw new Error(
       `Prisma Client needs \`${
-        clientEngineType === ClientEngineType.Library
+        [ClientEngineType.Library, ClientEngineType.DataProxy].includes(
+          clientEngineType,
+        )
           ? 'libqueryEngine'
           : 'queryEngine'
       }\` in the \`binaryPaths\` object.`,
