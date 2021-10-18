@@ -1,0 +1,13 @@
+{
+  "name": "seed-sqlite-ts-esm",
+  "version": "1.0.0",
+  "license": "MIT",
+  "type": "module",
+  "devDependencies": {
+    "@types/node": "^14.14.21",
+    "ts-node": "10"
+  },
+  "prisma": {
+    "seed": "node --loader ts-node/esm prisma/seed.ts"
+  }
+}

@@ -212,9 +212,9 @@ ${chalk.bold('Examples')}
       throw e
     }
 
-    // If database was reset we want to run the seed if not skipped
+    // If database was created or reset we want to run the seed if not skipped
     if (
-      devDiagnostic.action.tag === 'reset' &&
+      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
       !process.env.PRISMA_MIGRATE_SKIP_SEED &&
       !args['--skip-seed']
     ) {

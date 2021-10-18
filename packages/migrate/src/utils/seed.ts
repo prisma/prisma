@@ -62,6 +62,12 @@ export async function verifySeedConfigAndReturnMessage(
   "seed": "ts-node ${detected.ts}"
 }
 \`\`\`
+If you are using ESM (ECMAScript modules):
+\`\`\`
+"prisma": {
+  "seed": "node --loader ts-node/esm ${detected.ts}"
+}
+\`\`\`
 
 3. Install the required dependencies by running:
 ${chalk.green(`${packageManager} ts-node typescript @types/node`)}
@@ -84,6 +90,13 @@ ${chalk.bold('TypeScript:')}
   "seed": "ts-node ./prisma/seed.ts"
 }
 \`\`\`
+If you are using ESM (ECMAScript modules):
+\`\`\`
+"prisma": {
+  "seed": "node --loader ts-node/esm ./prisma/seed.ts"
+}
+\`\`\`
+
 And install the required dependencies by running:
 ${packageManager} ts-node typescript @types/node
 
