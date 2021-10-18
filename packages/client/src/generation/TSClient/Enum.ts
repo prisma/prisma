@@ -1,7 +1,7 @@
 import indent from 'indent-string'
-import { Generatable } from './Generatable'
-import { DMMF } from '../../runtime/dmmf-types'
-import { ExportCollector } from './helpers'
+import type { Generatable } from './Generatable'
+import type { DMMF } from '../../runtime/dmmf-types'
+import type { ExportCollector } from './helpers'
 import { TAB_SIZE } from './constants'
 
 export class Enum implements Generatable {

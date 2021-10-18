@@ -1,6 +1,7 @@
-import getStream = require('get-stream')
-import { Client, Pool } from 'undici'
-import { URL } from 'url'
+import getStream from 'get-stream'
+import type { Client } from 'undici'
+import { Pool } from 'undici'
+import type { URL } from 'url'
 
 export type Result<R> = {
   statusCode: Client.ResponseData['statusCode']

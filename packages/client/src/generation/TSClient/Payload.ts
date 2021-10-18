@@ -1,4 +1,4 @@
-import { OutputType } from './Output'
+import type { OutputType } from './Output'
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 
@@ -8,7 +8,7 @@ import {
   Projection,
   getArgName,
 } from '../utils'
-import { Generatable } from './Generatable'
+import type { Generatable } from './Generatable'
 
 export class PayloadType implements Generatable {
   constructor(

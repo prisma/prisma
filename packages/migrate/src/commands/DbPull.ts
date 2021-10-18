@@ -1,5 +1,5 @@
+import type { Command } from '@prisma/sdk'
 import {
-  Command,
   format,
   HelpError,
   getSchemaPath,
@@ -12,11 +12,11 @@ import {
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
-import {
-  IntrospectionEngine,
+import type {
   IntrospectionWarnings,
   IntrospectionSchemaVersion,
 } from '@prisma/sdk'
+import { IntrospectionEngine } from '@prisma/sdk'
 import { formatms } from '../utils/formatms'
 import fs from 'fs'
 import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'

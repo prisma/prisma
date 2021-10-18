@@ -1,4 +1,4 @@
-import { DotenvConfigOutput } from 'dotenv'
+import type { DotenvConfigOutput } from 'dotenv'
 
 /**
  * Modified version of https://github.com/motdotla/dotenv-expand

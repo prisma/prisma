@@ -1,23 +1,19 @@
-export interface CommonCodeParams {
-  runtimePath: string
-  clientVersion: string
-  engineVersion: string
-  browser?: boolean
-}
+import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
-  runtimePath,
+  runtimeDir,
+  runtimeName,
   browser,
   clientVersion,
   engineVersion,
-}: CommonCodeParams): string => `
+}: TSClientOptions): string => `
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
   browser
     ? `
 const {
   Decimal
-} = require('${runtimePath}/index-browser')
+} = require('${runtimeDir}/${runtimeName}')
 `
     : `
 const {
@@ -26,17 +22,14 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
-  warnEnvConflicts,
+  decompressFromBase64,
   getPrismaClient,
   sqltag,
   empty,
   join,
   raw,
-  Decimal,
-  findSync
-} = require('${runtimePath}')
-
-const path = require('path')
+  Decimal
+} = require('${runtimeDir}/${runtimeName}')
 `
 }
 
@@ -102,11 +95,13 @@ In case this error is unexpected for you, please report it in https://github.com
 }
 
 export const commonCodeTS = ({
-  runtimePath,
+  runtimeDir,
+  runtimeName,
   clientVersion,
   engineVersion,
-}: CommonCodeParams) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimePath}';
+}: TSClientOptions) => ({
+  tsWithoutNamespace:
+    () => `import * as runtime from '${runtimeDir}/${runtimeName}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P

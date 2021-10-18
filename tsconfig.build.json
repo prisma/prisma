@@ -4,6 +4,8 @@
     "module": "commonjs",
     "lib": ["esnext"],
     "esModuleInterop": true,
+    // equivalent of package.json sideEffects: false
+    "isolatedModules": true,
     "sourceMap": true,
     "declaration": true,
 

@@ -1,5 +1,5 @@
+import type { Command } from '@prisma/sdk'
 import {
-  Command,
   arg,
   getSchemaPath,
   getDMMF,
@@ -15,7 +15,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { DMMF } from '@prisma/generator-helper'
+import type { DMMF } from '@prisma/generator-helper'
 import equal from 'fast-deep-equal'
 
 const readFile = promisify(fs.readFile)

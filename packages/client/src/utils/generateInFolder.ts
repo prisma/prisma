@@ -88,15 +88,15 @@ export async function generateInFolder({
 
   const platform = await getPlatform()
 
-  let runtimePath
+  let runtimeDir
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimePath = path.relative(
+      runtimeDir = path.relative(
         outputDir,
         path.join(__dirname, '../../runtime'),
       )
     } else {
-      runtimePath = path.relative(outputDir, path.join(__dirname, '../runtime'))
+      runtimeDir = path.relative(outputDir, path.join(__dirname, '../runtime'))
     }
   } else if (useBuiltRuntime) {
     throw new Error(
@@ -139,7 +139,7 @@ export async function generateInFolder({
     ...config,
     outputDir,
     schemaDir: path.dirname(schemaPath),
-    runtimePath,
+    runtimeDir,
     transpile,
     testMode: true,
     datamodelPath: schemaPath,

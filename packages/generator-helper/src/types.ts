@@ -1,4 +1,4 @@
-import { DMMF } from './dmmf'
+import type { DMMF } from './dmmf'
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JsonRPC {

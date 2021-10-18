@@ -1,7 +1,7 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
-import { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFClass } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
   getAggregateArgsName,
@@ -27,9 +27,10 @@ import {
 import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
-import { Generatable, TS } from './Generatable'
+import type { Generatable } from './Generatable'
+import { TS } from './Generatable'
+import type { ExportCollector } from './helpers'
 import {
-  ExportCollector,
   getArgFieldJSDoc,
   getArgs,
   getGenericMethod,
