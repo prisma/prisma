@@ -1,6 +1,7 @@
 import { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform/dist/getNodeAPIName'
 import indent from 'indent-string'
+import { Client } from 'integration-tests/node_modules/@types/pg'
 import path from 'path'
 import { DMMFClass } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
@@ -367,7 +368,7 @@ export function unique<T>(arr: T[]): T[] {
   return result
 }
 export function buildNFTEngineAnnotations(
-  _clientEngineType: ClientEngineType,
+  clientEngineType: ClientEngineType,
   platforms: Platform[],
   cwdDirname: string,
 ) {
@@ -375,21 +376,18 @@ export function buildNFTEngineAnnotations(
     platforms = ['rhel-openssl-1.0.x']
   }
 
-  const getQueryEngineFilename1 = (p: Platform) => `query-engine-${p}`
-  const getQueryEngineFilename2 = (p: Platform) => getNodeAPIName(p, 'fs')
-
-  // This is redundant? TODO: investigate NFT and Vercel
+  const getQueryEngineFilename = (p: Platform) =>
+    [ClientEngineType.Library, ClientEngineType.DataProxy].includes(
+      clientEngineType,
+    )
+      ? getNodeAPIName(p, 'fs')
+      : `query-engine-${p}`
   const buildAnnotation = (p: Platform) => {
-    return `path.join(__dirname, '${getQueryEngineFilename1(p)}');
-path.join(__dirname, '${getQueryEngineFilename2(p)}');
+    return `path.join(__dirname, '${getQueryEngineFilename(p)}');
 path.join(process.cwd(), './${path.join(
       cwdDirname,
-      getQueryEngineFilename1(p),
-    )}');
-path.join(process.cwd(), './${path.join(
-      cwdDirname,
-      getQueryEngineFilename2(p),
-    )}');`
+      getQueryEngineFilename(p),
+    )}')`
   }
 
   return platforms ? platforms.map(buildAnnotation).join('\n') : ''
