@@ -54,7 +54,7 @@
     "@prisma/get-platform": "3.3.0-22.45ee6c6e434b08cb2f775b84e83d815654922707",
     "@sindresorhus/slugify": "1.1.2",
     "execa": "5.1.1",
-    "has-yarn": "2.1.0",
+    "has-yarn": "3.0.0",
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
     "new-github-issue-url": "0.2.1",

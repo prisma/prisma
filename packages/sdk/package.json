@@ -69,7 +69,7 @@
     "find-up": "5.0.0",
     "global-dirs": "3.0.0",
     "globby": "11.0.4",
-    "has-yarn": "2.1.0",
+    "has-yarn": "3.0.0",
     "is-ci": "3.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.5",
