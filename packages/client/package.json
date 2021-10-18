@@ -97,7 +97,7 @@
     "js-levenshtein": "1.1.6",
     "klona": "2.0.4",
     "lint-staged": "11.2.3",
-    "lz-string": "^1.4.4",
+    "lz-string": "1.4.4",
     "make-dir": "3.1.0",
     "mariadb": "2.5.4",
     "mssql": "7.2.1",
