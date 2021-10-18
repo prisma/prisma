@@ -1,4 +1,5 @@
 import fs from 'fs-jetpack'
+import execa from 'execa'
 import { DbSeed } from '../commands/DbSeed'
 import { consoleContext, Context } from './__helpers__/context'
 
@@ -11,8 +12,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                        🌱  The seed command has been executed.
-                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                🌱  The seed command has been executed.
+                                                                                                                                                                                                        `)
 
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
@@ -48,12 +49,33 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                🌱  The seed command has been executed.
-                                                                                                                                                                                                        `)
+                                                                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(
       `Running seed command \`ts-node prisma/seed.ts\` ...`,
+    )
+    expect(
+      ctx.mocked['console.error'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(``)
+  })
+
+  it('seed.ts - ESM', async () => {
+    ctx.fixture('seed-sqlite-ts-esm')
+
+    // Needs ts-node to be installed
+    await execa.command('npm i')
+
+    const result = DbSeed.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(`
+
+                                                                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                                                            `)
+    expect(
+      ctx.mocked['console.info'].mock.calls.join('\n'),
+    ).toMatchInlineSnapshot(
+      `Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...`,
     )
     expect(
       ctx.mocked['console.error'].mock.calls.join('\n'),
@@ -66,8 +88,8 @@ describe('seed', () => {
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                🌱  The seed command has been executed.
-                                                                                                                                                                                                        `)
+                                                                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`./prisma/seed.sh\` ...`)
@@ -99,6 +121,13 @@ describe('seed - legacy', () => {
           "seed": "ts-node ./prisma/seed.ts"
         }
         \`\`\`
+        If you are using ESM (ECMAScript modules):
+        \`\`\`
+        "prisma": {
+          "seed": "node --loader ts-node/esm ./prisma/seed.ts"
+        }
+        \`\`\`
+
         And install the required dependencies by running:
         npm i -D ts-node typescript @types/node
 
@@ -162,8 +191,8 @@ https://pris.ly/d/seeding
     const result = DbSeed.new().parse(['--preview-feature'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                🌱  The seed command has been executed.
-                                        `)
+                                                                        🌱  The seed command has been executed.
+                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
@@ -184,8 +213,8 @@ https://pris.ly/d/seeding
     const result = DbSeed.new().parse(['--schema=./some-folder/schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                🌱  The seed command has been executed.
-                                                                                                                                                                                                        `)
+                                                                                                                                                                                                                                                                        🌱  The seed command has been executed.
+                                                                                                                                                                                                                            `)
     expect(
       ctx.mocked['console.info'].mock.calls.join('\n'),
     ).toMatchInlineSnapshot(`Running seed command \`node prisma/seed.js\` ...`)
@@ -237,6 +266,12 @@ https://pris.ly/d/seeding
             \`\`\`
             "prisma": {
               "seed": "ts-node prisma/seed.ts"
+            }
+            \`\`\`
+            If you are using ESM (ECMAScript modules):
+            \`\`\`
+            "prisma": {
+              "seed": "node --loader ts-node/esm prisma/seed.ts"
             }
             \`\`\`
 

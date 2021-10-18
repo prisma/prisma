@@ -215,6 +215,8 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+      SQLite database dev.db created at file:./dev.db
+
 
       Database reset successful
 
@@ -247,6 +249,8 @@ describe('reset', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
+      SQLite database dev.db created at file:./dev.db
+
 
       Database reset successful
 
@@ -274,6 +278,8 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      SQLite database dev.db created at file:./dev.db
 
 
       Database reset successful
@@ -305,6 +311,8 @@ describe('reset', () => {
       .toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+
+      SQLite database dev.db created at file:./dev.db
 
 
       Database reset successful
