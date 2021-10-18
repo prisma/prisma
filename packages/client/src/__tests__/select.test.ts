@@ -21,8 +21,7 @@ describe('select validation', () => {
         AND: [
           {
             age_gt: 10123123123,
-            this_is_completely_arbitrary:
-              'veryLongNameGoIntoaNewLineNow@gmail.com',
+            this_is_completely_arbitrary: 'veryLongNameGoIntoaNewLineNow@gmail.com',
           },
           {
             age_gt: 10123123123,

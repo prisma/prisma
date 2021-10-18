@@ -12,9 +12,7 @@ describe('debug', () => {
     debug('Does it even log?')
     debug('I dont know')
 
-    expect(removeISODate(JSON.stringify(logs, null, 2))).toMatchInlineSnapshot(
-      `"[]"`,
-    )
+    expect(removeISODate(JSON.stringify(logs, null, 2))).toMatchInlineSnapshot(`"[]"`)
 
     expect(sanitizeTestLogs(getLogs())).toMatchInlineSnapshot(`
       "my-namespace Does it even log?

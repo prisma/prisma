@@ -9,9 +9,7 @@ function normalizeDbUrl(str) {
 }
 
 function normalizeRustError(str) {
-  return str
-    .replace(/\/rustc\/(.+)\//g, '/rustc/hash/')
-    .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
+  return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
 function normalizeTime(str: string): string {
@@ -24,15 +22,6 @@ export function test(value) {
 }
 
 export function serialize(value) {
-  const message =
-    typeof value === 'string'
-      ? value
-      : value instanceof Error
-      ? value.message
-      : ''
-  return normalizeDbUrl(
-    normalizeTime(
-      normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))),
-    ),
-  )
+  const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
+  return normalizeDbUrl(normalizeTime(normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message)))))
 }

@@ -1,13 +1,7 @@
 import { enginesVersion } from '@prisma/engines'
-import type {
-  BinaryDownloadConfiguration,
-  DownloadOptions,
-} from '@prisma/fetch-engine'
+import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
-import type {
-  BinaryPaths,
-  BinaryTargetsEnvValue,
-} from '@prisma/generator-helper'
+import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -37,12 +31,7 @@ export async function getBinaryPathsByVersion({
       neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
     }
 
-    if (
-      process.env.NETLIFY &&
-      !neededVersion.binaryTargets.find(
-        (object) => object.value === 'rhel-openssl-1.0.x',
-      )
-    ) {
+    if (process.env.NETLIFY && !neededVersion.binaryTargets.find((object) => object.value === 'rhel-openssl-1.0.x')) {
       neededVersion.binaryTargets.push({
         fromEnvVar: null,
         value: 'rhel-openssl-1.0.x',
@@ -53,21 +42,17 @@ export async function getBinaryPathsByVersion({
     let binaryTargetBaseDir = eval(`require('path').join(__dirname, '..')`)
 
     if (version !== currentVersion) {
-      binaryTargetBaseDir = path.join(
-        binaryTargetBaseDir,
-        `./engines/${currentVersion}/`,
-      )
+      binaryTargetBaseDir = path.join(binaryTargetBaseDir, `./engines/${currentVersion}/`)
       await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
-    const binariesConfig: BinaryDownloadConfiguration =
-      neededVersion.engines.reduce((acc, curr) => {
-        // only download the binary, of not already covered by the `binaryPathsOverride`
-        if (!binaryPathsOverride?.[curr]) {
-          acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
-        }
-        return acc
-      }, Object.create(null))
+    const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
+      // only download the binary, of not already covered by the `binaryPathsOverride`
+      if (!binaryPathsOverride?.[curr]) {
+        acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
+      }
+      return acc
+    }, Object.create(null))
 
     if (Object.values(binariesConfig).length > 0) {
       // Convert BinaryTargetsEnvValue[] to Platform[]
@@ -78,30 +63,19 @@ export async function getBinaryPathsByVersion({
       const downloadParams: DownloadOptions = {
         binaries: binariesConfig,
         binaryTargets: platforms,
-        showProgress:
-          typeof printDownloadProgress === 'boolean'
-            ? printDownloadProgress
-            : true,
-        version:
-          currentVersion && currentVersion !== 'latest'
-            ? currentVersion
-            : enginesVersion,
+        showProgress: typeof printDownloadProgress === 'boolean' ? printDownloadProgress : true,
+        version: currentVersion && currentVersion !== 'latest' ? currentVersion : enginesVersion,
         skipDownload,
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      const binaryPaths: BinaryPaths = mapKeys(
-        binaryPathsWithEngineType,
-        binaryTypeToEngineType,
-      )
+      const binaryPaths: BinaryPaths = mapKeys(binaryPathsWithEngineType, binaryTypeToEngineType)
       binaryPathsByVersion[currentVersion] = binaryPaths
     }
 
     if (binaryPathsOverride) {
       const overrideEngines = Object.keys(binaryPathsOverride)
-      const enginesCoveredByOverride = neededVersion.engines.filter((engine) =>
-        overrideEngines.includes(engine),
-      )
+      const enginesCoveredByOverride = neededVersion.engines.filter((engine) => overrideEngines.includes(engine))
       if (enginesCoveredByOverride.length > 0) {
         for (const engine of enginesCoveredByOverride) {
           const enginePath = binaryPathsOverride[engine]!

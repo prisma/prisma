@@ -41,36 +41,20 @@ const undefinedNote = `Note, that providing \`undefined\` is treated as the valu
 Read more here: https://pris.ly/d/null-undefined`
 
 const JSDocFields = {
-  take: (singular, plural) =>
-    addLinkToDocs(
-      `Take \`±n\` ${plural} from the position of the cursor.`,
-      'pagination',
-    ),
-  skip: (singular, plural) =>
-    addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
-  _count: (singular, plural) =>
-    addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
+  take: (singular, plural) => addLinkToDocs(`Take \`±n\` ${plural} from the position of the cursor.`, 'pagination'),
+  skip: (singular, plural) => addLinkToDocs(`Skip the first \`n\` ${plural}.`, 'pagination'),
+  _count: (singular, plural) => addLinkToDocs(`Count returned ${plural}`, 'aggregations'),
   _avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
   _sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
-  _min: () =>
-    addLinkToDocs(
-      `Select which fields to find the minimum value`,
-      'aggregations',
-    ),
-  _max: () =>
-    addLinkToDocs(
-      `Select which fields to find the maximum value`,
-      'aggregations',
-    ),
+  _min: () => addLinkToDocs(`Select which fields to find the minimum value`, 'aggregations'),
+  _max: () => addLinkToDocs(`Select which fields to find the maximum value`, 'aggregations'),
   count: () => getDeprecationString('2.23.0', '_count'),
   avg: () => getDeprecationString('2.23.0', '_avg'),
   sum: () => getDeprecationString('2.23.0', '_sum'),
   min: () => getDeprecationString('2.23.0', '_min'),
   max: () => getDeprecationString('2.23.0', '_max'),
-  distinct: (singular, plural) =>
-    addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
-  orderBy: (singular, plural) =>
-    addLinkToDocs(`Determine the order of ${plural} to fetch.`, 'sorting'),
+  distinct: (singular, plural) => addLinkToDocs(`Filter by unique combinations of ${plural}.`, 'distinct'),
+  orderBy: (singular, plural) => addLinkToDocs(`Determine the order of ${plural} to fetch.`, 'sorting'),
 }
 export const JSDocs: JSDocsType = {
   groupBy: {
@@ -93,10 +77,7 @@ const result = await prisma.user.groupBy({
   },
   create: {
     body: (ctx) => `Create a ${ctx.singular}.
-@param {${getModelArgName(
-      ctx.model.name,
-      ctx.action,
-    )}} args - Arguments to create a ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create a ${ctx.singular}.
 @example
 // Create one ${ctx.singular}
 const ${ctx.singular} = await ${ctx.method}({
@@ -111,10 +92,7 @@ const ${ctx.singular} = await ${ctx.method}({
   },
   createMany: {
     body: (ctx) => `Create many ${ctx.plural}.
-    @param {${getModelArgName(
-      ctx.model.name,
-      ctx.action,
-    )}} args - Arguments to create many ${ctx.plural}.
+    @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many ${ctx.plural}.
     @example
     // Create many ${ctx.plural}
     const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -130,10 +108,7 @@ const ${ctx.singular} = await ${ctx.method}({
   findUnique: {
     body: (ctx) =>
       `Find zero or one ${ctx.singular} that matches the filter.
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to find a ${ctx.singular}
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -149,10 +124,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) =>
       `Find the first ${ctx.singular} that matches the filter.
 ${undefinedNote}
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to find a ${ctx.singular}
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -163,11 +135,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     fields: {
       where: (singular) => `Filter, which ${singular} to fetch.`,
       orderBy: JSDocFields.orderBy,
-      cursor: (singular, plural) =>
-        addLinkToDocs(
-          `Sets the position for searching for ${plural}.`,
-          'cursor',
-        ),
+      cursor: (singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       distinct: JSDocFields.distinct,
@@ -177,19 +145,14 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Only select the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(
-            ctx.firstScalar.name,
-          )}Only = await ${ctx.method}({ select: { ${
+const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ select: { ${
             ctx.firstScalar.name
           }: true } })`
         : ''
 
       return `Find zero or more ${ctx.plural} that matches the filter.
 ${undefinedNote}
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}=} args - Arguments to filter and select certain fields only.
+@param {${getModelArgName(ctx.model.name, ctx.action)}=} args - Arguments to filter and select certain fields only.
 @example
 // Get all ${ctx.plural}
 const ${ctx.mapping.plural} = await ${ctx.method}()
@@ -203,18 +166,14 @@ ${onlySelect}
       where: (singular, plural) => `Filter, which ${plural} to fetch.`,
       orderBy: JSDocFields.orderBy,
       skip: JSDocFields.skip,
-      cursor: (singular, plural) =>
-        addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
+      cursor: (singular, plural) => addLinkToDocs(`Sets the position for listing ${plural}.`, 'cursor'),
       take: JSDocFields.take,
     },
   },
   update: {
     body: (ctx) =>
       `Update one ${ctx.singular}.
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to update one ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one ${ctx.singular}.
 @example
 // Update one ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -234,10 +193,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   upsert: {
     body: (ctx) =>
       `Create or update one ${ctx.singular}.
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to update or create a ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create a ${ctx.singular}.
 @example
 // Update or create a ${ctx.singular}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -252,8 +208,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   }
 })`,
     fields: {
-      where: (singular) =>
-        `The filter to search for the ${singular} to update in case it exists.`,
+      where: (singular) => `The filter to search for the ${singular} to update in case it exists.`,
       create: (singular) =>
         `In case the ${singular} found by the \`where\` argument doesn't exist, create a new ${singular} with this data.`,
       update: (singular) =>
@@ -263,10 +218,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   delete: {
     body: (ctx) =>
       `Delete a ${ctx.singular}.
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to delete one ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to delete one ${ctx.singular}.
 @example
 // Delete one ${ctx.singular}
 const ${ctx.singular} = await ${ctx.method}({
@@ -327,10 +279,7 @@ const aggregations = await prisma.user.aggregate({
     body: (ctx) =>
       `Count the number of ${ctx.plural}.
 ${undefinedNote}
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to filter ${ctx.plural} to count.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter ${ctx.plural} to count.
 @example
 // Count the number of ${ctx.plural}
 const count = await ${ctx.method}({
@@ -344,10 +293,7 @@ const count = await ${ctx.method}({
     body: (ctx) =>
       `Update zero or more ${ctx.plural}.
 ${undefinedNote}
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to update one or more rows.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one or more rows.
 @example
 // Update many ${ctx.plural}
 const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
@@ -367,10 +313,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   deleteMany: {
     body: (ctx) =>
       `Delete zero or more ${ctx.plural}.
-@param {${getModelArgName(
-        ctx.model.name,
-        ctx.action,
-      )}} args - Arguments to filter ${ctx.plural} to delete.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter ${ctx.plural} to delete.
 @example
 // Delete a few ${ctx.plural}
 const { count } = await ${ctx.method}({

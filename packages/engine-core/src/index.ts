@@ -12,10 +12,7 @@ export { BinaryEngine } from './binary/BinaryEngine'
 export { DataProxyEngine } from './data-proxy/DataProxyEngine'
 export * as NodeAPILibraryTypes from './library/types/Library'
 
-export {
-  printGeneratorConfig,
-  getOriginalBinaryTargetsValue,
-} from './common/utils/printGeneratorConfig'
+export { printGeneratorConfig, getOriginalBinaryTargetsValue } from './common/utils/printGeneratorConfig'
 export { getInternalDatamodelJson } from './common/utils/getInternalDatamodelJson'
 export { fixBinaryTargets } from './common/utils/util'
 export { plusX } from './common/utils/util'

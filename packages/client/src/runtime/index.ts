@@ -1,11 +1,6 @@
 export { DMMF } from './dmmf-types'
 export { DMMFClass } from './dmmf'
-export {
-  makeDocument,
-  transformDocument,
-  unpack,
-  PrismaClientValidationError,
-} from './query'
+export { makeDocument, transformDocument, unpack, PrismaClientValidationError } from './query'
 
 export {
   Engine,

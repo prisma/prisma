@@ -1,11 +1,7 @@
 /// <reference lib="webworker" />
 
 import { Engine } from '../common/Engine'
-import type {
-  EngineConfig,
-  EngineEventType,
-  GetConfigResult,
-} from '../common/Engine'
+import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { request } from './utils/request'
 import EventEmitter from 'events'
 import { createSchemaHash } from './utils/createSchemaHash'
@@ -120,16 +116,9 @@ export class DataProxyEngine extends Engine {
     return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: Record<string, string>,
-    isTransaction = false,
-    attempt = 0,
-  ) {
+  async requestBatch<T>(queries: string[], headers: Record<string, string>, isTransaction = false, attempt = 0) {
     this.logEmitter.emit('query', {
-      query: `Batch${isTransaction ? ' in transaction' : ''} (${
-        queries.length
-      }):\n${queries.join('\n')}`,
+      query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
     })
 
     const body = {
@@ -137,20 +126,12 @@ export class DataProxyEngine extends Engine {
       transaction: isTransaction,
     }
 
-    const { batchResult } = await this.requestInternal<T>(
-      body,
-      headers,
-      attempt,
-    )
+    const { batchResult } = await this.requestInternal<T>(body, headers, attempt)
 
     return batchResult
   }
 
-  private async requestInternal<T>(
-    body: Record<string, any>,
-    headers: Record<string, string>,
-    attempt: number,
-  ) {
+  private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
     await this.initPromise
 
     try {

@@ -1,9 +1,6 @@
 import { BinaryEngine } from '@prisma/engine-core'
 import path from 'path'
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from '../runtime/utils/getClientEngineType'
+import { ClientEngineType, getClientEngineType } from '../runtime/utils/getClientEngineType'
 
 describe('BinaryEngine', () => {
   test('should error correctly with invalid flags', async () => {
@@ -16,16 +13,11 @@ describe('BinaryEngine', () => {
     try {
       const engine = new BinaryEngine({
         flags: ['--flag-that-does-not-exist'],
-        datamodelPath: path.join(
-          __dirname,
-          './runtime-tests/blog/schema.prisma',
-        ),
+        datamodelPath: path.join(__dirname, './runtime-tests/blog/schema.prisma'),
       })
       await engine.start()
     } catch (e) {
-      expect(e.message).toMatch(
-        ` Found argument '--flag-that-does-not-exist' which wasn't expected`,
-      )
+      expect(e.message).toMatch(` Found argument '--flag-that-does-not-exist' which wasn't expected`)
     }
   })
 })

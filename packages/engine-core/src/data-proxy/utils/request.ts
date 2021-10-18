@@ -13,10 +13,7 @@ export type RequestOptions = O.Patch<
 >
 
 // our implementation handles less
-export type RequestResponse = O.Required<
-  O.Optional<Response>,
-  'json' | 'url' | 'ok' | 'status'
->
+export type RequestResponse = O.Required<O.Optional<Response>, 'json' | 'url' | 'ok' | 'status'>
 
 /**
  * Isomorphic `fetch` that imitates `fetch` via `http` when for Node.js.
@@ -24,10 +21,7 @@ export type RequestResponse = O.Required<
  * @param options
  * @returns
  */
-export async function request(
-  url: string,
-  options: RequestOptions = {},
-): Promise<RequestResponse> {
+export async function request(url: string, options: RequestOptions = {}): Promise<RequestResponse> {
   const jsRuntimeName = getJSRuntimeName()
 
   if (jsRuntimeName === 'browser') {
@@ -68,10 +62,7 @@ function buildOptions(options: RequestOptions): _https.RequestOptions {
  * @param response
  * @returns
  */
-function buildResponse(
-  incomingData: Buffer[],
-  response: IncomingMessage,
-): RequestResponse {
+function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
     json: () => JSON.parse(Buffer.concat(incomingData).toString()),
     ok: response.statusCode! >= 200 && response.statusCode! < 300,
@@ -88,10 +79,7 @@ function buildResponse(
  * @param options
  * @returns
  */
-function nodeFetch(
-  url: string,
-  options: RequestOptions = {},
-): Promise<RequestResponse> {
+function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestResponse> {
   const httpsOptions = buildOptions(options)
   const incomingData = [] as Buffer[]
 

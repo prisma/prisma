@@ -15,9 +15,7 @@ const readFileAsync = promisify(fs.readFile)
   Checks if user has a prisma/seed.ts or prisma/seed.js or prisma/seed.sh
   If prisma.seed is not set in package.json it will return the best error message to help the user
 */
-export async function verifySeedConfigAndReturnMessage(
-  schemaPath: string | null,
-): Promise<string | undefined> {
+export async function verifySeedConfigAndReturnMessage(schemaPath: string | null): Promise<string | undefined> {
   const cwd = process.cwd()
 
   // Detect if seed files are next to prisma.schema file
@@ -116,9 +114,7 @@ ${chalk.bold('Bash:')}
 And run \`chmod +x prisma/seed.sh\` to make it executable.`
   }
 
-  message += `\nMore information in our documentation:\n${link(
-    'https://pris.ly/d/seeding',
-  )}`
+  message += `\nMore information in our documentation:\n${link('https://pris.ly/d/seeding')}`
 
   return message
 }
@@ -166,9 +162,7 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   } catch (_e) {
     const e = _e as execa.ExecaError
     debug({ e })
-    console.error(
-      chalk.bold.red(`\nAn error occured while running the seed command:`),
-    )
+    console.error(chalk.bold.red(`\nAn error occured while running the seed command:`))
     console.error(chalk.red(e.stderr || e))
     return false
   }

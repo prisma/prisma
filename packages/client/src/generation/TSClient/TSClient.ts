@@ -67,11 +67,8 @@ export class TSClient implements Generatable {
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
-      rootEnvPath:
-        envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
-      schemaEnvPath:
-        envPaths.schemaEnvPath &&
-        path.relative(outputDir, envPaths.schemaEnvPath),
+      rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
+      schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath),
     }
 
     // This ensures that any engine override is propagated to the generated clients config
@@ -105,14 +102,8 @@ ${buildDirname(engineType, relativeOutdir, runtimeDir)}
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-${this.dmmf.schema.enumTypes.prisma
-  .map((type) => new Enum(type, true).toJS())
-  .join('\n\n')}
-${
-  this.dmmf.schema.enumTypes.model
-    ?.map((type) => new Enum(type, false).toJS())
-    .join('\n\n') ?? ''
-}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
@@ -163,13 +154,9 @@ ${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) =>
-      new Enum(type, true, collector).toTS(),
-    )
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, collector).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) =>
-      new Enum(type, false, collector).toTS(),
-    )
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, collector).toTS())
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
@@ -252,12 +239,7 @@ ${this.dmmf.inputObjectTypes.prisma
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
       collector?.addSymbol(inputType.name)
-      acc.push(
-        new InputType(
-          { ...inputType, name: `${inputType.name}Base` },
-          collector,
-        ).toTS(),
-      )
+      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, collector).toTS())
     } else {
       acc.push(new InputType(inputType, collector).toTS())
     }
@@ -265,11 +247,7 @@ ${this.dmmf.inputObjectTypes.prisma
   }, [] as string[])
   .join('\n')}
 
-${
-  this.dmmf.inputObjectTypes.model
-    ?.map((inputType) => new InputType(inputType, collector).toTS())
-    .join('\n') ?? ''
-}
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, collector).toTS()).join('\n') ?? ''}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
@@ -303,14 +281,8 @@ export const dmmf: runtime.DMMF.Document;
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 function makeEnum(x) { return x; }
 
-${this.dmmf.schema.enumTypes.prisma
-  .map((type) => new Enum(type, true).toJS())
-  .join('\n\n')}
-${
-  this.dmmf.schema.enumTypes.model
-    ?.map((type) => new Enum(type, false).toJS())
-    .join('\n\n') ?? ''
-}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {

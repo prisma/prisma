@@ -45,9 +45,7 @@ export class ArgsType implements Generatable {
       },
     ]
 
-    const hasRelationField = this.type.fields.some(
-      (f) => f.outputType.location === 'outputObjectTypes',
-    )
+    const hasRelationField = this.type.fields.some((f) => f.outputType.location === 'outputObjectTypes')
 
     if (hasRelationField) {
       const includeName = getIncludeName(name)
@@ -71,9 +69,7 @@ export class ArgsType implements Generatable {
         comment: `Choose, which related nodes to fetch as well.`,
       })
     }
-    const addRejectOnNotFound =
-      action === DMMF.ModelAction.findUnique ||
-      action === DMMF.ModelAction.findFirst
+    const addRejectOnNotFound = action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst
     if (addRejectOnNotFound) {
       bothArgsOptional.push({
         name: 'rejectOnNotFound',
@@ -99,10 +95,7 @@ export class ArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${modelArgName} = {
-${indent(
-  bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'),
-  TAB_SIZE,
-)}
+${indent(bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }

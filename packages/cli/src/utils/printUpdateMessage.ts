@@ -4,28 +4,18 @@ import type { Check } from 'checkpoint-client'
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
-export function printUpdateMessage(checkResult: {
-  status: 'ok'
-  data: Check.Response
-}): void {
+export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Response }): void {
   let boxHeight = 4
   let majorText = ''
 
   const currentVersionInstalled = checkResult.data.previous_version
   const latestVersionAvailable = checkResult.data.current_version
 
-  const prismaCLICommand = makeInstallCommand(
-    checkResult.data.package,
-    checkResult.data.release_tag,
-  )
-  const prismaClientCommand = makeInstallCommand(
-    '@prisma/client',
-    checkResult.data.release_tag,
-    {
-      canBeGlobal: false,
-      canBeDev: false,
-    },
-  )
+  const prismaCLICommand = makeInstallCommand(checkResult.data.package, checkResult.data.release_tag)
+  const prismaClientCommand = makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
+    canBeGlobal: false,
+    canBeDev: false,
+  })
 
   try {
     const [majorInstalled] = currentVersionInstalled.split('.')

@@ -462,9 +462,7 @@ export const scenarios = [
       `,
 
     do: (client) => {
-      return client.users
-        .findUnique({ where: { email: 'ada@prisma.io' } })
-        .posts()
+      return client.users.findUnique({ where: { email: 'ada@prisma.io' } }).posts()
     },
     expect: [
       {

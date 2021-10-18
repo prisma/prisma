@@ -1,7 +1,4 @@
-import {
-  introspectionIntegrationTest,
-  Input,
-} from '../../__helpers__/integrationTest'
+import { introspectionIntegrationTest, Input } from '../../__helpers__/integrationTest'
 import { database } from './__database'
 import { scenarios } from './__scenarios'
 

@@ -69,16 +69,11 @@ export function getBacktraceFromRustError(err: RustError): string {
 }
 
 export function isRustLog(e: any): e is RustLog {
-  return (
-    e.timestamp && typeof e.level === 'string' && typeof e.target === 'string'
-  )
+  return e.timestamp && typeof e.level === 'string' && typeof e.target === 'string'
 }
 
 export function isRustErrorLog(e: any): e is RustLog {
-  return (
-    isRustLog(e) &&
-    (e.level === 'error' || e.fields?.message?.includes('fatal error'))
-  )
+  return isRustLog(e) && (e.level === 'error' || e.fields?.message?.includes('fatal error'))
 }
 
 export function isRustError(e: any): e is RustError {
@@ -120,9 +115,7 @@ export interface Log {
 
 export function convertLog(rustLog: RawRustLog): RustLog {
   const isQuery = isQueryLog(rustLog.fields)
-  const level: LogLevel = isQuery
-    ? 'query'
-    : (rustLog.level.toLowerCase() as LogLevel)
+  const level: LogLevel = isQuery ? 'query' : (rustLog.level.toLowerCase() as LogLevel)
   return {
     ...rustLog,
     level,

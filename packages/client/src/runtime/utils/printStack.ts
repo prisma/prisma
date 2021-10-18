@@ -88,17 +88,9 @@ function parseStack({
     )
   })
 
-  if (
-    process.env.NODE_ENV !== 'production' &&
-    trace &&
-    trace.file &&
-    trace.lineNumber &&
-    trace.column
-  ) {
+  if (process.env.NODE_ENV !== 'production' && trace && trace.file && trace.lineNumber && trace.column) {
     const lineNumber = trace.lineNumber
-    const printedFileName = renderPathRelative
-      ? require('path').relative(process.cwd(), trace.file)
-      : trace.file
+    const printedFileName = renderPathRelative ? require('path').relative(process.cwd(), trace.file) : trace.file
     const start = Math.max(0, lineNumber - 4)
 
     const fs = require('fs')
@@ -113,56 +105,34 @@ function parseStack({
         params.callsiteStr = ':'
       } else {
         // Why even all this effort? Because if a user calls the client instance "db", we want to be able to also say "db.user.findMany"
-        const prismaClientRegex =
-          /(\S+(create|createMany|updateMany|deleteMany|update|delete|findMany|findUnique)\()/
+        const prismaClientRegex = /(\S+(create|createMany|updateMany|deleteMany|update|delete|findMany|findUnique)\()/
         const match = prismaClientRegex.exec(theLine)
         if (!match) {
           return params
         }
         params.functionName = `${match[1]})`
         // only add this, if the line matches
-        params.callsiteStr = ` in\n${chalk.underline(
-          `${printedFileName}:${trace.lineNumber}:${trace.column}`,
-        )}`
+        params.callsiteStr = ` in\n${chalk.underline(`${printedFileName}:${trace.lineNumber}:${trace.column}`)}`
         const slicePoint = theLine.indexOf('{')
         const linesToHighlight = lines
           .map((l, i, all) =>
-            !onUs && i === all.length - 1
-              ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1)
-              : l,
+            !onUs && i === all.length - 1 ? l.slice(0, slicePoint > -1 ? slicePoint : l.length - 1) : l,
           )
           .join('\n')
 
-        const highlightedLines = showColors
-          ? highlightTS(linesToHighlight).split('\n')
-          : linesToHighlight.split('\n')
+        const highlightedLines = showColors ? highlightTS(linesToHighlight).split('\n') : linesToHighlight.split('\n')
 
         params.prevLines =
           '\n' +
           highlightedLines
-            .map(
-              (l, i) =>
-                chalk.grey(
-                  renderN(i + start + 1, lineNumber + start + 1) + ' ',
-                ) +
-                chalk.reset() +
-                l,
-            )
-            .map((l, i, arr) =>
-              i === arr.length - 1
-                ? `${chalk.red.bold('→')} ${chalk.dim(l)}`
-                : chalk.dim('  ' + l),
-            )
+            .map((l, i) => chalk.grey(renderN(i + start + 1, lineNumber + start + 1) + ' ') + chalk.reset() + l)
+            .map((l, i, arr) => (i === arr.length - 1 ? `${chalk.red.bold('→')} ${chalk.dim(l)}` : chalk.dim('  ' + l)))
             .join('\n')
         if (!match && !isValidationError) {
           params.prevLines += '\n\n'
         }
         params.afterLines = ')'
-        params.indentValue =
-          String(lineNumber + start + 1).length +
-          getIndent(theLine) +
-          1 +
-          (match ? 2 : 0)
+        params.indentValue = String(lineNumber + start + 1).length + getIndent(theLine) + 1 + (match ? 2 : 0)
       }
     }
   }
@@ -170,25 +140,12 @@ function parseStack({
 }
 
 export const printStack = (args: ErrorArgs): PrintStackResult => {
-  const {
-    callsiteStr,
-    prevLines,
-    functionName,
-    afterLines,
-    indentValue,
-    lastErrorHeight,
-  } = parseStack(args)
+  const { callsiteStr, prevLines, functionName, afterLines, indentValue, lastErrorHeight } = parseStack(args)
 
   const introText = args.onUs
-    ? chalk.red(`Oops, an unknown error occured! This is ${chalk.bold(
-        'on us',
-      )}, you did nothing wrong.
-It occured in the ${chalk.bold(
-        `\`${functionName}\``,
-      )} invocation${callsiteStr}`)
-    : chalk.red(
-        `Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`,
-      )
+    ? chalk.red(`Oops, an unknown error occured! This is ${chalk.bold('on us')}, you did nothing wrong.
+It occured in the ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)
+    : chalk.red(`Invalid ${chalk.bold(`\`${functionName}\``)} invocation${callsiteStr}`)
 
   const stackStr = `\n${introText}
 ${prevLines}${chalk.reset()}`

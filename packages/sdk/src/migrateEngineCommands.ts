@@ -44,13 +44,7 @@ interface LogFields {
 }
 
 // https://github.com/prisma/specs/tree/master/errors#common
-export type DatabaseErrorCodes =
-  | 'P1000'
-  | 'P1001'
-  | 'P1002'
-  | 'P1003'
-  | 'P1009'
-  | 'P1010'
+export type DatabaseErrorCodes = 'P1000' | 'P1001' | 'P1002' | 'P1003' | 'P1009' | 'P1010'
 
 export type ConnectionResult = true | ConnectionError
 
@@ -114,10 +108,7 @@ export async function canConnectToDatabase(
 
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find(
-        (it) =>
-          it.level === 'ERROR' && it.target === 'migration_engine::logger',
-      )
+      const error = logs.find((it) => it.level === 'ERROR' && it.target === 'migration_engine::logger')
 
       if (error && error.fields.error_code && error.fields.message) {
         return {
@@ -125,11 +116,7 @@ export async function canConnectToDatabase(
           message: error.fields.message,
         }
       } else {
-        throw new Error(
-          `Migration engine error:\n${logs
-            .map((log) => log.fields.message)
-            .join('\n')}`,
-        )
+        throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
       throw new Error(`Migration engine exited.`)
@@ -139,16 +126,8 @@ export async function canConnectToDatabase(
   return true
 }
 
-export async function createDatabase(
-  connectionString: string,
-  cwd = process.cwd(),
-  migrationEnginePath?: string,
-) {
-  const dbExists = await canConnectToDatabase(
-    connectionString,
-    cwd,
-    migrationEnginePath,
-  )
+export async function createDatabase(connectionString: string, cwd = process.cwd(), migrationEnginePath?: string) {
+  const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
 
   // If database is already created, stop here, don't create it
   if (dbExists === true) {
@@ -169,19 +148,12 @@ export async function createDatabase(
 
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find(
-        (it) =>
-          it.level === 'ERROR' && it.target === 'migration_engine::logger',
-      )
+      const error = logs.find((it) => it.level === 'ERROR' && it.target === 'migration_engine::logger')
 
       if (error && error.fields.error_code && error.fields.message) {
         throw new Error(`${error.fields.error_code}: ${error.fields.message}`)
       } else {
-        throw new Error(
-          `Migration engine error:\n${logs
-            .map((log) => log.fields.message)
-            .join('\n')}`,
-        )
+        throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
       throw new Error(`Migration engine exited.`)
@@ -189,11 +161,7 @@ export async function createDatabase(
   }
 }
 
-export async function dropDatabase(
-  connectionString: string,
-  cwd = process.cwd(),
-  migrationEnginePath?: string,
-) {
+export async function dropDatabase(connectionString: string, cwd = process.cwd(), migrationEnginePath?: string) {
   try {
     const result = await execaCommand({
       connectionString,
@@ -201,31 +169,17 @@ export async function dropDatabase(
       migrationEnginePath,
       engineCommandName: 'drop-database',
     })
-    if (
-      result &&
-      result.exitCode === 0 &&
-      result.stderr.includes('The database was successfully dropped')
-    ) {
+    if (result && result.exitCode === 0 && result.stderr.includes('The database was successfully dropped')) {
       return true
     } else {
       // We should not arrive here normally
-      throw Error(
-        `An error occurred during the drop: ${JSON.stringify(
-          result,
-          undefined,
-          2,
-        )}`,
-      )
+      throw Error(`An error occurred during the drop: ${JSON.stringify(result, undefined, 2)}`)
     }
   } catch (e: any) {
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
 
-      throw new Error(
-        `Migration engine error:\n${logs
-          .map((log) => log.fields.message)
-          .join('\n')}`,
-      )
+      throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     } else {
       throw new Error(`Migration engine exited.`)
     }
@@ -241,26 +195,18 @@ export async function execaCommand({
   connectionString: string
   cwd: string
   migrationEnginePath?: string
-  engineCommandName:
-    | 'create-database'
-    | 'drop-database'
-    | 'can-connect-to-database'
+  engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath =
-    migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
+  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
 
   try {
-    return await execa(
-      migrationEnginePath,
-      ['cli', '--datasource', connectionString, engineCommandName],
-      {
-        cwd,
-        env: {
-          RUST_BACKTRACE: '1',
-          RUST_LOG: 'info',
-        },
+    return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {
+      cwd,
+      env: {
+        RUST_BACKTRACE: '1',
+        RUST_LOG: 'info',
       },
-    )
+    })
   } catch (_e) {
     const e = _e as execa.ExecaError
 
@@ -277,10 +223,7 @@ export async function execaCommand({
   }
 }
 
-export async function doesSqliteDbExist(
-  connectionString: string,
-  schemaDir?: string,
-): Promise<boolean> {
+export async function doesSqliteDbExist(connectionString: string, schemaDir?: string): Promise<boolean> {
   let filePath = connectionString
 
   if (filePath.startsWith('file:')) {

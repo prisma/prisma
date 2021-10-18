@@ -6,10 +6,7 @@ const copyFile = promisify(fs.copyFile)
 
 test('atomic-operations', async () => {
   // start with a fresh db
-  await copyFile(
-    path.join(__dirname, 'dev.db'),
-    path.join(__dirname, 'dev-tmp.db'),
-  )
+  await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
 
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()

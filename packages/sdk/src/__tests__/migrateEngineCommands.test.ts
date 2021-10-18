@@ -1,9 +1,4 @@
-import {
-  execaCommand,
-  doesSqliteDbExist,
-  canConnectToDatabase,
-  createDatabase,
-} from '../migrateEngineCommands'
+import { execaCommand, doesSqliteDbExist, canConnectToDatabase, createDatabase } from '../migrateEngineCommands'
 import tempy from 'tempy'
 
 describe('execaCommand', () => {
@@ -25,46 +20,33 @@ describe('execaCommand', () => {
 
 describe('doesSqliteDbExist', () => {
   test('exist - sqlite:', async () => {
-    await expect(
-      doesSqliteDbExist('sqlite:./introspection/blog.db', __dirname),
-    ).resolves.toEqual(true)
+    await expect(doesSqliteDbExist('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(true)
   })
 
   test('exist - file:', async () => {
-    await expect(
-      doesSqliteDbExist('file:./introspection/blog.db', __dirname),
-    ).resolves.toEqual(true)
+    await expect(doesSqliteDbExist('file:./introspection/blog.db', __dirname)).resolves.toEqual(true)
   })
 
   test('does not exist - sqlite:', async () => {
-    await expect(
-      doesSqliteDbExist('sqlite:./doesnotexist.db', __dirname),
-    ).resolves.toEqual(false)
+    await expect(doesSqliteDbExist('sqlite:./doesnotexist.db', __dirname)).resolves.toEqual(false)
   })
 
   test('does not exist - file:', async () => {
-    await expect(
-      doesSqliteDbExist('file:./doesnotexist.db', __dirname),
-    ).resolves.toEqual(false)
+    await expect(doesSqliteDbExist('file:./doesnotexist.db', __dirname)).resolves.toEqual(false)
   })
 
   test('should error if no schemaDir and no schema found', async () => {
-    await expect(
-      doesSqliteDbExist('file:./doesnotexist.db'),
-    ).rejects.toThrowError()
+    await expect(doesSqliteDbExist('file:./doesnotexist.db')).rejects.toThrowError()
   })
 })
 
 describe('canConnectToDatabase', () => {
   test('sqlite - can', async () => {
-    await expect(
-      canConnectToDatabase('sqlite:./introspection/blog.db', __dirname),
-    ).resolves.toEqual(true)
+    await expect(canConnectToDatabase('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(true)
   })
 
   test('sqlite - cannot', async () => {
-    await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves
-      .toMatchInlineSnapshot(`
+    await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves.toMatchInlineSnapshot(`
             Object {
               "code": "P1003",
               "message": "SQLite database file doesn't exist",
@@ -74,10 +56,7 @@ describe('canConnectToDatabase', () => {
 
   test('postgresql - server does not exist', async () => {
     await expect(
-      canConnectToDatabase(
-        'postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
-        __dirname,
-      ),
+      canConnectToDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname),
     ).resolves.toMatchInlineSnapshot(`
             Object {
               "code": "P1001",
@@ -91,30 +70,22 @@ describe('canConnectToDatabase', () => {
 
 describe('createDatabase', () => {
   test('sqlite - already exist', async () => {
-    await expect(
-      createDatabase('sqlite:./introspection/blog.db', __dirname),
-    ).resolves.toEqual(false)
+    await expect(createDatabase('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(false)
   })
 
   test('sqlite - does not exist', async () => {
-    await expect(
-      createDatabase('sqlite:./doesnotexist.db', tempy.directory()),
-    ).resolves.toEqual(true)
+    await expect(createDatabase('sqlite:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
   })
 
   test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    await expect(
-      createDatabase('sqlite:./doesnotexist.db', tempy.file()),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`"Migration engine exited."`)
+    await expect(createDatabase('sqlite:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Migration engine exited."`,
+    )
   })
 
   test('postgresql - server does not exist', async () => {
-    await expect(
-      createDatabase(
-        'postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
-        __dirname,
-      ),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(`
+    await expect(createDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname))
+      .rejects.toThrowErrorMatchingInlineSnapshot(`
             "P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
 
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
@@ -122,9 +93,7 @@ describe('createDatabase', () => {
   })
 
   test('invalid database type', async () => {
-    await expect(
-      createDatabase('invalid:somedburl'),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(
+    await expect(createDatabase('invalid:somedburl')).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Unknown database type invalid:"`,
     )
   })

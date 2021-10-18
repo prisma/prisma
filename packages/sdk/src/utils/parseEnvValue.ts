@@ -34,9 +34,7 @@ export function parseEnvValue(object: EnvValue) {
  * - If there is an env var it will be resolve and returned.
  * - If there is an env var is present but can't be resolved an error will be thrown
  */
-export function parseBinaryTargetsEnvValue(
-  object: BinaryTargetsEnvValue,
-): string[] | string {
+export function parseBinaryTargetsEnvValue(object: BinaryTargetsEnvValue): string[] | string {
   if (object.fromEnvVar && object.fromEnvVar != 'null') {
     const value = process.env[object.fromEnvVar]
     if (!value) {
