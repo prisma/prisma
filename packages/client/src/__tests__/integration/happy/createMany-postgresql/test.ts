@@ -84,12 +84,7 @@ describe('createMany(postgres)', () => {
         email: 'test@2.com',
         posts: {
           createMany: {
-            data: [
-              { title: '1' },
-              { title: '2' },
-              { title: '3' },
-              { title: '4' },
-            ],
+            data: [{ title: '1' }, { title: '2' }, { title: '3' }, { title: '4' }],
           },
         },
       },

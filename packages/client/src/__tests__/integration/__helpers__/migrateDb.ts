@@ -6,10 +6,7 @@ export type MigrateOptions = {
   schemaPath: string
 }
 
-export async function migrateDb({
-  connectionString,
-  schemaPath,
-}: MigrateOptions) {
+export async function migrateDb({ connectionString, schemaPath }: MigrateOptions) {
   await createDatabase(connectionString)
   const migrate = new Migrate(schemaPath)
 

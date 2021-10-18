@@ -11,9 +11,5 @@ const notReallyObjects = {
 }
 
 export function isObject(value: any): boolean {
-  return (
-    value &&
-    typeof value === 'object' &&
-    !notReallyObjects[Object.prototype.toString.call(value)]
-  )
+  return value && typeof value === 'object' && !notReallyObjects[Object.prototype.toString.call(value)]
 }

@@ -12,11 +12,7 @@ export async function getProjectHash(): Promise<string> {
   let projectPath = await getSchemaPath(args['--schema'])
   projectPath = projectPath || process.cwd() // Default to cwd if the schema couldn't be found
 
-  return crypto
-    .createHash('sha256')
-    .update(projectPath)
-    .digest('hex')
-    .substring(0, 8)
+  return crypto.createHash('sha256').update(projectPath).digest('hex').substring(0, 8)
 }
 
 /**
@@ -25,9 +21,5 @@ export async function getProjectHash(): Promise<string> {
  */
 export function getCLIPathHash(): string {
   const cliPath = process.argv[1]
-  return crypto
-    .createHash('sha256')
-    .update(cliPath)
-    .digest('hex')
-    .substring(0, 8)
+  return crypto.createHash('sha256').update(cliPath).digest('hex').substring(0, 8)
 }

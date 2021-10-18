@@ -14,14 +14,10 @@ describe('dotenvExpand', () => {
         SQLITE6: 'file:dev{$.db',
         SQLITE7: 'file:${dev.db',
         SQLITE8: 'file:${dev$.db',
-        POSTGRES1:
-          'postgres://user:password@server.host:5432/database?ssl=1&schema=schema$1234',
-        POSTGRES2:
-          'postgres://$user:password@server.host:5432/database?ssl=1&schema=schema$1234',
-        POSTGRES3:
-          'postgres://u$ser:pass$word@server.host:5432/database?ssl=1&schema=schema$1234',
-        POSTGRES4:
-          'postgres://user:password@serv$er.host:5432/database?ssl=1&schema=schema$1234',
+        POSTGRES1: 'postgres://user:password@server.host:5432/database?ssl=1&schema=schema$1234',
+        POSTGRES2: 'postgres://$user:password@server.host:5432/database?ssl=1&schema=schema$1234',
+        POSTGRES3: 'postgres://u$ser:pass$word@server.host:5432/database?ssl=1&schema=schema$1234',
+        POSTGRES4: 'postgres://user:password@serv$er.host:5432/database?ssl=1&schema=schema$1234',
         MYSQL1: 'mysql://user:password@serv$er.host:5432/$database',
         MYSQL2: 'mysql://user:password@server.host:5432/d$atabase',
       },
@@ -50,10 +46,8 @@ describe('dotenvExpand', () => {
   test('should expand', () => {
     const config = {
       parsed: {
-        DOTENV_PRISMA_EXPAND_DATABASE_URL:
-          'postgres://user:password@server.host:5432/database',
-        DOTENV_PRISMA_EXPAND_DATABASE_URL_WITH_SCHEMA:
-          '${DOTENV_PRISMA_EXPAND_DATABASE_URL}?ssl=1&schema=schema$1234',
+        DOTENV_PRISMA_EXPAND_DATABASE_URL: 'postgres://user:password@server.host:5432/database',
+        DOTENV_PRISMA_EXPAND_DATABASE_URL_WITH_SCHEMA: '${DOTENV_PRISMA_EXPAND_DATABASE_URL}?ssl=1&schema=schema$1234',
       },
     }
     expect(dotenvExpand(config)).toMatchInlineSnapshot(`
@@ -197,8 +191,7 @@ describe('dotenvExpand', () => {
   it('does not expand inline escaped dollar sign 2', () => {
     const dotenv = {
       parsed: {
-        INLINE_ESCAPED_EXPAND_BCRYPT:
-          '\\$2b\\$10\\$OMZ69gxxsmRgwAt945WHSujpr/u8ZMx.xwtxWOCMkeMW7p3XqKYca',
+        INLINE_ESCAPED_EXPAND_BCRYPT: '\\$2b\\$10\\$OMZ69gxxsmRgwAt945WHSujpr/u8ZMx.xwtxWOCMkeMW7p3XqKYca',
       },
     }
     const obj = dotenvExpand(dotenv).parsed
@@ -266,17 +259,13 @@ describe('integration', function () {
   it('multiple expand', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['MONGOLAB_URI']).toBe(
-      'mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db',
-    )
+    expect(obj['MONGOLAB_URI']).toBe('mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db')
   })
 
   it('should expand recursively', () => {
     const obj = dotenvExpand(dotenv).parsed!
 
-    expect(obj['MONGOLAB_URI_RECURSIVELY']).toBe(
-      'mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db',
-    )
+    expect(obj['MONGOLAB_URI_RECURSIVELY']).toBe('mongodb://username:password@abcd1234.mongolab.com:12345/heroku_db')
   })
 
   it('multiple expand without curly', () => {

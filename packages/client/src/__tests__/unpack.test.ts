@@ -26,18 +26,10 @@ describe('getField', () => {
       rootField: 'findUniqueUser',
     })
 
-    expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(
-      `findUniqueUser`,
-    )
-    expect(
-      getField(document, ['findUniqueUser', 'id']).name,
-    ).toMatchInlineSnapshot(`id`)
-    expect(
-      getField(document, ['findUniqueUser', 'posts']).name,
-    ).toMatchInlineSnapshot(`posts`)
-    expect(
-      getField(document, ['findUniqueUser', 'posts', 'title']).name,
-    ).toMatchInlineSnapshot(`title`)
+    expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(`findUniqueUser`)
+    expect(getField(document, ['findUniqueUser', 'id']).name).toMatchInlineSnapshot(`id`)
+    expect(getField(document, ['findUniqueUser', 'posts']).name).toMatchInlineSnapshot(`posts`)
+    expect(getField(document, ['findUniqueUser', 'posts', 'title']).name).toMatchInlineSnapshot(`title`)
   })
 })
 
@@ -113,8 +105,7 @@ describe('unpack', () => {
           createdAt: '2019-11-17T09:56:37.690Z',
           updatedAt: '2019-11-17T09:56:37.690Z',
           published: true,
-          title:
-            "One thing for sure: If you don't read the bible, you can't belong to the tribal.",
+          title: "One thing for sure: If you don't read the bible, you can't belong to the tribal.",
         },
       ],
     }

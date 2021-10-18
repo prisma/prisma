@@ -2,11 +2,7 @@ import Debug from '@prisma/debug'
 import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import type {
-  DataSource,
-  DMMF,
-  GeneratorConfig,
-} from '@prisma/generator-helper'
+import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import type { ExecaChildProcess, ExecaReturnValue } from 'execa'
@@ -51,22 +47,15 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
-  const queryEnginePath = await resolveBinary(
-    BinaryType.libqueryEngine,
-    options.prismaPath,
-  )
+  const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
 
   debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
-  const NodeAPIQueryEngineLibrary =
-    load<NodeAPILibraryTypes.Library>(queryEnginePath)
-  const datamodel =
-    options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
+  const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
+  const datamodel = options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
   let dmmf: DMMF.Document | undefined
   try {
-    dmmf = JSON.parse(
-      await NodeAPIQueryEngineLibrary.dmmf(datamodel),
-    ) as DMMF.Document
+    dmmf = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
   } catch (e: any) {
     const error = JSON.parse(e.message)
     const message = addMissingOpenSSLInfo(error.message)
@@ -77,10 +66,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
-  const queryEnginePath = await resolveBinary(
-    BinaryType.queryEngine,
-    options.prismaPath,
-  )
+  const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
@@ -89,10 +75,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
       try {
         tempDatamodelPath = await tmpWrite(options.datamodel!)
       } catch (err) {
-        throw new Error(
-          chalk.redBright.bold('Get DMMF ') +
-            'unable to write temp data model path',
-        )
+        throw new Error(chalk.redBright.bold('Get DMMF ') + 'unable to write temp data model path')
       }
     }
     const execaOptions = {
@@ -112,11 +95,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
       await unlink(tempDatamodelPath)
     }
 
-    if (
-      result.stdout.includes('Please wait until the') &&
-      options.retry &&
-      options.retry > 0
-    ) {
+    if (result.stdout.includes('Please wait until the') && options.retry && options.retry > 0) {
       debug('Retrying after "Please wait until"')
       await new Promise((r) => setTimeout(r, 5000))
       return getDMMF({
@@ -133,11 +112,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   } catch (e: any) {
     debug('getDMMF failed', e)
     // If this unlikely event happens, try it at least once more
-    if (
-      e.message.includes('Command failed with exit code 26 (ETXTBSY)') &&
-      options.retry &&
-      options.retry > 0
-    ) {
+    if (e.message.includes('Command failed with exit code 26 (ETXTBSY)') && options.retry && options.retry > 0) {
       await new Promise((resolve) => setTimeout(resolve, 500))
       debug('Retrying after ETXTBSY')
       return getDMMF({

@@ -9,10 +9,7 @@ export interface Dictionary<T> {
   [key: string]: T
 }
 
-export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (
-  collection,
-  prop,
-) => {
+export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (collection, prop) => {
   const acc = {}
 
   for (const obj of collection) {
@@ -22,11 +19,11 @@ export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (
   return acc
 }
 
-export const keyBy2: <T>(
-  collection1: T[],
-  collection2: T[],
-  prop: string,
-) => Dictionary<T> = (collection1, collection2, prop) => {
+export const keyBy2: <T>(collection1: T[], collection2: T[], prop: string) => Dictionary<T> = (
+  collection1,
+  collection2,
+  prop,
+) => {
   const acc = {}
 
   for (const obj of collection1) {
@@ -106,9 +103,7 @@ export const JSTypeToGraphQLType = {
   object: 'Json',
 }
 
-export function stringifyGraphQLType(
-  type: string | DMMF.InputType | DMMF.SchemaEnum,
-) {
+export function stringifyGraphQLType(type: string | DMMF.InputType | DMMF.SchemaEnum) {
   if (typeof type === 'string') {
     return type
   }
@@ -127,13 +122,9 @@ export function wrapWithList(str: string, isList: boolean) {
 const RFC_3339_REGEX =
   /^(\d{4}-(0[1-9]|1[012])-(0[1-9]|[12][0-9]|3[01])T([01][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9]|60))(\.\d{1,})?(([Z])|([+|-]([01][0-9]|2[0-3]):[0-5][0-9]))$/
 
-const UUID_REGEX =
-  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-export function getGraphQLType(
-  value: any,
-  potentialType?: string | DMMF.SchemaEnum | DMMF.InputType,
-): string {
+export function getGraphQLType(value: any, potentialType?: string | DMMF.SchemaEnum | DMMF.InputType): string {
   if (value === null) {
     return 'null'
   }
@@ -205,10 +196,7 @@ export function graphQLToJSType(gql: string) {
   return GraphQLScalarToJSTypeTable[gql]
 }
 
-export function getSuggestion(
-  str: string,
-  possibilities: string[],
-): string | null {
+export function getSuggestion(str: string, possibilities: string[]): string | null {
   const bestMatch = possibilities.reduce<{
     distance: number
     str: string | null
@@ -226,10 +214,7 @@ export function getSuggestion(
     },
     {
       // heuristic to be not too strict, but allow some big mistakes (<= ~ 5)
-      distance: Math.min(
-        Math.floor(str.length) * 1.1,
-        ...possibilities.map((p) => p.length * 3),
-      ),
+      distance: Math.min(Math.floor(str.length) * 1.1, ...possibilities.map((p) => p.length * 3)),
       str: null,
     },
   )
@@ -237,32 +222,22 @@ export function getSuggestion(
   return bestMatch.str
 }
 
-export function stringifyInputType(
-  input: string | DMMF.InputType | DMMF.SchemaEnum,
-  greenKeys = false,
-): string {
+export function stringifyInputType(input: string | DMMF.InputType | DMMF.SchemaEnum, greenKeys = false): string {
   if (typeof input === 'string') {
     return input
   }
   if ((input as DMMF.SchemaEnum).values) {
-    return `enum ${input.name} {\n${indent(
-      (input as DMMF.SchemaEnum).values.join(', '),
-      2,
-    )}\n}`
+    return `enum ${input.name} {\n${indent((input as DMMF.SchemaEnum).values.join(', '), 2)}\n}`
   } else {
     const body = indent(
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map((arg) => {
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${
-            arg.isRequired ? '' : '?'
-          }: ${chalk.white(
+          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'}: ${chalk.white(
             arg.inputTypes
               .map((argType) => {
                 return wrapWithList(
-                  argIsInputType(argType.type)
-                    ? argType.type.name
-                    : stringifyGraphQLType(argType.type),
+                  argIsInputType(argType.type) ? argType.type.name : stringifyGraphQLType(argType.type),
                   argType.isList,
                 )
               })
@@ -277,9 +252,7 @@ export function stringifyInputType(
         .join('\n'),
       2,
     )
-    return `${chalk.dim('type')} ${chalk.bold.dim(input.name)} ${chalk.dim(
-      '{',
-    )}\n${body}\n${chalk.dim('}')}`
+    return `${chalk.dim('type')} ${chalk.bold.dim(input.name)} ${chalk.dim('{')}\n${body}\n${chalk.dim('}')}`
   }
 }
 
@@ -291,9 +264,7 @@ export function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
   return true
 }
 
-export function getInputTypeName(
-  input: string | DMMF.InputType | DMMF.SchemaField | DMMF.SchemaEnum,
-) {
+export function getInputTypeName(input: string | DMMF.InputType | DMMF.SchemaField | DMMF.SchemaEnum) {
   if (typeof input === 'string') {
     if (input === 'Null') {
       return 'null'
@@ -304,9 +275,7 @@ export function getInputTypeName(
   return input.name
 }
 
-export function getOutputTypeName(
-  input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.SchemaEnum,
-) {
+export function getOutputTypeName(input: string | DMMF.OutputType | DMMF.SchemaField | DMMF.SchemaEnum) {
   if (typeof input === 'string') {
     return input
   }
@@ -338,9 +307,7 @@ export function inputTypeToJson(
   const showDeepType =
     isRequired &&
     inputType.fields.every(
-      (arg) =>
-        arg.inputTypes[0].location === 'inputObjectTypes' ||
-        arg.inputTypes[1]?.location === 'inputObjectTypes',
+      (arg) => arg.inputTypes[0].location === 'inputObjectTypes' || arg.inputTypes[1]?.location === 'inputObjectTypes',
     )
 
   if (nameOnly) {
@@ -351,15 +318,9 @@ export function inputTypeToJson(
     let str = ''
 
     if (!showDeepType && !curr.isRequired) {
-      str = curr.inputTypes
-        .map((argType) => getInputTypeName(argType.type))
-        .join(' | ')
+      str = curr.inputTypes.map((argType) => getInputTypeName(argType.type)).join(' | ')
     } else {
-      str = curr.inputTypes
-        .map((argInputType) =>
-          inputTypeToJson(argInputType.type, curr.isRequired, true),
-        )
-        .join(' | ')
+      str = curr.inputTypes.map((argInputType) => inputTypeToJson(argInputType.type, curr.isRequired, true)).join(' | ')
     }
 
     acc[curr.name + (curr.isRequired ? '' : '?')] = str
@@ -407,11 +368,7 @@ export function destroyCircular(from, seen: any[] = []) {
   return to
 }
 
-export function unionBy<T>(
-  arr1: T[],
-  arr2: T[],
-  iteratee: (element: T) => string | number,
-): T[] {
+export function unionBy<T>(arr1: T[], arr2: T[], iteratee: (element: T) => string | number): T[] {
   const map = {}
 
   for (const element of arr1) {
@@ -428,10 +385,7 @@ export function unionBy<T>(
   return Object.values(map)
 }
 
-export function uniqBy<T>(
-  arr: T[],
-  iteratee: (element: T) => string | number,
-): T[] {
+export function uniqBy<T>(arr: T[], iteratee: (element: T) => string | number): T[] {
   const map = {}
 
   for (const element of arr) {
@@ -459,10 +413,6 @@ export function isGroupByOutputName(type: string): boolean {
 
 export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
   return (
-    typeof type === 'object' &&
-    type.name &&
-    typeof type.name === 'string' &&
-    type.values &&
-    Array.isArray(type.values)
+    typeof type === 'object' && type.name && typeof type.name === 'string' && type.values && Array.isArray(type.values)
   )
 }

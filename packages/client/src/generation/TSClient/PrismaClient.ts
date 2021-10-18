@@ -122,9 +122,7 @@ export class PrismaClientClass implements Generatable {
  * \`\`\`
  * const prisma = new PrismaClient()
  * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(
-      example.model,
-    )}.findMany()
+ * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
  * 
@@ -199,9 +197,7 @@ ${[
           const methodName = lowerCase(m.model)
           return `\
 /**
- * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
-            m.model
-          }** model.
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}

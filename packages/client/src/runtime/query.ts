@@ -30,10 +30,7 @@ import { filterObject } from './utils/filterObject'
 import { flatMap } from './utils/flatMap'
 import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
-import type {
-  MissingItem,
-  PrintJsonWithErrorsArgs,
-} from './utils/printJsonErrors'
+import type { MissingItem, PrintJsonWithErrorsArgs } from './utils/printJsonErrors'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
@@ -41,10 +38,7 @@ import stringifyObject from './utils/stringifyObject'
 const tab = 2
 
 export class Document {
-  constructor(
-    public readonly type: 'query' | 'mutation',
-    public readonly children: Field[],
-  ) {
+  constructor(public readonly type: 'query' | 'mutation', public readonly children: Field[]) {
     this.type = type
     this.children = children
   }
@@ -66,21 +60,14 @@ ${indent(this.children.map(String).join('\n'), tab)}
     if (!select) {
       select = {}
     }
-    const invalidChildren = this.children.filter(
-      (child) => child.hasInvalidChild || child.hasInvalidArg,
-    )
+    const invalidChildren = this.children.filter((child) => child.hasInvalidChild || child.hasInvalidArg)
     if (invalidChildren.length === 0) {
       return
     }
 
     const fieldErrors: FieldError[] = []
     const argErrors: ArgError[] = []
-    const prefix =
-      select && select.select
-        ? 'select'
-        : select.include
-        ? 'include'
-        : undefined
+    const prefix = select && select.select ? 'select' : select.include ? 'include' : undefined
 
     for (const child of invalidChildren) {
       const errors = child.collectErrors(prefix)
@@ -111,17 +98,11 @@ ${indent(this.children.map(String).join('\n'), tab)}
         const fieldType = fieldError.error.outputType
         const { isInclude } = fieldError.error
         fieldType.fields
-          .filter((field) =>
-            isInclude
-              ? field.outputType.location === 'outputObjectTypes'
-              : true,
-          )
+          .filter((field) => (isInclude ? field.outputType.location === 'outputObjectTypes' : true))
           .forEach((field) => {
             const splittedPath = path.split('.')
             missingItems.push({
-              path: `${splittedPath
-                .slice(0, splittedPath.length - 1)
-                .join('.')}.${field.name}`,
+              path: `${splittedPath.slice(0, splittedPath.length - 1).join('.')}.${field.name}`,
               type: 'true',
               isRequired: false,
             })
@@ -138,18 +119,13 @@ ${indent(this.children.map(String).join('\n'), tab)}
         fieldError.error.type === 'emptyInclude'
       ) {
         const selectPathArray = this.normalizePath(fieldError.path, select)
-        const selectPath = selectPathArray
-          .slice(0, selectPathArray.length - 1)
-          .join('.')
+        const selectPath = selectPathArray.slice(0, selectPathArray.length - 1).join('.')
 
-        const fieldType = fieldError.error.field.outputType
-          .type as DMMF.OutputType
+        const fieldType = fieldError.error.field.outputType.type as DMMF.OutputType
 
         fieldType.fields
           ?.filter((field) =>
-            fieldError.error.type === 'emptyInclude'
-              ? field.outputType.location === 'outputObjectTypes'
-              : true,
+            fieldError.error.type === 'emptyInclude' ? field.outputType.location === 'outputObjectTypes' : true,
           )
           .forEach((field) => {
             missingItems.push({
@@ -165,10 +141,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
       const path = this.normalizePath(argError.path, select).join('.')
       if (argError.error.type === 'invalidName') {
         keyPaths.push(path)
-      } else if (
-        argError.error.type !== 'missingArg' &&
-        argError.error.type !== 'atLeastOne'
-      ) {
+      } else if (argError.error.type !== 'missingArg' && argError.error.type !== 'atLeastOne') {
         valuePaths.push(path)
       } else if (argError.error.type === 'missingArg') {
         const type =
@@ -199,19 +172,15 @@ ${indent(this.children.map(String).join('\n'), tab)}
         (e) => e.error.type === 'missingArg' && e.error.missingArg.isRequired,
       )
       const hasOptionalMissingArgsErrors = Boolean(
-        argErrors.find(
-          (e) =>
-            e.error.type === 'missingArg' && !e.error.missingArg.isRequired,
-        ),
+        argErrors.find((e) => e.error.type === 'missingArg' && !e.error.missingArg.isRequired),
       )
-      const hasMissingArgsErrors =
-        hasOptionalMissingArgsErrors || hasRequiredMissingArgsErrors
+      const hasMissingArgsErrors = hasOptionalMissingArgsErrors || hasRequiredMissingArgsErrors
 
       let missingArgsLegend = ''
       if (hasRequiredMissingArgsErrors) {
-        missingArgsLegend += `\n${chalk.dim(
-          'Note: Lines with ',
-        )}${chalk.reset.greenBright('+')} ${chalk.dim('are required')}`
+        missingArgsLegend += `\n${chalk.dim('Note: Lines with ')}${chalk.reset.greenBright('+')} ${chalk.dim(
+          'are required',
+        )}`
       }
 
       if (hasOptionalMissingArgsErrors) {
@@ -219,35 +188,21 @@ ${indent(this.children.map(String).join('\n'), tab)}
           missingArgsLegend = '\n'
         }
         if (hasRequiredMissingArgsErrors) {
-          missingArgsLegend += chalk.dim(
-            `, lines with ${chalk.green('?')} are optional`,
-          )
+          missingArgsLegend += chalk.dim(`, lines with ${chalk.green('?')} are optional`)
         } else {
-          missingArgsLegend += chalk.dim(
-            `Note: Lines with ${chalk.green('?')} are optional`,
-          )
+          missingArgsLegend += chalk.dim(`Note: Lines with ${chalk.green('?')} are optional`)
         }
         missingArgsLegend += chalk.dim('.')
       }
 
-      const relevantArgErrors = argErrors.filter(
-        (e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired,
-      )
+      const relevantArgErrors = argErrors.filter((e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired)
 
       let errorMessages = relevantArgErrors
-        .map((e) =>
-          this.printArgError(
-            e,
-            hasMissingArgsErrors,
-            errorFormat === 'minimal',
-          ),
-        ) // if no callsite is provided, just render the minimal error
+        .map((e) => this.printArgError(e, hasMissingArgsErrors, errorFormat === 'minimal')) // if no callsite is provided, just render the minimal error
         .join('\n')
 
       errorMessages += `
-${fieldErrors
-  .map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal'))
-  .join('\n')}`
+${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === 'minimal')).join('\n')}`
 
       if (errorFormat === 'minimal') {
         return stripAnsi(errorMessages)
@@ -277,10 +232,9 @@ ${fieldErrors
         printJsonArgs = transformAggregatePrintJsonArgs(printJsonArgs)
       }
 
-      const errorStr = `${stack}${indent(
-        printJsonWithErrors(printJsonArgs),
+      const errorStr = `${stack}${indent(printJsonWithErrors(printJsonArgs), indentValue).slice(
         indentValue,
-      ).slice(indentValue)}${chalk.dim(afterLines)}
+      )}${chalk.dim(afterLines)}
 
 ${errorMessages}${missingArgsLegend}\n`
 
@@ -291,9 +245,7 @@ ${errorMessages}${missingArgsLegend}\n`
     }
     // end renderErrorStr definition
 
-    const error = new PrismaClientValidationError(
-      renderErrorStr(validationCallsite),
-    )
+    const error = new PrismaClientValidationError(renderErrorStr(validationCallsite))
 
     // @ts-ignore
     if (process.env.NODE_ENV !== 'production') {
@@ -304,18 +256,10 @@ ${errorMessages}${missingArgsLegend}\n`
     }
     throw error
   }
-  protected printFieldError = (
-    { error }: FieldError,
-    missingItems: MissingItem[],
-    minimal: boolean,
-  ) => {
+  protected printFieldError = ({ error }: FieldError, missingItems: MissingItem[], minimal: boolean) => {
     if (error.type === 'emptySelect') {
-      const additional = minimal
-        ? ''
-        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
-      return `The ${chalk.redBright(
-        '`select`',
-      )} statement for type ${chalk.bold(
+      const additional = minimal ? '' : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
+      return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
       )} must not be empty.${additional}`
     }
@@ -323,32 +267,22 @@ ${errorMessages}${missingArgsLegend}\n`
       if (missingItems.length === 0) {
         return `${chalk.bold(
           getOutputTypeName(error.field.outputType.type),
-        )} does not have any relation and therefore can't have an ${chalk.redBright(
-          '`include`',
-        )} statement.`
+        )} does not have any relation and therefore can't have an ${chalk.redBright('`include`')} statement.`
       }
-      const additional = minimal
-        ? ''
-        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
-      return `The ${chalk.redBright(
-        '`include`',
-      )} statement for type ${chalk.bold(
+      const additional = minimal ? '' : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
+      return `The ${chalk.redBright('`include`')} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
       )} must not be empty.${additional}`
     }
     if (error.type === 'noTrueSelect') {
-      return `The ${chalk.redBright(
-        '`select`',
-      )} statement for type ${chalk.bold(
+      return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
         getOutputTypeName(error.field.outputType.type),
       )} needs ${chalk.bold('at least one truthy value')}.`
     }
     if (error.type === 'includeAndSelect') {
-      return `Please ${chalk.bold('either')} use ${chalk.greenBright(
-        '`include`',
-      )} or ${chalk.greenBright('`select`')}, but ${chalk.redBright(
-        'not both',
-      )} at the same time.`
+      return `Please ${chalk.bold('either')} use ${chalk.greenBright('`include`')} or ${chalk.greenBright(
+        '`select`',
+      )}, but ${chalk.redBright('not both')} at the same time.`
     }
     if (error.type === 'invalidFieldName') {
       const statement = error.isInclude ? 'include' : 'select'
@@ -356,24 +290,18 @@ ${errorMessages}${missingArgsLegend}\n`
       const additional = minimal
         ? ''
         : error.isInclude && missingItems.length === 0
-        ? `\nThis model has no relations, so you can't use ${chalk.redBright(
-            'include',
-          )} with it.`
+        ? `\nThis model has no relations, so you can't use ${chalk.redBright('include')} with it.`
         : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
-      let str = `${wording} field ${chalk.redBright(
-        `\`${error.providedName}\``,
-      )} for ${chalk.bold(statement)} statement on model ${chalk.bold.white(
-        error.modelName,
-      )}.${additional}`
+      let str = `${wording} field ${chalk.redBright(`\`${error.providedName}\``)} for ${chalk.bold(
+        statement,
+      )} statement on model ${chalk.bold.white(error.modelName)}.${additional}`
 
       if (error.didYouMean) {
         str += ` Did you mean ${chalk.greenBright(`\`${error.didYouMean}\``)}?`
       }
 
       if (error.isIncludeScalar) {
-        str += `\nNote, that ${chalk.bold(
-          'include',
-        )} statements only accept relation fields.`
+        str += `\nNote, that ${chalk.bold('include')} statements only accept relation fields.`
       }
 
       return str
@@ -381,15 +309,11 @@ ${errorMessages}${missingArgsLegend}\n`
     if (error.type === 'invalidFieldType') {
       const str = `Invalid value ${chalk.redBright(
         `${stringifyObject(error.providedValue)}`,
-      )} of type ${chalk.redBright(
-        getGraphQLType(error.providedValue, undefined),
-      )} for field ${chalk.bold(
+      )} of type ${chalk.redBright(getGraphQLType(error.providedValue, undefined))} for field ${chalk.bold(
         `${error.fieldName}`,
-      )} on model ${chalk.bold.white(
-        error.modelName,
-      )}. Expected either ${chalk.greenBright('true')} or ${chalk.greenBright(
-        'false',
-      )}.`
+      )} on model ${chalk.bold.white(error.modelName)}. Expected either ${chalk.greenBright(
+        'true',
+      )} or ${chalk.greenBright('false')}.`
 
       return str
     }
@@ -397,44 +321,25 @@ ${errorMessages}${missingArgsLegend}\n`
     return undefined
   }
 
-  protected printArgError = (
-    { error, path, id }: ArgError,
-    hasMissingItems: boolean,
-    minimal: boolean,
-  ) => {
+  protected printArgError = ({ error, path, id }: ArgError, hasMissingItems: boolean, minimal: boolean) => {
     if (error.type === 'invalidName') {
-      let str = `Unknown arg ${chalk.redBright(
-        `\`${error.providedName}\``,
-      )} in ${chalk.bold(path.join('.'))} for type ${chalk.bold(
-        error.outputType
-          ? error.outputType.name
-          : getInputTypeName(error.originalType),
-      )}.`
+      let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
+        path.join('.'),
+      )} for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
       if (error.didYouMeanField) {
-        str += `\n→ Did you forget to wrap it with \`${chalk.greenBright(
-          'select',
-        )}\`? ${chalk.dim(
-          'e.g. ' +
-            chalk.greenBright(
-              `{ select: { ${error.providedName}: ${error.providedValue} } }`,
-            ),
+        str += `\n→ Did you forget to wrap it with \`${chalk.greenBright('select')}\`? ${chalk.dim(
+          'e.g. ' + chalk.greenBright(`{ select: { ${error.providedName}: ${error.providedValue} } }`),
         )}`
       } else if (error.didYouMeanArg) {
         str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
         if (!hasMissingItems && !minimal) {
-          str +=
-            ` ${chalk.dim('Available args:')}\n` +
-            stringifyInputType(error.originalType, true)
+          str += ` ${chalk.dim('Available args:')}\n` + stringifyInputType(error.originalType, true)
         }
       } else {
         if ((error.originalType as DMMF.InputType).fields.length === 0) {
-          str += ` The field ${chalk.bold(
-            (error.originalType as DMMF.InputType).name,
-          )} has no arguments.`
+          str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
         } else if (!hasMissingItems && !minimal) {
-          str +=
-            ` Available args:\n\n` +
-            stringifyInputType(error.originalType, true)
+          str += ` Available args:\n\n` + stringifyInputType(error.originalType, true)
         }
       }
       return str
@@ -449,13 +354,9 @@ ${errorMessages}${missingArgsLegend}\n`
       // TODO: we don't yet support enums in a union with a non enum. This is mostly due to not implemented error handling
       // at this code part.
       if (error.requiredType.bestFittingType.location === 'enumTypes') {
-        return `Argument ${chalk.bold(
-          error.argName,
-        )}: Provided value ${chalk.redBright(valueStr)}${
+        return `Argument ${chalk.bold(error.argName)}: Provided value ${chalk.redBright(valueStr)}${
           multilineValue ? '' : ' '
-        }of type ${chalk.redBright(
-          getGraphQLType(error.providedValue),
-        )} on ${chalk.bold(
+        }of type ${chalk.redBright(getGraphQLType(error.providedValue))} on ${chalk.bold(
           `prisma.${this.children[0].name}`,
         )} is not a ${chalk.greenBright(
           wrapWithList(
@@ -463,32 +364,18 @@ ${errorMessages}${missingArgsLegend}\n`
             error.requiredType.bestFittingType.isList,
           ),
         )}.
-→ Possible values: ${(
-          error.requiredType.bestFittingType.type as DMMF.SchemaEnum
-        ).values
-          .map((v) =>
-            chalk.greenBright(
-              `${stringifyGraphQLType(
-                error.requiredType.bestFittingType.type,
-              )}.${v}`,
-            ),
-          )
+→ Possible values: ${(error.requiredType.bestFittingType.type as DMMF.SchemaEnum).values
+          .map((v) => chalk.greenBright(`${stringifyGraphQLType(error.requiredType.bestFittingType.type)}.${v}`))
           .join(', ')}`
       }
 
       let typeStr = '.'
       if (isInputArgType(error.requiredType.bestFittingType.type)) {
-        typeStr =
-          ':\n' + stringifyInputType(error.requiredType.bestFittingType.type)
+        typeStr = ':\n' + stringifyInputType(error.requiredType.bestFittingType.type)
       }
       let expected = `${error.requiredType.inputType
         .map((t) =>
-          chalk.greenBright(
-            wrapWithList(
-              stringifyGraphQLType(t.type),
-              error.requiredType.bestFittingType.isList,
-            ),
-          ),
+          chalk.greenBright(wrapWithList(stringifyGraphQLType(t.type), error.requiredType.bestFittingType.isList)),
         )
         .join(' or ')}${typeStr}`
       const inputType: null | DMMF.SchemaArgInputType =
@@ -498,44 +385,26 @@ ${errorMessages}${missingArgsLegend}\n`
       if (inputType) {
         expected += `\n` + stringifyInputType(inputType.type, true)
       }
-      return `Argument ${chalk.bold(
-        error.argName,
-      )}: Got invalid value ${chalk.redBright(valueStr)}${
+      return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(valueStr)}${
         multilineValue ? '' : ' '
-      }on ${chalk.bold(
-        `prisma.${this.children[0].name}`,
-      )}. Provided ${chalk.redBright(
+      }on ${chalk.bold(`prisma.${this.children[0].name}`)}. Provided ${chalk.redBright(
         getGraphQLType(error.providedValue),
       )}, expected ${expected}`
     }
 
     if (error.type === 'invalidNullArg') {
-      const forStr =
-        path.length === 1 && path[0] === error.name
-          ? ''
-          : ` for ${chalk.bold(`${path.join('.')}`)}`
-      const undefinedTip = ` Please use ${chalk.bold.greenBright(
-        'undefined',
-      )} instead.`
-      return `Argument ${chalk.greenBright(
-        error.name,
-      )}${forStr} must not be ${chalk.bold('null')}.${undefinedTip}`
+      const forStr = path.length === 1 && path[0] === error.name ? '' : ` for ${chalk.bold(`${path.join('.')}`)}`
+      const undefinedTip = ` Please use ${chalk.bold.greenBright('undefined')} instead.`
+      return `Argument ${chalk.greenBright(error.name)}${forStr} must not be ${chalk.bold('null')}.${undefinedTip}`
     }
 
     if (error.type === 'missingArg') {
-      const forStr =
-        path.length === 1 && path[0] === error.missingName
-          ? ''
-          : ` for ${chalk.bold(`${path.join('.')}`)}`
-      return `Argument ${chalk.greenBright(
-        error.missingName,
-      )}${forStr} is missing.`
+      const forStr = path.length === 1 && path[0] === error.missingName ? '' : ` for ${chalk.bold(`${path.join('.')}`)}`
+      return `Argument ${chalk.greenBright(error.missingName)}${forStr} is missing.`
     }
 
     if (error.type === 'atLeastOne') {
-      const additional = minimal
-        ? ''
-        : ` Available args are listed in ${chalk.dim.green('green')}.`
+      const additional = minimal ? '' : ` Available args are listed in ${chalk.dim.green('green')}.`
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
       )} needs ${chalk.greenBright('at least one')} argument.${additional}`
@@ -544,14 +413,10 @@ ${errorMessages}${missingArgsLegend}\n`
     if (error.type === 'atMostOne') {
       const additional = minimal
         ? ''
-        : ` Please choose one. ${chalk.dim(
-            'Available args:',
-          )} \n${stringifyInputType(error.inputType, true)}`
+        : ` Please choose one. ${chalk.dim('Available args:')} \n${stringifyInputType(error.inputType, true)}`
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
-      )} needs ${chalk.greenBright(
-        'exactly one',
-      )} argument, but you provided ${error.providedKeys
+      )} needs ${chalk.greenBright('exactly one')} argument, but you provided ${error.providedKeys
         .map((key) => chalk.redBright(key))
         .join(' and ')}.${additional}`
     }
@@ -628,9 +493,7 @@ export class Field {
     this.error = error
     this.schemaField = schemaField
     this.hasInvalidChild = children
-      ? children.some((child) =>
-          Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild),
-        )
+      ? children.some((child) => Boolean(child.error || child.hasInvalidArg || child.hasInvalidChild))
       : false
     this.hasInvalidArg = args ? args.hasInvalidArg : false
   }
@@ -696,11 +559,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
     // get all errors from args
     if (this.args) {
-      argErrors.push(
-        ...this.args
-          .collectErrors()
-          .map((e) => ({ ...e, path: [this.name, ...e.path] })),
-      )
+      argErrors.push(...this.args.collectErrors().map((e) => ({ ...e, path: [this.name, ...e.path] })))
     }
 
     return {
@@ -715,9 +574,7 @@ export class Args {
   public readonly hasInvalidArg: boolean
   constructor(args: Arg[] = []) {
     this.args = args
-    this.hasInvalidArg = args
-      ? args.some((arg) => Boolean(arg.hasError))
-      : false
+    this.hasInvalidArg = args ? args.some((arg) => Boolean(arg.hasError)) : false
   }
   get [Symbol.toStringTag]() {
     return 'Args'
@@ -812,14 +669,7 @@ export class Arg {
   public isNullable: boolean
   public inputType?: DMMF.SchemaArgInputType
 
-  constructor({
-    key,
-    value,
-    isEnum = false,
-    error,
-    schemaArg,
-    inputType,
-  }: ArgOptions) {
+  constructor({ key, value, isEnum = false, error, schemaArg, inputType }: ArgOptions) {
     this.inputType = inputType
     this.key = key
     this.value = value
@@ -827,15 +677,11 @@ export class Arg {
     this.error = error
     this.schemaArg = schemaArg
     this.isNullable =
-      schemaArg?.inputTypes.reduce<boolean>(
-        (isNullable) => isNullable && schemaArg.isNullable,
-        true,
-      ) || false
+      schemaArg?.inputTypes.reduce<boolean>((isNullable) => isNullable && schemaArg.isNullable, true) || false
     this.hasError =
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
-      (Array.isArray(value) &&
-        value.some((v) => (v instanceof Args ? v.hasInvalidArg : false)))
+      (Array.isArray(value) && value.some((v) => (v instanceof Args ? v.hasInvalidArg : false)))
   }
   get [Symbol.toStringTag]() {
     return 'Arg'
@@ -912,28 +758,14 @@ ${indent(value.toString(), 2)}
 
     // collect errors of children if there are any
     if (this.value instanceof Args) {
-      errors.push(
-        ...this.value
-          .collectErrors()
-          .map((e) => ({ ...e, path: [this.key, ...e.path] })),
-      )
+      errors.push(...this.value.collectErrors().map((e) => ({ ...e, path: [this.key, ...e.path] })))
     }
 
     return errors
   }
 }
 
-export type ArgValue =
-  | string
-  | boolean
-  | number
-  | undefined
-  | Args
-  | string[]
-  | boolean[]
-  | number[]
-  | Args[]
-  | null
+export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[] | null
 
 export interface DocumentInput {
   dmmf: DMMFClass
@@ -942,12 +774,7 @@ export interface DocumentInput {
   select?: any
 }
 
-export function makeDocument({
-  dmmf,
-  rootTypeName,
-  rootField,
-  select,
-}: DocumentInput): Document {
+export function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput): Document {
   if (!select) {
     select = {}
   }
@@ -962,12 +789,7 @@ export function makeDocument({
     },
     name: rootTypeName,
   }
-  const children = selectionToFields(
-    dmmf,
-    { [rootField]: select },
-    fakeRootField,
-    [rootTypeName],
-  )
+  const children = selectionToFields(dmmf, { [rootField]: select }, fakeRootField, [rootTypeName])
   return new Document(rootTypeName, children) as any
 }
 
@@ -984,9 +806,7 @@ export function selectionToFields(
 ): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
-    const field = outputType.fieldMap
-      ? outputType.fieldMap[name]
-      : outputType.fields.find((f) => f.name === name)
+    const field = outputType.fieldMap ? outputType.fieldMap[name] : outputType.fields.find((f) => f.name === name)
 
     if (!field) {
       // if the field name is incorrect, we ignore the args and child fields altogether
@@ -1047,16 +867,13 @@ export function selectionToFields(
         maxNumFields: null,
       },
     }
-    const argsWithoutIncludeAndSelect =
-      typeof value === 'object' ? omit(value, ['include', 'select']) : undefined
+    const argsWithoutIncludeAndSelect = typeof value === 'object' ? omit(value, ['include', 'select']) : undefined
     const args = argsWithoutIncludeAndSelect
       ? objectToArgs(
           argsWithoutIncludeAndSelect,
           transformedField,
           [],
-          typeof field === 'string'
-            ? undefined
-            : (field.outputType.type as DMMF.OutputType),
+          typeof field === 'string' ? undefined : (field.outputType.type as DMMF.OutputType),
         )
       : undefined
     const isRelation = field.outputType.location === 'outputObjectTypes'
@@ -1129,12 +946,9 @@ export function selectionToFields(
                           modelName: fieldOutputType.name,
                           outputType: fieldOutputType,
                           providedName: invalidKey,
-                          didYouMean:
-                            getSuggestion(invalidKey, allowedKeys) || undefined,
+                          didYouMean: getSuggestion(invalidKey, allowedKeys) || undefined,
                           isInclude: true,
-                          isIncludeScalar: fieldOutputType.fields.some(
-                            (f) => f.name === invalidKey,
-                          ),
+                          isIncludeScalar: fieldOutputType.fields.some((f) => f.name === invalidKey),
                         },
                       }),
                     ],
@@ -1191,9 +1005,7 @@ export function selectionToFields(
       }
     }
     // either use select or default selection, but not both at the same time
-    const defaultSelection = isRelation
-      ? getDefaultSelection(field.outputType.type as DMMF.OutputType)
-      : null
+    const defaultSelection = isRelation ? getDefaultSelection(field.outputType.type as DMMF.OutputType) : null
 
     let select = defaultSelection
     if (value) {
@@ -1222,9 +1034,7 @@ export function selectionToFields(
     }
 
     const children =
-      select !== false && isRelation
-        ? selectionToFields(dmmf, select, field, [...path, name])
-        : undefined
+      select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
 
     acc.push(new Field({ name, args, children, schemaField: field }))
 
@@ -1244,10 +1054,7 @@ function getDefaultSelection(outputType: DMMF.OutputType) {
   const acc = Object.create(null)
 
   for (const f of outputType.fields) {
-    if (
-      f.outputType.location === 'scalar' ||
-      f.outputType.location === 'enumTypes'
-    ) {
+    if (f.outputType.location === 'scalar' || f.outputType.location === 'enumTypes') {
       acc[f.name] = true
     } else {
       // otherwise field is a relation. Only continue if it's an embedded type
@@ -1289,11 +1096,7 @@ function getInvalidTypeArg(
 }
 
 // TODO: Refactor
-function hasCorrectScalarType(
-  value: any,
-  arg: DMMF.SchemaArg,
-  inputType: DMMF.SchemaArgInputType,
-): boolean {
+function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): boolean {
   const { type, isList } = inputType
   const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
   const graphQLType = getGraphQLType(value, type)
@@ -1326,17 +1129,11 @@ function hasCorrectScalarType(
     return true
   }
 
-  if (
-    (graphQLType === 'Int' || graphQLType === 'Float') &&
-    expectedType === 'Decimal'
-  ) {
+  if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
     return true
   }
 
-  if (
-    (graphQLType === 'List<Int>' || graphQLType === 'List<Float>') &&
-    expectedType === 'List<Decimal>'
-  ) {
+  if ((graphQLType === 'List<Int>' || graphQLType === 'List<Float>') && expectedType === 'List<Decimal>') {
     return true
   }
 
@@ -1369,8 +1166,7 @@ function hasCorrectScalarType(
 
   if (
     expectedType === 'List<String>' &&
-    (graphQLType === 'List<String | UUID>' ||
-      graphQLType === 'List<UUID | String>')
+    (graphQLType === 'List<String | UUID>' || graphQLType === 'List<UUID | String>')
   ) {
     return true
   }
@@ -1392,11 +1188,7 @@ function hasCorrectScalarType(
 
   // to match all strings which are valid decimals
   // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L115
-  if (
-    graphQLType === 'String' &&
-    expectedType === 'Decimal' &&
-    /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value)
-  ) {
+  if (graphQLType === 'String' && expectedType === 'Decimal' && /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value)) {
     return true
   }
 
@@ -1443,11 +1235,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
         score += Math.log(e.path.length)
 
         if (e.error.type === 'missingArg') {
-          if (
-            arg.inputType &&
-            isInputArgType(arg.inputType.type) &&
-            arg.inputType.type.name.includes('Unchecked')
-          ) {
+          if (arg.inputType && isInputArgType(arg.inputType.type) && arg.inputType.type.name.includes('Unchecked')) {
             score *= 2
           }
         }
@@ -1509,12 +1297,7 @@ function sum(n: number[]): number {
  * @param arg
  * @param inputType
  */
-function tryInferArgs(
-  key: string,
-  value: any,
-  arg: DMMF.SchemaArg,
-  inputType: DMMF.SchemaArgInputType,
-): Arg | null {
+function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg | null {
   if (typeof value === 'undefined') {
     // the arg is undefined and not required - we're fine
     if (!arg.isRequired) {
@@ -1542,8 +1325,7 @@ function tryInferArgs(
   if (value === null && !isNullable && !isRequired) {
     // we don't need to execute this ternery if not necessary
     const isAtLeastOne = isInputArgType(inputType.type)
-      ? inputType.type.constraints.minNumFields !== null &&
-        inputType.type.constraints.minNumFields > 0
+      ? inputType.type.constraints.minNumFields !== null && inputType.type.constraints.minNumFields > 0
       : false
     if (!isAtLeastOne) {
       return new Arg({
@@ -1603,10 +1385,7 @@ function tryInferArgs(
 
         return new Arg({
           key,
-          value:
-            val === null
-              ? null
-              : objectToArgs(val, inputType.type, arg.inputTypes),
+          value: val === null ? null : objectToArgs(val, inputType.type, arg.inputTypes),
           isEnum: inputType.location === 'enumTypes',
           error,
           inputType,
@@ -1637,10 +1416,8 @@ function tryInferArgs(
 
   const argInputType = inputType.type as DMMF.InputType
   const hasAtLeastOneError =
-    typeof argInputType.constraints?.minNumFields === 'number' &&
-    argInputType.constraints?.minNumFields > 0
-      ? Array.isArray(value) &&
-        value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
+    typeof argInputType.constraints?.minNumFields === 'number' && argInputType.constraints?.minNumFields > 0
+      ? Array.isArray(value) && value.some((v) => !v || Object.keys(cleanObject(v)).length === 0)
       : false
   let err: AtLeastOneError | undefined | AtMostOneError = hasAtLeastOneError
     ? {
@@ -1651,10 +1428,8 @@ function tryInferArgs(
     : undefined
   if (!err) {
     const hasOneOfError =
-      typeof argInputType.constraints?.maxNumFields === 'number' &&
-      argInputType.constraints?.maxNumFields < 2
-        ? Array.isArray(value) &&
-          value.find((v) => !v || Object.keys(cleanObject(v)).length !== 1)
+      typeof argInputType.constraints?.maxNumFields === 'number' && argInputType.constraints?.maxNumFields < 2
+        ? Array.isArray(value) && value.find((v) => !v || Object.keys(cleanObject(v)).length !== 1)
         : false
     if (hasOneOfError) {
       err = {
@@ -1668,10 +1443,7 @@ function tryInferArgs(
 
   if (!Array.isArray(value)) {
     for (const nestedArgInputType of arg.inputTypes) {
-      const args = objectToArgs(
-        value,
-        nestedArgInputType.type as DMMF.InputType,
-      )
+      const args = objectToArgs(value, nestedArgInputType.type as DMMF.InputType)
       if (args.collectErrors().length === 0) {
         return new Arg({
           key,
@@ -1702,9 +1474,7 @@ function tryInferArgs(
   })
 }
 
-export function isInputArgType(
-  argType: DMMF.ArgType,
-): argType is DMMF.InputType {
+export function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
   if (typeof argType === 'string') {
     return false
   }
@@ -1716,12 +1486,7 @@ export function isInputArgType(
   return true
 }
 
-function scalarToArg(
-  key: string,
-  value: any,
-  arg: DMMF.SchemaArg,
-  inputType: DMMF.SchemaArgInputType,
-): Arg {
+function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg {
   if (hasCorrectScalarType(value, arg, inputType)) {
     return new Arg({
       key,
@@ -1747,16 +1512,10 @@ function objectToArgs(
   const objEntries = Object.entries(obj || {})
   const entries = unionBy(objEntries, requiredArgs, (a) => a[0])
   const argsList = entries.reduce((acc, [argName, value]: any) => {
-    const schemaArg = fieldMap
-      ? fieldMap[argName]
-      : args.find((a) => a.name === argName)
+    const schemaArg = fieldMap ? fieldMap[argName] : args.find((a) => a.name === argName)
     if (!schemaArg) {
       const didYouMeanField =
-        typeof value === 'boolean' &&
-        outputType &&
-        outputType.fields.some((f) => f.name === argName)
-          ? argName
-          : null
+        typeof value === 'boolean' && outputType && outputType.fields.some((f) => f.name === argName) ? argName : null
       acc.push(
         new Arg({
           key: argName,
@@ -1767,12 +1526,7 @@ function objectToArgs(
             providedValue: value,
             didYouMeanField,
             didYouMeanArg:
-              (!didYouMeanField &&
-                getSuggestion(argName, [
-                  ...args.map((a) => a.name),
-                  'select',
-                ])) ||
-              undefined,
+              (!didYouMeanField && getSuggestion(argName, [...args.map((a) => a.name), 'select'])) || undefined,
             originalType: inputType,
             possibilities,
             outputType,
@@ -1794,16 +1548,10 @@ function objectToArgs(
   if (
     (typeof inputType.constraints.minNumFields === 'number' &&
       objEntries.length < inputType.constraints.minNumFields) ||
-    argsList.find(
-      (arg) =>
-        arg.error?.type === 'missingArg' || arg.error?.type === 'atLeastOne',
-    )
+    argsList.find((arg) => arg.error?.type === 'missingArg' || arg.error?.type === 'atLeastOne')
   ) {
     const optionalMissingArgs = inputType.fields.filter(
-      (field) =>
-        !field.isRequired &&
-        obj &&
-        (typeof obj[field.name] === 'undefined' || obj[field.name] === null),
+      (field) => !field.isRequired && obj && (typeof obj[field.name] === 'undefined' || obj[field.name] === null),
     )
     argsList.push(
       ...optionalMissingArgs.map((arg) => {
@@ -1859,12 +1607,7 @@ export interface MapScalarsOptions {
 }
 
 export function mapScalars({ field, data }: MapScalarsOptions): any {
-  if (
-    !data ||
-    typeof data !== 'object' ||
-    !field.children ||
-    !field.schemaField
-  ) {
+  if (!data || typeof data !== 'object' || !field.children || !field.schemaField) {
     return data
   }
 
@@ -1886,10 +1629,7 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
         if (Array.isArray(data)) {
           for (const entry of data) {
             // in the very unlikely case, that a field is not there in the result, ignore it
-            if (
-              typeof entry[child.name] !== 'undefined' &&
-              entry[child.name] !== null
-            ) {
+            if (typeof entry[child.name] !== 'undefined' && entry[child.name] !== null) {
               // for scalar lists
               if (Array.isArray(entry[child.name])) {
                 entry[child.name] = entry[child.name].map(deserializer)
@@ -1900,10 +1640,7 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
           }
         } else {
           // same here, ignore it if it's undefined
-          if (
-            typeof data[child.name] !== 'undefined' &&
-            data[child.name] !== null
-          ) {
+          if (typeof data[child.name] !== 'undefined' && data[child.name] !== null) {
             // for scalar lists
             if (Array.isArray(data[child.name])) {
               data[child.name] = data[child.name].map(deserializer)
@@ -1915,10 +1652,7 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
       }
     }
 
-    if (
-      child.schemaField &&
-      child.schemaField.outputType.location === 'outputObjectTypes'
-    ) {
+    if (child.schemaField && child.schemaField.outputType.location === 'outputObjectTypes') {
       if (Array.isArray(data)) {
         for (const entry of data) {
           mapScalars({ field: child, data: entry[child.name] })
@@ -1939,17 +1673,13 @@ export function getField(document: Document, path: string[]): Field {
   let pointer = document.children.find((c) => c.name === firstElement)
 
   if (!pointer) {
-    throw new Error(
-      `Could not find field ${firstElement} in document ${document}`,
-    )
+    throw new Error(`Could not find field ${firstElement} in document ${document}`)
   }
 
   while (todo.length > 0) {
     const key = todo.shift()
     if (!pointer!.children) {
-      throw new Error(
-        `Can't get children for field ${pointer} with child ${key}`,
-      )
+      throw new Error(`Can't get children for field ${pointer} with child ${key}`)
     }
     const child = pointer!.children.find((c) => c.name === key)
     if (!child) {

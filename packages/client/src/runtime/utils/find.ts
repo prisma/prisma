@@ -20,13 +20,7 @@ type Handler = (base: string, item: string, type: ItemType) => boolean | string
  * @returns
  */
 function direntToType(dirent: fs.Dirent | fs.Stats) {
-  return dirent.isFile()
-    ? 'f'
-    : dirent.isDirectory()
-    ? 'd'
-    : dirent.isSymbolicLink()
-    ? 'l'
-    : undefined
+  return dirent.isFile() ? 'f' : dirent.isDirectory() ? 'd' : dirent.isSymbolicLink() ? 'l' : undefined
 }
 
 /**
@@ -235,16 +229,7 @@ export async function findAsync(
       // dive within the directory tree
       if (deep.includes(itemType as any)) {
         // we recurse and continue mutating `found`
-        await findAsync(
-          itemPath,
-          match,
-          types,
-          deep,
-          limit,
-          handler,
-          found,
-          seen,
-        )
+        await findAsync(itemPath, match, types, deep, limit, handler, found, seen)
       }
     }
   } catch {}

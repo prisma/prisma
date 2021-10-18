@@ -8,11 +8,7 @@ import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
  * @param runtimeName
  * @returns
  */
-export function buildWarnEnvConflicts(
-  clientEngineType: ClientEngineType,
-  runtimeDir: string,
-  runtimeName: string,
-) {
+export function buildWarnEnvConflicts(clientEngineType: ClientEngineType, runtimeDir: string, runtimeName: string) {
   if (clientEngineType !== ClientEngineType.DataProxy) {
     return `
 const { warnEnvConflicts } = require('${runtimeDir}/${runtimeName}')

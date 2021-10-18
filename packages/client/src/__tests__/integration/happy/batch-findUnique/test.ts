@@ -26,9 +26,7 @@ test('batch findUnique', async () => {
   prisma.$on('query', (q) => {
     queries.push(q)
   })
-  users = await Promise.all(
-    users.map((u) => prisma.user.findUnique({ where: { id: u.id } })),
-  )
+  users = await Promise.all(users.map((u) => prisma.user.findUnique({ where: { id: u.id } })))
   expect(users).toMatchInlineSnapshot(`
     Array [
       Object {

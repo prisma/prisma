@@ -1,15 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import {
-  arg,
-  format,
-  getSchemaPath,
-  getSchemaDir,
-  HelpError,
-  isError,
-  isCi,
-  dropDatabase,
-  link,
-} from '@prisma/sdk'
+import { arg, format, getSchemaPath, getSchemaDir, HelpError, isError, isCi, dropDatabase, link } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
 import prompt from 'prompts'
@@ -27,14 +17,10 @@ export class DbDrop implements Command {
 ${process.platform === 'win32' ? '' : chalk.bold('💣  ')}Drop the database
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db drop is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).
+    `Prisma db drop is currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
+${chalk.dim('When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.')}
 
 ${chalk.bold('Usage')}
 
@@ -87,11 +73,7 @@ ${chalk.bold('Examples')}
       throw new NoSchemaFoundError()
     }
 
-    console.info(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     await printDatasource(schemaPath)
 
@@ -110,11 +92,9 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${
-          dbInfo.dbName
-        }" to drop it.\nLocation: "${dbInfo.dbLocation}".\n${chalk.red(
-          'All data will be lost',
-        )}.`,
+        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${dbInfo.dbName}" to drop it.\nLocation: "${
+          dbInfo.dbLocation
+        }".\n${chalk.red('All data will be lost')}.`,
       })
       console.info() // empty line
 
@@ -122,18 +102,14 @@ ${chalk.bold('Examples')}
         console.info('Drop cancelled.')
         process.exit(0)
       } else if (confirmation.value !== dbInfo.dbName) {
-        throw Error(
-          `The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`,
-        )
+        throw Error(`The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
       }
     }
 
     if (await dropDatabase(dbInfo.url, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${
-        dbInfo.dbType
-      } ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${
-        dbInfo.dbLocation
-      }" was successfully dropped.\n`
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} ${dbInfo.schemaWord} "${
+        dbInfo.dbName
+      }" from "${dbInfo.dbLocation}" was successfully dropped.\n`
     } else {
       return ''
     }

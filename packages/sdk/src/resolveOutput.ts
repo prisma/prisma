@@ -7,10 +7,7 @@ async function resolveNodeModulesBase(cwd: string): Promise<string> {
   if (await exists(path.resolve(process.cwd(), 'prisma/schema.prisma'))) {
     return process.cwd()
   }
-  if (
-    path.relative(process.cwd(), cwd) === 'prisma' &&
-    (await exists(path.resolve(process.cwd(), 'package.json')))
-  ) {
+  if (path.relative(process.cwd(), cwd) === 'prisma' && (await exists(path.resolve(process.cwd(), 'package.json')))) {
     return process.cwd()
   }
   if (await exists(path.resolve(cwd, 'node_modules'))) {
@@ -33,9 +30,7 @@ export type ResolveOutputOptions = {
   baseDir: string // normally `schemaDir`, the dir containing the schema.prisma file
 }
 
-export async function resolveOutput(
-  options: ResolveOutputOptions,
-): Promise<string> {
+export async function resolveOutput(options: ResolveOutputOptions): Promise<string> {
   const defaultOutput = stripRelativePath(options.defaultOutput)
   if (defaultOutput.startsWith('node_modules')) {
     const nodeModulesBase = await resolveNodeModulesBase(options.baseDir)

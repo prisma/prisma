@@ -34,10 +34,7 @@ export class Connection {
    * @param handler to execute
    * @returns
    */
-  static async onHttpError<R, HR>(
-    response: Promise<Result<R>>,
-    handler: (result: Result<R>) => HR,
-  ) {
+  static async onHttpError<R, HR>(response: Promise<Result<R>>, handler: (result: Result<R>) => HR) {
     const _response = await response
 
     if (_response.statusCode >= 400) {
@@ -108,11 +105,7 @@ export class Connection {
    * @param headers
    * @returns
    */
-  post<R>(
-    endpoint: string,
-    body?: Client.DispatchOptions['body'],
-    headers?: Client.DispatchOptions['headers'],
-  ) {
+  post<R>(endpoint: string, body?: Client.DispatchOptions['body'], headers?: Client.DispatchOptions['headers']) {
     return this.raw<R>('POST', endpoint, headers, body)
   }
 

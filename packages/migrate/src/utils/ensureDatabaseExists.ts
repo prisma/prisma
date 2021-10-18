@@ -2,11 +2,7 @@ import { getSchema, getSchemaDir } from '@prisma/sdk'
 import { getConfig } from '@prisma/sdk'
 import chalk from 'chalk'
 import type { DatabaseCredentials } from '@prisma/sdk'
-import {
-  uriToCredentials,
-  createDatabase,
-  canConnectToDatabase,
-} from '@prisma/sdk'
+import { uriToCredentials, createDatabase, canConnectToDatabase } from '@prisma/sdk'
 import prompt from 'prompts'
 import type execa from 'execa'
 
@@ -62,9 +58,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   }
 }
 
-export async function ensureCanConnectToDatabase(
-  schemaPath?: string,
-): Promise<Boolean | Error> {
+export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
@@ -81,10 +75,7 @@ export async function ensureCanConnectToDatabase(
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(
-    activeDatasource.url.value,
-    schemaDir,
-  )
+  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
 
   if (canConnect === true) {
     return true
@@ -94,11 +85,7 @@ export async function ensureCanConnectToDatabase(
   }
 }
 
-export async function ensureDatabaseExists(
-  action: MigrateAction,
-  forceCreate = false,
-  schemaPath?: string,
-) {
+export async function ensureDatabaseExists(action: MigrateAction, forceCreate = false, schemaPath?: string) {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
@@ -115,10 +102,7 @@ export async function ensureDatabaseExists(
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(
-    activeDatasource.url.value,
-    schemaDir,
-  )
+  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
   if (canConnect === true) {
     return
   }
@@ -141,22 +125,15 @@ export async function ensureDatabaseExists(
       }
 
       const credentials = uriToCredentials(activeDatasource.url.value)
-      const { schemaWord, dbType, dbName } =
-        getDbinfoFromCredentials(credentials)
+      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
       if (dbType && dbType !== 'SQL Server') {
-        return `${dbType} ${schemaWord} ${chalk.bold(
-          dbName,
-        )} created at ${chalk.bold(getDbLocation(credentials))}`
+        return `${dbType} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
       } else {
         return `${schemaWord} created.`
       }
     }
   } else {
-    await interactivelyCreateDatabase(
-      activeDatasource.url.value,
-      action,
-      schemaDir,
-    )
+    await interactivelyCreateDatabase(activeDatasource.url.value, action, schemaDir)
   }
 
   return undefined
@@ -183,9 +160,7 @@ export async function askToCreateDb(
   if (dbName && dbLocation) {
     message = `You are trying to ${action} a migration for ${dbType} ${schemaWord} ${chalk.bold(
       dbName,
-    )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(
-      dbLocation,
-    )}.\n`
+    )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(dbLocation)}.\n`
   } else {
     message = `You are trying to ${action} a migration for ${dbType} ${schemaWord}.\nThe ${schemaWord} doesn't exist.\n`
   }

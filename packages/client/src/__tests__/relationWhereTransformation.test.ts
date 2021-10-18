@@ -45,9 +45,7 @@ describe('relation where transformation', () => {
       rootField: 'findManyArtist',
     })
 
-    expect(() =>
-      document.validate(select, false, 'users'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingSnapshot()
   })
 
   test('throw correctly for incorrect deep scalar', () => {
@@ -84,9 +82,7 @@ describe('relation where transformation', () => {
       rootTypeName: 'query',
       rootField: 'findManyArtist',
     })
-    expect(() =>
-      document.validate(select, false, 'users'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingSnapshot()
   })
   test('throw correctly for deep at least one error', () => {
     const select = {
@@ -120,8 +116,6 @@ describe('relation where transformation', () => {
       rootTypeName: 'query',
       rootField: 'findManyArtist',
     })
-    expect(() =>
-      document.validate(select, false, 'artists'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(select, false, 'artists')).toThrowErrorMatchingSnapshot()
   })
 })

@@ -21,9 +21,7 @@ export function plusX(file): void {
   fs.chmodSync(file, base8)
 }
 
-function transformPlatformToEnvValue(
-  platform: Platform | string,
-): BinaryTargetsEnvValue {
+function transformPlatformToEnvValue(platform: Platform | string): BinaryTargetsEnvValue {
   return { fromEnvVar: null, value: platform }
 }
 

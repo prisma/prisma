@@ -65,11 +65,7 @@ export namespace DMMF {
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
-  export type FieldLocation =
-    | 'scalar'
-    | 'inputObjectTypes'
-    | 'outputObjectTypes'
-    | 'enumTypes'
+  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
 
   export interface Field {
     kind: FieldKind

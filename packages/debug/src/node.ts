@@ -65,9 +65,7 @@ exports.inspectOpts = Object.keys(process.env)
  */
 
 function useColors() {
-  return 'colors' in exports.inspectOpts
-    ? Boolean(exports.inspectOpts.colors)
-    : tty.isatty((process.stderr as any)?.fd)
+  return 'colors' in exports.inspectOpts ? Boolean(exports.inspectOpts.colors) : tty.isatty((process.stderr as any)?.fd)
 }
 
 /**
@@ -85,9 +83,7 @@ function formatArgs(this, args) {
     const prefix = `  ${colorCode};1m${name} \u001B[0m`
 
     args[0] = prefix + args[0].split('\n').join('\n' + prefix)
-    args.push(
-      colorCode + 'm+' + module.exports.humanize(this.diff) + '\u001B[0m',
-    )
+    args.push(colorCode + 'm+' + module.exports.humanize(this.diff) + '\u001B[0m')
   } else {
     args[0] = getDate() + name + ' ' + args[0]
   }

@@ -13,13 +13,7 @@ const MAX_BUFFER = 1_000_000_000
 // or a path to the schema file
 export async function formatSchema({ schema }: { schema: string })
 export async function formatSchema({ schemaPath }: { schemaPath: string })
-export async function formatSchema({
-  schemaPath,
-  schema,
-}: {
-  schemaPath?: string
-  schema?: string
-}): Promise<string> {
+export async function formatSchema({ schemaPath, schema }: { schemaPath?: string; schema?: string }): Promise<string> {
   if (!schema && !schemaPath) {
     throw new Error(`Parameter schema or schemaPath must be passed.`)
   }

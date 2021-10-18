@@ -77,8 +77,7 @@ describe('getConfig', () => {
   })
 
   test('datasource with env var', async () => {
-    process.env.TEST_POSTGRES_URI_FOR_DATASOURCE =
-      'postgres://user:password@something:5432/db'
+    process.env.TEST_POSTGRES_URI_FOR_DATASOURCE = 'postgres://user:password@something:5432/db'
 
     const config = await getConfig({
       datamodel: `

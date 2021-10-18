@@ -42,10 +42,7 @@ export function buildNFTAnnotations(
  * @param platform
  * @returns
  */
-function getQueryEngineFilename(
-  engineType: ClientEngineType,
-  platform: Platform,
-) {
+function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform) {
   if (engineType === ClientEngineType.Library) {
     return getNodeAPIName(platform, 'fs')
   }
@@ -78,11 +75,7 @@ path.join(process.cwd(), './${path.join(relativeOutdir, fileName)}')`
  * @param relativeOutdir
  * @returns
  */
-function buildNFTEngineAnnotation(
-  engineType: ClientEngineType,
-  platform: Platform,
-  relativeOutdir: string,
-) {
+function buildNFTEngineAnnotation(engineType: ClientEngineType, platform: Platform, relativeOutdir: string) {
   const engineFilename = getQueryEngineFilename(engineType, platform)
 
   if (engineFilename === undefined) return ''
@@ -96,10 +89,7 @@ function buildNFTEngineAnnotation(
  * @param relativeOutdir
  * @returns
  */
-function buildNFTSchemaAnnotation(
-  engineType: ClientEngineType,
-  relativeOutdir: string,
-) {
+function buildNFTSchemaAnnotation(engineType: ClientEngineType, relativeOutdir: string) {
   if (engineType === ClientEngineType.DataProxy) return ''
 
   return buildNFTAnnotation('schema.prisma', relativeOutdir)

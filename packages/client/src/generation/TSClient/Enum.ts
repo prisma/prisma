@@ -16,9 +16,7 @@ export class Enum implements Generatable {
   }
   public toJS(): string {
     const { type } = this
-    return `exports.${this.useNamespace ? 'Prisma.' : ''}${
-      type.name
-    } = makeEnum({
+    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = makeEnum({
 ${indent(type.values.map((v) => `${v}: '${v}'`).join(',\n'), TAB_SIZE)}
 });`
   }
