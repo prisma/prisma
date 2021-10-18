@@ -71,9 +71,9 @@ export class CLI implements Command {
       if (args['--experimental']) {
         argsForCmd = [...args._.slice(1), `--experimental=${args['--experimental']}`]
       } else if (args['--preview-feature']) {
-        argsForCmd = argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
+        argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
       } else if (args['--early-access-feature']) {
-        argsForCmd = argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
+        argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
       } else {
         argsForCmd = args._.slice(1)
       }
