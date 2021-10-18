@@ -289,10 +289,7 @@ describe('transaction', () => {
     })
 
     const res = await Promise.all([
-      prisma.$transaction([
-        prisma.$queryRaw`SELECT * FROM "User"`,
-        prisma.$queryRaw`SELECT * FROM "Post"`,
-      ]),
+      prisma.$transaction([prisma.$queryRaw`SELECT * FROM "User"`, prisma.$queryRaw`SELECT * FROM "Post"`]),
       prisma.$transaction([prisma.user.findFirst(), prisma.post.findFirst()]),
     ])
     await prisma.$disconnect()

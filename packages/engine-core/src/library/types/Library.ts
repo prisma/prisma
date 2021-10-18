@@ -1,8 +1,4 @@
-import type {
-  GetConfigOptions,
-  ConfigMetaFormat,
-  QueryEngineConfig,
-} from '../../common/types/QueryEngine'
+import type { GetConfigOptions, ConfigMetaFormat, QueryEngineConfig } from '../../common/types/QueryEngine'
 
 export type ConnectArgs = {
   enableRawQueries: boolean
@@ -15,11 +11,7 @@ export type QueryEngineInstance = {
    * @param requestStr JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
    * @param headersStr JSON.stringified `QueryEngineRequestHeaders`
    */
-  query(
-    requestStr: string,
-    headersStr: string,
-    transactionId?: string,
-  ): Promise<string>
+  query(requestStr: string, headersStr: string, transactionId?: string): Promise<string>
   sdlSchema(): Promise<string>
   startTransaction(options: string, trace: string): Promise<string>
   commitTransaction(id: string, trace: string): Promise<string>
@@ -27,10 +19,7 @@ export type QueryEngineInstance = {
 }
 
 export interface QueryEngineConstructor {
-  new (
-    config: QueryEngineConfig,
-    logger: (err: string, log: string) => void,
-  ): QueryEngineInstance
+  new (config: QueryEngineConfig, logger: (err: string, log: string) => void): QueryEngineInstance
 }
 
 // Main

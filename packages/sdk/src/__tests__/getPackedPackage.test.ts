@@ -8,11 +8,7 @@ describe('getPackedPackage', () => {
     const packageDir = 'foo`touch /tmp/getPackedPackage-exploit`'
 
     try {
-      await getPackedPackage(
-        '@prisma/client',
-        path.join(__dirname, outputDir),
-        packageDir,
-      )
+      await getPackedPackage('@prisma/client', path.join(__dirname, outputDir), packageDir)
     } catch (e) {
       //
     } finally {

@@ -46,26 +46,11 @@ Prisma.prismaVersion = {
   engine: "${engineVersion}"
 }
 
-Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser(
-  'PrismaClientKnownRequestError',
-  browser,
-)};
-Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser(
-  'PrismaClientUnknownRequestError',
-  browser,
-)}
-Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser(
-  'PrismaClientRustPanicError',
-  browser,
-)}
-Prisma.PrismaClientInitializationError = ${notSupportOnBrowser(
-  'PrismaClientInitializationError',
-  browser,
-)}
-Prisma.PrismaClientValidationError = ${notSupportOnBrowser(
-  'PrismaClientValidationError',
-  browser,
-)}
+Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};
+Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnknownRequestError', browser)}
+Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
+Prisma.PrismaClientInitializationError = ${notSupportOnBrowser('PrismaClientInitializationError', browser)}
+Prisma.PrismaClientValidationError = ${notSupportOnBrowser('PrismaClientValidationError', browser)}
 Prisma.Decimal = Decimal
 
 /**
@@ -94,14 +79,8 @@ In case this error is unexpected for you, please report it in https://github.com
   return fnc
 }
 
-export const commonCodeTS = ({
-  runtimeDir,
-  runtimeName,
-  clientVersion,
-  engineVersion,
-}: TSClientOptions) => ({
-  tsWithoutNamespace:
-    () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P

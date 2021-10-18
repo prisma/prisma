@@ -17,10 +17,7 @@ export function trimNewLine(str: string): string {
   return newStr
 }
 
-export function trimBlocksFromSchema(
-  str: string,
-  blocks = ['model', 'enum', 'datasource', 'generator'],
-): string {
+export function trimBlocksFromSchema(str: string, blocks = ['model', 'enum', 'datasource', 'generator']): string {
   const lines = str.split('\n')
   if (lines.length <= 2) {
     return str

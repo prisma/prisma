@@ -61,10 +61,7 @@ describe('serializeRawParemeters', () => {
   test('nested', () => {
     const data = {
       deep: {
-        date: [
-          new Date('2020-06-22T17:07:16.348Z'),
-          new Date('2020-06-22T17:07:16.348Z'),
-        ],
+        date: [new Date('2020-06-22T17:07:16.348Z'), new Date('2020-06-22T17:07:16.348Z')],
         bigInt: [BigInt('321804719213721'), BigInt('321804719213721')],
       },
     }

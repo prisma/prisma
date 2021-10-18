@@ -47,29 +47,19 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
-      copySync(
-        path.join(require.resolve('@prisma/studio/package.json'), '../dist'),
-        './build/public',
-        {
-          recursive: true,
-          overwrite: true,
-        },
-      )
+      copySync(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
+        recursive: true,
+        overwrite: true,
+      })
 
       // we copy the contents from checkpoint-client to build
       await copyFile(
-        path.join(
-          require.resolve('checkpoint-client/package.json'),
-          '../dist/child.js',
-        ),
+        path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
         './build/child.js',
       )
 
       // we copy the contents from xdg-open to build
-      await copyFile(
-        path.join(require.resolve('open/package.json'), '../xdg-open'),
-        './build/xdg-open',
-      )
+      await copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
 
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 

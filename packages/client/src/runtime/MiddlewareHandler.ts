@@ -21,9 +21,7 @@ export type QueryMiddlewareParams = {
 
 export type EngineMiddleware<T = unknown> = (
   params: EngineMiddlewareParams,
-  next: (
-    params: EngineMiddlewareParams,
-  ) => Promise<{ data: T; elapsed: number }>,
+  next: (params: EngineMiddlewareParams) => Promise<{ data: T; elapsed: number }>,
 ) => Promise<{ data: T; elapsed: number }>
 
 export type EngineMiddlewareParams = {

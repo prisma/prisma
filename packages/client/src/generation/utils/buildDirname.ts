@@ -8,11 +8,7 @@ import path from 'path'
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(
-  clientEngineType: ClientEngineType,
-  relativeOutdir: string,
-  runtimeDir: string,
-) {
+export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir: string, runtimeDir: string) {
   if (clientEngineType !== ClientEngineType.DataProxy) {
     return buildDirnameFind(relativeOutdir, runtimeDir)
   }
@@ -34,10 +30,7 @@ export function buildDirname(
  */
 function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
   // potential client location on serverless envs
-  const slsRelativeOutputDir = relativeOutdir
-    .split(path.sep)
-    .slice(1)
-    .join(path.sep)
+  const slsRelativeOutputDir = relativeOutdir.split(path.sep).slice(1).join(path.sep)
 
   return `
 const { findSync } = require('${runtimePath}')

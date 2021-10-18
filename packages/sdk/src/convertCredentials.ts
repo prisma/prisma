@@ -70,9 +70,7 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
   return url.toString()
 }
 
-export function uriToCredentials(
-  connectionString: string,
-): DatabaseCredentials {
+export function uriToCredentials(connectionString: string): DatabaseCredentials {
   let uri: NodeURL.URL
   try {
     uri = new NodeURL.URL(connectionString)

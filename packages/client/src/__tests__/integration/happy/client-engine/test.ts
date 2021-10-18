@@ -1,10 +1,7 @@
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
-import {
-  ClientEngineType,
-  DEFAULT_CLIENT_ENGINE_TYPE,
-} from '../../../../runtime/utils/getClientEngineType'
+import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE } from '../../../../runtime/utils/getClientEngineType'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 const buildSchema = (engineType?: string) => `
@@ -57,32 +54,21 @@ function getExpectedEngine(engineType, envVar, envVarValue) {
   return DEFAULT_CLIENT_ENGINE_TYPE
 }
 function buildTests() {
-  const engineTypes = [
-    ClientEngineType.Binary,
-    ClientEngineType.Library,
-    undefined,
-  ]
+  const engineTypes = [ClientEngineType.Binary, ClientEngineType.Library, undefined]
   const envVars = {
     PRISMA_CLIENT_ENGINE_TYPE: engineTypes,
   }
   for (const engineType of engineTypes) {
     for (const envVar in envVars) {
       for (const value of envVars[envVar]) {
-        const expectedClientEngine = getExpectedEngine(
-          engineType,
-          envVar,
-          value,
-        )
+        const expectedClientEngine = getExpectedEngine(engineType, envVar, value)
         test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
           expect.assertions(2)
           const schema = buildSchema(engineType)
 
           // Setup Project in tmp dir
           const projectDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`)
-          fs.copyFileSync(
-            path.join(__dirname, './dev.db'),
-            path.join(projectDir, 'dev.db'),
-          )
+          fs.copyFileSync(path.join(__dirname, './dev.db'), path.join(projectDir, 'dev.db'))
           fs.writeFileSync(path.join(projectDir, 'schema.prisma'), schema)
 
           // Set ENV VAR
@@ -92,10 +78,7 @@ function buildTests() {
           await generateTestClient(projectDir)
 
           // Run Tests
-          const { PrismaClient } = require(path.join(
-            projectDir,
-            'node_modules/@prisma/client',
-          ))
+          const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
           const prisma = new PrismaClient()
           const users = await prisma.user.findMany()
           expect(users).toMatchInlineSnapshot(`

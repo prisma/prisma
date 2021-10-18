@@ -10,10 +10,7 @@ const readFile = fs.promises.readFile
  * @param schemaPath
  * @returns
  */
-export async function buildInlineSchema(
-  clientEngineType: ClientEngineType,
-  schemaPath: string,
-) {
+export async function buildInlineSchema(clientEngineType: ClientEngineType, schemaPath: string) {
   if (clientEngineType === ClientEngineType.DataProxy) {
     const b64Schema = (await readFile(schemaPath)).toString('base64')
 

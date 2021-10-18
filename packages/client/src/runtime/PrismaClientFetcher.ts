@@ -150,13 +150,7 @@ export class PrismaClientFetcher {
         /**
          * Unpack
          */
-        const unpackResult = this.unpack(
-          document,
-          data,
-          dataPath,
-          rootField,
-          unpacker,
-        )
+        const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
         throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
         if (process.env.PRISMA_CLIENT_GET_TIME) {
           return { data: unpackResult, elapsed }
@@ -178,32 +172,15 @@ export class PrismaClientFetcher {
         message = this.sanitizeMessage(message)
         // TODO: Do request with callsite instead, so we don't need to rethrow
         if (e.code) {
-          throw new PrismaClientKnownRequestError(
-            message,
-            e.code,
-            this.prisma._clientVersion,
-            e.meta,
-          )
+          throw new PrismaClientKnownRequestError(message, e.code, this.prisma._clientVersion, e.meta)
         } else if (e.isPanic) {
-          throw new PrismaClientRustPanicError(
-            message,
-            this.prisma._clientVersion,
-          )
+          throw new PrismaClientRustPanicError(message, this.prisma._clientVersion)
         } else if (e instanceof PrismaClientUnknownRequestError) {
-          throw new PrismaClientUnknownRequestError(
-            message,
-            this.prisma._clientVersion,
-          )
+          throw new PrismaClientUnknownRequestError(message, this.prisma._clientVersion)
         } else if (e instanceof PrismaClientInitializationError) {
-          throw new PrismaClientInitializationError(
-            message,
-            this.prisma._clientVersion,
-          )
+          throw new PrismaClientInitializationError(message, this.prisma._clientVersion)
         } else if (e instanceof PrismaClientRustPanicError) {
-          throw new PrismaClientRustPanicError(
-            message,
-            this.prisma._clientVersion,
-          )
+          throw new PrismaClientRustPanicError(message, this.prisma._clientVersion)
         }
 
         e.clientVersion = this.prisma._clientVersion

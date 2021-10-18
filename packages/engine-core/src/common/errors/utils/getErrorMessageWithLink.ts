@@ -16,9 +16,7 @@ export function getErrorMessageWithLink({
 }: ErrorWithLinkInput) {
   const gotLogs = getLogs(6000 - (query?.length ?? 0))
   const logs = normalizeLogs(stripAnsi(gotLogs))
-  const moreInfo = description
-    ? `# Description\n\`\`\`\n${description}\n\`\`\``
-    : ''
+  const moreInfo = description ? `# Description\n\`\`\`\n${description}\n\`\`\`` : ''
   const body = stripAnsi(
     `Hi Prisma Team! My Prisma Client just crashed. This is the report:
 ## Versions

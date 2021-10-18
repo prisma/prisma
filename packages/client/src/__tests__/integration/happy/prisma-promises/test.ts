@@ -10,9 +10,7 @@ describe('prisma promises', () => {
 
     const remove = await prisma.user.deleteMany().catch(handler)
     const queryRaw = await prisma.$queryRawUnsafe('SELECT 1').catch(handler)
-    const executeRaw = await prisma
-      .$executeRawUnsafe('DELETE FROM User')
-      .catch(handler)
+    const executeRaw = await prisma.$executeRawUnsafe('DELETE FROM User').catch(handler)
     const findMany = await prisma.user.findMany().catch(handler)
 
     expect(remove).toMatchInlineSnapshot(`
@@ -43,9 +41,7 @@ describe('prisma promises', () => {
 
     const remove = await prisma.user.deleteMany().finally(handler)
     const queryRaw = await prisma.$queryRawUnsafe('SELECT 1').finally(handler)
-    const executeRaw = await prisma
-      .$executeRawUnsafe('DELETE FROM User')
-      .finally(handler)
+    const executeRaw = await prisma.$executeRawUnsafe('DELETE FROM User').finally(handler)
     const findMany = await prisma.user.findMany().finally(handler)
 
     expect(remove).toMatchInlineSnapshot(`

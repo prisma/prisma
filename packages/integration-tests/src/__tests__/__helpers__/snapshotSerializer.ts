@@ -18,16 +18,11 @@ function removePlatforms(str) {
 }
 
 function normalizeGithubLinks(str) {
-  return str.replace(
-    /https:\/\/github.com\/prisma\/prisma-client-js\/issues\/\S+/,
-    'TEST_GITHUB_LINK',
-  )
+  return str.replace(/https:\/\/github.com\/prisma\/prisma-client-js\/issues\/\S+/, 'TEST_GITHUB_LINK')
 }
 
 function normalizeRustError(str) {
-  return str
-    .replace(/\/rustc\/(.+)\//g, '/rustc/hash/')
-    .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
+  return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
 function normalizeTmpDir(str) {
@@ -61,21 +56,12 @@ export function test(value) {
 }
 
 export function serialize(value) {
-  const message =
-    typeof value === 'string'
-      ? value
-      : value instanceof Error
-      ? value.message
-      : ''
+  const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
   return prepareSchemaForSnapshot(
     normalizeGithubLinks(
       normalizeRustError(
         normalizeTmpDir(
-          normalizeGithubLinks(
-            normalizeToUnixPaths(
-              removePlatforms(trimErrorPaths(stripAnsi(message))),
-            ),
-          ),
+          normalizeGithubLinks(normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message))))),
         ),
       ),
     ),

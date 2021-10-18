@@ -15,9 +15,7 @@ describe('no args', () => {
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
 
   test('findMany', () => {
@@ -51,9 +49,7 @@ describe('no args', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
-    expect(() =>
-      document.validate(select, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(select, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
     expect(String(document)).toMatchInlineSnapshot(`
       query {
         findManyUser(where: {
@@ -74,9 +70,7 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
   test('deleteMany', () => {
     const document = makeDocument({
@@ -101,9 +95,7 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'deleteOneUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
   test('updateMany', () => {
     const document = makeDocument({
@@ -112,9 +104,7 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'updateManyUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
   test('upsertOne', () => {
     const document = makeDocument({
@@ -123,9 +113,7 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'upsertOneUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
   test('nested create', () => {
     const document = makeDocument({
@@ -149,8 +137,6 @@ describe('no args', () => {
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
 })

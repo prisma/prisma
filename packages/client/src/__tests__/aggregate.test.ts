@@ -134,9 +134,7 @@ describe('aggregate', () => {
       rootTypeName: 'query',
       rootField: 'aggregateUser',
     })
-    expect(() =>
-      document.validate(select, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(select, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
 
   test('unhappy path - incorrect field', () => {
@@ -155,8 +153,6 @@ describe('aggregate', () => {
       rootTypeName: 'query',
       rootField: 'aggregateUser',
     })
-    expect(() =>
-      document.validate(select, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(select, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
 })

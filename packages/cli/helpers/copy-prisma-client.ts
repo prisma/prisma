@@ -9,9 +9,7 @@ const clientPath = path.dirname(require.resolve('@prisma/client'))
 const clientPkg = require('@prisma/client/package.json')
 
 // we compute the paths of the files that would get npm published
-const clientFiles = (clientPkg.files ?? []).map((file: string) =>
-  path.join(clientPath, file),
-)
+const clientFiles = (clientPkg.files ?? []).map((file: string) => path.join(clientPath, file))
 
 // we copy each file that we found in pkg to a new destination
 for (const file of clientFiles) {

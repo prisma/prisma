@@ -49,9 +49,7 @@ describe('npm_config_user_agent', () => {
         process.env.npm_config_user_agent = value
       }
       delete process.env.npm_config_user_agent
-      expect(getPostInstallTrigger()).toEqual(
-        `MISSING_NPM_CONFIG_USER_AGENT foo bar`,
-      )
+      expect(getPostInstallTrigger()).toEqual(`MISSING_NPM_CONFIG_USER_AGENT foo bar`)
     },
   )
 
@@ -59,9 +57,7 @@ describe('npm_config_user_agent', () => {
     'if npm_config_user_agent not parsable then falls back to UNKNOWN_NPM_CONFIG_USER_AGENT',
     (userAgentString) => {
       process.env.npm_config_user_agent = userAgentString
-      expect(getPostInstallTrigger()).toEqual(
-        `UNKNOWN_NPM_CONFIG_USER_AGENT(${userAgentString}) foo bar`,
-      )
+      expect(getPostInstallTrigger()).toEqual(`UNKNOWN_NPM_CONFIG_USER_AGENT(${userAgentString}) foo bar`)
     },
   )
 })

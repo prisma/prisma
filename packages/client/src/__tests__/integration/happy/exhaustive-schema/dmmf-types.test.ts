@@ -7,10 +7,7 @@ import { compileFile } from '../../../../utils/compileFile'
  * Makes sure, that the actual dmmf value and types are in match
  */
 test('dmmf-types', async () => {
-  const datamodel = fs.readFileSync(
-    path.join(__dirname, 'schema.prisma'),
-    'utf-8',
-  )
+  const datamodel = fs.readFileSync(path.join(__dirname, 'schema.prisma'), 'utf-8')
   const dmmf = await getDMMF({
     datamodel,
   })

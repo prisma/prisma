@@ -15,10 +15,7 @@ export type InlineDatasources = {
  * @param internalDatasources
  * @returns
  */
-export function buildInlineDatasource(
-  engineType: ClientEngineType,
-  internalDatasources: InternalDatasource[],
-) {
+export function buildInlineDatasource(engineType: ClientEngineType, internalDatasources: InternalDatasource[]) {
   if (engineType === ClientEngineType.DataProxy) {
     const datasources = internalToInlineDatasources(internalDatasources)
 
@@ -34,9 +31,7 @@ config.inlineDatasources = ${JSON.stringify(datasources, null, 2)}`
  * @param internalDatasources
  * @returns
  */
-function internalToInlineDatasources(
-  internalDatasources: InternalDatasource[],
-) {
+function internalToInlineDatasources(internalDatasources: InternalDatasource[]) {
   return internalDatasources.reduce((acc, ds) => {
     acc[ds.name] = { url: ds.url }
 
