@@ -1,6 +1,6 @@
 import { getSchemaPath } from '@prisma/sdk'
-import { ensureDatabaseExists } from '../ensureDatabaseExists'
-import { consoleContext, Context } from '../../__tests__/__helpers__/context'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { consoleContext, Context } from './__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
