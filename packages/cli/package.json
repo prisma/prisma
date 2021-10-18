@@ -96,7 +96,7 @@
     "jest": "27.2.5",
     "line-replace": "2.0.1",
     "lint-staged": "11.2.3",
-    "log-update": "4.0.0",
+    "log-update": "5.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.5",
     "open": "7.4.2",
