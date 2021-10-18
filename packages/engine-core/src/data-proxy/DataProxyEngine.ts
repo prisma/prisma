@@ -12,6 +12,7 @@ import { createSchemaHash } from './utils/createSchemaHash'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
+// TODO this is an issue that we cannot share types from the client to other packages
 
 const randomDebugId = Math.ceil(Math.random() * 1000)
 
