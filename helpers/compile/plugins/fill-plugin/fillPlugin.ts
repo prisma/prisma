@@ -61,10 +61,7 @@ function createImportFilter(fillers: Fillers) {
  * @param options from esbuild
  * @param fillers to be scanned
  */
-function setInjectionsAndDefinitions(
-  fillers: Fillers,
-  options: esbuild.BuildOptions,
-) {
+function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOptions) {
   const fillerNames = Object.keys(fillers)
 
   // we make sure that it is not empty
@@ -93,10 +90,7 @@ function setInjectionsAndDefinitions(
  * @param args from esbuild
  * @returns
  */
-function onResolve(
-  fillers: Fillers,
-  args: esbuild.OnResolveArgs,
-): esbuild.OnResolveResult {
+function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnResolveResult {
   // removes trailing slashes in imports paths
   const path = args.path.replace(/\/$/, '')
   const item = fillers[path]
@@ -121,10 +115,7 @@ function onResolve(
  * @param fillers to use the contents from
  * @param args from esbuild
  */
-function onLoad(
-  fillers: Fillers,
-  args: esbuild.OnLoadArgs,
-): esbuild.OnLoadResult {
+function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResult {
   // display useful info if no shim has been found
   if (fillers[args.path].contents === undefined) {
     throw `no shim for "${args.path}" imported by "${args.pluginData}"`
