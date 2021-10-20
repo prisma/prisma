@@ -2,6 +2,7 @@ import * as esbuild from 'esbuild'
 import resolve from 'resolve'
 import path from 'path'
 import crypto from 'crypto'
+import os from 'os'
 
 type LoadCache = { [K in string]: string }
 
@@ -28,7 +29,7 @@ const loader = (cache: LoadCache) => (module: string) => {
   const resolveOpt = { includeCoreModules: false }
   const modulePath = path.dirname(resolve.sync(modulePkg, resolveOpt))
   const filename = `${module}${crypto.randomBytes(4).toString('hex')}.js`
-  const outfile = path.join(path.sep, 'tmp', 'esbuild', filename)
+  const outfile = path.join(os.tmpdir(), 'esbuild', filename)
 
   esbuild.buildSync({
     format: 'cjs',
