@@ -135,7 +135,9 @@ describe('createDatabase', () => {
     credentials.database = 'alreadyexists'
     const uriFromCredentials = credentialsToUri(credentials)
 
-    await expect(dropDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
+    try {
+      await dropDatabase(uriFromCredentials, __dirname)
+    } catch (e) {}
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
   })
