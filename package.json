@@ -6,7 +6,8 @@
     "Pierre-Antoine Mills <mills@prisma.io>"
   ],
   "engines": {
-    "node": ">=12.6"
+    "node": ">=12.6",
+    "pnpm": ">=6.14.1"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
