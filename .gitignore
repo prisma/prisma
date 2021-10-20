@@ -7,7 +7,9 @@ tmp
 pnpm-debug.log
 sandbox
 .DS_Store
+
 query-engine*
+libquery_engine*
 
 *tmp.db
 dist/
