@@ -33,7 +33,7 @@ importers:
       graphviz: 0.0.9
       husky: 7.0.2
       is-ci: 3.0.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.5
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -82,7 +82,7 @@ importers:
       graphviz: 0.0.9
       husky: 7.0.2
       is-ci: 3.0.0
-      node-fetch: 2.6.2
+      node-fetch: 2.6.5
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -6006,11 +6006,6 @@ packages:
   /node-fetch/2.6.1:
     resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
     engines: {node: 4.x || >=6.0.0}
-
-  /node-fetch/2.6.2:
-    resolution: {integrity: sha512-aLoxToI6RfZ+0NOjmWAgn9+LEd30YCkJKFSyWacNZdEKTit/ZMcKjGkTRo8uWEsnIb/hfKecNPEbln02PdWbcA==}
-    engines: {node: 4.x || >=6.0.0}
-    dev: true
 
   /node-fetch/2.6.5:
     resolution: {integrity: sha512-mmlIVHJEu5rnIxgEgez6b9GgWXbkZj5YZ7fx+2r94a2E+Uirsp6HsPTPlomfdHtpt/B0cdKviwkoaM6pyvUOpQ==}
