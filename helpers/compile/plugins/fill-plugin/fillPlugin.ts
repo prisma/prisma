@@ -2,6 +2,7 @@ import * as esbuild from 'esbuild'
 import resolve from 'resolve'
 import path from 'path'
 import crypto from 'crypto'
+import os from 'os'
 
 type LoadCache = { [K in string]: string }
 
@@ -28,7 +29,7 @@ const loader = (cache: LoadCache) => (module: string) => {
   const resolveOpt = { includeCoreModules: false }
   const modulePath = path.dirname(resolve.sync(modulePkg, resolveOpt))
   const filename = `${module}${crypto.randomBytes(4).toString('hex')}.js`
-  const outfile = path.join(path.sep, 'tmp', 'esbuild', filename)
+  const outfile = path.join(os.tmpdir(), 'esbuild', filename)
 
   esbuild.buildSync({
     format: 'cjs',
@@ -61,10 +62,7 @@ function createImportFilter(fillers: Fillers) {
  * @param options from esbuild
  * @param fillers to be scanned
  */
-function setInjectionsAndDefinitions(
-  fillers: Fillers,
-  options: esbuild.BuildOptions,
-) {
+function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOptions) {
   const fillerNames = Object.keys(fillers)
 
   // we make sure that it is not empty
@@ -93,10 +91,7 @@ function setInjectionsAndDefinitions(
  * @param args from esbuild
  * @returns
  */
-function onResolve(
-  fillers: Fillers,
-  args: esbuild.OnResolveArgs,
-): esbuild.OnResolveResult {
+function onResolve(fillers: Fillers, args: esbuild.OnResolveArgs): esbuild.OnResolveResult {
   // removes trailing slashes in imports paths
   const path = args.path.replace(/\/$/, '')
   const item = fillers[path]
@@ -121,10 +116,7 @@ function onResolve(
  * @param fillers to use the contents from
  * @param args from esbuild
  */
-function onLoad(
-  fillers: Fillers,
-  args: esbuild.OnLoadArgs,
-): esbuild.OnLoadResult {
+function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResult {
   // display useful info if no shim has been found
   if (fillers[args.path].contents === undefined) {
     throw `no shim for "${args.path}" imported by "${args.pluginData}"`
