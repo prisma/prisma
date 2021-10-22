@@ -4,7 +4,6 @@ import { Engine } from '../common/Engine'
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { request } from './utils/request'
 import EventEmitter from 'events'
-import { createSchemaHash } from './utils/createSchemaHash'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
@@ -12,20 +11,20 @@ import { getClientVersion } from './utils/getClientVersion'
 
 const randomDebugId = Math.ceil(Math.random() * 1000)
 
-const MAX_RETRIES = 5
+const MAX_RETRIES = 10
 
 export class DataProxyEngine extends Engine {
-  private initPromise: Promise<void>
+  private pushPromise: Promise<void>
   private inlineSchema: string
+  private inlineSchemaHash: string
   private inlineDatasources: any
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k: string]: string }
 
-  private clientVersion!: string
-  private headers!: { Authorization: string }
-  private host!: string
-  private schemaHash!: string
+  private clientVersion: string
+  private headers: { Authorization: string }
+  private host: string
 
   constructor(config: EngineConfig) {
     super()
@@ -34,24 +33,29 @@ export class DataProxyEngine extends Engine {
     this.env = this.config.env ?? {}
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
+    this.inlineSchemaHash = config.inlineSchemaHash ?? ''
 
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {})
 
-    this.initPromise = this.init()
-  }
-
-  /**
-   * !\ Asynchronous constructor that inits the properties marked with `!`.
-   * So any function that uses such a property needs to await `initPromise`.
-   */
-  private async init() {
-    // we set the network stuff up for the engine to make http calls to the proxy
     const [host, apiKey] = this.extractHostAndApiKey()
-    this.schemaHash = await createSchemaHash(this.inlineSchema)
     this.clientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
+
+    const promise = Promise.resolve() // hack for cloudflare
+    this.pushPromise = promise.then(() => this.pushSchema())
+  }
+
+  private async pushSchema() {
+    const res = await request(this.url('schema'), {
+      method: 'HEAD',
+      headers: this.headers,
+    })
+
+    if (res.status === 404) {
+      await this.uploadSchema()
+    }
   }
 
   version() {
@@ -71,38 +75,32 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  private async url(s: string) {
-    await this.initPromise
-
-    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${randomDebugId}`
+  private url(s: string) {
+    return `https://${this.host}/${this.clientVersion}/${this.inlineSchemaHash}/${s}?id=${randomDebugId}`
   }
 
   // TODO: looks like activeProvider is the only thing
   // used externally; verify that
   async getConfig() {
-    await this.initPromise
-
-    return {
+    return Promise.resolve({
       datasources: [
         {
           activeProvider: this.config.activeProvider,
         },
       ],
-    } as GetConfigResult
+    } as GetConfigResult)
   }
 
   private async uploadSchema() {
-    await this.initPromise
-
-    const res = await request(await this.url('schema'), {
+    const res = await request(this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
-      body: this.config.inlineSchema,
+      body: this.inlineSchema,
     })
 
     if (res) {
       this.logEmitter.emit('info', {
-        message: `Schema (re)uploaded (hash: ${this.schemaHash})`,
+        message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
       })
     } else {
       this.logEmitter.emit('warn', { message: 'Could not upload the schema' })
@@ -132,14 +130,14 @@ export class DataProxyEngine extends Engine {
   }
 
   private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    await this.initPromise
+    await this.pushPromise
 
     try {
       this.logEmitter.emit('info', {
-        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
+        message: `Calling ${this.url('graphql')} (n=${attempt})`,
       })
 
-      const res = await request(await this.url('graphql'), {
+      const res = await request(this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),

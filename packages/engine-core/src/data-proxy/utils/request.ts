@@ -94,7 +94,7 @@ function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestRe
     })
 
     request.on('error', reject) // handle errors
-    request.write(options.body) // http body data
+    request.write(options.body ?? '') // http body data
     request.end() // flush & send
   })
 }

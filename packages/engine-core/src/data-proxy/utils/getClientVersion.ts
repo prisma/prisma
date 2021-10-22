@@ -13,5 +13,5 @@ export function getClientVersion(config: EngineConfig) {
     return version
   }
 
-  return '3.2.0' // and we default it to this one if does not
+  return '3.3.0' // and we default it to this one if does not
 }
