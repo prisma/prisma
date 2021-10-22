@@ -314,6 +314,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+
       - name: Set CLI Engine Type
         run: |
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV

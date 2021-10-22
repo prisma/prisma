@@ -72,7 +72,7 @@ describe('canConnectToDatabase', () => {
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
             }
           `)
-  })
+  }, 10000)
 })
 
 describe('createDatabase', () => {
