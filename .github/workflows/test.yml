@@ -361,7 +361,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    timeout-minutes: 7
+    timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
