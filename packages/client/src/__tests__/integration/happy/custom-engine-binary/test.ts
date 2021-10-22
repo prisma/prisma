@@ -43,5 +43,10 @@ test('custom engine binary path (internal API)', async () => {
   const users = await prisma.user.findMany()
   expect(users).toEqual([])
 
+  // Initialized late, can check in the "else" clause of the previous "if" statement.
+  if (getClientEngineType() === ClientEngineType.Library) {
+    expect(prisma._engine.libQueryEnginePath).toBe(customBinaryPath)
+  }
+
   prisma.$disconnect()
 })
