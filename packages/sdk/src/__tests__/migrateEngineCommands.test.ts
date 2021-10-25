@@ -1,5 +1,12 @@
-import { execaCommand, doesSqliteDbExist, canConnectToDatabase, createDatabase } from '../migrateEngineCommands'
 import tempy from 'tempy'
+import {
+  execaCommand,
+  doesSqliteDbExist,
+  canConnectToDatabase,
+  createDatabase,
+  dropDatabase,
+} from '../migrateEngineCommands'
+import { uriToCredentials, credentialsToUri } from '../convertCredentials'
 
 describe('execaCommand', () => {
   test('check if connection string is in error', async () => {
@@ -65,15 +72,15 @@ describe('canConnectToDatabase', () => {
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
             }
           `)
-  })
+  }, 10000)
 })
 
 describe('createDatabase', () => {
-  test('sqlite - already exist', async () => {
+  test('sqlite - already exists', async () => {
     await expect(createDatabase('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(false)
   })
 
-  test('sqlite - does not exist', async () => {
+  test('sqlite - file does not exists', async () => {
     await expect(createDatabase('sqlite:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
   })
 
@@ -83,6 +90,17 @@ describe('createDatabase', () => {
     )
   })
 
+  test('postgresql - create database', async () => {
+    const uri = process.env.TEST_POSTGRES_URI!
+    const credentials = uriToCredentials(uri)
+    credentials.database = 'can-create-a-db'
+    const uriFromCredentials = credentialsToUri(credentials)
+    try {
+      await dropDatabase(uriFromCredentials, __dirname)
+    } catch (e) {}
+    await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
+  })
+
   test('postgresql - server does not exist', async () => {
     await expect(createDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname))
       .rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -90,6 +108,52 @@ describe('createDatabase', () => {
 
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`."
           `)
+  }, 30000)
+
+  test('postgresql - database already exists', async () => {
+    const uri = process.env.TEST_POSTGRES_URI!
+    const credentials = uriToCredentials(uri)
+    credentials.database = 'postgres'
+    const uriFromCredentials = credentialsToUri(credentials)
+    await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
+  })
+
+  test('mysql - create database', async () => {
+    const uri = process.env.TEST_MYSQL_URI!
+    const credentials = uriToCredentials(uri)
+    credentials.database = 'can-create-a-db'
+    const uriFromCredentials = credentialsToUri(credentials)
+    try {
+      await dropDatabase(uriFromCredentials, __dirname)
+    } catch (e) {}
+    await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
+  })
+
+  test('mysql - database already exists', async () => {
+    const uri = process.env.TEST_MYSQL_URI!
+    const credentials = uriToCredentials(uri)
+    credentials.database = 'alreadyexists'
+    const uriFromCredentials = credentialsToUri(credentials)
+
+    try {
+      await dropDatabase(uriFromCredentials, __dirname)
+    } catch (e) {}
+    await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(true)
+    await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
+  })
+
+  test('mssql - create database', async () => {
+    let uri = process.env.TEST_MSSQL_JDBC_URI!
+    uri = uri.replace(/database=(.*?);/, 'database=can-create-a-db;')
+    try {
+      await dropDatabase(uri, __dirname)
+    } catch (e) {}
+    await expect(createDatabase(uri, __dirname)).resolves.toEqual(true)
+  })
+
+  test('sqlserver - database already exists', async () => {
+    const uri = process.env.TEST_MSSQL_JDBC_URI!
+    await expect(createDatabase(uri, __dirname)).resolves.toEqual(false)
   })
 
   test('invalid database type', async () => {
