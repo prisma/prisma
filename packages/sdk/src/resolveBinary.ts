@@ -7,10 +7,8 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
+import tempy from 'tempy'
 
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
 const debug = Debug('prisma:resolveBinary')
 
 async function getBinaryName(name: BinaryType): Promise<string> {
@@ -22,6 +20,7 @@ async function getBinaryName(name: BinaryType): Promise<string> {
   }
   return `${name}-${platform}${extension}`
 }
+
 export const engineEnvVarMap = {
   [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
   [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
@@ -29,12 +28,13 @@ export const engineEnvVarMap = {
   [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
   [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
+
 export { BinaryType }
+
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath
   }
-  // tslint:disable-next-line
 
   const envVar = engineEnvVarMap[name]
 
@@ -83,13 +83,13 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
-  const dir = eval('__dirname')
+  const dir: string = eval('__dirname')
   if (dir.startsWith('/snapshot/')) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
-    const data = await readFile(file)
-    await writeFile(target, data)
+    const data = await fs.promises.readFile(file)
+    await fs.promises.writeFile(target, data)
     // We have to read and write until https://github.com/zeit/pkg/issues/639
     // is resolved
     // await copyFile(file, target)
@@ -97,5 +97,42 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     return target
   }
 
+  if (await shouldCopyBinaryToTmp(file)) {
+    const tempDir = tempy.directory({ prefix: 'prisma' })
+    const newBinaryPath = path.join(tempDir, path.basename(file))
+    debug('Copying %s to %s', file, newBinaryPath)
+    await fs.promises.link(file, newBinaryPath)
+    return newBinaryPath
+  }
+
   return file
+}
+
+async function shouldCopyBinaryToTmp(file: string): Promise<boolean> {
+  return shouldCopyQueryEngineLibraryToTmp() && (await isQueryEngineLibrary(file))
+}
+
+async function isQueryEngineLibrary(file: string): Promise<boolean> {
+  const libQueryEngineName = await getBinaryName(BinaryType.libqueryEngine)
+  return path.basename(file) === libQueryEngineName
+}
+
+function shouldCopyQueryEngineLibraryToTmp(): boolean {
+  const envConfig = process.env.PRISMA_COPY_LIBRARY_ENGINE_TO_TMP
+  debug('PRISMA_COPY_LIBRARY_ENGINE_TO_TMP', envConfig)
+
+  if (envConfig !== undefined) {
+    return parseBoolean(envConfig)
+  }
+
+  if (process.platform === 'win32') {
+    debug('Windows detected')
+    return true
+  }
+
+  return false
+}
+
+function parseBoolean(value: string): boolean {
+  return !['', 'false', '0'].includes(value)
 }
