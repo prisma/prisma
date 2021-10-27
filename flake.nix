@@ -20,6 +20,10 @@
               pnpm run build;
             }
 
+            test () {
+              pnpm run test;
+            }
+
             use-nixpkgs-engine-binaries () {
               eval '
               export PRISMA_MIGRATION_ENGINE_BINARY=${prisma-engines}/bin/migration-engine \
@@ -28,6 +32,22 @@
               export PRISMA_INTROSPECTION_ENGINE_BINARY=${prisma-engines}/bin/introspection-engine \
               export PRISMA_FMT_BINARY=${prisma-engines}/bin/prisma-fmt
               '
+            }
+
+            use-local-engine-binaries () {
+              echo "Using binaries from $1"
+              ROOT=$1;
+
+              # o tempora, o mores
+              cp -f $ROOT/libquery_engine.so $ROOT/libquery_engine.node
+
+              eval "
+              export PRISMA_MIGRATION_ENGINE_BINARY=$ROOT/migration-engine \
+              export PRISMA_QUERY_ENGINE_BINARY=$ROOT/query-engine \
+              export PRISMA_QUERY_ENGINE_LIBRARY=$ROOT/libquery_engine.node \
+              export PRISMA_INTROSPECTION_ENGINE_BINARY=$ROOT/introspection-engine \
+              export PRISMA_FMT_BINARY=$ROOT/prisma-fmt
+              "
             }
 
             prisma-cli () {

@@ -51,7 +51,6 @@ Or specify a Prisma schema path
 
 Instead of saving the result to the filesystem, you can also print it to stdout
   ${chalk.dim('$')} prisma db pull --print
-
 `)
 
   private printUrlAsDatasource(url: string): string {
@@ -75,6 +74,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
       '--print': Boolean,
       '--schema': String,
       '--force': Boolean,
+      '--composite-type-depth': Number, // optional, only on mongo
       // deprecated
       '--experimental-reintrospection': Boolean,
       '--clean': Boolean,
@@ -157,7 +157,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'])
+      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
