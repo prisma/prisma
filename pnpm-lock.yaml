@@ -706,7 +706,7 @@ importers:
       global-dirs: 3.0.0
       globby: 11.0.4
       has-yarn: 2.1.0
-      is-ci: 3.0.0
+      is-ci: 3.0.1
       jest: 27.3.1
       lint-staged: 11.2.3
       make-dir: 3.1.0
@@ -716,7 +716,7 @@ importers:
       read-pkg-up: 7.0.1
       resolve: 1.20.0
       rimraf: 3.0.2
-      shell-quote: 1.7.2
+      shell-quote: 1.7.3
       string-width: 4.2.3
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -749,14 +749,14 @@ importers:
       global-dirs: 3.0.0
       globby: 11.0.4
       has-yarn: 2.1.0
-      is-ci: 3.0.0
+      is-ci: 3.0.1
       make-dir: 3.1.0
       node-fetch: 2.6.5
       p-map: 4.0.0
       read-pkg-up: 7.0.1
       resolve: 1.20.0
       rimraf: 3.0.2
-      shell-quote: 1.7.2
+      shell-quote: 1.7.3
       string-width: 4.2.3
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -4612,6 +4612,14 @@ packages:
     hasBin: true
     dependencies:
       ci-info: 3.2.0
+    dev: true
+
+  /is-ci/3.0.1:
+    resolution: {integrity: sha512-ZYvCgrefwqoQ6yTyYUbQu64HsITZ3NfKX1lzaEYdkTDcfKzzCI/wthRRYKkdjHKFVgNiXKAKm65Zo1pk2as/QQ==}
+    hasBin: true
+    dependencies:
+      ci-info: 3.2.0
+    dev: false
 
   /is-core-module/2.7.0:
     resolution: {integrity: sha512-ByY+tjCciCr+9nLryBYcSD50EOGWt95c7tIsKTG1J2ixKKXPvF7Ej3AVd+UfDydAJom3biBGDBALaO79ktwgEQ==}
@@ -7015,8 +7023,8 @@ packages:
     resolution: {integrity: sha512-7++dFhtcx3353uBaq8DDR4NuxBetBzC7ZQOhmTQInHEd6bSrXdiEyzCvG07Z44UYdLShWUyXt5M/yhz8ekcb1A==}
     engines: {node: '>=8'}
 
-  /shell-quote/1.7.2:
-    resolution: {integrity: sha512-mRz/m/JVscCrkMyPqHc/bczi3OQHkLTqXHEFu0zDhK/qfv3UcOA4SVmRCLmos4bhjr9ekVQubj/R7waKapmiQg==}
+  /shell-quote/1.7.3:
+    resolution: {integrity: sha512-Vpfqwm4EnqGdlsBFNmHhxhElJYrdfcxPThu+ryKS5J8L/fhAwLazFZtq+S+TWZ9ANj2piSQLGj6NQg+lKPmxrw==}
     dev: false
 
   /side-channel/1.0.4:
