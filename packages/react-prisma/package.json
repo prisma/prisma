@@ -11,7 +11,7 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@types/jest": "27.0.2",
-    "@types/node": "14.17.27",
+    "@types/node": "14.17.32",
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "esbuild": "0.13.9",
@@ -21,7 +21,7 @@
     "eslint-plugin-jest": "24.7.0",
     "eslint-plugin-prettier": "4.0.0",
     "jest": "27.3.1",
-    "lint-staged": "11.2.3",
+    "lint-staged": "11.2.6",
     "prettier": "2.4.1",
     "react": "17.0.2",
     "ts-jest": "27.0.7",
