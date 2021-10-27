@@ -95,7 +95,7 @@
     "is-installed-globally": "0.4.0",
     "jest": "27.3.1",
     "line-replace": "2.0.1",
-    "lint-staged": "11.2.3",
+    "lint-staged": "11.2.6",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.5",
