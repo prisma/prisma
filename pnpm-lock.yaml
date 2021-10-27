@@ -31,8 +31,8 @@ importers:
       glob: 7.2.0
       globby: 11.0.4
       graphviz: 0.0.9
-      husky: 7.0.2
-      is-ci: 3.0.0
+      husky: 7.0.4
+      is-ci: 3.0.1
       node-fetch: 2.6.5
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -47,7 +47,7 @@ importers:
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.10
       staged-git-files: 1.2.0
-      ts-node: 10.3.0
+      ts-node: 10.4.0
       ts-toolbelt: 9.6.0
       tty-browserify: 0.0.1
       typescript: 4.4.4
@@ -80,8 +80,8 @@ importers:
       glob: 7.2.0
       globby: 11.0.4
       graphviz: 0.0.9
-      husky: 7.0.2
-      is-ci: 3.0.0
+      husky: 7.0.4
+      is-ci: 3.0.1
       node-fetch: 2.6.5
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -96,7 +96,7 @@ importers:
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.10
       staged-git-files: 1.2.0
-      ts-node: 10.3.0_66cff836a13bfa9aac50076d548b3a54
+      ts-node: 10.4.0_66cff836a13bfa9aac50076d548b3a54
       ts-toolbelt: 9.6.0
       tty-browserify: 0.0.1
       typescript: 4.4.4
@@ -140,7 +140,7 @@ importers:
       is-installed-globally: 0.4.0
       jest: 27.3.1
       line-replace: 2.0.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       log-update: 4.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.5
@@ -190,9 +190,9 @@ importers:
       get-port: 5.1.1
       global-dirs: 3.0.0
       is-installed-globally: 0.4.0
-      jest: 27.3.1_ts-node@10.3.0
+      jest: 27.3.1_ts-node@10.4.0
       line-replace: 2.0.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       log-update: 4.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.5
@@ -209,7 +209,7 @@ importers:
 
   packages/client:
     specifiers:
-      '@microsoft/api-extractor': 7.18.16
+      '@microsoft/api-extractor': 7.18.17
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': 3.4.0-12.75e502b4d3a731adcb7453205860268d76bc6ca0
@@ -246,11 +246,11 @@ importers:
       is-regexp: 2.1.0
       jest: 27.3.1
       js-levenshtein: 1.1.6
-      klona: 2.0.4
-      lint-staged: 11.2.3
+      klona: 2.0.5
+      lint-staged: 11.2.6
       lz-string: 1.4.4
       make-dir: 3.1.0
-      mariadb: 2.5.4
+      mariadb: 2.5.5
       mssql: 7.2.1
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -265,13 +265,13 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       ts-jest: 27.0.7
-      ts-node: 10.3.0
+      ts-node: 10.4.0
       tsd: 0.18.0
       typescript: 4.4.4
     dependencies:
       '@prisma/engines-version': 3.4.0-12.75e502b4d3a731adcb7453205860268d76bc6ca0
     devDependencies:
-      '@microsoft/api-extractor': 7.18.16
+      '@microsoft/api-extractor': 7.18.17
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
       '@prisma/engines': 3.4.0-12.75e502b4d3a731adcb7453205860268d76bc6ca0
@@ -305,13 +305,13 @@ importers:
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
-      jest: 27.3.1_ts-node@10.3.0
+      jest: 27.3.1_ts-node@10.4.0
       js-levenshtein: 1.1.6
-      klona: 2.0.4
-      lint-staged: 11.2.3
+      klona: 2.0.5
+      lint-staged: 11.2.6
       lz-string: 1.4.4
       make-dir: 3.1.0
-      mariadb: 2.5.4
+      mariadb: 2.5.5
       mssql: 7.2.1
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -326,7 +326,7 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
+      ts-node: 10.4.0_57e169272311c0adec585ea120112b43
       tsd: 0.18.0
       typescript: 4.4.4
 
@@ -344,7 +344,7 @@ importers:
       eslint-plugin-jest: 25.2.2
       eslint-plugin-prettier: 4.0.0
       jest: 27.3.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       ms: 2.1.3
       prettier: 2.4.1
       strip-ansi: 6.0.1
@@ -364,8 +364,8 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 25.2.2_f178490c6a6949e5c714e48d3ab36f98
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
-      jest: 27.3.1_ts-node@10.3.0
-      lint-staged: 11.2.3
+      jest: 27.3.1_ts-node@10.4.0
+      lint-staged: 11.2.6
       prettier: 2.4.1
       strip-ansi: 6.0.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
@@ -392,7 +392,7 @@ importers:
       get-stream: 6.0.1
       indent-string: 4.0.0
       jest: 27.3.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       prettier: 2.4.1
@@ -425,8 +425,8 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 25.2.2_f178490c6a6949e5c714e48d3ab36f98
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
-      jest: 27.3.1_ts-node@10.3.0
-      lint-staged: 11.2.3
+      jest: 27.3.1_ts-node@10.4.0
+      lint-staged: 11.2.6
       prettier: 2.4.1
       strip-ansi: 6.0.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
@@ -449,10 +449,10 @@ importers:
       eslint-plugin-jest: 25.2.2
       eslint-plugin-prettier: 4.0.0
       jest: 27.3.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       prettier: 2.4.1
       ts-jest: 27.0.7
-      ts-node: 10.3.0
+      ts-node: 10.4.0
       typescript: 4.4.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -470,11 +470,11 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 25.2.2_f178490c6a6949e5c714e48d3ab36f98
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
-      jest: 27.3.1_ts-node@10.3.0
-      lint-staged: 11.2.3
+      jest: 27.3.1_ts-node@10.4.0
+      lint-staged: 11.2.6
       prettier: 2.4.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
+      ts-node: 10.4.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
 
   packages/integration-tests:
@@ -498,8 +498,8 @@ importers:
       execa: 5.1.1
       fs-jetpack: 4.2.0
       jest: 27.3.1
-      lint-staged: 11.2.3
-      mariadb: 2.5.4
+      lint-staged: 11.2.6
+      mariadb: 2.5.5
       mssql: 7.2.1
       pg: 8.7.1
       prettier: 2.4.1
@@ -509,7 +509,7 @@ importers:
       strip-ansi: 6.0.1
       tempy: 1.0.1
       ts-jest: 27.0.7
-      ts-node: 10.3.0
+      ts-node: 10.4.0
       typescript: 4.4.4
       verror: 1.10.0
     devDependencies:
@@ -531,9 +531,9 @@ importers:
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
       execa: 5.1.1
       fs-jetpack: 4.2.0
-      jest: 27.3.1_ts-node@10.3.0
-      lint-staged: 11.2.3
-      mariadb: 2.5.4
+      jest: 27.3.1_ts-node@10.4.0
+      lint-staged: 11.2.6
+      mariadb: 2.5.5
       mssql: 7.2.1
       pg: 8.7.1
       prettier: 2.4.1
@@ -543,7 +543,7 @@ importers:
       strip-ansi: 6.0.1
       tempy: 1.0.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
+      ts-node: 10.4.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
       verror: 1.10.0
 
@@ -574,10 +574,10 @@ importers:
       has-yarn: 2.1.0
       indent-string: 4.0.0
       jest: 27.3.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       log-update: 4.0.0
       make-dir: 3.1.0
-      mariadb: 2.5.4
+      mariadb: 2.5.5
       mock-stdin: 1.0.0
       new-github-issue-url: 0.2.1
       open: 7.4.2
@@ -623,10 +623,10 @@ importers:
       eslint-plugin-jest: 25.2.2_f178490c6a6949e5c714e48d3ab36f98
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
       fs-jetpack: 4.2.0
-      jest: 27.3.1_ts-node@10.3.0
-      lint-staged: 11.2.3
+      jest: 27.3.1_ts-node@10.4.0
+      lint-staged: 11.2.6
       make-dir: 3.1.0
-      mariadb: 2.5.4
+      mariadb: 2.5.5
       mock-stdin: 1.0.0
       pg: 8.7.1
       prettier: 2.4.1
@@ -665,7 +665,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 24.7.0_f178490c6a6949e5c714e48d3ab36f98
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
-      jest: 27.3.1_ts-node@10.3.0
+      jest: 27.3.1_ts-node@10.4.0
       lint-staged: 11.2.3
       prettier: 2.4.1
       react: 17.0.2
@@ -708,7 +708,7 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.0
       jest: 27.3.1
-      lint-staged: 11.2.3
+      lint-staged: 11.2.6
       make-dir: 3.1.0
       node-fetch: 2.6.5
       p-map: 4.0.0
@@ -727,7 +727,7 @@ importers:
       terminal-link: 2.1.1
       tmp: 0.2.1
       ts-jest: 27.0.7
-      ts-node: 10.3.0
+      ts-node: 10.4.0
       typescript: 4.4.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -780,11 +780,11 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
       eslint-plugin-jest: 25.2.2_f178490c6a6949e5c714e48d3ab36f98
       eslint-plugin-prettier: 4.0.0_6e975bd57c7acf028c1a9ddbbf60c898
-      jest: 27.3.1_ts-node@10.3.0
-      lint-staged: 11.2.3
+      jest: 27.3.1_ts-node@10.4.0
+      lint-staged: 11.2.6
       prettier: 2.4.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
+      ts-node: 10.4.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
 
 packages:
@@ -1406,7 +1406,7 @@ packages:
       slash: 3.0.0
     dev: true
 
-  /@jest/core/27.3.1_ts-node@10.3.0:
+  /@jest/core/27.3.1_ts-node@10.4.0:
     resolution: {integrity: sha512-DMNE90RR5QKx0EA+wqe3/TNEwiRpOkhshKNxtLxd4rt3IZpCt+RSL+FoJsGeblRZmqdK4upHA/mKKGPPRAifhg==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     peerDependencies:
@@ -1427,7 +1427,7 @@ packages:
       exit: 0.1.2
       graceful-fs: 4.2.8
       jest-changed-files: 27.3.0
-      jest-config: 27.3.1_ts-node@10.3.0
+      jest-config: 27.3.1_ts-node@10.4.0
       jest-haste-map: 27.3.1
       jest-message-util: 27.3.1
       jest-regex-util: 27.0.6
@@ -1589,24 +1589,24 @@ packages:
     resolution: {integrity: sha512-PMqgJ0sw5B7FKb2d5bWYIoxjri+QlW/Pys7+Rw82jSH0QN3rB05jZ/VrrsUdh1w4+i2kw9JOejXGq/KhDOX7Kg==}
     dev: true
 
-  /@microsoft/api-extractor-model/7.13.13:
-    resolution: {integrity: sha512-4Hz2TOL4TljsAfMQe7a8tm+Am8+AkrcgkbnH62S9YuaIC3Cw6jE4H2qP8WC2JJInWJP4pg/ZrUlHrtmtgrqn9Q==}
+  /@microsoft/api-extractor-model/7.13.14:
+    resolution: {integrity: sha512-mKc917+QhOuOZebSnE77i8Tavj/G5ydIFoJqDIY9LpmAfJjsVHgL2pc7vkvW58QTxH2wadIDK1tLzcteOMEt4w==}
     dependencies:
       '@microsoft/tsdoc': 0.13.2
       '@microsoft/tsdoc-config': 0.15.2
-      '@rushstack/node-core-library': 3.42.3
+      '@rushstack/node-core-library': 3.43.0
     dev: true
 
-  /@microsoft/api-extractor/7.18.16:
-    resolution: {integrity: sha512-f0EcjGgS8IToUHxfQIr4vxGpBhUdaDOhGyddZpZ5K9e/GcGkImfkGeHpYbK043f2bZV3aagTx6NcIawwE72BKA==}
+  /@microsoft/api-extractor/7.18.17:
+    resolution: {integrity: sha512-gZuJ//FAyfrOqWssY0cyU2bEo8FOIaIYVs+pU5IDyfImkye6YkT2Qnm5PAFhyYSkfUjV5SjvyuP4+VsDfS3jww==}
     hasBin: true
     dependencies:
-      '@microsoft/api-extractor-model': 7.13.13
+      '@microsoft/api-extractor-model': 7.13.14
       '@microsoft/tsdoc': 0.13.2
       '@microsoft/tsdoc-config': 0.15.2
-      '@rushstack/node-core-library': 3.42.3
-      '@rushstack/rig-package': 0.3.3
-      '@rushstack/ts-command-line': 4.10.2
+      '@rushstack/node-core-library': 3.43.0
+      '@rushstack/rig-package': 0.3.4
+      '@rushstack/ts-command-line': 4.10.3
       colors: 1.2.5
       lodash: 4.17.21
       resolve: 1.17.0
@@ -1735,8 +1735,8 @@ packages:
     resolution: {integrity: sha512-UGT5L/kmp109hoYL5haIj8LPJ+rFyFXpY7u7OewQvo4krhhSKoLikfV7Vy8P1mrsCHJBZwEvOJ8jvij7gmPfqQ==}
     dev: true
 
-  /@rushstack/node-core-library/3.42.3:
-    resolution: {integrity: sha512-xtiJsHtO4Sf/hVKyf/8d58p3zQh2JAZNs1mmDNCyIlgSRYGdqUkpadvvn5mz7EwF6lwn+xTTaTV5/a32xKjbdw==}
+  /@rushstack/node-core-library/3.43.0:
+    resolution: {integrity: sha512-MFLW+6X83k6o8m8KnWkDhL/8NCJYHbFnnDokPSX1UHC3JwiEvVhHmEnxZv2YEzwnXeFYoKViub2G2t2liHbHLA==}
     dependencies:
       '@types/node': 12.20.24
       colors: 1.2.5
@@ -1749,15 +1749,15 @@ packages:
       z-schema: 3.18.4
     dev: true
 
-  /@rushstack/rig-package/0.3.3:
-    resolution: {integrity: sha512-ElPnChxIkUzcU3ywI0Cl7E1aM+2w6vFpAwM6X+oWk7Cyjf2ofItThje9e5qUBtKqvI9sc5jVsHY1bRC8rVwOqQ==}
+  /@rushstack/rig-package/0.3.4:
+    resolution: {integrity: sha512-NsCzPxPQ8cu7lnqa/4xBQXuCJwaBrb5vEbOC8Q/bMQK7GDOxeVUN3/f+NCYjgQSl39toAm8jQJ7TJe+RYYX3yQ==}
     dependencies:
       resolve: 1.17.0
       strip-json-comments: 3.1.1
     dev: true
 
-  /@rushstack/ts-command-line/4.10.2:
-    resolution: {integrity: sha512-Weq8B7oJeCQ4ITsaVLhOQombipyg+idpkdkhA6UqLtKvuzq8zTtPpAfhP5ff5L+RCmo1CFCVOBE3i+MvzUR5vA==}
+  /@rushstack/ts-command-line/4.10.3:
+    resolution: {integrity: sha512-DdDfwr8CO6CP/kBZlQrrwKyA6UxOteujaIBrmoHa+J+dyLZC19YA/LK0fAHjr2qHLAJHHXVpZwPH8BpqN84oVg==}
     dependencies:
       '@types/argparse': 1.0.38
       argparse: 1.0.10
@@ -4460,8 +4460,8 @@ packages:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
 
-  /husky/7.0.2:
-    resolution: {integrity: sha512-8yKEWNX4z2YsofXAMT7KvA1g8p+GxtB1ffV8XtpAEGuXNAbCV5wdNKH+qTpw8SM9fh4aMPDR+yQuKfgnreyZlg==}
+  /husky/7.0.4:
+    resolution: {integrity: sha512-vbaCKN2QLtP/vD4yvs6iz6hBEo6wkSzs8HpRah1Z6aGmF2KW5PdYuAd7uX5a+OyBZHBhd+TFLqgjUgytQr4RvQ==}
     engines: {node: '>=12'}
     hasBin: true
     dev: true
@@ -4616,6 +4616,13 @@ packages:
     hasBin: true
     dependencies:
       ci-info: 3.2.0
+
+  /is-ci/3.0.1:
+    resolution: {integrity: sha512-ZYvCgrefwqoQ6yTyYUbQu64HsITZ3NfKX1lzaEYdkTDcfKzzCI/wthRRYKkdjHKFVgNiXKAKm65Zo1pk2as/QQ==}
+    hasBin: true
+    dependencies:
+      ci-info: 3.2.0
+    dev: true
 
   /is-core-module/2.7.0:
     resolution: {integrity: sha512-ByY+tjCciCr+9nLryBYcSD50EOGWt95c7tIsKTG1J2ixKKXPvF7Ej3AVd+UfDydAJom3biBGDBALaO79ktwgEQ==}
@@ -4887,7 +4894,7 @@ packages:
       - supports-color
     dev: true
 
-  /jest-cli/27.3.1_ts-node@10.3.0:
+  /jest-cli/27.3.1_ts-node@10.4.0:
     resolution: {integrity: sha512-WHnCqpfK+6EvT62me6WVs8NhtbjAS4/6vZJnk7/2+oOr50cwAzG4Wxt6RXX0hu6m1169ZGMlhYYUNeKBXCph/Q==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     hasBin: true
@@ -4897,14 +4904,14 @@ packages:
       node-notifier:
         optional: true
     dependencies:
-      '@jest/core': 27.3.1_ts-node@10.3.0
+      '@jest/core': 27.3.1_ts-node@10.4.0
       '@jest/test-result': 27.3.1
       '@jest/types': 27.2.5
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.8
       import-local: 3.0.3
-      jest-config: 27.3.1_ts-node@10.3.0
+      jest-config: 27.3.1_ts-node@10.4.0
       jest-util: 27.3.1
       jest-validate: 27.3.1
       prompts: 2.4.2
@@ -4917,7 +4924,7 @@ packages:
       - utf-8-validate
     dev: true
 
-  /jest-config/27.3.1_ts-node@10.3.0:
+  /jest-config/27.3.1_ts-node@10.4.0:
     resolution: {integrity: sha512-KY8xOIbIACZ/vdYCKSopL44I0xboxC751IX+DXL2+Wx6DKNycyEfV3rryC3BPm5Uq/BBqDoMrKuqLEUNJmMKKg==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     peerDependencies:
@@ -4947,7 +4954,7 @@ packages:
       jest-validate: 27.3.1
       micromatch: 4.0.4
       pretty-format: 27.3.1
-      ts-node: 10.3.0_66cff836a13bfa9aac50076d548b3a54
+      ts-node: 10.4.0_66cff836a13bfa9aac50076d548b3a54
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -5329,7 +5336,7 @@ packages:
       supports-color: 8.1.1
     dev: true
 
-  /jest/27.3.1_ts-node@10.3.0:
+  /jest/27.3.1_ts-node@10.4.0:
     resolution: {integrity: sha512-U2AX0AgQGd5EzMsiZpYt8HyZ+nSVIh5ujQ9CPp9EQZJMjXIiSZpJNweZl0swatKRoqHWgGKM3zaSwm4Zaz87ng==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     hasBin: true
@@ -5339,9 +5346,9 @@ packages:
       node-notifier:
         optional: true
     dependencies:
-      '@jest/core': 27.3.1_ts-node@10.3.0
+      '@jest/core': 27.3.1_ts-node@10.4.0
       import-local: 3.0.3
-      jest-cli: 27.3.1_ts-node@10.3.0
+      jest-cli: 27.3.1_ts-node@10.4.0
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -5553,8 +5560,8 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
 
-  /klona/2.0.4:
-    resolution: {integrity: sha512-ZRbnvdg/NxqzC7L9Uyqzf4psi1OM4Cuc+sJAkQPjO6XkQIJTNbfK2Rsmbw8fx1p2mkZdp2FZYo2+LwXYY/uwIA==}
+  /klona/2.0.5:
+    resolution: {integrity: sha512-pJiBpiXMbt7dkzXe8Ghj/u4FfXOOa98fPW+bihOJ4SjnoijweJrNThJfd3ifXpXhREjpoF2mZVH1GfS9LV3kHQ==}
     engines: {node: '>= 8'}
     dev: true
 
@@ -5596,6 +5603,26 @@ packages:
 
   /lint-staged/11.2.3:
     resolution: {integrity: sha512-Tfmhk8O2XFMD25EswHPv+OYhUjsijy5D7liTdxeXvhG2rsadmOLFtyj8lmlfoFFXY8oXWAIOKpoI+lJe1DB1mw==}
+    hasBin: true
+    dependencies:
+      cli-truncate: 2.1.0
+      colorette: 1.4.0
+      commander: 8.2.0
+      cosmiconfig: 7.0.1
+      debug: 4.3.2_supports-color@8.1.1
+      enquirer: 2.3.6
+      execa: 5.1.1
+      listr2: 3.12.2_enquirer@2.3.6
+      micromatch: 4.0.4
+      normalize-path: 3.0.0
+      please-upgrade-node: 3.2.0
+      string-argv: 0.3.1
+      stringify-object: 3.3.0
+      supports-color: 8.1.1
+    dev: true
+
+  /lint-staged/11.2.6:
+    resolution: {integrity: sha512-Vti55pUnpvPE0J9936lKl0ngVeTdSZpEdTNhASbkaWX7J5R9OEifo1INBGQuGW4zmy6OG+TcWPJ3m5yuy5Q8Tg==}
     hasBin: true
     dependencies:
       cli-truncate: 2.1.0
@@ -5790,8 +5817,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /mariadb/2.5.4:
-    resolution: {integrity: sha512-4vQgMRyBIN9EwSQG0vzjR9D8bscPH0dGPJt67qVlOkHSiSm0xUatg1Pft4o1LzORgeOW4PheiY/HBE9bYYmNCA==}
+  /mariadb/2.5.5:
+    resolution: {integrity: sha512-6dklvcKWuuaV1JjAwnE2ezR+jTt7JrZHftgeHHBmjB0wgfaUpdxol1DPWclwMcCrsO9yoM0FuCOiCcCgXc//9Q==}
     engines: {node: '>= 10.13'}
     dependencies:
       '@types/geojson': 7946.0.8
@@ -7588,7 +7615,7 @@ packages:
       '@types/jest': 27.0.2
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 27.3.1_ts-node@10.3.0
+      jest: 27.3.1_ts-node@10.4.0
       jest-util: 27.2.5
       json5: 2.2.0
       lodash.memoize: 4.1.2
@@ -7598,8 +7625,8 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
-  /ts-node/10.3.0_57e169272311c0adec585ea120112b43:
-    resolution: {integrity: sha512-RYIy3i8IgpFH45AX4fQHExrT8BxDeKTdC83QFJkNzkvt8uFB6QJ8XMyhynYiKMLxt9a7yuXaDBZNOYS3XjDcYw==}
+  /ts-node/10.4.0_57e169272311c0adec585ea120112b43:
+    resolution: {integrity: sha512-g0FlPvvCXSIO1JDF6S232P5jPYqBkRL9qly81ZgAOSU7rwI0stphCgd2kLiCrU9DjQCrJMWEqcNSjQL02s6d8A==}
     hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
@@ -7628,8 +7655,8 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-node/10.3.0_66cff836a13bfa9aac50076d548b3a54:
-    resolution: {integrity: sha512-RYIy3i8IgpFH45AX4fQHExrT8BxDeKTdC83QFJkNzkvt8uFB6QJ8XMyhynYiKMLxt9a7yuXaDBZNOYS3XjDcYw==}
+  /ts-node/10.4.0_66cff836a13bfa9aac50076d548b3a54:
+    resolution: {integrity: sha512-g0FlPvvCXSIO1JDF6S232P5jPYqBkRL9qly81ZgAOSU7rwI0stphCgd2kLiCrU9DjQCrJMWEqcNSjQL02s6d8A==}
     hasBin: true
     peerDependencies:
       '@swc/core': '>=1.2.50'
