@@ -53,8 +53,6 @@ describe('seed', () => {
 
   it('seed.ts - ESM', async () => {
     ctx.fixture('seed-sqlite-ts-esm')
-    // "high" number since npm install can sometimes be slow
-    jest.setTimeout(20000)
 
     // Needs ts-node to be installed
     await execa.command('npm i')
@@ -68,7 +66,9 @@ describe('seed', () => {
       `Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...`,
     )
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
+
+    // "high" number since npm install can sometimes be slow
+  }, 20000)
 
   it('seed.sh', async () => {
     ctx.fixture('seed-sqlite-sh')

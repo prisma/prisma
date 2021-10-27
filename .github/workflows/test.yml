@@ -298,7 +298,7 @@ jobs:
   # SDK
   #
   sdk:
-    timeout-minutes: 5
+    timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -313,6 +313,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -344,6 +346,10 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
+          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
 
       - uses: codecov/codecov-action@v2
         with:
@@ -355,7 +361,7 @@ jobs:
   # MIGRATE
   #
   migrate:
-    timeout-minutes: 7
+    timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
