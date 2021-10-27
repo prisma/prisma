@@ -9,7 +9,7 @@ importers:
       '@types/benchmark': 2.1.1
       '@types/glob': 7.2.0
       '@types/graphviz': 0.0.34
-      '@types/node': 14.17.27
+      '@types/node': 14.17.32
       '@types/redis': 2.8.32
       '@types/resolve': 1.20.1
       '@typescript-eslint/eslint-plugin': 4.33.0
@@ -58,7 +58,7 @@ importers:
       '@types/benchmark': 2.1.1
       '@types/glob': 7.2.0
       '@types/graphviz': 0.0.34
-      '@types/node': 14.17.27
+      '@types/node': 14.17.32
       '@types/redis': 2.8.32
       '@types/resolve': 1.20.1
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
@@ -96,7 +96,7 @@ importers:
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.10
       staged-git-files: 1.2.0
-      ts-node: 10.3.0_64c822b0f0ef3f125d8d3681dcee4e14
+      ts-node: 10.3.0_66cff836a13bfa9aac50076d548b3a54
       ts-toolbelt: 9.6.0
       tty-browserify: 0.0.1
       typescript: 4.4.4
@@ -224,7 +224,7 @@ importers:
       '@types/jest': 27.0.2
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/pg': 8.6.1
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
@@ -285,7 +285,7 @@ importers:
       '@types/jest': 27.0.2
       '@types/js-levenshtein': 1.1.0
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/pg': 8.6.1
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
@@ -326,7 +326,7 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_e07488ebb14f55fc4fcd73e335e5cdc6
+      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
       tsd: 0.18.0
       typescript: 4.4.4
 
@@ -334,7 +334,7 @@ importers:
     specifiers:
       '@types/debug': 4.1.7
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       esbuild: 0.13.9
@@ -355,7 +355,7 @@ importers:
       ms: 2.1.3
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       esbuild: 0.13.9
@@ -378,7 +378,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.4.0-12.75e502b4d3a731adcb7453205860268d76bc6ca0
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       chalk: 4.1.2
@@ -416,7 +416,7 @@ importers:
       undici: 3.3.6
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       esbuild: 0.13.9
@@ -437,7 +437,7 @@ importers:
       '@prisma/debug': workspace:*
       '@types/cross-spawn': 6.0.2
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       chalk: 4.1.2
@@ -461,7 +461,7 @@ importers:
       cross-spawn: 7.0.3
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       esbuild: 0.13.9
@@ -474,7 +474,7 @@ importers:
       lint-staged: 11.2.3
       prettier: 2.4.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_e07488ebb14f55fc4fcd73e335e5cdc6
+      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
 
   packages/integration-tests:
@@ -483,7 +483,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.0.2
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/pg': 8.6.1
       '@types/sqlite3': 3.1.7
       '@typescript-eslint/eslint-plugin': 4.33.0
@@ -517,7 +517,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.0.2
       '@types/mssql': 6.0.8
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/pg': 8.6.1
       '@types/sqlite3': 3.1.7
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
@@ -543,7 +543,7 @@ importers:
       strip-ansi: 6.0.1
       tempy: 1.0.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_e07488ebb14f55fc4fcd73e335e5cdc6
+      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
       verror: 1.10.0
 
@@ -556,7 +556,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/pg': 8.6.1
       '@types/prompts': 2.0.14
       '@types/sqlite3': 3.1.7
@@ -609,7 +609,7 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/sdk': link:../sdk
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/pg': 8.6.1
       '@types/prompts': 2.0.14
       '@types/sqlite3': 3.1.7
@@ -682,7 +682,7 @@ importers:
       '@prisma/get-platform': 3.4.0-12.75e502b4d3a731adcb7453205860268d76bc6ca0
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
       '@types/tar': 6.1.0
@@ -768,7 +768,7 @@ importers:
       tmp: 0.2.1
     devDependencies:
       '@types/jest': 27.0.2
-      '@types/node': 12.20.33
+      '@types/node': 12.20.36
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
       '@types/tar': 6.1.0
@@ -784,7 +784,7 @@ importers:
       lint-staged: 11.2.3
       prettier: 2.4.1
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
-      ts-node: 10.3.0_e07488ebb14f55fc4fcd73e335e5cdc6
+      ts-node: 10.3.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
 
 packages:
@@ -2014,8 +2014,8 @@ packages:
     resolution: {integrity: sha512-yxDeaQIAJlMav7fH5AQqPH1u8YIuhYJXYBzxaQ4PifsU0GDO38MSdmEDeRlIxrKbC6NbEaaEHDanWb+y30U8SQ==}
     dev: true
 
-  /@types/node/12.20.33:
-    resolution: {integrity: sha512-5XmYX2GECSa+CxMYaFsr2mrql71Q4EvHjKS+ox/SiwSdaASMoBIWE6UmZqFO+VX1jIcsYLStI4FFoB6V7FeIYw==}
+  /@types/node/12.20.36:
+    resolution: {integrity: sha512-+5haRZ9uzI7rYqzDznXgkuacqb6LJhAti8mzZKWxIXn/WEtvB+GHVJ7AuMwcN1HMvXOSJcrvA6PPoYHYOYYebA==}
     dev: true
 
   /@types/node/14.17.22:
@@ -2024,6 +2024,10 @@ packages:
 
   /@types/node/14.17.27:
     resolution: {integrity: sha512-94+Ahf9IcaDuJTle/2b+wzvjmutxXAEXU6O81JHblYXUg2BDG+dnBy7VxIPHKAyEEDHzCMQydTJuWvrE+Aanzw==}
+    dev: true
+
+  /@types/node/14.17.32:
+    resolution: {integrity: sha512-JcII3D5/OapPGx+eJ+Ik1SQGyt6WvuqdRfh9jUwL6/iHGjmyOriBDciBUu7lEIBTL2ijxwrR70WUnw5AEDmFvQ==}
     dev: true
 
   /@types/node/16.10.5:
@@ -4943,7 +4947,7 @@ packages:
       jest-validate: 27.3.1
       micromatch: 4.0.4
       pretty-format: 27.3.1
-      ts-node: 10.3.0_64c822b0f0ef3f125d8d3681dcee4e14
+      ts-node: 10.3.0_66cff836a13bfa9aac50076d548b3a54
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -5791,7 +5795,7 @@ packages:
     engines: {node: '>= 10.13'}
     dependencies:
       '@types/geojson': 7946.0.8
-      '@types/node': 14.17.22
+      '@types/node': 14.17.32
       denque: 1.5.1
       iconv-lite: 0.6.3
       long: 4.0.0
@@ -7594,7 +7598,7 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
-  /ts-node/10.3.0_64c822b0f0ef3f125d8d3681dcee4e14:
+  /ts-node/10.3.0_57e169272311c0adec585ea120112b43:
     resolution: {integrity: sha512-RYIy3i8IgpFH45AX4fQHExrT8BxDeKTdC83QFJkNzkvt8uFB6QJ8XMyhynYiKMLxt9a7yuXaDBZNOYS3XjDcYw==}
     hasBin: true
     peerDependencies:
@@ -7613,7 +7617,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 14.17.27
+      '@types/node': 12.20.36
       acorn: 8.5.0
       acorn-walk: 8.2.0
       arg: 4.1.3
@@ -7624,7 +7628,7 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-node/10.3.0_e07488ebb14f55fc4fcd73e335e5cdc6:
+  /ts-node/10.3.0_66cff836a13bfa9aac50076d548b3a54:
     resolution: {integrity: sha512-RYIy3i8IgpFH45AX4fQHExrT8BxDeKTdC83QFJkNzkvt8uFB6QJ8XMyhynYiKMLxt9a7yuXaDBZNOYS3XjDcYw==}
     hasBin: true
     peerDependencies:
@@ -7643,7 +7647,7 @@ packages:
       '@tsconfig/node12': 1.0.9
       '@tsconfig/node14': 1.0.1
       '@tsconfig/node16': 1.0.2
-      '@types/node': 12.20.33
+      '@types/node': 14.17.32
       acorn: 8.5.0
       acorn-walk: 8.2.0
       arg: 4.1.3
