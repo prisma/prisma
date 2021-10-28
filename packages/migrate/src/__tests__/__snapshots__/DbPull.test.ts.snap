@@ -4,6 +4,92 @@ exports[`MongoDB basic introspection --url 2`] = ``;
 
 exports[`MongoDB basic introspection 1`] = ``;
 
+exports[`MongoDB introspection --print --composite-type-depth=-1 1`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+datasource my_db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI")
+}
+
+type UsersHobbies {
+  name    String
+  objects UsersHobbiesObjects[]
+  tags    String[]
+}
+
+type UsersHobbiesObjects {
+  name String
+  tags String[]
+}
+
+model users {
+  id      String         @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  admin   Boolean
+  email   String
+  hobbies UsersHobbies[]
+  name    String
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`MongoDB introspection --print --composite-type-depth=0 1`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+datasource my_db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI")
+}
+
+model users {
+  id      String  @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  admin   Boolean
+  email   String
+  hobbies Json[]
+  name    String
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`MongoDB introspection --print --composite-type-depth=1 1`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongoDb"]
+}
+
+datasource my_db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI")
+}
+
+type UsersHobbies {
+  name    String
+  objects Json[]
+  tags    String[]
+}
+
+model users {
+  id      String         @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  admin   Boolean
+  email   String
+  hobbies UsersHobbies[]
+  name    String
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`MongoDB introspection --print 1`] = `
 generator client {
   provider        = "prisma-client-js"
@@ -16,10 +102,11 @@ datasource my_db {
 }
 
 model users {
-  id    String  @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
-  admin Boolean
-  email String
-  name  String
+  id      String  @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  admin   Boolean
+  email   String
+  hobbies Json[]
+  name    String
 }
 
 

@@ -54,7 +54,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 
 `)
 
-  private printUrlAsDatasource(url: string): string {
+  private urlToDatasource(url: string): string {
     const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
 
     return printDatasources([
@@ -75,6 +75,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
       '--print': Boolean,
       '--schema': String,
       '--force': Boolean,
+      '--composite-type-depth': Number, // optional, only on mongodb
       // deprecated
       '--experimental-reintrospection': Boolean,
       '--clean': Boolean,
@@ -131,11 +132,11 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     let schema: string | null = null
 
     if (url && schemaPath) {
-      schema = this.printUrlAsDatasource(url)
+      schema = this.urlToDatasource(url)
       const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
       schema += removeDatasource(rawSchema)
     } else if (url) {
-      schema = this.printUrlAsDatasource(url)
+      schema = this.urlToDatasource(url)
     } else if (schemaPath) {
       schema = fs.readFileSync(schemaPath, 'utf-8')
     } else {
@@ -157,7 +158,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'])
+      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings

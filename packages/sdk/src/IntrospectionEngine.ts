@@ -209,13 +209,14 @@ export class IntrospectionEngine {
   public introspect(
     schema: string,
     force?: Boolean,
+    compositeTypeDepth?: number, // optional, only for mongodb
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
   }> {
     this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema, force }))
+    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
   }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
