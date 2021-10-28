@@ -101,7 +101,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     const tempDir = tempy.directory({ prefix: 'prisma' })
     const newBinaryPath = path.join(tempDir, path.basename(file))
     debug('Copying %s to %s', file, newBinaryPath)
-    await fs.promises.link(file, newBinaryPath)
+    await fs.promises.copyFile(file, newBinaryPath)
     return newBinaryPath
   }
 
