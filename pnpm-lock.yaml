@@ -229,6 +229,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       arg: 5.0.1
+      benchmark: 2.1.4
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.13.9
@@ -290,6 +291,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       arg: 5.0.1
+      benchmark: 2.1.4
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.13.9
@@ -1727,7 +1729,6 @@ packages:
       express: 4.17.1
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -2660,6 +2661,13 @@ packages:
       tweetnacl: 0.14.5
     dev: true
     optional: true
+
+  /benchmark/2.1.4:
+    resolution: {integrity: sha1-CfPeMckWQl1JjMLuVloOvzwqVik=}
+    dependencies:
+      lodash: 4.17.21
+      platform: 1.3.6
+    dev: true
 
   /binary-extensions/2.2.0:
     resolution: {integrity: sha512-jDctJ/IVQbZoJykoeHbhXpOlNBqGNcwXJKJog42E5HDPUwQTSdjCHdihjj0DlnheQ7blbT6dHOafNAiS8ooQKA==}
@@ -4949,7 +4957,7 @@ packages:
       jest-validate: 27.3.1
       micromatch: 4.0.4
       pretty-format: 27.3.1
-      ts-node: 10.4.0_66cff836a13bfa9aac50076d548b3a54
+      ts-node: 10.4.0_57e169272311c0adec585ea120112b43
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -6463,6 +6471,10 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       find-up: 3.0.0
+
+  /platform/1.3.6:
+    resolution: {integrity: sha512-fnWVljUchTro6RiCFvCXBbNhJc2NijN7oIQxbwsyL0buWJPG85v81ehlHI9fXrJsMNgTofEoWIQeClKpgxFLrg==}
+    dev: true
 
   /please-upgrade-node/3.2.0:
     resolution: {integrity: sha512-gQR3WpIgNIKwBMVLkpMUeR3e1/E1y42bqDQZfql+kDeXd8COYfM8PQA4X6y7a8u9Ua9FHmsrrmirW2vHs45hWg==}
