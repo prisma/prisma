@@ -126,7 +126,7 @@ function shouldCopyQueryEngineLibraryToTmp(): boolean {
   }
 
   if (process.platform === 'win32') {
-    debug('Windows detected')
+    debug('Windows detected, copying the query engine library to tmp by default')
     return true
   }
 
