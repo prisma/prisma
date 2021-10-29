@@ -11,7 +11,6 @@
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
-    "build": "ts-node scripts/setup.ts --build",
     "watch": "pnpm -r run dev && WATCH=true pnpm -r run dev --parallel --stream",
     "depcheck": "node -r esbuild-register helpers/compile/depcheck.ts",
     "publish-all-dryrun": "ts-node scripts/ci/publish.ts --publish --dry-run",

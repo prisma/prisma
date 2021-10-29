@@ -3,11 +3,7 @@ import chalk from 'chalk'
 import path from 'path'
 import pRetry from 'p-retry'
 import pMap from 'p-map'
-import {
-  getPackages,
-  getPublishOrder,
-  getPackageDependencies,
-} from './ci/publish'
+import { getPackages, getPublishOrder, getPackageDependencies } from './ci/publish'
 import fetch from 'node-fetch'
 
 async function main() {
@@ -18,9 +14,7 @@ async function main() {
 has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
   if (process.env.RELEASE_PROMOTE_DEV && !process.env.BUILDKITE_TAG) {
-    throw new Error(
-      `You provided RELEASE_PROMOTE_DEV without BUILDKITE_TAG, which doesn't make sense.`,
-    )
+    throw new Error(`You provided RELEASE_PROMOTE_DEV without BUILDKITE_TAG, which doesn't make sense.`)
   }
   if (process.env.CI && !process.env.SKIP_GIT) {
     await run('.', `git config --global user.email "prismabots@gmail.com"`)
@@ -50,73 +44,31 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   const rawPackages = await getPackages()
   const packages = getPackageDependencies(rawPackages)
   const publishOrder = getPublishOrder(packages)
-
   console.log(publishOrder)
+
   if (!buildOnly) {
     console.debug(`Installing dependencies`)
-
-    await run(
-      '.',
-      `pnpm i --no-prefer-frozen-lockfile --reporter=silent`,
-    ).catch(() => {})
+    await run('.', `pnpm i --no-prefer-frozen-lockfile --reporter=silent`).catch(() => {})
   }
 
   console.debug(`Building packages`)
-
-  for (const batch of publishOrder) {
-    await pMap(
-      batch,
-      async (pkgName) => {
-        const pkg = packages[pkgName]
-        const pkgDir = path.dirname(pkg.path)
-        const runPromise = run(pkgDir, 'pnpm run build')
-
-        // we want to build all in build-only to see all errors at once
-        if (buildOnly) {
-          runPromise.catch(console.error)
-
-          // for sqlite3 native bindings, they need a rebuild after an update
-          if (
-            ['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)
-          ) {
-            await run(pkgDir, 'pnpm rebuild')
-          }
-        }
-
-        await runPromise
-      },
-      { concurrency: 1 },
-    )
-  }
+  await run('.', 'pnpm -r run build')
 
   if (buildOnly) {
     return
   }
 
-  // this should not be necessary, it's an pnpm bug
-  // it doesn't execute postinstall correctly
-  for (const batch of publishOrder) {
-    for (const pkgName of batch) {
-      const pkg = packages[pkgName]
-      if (pkg.packageJson.scripts.postinstall) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run postinstall')
-      }
-    }
-  }
-
-  // final install on top level
-  await pRetry(
-    async () => {
-      await run('.', 'pnpm i --no-prefer-frozen-lockfile')
-    },
-    {
-      retries: 6,
-      onFailedAttempt: (e) => {
-        console.error(e)
-      },
-    },
-  )
+  // // this should not be necessary, it's an pnpm bug
+  // // it doesn't execute postinstall correctly
+  // for (const batch of publishOrder) {
+  //   for (const pkgName of batch) {
+  //     const pkg = packages[pkgName]
+  //     if (pkg.packageJson.scripts.postinstall) {
+  //       const pkgDir = path.dirname(pkg.path)
+  //       await run(pkgDir, 'pnpm run postinstall')
+  //     }
+  //   }
+  // }
 }
 
 if (!module.parent) {
@@ -126,11 +78,7 @@ if (!module.parent) {
   })
 }
 
-export async function run(
-  cwd: string,
-  cmd: string,
-  dry = false,
-): Promise<execa.ExecaReturnValue<string> | undefined> {
+export async function run(cwd: string, cmd: string, dry = false): Promise<execa.ExecaReturnValue<string> | undefined> {
   const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
   if (dry) {
     args.push(chalk.dim('(dry)'))
@@ -147,9 +95,7 @@ export async function run(
   } catch (_e) {
     const e = _e as execa.ExecaError
     throw new Error(
-      chalk.bold.red(
-        `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
-      ) + (e.stack || e.message),
+      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) + (e.stack || e.message),
     )
   }
 }
@@ -170,9 +116,7 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
   } catch (_e) {
     const e = _e as execa.ExecaError
     throw new Error(
-      chalk.red(
-        `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
-      ) + (e.stderr || e.stack || e.message),
+      chalk.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) + (e.stderr || e.stack || e.message),
     )
   }
 }
@@ -209,9 +153,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getVersionHashes(
-  npmVersion: string,
-): Promise<{ prisma: string }> {
+async function getVersionHashes(npmVersion: string): Promise<{ prisma: string }> {
   return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
     headers: {
       accept: 'application/json',
