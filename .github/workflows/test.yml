@@ -298,7 +298,7 @@ jobs:
   # SDK
   #
   sdk:
-    timeout-minutes: 10
+    timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
