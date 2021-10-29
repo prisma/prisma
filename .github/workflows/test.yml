@@ -234,7 +234,7 @@ jobs:
           - mysql
           - mariadb
           - mssql
-        node: [12, 16]
+        node: [12]
 
     steps:
       - uses: actions/checkout@v2
