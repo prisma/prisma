@@ -27,8 +27,9 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-  -h, --help   Display this help message
-    --schema   Custom path to your Prisma schema
+  -h, --help              Display this help message
+    --schema              Custom path to your Prisma schema
+    --skip-create-db      Skip creation of database
 
 ${chalk.bold('Examples')}
 
@@ -50,6 +51,7 @@ ${chalk.bold('Examples')}
         '--early-access-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
+        '--skip-create-db': Boolean,
       },
       false,
     )
@@ -84,16 +86,19 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    try {
-      // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
-      if (wasDbCreated) {
+    const skipCreateDb = args['--skip-create-db']
+    if (!skipCreateDb) {
+      try {
+        // Automatically create the database if it doesn't exist
+        const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
+        if (wasDbCreated) {
+          console.info() // empty line
+          console.info(wasDbCreated)
+        }
+      } catch (e) {
         console.info() // empty line
-        console.info(wasDbCreated)
+        throw e
       }
-    } catch (e) {
-      console.info() // empty line
-      throw e
     }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
