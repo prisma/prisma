@@ -27,7 +27,7 @@
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "chalk": "4.1.2",
-    "esbuild": "0.13.9",
+    "esbuild": "0.13.12",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",

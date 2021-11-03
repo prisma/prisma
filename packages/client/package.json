@@ -81,7 +81,7 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
-    "esbuild": "0.13.9",
+    "esbuild": "0.13.12",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
