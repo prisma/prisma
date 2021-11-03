@@ -7,6 +7,14 @@ import EventEmitter from 'events'
 import { createSchemaHash } from './utils/createSchemaHash'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
+import {
+  DataProxyError,
+  ForcedRetryError,
+  InvalidDatasourceError,
+  NotImplementedYetError,
+  responseToError,
+  SchemaMissingError,
+} from './utils/errors'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 // TODO this is an issue that we cannot share types from the client to other packages
 
@@ -65,7 +73,7 @@ export class DataProxyEngine extends Engine {
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
       // TODO: hook into the process
-      throw new Error('beforeExit event is not supported yet')
+      throw new NotImplementedYetError('beforeExit event is not supported yet')
     } else {
       this.logEmitter.on(event, listener)
     }
@@ -100,13 +108,15 @@ export class DataProxyEngine extends Engine {
       body: this.config.inlineSchema,
     })
 
-    if (res) {
+    const err = await responseToError(res)
+
+    if (err) {
+      this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
+      throw err
+    } else {
       this.logEmitter.emit('info', {
         message: `Schema (re)uploaded (hash: ${this.schemaHash})`,
       })
-    } else {
-      this.logEmitter.emit('warn', { message: 'Could not upload the schema' })
-      throw new Error('Could not upload the schema')
     }
   }
 
@@ -145,35 +155,48 @@ export class DataProxyEngine extends Engine {
         body: JSON.stringify(body),
       })
 
-      // 404 on the GraphQL, so we re-upload schema & retry
-      if (res.status === 404) {
-        await this.uploadSchema()
+      const err = await responseToError(res)
 
-        throw new Error('Schema (re)uploaded')
+      if (err instanceof SchemaMissingError) {
+        await this.uploadSchema()
+        throw new ForcedRetryError(err)
       }
 
-      if (!res.ok) {
-        throw new Error('GraphQL request failed')
+      if (err) {
+        throw err
       }
 
       return res.json()
     } catch (err) {
-      if (attempt >= MAX_RETRIES) {
-        this.logEmitter.emit('error', {
-          message: `Failed to query: ${err.message}`,
-        })
+      this.logEmitter.emit('error', {
+        message: `Error while querying: ${err.message ?? '(unknown)'}`,
+      })
+
+      if (!(err instanceof DataProxyError)) {
         throw err
-      } else {
-        const delay = await backOff(attempt)
-        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
-        return this.requestInternal<T>(body, headers, attempt + 1)
       }
+      if (!err.isRetriable) {
+        throw err
+      }
+      if (attempt >= MAX_RETRIES) {
+        if (err instanceof ForcedRetryError) {
+          throw err.originalError
+        } else {
+          throw err
+        }
+      }
+
+      this.logEmitter.emit('warn', { message: 'This request can be retried' })
+      const delay = await backOff(attempt)
+      this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+
+      return this.requestInternal<T>(body, headers, attempt + 1)
     }
   }
 
   // TODO: figure out how to support transactions
   transaction(): Promise<any> {
-    throw new Error('Transactions are currently not supported in Data Proxy')
+    throw new NotImplementedYetError('Transactions are currently not supported in Data Proxy')
   }
 
   extractHostAndApiKey() {
@@ -188,18 +211,18 @@ export class DataProxyEngine extends Engine {
     try {
       url = new URL(dataProxyURL ?? '')
     } catch {
-      throw new Error('Could not parse URL of the datasource')
+      throw new InvalidDatasourceError('Could not parse URL of the datasource')
     }
 
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new Error('Datasource URL should use prisma:// protocol')
+      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol')
     }
 
     const apiKey = searchParams.get('api_key')
     if (apiKey === null || apiKey.length < 1) {
-      throw new Error('No valid API key found in the datasource URL')
+      throw new InvalidDatasourceError('No valid API key found in the datasource URL')
     }
 
     return [host, apiKey]
