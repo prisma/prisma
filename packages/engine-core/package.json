@@ -52,7 +52,7 @@
     "get-stream": "6.0.1",
     "indent-string": "4.0.0",
     "new-github-issue-url": "0.2.1",
-    "p-retry": "4.6.1",
+    "p-retry": "5.0.0",
     "terminal-link": "2.1.1",
     "undici": "3.3.6"
   },

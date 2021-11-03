@@ -61,7 +61,7 @@
     "node-fetch": "2.6.6",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
-    "p-retry": "4.6.1",
+    "p-retry": "5.0.0",
     "path-browserify": "1.0.1",
     "prettier": "2.4.1",
     "redis": "3.1.2",

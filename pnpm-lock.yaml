@@ -36,7 +36,7 @@ importers:
       node-fetch: 2.6.6
       p-map: 4.0.0
       p-reduce: 2.1.0
-      p-retry: 4.6.1
+      p-retry: 5.0.0
       path-browserify: 1.0.1
       prettier: 2.4.1
       redis: 3.1.2
@@ -85,7 +85,7 @@ importers:
       node-fetch: 2.6.6
       p-map: 4.0.0
       p-reduce: 2.1.0
-      p-retry: 4.6.1
+      p-retry: 5.0.0
       path-browserify: 1.0.1
       prettier: 2.4.1
       redis: 3.1.2
@@ -396,7 +396,7 @@ importers:
       jest: 27.3.1
       lint-staged: 11.2.6
       new-github-issue-url: 0.2.1
-      p-retry: 4.6.1
+      p-retry: 5.0.0
       prettier: 2.4.1
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
@@ -413,7 +413,7 @@ importers:
       get-stream: 6.0.1
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
-      p-retry: 4.6.1
+      p-retry: 5.0.0
       terminal-link: 2.1.1
       undici: 3.3.6
     devDependencies:
@@ -6324,6 +6324,13 @@ packages:
   /p-retry/4.6.1:
     resolution: {integrity: sha512-e2xXGNhZOZ0lfgR9kL34iGlU8N/KO0xZnQxVEwdeOvpqNDQfdnxIYizvWtK8RglUa3bGqI8g0R/BdfzLMxRkiA==}
     engines: {node: '>=8'}
+    dependencies:
+      '@types/retry': 0.12.1
+      retry: 0.13.1
+
+  /p-retry/5.0.0:
+    resolution: {integrity: sha512-swGFiU6Y1Q3rBikAGHpaT0FHSbiO9H04fSsJRKVtWyEQMAe2Sb1uXeBcqE/RlZqt2prlq4W2HA/+MZAt3V2NkQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       '@types/retry': 0.12.1
       retry: 0.13.1
