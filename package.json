@@ -44,7 +44,7 @@
     "buffer": "6.0.3",
     "chalk": "4.1.2",
     "chokidar": "3.5.2",
-    "esbuild": "0.13.9",
+    "esbuild": "0.13.12",
     "esbuild-register": "3.0.0",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",

@@ -19,7 +19,7 @@ importers:
       buffer: 6.0.3
       chalk: 4.1.2
       chokidar: 3.5.2
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       esbuild-register: 3.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -68,8 +68,8 @@ importers:
       buffer: 6.0.3
       chalk: 4.1.2
       chokidar: 3.5.2
-      esbuild: 0.13.9
-      esbuild-register: 3.0.0_esbuild@0.13.9
+      esbuild: 0.13.12
+      esbuild-register: 3.0.0_esbuild@0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -125,7 +125,7 @@ importers:
       checkpoint-client: 1.1.20
       debug: 4.3.2
       dotenv: 10.0.0
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -177,7 +177,7 @@ importers:
       checkpoint-client: 1.1.20
       debug: 4.3.2
       dotenv: 10.0.0
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -232,7 +232,7 @@ importers:
       benchmark: 2.1.4
       chalk: 4.1.2
       decimal.js: 10.3.1
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -294,7 +294,7 @@ importers:
       benchmark: 2.1.4
       chalk: 4.1.2
       decimal.js: 10.3.1
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -339,7 +339,7 @@ importers:
       '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -360,7 +360,7 @@ importers:
       '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -384,7 +384,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       chalk: 4.1.2
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -421,7 +421,7 @@ importers:
       '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -444,7 +444,7 @@ importers:
       '@typescript-eslint/parser': 4.33.0
       chalk: 4.1.2
       cross-spawn: 7.0.3
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -466,7 +466,7 @@ importers:
       '@types/node': 12.20.36
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -491,7 +491,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       decimal.js: 10.3.1
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -513,7 +513,7 @@ importers:
       ts-jest: 27.0.7
       ts-node: 10.4.0
       typescript: 4.4.4
-      verror: 1.10.0
+      verror: 1.10.1
     devDependencies:
       '@prisma/sdk': link:../sdk
       '@sindresorhus/slugify': 1.1.2
@@ -525,7 +525,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       decimal.js: 10.3.1
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -547,7 +547,7 @@ importers:
       ts-jest: 27.0.7_2c4ca6574207836d1023f54689cc81ac
       ts-node: 10.4.0_57e169272311c0adec585ea120112b43
       typescript: 4.4.4
-      verror: 1.10.0
+      verror: 1.10.1
 
   packages/migrate:
     specifiers:
@@ -565,7 +565,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0
       '@typescript-eslint/parser': 4.33.0
       chalk: 4.1.2
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -618,7 +618,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
       chalk: 4.1.2
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -696,7 +696,7 @@ importers:
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
       dotenv: 10.0.0
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       escape-string-regexp: 4.0.0
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0
@@ -776,7 +776,7 @@ importers:
       '@types/tar': 6.1.0
       '@typescript-eslint/eslint-plugin': 4.33.0_cc617358c89d3f38c52462f6d809db4c
       '@typescript-eslint/parser': 4.33.0_eslint@7.32.0+typescript@4.4.4
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       eslint: 7.32.0
       eslint-config-prettier: 8.3.0_eslint@7.32.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@7.32.0
@@ -3590,12 +3590,12 @@ packages:
     dev: true
     optional: true
 
-  /esbuild-register/3.0.0_esbuild@0.13.9:
+  /esbuild-register/3.0.0_esbuild@0.13.12:
     resolution: {integrity: sha512-No7U3ZUd6gPrrC6gqdb3XFcf2lNqzn8nvQXcgcyOl8szMVuN6YUvOplnmakxWyogI9d8SiJMl0uzBzJck+Aoxw==}
     peerDependencies:
       esbuild: '>=0.12 <1'
     dependencies:
-      esbuild: 0.13.9
+      esbuild: 0.13.12
       jsonc-parser: 3.0.0
     dev: true
 
@@ -8031,6 +8031,16 @@ packages:
   /verror/1.10.0:
     resolution: {integrity: sha1-OhBcoXBTr1XW4nDB+CiGguGNpAA=}
     engines: {'0': node >=0.6.0}
+    dependencies:
+      assert-plus: 1.0.0
+      core-util-is: 1.0.2
+      extsprintf: 1.4.0
+    dev: true
+    optional: true
+
+  /verror/1.10.1:
+    resolution: {integrity: sha512-veufcmxri4e3XSrT0xwfUR7kguIkaxBeosDg00yDWhk49wdwkSUrvvsm7nc75e1PUyvIeZj6nS8VQRYz2/S4Xg==}
+    engines: {node: '>=0.6.0'}
     dependencies:
       assert-plus: 1.0.0
       core-util-is: 1.0.2
