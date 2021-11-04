@@ -121,6 +121,7 @@ services:
       REPLICA_BIND_HOST: 'mongo'
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_DATABASE: tests
 
   mongo-seed:
     build: ../../docker/mongo-seed
