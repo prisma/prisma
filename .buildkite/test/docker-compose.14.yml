@@ -114,11 +114,12 @@ services:
       - mssql:/var/opt/mssql
 
   mongo:
-    # This image automatically creates a replica set required for transactions
-    image: prismagraphql/mongo-single-replica:4.4.3-bionic
+    image: mongo:4
+    restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_DATABASE: tests
     ports:
       - '27017:27017'
 
