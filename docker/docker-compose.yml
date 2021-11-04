@@ -102,6 +102,7 @@ services:
     ports:
       - '1433:1433'
 
+  # https://github.com/prisma/engine-images/tree/master/mongo
   mongo:
     # This image automatically creates a replica set required for transactions
     image: prismagraphql/mongo-single-replica:4.4.3-bionic
