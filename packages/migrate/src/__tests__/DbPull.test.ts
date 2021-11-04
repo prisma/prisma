@@ -456,7 +456,7 @@ describe('SQL Server', () => {
   })
 })
 
-describe.skip('MongoDB', () => {
+describe('MongoDB', () => {
   const MONGO_URI = process.env.TEST_MONGO_URI || 'mongodb://root:prisma@localhost:27017/tests?authSource=admin'
 
   test('basic introspection', async () => {
