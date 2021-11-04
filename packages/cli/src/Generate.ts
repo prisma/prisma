@@ -1,5 +1,6 @@
 /* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import { enginesVersion } from '@prisma/engines'
+import { getClientEngineType } from '@prisma/client/src/runtime/utils/getClientEngineType'
 import type { Command, Generator } from '@prisma/sdk'
 import {
   arg,
@@ -20,7 +21,6 @@ import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
-import { getClientEngineType } from '../../client/src/runtime/utils/getClientEngineType'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
@@ -80,9 +80,9 @@ ${chalk.bold('Examples')}
         const version = generator.manifest?.version
         const engineType = getClientEngineType(generator.config)
         message.push(
-          `✔ Generated ${chalk.bold(name!)}${version ? ` (${version} | ${engineType})` : ''}${toStr} in ${formatms(
-            after - before,
-          )}\n`,
+          `✔ Generated ${chalk.bold(name!)} (${
+            version ? `${version} | ${engineType}` : engineType
+          })${toStr} in ${formatms(after - before)}\n`,
         )
         generator.stop()
       } catch (err) {
