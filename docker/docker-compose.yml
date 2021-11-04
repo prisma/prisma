@@ -9,7 +9,7 @@ services:
   # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
   # - TEST_MSSQL_URI=sqlserver://SA:Pr1sm4_Pr1sm4@mssql:1433/master
   # - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-  # - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+  # - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin&retryWrites=true&w=majority
   #
   # Outside Docker
   # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate
@@ -20,7 +20,7 @@ services:
   # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
   # - TEST_MSSQL_URI=sqlserver://SA:Pr1sm4_Pr1sm4@localhost:1433/master
   # - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-  # - TEST_MONGO_URI=mongodb://root:prisma@localhost:27017/tests?authSource=admin
+  # - TEST_MONGO_URI=mongodb://root:prisma@localhost:27017/tests?authSource=admin&retryWrites=true&w=majority
 
   postgres:
     image: postgres:10

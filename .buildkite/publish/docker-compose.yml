@@ -28,7 +28,7 @@ services:
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
-      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin&retryWrites=true&w=majority
       # Other vars
       - NPM_TOKEN
       - GITHUB_TOKEN
