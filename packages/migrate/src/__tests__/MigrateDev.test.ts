@@ -1516,21 +1516,3 @@ describe('SQL Server', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 })
-
-describe('MongoDB', () => {
-  it('schema only - should fail with unsupported', async () => {
-    ctx.fixture('schema-only-mongodb')
-
-    const result = MigrateDev.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
-
-    `)
-  })
-})

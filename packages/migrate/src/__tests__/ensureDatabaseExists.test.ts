@@ -36,13 +36,3 @@ it('can create database - sqlite', async () => {
 //   const result = ensureDatabaseExists('create', true, schemaPath)
 //   await expect(result).resolves.toMatchInlineSnapshot(`undefined`)
 // })
-
-// todo remove after it has been implemented
-it('should fail with mongodb', async () => {
-  ctx.fixture('schema-only-mongodb')
-  const schemaPath = (await getSchemaPath())!
-  const result = ensureDatabaseExists('create', true, schemaPath)
-  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-    `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
-  )
-})

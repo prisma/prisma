@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.4.0-16.168c4815b6ce9f34c7ad403bf715b66db003f538",
+    "@prisma/engines-version": "3.5.0-3.cc47a92cdfc3d0b9210fd4c86f33946a11e4636a",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.0.2",
@@ -27,7 +27,7 @@
     "@typescript-eslint/eslint-plugin": "4.33.0",
     "@typescript-eslint/parser": "4.33.0",
     "chalk": "4.1.2",
-    "esbuild": "0.13.9",
+    "esbuild": "0.13.12",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
@@ -51,7 +51,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.4.0-16.168c4815b6ce9f34c7ad403bf715b66db003f538",
+    "@prisma/get-platform": "3.5.0-3.cc47a92cdfc3d0b9210fd4c86f33946a11e4636a",
     "@sindresorhus/slugify": "1.1.2",
     "execa": "5.1.1",
     "has-yarn": "2.1.0",
