@@ -20,6 +20,7 @@ import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
+import { getClientEngineType } from '../../client/src/runtime/utils/getClientEngineType'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
@@ -77,8 +78,11 @@ ${chalk.bold('Examples')}
         await generator.generate()
         const after = Date.now()
         const version = generator.manifest?.version
+        const engineType = getClientEngineType(generator.config)
         message.push(
-          `✔ Generated ${chalk.bold(name!)}${version ? ` (${version})` : ''}${toStr} in ${formatms(after - before)}\n`,
+          `✔ Generated ${chalk.bold(name!)}${version ? ` (${version} | ${engineType})` : ''}${toStr} in ${formatms(
+            after - before,
+          )}\n`,
         )
         generator.stop()
       } catch (err) {
