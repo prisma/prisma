@@ -103,7 +103,7 @@
     "mariadb": "2.5.5",
     "mssql": "7.2.1",
     "pg": "8.7.1",
-    "pkg-up": "3.1.0",
+    "pkg-up": "4.0.0",
     "pluralize": "8.0.0",
     "prettier": "2.4.1",
     "replace-string": "3.1.0",
