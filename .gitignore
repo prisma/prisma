@@ -31,3 +31,4 @@ node_modules
 yarn-error.log
 .DS_Store
 pnpm-debug.log
+.pnpm-debug.log
