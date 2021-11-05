@@ -195,7 +195,7 @@ export class DataProxyEngine extends Engine {
     throw new NotImplementedYetError('Transactions are currently not supported in Data Proxy')
   }
 
-  extractHostAndApiKey() {
+  private extractHostAndApiKey() {
     const mainDatasourceName = Object.keys(this.inlineDatasources)[0]
     const mainDatasource = this.inlineDatasources[mainDatasourceName]
     const mainDatasourceURL = mainDatasource?.url.value
