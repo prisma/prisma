@@ -16,8 +16,7 @@ export async function responseToError(res: RequestResponse): Promise<DataProxyEr
 
   if (res.status === 404) {
     try {
-      const text = await (res.text ? res.text() : Promise.resolve(''))
-      const body = JSON.parse(text)
+      const body = await res.json()
       const isSchemaMissing = body?.EngineNotStarted?.reason === 'SchemaMissing'
 
       return isSchemaMissing ? new SchemaMissingError(res) : new NotFoundError(res)
