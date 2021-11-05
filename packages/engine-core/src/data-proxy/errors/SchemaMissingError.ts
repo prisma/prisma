@@ -1,8 +1,13 @@
 import { DataProxyAPIError } from './DataProxyAPIError'
-import type { RequestResponse } from './request'
+import type { RequestResponse } from '../utils/request'
 
 export class SchemaMissingError extends DataProxyAPIError {
-  constructor(res: RequestResponse) {
-    super(res, 'Could not find the schema. This request can be retried after schema upload.', true)
+  public code = 'P5005'
+
+  constructor(response: RequestResponse) {
+    super('Could not find the schema. This request can be retried after schema upload.', {
+      isRetriable: true,
+      response,
+    })
   }
 }

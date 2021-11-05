@@ -1,8 +1,13 @@
 import { DataProxyAPIError } from './DataProxyAPIError'
-import type { RequestResponse } from './request'
+import type { RequestResponse } from '../utils/request'
 
 export class UnauthorizedError extends DataProxyAPIError {
-  constructor(res: RequestResponse) {
-    super(res, 'Could not authorize this request. Check your Data Proxy connection string.', false)
+  public code = 'P5007'
+
+  constructor(response: RequestResponse) {
+    super('Could not authorize this request. Check your Data Proxy connection string.', {
+      isRetriable: false,
+      response,
+    })
   }
 }

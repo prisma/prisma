@@ -1,8 +1,13 @@
 import { DataProxyAPIError } from './DataProxyAPIError'
-import type { RequestResponse } from './request'
+import type { RequestResponse } from '../utils/request'
 
 export class UsageExceededError extends DataProxyAPIError {
-  constructor(res: RequestResponse) {
-    super(res, 'Usage exceeded. This request can be retried later.', true)
+  public code = 'P5007'
+
+  constructor(response: RequestResponse) {
+    super('Usage exceeded. This request can be retried later.', {
+      isRetriable: true,
+      response,
+    })
   }
 }

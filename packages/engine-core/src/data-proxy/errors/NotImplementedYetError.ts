@@ -1,7 +1,9 @@
 import { DataProxyError } from './DataProxyError'
 
 export class NotImplementedYetError extends DataProxyError {
+  public code = 'P5004'
+
   constructor(message: string) {
-    super(message, false)
+    super(message, { isRetriable: false })
   }
 }
