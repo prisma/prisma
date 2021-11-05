@@ -459,7 +459,7 @@ describe('SQL Server', () => {
 describe('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI ||
-    'mongodb://root:prisma@localhost:27017/tests?authSource=admin&retryWrites=true&w=majority'
+    'mongodb://prisma:prisma@localhost:27017/tests?authSource=admin&retryWrites=true&w=majority'
 
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
