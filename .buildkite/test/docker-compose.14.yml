@@ -125,6 +125,8 @@ services:
       MONGO_INITDB_DATABASE: tests
     ports:
       - 27017:27017
+    volumes:
+      - mongo:/data/db
 
   mongo-seed:
     build: ../../docker/mongo-seed
@@ -138,3 +140,4 @@ volumes:
   mysql_isolated:
   mariadb:
   mssql:
+  mongo:
