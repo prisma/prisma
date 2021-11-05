@@ -35,19 +35,19 @@ enum Role {
   ADMIN
 }
 
-// From regression https://github.com/prisma/prisma/issues/10105
-model A {
-  id  String  @id @map("_id") @db.ObjectId
-  gql String?
+// // From regression https://github.com/prisma/prisma/issues/10105
+// model A {
+//   id  String  @id @map("_id") @db.ObjectId
+//   gql String?
 
-  b_ids String[] @db.Array(ObjectId)
-  bs    B[]      @relation(fields: [b_ids])
-}
+//   b_ids String[] @db.Array(ObjectId)
+//   bs    B[]      @relation(fields: [b_ids])
+// }
 
-model B {
-  id  String  @id @map("_id") @db.ObjectId
-  gql String?
+// model B {
+//   id  String  @id @map("_id") @db.ObjectId
+//   gql String?
 
-  a_ids String[] @db.Array(ObjectId)
-  as    A[]      @relation(fields: [a_ids])
-}
+//   a_ids String[] @db.Array(ObjectId)
+//   as    A[]      @relation(fields: [a_ids])
+// }

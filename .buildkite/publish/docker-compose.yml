@@ -28,7 +28,7 @@ services:
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
-      - TEST_MONGO_URI=mongodb://root:prisma@test-mongodb-db:27017/tests?authSource=admin&retryWrites=true&w=majority
+      - TEST_MONGO_URI=mongodb://prisma:prisma@mongodb:27017/tests?authSource=admin&retryWrites=true&w=majority
       # Other vars
       - NPM_TOKEN
       - GITHUB_TOKEN
@@ -123,13 +123,13 @@ services:
       - mssql:/var/opt/mssql
 
   # https://github.com/prisma/engine-images/tree/master/mongo
-  mongo:
+  mongodb:
     # This image automatically creates a replica set required for transactions
     image: prismagraphql/mongo-single-replica:4.4.3-bionic
     restart: always
     environment:
-      REPLICA_BIND_HOST: 'test-mongodb-db'
-      MONGO_INITDB_ROOT_USERNAME: root
+      REPLICA_BIND_HOST: 'mongodb'
+      MONGO_INITDB_ROOT_USERNAME: prisma
       MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_INITDB_DATABASE: tests
     ports:
@@ -140,7 +140,7 @@ services:
   mongo-seed:
     build: ../../docker/mongo-seed
     links:
-      - mongo
+      - mongodb
 
 volumes:
   postgres:
