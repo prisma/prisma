@@ -46,7 +46,7 @@ services:
       - mysql_isolated
       - mariadb
       - mssql
-      - mongo
+      - mongodb
       - mongo-seed
 
   postgres:

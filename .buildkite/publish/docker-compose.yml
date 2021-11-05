@@ -55,7 +55,7 @@ services:
       - mysql
       - mariadb
       - mssql
-      - mongo
+      - mongodb
       - mongo-seed
 
   postgres:
