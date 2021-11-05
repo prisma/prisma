@@ -45,6 +45,7 @@ on:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  NODE_OPTIONS: '--max-old-space-size=2048'
 
 jobs:
   detect_jobs_to_run:
