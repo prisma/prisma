@@ -7,34 +7,34 @@ import { ServerError } from '../ServerError'
 import { UnauthorizedError } from '../UnauthorizedError'
 import { UsageExceededError } from '../UsageExceededError'
 
-export async function responseToError(res: RequestResponse): Promise<DataProxyError | undefined> {
-  if (res.ok) return undefined
+export async function responseToError(response: RequestResponse): Promise<DataProxyError | undefined> {
+  if (response.ok) return undefined
 
-  if (res.status === 401) {
-    throw new UnauthorizedError(res)
+  if (response.status === 401) {
+    throw new UnauthorizedError(response)
   }
 
-  if (res.status === 404) {
+  if (response.status === 404) {
     try {
-      const body = await res.json()
+      const body = await response.json()
       const isSchemaMissing = body?.EngineNotStarted?.reason === 'SchemaMissing'
 
-      return isSchemaMissing ? new SchemaMissingError(res) : new NotFoundError(res)
+      return isSchemaMissing ? new SchemaMissingError(response) : new NotFoundError(response)
     } catch (err) {
-      return new NotFoundError(res)
+      return new NotFoundError(response)
     }
   }
 
-  if (res.status === 429) {
-    throw new UsageExceededError(res)
+  if (response.status === 429) {
+    throw new UsageExceededError(response)
   }
 
-  if (res.status >= 500) {
-    throw new ServerError(res)
+  if (response.status >= 500) {
+    throw new ServerError(response)
   }
 
-  if (res.status >= 400) {
-    throw new BadRequestError(res)
+  if (response.status >= 400) {
+    throw new BadRequestError(response)
   }
 
   return undefined
