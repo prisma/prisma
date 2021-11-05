@@ -16,7 +16,7 @@ export type RequestOptions = O.Patch<
 export type RequestResponse = O.Required<O.Optional<Response>, 'json' | 'url' | 'ok' | 'status'>
 
 /**
- * Isomorphic `fetch` that imitates `fetch` via `http` when for Node.js.
+ * Isomorphic `fetch` that imitates `fetch` via `http` when on Node.js.
  * @param url
  * @param options
  * @returns
@@ -40,7 +40,6 @@ function buildHeaders(options: RequestOptions): RequestOptions['headers'] {
   return {
     ...options.headers,
     'Content-Type': 'application/json',
-    'Content-Length': `${options.body?.length ?? 0}`,
   }
 }
 
