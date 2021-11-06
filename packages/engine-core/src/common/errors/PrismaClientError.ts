@@ -1,6 +1,6 @@
 export interface PrismaClientErrorInfo {
-  cause?: Error
   clientVersion: string
+  cause?: Error
 }
 
 export abstract class PrismaClientError extends Error {
