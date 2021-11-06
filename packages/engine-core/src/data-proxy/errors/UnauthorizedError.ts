@@ -8,6 +8,6 @@ export class UnauthorizedError extends DataProxyAPIError {
   public code = 'P5007'
 
   constructor(info: UnauthorizedErrorInfo) {
-    super('Could not authorize this request. Check your Data Proxy connection string.', setRetryable(info, false))
+    super('Unauthorized, check your connection string', setRetryable(info, false))
   }
 }

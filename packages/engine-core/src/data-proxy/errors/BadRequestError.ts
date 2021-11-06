@@ -8,6 +8,6 @@ export class BadRequestError extends DataProxyAPIError {
   public code = 'P5000'
 
   constructor(info: BadRequestErrorInfo) {
-    super('This request could not be understood by the server.', setRetryable(info, false))
+    super('This request could not be understood by the server', setRetryable(info, false))
   }
 }

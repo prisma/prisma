@@ -11,6 +11,6 @@ export class NotFoundError extends DataProxyAPIError {
   public code = 'P5003'
 
   constructor(info: NotFoundErrorInfo) {
-    super('Requested resource does not exist.', setRetryable(info, false))
+    super('Requested resource does not exist', setRetryable(info, false))
   }
 }

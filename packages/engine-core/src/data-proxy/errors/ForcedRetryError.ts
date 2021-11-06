@@ -8,6 +8,6 @@ export class ForcedRetryError extends DataProxyError {
   public code = 'P5001'
 
   constructor(info: ForcedRetryErrorInfo) {
-    super('This request must be retried.', setRetryable(info, true))
+    super('This request must be retried', setRetryable(info, true))
   }
 }

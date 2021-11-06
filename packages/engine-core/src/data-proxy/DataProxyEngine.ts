@@ -197,7 +197,7 @@ export class DataProxyEngine extends Engine {
 
   // TODO: figure out how to support transactions
   transaction(): Promise<any> {
-    throw new NotImplementedYetError('Transactions are currently not supported in Data Proxy', {
+    throw new NotImplementedYetError('Interactive transactions are not supported yet', {
       clientVersion: this.clientVersion,
     })
   }

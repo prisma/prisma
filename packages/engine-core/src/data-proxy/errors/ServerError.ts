@@ -8,6 +8,6 @@ export class ServerError extends DataProxyAPIError {
   public code = 'P5006'
 
   constructor(info: ServerErrorInfo) {
-    super('Unknown server error. This request can be retried later.', setRetryable(info, true))
+    super('Unknown server error', setRetryable(info, true))
   }
 }

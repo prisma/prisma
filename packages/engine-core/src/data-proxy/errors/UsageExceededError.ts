@@ -8,6 +8,6 @@ export class UsageExceededError extends DataProxyAPIError {
   public code = 'P5008'
 
   constructor(info: UsageExceededErrorInfo) {
-    super('Usage exceeded. This request can be retried later.', setRetryable(info, true))
+    super('Usage exceeded, retry again later', setRetryable(info, true))
   }
 }
