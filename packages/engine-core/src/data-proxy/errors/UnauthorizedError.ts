@@ -5,6 +5,7 @@ import { setRetryable } from './utils/setRetryable'
 export interface UnauthorizedErrorInfo extends DataProxyAPIErrorInfo {}
 
 export class UnauthorizedError extends DataProxyAPIError {
+  public name = 'UnauthorizedError'
   public code = 'P5007'
 
   constructor(info: UnauthorizedErrorInfo) {

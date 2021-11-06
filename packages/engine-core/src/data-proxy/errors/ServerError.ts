@@ -5,6 +5,7 @@ import { setRetryable } from './utils/setRetryable'
 export interface ServerErrorInfo extends DataProxyAPIErrorInfo {}
 
 export class ServerError extends DataProxyAPIError {
+  public name = 'ServerError'
   public code = 'P5006'
 
   constructor(info: ServerErrorInfo) {

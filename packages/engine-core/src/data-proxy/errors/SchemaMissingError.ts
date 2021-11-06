@@ -5,6 +5,7 @@ import { setRetryable } from './utils/setRetryable'
 export interface SchemaMissingErrorInfo extends DataProxyAPIErrorInfo {}
 
 export class SchemaMissingError extends DataProxyAPIError {
+  public name = 'SchemaMissingError'
   public code = 'P5005'
 
   constructor(info: DataProxyAPIErrorInfo) {

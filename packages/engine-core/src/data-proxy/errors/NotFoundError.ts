@@ -8,6 +8,7 @@ export interface NotFoundErrorInfo extends DataProxyAPIErrorInfo {
 }
 
 export class NotFoundError extends DataProxyAPIError {
+  public name = 'NotFoundError'
   public code = 'P5003'
 
   constructor(info: NotFoundErrorInfo) {
