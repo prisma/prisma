@@ -1,13 +1,13 @@
+import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
-import type { RequestResponse } from '../utils/request'
+import { setRetryable } from './utils/setRetryable'
+
+export interface BadRequestErrorInfo extends DataProxyAPIErrorInfo {}
 
 export class BadRequestError extends DataProxyAPIError {
   public code = 'P5000'
 
-  constructor(response: RequestResponse) {
-    super('This request could not be understood by the server.', {
-      isRetriable: false,
-      response,
-    })
+  constructor(info: BadRequestErrorInfo) {
+    super('This request could not be understood by the server.', setRetryable(info, false))
   }
 }

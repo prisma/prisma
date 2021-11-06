@@ -1,13 +1,13 @@
+import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
-import type { RequestResponse } from '../utils/request'
+import { setRetryable } from './utils/setRetryable'
+
+export interface ServerErrorInfo extends DataProxyAPIErrorInfo {}
 
 export class ServerError extends DataProxyAPIError {
   public code = 'P5006'
 
-  constructor(response: RequestResponse) {
-    super('Unknown server error. This request can be retried later.', {
-      isRetriable: true,
-      response,
-    })
+  constructor(info: ServerErrorInfo) {
+    super('Unknown server error. This request can be retried later.', setRetryable(info, true))
   }
 }

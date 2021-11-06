@@ -15,8 +15,6 @@ import { DataProxyError } from './errors/DataProxyError'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 // TODO this is an issue that we cannot share types from the client to other packages
 
-const randomDebugId = Math.ceil(Math.random() * 1000)
-
 const MAX_RETRIES = 10
 
 export class DataProxyEngine extends Engine {
@@ -29,6 +27,7 @@ export class DataProxyEngine extends Engine {
   private env: { [k: string]: string }
 
   private clientVersion: string
+  private remoteClientVersion: string
   private headers: { Authorization: string }
   private host: string
 
@@ -40,12 +39,13 @@ export class DataProxyEngine extends Engine {
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
+    this.clientVersion = config.clientVersion ?? 'unknown'
 
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {})
 
     const [host, apiKey] = this.extractHostAndApiKey()
-    this.clientVersion = getClientVersion(this.config)
+    this.remoteClientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
 
@@ -75,14 +75,16 @@ export class DataProxyEngine extends Engine {
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
       // TODO: hook into the process
-      throw new NotImplementedYetError('beforeExit event is not supported yet')
+      throw new NotImplementedYetError('beforeExit event is not supported yet', {
+        clientVersion: this.clientVersion,
+      })
     } else {
       this.logEmitter.on(event, listener)
     }
   }
 
   private url(s: string) {
-    return `https://${this.host}/${this.clientVersion}/${this.inlineSchemaHash}/${s}?id=${randomDebugId}`
+    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
   // TODO: looks like activeProvider is the only thing
@@ -98,13 +100,13 @@ export class DataProxyEngine extends Engine {
   }
 
   private async uploadSchema() {
-    const res = await request(this.url('schema'), {
+    const response = await request(this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
       body: this.inlineSchema,
     })
 
-    const err = await responseToError(res)
+    const err = await responseToError(response, this.clientVersion)
 
     if (err) {
       this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
@@ -145,24 +147,27 @@ export class DataProxyEngine extends Engine {
         message: `Calling ${this.url('graphql')} (n=${attempt})`,
       })
 
-      const res = await request(this.url('graphql'), {
+      const response = await request(this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
       })
 
-      const err = await responseToError(res)
+      const err = await responseToError(response, this.clientVersion)
 
       if (err instanceof SchemaMissingError) {
         await this.uploadSchema()
-        throw new ForcedRetryError(err)
+        throw new ForcedRetryError({
+          clientVersion: this.clientVersion,
+          cause: err,
+        })
       }
 
       if (err) {
         throw err
       }
 
-      return res.json()
+      return response.json()
     } catch (err) {
       this.logEmitter.emit('error', {
         message: `Error while querying: ${err.message ?? '(unknown)'}`,
@@ -171,12 +176,12 @@ export class DataProxyEngine extends Engine {
       if (!(err instanceof DataProxyError)) {
         throw err
       }
-      if (!err.isRetriable) {
+      if (!err.isRetryable) {
         throw err
       }
       if (attempt >= MAX_RETRIES) {
         if (err instanceof ForcedRetryError) {
-          throw err.originalError
+          throw err.cause
         } else {
           throw err
         }
@@ -192,7 +197,9 @@ export class DataProxyEngine extends Engine {
 
   // TODO: figure out how to support transactions
   transaction(): Promise<any> {
-    throw new NotImplementedYetError('Transactions are currently not supported in Data Proxy')
+    throw new NotImplementedYetError('Transactions are currently not supported in Data Proxy', {
+      clientVersion: this.clientVersion,
+    })
   }
 
   private extractHostAndApiKey() {
@@ -207,18 +214,24 @@ export class DataProxyEngine extends Engine {
     try {
       url = new URL(dataProxyURL ?? '')
     } catch {
-      throw new InvalidDatasourceError('Could not parse URL of the datasource')
+      throw new InvalidDatasourceError('Could not parse URL of the datasource', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol')
+      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     const apiKey = searchParams.get('api_key')
     if (apiKey === null || apiKey.length < 1) {
-      throw new InvalidDatasourceError('No valid API key found in the datasource URL')
+      throw new InvalidDatasourceError('No valid API key found in the datasource URL', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     return [host, apiKey]

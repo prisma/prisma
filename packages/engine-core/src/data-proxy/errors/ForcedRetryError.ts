@@ -1,11 +1,13 @@
+import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
+import { setRetryable } from './utils/setRetryable'
+
+export interface ForcedRetryErrorInfo extends DataProxyErrorInfo {}
 
 export class ForcedRetryError extends DataProxyError {
   public code = 'P5001'
 
-  constructor(public originalError: DataProxyError) {
-    super('This request must be retried.', {
-      isRetriable: true,
-    })
+  constructor(info: ForcedRetryErrorInfo) {
+    super('This request must be retried.', setRetryable(info, true))
   }
 }
