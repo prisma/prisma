@@ -5,13 +5,6 @@ import { consoleContext, Context } from '../__helpers__/context'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
-function replaceEngineType(message: string | Error) {
-  if (message instanceof Error) {
-    throw message
-  }
-  return message.replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
-}
-
 describe('using cli', () => {
   it('should work with a custom output dir', async () => {
     ctx.fixture('example-project')
@@ -144,4 +137,11 @@ function cleanSnapshot(str: string): string {
     .replace(/\d+s/g, 'XXs')
     .replace(/\(version:.+\)/g, '(version: 0.0.0)')
     .replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
+}
+
+function replaceEngineType(message: string | Error) {
+  if (message instanceof Error) {
+    throw message
+  }
+  return message.replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
 }
