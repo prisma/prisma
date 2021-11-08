@@ -40,7 +40,6 @@ function buildHeaders(options: RequestOptions): RequestOptions['headers'] {
   return {
     ...options.headers,
     'Content-Type': 'application/json',
-    'Content-Length': `${options.body?.length ?? 0}`,
   }
 }
 
