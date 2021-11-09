@@ -27,6 +27,8 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run('.', `git config --global user.name "prisma-bot"`)
   }
   if (process.env.RELEASE_PROMOTE_DEV) {
+    // Checkout exactly the commit of the `dev` version that is being promoted/released
+    
     const prismaCommit = await getPrismaCommitFromPackageJsonViaUnpkg(process.env.RELEASE_PROMOTE_DEV)
     // TODO: disable the dry run here // TODO 2: What does this mean?
 
