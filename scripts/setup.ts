@@ -27,11 +27,11 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run('.', `git config --global user.name "prisma-bot"`)
   }
   if (process.env.RELEASE_PROMOTE_DEV) {
-    const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
-    // TODO: disable the dry run here
+    const prismaCommit = await getPrismaCommitFromPackageJsonViaUnpkg(process.env.RELEASE_PROMOTE_DEV)
+    // TODO: disable the dry run here // TODO 2: What does this mean?
 
     await run(`.`, `git stash`)
-    await run(`.`, `git checkout ${versions.prisma}`, true)
+    await run(`.`, `git checkout ${prismaCommit}`, true)
   } else if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
     console.log(`Commit we're on:`)
@@ -209,7 +209,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getVersionHashes(
+async function getPrismaCommitFromPackageJsonViaUnpkg(
   npmVersion: string,
 ): Promise<{ prisma: string }> {
   return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
@@ -219,8 +219,6 @@ async function getVersionHashes(
   })
     .then((res) => res.json())
     .then((pkg) => {
-      return {
-        prisma: pkg.prisma.prismaCommit,
-      }
+      return pkg.prisma.prismaCommit
     })
 }
