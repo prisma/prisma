@@ -1056,14 +1056,6 @@ function getDefaultSelection(outputType: DMMF.OutputType) {
   for (const f of outputType.fields) {
     if (f.outputType.location === 'scalar' || f.outputType.location === 'enumTypes') {
       acc[f.name] = true
-    } else {
-      // otherwise field is a relation. Only continue if it's an embedded type
-      // as normal types don't end up in the default selection
-      if ((f.outputType.type as DMMF.OutputType).isEmbedded) {
-        acc[f.name] = {
-          select: getDefaultSelection(f.outputType.type as DMMF.OutputType),
-        }
-      }
     }
   }
 
