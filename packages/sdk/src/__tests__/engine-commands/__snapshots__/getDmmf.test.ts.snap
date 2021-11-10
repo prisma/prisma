@@ -18722,7 +18722,7 @@ Object {
             },
             Object {
               "args": Array [],
-              "isNullable": true,
+              "isNullable": false,
               "name": "_count",
               "outputType": Object {
                 "isList": false,
@@ -22876,7 +22876,7 @@ Object {
 
 exports[`getDMMF big schema 1`] = `132028282`;
 
-exports[`getDMMF chinook introspected schema 1`] = `883914`;
+exports[`getDMMF chinook introspected schema 1`] = `883923`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
 "Schema parsing

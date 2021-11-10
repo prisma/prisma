@@ -2804,7 +2804,7 @@ export namespace Prisma {
           P extends 'posts'
         ? Array < PostGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? UserCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -2813,7 +2813,7 @@ export namespace Prisma {
           P extends 'posts'
         ? Array < PostGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? UserCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : User
   : User
@@ -3767,7 +3767,7 @@ export namespace Prisma {
           P extends 'n'
         ? Array < NGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? MCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? MCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -3776,7 +3776,7 @@ export namespace Prisma {
           P extends 'n'
         ? Array < NGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? MCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? MCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : M
   : M
@@ -4730,7 +4730,7 @@ export namespace Prisma {
           P extends 'm'
         ? Array < MGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? NCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? NCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -4739,7 +4739,7 @@ export namespace Prisma {
           P extends 'm'
         ? Array < MGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? NCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? NCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : N
   : N
@@ -5693,7 +5693,7 @@ export namespace Prisma {
           P extends 'many'
         ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -5702,7 +5702,7 @@ export namespace Prisma {
           P extends 'many'
         ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : OneOptional
   : OneOptional
