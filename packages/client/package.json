@@ -59,7 +59,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@microsoft/api-extractor": "7.18.17",
+    "@microsoft/api-extractor": "7.18.19",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "3.5.0-15.06114195dcfc4b52aec6c39209591c9e5ade8bf5",
@@ -81,11 +81,11 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
-    "esbuild": "0.13.12",
+    "esbuild": "0.13.13",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.2.2",
+    "eslint-plugin-jest": "25.2.4",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
