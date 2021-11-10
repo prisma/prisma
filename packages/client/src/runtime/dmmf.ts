@@ -56,10 +56,8 @@ export class DMMFClass implements DMMF.Document {
     return 'DMMFClass'
   }
   protected outputTypeToMergedOutputType = (outputType: DMMF.OutputType): DMMF.OutputType => {
-    const model = this.modelMap[outputType.name]
     return {
       ...outputType,
-      isEmbedded: model ? model.isEmbedded : false,
       fields: outputType.fields,
     }
   }
