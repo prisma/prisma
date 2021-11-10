@@ -13,5 +13,7 @@ export function getClientVersion(config: EngineConfig) {
     return version
   }
 
-  return '3.4.0' // and we default it to this one if does not
+  // TODO: we should have a Data Proxy deployment which accepts any
+  // arbitrary version for testing purposes.
+  return '3.4.1' // and we default it to the latest stable
 }
