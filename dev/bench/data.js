@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1636562608695,
+  "lastUpdate": 1636566283576,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -64788,6 +64788,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.09,
             "range": "±5.62%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 44,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "795200ef261c14e2db5eaa4387e213df6332ae1e",
+          "message": "chore: update engines to 3.5.0-20.00ae542f0021d0d0a22b970a9ae56a6b170d5fd0 (#10181)\n\n* chore(deps): update engines to 3.5.0-20.00ae542f0021d0d0a22b970a9ae56a6b170d5fd0\r\n\r\n* test(client): check that relation count is non-nullable\r\n\r\nRefs https://github.com/prisma/prisma/issues/9416\r\nRefs https://github.com/prisma/prisma-engines/pull/2390\r\n\r\n* test(client): update generated types snapshot\r\n\r\n* test(sdk): update getDmmf snapshots",
+          "timestamp": "2021-11-10T19:40:24+02:00",
+          "tree_id": "09e840cf771e79efd725f9eba132d818f914c6d2",
+          "url": "https://github.com/prisma/prisma/commit/795200ef261c14e2db5eaa4387e213df6332ae1e"
+        },
+        "date": 1636566280133,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.39,
+            "range": "±6.55%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.09,
+            "range": "±3.97%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
