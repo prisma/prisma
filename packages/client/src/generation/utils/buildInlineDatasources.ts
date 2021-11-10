@@ -1,4 +1,4 @@
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
+import { ClientEngineType } from '@prisma/sdk'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 
 // that is all we need for the data proxy

@@ -1,5 +1,5 @@
-const path = require('path')
-import { getClientEngineType } from '@prisma/client/src/runtime/utils/getClientEngineType'
+import path from 'path'
+import { getClientEngineType } from '@prisma/sdk'
 import { Generate } from '../../Generate'
 import { consoleContext, Context } from '../__helpers__/context'
 
