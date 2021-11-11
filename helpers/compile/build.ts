@@ -11,6 +11,7 @@ import { tscPlugin } from './plugins/tscPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { handle } from '../blaze/handle'
+import { replaceWithPlugin } from './plugins/replaceWithPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
@@ -66,8 +67,11 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
   // we only produce typescript types on the second run (cjs)
-  plugins: [...(options.plugins ?? []), tscPlugin, onErrorPlugin],
+  plugins: [...(options.plugins ?? []), tscPlugin, replacePlugin, onErrorPlugin],
 })
+
+// because we compile tree-shaken esm to cjs, we need to replace __require
+const replacePlugin = replaceWithPlugin([[/__require\(/g, 'require(']])
 
 /**
  * Create two deferred builds for esm and cjs. The one follows the other:
@@ -133,13 +137,7 @@ async function executeEsBuild(options: BuildOptions) {
 export async function build(options: BuildOptions[]) {
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(
-      computeOptions,
-      addExtensionFormat,
-      addDefaultOutDir,
-      executeEsBuild,
-      watch,
-    ),
+    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch),
   )
 }
 
@@ -147,9 +145,7 @@ export async function build(options: BuildOptions[]) {
  * Executes the build and rebuilds what is necessary
  * @param builds
  */
-function watch(
-  build: esbuild.BuildResult | esbuild.BuildIncremental | undefined,
-) {
+function watch(build: esbuild.BuildResult | esbuild.BuildIncremental | undefined) {
   if (process.env.WATCH !== 'true') return build
 
   // prepare the incremental builds watcher
@@ -219,8 +215,6 @@ export function run(command: string) {
 }
 
 // gets the files to be watched from esbuild
-function getWatchedFiles(
-  build: esbuild.BuildIncremental | esbuild.BuildResult | undefined,
-) {
+function getWatchedFiles(build: esbuild.BuildIncremental | esbuild.BuildResult | undefined) {
   return Object.keys(build?.metafile?.inputs ?? {})
 }
