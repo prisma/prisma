@@ -635,7 +635,6 @@ function initHooks() {
     hookProcess('beforeExit')
     hookProcess('exit')
     hookProcess('SIGINT', true)
-    hookProcess('SIGUSR1', true)
     hookProcess('SIGUSR2', true)
     hookProcess('SIGTERM', true)
     hooksInitialized = true

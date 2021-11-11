@@ -1,5 +1,5 @@
 import { PrismaClient } from '.'
-import { expectError } from 'tsd'
+import { expectError, expectType } from 'tsd'
 
 // tslint:disable
 
@@ -23,4 +23,27 @@ const prisma = new PrismaClient({
       },
     }),
   )
+
+  {
+    const users = await prisma.user.findMany()
+    expectError(users[0]._count.posts)
+  }
+
+  {
+    const users = await prisma.user.findMany({
+      include: {
+        _count: false,
+      },
+    })
+    expectError(users[0]._count.posts)
+  }
+
+  {
+    const users = await prisma.user.findMany({
+      include: {
+        _count: true,
+      },
+    })
+    expectType<number>(users[0]._count.posts)
+  }
 })()

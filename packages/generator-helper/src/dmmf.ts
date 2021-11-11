@@ -51,7 +51,6 @@ export namespace DMMF {
   }
   export interface Model {
     name: string
-    isEmbedded: boolean
     dbName: string | null
     fields: Field[]
     fieldMap?: Record<string, Field>
@@ -143,7 +142,6 @@ export namespace DMMF {
     name: string
     fields: SchemaField[]
     fieldMap?: Record<string, SchemaField>
-    isEmbedded?: boolean
   }
 
   export interface SchemaField {

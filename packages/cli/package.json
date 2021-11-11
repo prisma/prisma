@@ -62,13 +62,13 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.5.0-3.cc47a92cdfc3d0b9210fd4c86f33946a11e4636a",
+    "@prisma/fetch-engine": "3.5.0-23.b87142e5515c261958e5af9cce98a3d7ee0b48ee",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.5.0-3.cc47a92cdfc3d0b9210fd4c86f33946a11e4636a",
+    "@prisma/get-platform": "3.5.0-23.b87142e5515c261958e5af9cce98a3d7ee0b48ee",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.438.0",
-    "@prisma/studio-server": "0.438.0",
+    "@prisma/studio": "0.439.0",
+    "@prisma/studio-server": "0.439.0",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "27.0.2",
@@ -80,11 +80,11 @@
     "checkpoint-client": "1.1.20",
     "debug": "4.3.2",
     "dotenv": "10.0.0",
-    "esbuild": "0.13.12",
+    "esbuild": "0.13.13",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.2.2",
+    "eslint-plugin-jest": "25.2.4",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
@@ -125,7 +125,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "3.5.0-3.cc47a92cdfc3d0b9210fd4c86f33946a11e4636a"
+    "@prisma/engines": "3.5.0-23.b87142e5515c261958e5af9cce98a3d7ee0b48ee"
   },
   "lint-staged": {
     "*.ts": [

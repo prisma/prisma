@@ -27,7 +27,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 
   if (process.env.RELEASE_PROMOTE_DEV) {
     // this is a way to get the commit hash of that specific version
-    const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
+    const versions = await getPrismaCommitFromPackageJsonViaUnpkg(process.env.RELEASE_PROMOTE_DEV)
 
     await run(`.`, `git stash`) // TODO: can we remove this?
     await run(`.`, `git checkout ${versions.prisma}`, true) // TODO: disable the dry run here
@@ -204,7 +204,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getVersionHashes(npmVersion: string): Promise<{ prisma: string }> {
+async function getPrismaCommitFromPackageJsonViaUnpkg(npmVersion: string): Promise<{ prisma: string }> {
   return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
     headers: {
       accept: 'application/json',
@@ -212,8 +212,6 @@ async function getVersionHashes(npmVersion: string): Promise<{ prisma: string }>
   })
     .then((res) => res.json())
     .then((pkg) => {
-      return {
-        prisma: pkg.prisma.prismaCommit,
-      }
+      return pkg.prisma.prismaCommit
     })
 }
