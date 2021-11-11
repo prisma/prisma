@@ -602,11 +602,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.fields?.message?.startsWith('Started http server')
             ) {
               if (this.useUds) {
-                this.connection.open('http://localhost', {
+                this.connection.open('http://127.0.0.1', {
                   socketPath: this.socketPath,
                 })
               } else {
-                this.connection.open(`http://localhost:${this.port}`)
+                this.connection.open(`http://127.0.0.1:${this.port}`)
               }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
