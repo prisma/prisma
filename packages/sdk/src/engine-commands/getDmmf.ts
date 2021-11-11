@@ -57,7 +57,24 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   try {
     dmmf = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
   } catch (e: any) {
-    const error = JSON.parse(e.message)
+    debug('getDmmfNodeAPI failed', e)
+    // current error is
+    // {
+    //   "code": "GenericFailure"
+    // }
+
+    // If the error was looking like we do in other places with a rustStack and message like:
+    const JSONdata = `{"rustStack":"some stack","area":"AREA","schemaPath":"Some Schema Path","message":"some message"}`
+    // Then JSON parsing would not error with `SyntaxError: Unexpected token c in JSON at position 0`
+    const error = JSON.parse(JSONdata)
+    // const error = JSON.parse(e.message)
+
+    // And we could add this bit of logic to return the error up
+    // If it's a panic we bubble up the error which will trigger handlePanic upstream
+    if (error.rustStack) {
+      throw error
+    }
+
     const message = addMissingOpenSSLInfo(error.message)
     throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
   }
@@ -110,7 +127,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
 
     return JSON.parse(stdout)
   } catch (e: any) {
-    debug('getDMMF failed', e)
+    debug('getDmmfBinary failed', e)
     // If this unlikely event happens, try it at least once more
     if (e.message.includes('Command failed with exit code 26 (ETXTBSY)') && options.retry && options.retry > 0) {
       await new Promise((resolve) => setTimeout(resolve, 500))
