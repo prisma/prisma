@@ -49,8 +49,7 @@ export class DataProxyEngine extends Engine {
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
 
-    const promise = Promise.resolve() // hack for cloudflare
-    this.pushPromise = promise.then(() => this.pushSchema())
+    this.pushPromise = this.pushSchema()
   }
 
   private async pushSchema() {
