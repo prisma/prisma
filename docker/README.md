@@ -21,7 +21,7 @@ ports:
 
 ## Apple M1 and other ARM64 CPUs
 
-Docker images for MySQL and Microsoft SQL server only support x86_64 CPUs.
+Docker images for MySQL and Microsoft SQL Server only support x86_64 CPUs.
 Copy or link `docker-compose.arm64.yml` to `docker-compose.override.yml` to use ARMv8-compatible drop-in replacements (MariaDB and Azure SQL Edge) instead.
 
 ## Usage
