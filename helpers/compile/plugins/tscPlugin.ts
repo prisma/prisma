@@ -1,6 +1,9 @@
 import type * as esbuild from 'esbuild'
 import { run } from '../build'
 
+/**
+ * Triggers the TypeScript compiler.
+ */
 export const tscPlugin: esbuild.Plugin = {
   name: 'tscPlugin',
   setup(build) {

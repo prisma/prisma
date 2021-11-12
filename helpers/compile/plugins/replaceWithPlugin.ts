@@ -9,6 +9,11 @@ function applyReplacements(contents: string, replacements: [RegExp, string][]) {
   return contents
 }
 
+/**
+ * Replace the contents of a file with the given replacements.
+ * @param replacements
+ * @returns
+ */
 export const replaceWithPlugin = (replacements: [RegExp, string][]): esbuild.Plugin => {
   return {
     name: 'replaceWithPlugin',

@@ -1,5 +1,8 @@
 import type * as esbuild from 'esbuild'
 
+/**
+ * For dependencies that forgot to add them into their package.json.
+ */
 export const fixImportsPlugin: esbuild.Plugin = {
   name: 'fixImportsPlugin',
   setup(build) {
