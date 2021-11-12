@@ -16,8 +16,13 @@ If they are already used make sure to change the ports like this
 
 ```yaml
 ports:
-  - '3307:3306 # only change the first number
+  - '3307:3306' # only change the first number
 ```
+
+## Apple M1 and other ARM64 CPUs
+
+Docker images for MySQL and Microsoft SQL server only support x86_64 CPUs.
+Copy or link `docker-compose.arm64.yml` to `docker-compose.override.yml` to use ARMv8-compatible drop-in replacements (MariaDB and Azure SQL Edge) instead.
 
 ## Usage
 
