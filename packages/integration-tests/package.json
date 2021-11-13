@@ -28,7 +28,7 @@
     "execa": "5.1.1",
     "fs-jetpack": "4.2.0",
     "jest": "27.3.1",
-    "lint-staged": "11.2.6",
+    "lint-staged": "12.0.1",
     "mariadb": "2.5.5",
     "mssql": "7.2.1",
     "pg": "8.7.1",
