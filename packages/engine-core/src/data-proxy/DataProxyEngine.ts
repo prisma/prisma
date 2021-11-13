@@ -12,6 +12,7 @@ import { NotImplementedYetError } from './errors/NotImplementedYetError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { DataProxyError } from './errors/DataProxyError'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 // TODO this is an issue that we cannot share types from the client to other packages
 
@@ -167,7 +168,15 @@ export class DataProxyEngine extends Engine {
         throw err
       }
 
-      return response.json()
+      const data = await response.json()
+
+      if (data.errors) {
+        if (data.errors.length === 1) {
+          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        }
+      }
+
+      return data
     } catch (err) {
       this.logEmitter.emit('error', {
         message: `Error while querying: ${err.message ?? '(unknown)'}`,

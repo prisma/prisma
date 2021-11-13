@@ -35,6 +35,7 @@ import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
 import type * as Tx from '../common/types/Transaction'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type { IncomingHttpHeaders } from 'http'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -881,7 +882,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       const { data, headers } = await this.currentRequestPromise
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.graphQLToJSError(data.errors[0])
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
@@ -938,7 +939,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors) {
-              throw this.graphQLToJSError(result.errors[0])
+              throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
             }
             return {
               data: result,
@@ -946,7 +947,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         } else {
-          throw this.graphQLToJSError(errors[0])
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
       })
       .catch(async (e) => {
@@ -1109,19 +1110,6 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
     }
 
     return false
-  }
-
-  private graphQLToJSError(error: RequestError): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
-    if (error.user_facing_error.error_code) {
-      return new PrismaClientKnownRequestError(
-        error.user_facing_error.message,
-        error.user_facing_error.error_code,
-        this.clientVersion!,
-        error.user_facing_error.meta,
-      )
-    }
-
-    return new PrismaClientUnknownRequestError(error.user_facing_error.message, this.clientVersion!)
   }
 }
 
