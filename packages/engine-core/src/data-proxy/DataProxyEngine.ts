@@ -53,12 +53,14 @@ export class DataProxyEngine extends Engine {
   }
 
   private async pushSchema() {
-    const res = await request(this.url('schema'), {
+    const response = await request(this.url('schema'), {
       method: 'HEAD',
       headers: this.headers,
     })
 
-    if (res.status === 404) {
+    const error = await responseToError(response, this.clientVersion)
+
+    if (error instanceof SchemaMissingError) {
       await this.uploadSchema()
     }
   }
