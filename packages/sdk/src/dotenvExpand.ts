@@ -1,4 +1,4 @@
-import { DotenvConfigOutput } from 'dotenv'
+import type { DotenvConfigOutput } from 'dotenv'
 
 /**
  * Modified version of https://github.com/motdotla/dotenv-expand
@@ -30,9 +30,7 @@ import { DotenvConfigOutput } from 'dotenv'
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-export function dotenvExpand(
-  config: DotenvConfigOutput & { ignoreProcessEnv?: boolean },
-) {
+export function dotenvExpand(config: DotenvConfigOutput & { ignoreProcessEnv?: boolean }) {
   // if ignoring process.env, use a blank object
   const environment = config.ignoreProcessEnv ? {} : process.env
 
@@ -56,9 +54,7 @@ export function dotenvExpand(
         const key = parts[2]
         replacePart = parts[0].substring(prefix.length)
         // process.env value 'wins' over .env file's value
-        value = Object.hasOwnProperty.call(environment, key)
-          ? environment[key]
-          : config.parsed![key] || ''
+        value = Object.hasOwnProperty.call(environment, key) ? environment[key] : config.parsed![key] || ''
 
         // Resolve recursive interpolations
         value = interpolate(value)
@@ -69,9 +65,7 @@ export function dotenvExpand(
   }
 
   for (const configKey in config.parsed) {
-    const value = Object.hasOwnProperty.call(environment, configKey)
-      ? environment[configKey]
-      : config.parsed[configKey]
+    const value = Object.hasOwnProperty.call(environment, configKey) ? environment[configKey] : config.parsed[configKey]
 
     config.parsed[configKey] = interpolate(value!)
   }

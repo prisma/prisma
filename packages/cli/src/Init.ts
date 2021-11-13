@@ -1,15 +1,7 @@
-import {
-  arg,
-  canConnectToDatabase,
-  Command,
-  format,
-  getCommandWithExecutor,
-  HelpError,
-  link,
-  logger,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, canConnectToDatabase, format, getCommandWithExecutor, HelpError, link, logger } from '@prisma/sdk'
 import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
-import { ConnectorType } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
@@ -79,11 +71,7 @@ export const defaultPort = (provider: ConnectorType) => {
   return undefined
 }
 
-export const defaultURL = (
-  provider: ConnectorType,
-  port = defaultPort(provider),
-  schema = 'public',
-) => {
+export const defaultURL = (provider: ConnectorType, port = defaultPort(provider), schema = 'public') => {
   switch (provider) {
     case 'postgresql':
       return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
@@ -131,9 +119,7 @@ export class Init implements Command {
     ${chalk.dim('$')} prisma init --datasource-provider mysql
   
   Setup a new Prisma project and specify the url that will be used
-    ${chalk.dim(
-      '$',
-    )} prisma init --url mysql://user:password@localhost:3306/mydb
+    ${chalk.dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -163,9 +149,7 @@ export class Init implements Command {
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
       console.log(
-        printError(`File ${chalk.bold(
-          'schema.prisma',
-        )} already exists in your project.
+        printError(`File ${chalk.bold('schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -174,9 +158,7 @@ export class Init implements Command {
 
     if (fs.existsSync(prismaFolder)) {
       console.log(
-        printError(`A folder called ${chalk.bold(
-          'prisma',
-        )} already exists in your project.
+        printError(`A folder called ${chalk.bold('prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -185,9 +167,7 @@ export class Init implements Command {
 
     if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
       console.log(
-        printError(`File ${chalk.bold(
-          'prisma/schema.prisma',
-        )} already exists in your project.
+        printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -216,11 +196,7 @@ export class Init implements Command {
       url = args['--url']
     } else if (args['--datasource-provider']) {
       const providerLowercase = args['--datasource-provider'].toLowerCase()
-      if (
-        !['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb'].includes(
-          providerLowercase,
-        )
-      ) {
+      if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb'].includes(providerLowercase)) {
         throw new Error(
           `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver" or "mongodb".`,
         )
@@ -244,10 +220,7 @@ export class Init implements Command {
       fs.mkdirSync(prismaFolder)
     }
 
-    fs.writeFileSync(
-      path.join(prismaFolder, 'schema.prisma'),
-      defaultSchema(provider),
-    )
+    fs.writeFileSync(path.join(prismaFolder, 'schema.prisma'), defaultSchema(provider))
 
     const warnings: string[] = []
     const envPath = path.join(outputDir, '.env')
@@ -258,17 +231,12 @@ export class Init implements Command {
       const config = dotenv.parse(envFile) // will return an object
       if (Object.keys(config).includes('DATABASE_URL')) {
         warnings.push(
-          `${chalk.yellow(
-            'warn',
-          )} Prisma would have added DATABASE_URL but it already exists in ${chalk.bold(
+          `${chalk.yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${chalk.bold(
             path.relative(outputDir, envPath),
           )}`,
         )
       } else {
-        fs.appendFileSync(
-          envPath,
-          `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(url),
-        )
+        fs.appendFileSync(envPath, `\n\n` + '# This was inserted by `prisma init`:\n' + defaultEnv(url))
       }
     }
 
@@ -308,15 +276,11 @@ export class Init implements Command {
     if (!url || args['--datasource-provider']) {
       if (!args['--datasource-provider']) {
         steps.unshift(
-          `Set the ${chalk.green('provider')} of the ${chalk.green(
-            'datasource',
-          )} block in ${chalk.green(
+          `Set the ${chalk.green('provider')} of the ${chalk.green('datasource')} block in ${chalk.green(
             'schema.prisma',
-          )} to match your database: ${chalk.green(
-            'postgresql',
-          )}, ${chalk.green('mysql')}, ${chalk.green('sqlite')}, ${chalk.green(
-            'sqlserver',
-          )} or ${chalk.green('mongodb')} (Preview).`,
+          )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')}, ${chalk.green(
+            'sqlite',
+          )}, ${chalk.green('sqlserver')} or ${chalk.green('mongodb')} (Preview).`,
         )
       }
 

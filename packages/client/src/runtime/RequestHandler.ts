@@ -7,11 +7,13 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { DataLoader } from './DataLoader'
-import { Client, Unpacker } from './getPrismaClient'
-import { EngineMiddleware } from './MiddlewareHandler'
-import { Args, Document, unpack } from './query'
+import type { Client, Unpacker } from './getPrismaClient'
+import type { EngineMiddleware } from './MiddlewareHandler'
+import type { Document } from './query'
+import { Args, unpack } from './query'
 import { printStack } from './utils/printStack'
-import { RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
+import type { RejectOnNotFound } from './utils/rejectOnNotFound'
+import { throwIfNotFound } from './utils/rejectOnNotFound'
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
@@ -132,13 +134,7 @@ export class RequestHandler {
       /**
        * Unpack
        */
-      const unpackResult = this.unpack(
-        document,
-        data,
-        dataPath,
-        rootField,
-        unpacker,
-      )
+      const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
       throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
       if (process.env.PRISMA_CLIENT_GET_TIME) {
         return { data: unpackResult, elapsed }
@@ -160,32 +156,15 @@ export class RequestHandler {
       message = this.sanitizeMessage(message)
       // TODO: Do request with callsite instead, so we don't need to rethrow
       if (e.code) {
-        throw new PrismaClientKnownRequestError(
-          message,
-          e.code,
-          this.client._clientVersion,
-          e.meta,
-        )
+        throw new PrismaClientKnownRequestError(message, e.code, this.client._clientVersion, e.meta)
       } else if (e.isPanic) {
-        throw new PrismaClientRustPanicError(
-          message,
-          this.client._clientVersion,
-        )
+        throw new PrismaClientRustPanicError(message, this.client._clientVersion)
       } else if (e instanceof PrismaClientUnknownRequestError) {
-        throw new PrismaClientUnknownRequestError(
-          message,
-          this.client._clientVersion,
-        )
+        throw new PrismaClientUnknownRequestError(message, this.client._clientVersion)
       } else if (e instanceof PrismaClientInitializationError) {
-        throw new PrismaClientInitializationError(
-          message,
-          this.client._clientVersion,
-        )
+        throw new PrismaClientInitializationError(message, this.client._clientVersion)
       } else if (e instanceof PrismaClientRustPanicError) {
-        throw new PrismaClientRustPanicError(
-          message,
-          this.client._clientVersion,
-        )
+        throw new PrismaClientRustPanicError(message, this.client._clientVersion)
       }
 
       e.clientVersion = this.client._clientVersion

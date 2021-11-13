@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import { NodeAPILibraryTypes } from '@prisma/engine-core'
+import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
@@ -38,9 +38,7 @@ export class GetConfigError extends Error {
   }
 }
 // TODO add error handling functions
-export async function getConfig(
-  options: GetConfigOptions,
-): Promise<ConfigMetaFormat> {
+export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let data: ConfigMetaFormat | undefined
   if (cliEngineBinaryType === BinaryType.libqueryEngine) {
@@ -64,19 +62,13 @@ export async function getConfig(
   return data
 }
 
-async function getConfigNodeAPI(
-  options: GetConfigOptions,
-): Promise<ConfigMetaFormat> {
+async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   let data: ConfigMetaFormat | undefined
-  const queryEnginePath = await resolveBinary(
-    BinaryType.libqueryEngine,
-    options.prismaPath,
-  )
+  const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
   try {
-    const NodeAPIQueryEngineLibrary =
-      load<NodeAPILibraryTypes.Library>(queryEnginePath)
+    const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
     data = await NodeAPIQueryEngineLibrary.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},
@@ -92,10 +84,7 @@ async function getConfigNodeAPI(
     }
     let message: string
     if (error.error_code === 'P1012') {
-      message =
-        chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) +
-        error.message +
-        '\n'
+      message = chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n'
     } else {
       message = chalk.redBright(`${error.error_code}\n\n`) + error
     }
@@ -104,15 +93,10 @@ async function getConfigNodeAPI(
   return data
 }
 
-async function getConfigBinary(
-  options: GetConfigOptions,
-): Promise<ConfigMetaFormat | undefined> {
+async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
   let data: ConfigMetaFormat | undefined
 
-  const queryEnginePath = await resolveBinary(
-    BinaryType.queryEngine,
-    options.prismaPath,
-  )
+  const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
@@ -128,18 +112,14 @@ async function getConfigBinary(
 
     const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
-    const result = await execa(
-      queryEnginePath,
-      [...engineArgs, 'cli', 'get-config', ...args],
-      {
-        cwd: options.cwd,
-        env: {
-          PRISMA_DML_PATH: tempDatamodelPath,
-          RUST_BACKTRACE: '1',
-        },
-        maxBuffer: MAX_BUFFER,
+    const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], {
+      cwd: options.cwd,
+      env: {
+        PRISMA_DML_PATH: tempDatamodelPath,
+        RUST_BACKTRACE: '1',
       },
-    )
+      maxBuffer: MAX_BUFFER,
+    })
 
     if (!options.datamodelPath) {
       await unlink(tempDatamodelPath)
@@ -155,9 +135,7 @@ async function getConfigBinary(
         message = `${chalk.redBright(jsonError.message)}\n`
         if (jsonError.error_code) {
           if (jsonError.error_code === 'P1012') {
-            message =
-              chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) +
-              message
+            message = chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) + message
           } else {
             message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
           }

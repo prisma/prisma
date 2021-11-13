@@ -1,5 +1,5 @@
 import { Prism, Token } from './prism'
-import { SyntaxDefinition } from './types'
+import type { SyntaxDefinition } from './types'
 
 export function highlightTS(str: string) {
   return highlight(str, Prism.languages.javascript)

@@ -7,7 +7,6 @@
   "reviewers": ["@Jolg42", "@millsp"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
-    "esbuild",
     "sqlite3",
     "@prisma/engines",
     "@prisma/engines-version",

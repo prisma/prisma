@@ -1,6 +1,7 @@
 import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
-import { setupMSSQL, SetupParams } from '../../../../utils/setupMSSQL'
+import type { SetupParams } from '../../../../utils/setupMSSQL'
+import { setupMSSQL } from '../../../../utils/setupMSSQL'
 
 describe('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
@@ -8,9 +9,7 @@ describe('blog-env-mssql', () => {
   const requests: any[] = []
 
   beforeAll(async () => {
-    const connectionString =
-      process.env.TEST_MSSQL_URI ||
-      'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+    const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
     const setupParams: SetupParams = {
       connectionString,
       dirname: __dirname,
@@ -185,9 +184,7 @@ describe('blog-env-mssql', () => {
 
     test('$queryRaw(sql`<SQL>`) with params', async () => {
       await prisma.user.create({ data: { email: 'd@a.de', name: 'D' } })
-      const users = await prisma.$queryRaw(
-        sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`,
-      )
+      const users = await prisma.$queryRaw(sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`)
       expect(users).not.toHaveLength(0)
     })
 
@@ -198,17 +195,17 @@ describe('blog-env-mssql', () => {
     })
 
     test('$queryRaw`<SQL>` with join', async () => {
-      const users =
-        await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE id IN (${PrismaHelpers.join(
-          ['42', '333', '2048'],
-        )})`
+      const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE id IN (${PrismaHelpers.join([
+        '42',
+        '333',
+        '2048',
+      ])})`
       expect(users).toHaveLength(0)
     })
 
     test('$queryRaw`<SQL>` with params', async () => {
       await prisma.user.create({ data: { email: 'f@a.de', name: 'F' } })
-      const users =
-        await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
+      const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users[0].name).toBe('F')
     })
 
@@ -228,10 +225,7 @@ describe('blog-env-mssql', () => {
 
     test('$queryRawUnsafe(string) with params', async () => {
       await prisma.user.create({ data: { email: 'b@a.de', name: 'B' } })
-      const users = await prisma.$queryRawUnsafe(
-        'SELECT * FROM [dbo].[User] WHERE name = @P1',
-        'B',
-      )
+      const users = await prisma.$queryRawUnsafe('SELECT * FROM [dbo].[User] WHERE name = @P1', 'B')
       expect(users).not.toHaveLength(0)
     })
   })
@@ -245,9 +239,7 @@ describe('blog-env-mssql', () => {
 
     test('$executeRaw(sql`<SQL>`) with params', async () => {
       await prisma.user.create({ data: { email: 'd@b.de', name: 'D' } })
-      const users = await prisma.$executeRaw(
-        sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`,
-      )
+      const users = await prisma.$executeRaw(sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`)
       expect(users).not.toBe(0)
     })
 
@@ -259,8 +251,7 @@ describe('blog-env-mssql', () => {
 
     test('$executeRaw`<SQL>` with params', async () => {
       await prisma.user.create({ data: { email: 'f@b.de', name: 'F' } })
-      const users =
-        await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
+      const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
       expect(users).not.toBe(0)
     })
 
@@ -280,10 +271,7 @@ describe('blog-env-mssql', () => {
 
     test('$executeRawUnsafe(string) with params', async () => {
       await prisma.user.create({ data: { email: 'b@b.de', name: 'B' } })
-      const users = await prisma.$executeRawUnsafe(
-        'SELECT * FROM [dbo].[User] WHERE name = @P1',
-        'B',
-      )
+      const users = await prisma.$executeRawUnsafe('SELECT * FROM [dbo].[User] WHERE name = @P1', 'B')
       expect(users).not.toBe(0)
     })
   })

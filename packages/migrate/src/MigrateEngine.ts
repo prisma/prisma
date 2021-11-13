@@ -1,15 +1,10 @@
 import Debug from '@prisma/debug'
-import {
-  BinaryType,
-  ErrorArea,
-  resolveBinary,
-  RustPanic,
-  MigrateEngineLogLine,
-  MigrateEngineExitCode,
-} from '@prisma/sdk'
+import type { MigrateEngineLogLine } from '@prisma/sdk'
+import { BinaryType, ErrorArea, resolveBinary, RustPanic, MigrateEngineExitCode } from '@prisma/sdk'
 import chalk from 'chalk'
-import { ChildProcess, spawn } from 'child_process'
-import { EngineArgs, EngineResults } from './types'
+import type { ChildProcess } from 'child_process'
+import { spawn } from 'child_process'
+import type { EngineArgs, EngineResults } from './types'
 import byline from './utils/byline'
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
@@ -53,12 +48,7 @@ export class MigrateEngine {
   private lastError: MigrateEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
-  constructor({
-    projectDir,
-    debug = false,
-    schemaPath,
-    enabledPreviewFeatures,
-  }: MigrateEngineOptions) {
+  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
@@ -73,9 +63,7 @@ export class MigrateEngine {
   /* eslint-disable @typescript-eslint/no-unsafe-return */
 
   // Runs dev diagnostic
-  public devDiagnostic(
-    args: EngineArgs.DevDiagnosticInput,
-  ): Promise<EngineResults.DevDiagnosticOutput> {
+  public devDiagnostic(args: EngineArgs.DevDiagnosticInput): Promise<EngineResults.DevDiagnosticOutput> {
     return this.runCommand(this.getRPCPayload('devDiagnostic', args))
   }
   // List migrations in migration directory.
@@ -88,15 +76,11 @@ export class MigrateEngine {
   // - The migration is already in the table, but in a failed state. In this case, we will mark it as rolled back, then create a new entry.
   // - The migration is not in the table. We will create a new entry in the migrations table. The `started_at` and `finished_at` will be the same.
   // - If it is already applied, we return a user-facing error.
-  public markMigrationApplied(
-    args: EngineArgs.MarkMigrationAppliedInput,
-  ): Promise<void> {
+  public markMigrationApplied(args: EngineArgs.MarkMigrationAppliedInput): Promise<void> {
     return this.runCommand(this.getRPCPayload('markMigrationApplied', args))
   }
   // Mark an existing failed migration as rolled back in the migrations table. It will still be there, but ignored for all purposes except as audit trail.
-  public markMigrationRolledBack(
-    args: EngineArgs.MarkMigrationRolledBackInput,
-  ): Promise<void> {
+  public markMigrationRolledBack(args: EngineArgs.MarkMigrationRolledBackInput): Promise<void> {
     return this.runCommand(this.getRPCPayload('markMigrationRolledBack', args))
   }
   public diagnoseMigrationHistory(
@@ -104,24 +88,16 @@ export class MigrateEngine {
   ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     return this.runCommand(this.getRPCPayload('diagnoseMigrationHistory', args))
   }
-  public planMigration(
-    args: EngineArgs.PlanMigrationInput,
-  ): Promise<EngineResults.PlanMigrationOutput> {
+  public planMigration(args: EngineArgs.PlanMigrationInput): Promise<EngineResults.PlanMigrationOutput> {
     return this.runCommand(this.getRPCPayload('planMigration', args))
   }
-  public evaluateDataLoss(
-    args: EngineArgs.EvaluateDataLossInput,
-  ): Promise<EngineResults.EvaluateDataLossOutput> {
+  public evaluateDataLoss(args: EngineArgs.EvaluateDataLossInput): Promise<EngineResults.EvaluateDataLossOutput> {
     return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
   }
-  public createMigration(
-    args: EngineArgs.CreateMigrationInput,
-  ): Promise<EngineResults.CreateMigrationOutput> {
+  public createMigration(args: EngineArgs.CreateMigrationInput): Promise<EngineResults.CreateMigrationOutput> {
     return this.runCommand(this.getRPCPayload('createMigration', args))
   }
-  public applyMigrations(
-    args: EngineArgs.ApplyMigrationsInput,
-  ): Promise<EngineResults.ApplyMigrationsOutput> {
+  public applyMigrations(args: EngineArgs.ApplyMigrationsInput): Promise<EngineResults.ApplyMigrationsOutput> {
     return this.runCommand(this.getRPCPayload('applyMigrations', args))
   }
   public reset(): Promise<void> {
@@ -130,9 +106,7 @@ export class MigrateEngine {
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
-  public schemaPush(
-    args: EngineArgs.SchemaPush,
-  ): Promise<EngineResults.SchemaPush> {
+  public schemaPush(args: EngineArgs.SchemaPush): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
   public debugPanic(): Promise<any> {
@@ -146,10 +120,7 @@ export class MigrateEngine {
       delete this.listeners[id]
     })
   }
-  private registerCallback(
-    id: number,
-    callback: (result: any, err?: Error) => any,
-  ): void {
+  private registerCallback(id: number, callback: (result: any, err?: Error) => any): void {
     this.listeners[id] = callback
   }
   private handleResponse(response: any): void {
@@ -157,9 +128,7 @@ export class MigrateEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(
-        `Could not parse migration engine response: ${response.slice(0, 200)}`,
-      )
+      console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
     }
     if (result) {
       if (result.id) {
@@ -203,12 +172,7 @@ export class MigrateEngine {
           Array.isArray(this.enabledPreviewFeatures) &&
           this.enabledPreviewFeatures.length > 0
         ) {
-          args.push(
-            ...[
-              '--enabled-preview-features',
-              this.enabledPreviewFeatures.join(','),
-            ],
-          )
+          args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
         this.child = spawn(binaryPath, args, {
           cwd: this.projectDir,
@@ -232,8 +196,7 @@ export class MigrateEngine {
             this.rejectAll(err)
             reject(err)
           }
-          const engineMessage =
-            this.lastError?.message || this.messages.join('\n')
+          const engineMessage = this.lastError?.message || this.messages.join('\n')
           const handlePanic = () => {
             const stackTrace = this.messages.join('\n')
             exitWithErr(
@@ -251,9 +214,7 @@ export class MigrateEngine {
             case MigrateEngineExitCode.Success:
               break
             case MigrateEngineExitCode.Error:
-              exitWithErr(
-                new Error(`Error in migration engine: ${engineMessage}`),
-              )
+              exitWithErr(new Error(`Error in migration engine: ${engineMessage}`))
               break
             case MigrateEngineExitCode.Panic:
               handlePanic()
@@ -307,11 +268,7 @@ export class MigrateEngine {
     }
     await this.init()
     if (this.child?.killed) {
-      throw new Error(
-        `Can't execute ${JSON.stringify(
-          request,
-        )} because migration engine already exited.`,
-      )
+      throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine already exited.`)
     }
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, (response, err) => {
@@ -326,8 +283,7 @@ export class MigrateEngine {
             debugRpc(response)
             if (response.error.data?.is_panic) {
               // if (response.error.data && response.error.data.message) {
-              const message =
-                response.error.data?.error?.message ?? response.error.message
+              const message = response.error.data?.error?.message ?? response.error.message
               reject(
                 // Handle error and displays the interactive dialog to send panic error
                 new RustPanic(
@@ -343,9 +299,7 @@ export class MigrateEngine {
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
               let message = `${chalk.redBright(response.error.data.message)}\n`
               if (response.error.data?.error_code) {
-                message =
-                  chalk.redBright(`${response.error.data.error_code}\n\n`) +
-                  message
+                message = chalk.redBright(`${response.error.data.error_code}\n\n`) + message
                 reject(new EngineError(message, response.error.data.error_code))
               } else {
                 reject(new Error(message))
@@ -353,35 +307,21 @@ export class MigrateEngine {
             } else {
               reject(
                 new Error(
-                  `${chalk.redBright(
-                    'Error in RPC',
-                  )}\n Request: ${JSON.stringify(
+                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
-                    response.error.message
-                  }\n`,
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n`,
                 ),
               )
             }
           } else {
-            reject(
-              new Error(
-                `Got invalid RPC response without .result property: ${JSON.stringify(
-                  response,
-                )}`,
-              ),
-            )
+            reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
           }
         }
       })
       if (this.child!.stdin!.destroyed) {
-        throw new Error(
-          `Can't execute ${JSON.stringify(
-            request,
-          )} because migration engine is destroyed.`,
-        )
+        throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine is destroyed.`)
       }
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')

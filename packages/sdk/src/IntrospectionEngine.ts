@@ -1,7 +1,8 @@
 import Debug from '@prisma/debug'
 import { BinaryType } from '@prisma/fetch-engine'
 import chalk from 'chalk'
-import { ChildProcess, spawn } from 'child_process'
+import type { ChildProcess } from 'child_process'
+import { spawn } from 'child_process'
 import { ErrorArea, RustPanic } from './panic'
 import { resolveBinary } from './resolveBinary'
 import byline from './utils/byline'
@@ -128,8 +129,7 @@ interface IntrospectionWarningsEnumMapReintro extends IntrospectionWarning {
   code: 9
   affected: AffectedEnum
 }
-interface IntrospectionWarningsEnumValueMapReintro
-  extends IntrospectionWarning {
+interface IntrospectionWarningsEnumValueMapReintro extends IntrospectionWarning {
   code: 10
   affected: AffectedEnum
 }
@@ -157,11 +157,7 @@ interface IntrospectionWarningsMongoMultipleTypes extends IntrospectionWarning {
   // affected: AffectedModelAndFieldAndType
 }
 
-export type IntrospectionSchemaVersion =
-  | 'Prisma2'
-  | 'Prisma1'
-  | 'Prisma11'
-  | 'NonPrisma'
+export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
 
 let messageId = 1
 
@@ -201,16 +197,11 @@ export class IntrospectionEngine {
       delete this.listeners[id]
     })
   }
-  private registerCallback(
-    id: number,
-    callback: (result: any, err?: Error) => any,
-  ): void {
+  private registerCallback(id: number, callback: (result: any, err?: Error) => any): void {
     this.listeners[id] = callback
   }
   public getDatabaseDescription(schema: string): Promise<string> {
-    return this.runCommand(
-      this.getRPCPayload('getDatabaseDescription', { schema }),
-    )
+    return this.runCommand(this.getRPCPayload('getDatabaseDescription', { schema }))
   }
   public getDatabaseVersion(schema: string): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
@@ -218,13 +209,14 @@ export class IntrospectionEngine {
   public introspect(
     schema: string,
     force?: Boolean,
+    compositeTypeDepth?: number, // optional, only for mongodb
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
   }> {
     this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema, force }))
+    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
   }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
@@ -233,25 +225,16 @@ export class IntrospectionEngine {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
   }
-  public getDatabaseMetadata(
-    schema: string,
-  ): Promise<{ size_in_bytes: number; table_count: number }> {
+  public getDatabaseMetadata(schema: string): Promise<{ size_in_bytes: number; table_count: number }> {
     this.lastUrl = schema
-    return this.runCommand(
-      this.getRPCPayload('getDatabaseMetadata', { schema }),
-    )
+    return this.runCommand(this.getRPCPayload('getDatabaseMetadata', { schema }))
   }
   private handleResponse(response: any): void {
     let result
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(
-        `Could not parse introspection engine response: ${response.slice(
-          0,
-          200,
-        )}`,
-      )
+      console.error(`Could not parse introspection engine response: ${response.slice(0, 200)}`)
     }
     if (result) {
       if (result.backtrace) {
@@ -259,11 +242,7 @@ export class IntrospectionEngine {
         console.log(result)
       }
       if (!result.id) {
-        console.error(
-          `Response ${JSON.stringify(
-            result,
-          )} doesn't have an id and I can't handle that (yet)`,
-        )
+        console.error(`Response ${JSON.stringify(result)} doesn't have an id and I can't handle that (yet)`)
       }
       if (!this.listeners[result.id]) {
         console.error(`Got result for unknown id ${result.id}`)
@@ -329,21 +308,12 @@ export class IntrospectionEngine {
             const messages = this.messages.join('\n')
             let err: any
             if (code !== 0 || messages.includes('panicked at')) {
-              let errorMessage =
-                chalk.red.bold('Error in introspection engine: ') + messages
+              let errorMessage = chalk.red.bold('Error in introspection engine: ') + messages
               if (this.lastError && this.lastError.msg === 'PANIC') {
                 errorMessage = serializePanic(this.lastError)
-                err = new IntrospectionPanic(
-                  errorMessage,
-                  messages,
-                  this.lastRequest,
-                )
+                err = new IntrospectionPanic(errorMessage, messages, this.lastRequest)
               } else if (messages.includes('panicked at')) {
-                err = new IntrospectionPanic(
-                  errorMessage,
-                  messages,
-                  this.lastRequest,
-                )
+                err = new IntrospectionPanic(errorMessage, messages, this.lastRequest)
               }
               err = err || new Error(errorMessage)
               this.rejectAll(err)
@@ -393,11 +363,7 @@ export class IntrospectionEngine {
     }
 
     if (this.child?.killed) {
-      throw new Error(
-        `Can't execute ${JSON.stringify(
-          request,
-        )} because introspection engine already exited.`,
-      )
+      throw new Error(`Can't execute ${JSON.stringify(request)} because introspection engine already exited.`)
     }
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, (response, err) => {
@@ -411,8 +377,7 @@ export class IntrospectionEngine {
             this.child?.kill()
             debugRpc(response)
             if (response.error.data?.is_panic) {
-              const message =
-                response.error.data?.error?.message ?? response.error.message
+              const message = response.error.data?.error?.message ?? response.error.message
               reject(
                 new RustPanic(
                   message,
@@ -428,50 +393,29 @@ export class IntrospectionEngine {
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
               let message = `${response.error.data.message}\n`
               if (response.error.data?.error_code) {
-                message =
-                  chalk.redBright(`${response.error.data.error_code}\n\n`) +
-                  message
-                reject(
-                  new IntrospectionError(
-                    message,
-                    response.error.data.error_code,
-                  ),
-                )
+                message = chalk.redBright(`${response.error.data.error_code}\n\n`) + message
+                reject(new IntrospectionError(message, response.error.data.error_code))
               } else {
                 reject(new Error(message))
               }
             } else {
               reject(
                 new Error(
-                  `${chalk.redBright(
-                    'Error in RPC',
-                  )}\n Request: ${JSON.stringify(
+                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
                     request,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${
-                    response.error.message
-                  }\n`,
+                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n`,
                 ),
               )
             }
           } else {
-            reject(
-              new Error(
-                `Got invalid RPC response without .result property: ${JSON.stringify(
-                  response,
-                )}`,
-              ),
-            )
+            reject(new Error(`Got invalid RPC response without .result property: ${JSON.stringify(response)}`))
           }
         }
       })
       if (this.child!.stdin!.destroyed) {
-        throw new Error(
-          `Can't execute ${JSON.stringify(
-            request,
-          )} because introspection engine is destroyed.`,
-        )
+        throw new Error(`Can't execute ${JSON.stringify(request)} because introspection engine is destroyed.`)
       }
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')

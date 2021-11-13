@@ -8,21 +8,14 @@ const readFileAsync = promisify(fs.readFile)
 /**
  * Try reading the installed Prisma Client version
  */
-export async function getInstalledPrismaClientVersion(
-  cwd: string = process.cwd(),
-): Promise<string | null> {
-  return (
-    (await getPrismaClientVersionFromNodeModules(cwd)) ??
-    (await getPrismaClientVersionFromLocalPackageJson(cwd))
-  )
+export async function getInstalledPrismaClientVersion(cwd: string = process.cwd()): Promise<string | null> {
+  return (await getPrismaClientVersionFromNodeModules(cwd)) ?? (await getPrismaClientVersionFromLocalPackageJson(cwd))
 }
 
 /**
  * Try reading the Prisma Client version from its package.json
  */
-async function getPrismaClientVersionFromNodeModules(
-  cwd: string = process.cwd(),
-): Promise<string | null> {
+async function getPrismaClientVersionFromNodeModules(cwd: string = process.cwd()): Promise<string | null> {
   try {
     const pkgJsonPath = requireResolveFrom('@prisma/client/package.json', cwd)
 
@@ -46,9 +39,7 @@ async function getPrismaClientVersionFromNodeModules(
 /**
  * Try reading the Prisma Client version from the local package.json
  */
-async function getPrismaClientVersionFromLocalPackageJson(
-  cwd: string = process.cwd(),
-): Promise<string | null> {
+async function getPrismaClientVersionFromLocalPackageJson(cwd: string = process.cwd()): Promise<string | null> {
   try {
     const pkgJsonPath = await pkgUp({ cwd })
 
@@ -58,9 +49,7 @@ async function getPrismaClientVersionFromLocalPackageJson(
 
     const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
-    const clientVersion =
-      pkgJson.dependencies?.['@prisma/client'] ??
-      pkgJson.devDependencies?.['@prisma/client']
+    const clientVersion = pkgJson.dependencies?.['@prisma/client'] ?? pkgJson.devDependencies?.['@prisma/client']
 
     if (!clientVersion) {
       return null

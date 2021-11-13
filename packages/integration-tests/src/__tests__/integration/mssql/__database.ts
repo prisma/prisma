@@ -1,7 +1,7 @@
 const sql = require('mssql')
 const url = require('url')
 
-import { Context, Input } from '../../__helpers__/integrationTest'
+import type { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {
   name: 'sqlserver',
@@ -31,9 +31,7 @@ export const database = {
 
 function getConnectionInfo(ctx: Context) {
   const { URL } = url
-  const serviceConnectionString =
-    process.env.TEST_MSSQL_URI ||
-    'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+  const serviceConnectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
   const connectionUrl = new URL(serviceConnectionString)
   const connectionString = `sqlserver://${connectionUrl.host};database=master_${ctx.id};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;`
   const credentials = {

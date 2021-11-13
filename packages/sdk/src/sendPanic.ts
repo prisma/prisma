@@ -10,7 +10,8 @@ import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import * as checkpoint from 'checkpoint-client'
 import { maskSchema, mapScalarValues } from './utils/maskSchema'
-import { RustPanic, ErrorArea } from './panic'
+import type { RustPanic } from './panic'
+import { ErrorArea } from './panic'
 import { getProxyAgent } from '@prisma/fetch-engine'
 import { IntrospectionEngine } from './IntrospectionEngine'
 
@@ -18,11 +19,7 @@ const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
-export async function sendPanic(
-  error: RustPanic,
-  cliVersion: string,
-  engineVersion: string,
-): Promise<number | void> {
+export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number | void> {
   try {
     let schema: undefined | string
     let maskedSchema: undefined | string
@@ -143,10 +140,7 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
     for (const filePath of filePaths) {
       let file = fs.readFileSync(path.resolve(schemaDir, filePath), 'utf-8')
-      if (
-        filePath.endsWith('schema.prisma') ||
-        filePath.endsWith(path.basename(error.schemaPath))
-      ) {
+      if (filePath.endsWith('schema.prisma') || filePath.endsWith(path.basename(error.schemaPath))) {
         // Remove credentials from schema datasource url
         file = maskSchema(file)
       }
@@ -190,9 +184,7 @@ export enum ErrorKind {
   RUST_PANIC = 'RUST_PANIC',
 }
 
-export async function createErrorReport(
-  data: CreateErrorReportInput,
-): Promise<string> {
+export async function createErrorReport(data: CreateErrorReportInput): Promise<string> {
   const result = await request(
     `mutation ($data: CreateErrorReportInput!) {
     createErrorReport(data: $data)
@@ -202,9 +194,7 @@ export async function createErrorReport(
   return result.createErrorReport
 }
 
-export async function makeErrorReportCompleted(
-  signedUrl: string,
-): Promise<number> {
+export async function makeErrorReportCompleted(signedUrl: string): Promise<number> {
   const result = await request(
     `mutation ($signedUrl: String!) {
   markErrorReportCompleted(signedUrl: $signedUrl)

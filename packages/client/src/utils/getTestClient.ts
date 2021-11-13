@@ -13,10 +13,8 @@ import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
 import { getDMMF } from '../generation/getDMMF'
-import {
-  getPrismaClient,
-  GetPrismaClientOptions,
-} from '../runtime/getPrismaClient'
+import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
+import { getPrismaClient } from '../runtime/getPrismaClient'
 import { getClientEngineType } from '../runtime/utils/getClientEngineType'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
@@ -27,10 +25,7 @@ const readFile = promisify(fs.readFile)
 /**
  * Returns an in-memory client for testing
  */
-export async function getTestClient(
-  schemaDir?: string,
-  printWarnings?: boolean,
-): Promise<any> {
+export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
   if (!schemaDir) {
     const callsite = parse(new Error('').stack!)
     schemaDir = path.dirname(callsite[1].file!)
@@ -42,9 +37,7 @@ export async function getTestClient(
     printConfigWarnings(config.warnings)
   }
 
-  const generator = config.generators.find(
-    (g) => parseEnvValue(g.provider) === 'prisma-client-js',
-  )
+  const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
@@ -58,7 +51,7 @@ export async function getTestClient(
   const outputDir = schemaDir
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
   const activeProvider = config.datasources[0].activeProvider
-  const options: GetPrismaClientOptions = {
+  const options: GetPrismaClientConfig = {
     document,
     generator,
     dirname: schemaDir,

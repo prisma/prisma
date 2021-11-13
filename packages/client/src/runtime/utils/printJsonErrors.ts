@@ -18,12 +18,7 @@ export type PrintJsonWithErrorsArgs = {
   missingItems: MissingItem[]
 }
 
-export function printJsonWithErrors({
-  ast,
-  keyPaths,
-  valuePaths,
-  missingItems,
-}: PrintJsonWithErrorsArgs) {
+export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }: PrintJsonWithErrorsArgs) {
   let obj = ast
   for (const { path, type } of missingItems) {
     obj = deepSet(obj, path, type)
@@ -47,21 +42,13 @@ export function printJsonWithErrors({
         const isRequiredStr = missingItem.isRequired ? '' : '?'
         const prefix = missingItem.isRequired ? '+' : '?'
         const color = missingItem.isRequired ? chalk.greenBright : chalk.green
-        let output = color(
-          prefixLines(
-            key + isRequiredStr + ': ' + valueStr + eol,
-            indent,
-            prefix,
-          ),
-        )
+        let output = color(prefixLines(key + isRequiredStr + ': ' + valueStr + eol, indent, prefix))
         if (!missingItem.isRequired) {
           output = chalk.dim(output)
         }
         return output
       } else {
-        const isOnMissingItemPath = missingItems.some((item) =>
-          dottedPath.startsWith(item.path),
-        )
+        const isOnMissingItemPath = missingItems.some((item) => dottedPath.startsWith(item.path))
         const isOptional = key[key.length - 2] === '?'
         if (isOptional) {
           key = key.slice(1, key.length - 1)
@@ -69,9 +56,7 @@ export function printJsonWithErrors({
         if (isOptional && typeof value === 'object' && value !== null) {
           valueStr = valueStr
             .split('\n')
-            .map((line, index, arr) =>
-              index === arr.length - 1 ? line + DIM_TOKEN : line,
-            )
+            .map((line, index, arr) => (index === arr.length - 1 ? line + DIM_TOKEN : line))
             .join('\n')
         }
         if (isOnMissingItemPath && typeof value === 'string') {
@@ -80,23 +65,14 @@ export function printJsonWithErrors({
             valueStr = chalk.bold(valueStr)
           }
         }
-        if (
-          (typeof value !== 'object' || value === null) &&
-          !valueError &&
-          !isOnMissingItemPath
-        ) {
+        if ((typeof value !== 'object' || value === null) && !valueError && !isOnMissingItemPath) {
           valueStr = chalk.dim(valueStr)
         }
 
         const keyStr = keyError ? chalk.redBright(key) : key
         valueStr = valueError ? chalk.redBright(valueStr) : valueStr
         // valueStr can be multiple lines if it's an object
-        let output =
-          indent +
-          keyStr +
-          ': ' +
-          valueStr +
-          (isOnMissingItemPath ? eol : chalk.dim(eol))
+        let output = indent + keyStr + ': ' + valueStr + (isOnMissingItemPath ? eol : chalk.dim(eol))
 
         // if there is an error, add the scribble lines
         // 3 options:
@@ -106,19 +82,11 @@ export function printJsonWithErrors({
         if (keyError || valueError) {
           const lines = output.split('\n')
           const keyLength = String(key).length
-          const keyScribbles = keyError
-            ? chalk.redBright('~'.repeat(keyLength))
-            : ' '.repeat(keyLength)
+          const keyScribbles = keyError ? chalk.redBright('~'.repeat(keyLength)) : ' '.repeat(keyLength)
 
-          const valueLength = valueError
-            ? getValueLength(indent, key, value, stringifiedValue)
-            : 0
-          const hideValueScribbles = Boolean(
-            valueError && typeof value === 'object' && value !== null,
-          )
-          const valueScribbles = valueError
-            ? '  ' + chalk.redBright('~'.repeat(valueLength))
-            : ''
+          const valueLength = valueError ? getValueLength(indent, key, value, stringifiedValue) : 0
+          const hideValueScribbles = Boolean(valueError && typeof value === 'object' && value !== null)
+          const valueScribbles = valueError ? '  ' + chalk.redBright('~'.repeat(valueLength)) : ''
 
           // Either insert both keyScribles and valueScribbles in one line
           if (keyScribbles && keyScribbles.length > 0 && !hideValueScribbles) {
@@ -127,11 +95,7 @@ export function printJsonWithErrors({
 
           // or the valueScribbles for a multiline string
           if (keyScribbles && keyScribbles.length > 0 && hideValueScribbles) {
-            lines.splice(
-              lines.length - 1,
-              0,
-              indent.slice(0, indent.length - 2) + valueScribbles,
-            )
+            lines.splice(lines.length - 1, 0, indent.slice(0, indent.length - 2) + valueScribbles)
           }
 
           output = lines.join('\n')
@@ -142,12 +106,7 @@ export function printJsonWithErrors({
   })
 }
 
-function getValueLength(
-  indent: string,
-  key: string,
-  value: any,
-  stringifiedValue: string,
-) {
+function getValueLength(indent: string, key: string, value: any, stringifiedValue: string) {
   if (value === null) {
     return 4
   }
@@ -156,29 +115,21 @@ function getValueLength(
   }
 
   if (typeof value === 'object') {
-    return Math.abs(
-      getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length,
-    )
+    return Math.abs(getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length)
   }
 
   return String(value).length
 }
 
 function getLongestLine(str: string): number {
-  return str
-    .split('\n')
-    .reduce((max, curr) => (curr.length > max ? curr.length : max), 0)
+  return str.split('\n').reduce((max, curr) => (curr.length > max ? curr.length : max), 0)
 }
 
 function prefixLines(str: string, indent: string, prefix: string): string {
   return str
     .split('\n')
     .map((line, index, arr) =>
-      index === 0
-        ? prefix + indent.slice(1) + line
-        : index < arr.length - 1
-        ? prefix + line.slice(1)
-        : line,
+      index === 0 ? prefix + indent.slice(1) + line : index < arr.length - 1 ? prefix + line.slice(1) : line,
     )
     .map((line) => {
       // we need to use a special token to "mark" a line a "to be dimmed", as chalk (or rather ansi) doesn't allow nesting of dimmed & colored content

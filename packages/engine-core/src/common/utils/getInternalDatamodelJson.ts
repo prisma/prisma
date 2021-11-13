@@ -18,11 +18,7 @@ export function getInternalDatamodelJson(
 
     proc.on('exit', function (code, signal) {
       if (code !== 0) {
-        console.error(
-          '[schema-inferrer-bin] exit: code=%s signal=%s',
-          code,
-          signal,
-        )
+        console.error('[schema-inferrer-bin] exit: code=%s signal=%s', code, signal)
       }
       reject()
     })

@@ -30,15 +30,8 @@ export const engineEnvVarMap = {
   [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 export { BinaryType }
-export async function resolveBinary(
-  name: BinaryType,
-  proposedPath?: string,
-): Promise<string> {
-  if (
-    proposedPath &&
-    !proposedPath.startsWith('/snapshot/') &&
-    fs.existsSync(proposedPath)
-  ) {
+export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
+  if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath
   }
   // tslint:disable-next-line
@@ -47,9 +40,7 @@ export async function resolveBinary(
 
   if (process.env[envVar]) {
     if (!fs.existsSync(process.env[envVar]!)) {
-      throw new Error(
-        `Env var ${envVar} is provided, but provided path ${process.env[envVar]} can't be resolved.`,
-      )
+      throw new Error(`Env var ${envVar} is provided, but provided path ${process.env[envVar]} can't be resolved.`)
     }
     return process.env[envVar]!
   }
@@ -80,11 +71,11 @@ export async function resolveBinary(
   }
 
   throw new Error(
-    `Could not find ${name} binary. Searched in ${path.join(
+    `Could not find ${name} binary. Searched in ${path.join(dir, '..', binaryName)} and ${path.join(
       dir,
-      '..',
+      '../..',
       binaryName,
-    )} and ${path.join(dir, '../..', binaryName)}`,
+    )}`,
   )
 }
 

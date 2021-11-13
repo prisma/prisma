@@ -1,11 +1,7 @@
 import { BinaryType } from '@prisma/fetch-engine'
-import {
-  BinaryPaths,
-  DataSource,
-  DMMF,
-  GeneratorConfig,
-} from '@prisma/generator-helper'
-import { getVersion } from '@prisma/sdk/dist/engine-commands/getVersion'
+import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { Platform } from '@prisma/sdk'
+import { getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -13,12 +9,9 @@ import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
-import { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
-import { Dictionary } from '../runtime/utils/common'
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from '../runtime/utils/getClientEngineType'
+import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
+import type { Dictionary } from '../runtime/utils/common'
+import { ClientEngineType, getClientEngineType } from '../runtime/utils/getClientEngineType'
 import { getPrismaClientDMMF } from './getDMMF'
 import { JS, TS, TSClient } from './TSClient'
 import { BrowserJS } from './TSClient/Generatable'
@@ -41,10 +34,10 @@ export interface GenerateClientOptions {
   projectRoot?: string
   datamodel: string
   datamodelPath: string
-  browser?: boolean
   schemaDir?: string
   transpile?: boolean
-  runtimePath?: string
+  runtimeDir?: string
+  runtimeName?: string
   outputDir: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
@@ -66,8 +59,8 @@ export interface BuildClientResult {
 export async function buildClient({
   datamodel,
   schemaDir = process.cwd(),
-  runtimePath = '@prisma/client/runtime',
-  browser = false,
+  runtimeDir = '@prisma/client/runtime',
+  runtimeName = 'index',
   binaryPaths,
   outputDir,
   generator,
@@ -83,14 +76,14 @@ export async function buildClient({
 
   const client = new TSClient({
     document,
-    runtimePath,
-    browser,
+    runtimeDir,
+    runtimeName,
     datasources: datasources,
     generator,
     platforms:
       clientEngineType === ClientEngineType.Library
-        ? Object.keys(binaryPaths.libqueryEngine!)
-        : Object.keys(binaryPaths.queryEngine!),
+        ? (Object.keys(binaryPaths.libqueryEngine!) as Platform[])
+        : (Object.keys(binaryPaths.queryEngine!) as Platform[]),
     schemaDir,
     outputDir,
     clientVersion,
@@ -100,9 +93,9 @@ export async function buildClient({
   })
 
   const fileMap = {
-    'index.d.ts': TS(client),
-    'index.js': JS(client),
-    'index-browser.js': BrowserJS(client),
+    'index.d.ts': await TS(client),
+    'index.js': await JS(client),
+    'index-browser.js': await BrowserJS(client),
   }
 
   return {
@@ -141,8 +134,8 @@ export async function generateClient({
   schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
   outputDir,
   transpile,
-  runtimePath,
-  browser,
+  runtimeDir,
+  runtimeName,
   generator,
   dmmf,
   datasources,
@@ -153,14 +146,16 @@ export async function generateClient({
   engineVersion,
   activeProvider,
 }: GenerateClientOptions): Promise<BuildClientResult | undefined> {
-  const useDotPrisma = testMode ? !runtimePath : !generator?.isCustomOutput
+  const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
-  runtimePath =
-    runtimePath || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
+  runtimeDir = runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
-  const finalOutputDir = useDotPrisma
-    ? await getDotPrismaDir(outputDir)
-    : outputDir
+  // we make sure that we point to the right engine build
+  if (clientEngineType === ClientEngineType.DataProxy) {
+    runtimeName = 'proxy'
+  }
+
+  const finalOutputDir = useDotPrisma ? await getDotPrismaDir(outputDir) : outputDir
 
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
@@ -170,8 +165,8 @@ export async function generateClient({
     datamodelPath,
     schemaDir,
     transpile,
-    runtimePath,
-    browser,
+    runtimeDir: runtimeDir,
+    runtimeName,
     outputDir: finalOutputDir,
     generator,
     dmmf,
@@ -218,10 +213,7 @@ export async function generateClient({
     : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
 
   // if users use a custom output dir
-  if (
-    copyRuntime ||
-    !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)
-  ) {
+  if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
     // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, 'runtime')
     await makeDir(copyTarget)
@@ -236,16 +228,12 @@ export async function generateClient({
     }
   }
   const enginePath =
-    clientEngineType === ClientEngineType.Library
-      ? binaryPaths.libqueryEngine
-      : binaryPaths.queryEngine
+    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
   if (!enginePath) {
     throw new Error(
       `Prisma Client needs \`${
-        clientEngineType === ClientEngineType.Library
-          ? 'libqueryEngine'
-          : 'queryEngine'
+        clientEngineType === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
       }\` in the \`binaryPaths\` object.`,
     )
   }
@@ -260,10 +248,7 @@ export async function generateClient({
         process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
           ? path.join('/tmp/prisma-engines', fileName)
           : path.join(finalOutputDir, fileName)
-      const [sourceFileSize, targetFileSize] = await Promise.all([
-        fileSize(filePath),
-        fileSize(target),
-      ])
+      const [sourceFileSize, targetFileSize] = await Promise.all([fileSize(filePath), fileSize(target)])
 
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
@@ -276,18 +261,12 @@ export async function generateClient({
       }
 
       // If target !== source size, they're definitely different, copy it
-      if (
-        targetFileSize &&
-        sourceFileSize &&
-        targetFileSize !== sourceFileSize
-      ) {
+      if (targetFileSize && sourceFileSize && targetFileSize !== sourceFileSize) {
         await copyFile(filePath, target)
         continue
       }
       const binaryName =
-        clientEngineType === ClientEngineType.Binary
-          ? BinaryType.queryEngine
-          : BinaryType.libqueryEngine
+        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
         getVersion(filePath, binaryName).catch(() => null),
@@ -323,10 +302,7 @@ export async function generateClient({
   }
 
   if (!testMode && process.env.INIT_CWD) {
-    const backupPath = path.join(
-      process.env.INIT_CWD,
-      'node_modules/.prisma/client',
-    )
+    const backupPath = path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
     if (finalOutputDir !== backupPath && !generator?.isCustomOutput) {
       await copy({
         from: finalOutputDir,
@@ -350,10 +326,7 @@ export async function generateClient({
   }
 
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
-    await copyFile(
-      path.join(__dirname, '../../index-browser.js'),
-      proxyIndexBrowserJsPath,
-    )
+    await copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
   return { prismaClientDmmf, fileMap }
@@ -368,9 +341,7 @@ async function fileSize(name: string): Promise<number | null> {
   }
 }
 
-function validateDmmfAgainstDenylists(
-  prismaClientDmmf: PrismaClientDMMF.Document,
-): Error[] | null {
+function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {
   const errorArray = [] as Error[]
 
   const denylists = {
@@ -432,10 +403,7 @@ function validateDmmfAgainstDenylists(
 
   if (prismaClientDmmf.datamodel.enums) {
     for (const it of prismaClientDmmf.datamodel.enums) {
-      if (
-        denylists.models.includes(it.name) ||
-        denylists.fields.includes(it.name)
-      ) {
+      if (denylists.models.includes(it.name) || denylists.fields.includes(it.name)) {
         errorArray.push(Error(`"enum ${it.name}"`))
       }
     }
@@ -443,10 +411,7 @@ function validateDmmfAgainstDenylists(
 
   if (prismaClientDmmf.datamodel.models) {
     for (const it of prismaClientDmmf.datamodel.models) {
-      if (
-        denylists.models.includes(it.name) ||
-        denylists.fields.includes(it.name)
-      ) {
+      if (denylists.models.includes(it.name) || denylists.fields.includes(it.name)) {
         errorArray.push(Error(`"model ${it.name}"`))
       }
     }

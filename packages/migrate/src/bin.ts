@@ -104,12 +104,7 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(
-        error,
-        packageJson.version,
-        enginesVersion,
-        commandArray.join(' '),
-      )
+      handlePanic(error, packageJson.version, enginesVersion, commandArray.join(' '))
         .catch((e) => {
           if (Debug.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)

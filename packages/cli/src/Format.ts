@@ -1,12 +1,5 @@
-import {
-  arg,
-  Command,
-  format,
-  formatSchema,
-  getDMMF,
-  getSchemaPath,
-  HelpError,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, formatSchema, getDMMF, getSchemaPath, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import os from 'os'
@@ -74,11 +67,7 @@ Or specify a Prisma schema path
       )
     }
 
-    console.log(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     let output = await formatSchema({
       schemaPath,
@@ -93,9 +82,7 @@ Or specify a Prisma schema path
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
 
-    return `Formatted ${chalk.underline(schemaPath)} in ${formatms(
-      after - before,
-    )} 🚀`
+    return `Formatted ${chalk.underline(schemaPath)} in ${formatms(after - before)} 🚀`
   }
 
   public help(error?: string): string | HelpError {

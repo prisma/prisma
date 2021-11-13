@@ -1,9 +1,7 @@
-import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type * as Transaction from './types/Transaction'
-import {
-  QueryEngineRequestHeaders,
-  QueryEngineResult,
-} from './types/QueryEngine'
+import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
+// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
@@ -27,15 +25,9 @@ export abstract class Engine {
     transaction?: boolean,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
-  abstract transaction(
-    action: 'start',
-    options?: Transaction.Options,
-  ): Promise<Transaction.Info>
+  abstract transaction(action: 'start', options?: Transaction.Options): Promise<Transaction.Info>
   abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
-  abstract transaction(
-    action: 'rollback',
-    info: Transaction.Info,
-  ): Promise<void>
+  abstract transaction(action: 'rollback', info: Transaction.Info): Promise<void>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
@@ -62,11 +54,22 @@ export interface EngineConfig {
   env?: Record<string, string>
   flags?: string[]
   useUds?: boolean
-
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
+
+  /**
+   * The contents of the schema encoded into a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineSchema?: string
+
+  /**
+   * The contents of the datasource url saved in a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineDatasources?: any
 }
 
 export type GetConfigResult = {

@@ -1,4 +1,4 @@
-import { Input } from '../../__helpers__/integrationTest'
+import type { Input } from '../../__helpers__/integrationTest'
 import { Decimal } from 'decimal.js'
 
 export const scenarios = [
@@ -462,9 +462,7 @@ export const scenarios = [
       `,
 
     do: (client) => {
-      return client.users
-        .findUnique({ where: { email: 'ada@prisma.io' } })
-        .posts()
+      return client.users.findUnique({ where: { email: 'ada@prisma.io' } }).posts()
     },
     expect: [
       {

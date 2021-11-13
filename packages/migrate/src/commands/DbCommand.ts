@@ -1,12 +1,5 @@
-import {
-  arg,
-  Command,
-  Commands,
-  format,
-  HelpError,
-  isError,
-  unknownCommand,
-} from '@prisma/sdk'
+import type { Command, Commands } from '@prisma/sdk'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
 
 export class DbCommand implements Command {
@@ -15,9 +8,7 @@ export class DbCommand implements Command {
   }
 
   private static help = format(`
-${
-  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
-}Manage your database schema and lifecycle during development.
+${process.platform === 'win32' ? '' : chalk.bold('🏋️  ')}Manage your database schema and lifecycle during development.
 
 ${chalk.bold('Usage')}
 
@@ -68,9 +59,7 @@ ${chalk.bold('Examples')}
     // check if we have that subcommand
     const cmd = this.cmds[args._[0]]
     if (cmd) {
-      const argsForCmd = args['--preview-feature']
-        ? [...args._.slice(1), `--preview-feature`]
-        : args._.slice(1)
+      const argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
       return cmd.parse(argsForCmd)
     }
 
@@ -79,9 +68,7 @@ ${chalk.bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${DbCommand.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbCommand.help}`)
     }
     return DbCommand.help
   }

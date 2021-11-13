@@ -1,7 +1,4 @@
-import {
-  GeneratorConfig,
-  BinaryTargetsEnvValue,
-} from '@prisma/generator-helper'
+import type { GeneratorConfig, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
 export function printGeneratorConfig(config: GeneratorConfig): string {
@@ -14,9 +11,7 @@ export class GeneratorConfigClass {
     const { config } = this
     // parse & stringify trims out all the undefined values
 
-    const provider = config.provider.fromEnvVar
-      ? `env("${config.provider.fromEnvVar}")`
-      : config.provider.value
+    const provider = config.provider.fromEnvVar ? `env("${config.provider.fromEnvVar}")` : config.provider.value
 
     const obj = JSON.parse(
       JSON.stringify({
@@ -31,14 +26,10 @@ ${indent(printDatamodelObject(obj), 2)}
   }
 }
 
-export function getOriginalBinaryTargetsValue(
-  binaryTargets: BinaryTargetsEnvValue[],
-) {
+export function getOriginalBinaryTargetsValue(binaryTargets: BinaryTargetsEnvValue[]) {
   let value: string | string[] | undefined
   if (binaryTargets.length > 0) {
-    const binaryTargetsFromEnvVar = binaryTargets.find(
-      (object) => object.fromEnvVar !== null,
-    )
+    const binaryTargetsFromEnvVar = binaryTargets.find((object) => object.fromEnvVar !== null)
     if (binaryTargetsFromEnvVar) {
       value = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
     } else {
@@ -52,10 +43,7 @@ export function getOriginalBinaryTargetsValue(
 }
 
 export function printDatamodelObject(obj): string {
-  const maxLength = Object.keys(obj).reduce(
-    (max, curr) => Math.max(max, curr.length),
-    0,
-  )
+  const maxLength = Object.keys(obj).reduce((max, curr) => Math.max(max, curr.length), 0)
   return Object.entries(obj)
     .map(([key, value]) => `${key.padEnd(maxLength)} = ${niceStringify(value)}`)
     .join('\n')

@@ -359,9 +359,7 @@ describe('scalar where transformation', () => {
       }
     `)
 
-    expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
-      `undefined`,
-    )
+    expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(`undefined`)
   })
 
   test('validate uuid scalar filter should error when invalid input', () => {
@@ -392,9 +390,7 @@ describe('scalar where transformation', () => {
     `)
 
     try {
-      expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(
-        `undefined`,
-      )
+      expect(document.validate(select, false, 'tests')).toMatchInlineSnapshot(`undefined`)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "

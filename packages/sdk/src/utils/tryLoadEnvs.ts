@@ -10,11 +10,22 @@ type DotenvResult = dotenv.DotenvConfigOutput & {
   ignoreProcessEnv?: boolean | undefined
 }
 
-interface LoadEnvResult {
+// non-exported type from dotenv
+interface DotenvLoadEnvResult {
   message: string
   path: string
   dotenvResult: DotenvResult
 }
+
+// our type for loaded env data
+export type LoadedEnv =
+  | {
+      message?: string
+      parsed: {
+        [x: string]: string
+      }
+    }
+  | undefined
 
 export function tryLoadEnvs(
   {
@@ -27,14 +38,14 @@ export function tryLoadEnvs(
   opts: { conflictCheck: 'warn' | 'error' | 'none' } = {
     conflictCheck: 'none',
   },
-) {
+): LoadedEnv {
   const rootEnvInfo = loadEnv(rootEnvPath)
   if (opts.conflictCheck !== 'none') {
     // This will throw an error if there are conflicts
     checkForConflicts(rootEnvInfo, schemaEnvPath, opts.conflictCheck)
   }
   // Only load the schema .env if it is not the same as root
-  let schemaEnvInfo: LoadEnvResult | null = null
+  let schemaEnvInfo: DotenvLoadEnvResult | null = null
   if (!pathsEqual(rootEnvInfo?.path, schemaEnvPath)) {
     schemaEnvInfo = loadEnv(schemaEnvPath)
   }
@@ -46,14 +57,9 @@ export function tryLoadEnvs(
 
   // Print the error if any (if internal dotenv readFileSync throws)
   if (schemaEnvInfo?.dotenvResult.error) {
-    return console.error(
-      chalk.redBright.bold('Schema Env Error: ') +
-        schemaEnvInfo.dotenvResult.error,
-    )
+    return console.error(chalk.redBright.bold('Schema Env Error: ') + schemaEnvInfo.dotenvResult.error) as undefined
   }
-  const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(
-    Boolean,
-  )
+  const messages = [rootEnvInfo?.message, schemaEnvInfo?.message].filter(Boolean)
 
   return {
     message: messages.join('\n'),
@@ -67,7 +73,7 @@ export function tryLoadEnvs(
  * Will throw an error if the file at `envPath` has env conflicts with `rootEnv`
  */
 function checkForConflicts(
-  rootEnvInfo: LoadEnvResult | null,
+  rootEnvInfo: DotenvLoadEnvResult | null,
   envPath: string | null | undefined,
   type: 'warn' | 'error',
 ) {
@@ -83,37 +89,24 @@ function checkForConflicts(
     }
     if (conflicts.length > 0) {
       // const message = `You are trying to load env variables which are already present in your project root .env
-      const relativeRootEnvPath = path.relative(
-        process.cwd(),
-        rootEnvInfo!.path,
-      )
+      const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path)
       const relativeEnvPath = path.relative(process.cwd(), envPath)
       if (type === 'error') {
-        const message = `There is a conflict between env var${
-          conflicts.length > 1 ? 's' : ''
-        } in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(
-          relativeEnvPath,
-        )}
+        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(
+          relativeRootEnvPath,
+        )} and ${chalk.underline(relativeEnvPath)}
 Conflicting env vars:
 ${conflicts.map((conflict) => `  ${chalk.bold(conflict)}`).join('\n')}
 
-We suggest to move the contents of ${chalk.underline(
-          relativeEnvPath,
-        )} to ${chalk.underline(
+We suggest to move the contents of ${chalk.underline(relativeEnvPath)} to ${chalk.underline(
           relativeRootEnvPath,
         )} to consolidate your env vars.\n`
         throw new Error(message)
       } else if (type === 'warn') {
-        const message = `Conflict for env var${
-          conflicts.length > 1 ? 's' : ''
-        } ${conflicts
+        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
           .map((c) => chalk.bold(c))
-          .join(', ')} in ${chalk.underline(
-          relativeRootEnvPath,
-        )} and ${chalk.underline(relativeEnvPath)}
-Env vars from ${chalk.underline(
-          relativeEnvPath,
-        )} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
+          .join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
+Env vars from ${chalk.underline(relativeEnvPath)} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
       `
         console.warn(`${chalk.yellow('warn(prisma)')} ${message}`)
       }
@@ -121,9 +114,7 @@ Env vars from ${chalk.underline(
   }
 }
 
-export function loadEnv(
-  envPath: string | null | undefined,
-): LoadEnvResult | null {
+export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult | null {
   if (exists(envPath)) {
     debug(`Environment variables loaded from ${envPath}`)
 
@@ -144,12 +135,7 @@ export function loadEnv(
           debug: enableDebug,
         }),
       ),
-      message: chalk.dim(
-        `Environment variables loaded from ${path.relative(
-          process.cwd(),
-          envPath,
-        )}`,
-      ),
+      message: chalk.dim(`Environment variables loaded from ${path.relative(process.cwd(), envPath)}`),
 
       path: envPath,
     }
@@ -158,10 +144,7 @@ export function loadEnv(
   }
   return null
 }
-export function pathsEqual(
-  path1: string | null | undefined,
-  path2: string | null | undefined,
-) {
+export function pathsEqual(path1: string | null | undefined, path2: string | null | undefined) {
   return path1 && path2 && path.resolve(path1) === path.resolve(path2)
 }
 

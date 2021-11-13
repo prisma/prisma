@@ -1,11 +1,6 @@
 import path from 'path'
 
-export function absolutizeRelativePath(
-  url: string,
-  cwd: string,
-  outputDir: string,
-  absolutePaths?: boolean,
-): string {
+export function absolutizeRelativePath(url: string, cwd: string, outputDir: string, absolutePaths?: boolean): string {
   let filePath = url
 
   if (filePath.startsWith('file:')) {
