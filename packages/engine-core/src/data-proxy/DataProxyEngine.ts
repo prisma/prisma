@@ -76,7 +76,7 @@ export class DataProxyEngine extends Engine {
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
       // TODO: hook into the process
-      throw new NotImplementedYetError('beforeExit event is not supported yet', {
+      throw new NotImplementedYetError('beforeExit event is not yet supported', {
         clientVersion: this.clientVersion,
       })
     } else {
@@ -198,7 +198,7 @@ export class DataProxyEngine extends Engine {
 
   // TODO: figure out how to support transactions
   transaction(): Promise<any> {
-    throw new NotImplementedYetError('Interactive transactions are not supported yet', {
+    throw new NotImplementedYetError('Interactive transactions are not yet supported', {
       clientVersion: this.clientVersion,
     })
   }
