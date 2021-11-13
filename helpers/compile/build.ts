@@ -73,7 +73,8 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
 // because we compile tree-shaken esm to cjs, we need to replace __require
 const replacePlugin = replaceWithPlugin([
   [/__require\(/g, 'require('], // replace the util calls
-  [/var __require.*?(?=var)/gs, ''], // remove the utility
+  [/typeof __require/g, 'typeof require'], // replace the util calls
+  [/var __require =.*?(?=var)/gs, ''], // remove the utility
 ])
 
 /**
