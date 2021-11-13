@@ -9,6 +9,6 @@ export class SchemaMissingError extends DataProxyAPIError {
   public code = 'P5005'
 
   constructor(info: DataProxyAPIErrorInfo) {
-    super('Could not find the schema', setRetryable(info, true))
+    super('Schema needs to be uploaded', setRetryable(info, true))
   }
 }
