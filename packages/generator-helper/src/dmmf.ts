@@ -73,7 +73,7 @@ export namespace DMMF {
     isList: boolean
     isUnique: boolean
     isId: boolean
-    type: string
+    type: string | DMMF.SchemaEnum | DMMF.OutputType | DMMF.SchemaArg
     dbNames?: string[] | null
     isGenerated: boolean
     hasDefaultValue: boolean
@@ -155,6 +155,7 @@ export namespace DMMF {
     }
     args: SchemaArg[]
     deprecation?: Deprecation
+    documentation?: string
   }
 
   export interface Deprecation {

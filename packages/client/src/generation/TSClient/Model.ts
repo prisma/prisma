@@ -24,6 +24,7 @@ import {
   getSumAggregateName,
   Projection,
 } from '../utils'
+import { buildComment } from '../utils/types/buildComment'
 import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
@@ -252,18 +253,11 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
-    const docs = model.documentation
-      ? `\n *\n * ${model.documentation
-          ?.split('\n')
-          .join('\n *')
-          .replace('*/', '')}`
-      : ''
+    const docLines = model.documentation ?? ''
+    const modelLine = `Model ${model.name}\n`
+    const docs = `${modelLine}${docLines}`
 
-    return `/**
- * Model ${model.name}${docs}
- */
-
-export type ${model.name} = {
+    return `${buildComment(docs)}export type ${model.name} = {
 ${indent(
   model.fields
     .filter((f) => f.kind !== 'object' && f.kind !== 'unsupported')

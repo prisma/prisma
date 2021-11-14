@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
-import type { BaseField, DMMF } from '../dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import Decimal from 'decimal.js'
 import type { DMMFClass } from '../dmmf'
 
@@ -65,15 +65,17 @@ export const needNamespace = {
   Decimal: 'Decimal',
 }
 
-export function needsNamespace(field: BaseField, dmmf: DMMFClass): boolean {
-  if (typeof field.type === 'string') {
-    if (dmmf.datamodelEnumMap[field.type]) {
+export function needsNamespace(fieldType: DMMF.Field['type'], dmmf: DMMFClass): boolean {
+  if (typeof fieldType === 'string') {
+    if (dmmf.datamodelEnumMap[fieldType]) {
       return false
     }
-    if (GraphQLScalarToJSTypeTable[field.type]) {
-      return Boolean(needNamespace[field.type])
+    if (GraphQLScalarToJSTypeTable[fieldType]) {
+      return Boolean(needNamespace[fieldType])
     }
   }
+
+  console.log(fieldType)
 
   return true
 }
