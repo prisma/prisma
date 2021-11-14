@@ -329,8 +329,8 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
 
 /**
  * Model Post
+ * 
  */
-
 export type Post = {
   id: number
   createdAt: Date
@@ -342,8 +342,8 @@ export type Post = {
 
 /**
  * Model User
+ * 
  */
-
 export type User = {
   id: number
   email: string
@@ -363,8 +363,8 @@ export type User = {
 
 /**
  * Model M
+ * 
  */
-
 export type M = {
   id: number
   int: number
@@ -383,8 +383,8 @@ export type M = {
 
 /**
  * Model N
+ * 
  */
-
 export type N = {
   id: number
   int: number
@@ -403,8 +403,8 @@ export type N = {
 
 /**
  * Model OneOptional
+ * 
  */
-
 export type OneOptional = {
   id: number
   int: number
@@ -423,8 +423,8 @@ export type OneOptional = {
 
 /**
  * Model ManyRequired
+ * 
  */
-
 export type ManyRequired = {
   id: number
   oneOptionalId: number | null
@@ -444,8 +444,8 @@ export type ManyRequired = {
 
 /**
  * Model OptionalSide1
+ * 
  */
-
 export type OptionalSide1 = {
   id: number
   optionalSide2Id: number | null
@@ -465,8 +465,8 @@ export type OptionalSide1 = {
 
 /**
  * Model OptionalSide2
+ * 
  */
-
 export type OptionalSide2 = {
   id: number
   int: number
@@ -485,12 +485,18 @@ export type OptionalSide2 = {
 
 /**
  * Model A
+ * model comment
  */
-
 export type A = {
+  /**
+   * field comment 1
+   */
   id: string
   email: string
   name: string | null
+  /**
+   * field comment 2
+   */
   int: number
   sInt: number
   bInt: bigint
@@ -501,8 +507,8 @@ export type A = {
 
 /**
  * Model B
+ * 
  */
-
 export type B = {
   id: string
   float: number
@@ -513,8 +519,8 @@ export type B = {
 
 /**
  * Model C
+ * 
  */
-
 export type C = {
   id: string
   char: string
@@ -527,8 +533,8 @@ export type C = {
 
 /**
  * Model D
+ * 
  */
-
 export type D = {
   id: string
   bool: boolean
@@ -540,8 +546,8 @@ export type D = {
 
 /**
  * Model E
+ * 
  */
-
 export type E = {
   id: string
   date: Date
