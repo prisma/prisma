@@ -139,9 +139,9 @@ function cleanSnapshot(str: string): string {
     .replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
 }
 
-function replaceEngineType(message: string | Error) {
-  if (message instanceof Error) {
-    throw message
+function replaceEngineType(result: string | Error) {
+  if (result instanceof Error) {
+    return result
   }
-  return message.replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
+  return result.replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
 }
