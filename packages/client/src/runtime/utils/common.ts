@@ -75,8 +75,6 @@ export function needsNamespace(fieldType: DMMF.Field['type'], dmmf: DMMFClass): 
     }
   }
 
-  console.log(fieldType)
-
   return true
 }
 
