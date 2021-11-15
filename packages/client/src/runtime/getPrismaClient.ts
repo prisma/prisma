@@ -1264,7 +1264,8 @@ new PrismaClient({
               const newDataPath = [...dataPath, prefix, field.name]
               const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
-              return modelClientBuilders[field.type]({
+              // TODO: ask dom if it can be anything else than a string
+              return modelClientBuilders[field.type as string]({
                 operation,
                 actionName,
                 args: newArgs,
