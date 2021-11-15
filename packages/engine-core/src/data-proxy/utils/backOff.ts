@@ -1,4 +1,4 @@
-const BACKOFF_INTERVAL = 250
+const BACKOFF_INTERVAL = 50
 
 export function backOff(n: number): Promise<number> {
   const baseDelay = Math.pow(2, n) * BACKOFF_INTERVAL

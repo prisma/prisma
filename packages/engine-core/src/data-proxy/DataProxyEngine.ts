@@ -4,28 +4,33 @@ import { Engine } from '../common/Engine'
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { request } from './utils/request'
 import EventEmitter from 'events'
-import { createSchemaHash } from './utils/createSchemaHash'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
+import { responseToError } from './errors/utils/responseToError'
+import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
+import { NotImplementedYetError } from './errors/NotImplementedYetError'
+import { ForcedRetryError } from './errors/ForcedRetryError'
+import { SchemaMissingError } from './errors/SchemaMissingError'
+import { DataProxyError } from './errors/DataProxyError'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 // TODO this is an issue that we cannot share types from the client to other packages
 
-const randomDebugId = Math.ceil(Math.random() * 1000)
-
-const MAX_RETRIES = 5
+const MAX_RETRIES = 10
 
 export class DataProxyEngine extends Engine {
-  private initPromise: Promise<void>
+  private pushPromise: Promise<void>
   private inlineSchema: string
+  private inlineSchemaHash: string
   private inlineDatasources: any
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k: string]: string }
 
-  private clientVersion!: string
-  private headers!: { Authorization: string }
-  private host!: string
-  private schemaHash!: string
+  private clientVersion: string
+  private remoteClientVersion: string
+  private headers: { Authorization: string }
+  private host: string
 
   constructor(config: EngineConfig) {
     super()
@@ -34,24 +39,34 @@ export class DataProxyEngine extends Engine {
     this.env = this.config.env ?? {}
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
+    this.inlineSchemaHash = config.inlineSchemaHash ?? ''
+    this.clientVersion = config.clientVersion ?? 'unknown'
 
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {})
 
-    this.initPromise = this.init()
-  }
-
-  /**
-   * !\ Asynchronous constructor that inits the properties marked with `!`.
-   * So any function that uses such a property needs to await `initPromise`.
-   */
-  private async init() {
-    // we set the network stuff up for the engine to make http calls to the proxy
     const [host, apiKey] = this.extractHostAndApiKey()
-    this.schemaHash = await createSchemaHash(this.inlineSchema)
-    this.clientVersion = getClientVersion(this.config)
+    this.remoteClientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
+
+    // hack for Cloudflare
+    // That's because we instantiate the client outside of the request handler. This essentially prevents immediate execution of the promise.
+    // Removing this will produce the following error
+    // [Error] Some functionality, such as asynchronous I/O, timeouts, and generating random values, can only be performed while handling a request.
+    const promise = Promise.resolve() 
+    this.pushPromise = promise.then(() => this.pushSchema())
+  }
+
+  private async pushSchema() {
+    const response = await request(this.url('schema'), {
+      method: 'GET',
+      headers: this.headers,
+    })
+
+    if (response.status === 404) {
+      await this.uploadSchema()
+    }
   }
 
   version() {
@@ -65,48 +80,46 @@ export class DataProxyEngine extends Engine {
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
       // TODO: hook into the process
-      throw new Error('beforeExit event is not supported yet')
+      throw new NotImplementedYetError('beforeExit event is not yet supported', {
+        clientVersion: this.clientVersion,
+      })
     } else {
       this.logEmitter.on(event, listener)
     }
   }
 
-  private async url(s: string) {
-    await this.initPromise
-
-    return `https://${this.host}/${this.clientVersion}/${this.schemaHash}/${s}?id=${randomDebugId}`
+  private url(s: string) {
+    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
   // TODO: looks like activeProvider is the only thing
   // used externally; verify that
   async getConfig() {
-    await this.initPromise
-
-    return {
+    return Promise.resolve({
       datasources: [
         {
           activeProvider: this.config.activeProvider,
         },
       ],
-    } as GetConfigResult
+    } as GetConfigResult)
   }
 
   private async uploadSchema() {
-    await this.initPromise
-
-    const res = await request(await this.url('schema'), {
+    const response = await request(this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
-      body: this.config.inlineSchema,
+      body: this.inlineSchema,
     })
 
-    if (res) {
-      this.logEmitter.emit('info', {
-        message: `Schema (re)uploaded (hash: ${this.schemaHash})`,
-      })
+    const err = await responseToError(response, this.clientVersion)
+
+    if (err) {
+      this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
+      throw err
     } else {
-      this.logEmitter.emit('warn', { message: 'Could not upload the schema' })
-      throw new Error('Could not upload the schema')
+      this.logEmitter.emit('info', {
+        message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
+      })
     }
   }
 
@@ -132,51 +145,77 @@ export class DataProxyEngine extends Engine {
   }
 
   private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    await this.initPromise
+    await this.pushPromise
 
     try {
       this.logEmitter.emit('info', {
-        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
+        message: `Calling ${this.url('graphql')} (n=${attempt})`,
       })
 
-      const res = await request(await this.url('graphql'), {
+      const response = await request(this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
       })
 
-      // 404 on the GraphQL, so we re-upload schema & retry
-      if (res.status === 404) {
+      const err = await responseToError(response, this.clientVersion)
+
+      if (err instanceof SchemaMissingError) {
         await this.uploadSchema()
-
-        throw new Error('Schema (re)uploaded')
-      }
-
-      if (!res.ok) {
-        throw new Error('GraphQL request failed')
-      }
-
-      return res.json()
-    } catch (err) {
-      if (attempt >= MAX_RETRIES) {
-        this.logEmitter.emit('error', {
-          message: `Failed to query: ${err.message}`,
+        throw new ForcedRetryError({
+          clientVersion: this.clientVersion,
+          cause: err,
         })
-        throw err
-      } else {
-        const delay = await backOff(attempt)
-        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
-        return this.requestInternal<T>(body, headers, attempt + 1)
       }
+
+      if (err) {
+        throw err
+      }
+
+      const data = await response.json()
+
+      if (data.errors) {
+        if (data.errors.length === 1) {
+          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        }
+      }
+
+      return data
+    } catch (err) {
+      this.logEmitter.emit('error', {
+        message: `Error while querying: ${err.message ?? '(unknown)'}`,
+      })
+
+      if (!(err instanceof DataProxyError)) {
+        throw err
+      }
+      if (!err.isRetryable) {
+        throw err
+      }
+      if (attempt >= MAX_RETRIES) {
+        if (err instanceof ForcedRetryError) {
+          throw err.cause
+        } else {
+          throw err
+        }
+      }
+
+      this.logEmitter.emit('warn', { message: 'This request can be retried' })
+      const delay = await backOff(attempt)
+      this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+
+      return this.requestInternal<T>(body, headers, attempt + 1)
     }
   }
 
   // TODO: figure out how to support transactions
   transaction(): Promise<any> {
-    throw new Error('Transactions are currently not supported in Data Proxy')
+    throw new NotImplementedYetError('Interactive transactions are not yet supported', {
+      clientVersion: this.clientVersion,
+    })
   }
 
-  extractHostAndApiKey() {
+  private extractHostAndApiKey() {
     const mainDatasourceName = Object.keys(this.inlineDatasources)[0]
     const mainDatasource = this.inlineDatasources[mainDatasourceName]
     const mainDatasourceURL = mainDatasource?.url.value
@@ -188,18 +227,24 @@ export class DataProxyEngine extends Engine {
     try {
       url = new URL(dataProxyURL ?? '')
     } catch {
-      throw new Error('Could not parse URL of the datasource')
+      throw new InvalidDatasourceError('Could not parse URL of the datasource', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new Error('Datasource URL should use prisma:// protocol')
+      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     const apiKey = searchParams.get('api_key')
     if (apiKey === null || apiKey.length < 1) {
-      throw new Error('No valid API key found in the datasource URL')
+      throw new InvalidDatasourceError('No valid API key found in the datasource URL', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     return [host, apiKey]

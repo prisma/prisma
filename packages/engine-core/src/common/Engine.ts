@@ -70,6 +70,12 @@ export interface EngineConfig {
    * @remarks only used for the purpose of data proxy
    */
   inlineDatasources?: any
+
+  /**
+   * The string hash that was produced for a given schema
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineSchemaHash?: string
 }
 
 export type GetConfigResult = {

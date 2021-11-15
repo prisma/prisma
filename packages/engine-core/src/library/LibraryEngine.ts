@@ -9,11 +9,10 @@ import path from 'path'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
-import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
-import type { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import type {
   ConfigMetaFormat,
   QueryEngineBatchRequest,
@@ -385,21 +384,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.versionInfo?.version ?? 'unknown'
   }
 
-  private prismaGraphQLToJSError(error: RequestError): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
-    debug('graphQLToJSError')
-
-    if (error.user_facing_error.error_code) {
-      return new PrismaClientKnownRequestError(
-        error.user_facing_error.message,
-        error.user_facing_error.error_code,
-        this.config.clientVersion!,
-        error.user_facing_error.meta,
-      )
-    }
-
-    return new PrismaClientUnknownRequestError(error.error, this.config.clientVersion!)
-  }
-
   async request<T>(
     query: string,
     headers: QueryEngineRequestHeaders = {},
@@ -419,7 +403,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.prismaGraphQLToJSError(data.errors[0])
+          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
@@ -465,7 +449,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw this.prismaGraphQLToJSError(data.errors[0])
+        throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
       }
       // this case should not happen, as the query engine only returns one error
       throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
@@ -475,7 +459,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     if (Array.isArray(batchResult)) {
       return batchResult.map((result) => {
         if (result.errors) {
-          return this.loggerRustPanic ?? this.prismaGraphQLToJSError(result.errors[0])
+          return this.loggerRustPanic ?? prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
         }
         return {
           data: result,
