@@ -29,7 +29,7 @@ export class Connection {
 
   /**
    * Wrapper to handle HTTP error codes. HTTP errors don't trigger any
-   * execptions because it is optional to handle error status codes.
+   * exceptions because it is optional to handle error status codes.
    * @param response to handle
    * @param handler to execute
    * @returns
@@ -58,6 +58,7 @@ export class Connection {
       pipelining: 10,
       keepAliveMaxTimeout: 600e3,
       headersTimeout: 0,
+      bodyTimeout: 0,
       ...options,
     })
   }
@@ -85,8 +86,7 @@ export class Connection {
         'Content-Type': 'application/json',
         ...headers,
       },
-      body,
-      // bodyTimeout: 0,
+      body: body,
     })
 
     const result: Result<R> = {
