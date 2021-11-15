@@ -50,7 +50,11 @@ export class DataProxyEngine extends Engine {
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
 
-    const promise = Promise.resolve() // hack for cloudflare
+    // hack for Cloudflare
+    // That's because we instantiate the client outside of the request handler. This essentially prevents immediate execution of the promise.
+    // Removing this will produce the following error
+    // [Error] Some functionality, such as asynchronous I/O, timeouts, and generating random values, can only be performed while handling a request.
+    const promise = Promise.resolve() 
     this.pushPromise = promise.then(() => this.pushSchema())
   }
 
