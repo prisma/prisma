@@ -23,7 +23,9 @@ ports:
 
 Docker images for MySQL and Microsoft SQL Server only support x86_64 CPUs.
 Copy or link `docker-compose.arm64.yml` to `docker-compose.override.yml` to use ARMv8-compatible drop-in replacements (MariaDB and Azure SQL Edge) instead.
+
 By default, Compose reads two files, a `docker-compose.yml` and an optional `docker-compose.override.yml` file. By convention, the `docker-compose.yml` contains your base configuration. The override file, as its name implies, can contain configuration overrides for existing services or entirely new services.
+
 ## Usage
 
 ### Start
