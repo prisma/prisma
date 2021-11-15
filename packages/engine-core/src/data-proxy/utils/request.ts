@@ -16,7 +16,7 @@ export type RequestOptions = O.Patch<
 export type RequestResponse = O.Required<O.Optional<Response>, 'json' | 'url' | 'ok' | 'status'>
 
 /**
- * Isomorphic `fetch` that imitates `fetch` via `http` when for Node.js.
+ * Isomorphic `fetch` that imitates `fetch` via `http` when on Node.js.
  * @param url
  * @param options
  * @returns
@@ -93,7 +93,7 @@ function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestRe
     })
 
     request.on('error', reject) // handle errors
-    request.write(options.body) // http body data
+    request.write(options.body ?? '') // http body data
     request.end() // flush & send
   })
 }

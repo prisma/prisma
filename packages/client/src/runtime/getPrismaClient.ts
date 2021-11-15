@@ -235,6 +235,12 @@ export interface GetPrismaClientConfig {
    * @remarks only used for the purpose of data proxy
    */
   inlineDatasources?: InlineDatasources
+
+  /**
+   * The string hash that was produced for a given schema
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineSchemaHash?: string
 }
 
 const actionOperationMap = {
@@ -402,6 +408,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
           inlineDatasources: config.inlineDatasources,
+          inlineSchemaHash: config.inlineSchemaHash,
         }
 
         // Append the mongodb experimental flag if the provider is mongodb
