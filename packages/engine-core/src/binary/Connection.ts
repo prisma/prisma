@@ -24,6 +24,7 @@ function assertHasPool<A>(pool: A): asserts pool is NonNullable<A> {
  */
 export class Connection {
   private _pool: Pool | undefined
+  url!: string | URL
 
   constructor() {}
 
@@ -53,6 +54,8 @@ export class Connection {
   open(url: string | URL, options?: Pool.Options) {
     if (this._pool) return
 
+    this.url = url
+
     this._pool = new Pool(url, {
       connections: 100,
       pipelining: 10,
@@ -78,14 +81,29 @@ export class Connection {
   ) {
     assertHasPool(this._pool)
 
+    const headers2 = {
+      'Content-Type': 'application/json',
+      ...headers,
+    }
+
+    function makeCurlHeaders(headers) {
+      const keys = Object.keys(headers)
+
+      return keys.reduce((acc, key) => {
+        return `${acc} --header '${key}: ${headers[key]}'`
+      }, '')
+    }
+
+    console.log(
+      `curl --location --request ${method} '${this.url}${endpoint}'${makeCurlHeaders(
+        headers2,
+      )} --data-raw ${JSON.stringify(body)}`,
+    )
     const response = await this._pool.request({
       path: endpoint,
       method: method,
-      headers: {
-        'Content-Type': 'application/json',
-        ...headers,
-      },
-      body,
+      headers: headers,
+      body: body,
       bodyTimeout: 0,
     })
 
