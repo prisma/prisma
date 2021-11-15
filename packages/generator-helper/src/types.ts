@@ -96,4 +96,17 @@ export type GeneratorManifest = {
   requiresEngines?: EngineType[]
   version?: string
   requiresEngineVersion?: string
+
+  /**
+   * Show the engine type next to the version in `prisma generate` output, i.e.:
+   *
+   *    ✔ Generated Prisma Client (0.0.0 | ENGINE_TYPE) to ./@prisma/client in XXms
+   *
+   * instead of:
+   *
+   *    ✔ Generated Prisma Client (0.0.0) to ./@prisma/client in XXms
+   *
+   * Default: false.
+   */
+  showEngineTypeInGenerateOutput?: boolean
 }

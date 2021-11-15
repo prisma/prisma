@@ -1,5 +1,6 @@
 import type { GeneratorOptions, GeneratorManifest, BinaryPaths, GeneratorConfig } from '@prisma/generator-helper'
 import { GeneratorProcess } from '@prisma/generator-helper'
+import { getClientEngineType } from './client/getClientEngineType'
 
 export class Generator {
   private generatorProcess: GeneratorProcess
@@ -31,5 +32,20 @@ export class Generator {
       throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
     }
     this.options.binaryPaths = binaryPaths
+  }
+
+  /**
+   * Formats the generator version for output of `prisma generate`, optionally
+   * including the engine type, if required by the manifest.
+   */
+  formatVersionForOutput(): string | undefined {
+    const version = this.manifest?.version
+
+    if (this.manifest?.showEngineTypeInGenerateOutput) {
+      const engineType = getClientEngineType(this.config)
+      return version ? `${version} | ${engineType}` : engineType
+    }
+
+    return version
   }
 }

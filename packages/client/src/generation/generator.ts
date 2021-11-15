@@ -24,6 +24,7 @@ if (process.argv[1] === __filename) {
         requiresEngines: [requiredEngine],
         version: clientVersion,
         requiresEngineVersion: enginesVersion,
+        showEngineTypeInGenerateOutput: true,
       }
     },
     async onGenerate(options) {
