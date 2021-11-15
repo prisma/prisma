@@ -108,5 +108,5 @@ export type GeneratorManifest = {
    *
    * Default: false.
    */
-  showEngineTypeInGenerateOutput?: boolean
+  reportEngineTypeWithGeneratorVersion?: boolean
 }
