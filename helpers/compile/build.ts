@@ -67,7 +67,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
   // we only produce typescript types on the second run (cjs)
-  plugins: [...(options.plugins ?? []), tscPlugin, replacePlugin, onErrorPlugin],
+  plugins: [replacePlugin, ...(options.plugins ?? []), tscPlugin, onErrorPlugin],
 })
 
 // because we compile tree-shaken esm to cjs, we need to replace __require
