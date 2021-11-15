@@ -1,8 +1,7 @@
-const path = require('path')
-const replaceAll = require('replace-string') // sindre's replaceAll polyfill
-const stripAnsi = require('strip-ansi')
-const { platforms } = require('@prisma/get-platform')
-const escapeString = require('escape-string-regexp')
+import path from 'path'
+import replaceAll from 'replace-string' // sindre's replaceAll polyfill
+import stripAnsi from 'strip-ansi'
+import { platformRegex } from '@prisma/sdk'
 
 function trimErrorPaths(str) {
   const parentDir = path.dirname(path.dirname(__dirname))
@@ -14,26 +13,16 @@ function normalizeToUnixPaths(str) {
   return replaceAll(str, path.sep, '/')
 }
 
-const platformRegex = new RegExp(
-  '(' + platforms.map((p) => escapeString(p)).join('|') + ')',
-  'g',
-)
-
 function removePlatforms(str) {
   return str.replace(platformRegex, 'TEST_PLATFORM')
 }
 
 function normalizeGithubLinks(str) {
-  return str.replace(
-    /https:\/\/github.com\/prisma\/prisma-client-js\/issues\/\S+/,
-    'TEST_GITHUB_LINK',
-  )
+  return str.replace(/https:\/\/github.com\/prisma\/prisma-client-js\/issues\/\S+/, 'TEST_GITHUB_LINK')
 }
 
 function normalizeRustError(str) {
-  return str
-    .replace(/\/rustc\/(.+)\//g, '/rustc/hash/')
-    .replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
+  return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
 function normalizeTmpDir(str) {
@@ -44,39 +33,10 @@ function normalizeMs(str) {
   return str.replace(/\d{1,3}ms/g, 'XXms')
 }
 
-const serializer = {
-  test(value) {
-    return typeof value === 'string' || value instanceof Error
-  },
-  serialize(value) {
-    const message =
-      typeof value === 'string'
-        ? value
-        : value instanceof Error
-        ? value.message
-        : ''
-    return prepareSchemaForSnapshot(
-      normalizeGithubLinks(
-        normalizeRustError(
-          normalizeMs(
-            normalizeTmpDir(
-              normalizeGithubLinks(
-                normalizeToUnixPaths(
-                  removePlatforms(trimErrorPaths(stripAnsi(message))),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    )
-  },
-}
-
 /**
  * Replace dynamic variable bits of Prisma schema with static strings.
  */
-export function prepareSchemaForSnapshot(schema: string): string {
+function prepareSchemaForSnapshot(schema: string): string {
   const urlRegex = /url\s*=\s*.+/
   const outputRegex = /output\s*=\s*.+/
   return schema
@@ -95,4 +55,21 @@ export function prepareSchemaForSnapshot(schema: string): string {
     .join('\n')
 }
 
-module.exports = serializer
+export function test(value) {
+  return typeof value === 'string' || value instanceof Error
+}
+
+export function serialize(value) {
+  const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
+  return prepareSchemaForSnapshot(
+    normalizeGithubLinks(
+      normalizeRustError(
+        normalizeMs(
+          normalizeTmpDir(
+            normalizeGithubLinks(normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message))))),
+          ),
+        ),
+      ),
+    ),
+  )
+}

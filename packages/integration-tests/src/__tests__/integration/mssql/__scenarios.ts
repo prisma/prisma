@@ -1,4 +1,4 @@
-import { Input } from '../../__helpers__/integrationTest'
+import type { Input } from '../../__helpers__/integrationTest'
 import { Decimal } from 'decimal.js'
 
 export const scenarios = [
@@ -6,8 +6,8 @@ export const scenarios = [
     name: 'findUnique where PK',
     up: `
         create table teams (
-          id int primary key not null,
-          name varchar(32) not null unique
+          id int CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
         );
         insert into teams (id, name) values (1, 'a');
         insert into teams (id, name) values (2, 'b');
@@ -24,9 +24,9 @@ export const scenarios = [
     name: 'findUnique where PK with select',
     up: `
         create table teams (
-          id int primary key not null,
-          name varchar(32) not null unique,
-          email varchar(32) not null unique
+          id int CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__name__CustomNameToAvoidRandomNumber unique,
+          email varchar(32) not null CONSTRAINT UQ__teams__email__CustomNameToAvoidRandomNumber unique
         );
         insert into teams (id, name, email) values (1, 'a', 'a@a');
         insert into teams (id, name, email) values (2, 'b', 'b@b');
@@ -45,14 +45,16 @@ export const scenarios = [
     name: 'findUnique where PK with include',
     up: `
         create table users (
-          id int identity primary key not null,
-          email varchar(32) not null unique
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
+          email varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
         );
         create table posts (
-          id int identity primary key not null,
-          user_id int not null references users (id) on update cascade,
-          title varchar(32) not null
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
+          user_id int not null,
+          title varchar(32) not null,
+          CONSTRAINT FK_UserId FOREIGN KEY (user_id) REFERENCES users(id) on update cascade
         );
+        
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
         insert into posts ("user_id", "title") values (1, 'A');
@@ -86,8 +88,8 @@ export const scenarios = [
     name: 'create with data',
     up: `
         create table teams (
-          id int identity primary key not null,
-          name varchar(32) not null unique
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
         );
       `,
     do: (client) => {
@@ -102,8 +104,8 @@ export const scenarios = [
     name: 'create with empty data and SQL default',
     up: `
         create table teams (
-          id int identity primary key not null,
-          name varchar(32) not null default 'alice'
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT DF__teams__name__CustomNameToAvoidRandomNumber default 'alice'
         );
       `,
     do: (client) => {
@@ -134,8 +136,8 @@ export const scenarios = [
     name: 'update where with numeric data',
     up: `
         create table teams (
-          id int identity primary key not null,
-          name varchar(32) not null unique
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
         );
         insert into teams ("name") values ('c');
       `,
@@ -154,9 +156,9 @@ export const scenarios = [
     name: 'update where with boolean data',
     up: `
         create table teams (
-          id int identity primary key not null,
-          name varchar(32) not null unique,
-          active bit not null default 1
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique,
+          active bit not null CONSTRAINT DF__teams__active__CustomNameToAvoidRandomNumber default 1
         );
         insert into teams ("name") values ('c');
       `,
@@ -176,9 +178,9 @@ export const scenarios = [
     name: 'update where with boolean data and select',
     up: `
         create table teams (
-          id int identity primary key not null,
-          name varchar(32) not null unique,
-          active bit not null default 1
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique,
+          active bit not null CONSTRAINT DF__teams__active__CustomNameToAvoidRandomNumber default 1
         );
         insert into teams ("name") values ('c');
       `,
@@ -197,8 +199,8 @@ export const scenarios = [
     name: 'update where with string data',
     up: `
         create table teams (
-          id int identity primary key not null,
-          name varchar(32) not null unique
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          name varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
         );
         insert into teams ("name") values ('c');
       `,
@@ -217,7 +219,7 @@ export const scenarios = [
     name: 'updateMany where with string data - check returned count',
     up: `
         create table teams (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
           name varchar(32) not null
         );
         insert into teams ("name") values ('c');
@@ -237,7 +239,7 @@ export const scenarios = [
     name: 'updateMany where with string data - check findMany',
     up: `
         create table teams (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
           name varchar(32) not null
         );
         insert into teams ("name") values ('c');
@@ -265,8 +267,8 @@ export const scenarios = [
     name: 'findUnique where unique',
     up: `
         create table users (
-          id int identity primary key not null,
-          email varchar(32) not null unique
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
+          email varchar(32) not null CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
@@ -282,7 +284,7 @@ export const scenarios = [
     name: 'findUnique where composite unique',
     up: `
         create table users (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
           email varchar(32) not null,
           name varchar(32) not null,
           constraint u_const unique(email, name)
@@ -292,7 +294,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.findUnique({
         where: {
-          u_const: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
       })
     },
@@ -306,7 +308,7 @@ export const scenarios = [
     name: 'update where composite unique',
     up: `
         create table users (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
           email varchar(32) not null,
           name varchar(32) not null,
           constraint u_const unique(email, name)
@@ -316,7 +318,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.update({
         where: {
-          u_const: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
         data: { name: 'Marco' },
       })
@@ -331,7 +333,7 @@ export const scenarios = [
     name: 'delete where composite unique',
     up: `
         create table users (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
           email varchar(32) not null,
           name varchar(32) not null,
           constraint u_const unique(email, name)
@@ -341,7 +343,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.delete({
         where: {
-          u_const: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
       })
     },
@@ -355,7 +357,7 @@ export const scenarios = [
     name: 'findMany - email text',
     up: `
         create table users (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
           email varchar(32)
         );
         insert into users ("email") values ('ada@prisma.io');
@@ -379,8 +381,8 @@ export const scenarios = [
     name: 'findMany where unique',
     up: `
         create table users (
-          id int identity primary key not null,
-          email varchar(32) not null unique
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
+          email varchar(32) not null CONSTRAINT UQ__users_CustomNameToAvoidRandomNumber unique
         );
         insert into users ("email") values ('ada@prisma.io');
       `,
@@ -398,8 +400,8 @@ export const scenarios = [
     name: 'findMany - email varchar(50) not null unique',
     up: `
         create table users (
-          id int identity primary key not null,
-          email varchar(32) not null unique
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
+          email varchar(32) not null CONSTRAINT UQ__users_CustomNameToAvoidRandomNumber unique
         );
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
@@ -422,13 +424,14 @@ export const scenarios = [
     name: 'findUnique where unique with foreign key and unpack',
     up: `
         create table users (
-          id int identity primary key not null,
-          email varchar(32) not null unique
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
+          email varchar(32) not null CONSTRAINT UQ__users_CustomNameToAvoidRandomNumber unique
         );
         create table posts (
-          id int identity primary key not null,
-          user_id int not null references users (id) on update cascade,
-          title varchar(32) not null
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
+          user_id int not null,
+          title varchar(32) not null,
+          CONSTRAINT FK_UserId FOREIGN KEY (user_id) REFERENCES users(id) on update cascade
         );
         insert into users ("email") values ('ada@prisma.io');
         insert into users ("email") values ('ema@prisma.io');
@@ -437,9 +440,7 @@ export const scenarios = [
         insert into posts ("user_id", "title") values (2, 'C');
       `,
     do: (client) => {
-      return client.users
-        .findUnique({ where: { email: 'ada@prisma.io' } })
-        .posts()
+      return client.users.findUnique({ where: { email: 'ada@prisma.io' } }).posts()
     },
     expect: [
       {
@@ -458,9 +459,9 @@ export const scenarios = [
     name: 'findMany where contains and boolean',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          published bit not null default 0
+          published bit not null CONSTRAINT DF__posts__published__CustomNameToAvoidRandomNumber default 0
         );
         insert into posts ("title", "published") values ('A', 1);
         insert into posts ("title", "published") values ('B', 0);
@@ -486,9 +487,9 @@ export const scenarios = [
     name: 'findMany where OR[contains, contains] ',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          published bit not null default 0
+          published bit not null CONSTRAINT DF__posts__published__CustomNameToAvoidRandomNumber default 0
         );
         insert into posts ("title", "published") values ('A', 1);
         insert into posts ("title", "published") values ('B', 0);
@@ -519,9 +520,9 @@ export const scenarios = [
     name: 'upsert (update)',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          published bit not null default 0
+          published bit not null CONSTRAINT DF__posts__published__CustomNameToAvoidRandomNumber default 0
         );
         insert into posts ("title", "published") values ('A', 1);
         insert into posts ("title", "published") values ('B', 0);
@@ -544,9 +545,9 @@ export const scenarios = [
     name: 'upsert (create)',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          published bit not null default 0
+          published bit not null CONSTRAINT DF__posts__published__CustomNameToAvoidRandomNumber default 0
         );
         insert into posts ("title", "published") values ('A', 1);
         insert into posts ("title", "published") values ('B', 0);
@@ -569,9 +570,9 @@ export const scenarios = [
     name: 'findMany orderBy asc',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          published bit not null default 0
+          published bit not null CONSTRAINT DF__posts__published__CustomNameToAvoidRandomNumber default 0
         );
         insert into posts ("title", "published") values ('A', 1);
         insert into posts ("title", "published") values ('B', 0);
@@ -606,9 +607,9 @@ export const scenarios = [
     name: 'findMany orderBy desc',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          published bit not null default 0
+          published bit not null CONSTRAINT DF__posts__published__CustomNameToAvoidRandomNumber default 0
         );
         insert into posts ("title", "published") values ('A', 1);
         insert into posts ("title", "published") values ('B', 0);
@@ -643,8 +644,8 @@ export const scenarios = [
     name: 'findMany where contains',
     up: `
         create table crons (
-          id int identity not null primary key,
-          "job" varchar(32) unique not null,
+          id int identity not null CONSTRAINT PK__crons__CustomNameToAvoidRandomNumber primary key,
+          "job" varchar(32) CONSTRAINT UQ__crons__CustomNameToAvoidRandomNumber unique not null,
           frequency varchar(32)
         );
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
@@ -671,8 +672,8 @@ export const scenarios = [
     name: 'findMany where startsWith',
     up: `
         create table crons (
-          id int identity not null primary key,
-          "job" varchar(32) unique not null,
+          id int identity not null CONSTRAINT PK__crons__CustomNameToAvoidRandomNumber primary key,
+          "job" varchar(32) CONSTRAINT UQ__crons__CustomNameToAvoidRandomNumber unique not null,
           frequency varchar(32)
         );
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
@@ -699,8 +700,8 @@ export const scenarios = [
     name: 'findMany where endsWith',
     up: `
         create table crons (
-          id int identity not null primary key,
-          "job" varchar(32) unique not null,
+          id int identity not null CONSTRAINT PK__crons__CustomNameToAvoidRandomNumber primary key,
+          "job" varchar(32) CONSTRAINT UQ__crons__CustomNameToAvoidRandomNumber unique not null,
           frequency varchar(32)
         );
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
@@ -727,8 +728,8 @@ export const scenarios = [
     name: 'findMany where in[string]',
     up: `
         create table crons (
-          id int identity not null primary key,
-          "job" varchar(32) unique not null,
+          id int identity not null CONSTRAINT PK__crons__CustomNameToAvoidRandomNumber primary key,
+          "job" varchar(32) CONSTRAINT UQ__crons__CustomNameToAvoidRandomNumber unique not null,
           frequency varchar(32)
         );
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
@@ -758,8 +759,8 @@ export const scenarios = [
     todo: true,
     up: `
         create table crons (
-          id int identity not null primary key,
-          "job" varchar(32) unique not null,
+          id int identity not null CONSTRAINT PK__crons__CustomNameToAvoidRandomNumber primary key,
+          "job" varchar(32) CONSTRAINT UQ__crons__CustomNameToAvoidRandomNumber unique not null,
           frequency varchar(32)
         );
         insert into crons ("job", "frequency") values ('j1', '* * * * *');
@@ -786,9 +787,9 @@ export const scenarios = [
     name: 'findMany where datetime lte - check instanceof Date',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          created_at datetime not null default getdate()
+          created_at datetime not null CONSTRAINT DF__posts__created_at__CustomNameToAvoidRandomNumber default getdate()
         );
         insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
@@ -824,9 +825,9 @@ export const scenarios = [
     name: 'findMany where datetime gte than now',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          created_at datetime not null default getdate()
+          created_at datetime not null CONSTRAINT DF__posts__created_at__CustomNameToAvoidRandomNumber default getdate()
         );
         insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
@@ -843,9 +844,9 @@ export const scenarios = [
     name: 'findMany where datetime gt than now',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          created_at datetime not null default getdate()
+          created_at datetime not null CONSTRAINT DF__posts__created_at__CustomNameToAvoidRandomNumber default getdate()
         );
         insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
@@ -862,9 +863,9 @@ export const scenarios = [
     name: 'findMany where datetime lt than now',
     up: `
         create table posts (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__posts__CustomNameToAvoidRandomNumber primary key not null,
           title varchar(32) not null,
-          created_at datetime not null default getdate()
+          created_at datetime not null CONSTRAINT DF__posts__created_at__CustomNameToAvoidRandomNumber default getdate()
         );
         insert into posts ("title", "created_at") values ('A', '2020-01-14T11:10:19.573Z');
         insert into posts ("title", "created_at") values ('B', '2020-01-14T11:10:19.573Z');
@@ -899,8 +900,8 @@ export const scenarios = [
     name: 'update where integer data',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null
         );
         insert into teams (token) values (11);
       `,
@@ -919,7 +920,7 @@ export const scenarios = [
     name: 'findMany where datetime exact',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -941,7 +942,7 @@ export const scenarios = [
     name: 'findMany where datetime gt',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -958,7 +959,7 @@ export const scenarios = [
     name: 'findMany where datetime gte',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -982,7 +983,7 @@ export const scenarios = [
     name: 'findMany where datetime lt',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -999,7 +1000,7 @@ export const scenarios = [
     name: 'findMany where datetime lte',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -1023,7 +1024,7 @@ export const scenarios = [
     name: 'findMany where datetime not',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -1042,7 +1043,7 @@ export const scenarios = [
     name: 'findMany where null',
     up: `
         create table events (
-          id int identity not null primary key,
+          id int identity not null CONSTRAINT PK__events__CustomNameToAvoidRandomNumber primary key,
           "time" datetime
         );
 
@@ -1072,8 +1073,8 @@ export const scenarios = [
     name: 'findMany where empty in[]',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null,
           name varchar(32) not null
         );
 
@@ -1089,8 +1090,8 @@ export const scenarios = [
     name: 'findMany where id empty in[] and token in[]',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null,
           name varchar(32) not null
         );
         insert into teams (token, name) values (11, 'a');
@@ -1107,8 +1108,8 @@ export const scenarios = [
     name: 'findMany where in[integer]',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null,
           name varchar(32) not null
         );
         insert into teams (token, name) values (11, 'a');
@@ -1134,8 +1135,8 @@ export const scenarios = [
     name: 'findMany where notIn[]',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null,
           name varchar(32) not null
         );
         insert into teams (token, name) values (11, 'a');
@@ -1152,8 +1153,8 @@ export const scenarios = [
     name: 'findMany where empty notIn[]',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null,
           name varchar(32) not null
         );
         insert into teams (token, name) values (11, 'a');
@@ -1180,13 +1181,13 @@ export const scenarios = [
     name: 'findMany where null',
     up: `
         create table teams (
-          id int identity primary key not null,
-          token integer unique not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
+          token integer CONSTRAINT UQ__teams__CustomNameToAvoidRandomNumber unique not null,
           name varchar(32) not null
         );
         create table users (
-          id int identity primary key not null,
-          email varchar(32) not null unique,
+          id int identity CONSTRAINT PK__users__CustomNameToAvoidRandomNumber primary key not null,
+          email varchar(32) not null CONSTRAINT UQ__users__CustomNameToAvoidRandomNumber unique,
           team_id int references teams (id)
         );
         insert into teams ("token", "name") values (1, 'a');
@@ -1208,7 +1209,7 @@ export const scenarios = [
     name: 'findMany where decimal',
     up: `
         create table exercises (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__exercises__CustomNameToAvoidRandomNumber primary key not null,
           distance decimal(5, 3) not null
         );
         insert into exercises (distance) values (12.213);
@@ -1227,8 +1228,8 @@ export const scenarios = [
     name: 'findUnique where decimal',
     up: `
         create table exercises (
-          id int identity primary key not null,
-          distance decimal(5, 3) not null unique
+          id int identity CONSTRAINT PK__exercises__CustomNameToAvoidRandomNumber primary key not null,
+          distance decimal(5, 3) not null CONSTRAINT UQ__exercises_CustomNameToAvoidRandomNumber unique
         );
         insert into exercises (distance) values (12.213);
       `,
@@ -1244,8 +1245,8 @@ export const scenarios = [
     name: 'findUnique where decimal - default value',
     up: `
         create table exercises (
-          id int identity primary key not null,
-          distance decimal(5, 3) not null unique default (12.3)
+          id int identity CONSTRAINT PK__exercises__CustomNameToAvoidRandomNumber primary key not null,
+          distance decimal(5, 3) not null CONSTRAINT UQ__exercises_CustomNameToAvoidRandomNumber unique CONSTRAINT DF__exercises__active__CustomNameToAvoidRandomNumber default (12.3)
         );
 
         insert into exercises (distance) values (12.213);
@@ -1263,7 +1264,7 @@ export const scenarios = [
     name: 'create bigint data',
     up: `
         create table migrate (
-          version bigint not null primary key
+          version bigint not null CONSTRAINT PK__migrate__CustomNameToAvoidRandomNumber primary key
         );
       `,
     do: (client) => {
@@ -1402,7 +1403,7 @@ export const scenarios = [
     name: 'findUnique where unique composite',
     up: `
         create table variables (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__variables__CustomNameToAvoidRandomNumber primary key not null,
           name varchar(32) not null,
           "key" varchar(32) not null,
           value varchar(32) not null,
@@ -1413,7 +1414,7 @@ export const scenarios = [
       `,
     do: (client) => {
       return client.variables.findUnique({
-        where: { u_const: { key: 'b', name: 'a' } },
+        where: { name_key: { key: 'b', name: 'a' } },
       })
     },
     expect: {
@@ -1439,7 +1440,7 @@ export const scenarios = [
       `,
     do: (client) => {
       return client.variables.findUnique({
-        where: { u_const: { value: 'c', email: 'd' } },
+        where: { value_email: { value: 'c', email: 'd' } },
       })
     },
     expect: {
@@ -1455,13 +1456,13 @@ export const scenarios = [
           create table a (
             one integer not null,
             two integer not null,
-            primary key ("one", "two")
+            CONSTRAINT PK__a__CustomNameToAvoidRandomNumber primary key ("one", "two")
           );
           create table b (
-            id int identity primary key not null,
+            id int identity CONSTRAINT PK__b__CustomNameToAvoidRandomNumber primary key not null,
             one integer not null,
             two integer not null,
-            foreign key ("one", "two") references a ("one", "two")
+            CONSTRAINT FK_OneTwo foreign key ("one", "two") references a ("one", "two")
           );
           insert into a ("one", "two") values (1, 2);
           insert into b ("one", "two") values (1, 2);
@@ -1530,7 +1531,7 @@ export const scenarios = [
     name: 'updateMany where null - check findMany',
     up: `
         create table teams (
-          id int identity primary key not null,
+          id int identity CONSTRAINT PK__teams__CustomNameToAvoidRandomNumber primary key not null,
           name varchar(32)
         );
         insert into teams (name) values ('a');

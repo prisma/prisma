@@ -1,29 +1,19 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import {
-  getNodeAPIName,
-  getPlatform,
-  isNodeAPISupported,
-  Platform,
-  platforms,
-} from '@prisma/get-platform'
+import type { Platform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
-import {
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-} from '../common/Engine'
-import { RequestError } from '../common/errors/types/RequestError'
-import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
+import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
+import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
-import {
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import type {
   ConfigMetaFormat,
   QueryEngineBatchRequest,
   QueryEngineEvent,
@@ -36,11 +26,10 @@ import {
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
-import { QueryEngineInstance, QueryEngineConstructor } from './types/Library'
-import { Library } from './types/Library'
+import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
-import type * as Tx from '../common/types/Transaction'
+import type { Library, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -92,10 +81,8 @@ export class LibraryEngine extends Engine {
     this.logEmitter.on('error', (e) => {
       // to prevent unhandled error events
     })
-    this.datasourceOverrides = config.datasources
-      ? this.convertDatasources(config.datasources)
-      : {}
-    if (config.enableEngineDebugMode) {
+    this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
+    if (config.enableDebugLogs) {
       this.logLevel = 'debug'
       // Debug.enable('*')
     }
@@ -109,11 +96,7 @@ export class LibraryEngine extends Engine {
     if (engines.length >= 10) {
       const runningEngines = engines.filter((e) => e.engine)
       if (runningEngines.length === 10) {
-        console.warn(
-          `${chalk.yellow(
-            'warn(prisma-client)',
-          )} Already 10 Prisma Clients are actively running.`,
-        )
+        console.warn(`${chalk.yellow('warn(prisma-client)')} Already 10 Prisma Clients are actively running.`)
       }
     }
   }
@@ -157,16 +140,12 @@ export class LibraryEngine extends Engine {
     const platform = await getPlatform()
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
-        `Unknown ${chalk.red(
-          'PRISMA_QUERY_ENGINE_LIBRARY',
-        )} ${chalk.redBright.bold(
+        `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_LIBRARY')} ${chalk.redBright.bold(
           this.platform,
         )}. Possible binaryTargets: ${chalk.greenBright(
           knownPlatforms.join(', '),
         )} or a path to the query engine library.
-You may have to run ${chalk.greenBright(
-          'prisma generate',
-        )} for your changes to take effect.`,
+You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
         this.config.clientVersion!,
       )
     }
@@ -175,25 +154,17 @@ You may have to run ${chalk.greenBright(
 
   private parseEngineResponse<T>(response?: string): T {
     if (!response) {
-      throw new PrismaClientUnknownRequestError(
-        `Response from the Engine was empty`,
-        this.config.clientVersion!,
-      )
+      throw new PrismaClientUnknownRequestError(`Response from the Engine was empty`, this.config.clientVersion!)
     }
     try {
       const config = JSON.parse(response)
       return config as T
     } catch (err) {
-      throw new PrismaClientUnknownRequestError(
-        `Unable to JSON.parse response from engine`,
-        this.config.clientVersion!,
-      )
+      throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, this.config.clientVersion!)
     }
   }
 
-  private convertDatasources(
-    datasources: DatasourceOverwrite[],
-  ): Record<string, string> {
+  private convertDatasources(datasources: DatasourceOverwrite[]): Record<string, string> {
     const obj = Object.create(null)
     for (const { name, url } of datasources) {
       obj[name] = url
@@ -216,24 +187,18 @@ You may have to run ${chalk.greenBright(
           if (fs.existsSync(this.libQueryEnginePath)) {
             if (this.libQueryEnginePath.endsWith('.node')) {
               throw new PrismaClientInitializationError(
-                `Unable to load Node-API Library from ${chalk.dim(
-                  this.libQueryEnginePath,
-                )}, Library may be corrupt`,
+                `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt`,
                 this.config.clientVersion!,
               )
             } else {
               throw new PrismaClientInitializationError(
-                `Expected an Node-API Library but received ${chalk.dim(
-                  this.libQueryEnginePath,
-                )}`,
+                `Expected an Node-API Library but received ${chalk.dim(this.libQueryEnginePath)}`,
                 this.config.clientVersion!,
               )
             }
           } else {
             throw new PrismaClientInitializationError(
-              `Unable to load Node-API Library from ${chalk.dim(
-                this.libQueryEnginePath,
-              )}, It does not exist`,
+              `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, It does not exist`,
               this.config.clientVersion!,
             )
           }
@@ -253,16 +218,13 @@ You may have to run ${chalk.greenBright(
             },
             (err, log) => this.logger(err, log),
           )
-        } catch (e) {
+        } catch (_e) {
+          const e = _e as Error
           const error = this.parseInitError(e.message)
           if (typeof error === 'string') {
             throw e
           } else {
-            throw new PrismaClientInitializationError(
-              error.message,
-              this.config.clientVersion!,
-              error.error_code,
-            )
+            throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
           }
         }
       }
@@ -312,9 +274,7 @@ You may have to run ${chalk.greenBright(
   private parseInitError(str: string): SyncRustError | string {
     try {
       const error = JSON.parse(str)
-      if (typeof error.is_panic !== 'undefined') {
-        return error
-      }
+      return error
     } catch (e) {
       //
     }
@@ -324,9 +284,7 @@ You may have to run ${chalk.greenBright(
   private parseRequestError(str: string): RustRequestError | string {
     try {
       const error = JSON.parse(str)
-      if (typeof error.is_panic !== 'undefined') {
-        return error
-      }
+      return error
     } catch (e) {
       //
     }
@@ -356,22 +314,30 @@ You may have to run ${chalk.greenBright(
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
     if (this.libraryStartingPromise) {
-      debug(
-        `library already starting, this.libraryStarted: ${this.libraryStarted}`,
-      )
-      await this.libraryStartingPromise
-      if (this.libraryStarted) {
-        return
-      }
+      debug(`library already starting, this.libraryStarted: ${this.libraryStarted}`)
+      return this.libraryStartingPromise
     }
     if (!this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStartingPromise = new Promise(async (res) => {
+      this.libraryStartingPromise = new Promise((resolve, reject) => {
         debug('library starting')
-        await this.engine?.connect({ enableRawQueries: true })
-        this.libraryStarted = true
-        debug('library started')
-        res()
+        this.engine
+          ?.connect({ enableRawQueries: true })
+          .then(() => {
+            this.libraryStarted = true
+            this.libraryStartingPromise = undefined
+            debug('library started')
+            resolve()
+          })
+          .catch((err) => {
+            const error = this.parseInitError(err.message)
+            // The error message thrown by the query engine should be a stringified JSON
+            // if parsing fails then we just reject the error
+            if (typeof error === 'string') {
+              reject(err)
+            } else {
+              reject(new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code))
+            }
+          })
       })
       return this.libraryStartingPromise
     }
@@ -380,28 +346,28 @@ You may have to run ${chalk.greenBright(
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
-    debug(`library stopping, this.libraryStarted: ${this.libraryStarted}`)
     if (this.libraryStoppingPromise) {
-      debug('library is already disconnecting')
-      await this.libraryStoppingPromise
-      if (!this.libraryStarted) {
-        this.libraryStoppingPromise = undefined
-        return
-      }
+      debug('library is already stopping')
+      return this.libraryStoppingPromise
     }
 
     if (this.libraryStarted) {
       // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (res) => {
-        await new Promise((r) => setTimeout(r, 5))
-        debug('library stopping')
-        await this.engine?.disconnect()
-        this.libraryStarted = false
-        debug('library stopped')
-        res()
+      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
+        try {
+          await new Promise((r) => setTimeout(r, 5))
+          debug('library stopping')
+          await this.engine?.disconnect()
+          this.libraryStarted = false
+          this.libraryStoppingPromise = undefined
+          debug('library stopped')
+          resolve()
+        } catch (err) {
+          reject(err)
+        }
       })
+      return this.libraryStoppingPromise
     }
-    return this.libraryStoppingPromise
   }
 
   getConfig(): Promise<ConfigMetaFormat> {
@@ -418,72 +384,43 @@ You may have to run ${chalk.greenBright(
     return this.versionInfo?.version ?? 'unknown'
   }
 
-  private prismaGraphQLToJSError(
-    error: RequestError,
-  ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
-    debug('graphQLToJSError')
-
-    if (error.user_facing_error.error_code) {
-      return new PrismaClientKnownRequestError(
-        error.user_facing_error.message,
-        error.user_facing_error.error_code,
-        this.config.clientVersion!,
-        error.user_facing_error.meta,
-      )
-    }
-
-    return new PrismaClientUnknownRequestError(
-      error.error,
-      this.config.clientVersion!,
-    )
-  }
-
   async request<T>(
     query: string,
     headers: QueryEngineRequestHeaders = {},
     numTry = 1,
   ): Promise<{ data: T; elapsed: number }> {
-    try {
-      debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-      const request: QueryEngineRequest = { query, variables: {} }
-      const queryStr = JSON.stringify(request)
-      const headerStr = JSON.stringify(headers)
+    debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
+    const request: QueryEngineRequest = { query, variables: {} }
+    const queryStr = JSON.stringify(request)
+    const headerStr = JSON.stringify(headers)
 
+    try {
       await this.start()
-      this.executingQueryPromise = this.engine?.query(
-        queryStr,
-        headerStr,
-        headers.transactionId,
-      )
+      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, headers.transactionId)
 
       this.lastQuery = queryStr
-      const data = this.parseEngineResponse<any>(
-        await this.executingQueryPromise,
-      )
+      const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.prismaGraphQLToJSError(data.errors[0])
+          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(
-          JSON.stringify(data.errors),
-          this.config.clientVersion!,
-        )
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
       // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
       return { data, elapsed: 0 }
-    } catch (e) {
+    } catch (e: any) {
+      if (e instanceof PrismaClientInitializationError) {
+        throw e
+      }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
         throw e
       } else {
-        throw new PrismaClientUnknownRequestError(
-          `${error.message}\n${error.backtrace}`,
-          this.config.clientVersion!,
-        )
+        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, this.config.clientVersion!)
       }
     }
   }
@@ -512,23 +449,17 @@ You may have to run ${chalk.greenBright(
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw this.prismaGraphQLToJSError(data.errors[0])
+        throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
       }
       // this case should not happen, as the query engine only returns one error
-      throw new PrismaClientUnknownRequestError(
-        JSON.stringify(data.errors),
-        this.config.clientVersion!,
-      )
+      throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
     }
 
     const { batchResult, errors } = data
     if (Array.isArray(batchResult)) {
       return batchResult.map((result) => {
         if (result.errors) {
-          return (
-            this.loggerRustPanic ??
-            this.prismaGraphQLToJSError(result.errors[0])
-          )
+          return this.loggerRustPanic ?? prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
         }
         return {
           data: result,
@@ -556,10 +487,7 @@ You may have to run ${chalk.greenBright(
     this.platform = this.platform ?? (await getPlatform())
 
     if (__filename.includes('LibraryEngine')) {
-      enginePath = path.join(
-        getEnginesPath(),
-        getNodeAPIName(this.platform, 'fs'),
-      )
+      enginePath = path.join(getEnginesPath(), getNodeAPIName(this.platform, 'fs'))
       return { enginePath, searchedLocations }
     }
     const searchLocations: string[] = [
@@ -590,8 +518,7 @@ You may have to run ${chalk.greenBright(
 
   private async getLibQueryEnginePath(): Promise<string> {
     // TODO Document ENV VAR
-    const libPath =
-      process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
+    const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
     if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
       return libPath
     }
@@ -600,9 +527,7 @@ You may have to run ${chalk.greenBright(
     // If path to query engine doesn't exist, throw
     if (!fs.existsSync(enginePath)) {
       const incorrectPinnedPlatformErrorStr = this.platform
-        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.platform}`,
-          )}\n`
+        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.platform}`)}\n`
         : ''
       // TODO Improve search engine logic possibly using findSync
       let errorText = `Query engine library for current platform "${chalk.bold(
@@ -616,30 +541,21 @@ Searched Locations:
 ${searchedLocations
   .map((f) => {
     let msg = `  ${f}`
-    if (
-      process.env.DEBUG === 'node-engine-search-locations' &&
-      fs.existsSync(f)
-    ) {
+    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
       const dir = fs.readdirSync(f)
       msg += dir.map((d) => `    ${d}`).join('\n')
     }
     return msg
   })
-  .join(
-    '\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''),
-  )}\n`
+  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
       // The generator should always be there during normal usage
       if (this.config.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         this.platform = this.platform ?? (await getPlatform())
         if (
-          this.config.generator.binaryTargets.find(
-            (object) => object.value === this.platform!,
-          ) ||
-          this.config.generator.binaryTargets.find(
-            (object) => object.value === 'native',
-          )
+          this.config.generator.binaryTargets.find((object) => object.value === this.platform!) ||
+          this.config.generator.binaryTargets.find((object) => object.value === 'native')
         ) {
           errorText += `
 You already added the platform${
@@ -655,28 +571,19 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${
-            this.platform
-          }" to the "${chalk.underline(
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
             'binaryTargets',
-          )}" attribute in the "${chalk.underline(
-            'generator',
-          )}" block in the "schema.prisma" file:
+          )}" attribute in the "${chalk.underline('generator')}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
-Then run "${chalk.greenBright(
-            'prisma generate',
-          )}" for your changes to take effect.
+Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
         errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
       }
 
-      throw new PrismaClientInitializationError(
-        errorText,
-        this.config.clientVersion!,
-      )
+      throw new PrismaClientInitializationError(errorText, this.config.clientVersion!)
     }
     this.platform = this.platform ?? (await getPlatform())
     return enginePath
@@ -685,10 +592,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.config.generator!,
-      binaryTargets: fixBinaryTargets(
-        this.config.generator!.binaryTargets,
-        this.platform!,
-      ),
+      binaryTargets: fixBinaryTargets(this.config.generator!.binaryTargets, this.platform!),
     }
 
     return printGeneratorConfig(fixedGenerator)
@@ -715,7 +619,6 @@ function initHooks() {
     hookProcess('beforeExit')
     hookProcess('exit')
     hookProcess('SIGINT', true)
-    hookProcess('SIGUSR1', true)
     hookProcess('SIGUSR2', true)
     hookProcess('SIGTERM', true)
     hooksInitialized = true

@@ -1,7 +1,4 @@
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from '../../../../runtime/utils/getClientEngineType'
+import { ClientEngineType, getClientEngineType } from '../../../../runtime/utils/getClientEngineType'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {
@@ -16,14 +13,13 @@ test('error-link', async () => {
   const db = new PrismaClient({
     __internal: {
       engine: {
-        enableEngineDebugMode: true,
+        allowTriggerPanic: true,
       },
     },
     errorFormat: 'minimal',
   })
 
-  await expect(db.__internal_triggerPanic(true)).rejects
-    .toThrowErrorMatchingInlineSnapshot(`
+  await expect(db.__internal_triggerPanic(true)).rejects.toThrowErrorMatchingInlineSnapshot(`
           Query engine debug fatal error, shutting down.
 
           This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.

@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["orderByRelation", "selectRelationCount", "filterJson"]
+  previewFeatures = ["filterJson"]
 }
 
 datasource db {
@@ -149,12 +149,14 @@ enum ABeautifulEnum {
   C
 }
 
+/// model comment
 model A {
+  /// field comment 1
   id    String  @id @default(uuid())
   email String  @unique
-  // / name comment
   name  String?
 
+  /// field comment 2
   int      Int    @db.Integer
   sInt     Int    @db.SmallInt
   bInt     BigInt @db.BigInt

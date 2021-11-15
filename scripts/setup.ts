@@ -1,6 +1,5 @@
 import execa from 'execa'
 import chalk from 'chalk'
-import fs from 'fs'
 import path from 'path'
 import pRetry from 'p-retry'
 import pMap from 'p-map'
@@ -10,10 +9,6 @@ import {
   getPackageDependencies,
 } from './ci/publish'
 import fetch from 'node-fetch'
-
-function getCommitEnvVar(name: string): string {
-  return `${name.toUpperCase().replace(/-/g, '_')}_COMMIT`
-}
 
 async function main() {
   const buildOnly = process.argv[2] === '--build'
@@ -32,11 +27,13 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await run('.', `git config --global user.name "prisma-bot"`)
   }
   if (process.env.RELEASE_PROMOTE_DEV) {
-    const versions = await getVersionHashes(process.env.RELEASE_PROMOTE_DEV)
-    // TODO: disable the dry run here
+    // Checkout exactly the commit of the `dev` version that is being promoted/released
+    
+    const prismaCommit = await getPrismaCommitFromPackageJsonViaUnpkg(process.env.RELEASE_PROMOTE_DEV)
+    // TODO: disable the dry run here // TODO 2: What does this mean?
 
     await run(`.`, `git stash`)
-    await run(`.`, `git checkout ${versions.prisma}`, true)
+    await run(`.`, `git checkout ${prismaCommit}`, true)
   } else if (process.env.PATCH_BRANCH) {
     await checkoutPatchBranches(process.env.PATCH_BRANCH)
     console.log(`Commit we're on:`)
@@ -131,24 +128,6 @@ if (!module.parent) {
   })
 }
 
-export async function cloneOrPull(repo: string, dryRun = false) {
-  if (fs.existsSync(path.join(__dirname, '../', repo))) {
-    return run(repo, `git pull origin main`, dryRun)
-  } else {
-    await run('.', `git clone --depth=50 ${repoUrl(repo)}`, dryRun)
-    const envVar = getCommitEnvVar(repo)
-    if (process.env[envVar]) {
-      await run(repo, `git checkout ${process.env[envVar]}`, dryRun)
-    }
-  }
-
-  return undefined
-}
-
-function repoUrl(repo: string, org = 'prisma') {
-  return `https://github.com/${org}/${repo}.git`
-}
-
 export async function run(
   cwd: string,
   cmd: string,
@@ -167,7 +146,8 @@ export async function run(
       cwd,
       stdio: 'inherit',
     })
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     throw new Error(
       chalk.bold.red(
         `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
@@ -189,7 +169,8 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
       shell: true,
     })
     return result.stdout
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     throw new Error(
       chalk.red(
         `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
@@ -215,11 +196,11 @@ async function checkoutPatchBranches(patchBranch: string) {
   }
 }
 
-function getTagFromPatchBranch(patchBranch: string): string {
-  const [major, minor, patch] = patchBranch.split('.')
-
-  return `${major}.${minor}.0`
-}
+// Unused
+// function getTagFromPatchBranch(patchBranch: string): string {
+//   const [major, minor, patch] = patchBranch.split('.')
+//   return `${major}.${minor}.0`
+// }
 
 async function branchExists(dir: string, branch: string): Promise<boolean> {
   const output = await runResult(dir, `git branch --list ${branch}`)
@@ -230,7 +211,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getVersionHashes(
+async function getPrismaCommitFromPackageJsonViaUnpkg(
   npmVersion: string,
 ): Promise<{ prisma: string }> {
   return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
@@ -240,8 +221,6 @@ async function getVersionHashes(
   })
     .then((res) => res.json())
     .then((pkg) => {
-      return {
-        prisma: pkg.prisma.prismaCommit,
-      }
+      return pkg.prisma.prismaCommit
     })
 }

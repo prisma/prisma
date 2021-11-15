@@ -17,10 +17,7 @@ export type GeneratorPaths = {
   isNode?: boolean
 }
 
-export type GeneratorResolver = (
-  baseDir: string,
-  version?: string,
-) => Promise<GeneratorPaths>
+export type GeneratorResolver = (baseDir: string, version?: string) => Promise<GeneratorPaths>
 
 export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
@@ -60,12 +57,10 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
       'provider = "prisma-client-js"',
     )} in your ${chalk.bold('schema.prisma')} file.
-  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red(
-      '@prisma/photon',
-    )} dependency to ${chalk.green('@prisma/client')}
-  3. Replace ${chalk.red(
-    "import { Photon } from '@prisma/photon'",
-  )} with ${chalk.green(
+  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green(
+      '@prisma/client',
+    )}
+  3. Replace ${chalk.red("import { Photon } from '@prisma/photon'")} with ${chalk.green(
       "import { PrismaClient } from '@prisma/client'",
     )} in your code.
   4. Run ${chalk.green(getCommandWithExecutor('prisma generate'))} again.
@@ -98,10 +93,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   "license": "ISC"
 }
 `
-        fs.writeFileSync(
-          path.join(process.cwd(), 'package.json'),
-          defaultPackageJson,
-        )
+        fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
@@ -114,27 +106,23 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       if (!prismaClientDir) {
         throw new Error(
           `Could not resolve @prisma/client despite the installation that we just tried.
-Please try to install it by hand with ${chalk.bold.greenBright(
-            'npm install @prisma/client',
-          )} and rerun ${chalk.bold(
+Please try to install it by hand with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
             getCommandWithExecutor('prisma generate'),
           )} 🙏.`,
         )
       }
 
       console.info(
-        `\n✔ Installed the ${chalk.bold.green(
-          '@prisma/client',
-        )} and ${chalk.bold.green('prisma')} packages in your project`,
+        `\n✔ Installed the ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green(
+          'prisma',
+        )} packages in your project`,
       )
     }
 
     if (!prismaClientDir) {
       throw new Error(
         `Could not resolve @prisma/client.
-Please try to install it with ${chalk.bold.greenBright(
-          'npm install @prisma/client',
-        )} and rerun ${chalk.bold(
+Please try to install it with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
           getCommandWithExecutor('prisma generate'),
         )} 🙏.`,
       )
@@ -200,8 +188,8 @@ async function checkTypeScriptVersion() {
     const typescriptPath = await resolvePkg('typescript', {
       basedir: process.cwd(),
     })
-    const typescriptPkg =
-      typescriptPath && path.join(typescriptPath, 'package.json')
+    debug('typescriptPath', typescriptPath)
+    const typescriptPkg = typescriptPath && path.join(typescriptPath, 'package.json')
     if (typescriptPkg && fs.existsSync(typescriptPkg)) {
       const pjson = require(typescriptPkg)
       const currentVersion = pjson.version
@@ -211,7 +199,7 @@ async function checkTypeScriptVersion() {
             'TypeScript',
           )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${chalk.bold(
             minVersion,
-          )} or ${chalk.bold('newer')}`,
+          )} or ${chalk.bold('newer')}. ${chalk.dim(`TypeScript found in: ${chalk.bold(typescriptPath)}`)}`,
         )
       }
     }

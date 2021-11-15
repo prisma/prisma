@@ -17,15 +17,9 @@ const del = promisify(rimraf)
 const readdir = promisify(fs.readdir)
 const rename = promisify(fs.rename)
 
-export async function getPackedPackage(
-  name: string,
-  target?: string,
-  packageDir?: string,
-): Promise<string | void> {
+export async function getPackedPackage(name: string, target?: string, packageDir?: string): Promise<string | void> {
   packageDir =
-    packageDir ||
-    (await resolvePkg(name, { basedir: process.cwd() })) ||
-    (await resolvePkg(name, { basedir: target }))
+    packageDir || (await resolvePkg(name, { basedir: process.cwd() })) || (await resolvePkg(name, { basedir: target }))
 
   if (!packageDir) {
     const pkg = await readPkgUp({
@@ -41,9 +35,7 @@ export async function getPackedPackage(
   }
 
   if (!packageDir) {
-    throw new Error(
-      `Error in getPackage: Could not resolve package ${name} from ${__dirname}`,
-    )
+    throw new Error(`Error in getPackage: Could not resolve package ${name} from ${__dirname}`)
   }
   const tmpDir = tempy.directory() // thanks Sindre
   const archivePath = path.join(tmpDir, `package.tgz`)
@@ -51,9 +43,7 @@ export async function getPackedPackage(
   // Check if yarn is available.
   const isYarn = await hasYarn(packageDir)
 
-  const packCmd = isYarn
-    ? ['yarn', 'pack', '-f', archivePath]
-    : ['npm', 'pack', packageDir]
+  const packCmd = isYarn ? ['yarn', 'pack', '-f', archivePath] : ['npm', 'pack', packageDir]
 
   // shell-quote args
   const escapedCmd = quote(packCmd)

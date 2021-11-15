@@ -1,7 +1,7 @@
 import { IntrospectionEngine } from '@prisma/sdk'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
-import { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack } from 'fs-jetpack/types'
 import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
@@ -87,11 +87,7 @@ type Database<Client> = {
   /**
    * Run logic before each scenario. Typically used to run scenario SQL setup against the database.
    */
-  beforeEach: (
-    db: Client,
-    sqlScenario: string,
-    ctx: Context,
-  ) => MaybePromise<any>
+  beforeEach: (db: Client, sqlScenario: string, ctx: Context) => MaybePromise<any>
   /**
    * At the end of _each_ test run logic
    */
@@ -149,10 +145,7 @@ type Settings = {
 /**
  * A list of available preview features on the Prisma client.
  */
-type PreviewFeature =
-  | 'connectOrCreate'
-  | 'microsoftSqlServer'
-  | 'transactionApi'
+type PreviewFeature = ''
 
 /**
  * Settings to add properties on the Prisma client.
@@ -211,11 +204,7 @@ export function introspectionIntegrationTest<Client>(input: Input<Client>) {
   it.each(filterTestScenarios(input.scenarios))(
     `${kind}: %s`,
     async (_, scenario) => {
-      const { state, introspectionResult } = await setupScenario(
-        kind,
-        input,
-        scenario,
-      )
+      const { state, introspectionResult } = await setupScenario(kind, input, scenario)
       states[scenario.name] = state
 
       expect(introspectionResult.datamodel).toMatchSnapshot(`datamodel`)
@@ -263,10 +252,7 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
   )
 }
 
-function afterAllScenarios(
-  kind: string,
-  states: Record<string, ScenarioState>,
-) {
+function afterAllScenarios(kind: string, states: Record<string, ScenarioState>) {
   engine.stop()
   Object.values(states).forEach(async (state) => {
     // props might be missing if test errors out before they are set.
@@ -347,10 +333,7 @@ async function teardownScenario(state: ScenarioState) {
   }
 
   if (errors.length) {
-    throw new VError(
-      new MultiError(errors),
-      'Got Errors while running scenario teardown',
-    )
+    throw new VError(new MultiError(errors), 'Got Errors while running scenario teardown')
   }
 }
 
@@ -364,23 +347,14 @@ function filterTestScenarios(scenarios: Scenario[]): [string, Scenario][] {
     return onlys.map((scenario) => [scenario.name, scenario])
   }
 
-  return scenarios
-    .filter((scenario) => scenario.todo !== true)
-    .map((scenario) => [scenario.name, scenario])
+  return scenarios.filter((scenario) => scenario.todo !== true).map((scenario) => [scenario.name, scenario])
 }
 
 /**
  * Get the temporary directory for the scenario
  */
-function getScenarioDir(
-  databaseName: string,
-  testKind: string,
-  scenarioName: string,
-) {
-  return path.join(
-    getScenariosDir(databaseName, testKind),
-    slugify(scenarioName),
-  )
+function getScenarioDir(databaseName: string, testKind: string, scenarioName: string) {
+  return path.join(getScenariosDir(databaseName, testKind), slugify(scenarioName))
 }
 
 /**
@@ -388,10 +362,7 @@ function getScenarioDir(
  */
 function getScenariosDir(databaseName: string, testKind: string) {
   // use tmp dir instead, as that often times is ramdisk
-  return path.join(
-    '/tmp/prisma-tests',
-    `integration-test-${databaseName}-${testKind}`,
-  )
+  return path.join('/tmp/prisma-tests', `integration-test-${databaseName}-${testKind}`)
 }
 
 /**
@@ -411,9 +382,7 @@ function makeDatasourceBlock(providerName: string, url: string) {
  */
 function renderPreviewFeatures(featureMatrix: PreviewFeature[] | undefined) {
   if (featureMatrix) {
-    return `previewFeatures = [${featureMatrix.map(
-      (feature) => `"` + feature + `"`,
-    )}]`
+    return `previewFeatures = [${featureMatrix.map((feature) => `"` + feature + `"`)}]`
   }
   return ''
 }

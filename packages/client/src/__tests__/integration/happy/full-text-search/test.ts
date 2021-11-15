@@ -62,14 +62,14 @@ describe('full-text-search (postgres)', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+      ]
+    `)
   })
 
   /**
@@ -85,24 +85,24 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-  Object {
-    email: email2@email.io,
-    id: 2,
-    name: 0 2 4 6 8,
-  },
-  Object {
-    email: email3@email.io,
-    id: 3,
-    name: 1 3 5 7 9,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
   })
 
   /**
@@ -118,14 +118,14 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+      ]
+    `)
   })
 
   /**
@@ -141,24 +141,24 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-  Object {
-    email: email2@email.io,
-    id: 2,
-    name: 0 2 4 6 8,
-  },
-  Object {
-    email: email3@email.io,
-    id: 3,
-    name: 1 3 5 7 9,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
   })
 
   /**
@@ -174,14 +174,14 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email2@email.io,
-    id: 2,
-    name: 0 2 4 6 8,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+      ]
+    `)
   })
 
   /**
@@ -213,11 +213,120 @@ Array [
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-Invalid \`prisma.user.findMany()\` invocation:
+Invalid \`prisma.user.findMany()\` invocation in
+/client/src/__tests__/integration/happy/full-text-search/test.ts:0:0
 
-
+  203  * Use an invalid operator
+  204  */
+  205 test('bad operator', async () => {
+→ 206   const result = prisma.user.findMany(
   Error occurred during query execution:
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState("42601"), message: "syntax error in tsquery: \\"0 1\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(514), routine: Some("makepol") }) }) })
 `)
+  })
+
+  test('order by relevance on a single field', async () => {
+    const users = await prisma.user.findMany({
+      orderBy: {
+        _relevance: {
+          fields: ['name'],
+          search: '1 & 2 & 3',
+          sort: 'desc',
+        },
+      },
+    })
+
+    expect(users).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+      ]
+    `)
+  })
+
+  test('order by relevance on multiple fields', async () => {
+    const users = await prisma.user.findMany({
+      orderBy: {
+        _relevance: {
+          fields: ['name', 'email'],
+          search: '3',
+          sort: 'asc',
+        },
+      },
+    })
+
+    expect(users).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
+  })
+
+  test('multiple order by statements on different fields', async () => {
+    const users = await prisma.user.findMany({
+      orderBy: [
+        {
+          _relevance: {
+            fields: ['name'],
+            search: '0',
+            sort: 'desc',
+          },
+        },
+        {
+          _relevance: {
+            fields: ['email'],
+            search: 'email1@email.io',
+            sort: 'asc',
+          },
+        },
+      ],
+    })
+
+    expect(users).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
   })
 })

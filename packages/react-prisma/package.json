@@ -2,6 +2,7 @@
   "name": "react-prisma",
   "version": "0.0.5",
   "main": "dist/index.js",
+  "module": "dist/esm/index.mjs",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -9,28 +10,27 @@
   "homepage": "https://www.prisma.io",
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@types/jest": "27.0.1",
-    "@types/node": "14.17.9",
-    "@typescript-eslint/eslint-plugin": "4.29.2",
-    "@typescript-eslint/parser": "4.29.2",
-    "esbuild": "0.12.16",
+    "@types/jest": "27.0.2",
+    "@types/node": "14.17.33",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "esbuild": "0.13.13",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.4.0",
-    "eslint-plugin-prettier": "3.4.0",
-    "glob": "7.1.7",
-    "jest": "27.0.6",
-    "lint-staged": "11.1.2",
-    "prettier": "2.3.2",
+    "eslint-plugin-jest": "24.7.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "jest": "27.3.1",
+    "lint-staged": "11.2.6",
+    "prettier": "2.4.1",
     "react": "17.0.2",
-    "strip-ansi": "7.0.0",
-    "ts-jest": "27.0.5",
-    "typescript": "4.3.5"
+    "ts-jest": "27.0.7",
+    "typescript": "4.4.4"
   },
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
@@ -51,5 +51,6 @@
   "peerDependencies": {
     "@prisma/client": "*",
     "react": "^17.0.0"
-  }
+  },
+  "sideEffects": false
 }

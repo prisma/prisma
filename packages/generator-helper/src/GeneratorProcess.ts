@@ -1,12 +1,8 @@
-import { ChildProcessByStdio, fork } from 'child_process'
+import type { ChildProcessByStdio } from 'child_process'
+import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import byline from './byline'
-import {
-  GeneratorConfig,
-  GeneratorManifest,
-  GeneratorOptions,
-  JsonRPC,
-} from './types'
+import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 
@@ -69,9 +65,7 @@ export class GeneratorProcess {
           this.exitCode = code
           if (code && code > 0 && this.currentGenerateDeferred) {
             // print last 5 lines of stderr
-            this.currentGenerateDeferred.reject(
-              new Error(this.stderrLogs.split('\n').slice(-5).join('\n')),
-            )
+            this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
           }
         })
 
@@ -80,9 +74,7 @@ export class GeneratorProcess {
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
-                `The executable at ${
-                  this.executablePath
-                } lacks the right chmod. Please use ${chalk.bold(
+                `The executable at ${this.executablePath} lacks the right chmod. Please use ${chalk.bold(
                   `chmod +x ${this.executablePath}`,
                 )}`,
               ),
@@ -108,11 +100,7 @@ export class GeneratorProcess {
         // wait 200ms for the binary to fail
         setTimeout(() => {
           if (this.exitCode && this.exitCode > 0) {
-            reject(
-              new Error(
-                `Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`,
-              ),
-            )
+            reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
           } else {
             resolve()
           }
@@ -129,11 +117,7 @@ export class GeneratorProcess {
       }
       if (this.listeners[data.id]) {
         if (data.error) {
-          const error = new GeneratorError(
-            data.error.message,
-            data.error.code,
-            data.error.data,
-          )
+          const error = new GeneratorError(data.error.message, data.error.code, data.error.data)
           this.listeners[data.id](null, error)
         } else {
           this.listeners[data.id](data.result)
@@ -142,10 +126,7 @@ export class GeneratorProcess {
       }
     }
   }
-  private registerListener(
-    messageId: number,
-    cb: (result: any, err?: Error) => void,
-  ): void {
+  private registerListener(messageId: number, cb: (result: any, err?: Error) => void): void {
     this.listeners[messageId] = cb
   }
   private sendMessage(message: JsonRPC.Request): void {

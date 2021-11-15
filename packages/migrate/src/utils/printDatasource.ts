@@ -14,9 +14,7 @@ export async function printDatasource(schemaPath: string): Promise<void> {
     } else {
       console.info(
         chalk.dim(
-          `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${
-            dbInfo.schemaWord
-          } "${dbInfo.dbName}"${
+          `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}"${
             dbInfo.schema ? `, schema "${dbInfo.schema}"` : ''
           } at "${dbInfo.dbLocation}"`,
         ),

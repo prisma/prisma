@@ -32,7 +32,7 @@ datasource sqlite {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique(map: "sqlite_autoindex_teams_1")
 }
 
 `;
@@ -116,7 +116,7 @@ datasource sqlite {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique(map: "sqlite_autoindex_users_1")
 }
 
 `;
@@ -250,7 +250,7 @@ datasource sqlite {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique(map: "sqlite_autoindex_users_1")
 }
 
 `;
@@ -312,7 +312,7 @@ datasource sqlite {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
+  job       String  @unique(map: "sqlite_autoindex_crons_1")
   frequency String?
 }
 
@@ -494,7 +494,7 @@ datasource sqlite {
 
 model teams {
   id    Int    @id @default(autoincrement())
-  token Int    @unique
+  token Int    @unique(map: "sqlite_autoindex_teams_1")
   name  String
 }
 
@@ -515,7 +515,7 @@ datasource sqlite {
 
 model teams {
   id    Int    @id @default(autoincrement())
-  token Int    @unique
+  token Int    @unique(map: "sqlite_autoindex_teams_1")
   name  String
 }
 
@@ -536,7 +536,7 @@ datasource sqlite {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
+  job       String  @unique(map: "sqlite_autoindex_crons_1")
   frequency String?
 }
 
@@ -557,7 +557,7 @@ datasource sqlite {
 
 model teams {
   id    Int    @id @default(autoincrement())
-  token Int    @unique
+  token Int    @unique(map: "sqlite_autoindex_teams_1")
   name  String
 }
 
@@ -578,7 +578,7 @@ datasource sqlite {
 
 model teams {
   id    Int    @id @default(autoincrement())
-  token Int    @unique
+  token Int    @unique(map: "sqlite_autoindex_teams_1")
   name  String
 }
 
@@ -599,7 +599,7 @@ datasource sqlite {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
+  job       String  @unique(map: "sqlite_autoindex_crons_1")
   frequency String?
 }
 
@@ -620,7 +620,7 @@ datasource sqlite {
 
 model teams {
   id    Int    @id @default(autoincrement())
-  token Int    @unique
+  token Int    @unique(map: "sqlite_autoindex_teams_1")
   name  String
 }
 
@@ -641,7 +641,7 @@ datasource sqlite {
 
 model crons {
   id        Int     @id @default(autoincrement())
-  job       String  @unique
+  job       String  @unique(map: "sqlite_autoindex_crons_1")
   frequency String?
 }
 
@@ -725,7 +725,7 @@ datasource sqlite {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique(map: "sqlite_autoindex_users_1")
 }
 
 `;
@@ -747,12 +747,12 @@ model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 }
 
 model users {
   id    Int     @id @default(autoincrement())
-  email String  @unique
+  email String  @unique(map: "sqlite_autoindex_users_1")
   posts posts[]
 }
 
@@ -773,8 +773,8 @@ datasource sqlite {
 
 model teams {
   id    Int    @id
-  name  String @unique
-  email String @unique
+  name  String @unique(map: "sqlite_autoindex_teams_2")
+  email String @unique(map: "sqlite_autoindex_teams_3")
 }
 
 `;
@@ -794,7 +794,7 @@ datasource sqlite {
 
 model teams {
   id   Int    @id
-  name String @unique
+  name String @unique(map: "sqlite_autoindex_teams_2")
 }
 
 `;
@@ -824,7 +824,7 @@ model b {
   id  Int @id @default(autoincrement())
   one Int
   two Int
-  a   a   @relation(fields: [one, two], references: [one, two])
+  a   a   @relation(fields: [one, two], references: [one, two], onDelete: NoAction, onUpdate: NoAction)
 }
 
 `;
@@ -868,7 +868,7 @@ datasource sqlite {
 
 model exercises {
   id       Int     @id @default(autoincrement())
-  distance Decimal @unique @default(12.3)
+  distance Decimal @unique(map: "sqlite_autoindex_exercises_1") @default(12.3)
 }
 
 `;
@@ -888,7 +888,7 @@ datasource sqlite {
 
 model exercises {
   id       Int     @id @default(autoincrement())
-  distance Decimal @unique
+  distance Decimal @unique(map: "sqlite_autoindex_exercises_1")
 }
 
 `;
@@ -913,7 +913,7 @@ model variables {
   email String
 
   @@id([name, key])
-  @@unique([value, email], name: "sqlite_autoindex_variables_2")
+  @@unique([value, email], map: "sqlite_autoindex_variables_2")
 }
 
 `;
@@ -938,7 +938,7 @@ model variables {
   value String
   email String
 
-  @@unique([name, key], name: "sqlite_autoindex_variables_1")
+  @@unique([name, key], map: "sqlite_autoindex_variables_1")
 }
 
 `;
@@ -960,12 +960,12 @@ model posts {
   id      Int    @id @default(autoincrement())
   user_id Int
   title   String
-  users   users  @relation(fields: [user_id], references: [id])
+  users   users  @relation(fields: [user_id], references: [id], onDelete: NoAction)
 }
 
 model users {
   id    Int     @id @default(autoincrement())
-  email String  @unique
+  email String  @unique(map: "sqlite_autoindex_users_1")
   posts posts[]
 }
 
@@ -986,7 +986,7 @@ datasource sqlite {
 
 model users {
   id    Int    @id @default(autoincrement())
-  email String @unique
+  email String @unique(map: "sqlite_autoindex_users_1")
 }
 
 `;
@@ -1030,7 +1030,7 @@ datasource sqlite {
 
 model teams {
   id    Int @id @default(autoincrement())
-  token Int @unique
+  token Int @unique(map: "sqlite_autoindex_teams_1")
 }
 
 `;
@@ -1050,7 +1050,7 @@ datasource sqlite {
 
 model teams {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  name   String  @unique(map: "sqlite_autoindex_teams_1")
   active Boolean @default(true)
 }
 
@@ -1071,7 +1071,7 @@ datasource sqlite {
 
 model teams {
   id     Int     @id @default(autoincrement())
-  name   String  @unique
+  name   String  @unique(map: "sqlite_autoindex_teams_1")
   active Boolean @default(true)
 }
 
@@ -1092,7 +1092,7 @@ datasource sqlite {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique(map: "sqlite_autoindex_teams_1")
 }
 
 `;
@@ -1112,7 +1112,7 @@ datasource sqlite {
 
 model teams {
   id   Int    @id @default(autoincrement())
-  name String @unique
+  name String @unique(map: "sqlite_autoindex_teams_1")
 }
 
 `;

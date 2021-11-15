@@ -1,14 +1,11 @@
 import indent from 'indent-string'
-import { DMMF } from '../../runtime/dmmf-types'
-import {
-  argIsInputType,
-  GraphQLScalarToJSTypeTable,
-  JSOutputTypeToInputType,
-} from '../../runtime/utils/common'
+import type { DMMF } from '../../runtime/dmmf-types'
+import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import { TAB_SIZE } from './constants'
-import { Generatable } from './Generatable'
-import { ExportCollector, wrapComment } from './helpers'
+import type { Generatable } from './Generatable'
+import type { ExportCollector } from './helpers'
+import { wrapComment } from './helpers'
 
 export class InputField implements Generatable {
   constructor(
@@ -25,11 +22,7 @@ export class InputField implements Generatable {
       : ''
     const comment = `${field.comment ? field.comment + '\n' : ''}${deprecated}`
     const jsdoc = comment ? wrapComment(comment) + '\n' : ''
-    const fieldType = stringifyInputTypes(
-      field.inputTypes,
-      this.prefixFilter,
-      this.noEnumerable,
-    )
+    const fieldType = stringifyInputTypes(field.inputTypes, this.prefixFilter, this.noEnumerable)
 
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
@@ -105,33 +98,20 @@ function stringifyInputTypes(
     }
   }
 
-  const filteredInputTypes = inputTypes.filter(
-    (t, i) => !singularPairIndexes.has(i),
-  )
+  const filteredInputTypes = inputTypes.filter((t, i) => !singularPairIndexes.has(i))
 
-  const inputObjectTypes = filteredInputTypes.filter(
-    (t) => t.location === 'inputObjectTypes',
-  )
+  const inputObjectTypes = filteredInputTypes.filter((t) => t.location === 'inputObjectTypes')
 
-  const nonInputObjectTypes = filteredInputTypes.filter(
-    (t) => t.location !== 'inputObjectTypes',
-  )
+  const nonInputObjectTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
 
-  const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>(
-    (acc, curr) => {
-      const currentStringified = stringifyInputType(
-        curr,
-        prefixFilter,
-        noEnumerable,
-      )
-      if (acc.length > 0) {
-        return `XOR<${acc}, ${currentStringified}>`
-      }
+  const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>((acc, curr) => {
+    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable)
+    if (acc.length > 0) {
+      return `XOR<${acc}, ${currentStringified}>`
+    }
 
-      return currentStringified
-    },
-    '',
-  )
+    return currentStringified
+  }, '')
 
   const stringifiedNonInputTypes = nonInputObjectTypes
     .map((type) => stringifyInputType(type, prefixFilter, noEnumerable))
@@ -149,10 +129,7 @@ function stringifyInputTypes(
 }
 
 export class InputType implements Generatable {
-  constructor(
-    protected readonly type: DMMF.InputType,
-    protected readonly collector?: ExportCollector,
-  ) {}
+  constructor(protected readonly type: DMMF.InputType, protected readonly collector?: ExportCollector) {}
   public toTS(): string {
     const { type } = this
     this.collector?.addSymbol(type.name)
@@ -164,10 +141,7 @@ ${indent(
   fields
     .map((arg) => {
       // This disables enumerable on JsonFilter path argument
-      const noEnumerable =
-        type.name.includes('Json') &&
-        type.name.includes('Filter') &&
-        arg.name === 'path'
+      const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
       return new InputField(arg, false, noEnumerable).toTS()
     })
     .join('\n'),

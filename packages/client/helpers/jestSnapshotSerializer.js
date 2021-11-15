@@ -1,8 +1,7 @@
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
-const { platforms } = require('@prisma/get-platform')
-const escapeString = require('escape-string-regexp')
+const { platformRegex } = require('@prisma/sdk')
 
 function trimErrorPaths(str) {
   const parentDir = path.dirname(path.dirname(__dirname))
@@ -14,11 +13,6 @@ function normalizeToUnixPaths(str) {
   return replaceAll(str, path.sep, '/')
 }
 
-const platformRegex = new RegExp(
-  '(' + platforms.map((p) => escapeString(p)).join('|') + ')',
-  'g',
-)
-
 function removePlatforms(str) {
   return str.replace(platformRegex, 'TEST_PLATFORM')
 }
@@ -27,6 +21,22 @@ function normalizeGithubLinks(str) {
   return str.replace(
     /https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/\S+/,
     'TEST_GITHUB_LINK',
+  )
+}
+
+function normalizeTsClientStackTrace(str) {
+  return str.replace(
+    /(\/client\/src\/__tests__\/.*test.ts)(:\d*:\d*)/,
+    '$1:0:0',
+  )
+}
+
+// When updating snapshots this is sensitive to OS
+// macOS will update extension to .dylib.node, but CI uses .so.node for example
+function normalizeNodeApiLibFilePath(str) {
+  return str.replace(
+    /(libquery_engine-TEST_PLATFORM.)(.*)(.node)/,
+    '$1LIBRARY_TYPE$3',
   )
 }
 
@@ -42,7 +52,13 @@ const serializer = {
         ? value.message
         : ''
     return normalizeGithubLinks(
-      normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message)))),
+      normalizeToUnixPaths(
+        normalizeNodeApiLibFilePath(
+          removePlatforms(
+            normalizeTsClientStackTrace(trimErrorPaths(stripAnsi(message))),
+          ),
+        ),
+      ),
     )
   },
 }

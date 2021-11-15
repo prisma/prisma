@@ -4,9 +4,7 @@ type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export function getLogLevel(
-  log: LogLevel | Array<LogLevel | LogDefinition>,
-): LogLevel | undefined {
+export function getLogLevel(log: LogLevel | Array<LogLevel | LogDefinition>): LogLevel | undefined {
   if (typeof log === 'string') {
     return log
   }

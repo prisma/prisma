@@ -1,6 +1,7 @@
-import getStream = require('get-stream')
-import { Pool, Dispatcher } from 'undici'
-import { URL } from 'url'
+import getStream from 'get-stream'
+import type { Dispatcher } from 'undici'
+import { Pool } from 'undici'
+import type { URL } from 'url'
 
 export type Result<R> = {
   statusCode: Dispatcher.ResponseData['statusCode']
@@ -33,10 +34,7 @@ export class Connection {
    * @param handler to execute
    * @returns
    */
-  static async onHttpError<R, HR>(
-    response: Promise<Result<R>>,
-    handler: (result: Result<R>) => HR,
-  ) {
+  static async onHttpError<R, HR>(response: Promise<Result<R>>, handler: (result: Result<R>) => HR) {
     const _response = await response
 
     if (_response.statusCode >= 400) {
@@ -52,7 +50,7 @@ export class Connection {
    * @param options
    * @returns
    */
-  open(url: string | URL, options?: Pool.Options, socketPath?: string) {
+  open(url: string | URL, options?: Pool.Options) {
     if (this._pool) return
 
     this._pool = new Pool(url, {
@@ -60,9 +58,6 @@ export class Connection {
       pipelining: 10,
       keepAliveMaxTimeout: 600e3,
       headersTimeout: 0,
-      connect: {
-        socketPath,
-      },
       ...options,
     })
   }

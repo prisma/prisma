@@ -1,4 +1,4 @@
-import { Input } from '../../__helpers__/integrationTest'
+import type { Input } from '../../__helpers__/integrationTest'
 import { Decimal } from 'decimal.js'
 
 export const scenarios = [
@@ -310,7 +310,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.findUnique({
         where: {
-          users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
       })
     },
@@ -335,7 +335,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.update({
         where: {
-          users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
         data: { name: 'Marco' },
       })
@@ -361,7 +361,7 @@ export const scenarios = [
     do: (client) => {
       return client.users.delete({
         where: {
-          users_email_name_key: { email: 'ada@prisma.io', name: 'Ada' },
+          email_name: { email: 'ada@prisma.io', name: 'Ada' },
         },
       })
     },
@@ -462,9 +462,7 @@ export const scenarios = [
       `,
 
     do: (client) => {
-      return client.users
-        .findUnique({ where: { email: 'ada@prisma.io' } })
-        .posts()
+      return client.users.findUnique({ where: { email: 'ada@prisma.io' } }).posts()
     },
     expect: [
       {
@@ -1664,7 +1662,7 @@ export const scenarios = [
 
     do: (client) => {
       return client.variables.findUnique({
-        where: { variables_name_key_key: { key: 'b', name: 'a' } },
+        where: { name_key: { key: 'b', name: 'a' } },
       })
     },
     expect: {
@@ -1691,7 +1689,7 @@ export const scenarios = [
 
     do: (client) => {
       return client.variables.findUnique({
-        where: { variables_value_email_key: { value: 'c', email: 'd' } },
+        where: { value_email: { value: 'c', email: 'd' } },
       })
     },
     expect: {

@@ -1,4 +1,4 @@
-import { DMMF } from './dmmf'
+import type { DMMF } from './dmmf'
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JsonRPC {
@@ -37,6 +37,7 @@ export interface GeneratorConfig {
   provider: EnvValue
   config: Dictionary<string>
   binaryTargets: BinaryTargetsEnvValue[]
+  // TODO why is this not optional?
   previewFeatures: string[]
 }
 
@@ -50,12 +51,7 @@ export interface BinaryTargetsEnvValue {
   value: string
 }
 
-export type ConnectorType =
-  | 'mysql'
-  | 'mongodb'
-  | 'sqlite'
-  | 'postgresql'
-  | 'sqlserver'
+export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'sqlserver'
 
 export interface DataSource {
   name: string
@@ -75,21 +71,19 @@ export type BinaryPaths = {
 
 export type GeneratorOptions = {
   generator: GeneratorConfig
+  // TODO: what is otherGenerators for?
   otherGenerators: GeneratorConfig[]
   schemaPath: string
   dmmf: DMMF.Document
   datasources: DataSource[]
+  // TODO deprecate datamodel & rename to schema?
   datamodel: string
-  binaryPaths?: BinaryPaths
+  // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
+  binaryPaths?: BinaryPaths
 }
 
-export type EngineType =
-  | 'queryEngine'
-  | 'libqueryEngine'
-  | 'migrationEngine'
-  | 'introspectionEngine'
-  | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
 
 export type GeneratorManifest = {
   prettyName?: string

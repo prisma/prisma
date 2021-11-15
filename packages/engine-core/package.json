@@ -3,39 +3,38 @@
   "version": "0.0.0",
   "license": "Apache-2.0",
   "main": "dist/index.js",
+  "module": "dist/esm/index.mjs",
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
   "repository": "git@github.com:prisma/prisma.git",
   "maintainers": [
-    "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>",
-    "William Luke <luke@prisma.io>",
     "Pierre-Antoine Mills <mills@prisma.io>"
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@types/jest": "27.0.1",
+    "@types/jest": "27.0.2",
     "@types/node": "16.6.2",
-    "@typescript-eslint/eslint-plugin": "4.29.2",
-    "@typescript-eslint/parser": "4.29.2",
-    "esbuild": "0.12.16",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "esbuild": "0.13.13",
     "eslint": "7.32.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.4.0",
-    "eslint-plugin-prettier": "3.4.0",
-    "glob": "7.1.7",
-    "jest": "27.0.6",
-    "lint-staged": "11.1.2",
-    "prettier": "2.3.2",
-    "strip-ansi": "6.0.0",
-    "ts-jest": "27.0.5",
-    "typescript": "4.3.5"
+    "eslint-plugin-jest": "25.2.4",
+    "eslint-plugin-prettier": "4.0.0",
+    "jest": "27.3.1",
+    "lint-staged": "12.0.1",
+    "prettier": "2.4.1",
+    "strip-ansi": "6.0.1",
+    "ts-jest": "27.0.7",
+    "typescript": "4.4.4"
   },
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "prepublishOnly": "npm run build",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
@@ -45,9 +44,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "2.31.0-1.72c18604612eb5c30b397adc9a3f449e406db725",
+    "@prisma/engines": "3.5.0-37.471f775de5e67ec17de893781ae51484bbcbeb63",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.31.0-1.72c18604612eb5c30b397adc9a3f449e406db725",
+    "@prisma/get-platform": "3.5.0-37.471f775de5e67ec17de893781ae51484bbcbeb63",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
@@ -66,5 +65,6 @@
       "eslint",
       "prettier --write"
     ]
-  }
+  },
+  "sideEffects": false
 }

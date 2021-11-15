@@ -1,9 +1,5 @@
 export function filterObject(obj, cb) {
-  if (
-    !obj ||
-    typeof obj !== 'object' ||
-    typeof obj.hasOwnProperty !== 'function'
-  ) {
+  if (!obj || typeof obj !== 'object' || typeof obj.hasOwnProperty !== 'function') {
     return obj
   }
   const newObj = {}

@@ -1,17 +1,12 @@
-import {
-  arg,
-  Command,
-  format,
-  HelpError,
-  isError,
-  link,
-  getSchemaPath,
-} from '@prisma/sdk'
-import path from 'path'
+import type { Command } from '@prisma/sdk'
+import { arg, format, HelpError, isError, getSchemaPath, logger } from '@prisma/sdk'
 import chalk from 'chalk'
-import { PreviewFlagError } from '../utils/flagErrors'
-import { NoSchemaFoundError } from '../utils/errors'
-import { tryToRunSeed } from '../utils/seed'
+import {
+  getSeedCommandFromPackageJson,
+  executeSeedCommand,
+  verifySeedConfigAndReturnMessage,
+  legacyTsNodeScriptWarning,
+} from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -21,29 +16,13 @@ export class DbSeed implements Command {
   private static help = format(`
 ${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Seed your database
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db seed is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db seed [options] --preview-feature
+  ${chalk.dim('$')} prisma db seed [options]
 
 ${chalk.bold('Options')}
 
-    -h, --help   Display this help message
-      --schema   Custom path to your Prisma schema
-
-${chalk.bold('Examples')}
-
-  Specify a schema
-  ${chalk.dim('$')} prisma db seed --preview-feature --schema=./schema.prisma
+  -h, --help   Display this help message
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -67,27 +46,48 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
+    if (args['--preview-feature']) {
+      logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
+
+      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+      await legacyTsNodeScriptWarning()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
-
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
+    // Print warning if user is using --schema
+    if (args['--schema']) {
+      logger.warn(
+        chalk.yellow(
+          `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
+        ),
+      )
     }
 
-    console.log(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
-    await tryToRunSeed(schemaPath)
+    if (!seedCommandFromPkgJson) {
+      // Only used to help users to setup their seeds from old way to new package.json config
+      const schemaPath = await getSchemaPath(args['--schema'])
 
-    return `\n${
-      process.platform === 'win32' ? '' : '🌱  '
-    }Your database has been seeded.`
+      const message = await verifySeedConfigAndReturnMessage(schemaPath)
+      // Error because setup of the feature needs to be done
+      if (message) {
+        throw new Error(message)
+      }
+
+      return ``
+    }
+
+    // Seed command is set
+    // Execute user seed command
+    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    if (successfulSeeding) {
+      return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
+    } else {
+      process.exit(1)
+      // For snapshot test, because exit() is mocked
+      return ``
+    }
   }
 
   public help(error?: string): string | HelpError {

@@ -15,6 +15,7 @@ model User {
   // / name comment
   name     String?
   json     Json
+  jsonOpt  Json?
   posts    Post[]
 }
 

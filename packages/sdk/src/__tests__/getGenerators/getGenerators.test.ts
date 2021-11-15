@@ -3,7 +3,7 @@ import { BinaryType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
-import { getGenerators } from '../../getGenerators'
+import { getGenerators } from '../../get-generators/getGenerators'
 import { omit } from '../../omit'
 import { pick } from '../../pick'
 import { resolveBinary } from '../../resolveBinary'
@@ -42,13 +42,7 @@ describe('getGenerators', () => {
       ]
     `)
 
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
+    expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
         provider = \\"sqlite\\"
@@ -80,8 +74,7 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(omit(generators[0].options!.generator, ['output']))
-      .toMatchInlineSnapshot(`
+    expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
       Object {
         "binaryTargets": Array [
           Object {
@@ -111,10 +104,7 @@ describe('getGenerators', () => {
     }
 
     const generators = await getGenerators({
-      schemaPath: path.join(
-        __dirname,
-        'valid-minimal-schema-binaryTargets.prisma',
-      ),
+      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma'),
       providerAliases: aliases,
     })
 
@@ -134,13 +124,7 @@ describe('getGenerators', () => {
       ]
     `)
 
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
+    expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
         provider = \\"sqlite\\"
@@ -205,10 +189,7 @@ describe('getGenerators', () => {
     }
 
     const generators = await getGenerators({
-      schemaPath: path.join(
-        __dirname,
-        'valid-minimal-schema-binaryTargets-env-var.prisma',
-      ),
+      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
     })
 
@@ -228,13 +209,7 @@ describe('getGenerators', () => {
       ]
     `)
 
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
+    expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
         provider = \\"sqlite\\"
@@ -271,9 +246,7 @@ describe('getGenerators', () => {
 
     expect(generator.binaryTargets).toHaveLength(1)
     expect(generator.binaryTargets[0].value).toEqual(platform)
-    expect(generator.binaryTargets[0].fromEnvVar).toEqual(
-      'BINARY_TARGETS_ENV_VAR_TEST',
-    )
+    expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
       Object {
@@ -301,10 +274,7 @@ describe('getGenerators', () => {
     }
 
     const generators = await getGenerators({
-      schemaPath: path.join(
-        __dirname,
-        'valid-minimal-schema-binaryTargets-env-var.prisma',
-      ),
+      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
     })
 
@@ -324,13 +294,7 @@ describe('getGenerators', () => {
               ]
           `)
 
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
+    expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
         provider = \\"sqlite\\"
@@ -367,9 +331,7 @@ describe('getGenerators', () => {
 
     expect(generator.binaryTargets).toHaveLength(1)
     expect(generator.binaryTargets[0].value).toEqual(platform)
-    expect(generator.binaryTargets[0].fromEnvVar).toEqual(
-      'BINARY_TARGETS_ENV_VAR_TEST',
-    )
+    expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
               Object {
@@ -387,8 +349,7 @@ describe('getGenerators', () => {
   })
 
   it('basic - binaryTargets as env var - darwin, windows, debian', async () => {
-    process.env.BINARY_TARGETS_ENV_VAR_TEST =
-      '["darwin", "windows", "debian-openssl-1.1.x"]'
+    process.env.BINARY_TARGETS_ENV_VAR_TEST = '["darwin", "windows", "debian-openssl-1.1.x"]'
 
     const aliases = {
       'predefined-generator': {
@@ -398,10 +359,7 @@ describe('getGenerators', () => {
     }
 
     const generators = await getGenerators({
-      schemaPath: path.join(
-        __dirname,
-        'valid-minimal-schema-binaryTargets-env-var.prisma',
-      ),
+      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
     })
 
@@ -421,13 +379,7 @@ describe('getGenerators', () => {
               ]
           `)
 
-    expect(
-      pick(generators[0].options!, [
-        'datamodel',
-        'datasources',
-        'otherGenerators',
-      ]),
-    ).toMatchInlineSnapshot(`
+    expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
         "datamodel": "datasource db {
         provider = \\"sqlite\\"
@@ -459,8 +411,7 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(omit(generators[0].options!.generator, ['output']))
-      .toMatchInlineSnapshot(`
+    expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
               Object {
                 "binaryTargets": Array [
                   Object {
@@ -630,10 +581,7 @@ describe('getGenerators', () => {
 
     try {
       await getGenerators({
-        schemaPath: path.join(
-          __dirname,
-          'missing-models-mongodb-schema.prisma',
-        ),
+        schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
         providerAliases: aliases,
       })
     } catch (e) {
@@ -652,6 +600,96 @@ describe('getGenerators', () => {
         https://pris.ly/d/prisma-schema
         "
       `)
+    }
+  })
+
+  test('fail if mongoDb not found in previewFeatures - prisma-client-js - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'missing-mongoDb-from-previewFeatures-client-js.prisma'),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+"
+In order to use the mongodb provider,
+you need to set the mongodb feature flag.
+You can define the feature flag like this:
+
+generator client {
+    provider = \\"prisma-client-js\\"
+    previewFeatures = [\\"mongoDb\\"]
+}
+
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
+    }
+  })
+
+  test('fail if mongoDb not found in previewFeatures - prisma-client-go - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'missing-mongoDb-from-previewFeatures-client-go.prisma'),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+"
+In order to use the mongodb provider,
+you need to set the mongodb feature flag.
+You can define the feature flag like this:
+
+generator client {
+    provider = \\"prisma-client-js\\"
+    previewFeatures = [\\"mongoDb\\"]
+}
+
+More information in our documentation:
+https://pris.ly/d/prisma-schema
+"
+`)
+    }
+  })
+
+  // skipped because breaks in CI: https://github.com/prisma/prisma/runs/3729932474#step:8:596
+  // thrown: "Exceeded timeout of 20000 ms for a test.
+  test.skip('should not be blocked with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'mongoDb-from-previewFeatures-client-go.prisma'),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toContain('Generator at go run github.com/prisma/prisma-client-go could not start')
     }
   })
 })

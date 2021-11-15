@@ -1,12 +1,13 @@
+import type { Command } from '@prisma/sdk'
 import {
   arg,
-  Command,
   format,
   HelpError,
   isError,
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
+  logger,
   getConfig,
   getDMMF,
 } from '@prisma/sdk'
@@ -16,27 +17,18 @@ import prompt from 'prompts'
 import fs from 'fs'
 import path from 'path'
 import { Migrate } from '../Migrate'
-import {
-  ensureDatabaseExists,
-  getDbInfo,
-  DbType,
-} from '../utils/ensureDatabaseExists'
-import {
-  ExperimentalFlagWithNewMigrateError,
-  EarlyAccessFeatureFlagWithNewMigrateError,
-} from '../utils/flagErrors'
-import {
-  NoSchemaFoundError,
-  MigrateDevEnvNonInteractiveError,
-} from '../utils/errors'
+import type { DbType } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
+import { NoSchemaFoundError, MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { getMigrationName } from '../utils/promptForMigrationName'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
-import { tryToRunSeed, detectSeedFiles } from '../utils/seed'
-import { EngineResults } from '../types'
+import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
+import type { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -115,11 +107,7 @@ ${chalk.bold('Examples')}
       throw new NoSchemaFoundError()
     }
 
-    console.info(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     await printDatasource(schemaPath)
 
@@ -140,6 +128,7 @@ ${chalk.bold('Examples')}
     const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
     if (wasDbCreated) {
       console.info(wasDbCreated)
+      console.info() // empty line
     }
 
     const migrate = new Migrate(schemaPath)
@@ -164,10 +153,8 @@ ${chalk.bold('Examples')}
         }
 
         const dbInfo = await getDbInfo(schemaPath)
-        const confirmedReset = await this.confirmReset(
-          dbInfo,
-          devDiagnostic.action.reason,
-        )
+        const confirmedReset = await this.confirmReset(dbInfo, devDiagnostic.action.reason)
+
         console.info() // empty line
 
         if (!confirmedReset) {
@@ -194,6 +181,7 @@ ${chalk.bold('Examples')}
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
+        console.info() // empty line
         console.info(
           `The following migration(s) have been applied:\n\n${chalk(
             printFilesFromMigrationIds('migrations', appliedMigrationNames, {
@@ -207,19 +195,31 @@ ${chalk.bold('Examples')}
       throw e
     }
 
-    // If database was reset we want to run the seed if not skipped
+    // If database was created or reset we want to run the seed if not skipped
     if (
-      devDiagnostic.action.tag === 'reset' &&
+      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
       !process.env.PRISMA_MIGRATE_SKIP_SEED &&
       !args['--skip-seed']
     ) {
       // Run seed if 1 or more seed files are present
       // And catch the error to continue execution
       try {
-        const detected = detectSeedFiles(schemaPath)
-        if (detected.numberOfSeedFiles > 0) {
+        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
+
+        if (seedCommandFromPkgJson) {
           console.info() // empty line
-          await tryToRunSeed(schemaPath)
+          const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+          if (successfulSeeding) {
+            console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
+          } else {
+            console.info() // empty line
+          }
+        } else {
+          // Only used to help users to setup their seeds from old way to new package.json config
+          const schemaPath = await getSchemaPath(args['--schema'])
+          // we don't want to output the returned warning message
+          // but we still want to run it for `legacyTsNodeScriptWarning()`
+          await verifySeedConfigAndReturnMessage(schemaPath)
         }
       } catch (e) {
         console.error(e)
@@ -247,10 +247,7 @@ ${chalk.bold('Examples')}
     }
 
     // log warnings and prompt user to continue if needed
-    if (
-      evaluateDataLossResult.warnings &&
-      evaluateDataLossResult.warnings.length > 0
-    ) {
+    if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
       console.log(chalk.bold(`\n⚠️  Warnings for the current datasource:\n`))
       for (const warning of evaluateDataLossResult.warnings) {
         console.log(chalk(`  • ${warning.message}`))
@@ -323,15 +320,12 @@ ${chalk.bold('Examples')}
 
     if (migrationIds.length === 0) {
       if (migrationIdsApplied.length > 0) {
-        console.info(
-          `${chalk.green('Your database is now in sync with your schema.')}`,
-        )
+        console.info(`${chalk.green('Your database is now in sync with your schema.')}`)
       } else {
-        console.info(
-          `Already in sync, no schema change or pending migration was found.`,
-        )
+        console.info(`Already in sync, no schema change or pending migration was found.`)
       }
     } else {
+      console.info() // empty line
       console.info(
         `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
@@ -366,15 +360,13 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     },
     reason: string,
   ): Promise<boolean> {
-    const mssqlMessage = `${reason}
-
-We need to reset the database.
+    const mssqlMessage = `We need to reset the database.
 Do you want to continue? ${chalk.red('All data will be lost')}.`
 
-    const message = `${reason}
-
-We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
+    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
 Do you want to continue? ${chalk.red('All data will be lost')}.`
+
+    console.info(reason)
 
     const confirmation = await prompt({
       type: 'confirm',
@@ -387,9 +379,7 @@ Do you want to continue? ${chalk.red('All data will be lost')}.`
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateDev.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateDev.help}`)
     }
     return MigrateDev.help
   }

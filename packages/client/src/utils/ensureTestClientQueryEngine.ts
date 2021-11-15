@@ -1,6 +1,7 @@
 import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
-import { getNodeAPIName, Platform } from '@prisma/get-platform'
+import type { Platform } from '@prisma/get-platform'
+import { getNodeAPIName } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 import { ClientEngineType } from '../runtime/utils/getClientEngineType'
@@ -11,34 +12,22 @@ import { ClientEngineType } from '../runtime/utils/getClientEngineType'
  * @param clientEngineType
  * @param platform
  */
-export async function ensureTestClientQueryEngine(
-  clientEngineType: ClientEngineType,
-  platform: Platform,
-) {
+export async function ensureTestClientQueryEngine(clientEngineType: ClientEngineType, platform: Platform) {
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(
-    enginesPath,
-    getNodeAPIName(platform, 'fs'),
-  )
+  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
   const queryEngineBinaryPath = path.join(
     enginesPath,
     `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
   )
 
-  if (
-    clientEngineType === ClientEngineType.Library &&
-    !fs.existsSync(queryEngineLibraryPath)
-  ) {
+  if (clientEngineType === ClientEngineType.Library && !fs.existsSync(queryEngineLibraryPath)) {
     await download({
       binaries: {
         'libquery-engine': enginesPath,
       },
       version: enginesVersion,
     })
-  } else if (
-    clientEngineType === ClientEngineType.Binary &&
-    !fs.existsSync(queryEngineBinaryPath)
-  ) {
+  } else if (clientEngineType === ClientEngineType.Binary && !fs.existsSync(queryEngineBinaryPath)) {
     await download({
       binaries: {
         'query-engine': enginesPath,

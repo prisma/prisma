@@ -1,5 +1,5 @@
+import type { Command } from '@prisma/sdk'
 import {
-  Command,
   arg,
   getSchemaPath,
   getDMMF,
@@ -15,7 +15,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import { DMMF } from '@prisma/generator-helper'
+import type { DMMF } from '@prisma/generator-helper'
 import equal from 'fast-deep-equal'
 
 const readFile = promisify(fs.readFile)
@@ -81,11 +81,7 @@ ${chalk.bold('Examples')}
       )
     }
 
-    console.log(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     const schema = await readFile(schemaPath, 'utf-8')
     const localDmmf = await getDMMF({ datamodel: schema })
@@ -94,10 +90,7 @@ ${chalk.bold('Examples')}
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
     const connectionString = config.datasources[0].url
-    const canConnect = await canConnectToDatabase(
-      connectionString.value,
-      path.dirname(schemaPath),
-    )
+    const canConnect = await canConnectToDatabase(connectionString.value, path.dirname(schemaPath))
     if (typeof canConnect !== 'boolean') {
       throw new Error(`${canConnect.code}: ${canConnect.message}`)
     }
@@ -116,18 +109,14 @@ ${chalk.bold('Examples')}
 
     const remoteDmmf = await getDMMF({ datamodel })
 
-    const remoteModels = keyBy(
-      remoteDmmf.datamodel.models,
-      (m) => m.dbName ?? m.name,
-    )
+    const remoteModels = keyBy(remoteDmmf.datamodel.models, (m) => m.dbName ?? m.name)
 
     const modelPairs = localDmmf.datamodel.models.map((localModel) => ({
       localModel,
       remoteModel: remoteModels[localModel.dbName ?? localModel.name],
     }))
 
-    const getFieldName = (f: DMMF.Field) =>
-      f.dbNames && f.dbNames.length > 0 ? f.dbNames[0] : f.name
+    const getFieldName = (f: DMMF.Field) => (f.dbNames && f.dbNames.length > 0 ? f.dbNames[0] : f.name)
 
     const messages: string[] = []
 
@@ -145,12 +134,7 @@ ${chalk.bold('Examples')}
           const remoteField = remoteFields[getFieldName(localField)]
           if (!remoteField) {
             missingFields.push(localField)
-          } else if (
-            !equal(
-              pick(localField, ['type', 'isList']),
-              pick(remoteField, ['type', 'isList']),
-            )
-          ) {
+          } else if (!equal(pick(localField, ['type', 'isList']), pick(remoteField, ['type', 'isList']))) {
             incorrectFieldType.push({ localField, remoteField })
           }
         }
@@ -194,11 +178,7 @@ function printModelMessage({
   missingFields: DMMF.Field[]
   incorrectFieldType: IncorrectFieldTypes
 }) {
-  if (
-    !missingModel &&
-    missingFields.length === 0 &&
-    incorrectFieldType.length === 0
-  ) {
+  if (!missingModel && missingFields.length === 0 && incorrectFieldType.length === 0) {
     return null
   }
   let msg = `${chalk.bold.underline(model.name)}\n`

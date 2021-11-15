@@ -1,36 +1,32 @@
 import indent from 'indent-string'
-import { DMMFClass } from '../../runtime/dmmf'
-import { BaseField, DMMF } from '../../runtime/dmmf-types'
-import {
-  GraphQLScalarToJSTypeTable,
-  isSchemaEnum,
-  needsNamespace,
-} from '../../runtime/utils/common'
+import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMF } from '../../runtime/dmmf-types'
+import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../runtime/utils/common'
+import { buildComment } from '../utils/types/buildComment'
 import { TAB_SIZE } from './constants'
-import { Generatable } from './Generatable'
-import { ExportCollector, wrapComment } from './helpers'
+import type { Generatable } from './Generatable'
+import type { ExportCollector } from './helpers'
+import { wrapComment } from './helpers'
 
 export class ModelOutputField implements Generatable {
   constructor(
     protected readonly dmmf: DMMFClass,
-    protected readonly field: BaseField,
+    protected readonly field: DMMF.Field,
     protected readonly useNamespace = false,
   ) {}
   public toTS(): string {
     const { field, useNamespace } = this
     // ENUMTODO
     let fieldType =
-      typeof field.type === 'string'
-        ? GraphQLScalarToJSTypeTable[field.type] || field.type
-        : field.type[0].name
+      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type[0].name
     if (Array.isArray(fieldType)) {
       fieldType = fieldType[0]
     }
     const arrayStr = field.isList ? `[]` : ''
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
-    const namespaceStr =
-      useNamespace && needsNamespace(field, this.dmmf) ? `Prisma.` : ''
-    return `${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+    const namespaceStr = useNamespace && needsNamespace(field.type, this.dmmf) ? `Prisma.` : ''
+
+    return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
   }
 }
 
@@ -60,21 +56,8 @@ export class OutputField implements Generatable {
     }
 
     const arrayStr = field.outputType.isList ? `[]` : ''
-    const nullableStr =
-      field.isNullable && !field.outputType.isList ? ' | null' : ''
-    const namespaceStr =
-      useNamespace &&
-      needsNamespace(
-        {
-          name: field.name,
-          type: field.outputType.type,
-          isList: field.outputType.isList,
-          isRequired: !field.isNullable,
-        },
-        this.dmmf,
-      )
-        ? `Prisma.`
-        : ''
+    const nullableStr = field.isNullable && !field.outputType.isList ? ' | null' : ''
+    const namespaceStr = useNamespace && needsNamespace(field.outputType.type, this.dmmf) ? `Prisma.` : ''
     const deprecated = field.deprecation
       ? `@deprecated since ${field.deprecation.sinceVersion} because ${field.deprecation.reason}`
       : ''
@@ -100,11 +83,7 @@ export class OutputType implements Generatable {
     return `
 export type ${type.name} = {
 ${indent(
-  type.fields
-    .map((field) =>
-      new OutputField(this.dmmf, { ...field, ...field.outputType }).toTS(),
-    )
-    .join('\n'),
+  type.fields.map((field) => new OutputField(this.dmmf, { ...field, ...field.outputType }).toTS()).join('\n'),
   TAB_SIZE,
 )}
 }`

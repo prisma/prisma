@@ -46,9 +46,7 @@ export interface MigrationFeedback {
   stepIndex: number
 }
 
-export type DevAction =
-  | { tag: 'reset'; reason: string }
-  | { tag: 'createMigration' }
+export type DevAction = { tag: 'reset'; reason: string } | { tag: 'createMigration' }
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineArgs {

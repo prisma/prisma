@@ -1,0 +1,40 @@
+[
+  {
+    "name": "Jane Smith",
+    "email": "1@prisma.io",
+    "admin": true,
+    "hobbies": [
+      {
+        "name": "Swimming",
+        "tags": ["tag"],
+        "objects": [
+          {
+            "name": "Object 1",
+            "tags": ["tag"]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "John Smith",
+    "email": "2@prisma.io",
+    "admin": false,
+    "hobbies": [
+      {
+        "name": "Running",
+        "tags": ["tag"],
+        "objects": [
+          {
+            "name": "Object 1",
+            "tags": ["tag"]
+          }
+        ]
+      },
+      {
+        "name": "Coding",
+        "tags": ["tag"]
+      }
+    ]
+  }
+]

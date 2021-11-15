@@ -1,14 +1,6 @@
 import chalk from 'chalk'
-import {
-  Command,
-  Commands,
-  arg,
-  isError,
-  format,
-  HelpError,
-  unknownCommand,
-  logger,
-} from '@prisma/sdk'
+import type { Command, Commands } from '@prisma/sdk'
+import { arg, isError, format, HelpError, unknownCommand, logger } from '@prisma/sdk'
 import { Version } from './Version'
 import { link } from '@prisma/sdk'
 import { ensureBinariesExist } from '@prisma/engines'
@@ -20,10 +12,7 @@ export class CLI implements Command {
   static new(cmds: Commands, ensureBinaries: string[]): CLI {
     return new CLI(cmds, ensureBinaries)
   }
-  private constructor(
-    private readonly cmds: Commands,
-    private readonly ensureBinaries: string[],
-  ) {}
+  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -56,20 +45,14 @@ export class CLI implements Command {
     const cmdName = args._[0]
     // Throw if "lift"
     if (cmdName === 'lift') {
-      throw new Error(
-        `${chalk.red('prisma lift')} has been renamed to ${chalk.green(
-          'prisma migrate',
-        )}`,
-      )
+      throw new Error(`${chalk.red('prisma lift')} has been renamed to ${chalk.green('prisma migrate')}`)
     }
     // warn if "introspect"
     else if (cmdName === 'introspect') {
       logger.warn('')
       logger.warn(
         `${chalk.bold(
-          `The ${chalk.underline(
-            'prisma introspect',
-          )} command is deprecated. Please use ${chalk.green(
+          `The ${chalk.underline('prisma introspect')} command is deprecated. Please use ${chalk.green(
             'prisma db pull',
           )} instead.`,
         )}`,
@@ -86,20 +69,11 @@ export class CLI implements Command {
 
       let argsForCmd: string[]
       if (args['--experimental']) {
-        argsForCmd = [
-          ...args._.slice(1),
-          `--experimental=${args['--experimental']}`,
-        ]
+        argsForCmd = [...args._.slice(1), `--experimental=${args['--experimental']}`]
       } else if (args['--preview-feature']) {
-        argsForCmd = argsForCmd = [
-          ...args._.slice(1),
-          `--preview-feature=${args['--preview-feature']}`,
-        ]
+        argsForCmd = [...args._.slice(1), `--preview-feature=${args['--preview-feature']}`]
       } else if (args['--early-access-feature']) {
-        argsForCmd = argsForCmd = [
-          ...args._.slice(1),
-          `--early-access-feature=${args['--early-access-feature']}`,
-        ]
+        argsForCmd = [...args._.slice(1), `--early-access-feature=${args['--early-access-feature']}`]
       } else {
         argsForCmd = args._.slice(1)
       }
@@ -120,9 +94,7 @@ export class CLI implements Command {
   private static help = format(`
     ${
       process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
-    }Prisma is a modern DB toolkit to query, migrate and model your database (${link(
-    'https://prisma.io',
-  )})
+    }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
     ${chalk.bold('Usage')}
 

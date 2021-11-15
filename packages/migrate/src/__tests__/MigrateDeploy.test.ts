@@ -3,12 +3,6 @@ process.env.GITHUB_ACTIONS = '1'
 import fs from 'fs-jetpack'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { consoleContext, Context } from './__helpers__/context'
-import { tearDownMysql } from '../utils/setupMysql'
-import {
-  SetupParams,
-  setupPostgres,
-  tearDownPostgres,
-} from '../utils/setupPostgres'
 
 const ctx = Context.new().add(consoleContext()).assemble()
 
@@ -43,19 +37,16 @@ describe('sqlite', () => {
   it('no unapplied migrations', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDeploy.new().parse(['--schema=./prisma/empty.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `No pending migrations to apply.`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
-
       No migration found in prisma/migrations
+
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -79,24 +70,23 @@ describe('sqlite', () => {
 
     // Second time should do nothing (already applied)
     const resultBis = MigrateDeploy.new().parse([])
-    await expect(resultBis).resolves.toMatchInlineSnapshot(
-      `No pending migrations to apply.`,
-    )
+    await expect(resultBis).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       SQLite database dev.db created at file:dev.db
 
-
       1 migration found in prisma/migrations
+
+      Applying migration \`20201231000000_init\`
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations
+
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
@@ -114,12 +104,12 @@ describe('sqlite', () => {
 
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       1 migration found in prisma/migrations
+
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

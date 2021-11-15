@@ -1,6 +1,6 @@
-import { DMMF as ExternalDMMF } from '@prisma/generator-helper'
+import type { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
-import { DMMF } from './dmmf-types'
+import type { DMMF } from './dmmf-types'
 import { capitalize, lowerCase } from './utils/common'
 
 export function getCountAggregateOutputName(modelName: string): string {
@@ -11,19 +11,14 @@ export function getCountAggregateOutputName(modelName: string): string {
  * Turns type: string into type: string[] for all args in order to support union input types
  * @param document
  */
-export function externalToInternalDmmf(
-  document: ExternalDMMF.Document,
-): DMMF.Document {
+export function externalToInternalDmmf(document: ExternalDMMF.Document): DMMF.Document {
   return {
     ...document,
     mappings: getMappings(document.mappings, document.datamodel),
   }
 }
 
-function getMappings(
-  mappings: ExternalDMMF.Mappings,
-  datamodel: DMMF.Datamodel,
-): DMMF.Mappings {
+function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel): DMMF.Mappings {
   const modelOperations = mappings.modelOperations
     .filter((mapping) => {
       const model = datamodel.models.find((m) => m.name === mapping.model)

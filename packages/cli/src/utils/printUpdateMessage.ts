@@ -1,93 +1,46 @@
 import { drawBox, isCurrentBinInstalledGlobally, logger } from '@prisma/sdk'
 import chalk from 'chalk'
-import { Check } from 'checkpoint-client'
+import type { Check } from 'checkpoint-client'
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
-export function printUpdateMessage(checkResult: {
-  status: 'ok'
-  data: Check.Response
-}): void {
-  console.error(
-    drawBox({
-      height: 4,
-      width: 59,
-      str: `\n${chalk.blue('Update available')} ${
-        checkResult.data.previous_version
-      } -> ${checkResult.data.current_version}\nRun the following to update
-  ${chalk.bold(
-    makeInstallCommand(checkResult.data.package, checkResult.data.release_tag),
-  )}
-  ${chalk.bold(
-    makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
-      canBeGlobal: false,
-      canBeDev: false,
-    }),
-  )}`,
-      horizontalPadding: 2,
-    }),
-  )
-}
+export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Response }): void {
+  let boxHeight = 4
+  let majorText = ''
 
-export function makeUninstallCommand(
-  packageName: string,
-  tag: string,
-  options = {
-    canBeGlobal: true,
-    canBeDev: true,
-  },
-): string {
-  // Examples
-  // yarn 'yarn/1.22.4 npm/? node/v12.14.1 darwin x64'
-  // npm 'npm/6.14.7 node/v12.14.1 darwin x64'
-  const yarnUsed = process.env.npm_config_user_agent?.includes('yarn')
+  const currentVersionInstalled = checkResult.data.previous_version
+  const latestVersionAvailable = checkResult.data.current_version
 
-  let command = ''
-  if (isPrismaInstalledGlobally === 'yarn' && options.canBeGlobal) {
-    command = `yarn global remove ${packageName}`
-  } else if (isPrismaInstalledGlobally === 'npm' && options.canBeGlobal) {
-    command = `npm remove -g ${packageName}`
-  } else if (yarnUsed && options.canBeDev) {
-    command = `yarn remove ${packageName}`
-  } else if (options.canBeDev) {
-    command = `npm remove ${packageName}`
-  } else if (yarnUsed) {
-    command = `yarn remove ${packageName}`
-  } else {
-    command = `npm remove ${packageName}`
-  }
-  if (tag && tag !== 'latest') {
-    command += `@${tag}`
-  }
+  const prismaCLICommand = makeInstallCommand(checkResult.data.package, checkResult.data.release_tag)
+  const prismaClientCommand = makeInstallCommand('@prisma/client', checkResult.data.release_tag, {
+    canBeGlobal: false,
+    canBeDev: false,
+  })
 
-  return command
-}
+  try {
+    const [majorInstalled] = currentVersionInstalled.split('.')
+    const [majorLatest] = latestVersionAvailable.split('.')
 
-/**
- * Users of `@prisma/cli` will be pointed to `prisma`
- */
-export function printPrismaCliUpdateWarning() {
-  logger.error(`${chalk.bold(
-    '@prisma/cli',
-  )} package has been renamed to ${chalk.bold('prisma')}.
-Please uninstall ${chalk.bold('@prisma/cli')}: ${makeUninstallCommand(
-    '@prisma/cli',
-    'latest',
-    {
-      canBeGlobal: true,
-      canBeDev: false,
-    },
-  )}
-And install ${chalk.bold.greenBright('prisma')}: ${makeInstallCommand(
-    'prisma',
-    'latest',
-    {
-      canBeGlobal: true,
-      canBeDev: true,
-    },
-  )}\n`)
+    if (majorInstalled < majorLatest) {
+      majorText = `\nThis is a major update - please follow the guide at\nhttps://pris.ly/d/major-version-upgrade\n\n`
+      boxHeight = boxHeight + 4
+    }
+  } catch (e) {}
 
-  process.exit(1)
+  const boxText = `\n${chalk.blue(
+    'Update available',
+  )} ${currentVersionInstalled} -> ${latestVersionAvailable}\n${majorText}Run the following to update
+  ${chalk.bold(prismaCLICommand)}
+  ${chalk.bold(prismaClientCommand)}`
+
+  const boxedMessage = drawBox({
+    height: boxHeight,
+    width: 59,
+    str: boxText,
+    horizontalPadding: 2,
+  })
+
+  console.error(boxedMessage)
 }
 
 function makeInstallCommand(
@@ -117,9 +70,11 @@ function makeInstallCommand(
   } else {
     command = `npm i ${packageName}`
   }
-  if (tag && tag !== 'latest') {
-    command += `@${tag}`
-  }
+
+  // always output tag (so major upgrades work)
+  // see https://www.npmjs.com/package/prisma?activeTab=versions
+  // (can only be latest or dev via checkpoint-server)
+  command += `@${tag}`
 
   return command
 }
