@@ -20,7 +20,11 @@ const runtimeBuildConfig: BuildOptions = {
   outfile: 'runtime/index',
   bundle: true,
   external: external,
-  define: { 'globalThis.NOT_PRISMA_DATA_PROXY': 'true' },
+  define: {
+    'globalThis.NOT_PRISMA_DATA_PROXY': 'true',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
+  },
 }
 
 // we define the config for browser
