@@ -128,8 +128,8 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
 const load = loader({})
 
 /**
- * esbuild plugin that provides a simple way to use esbuild's injection
- * capabilities while providing sensible defaults for node polyfills.
+ * Provides a simple way to use esbuild's injection capabilities while providing
+ * sensible defaults for node polyfills.
  * @see https://v2.parceljs.org/features/node-emulation/
  * @see https://github.com/Richienb/node-polyfill-webpack-plugin/blob/master/index.js
  * @param fillerOverrides override default fillers

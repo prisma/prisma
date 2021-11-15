@@ -1,7 +1,7 @@
 import type { Plugin } from 'esbuild'
 
 /**
- * esbuild plugin that marks all packages as external
+ * Marks all packages as external.
  */
 const externalPlugin: Plugin = {
   name: 'externalPlugin',

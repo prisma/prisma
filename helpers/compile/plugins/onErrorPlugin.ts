@@ -1,5 +1,8 @@
 import type * as esbuild from 'esbuild'
 
+/**
+ * Causes esbuild to exit immediately with an error code.
+ */
 export const onErrorPlugin: esbuild.Plugin = {
   name: 'onErrorPlugin',
   setup(build) {
