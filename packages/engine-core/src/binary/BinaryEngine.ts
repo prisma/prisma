@@ -974,41 +974,29 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
-    let result
-    if (action === 'start') {
-      const jsonOptions = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-      })
+    try {
+      if (action === 'start') {
+        const jsonOptions = JSON.stringify({
+          max_wait: arg?.maxWait ?? 2000, // default
+          timeout: arg?.timeout ?? 5000, // default
+        })
 
-      console.log('START: BEGIN')
+        const result = await Connection.onHttpError(
+          this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+          transactionHttpErrorHandler,
+        )
 
-      const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
-        transactionHttpErrorHandler,
-      )
-
-      console.log(`START: DONE ${result.data.id}`)
-
-      return result.data
-    } else if (action === 'commit') {
-      console.log(`COMMIT: BEGIN ${arg.id}`)
-
-      result = await Connection.onHttpError(
-        this.connection.post(`/transaction/${arg.id}/commit`),
-        transactionHttpErrorHandler,
-      )
-
-      console.log(`COMMIT: DONE ${arg.id}`)
-    } else if (action === 'rollback') {
-      console.log(`ROLLBACK: BEGIN ${arg.id}`)
-
-      result = await Connection.onHttpError(
-        this.connection.post(`/transaction/${arg.id}/rollback`),
-        transactionHttpErrorHandler,
-      )
-
-      console.log(`ROLLBACK: DONE ${arg.id}`)
+        return result.data
+      } else if (action === 'commit') {
+        await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+      } else if (action === 'rollback') {
+        await Connection.onHttpError(
+          this.connection.post(`/transaction/${arg.id}/rollback`),
+          transactionHttpErrorHandler,
+        )
+      }
+    } catch (e: any) {
+      this.setError(e)
     }
 
     return undefined
