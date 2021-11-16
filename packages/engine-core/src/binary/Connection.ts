@@ -30,7 +30,7 @@ export class Connection {
 
   /**
    * Wrapper to handle HTTP error codes. HTTP errors don't trigger any
-   * execptions because it is optional to handle error status codes.
+   * exceptions because it is optional to handle error status codes.
    * @param response to handle
    * @param handler to execute
    * @returns
@@ -57,8 +57,7 @@ export class Connection {
     this.url = url
 
     this._pool = new Pool(url, {
-      connections: 100,
-      pipelining: 10,
+      connections: 1000,
       keepAliveMaxTimeout: 600e3,
       headersTimeout: 0,
       ...options,
