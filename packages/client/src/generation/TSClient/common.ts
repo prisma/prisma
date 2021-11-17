@@ -149,9 +149,9 @@ export type JsonValue = string | number | boolean | JsonObject | JsonArray | nul
 /**
  * Same as JsonObject, but allows undefined
  */
-export type InputJsonObject = {[Key in string]?: JsonValue}
+export type InputJsonObject = {readonly [Key in string]?: InputJsonValue | null}
  
-export interface InputJsonArray extends Array<JsonValue> {}
+export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
  
 export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
 
