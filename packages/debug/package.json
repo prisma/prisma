@@ -6,10 +6,15 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/debug"
+  },
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>"
+    "Pierre-Antoine Mills <mills@prisma.io>",
+    "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {

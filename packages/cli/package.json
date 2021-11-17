@@ -18,12 +18,17 @@
     "query-builder"
   ],
   "main": "build/index.js",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/cli"
+  },
   "homepage": "https://www.prisma.io",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>"
+    "Pierre-Antoine Mills <mills@prisma.io>",
+    "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
