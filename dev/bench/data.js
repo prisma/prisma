@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1637148912896,
+  "lastUpdate": 1637162796806,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -66702,6 +66702,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±2.96%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 44,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "Pierre-Antoine Mills",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "28a7f970d1fa830774a19bf68a2bf618443823bb",
+          "message": "fix(client): iTX - disable pipelining for http pool for binary engine (#10295)\n\n* chore: debug\r\n\r\n* fix(engine-core): do not pipiline http calls\r\n\r\n* Revert \"chore: debug\"\r\n\r\nThis reverts commit 1852f2c822349c35080efc09f6953fa5b465bad8.\r\n\r\n* test(client): itx concurrency",
+          "timestamp": "2021-11-17T16:21:26+01:00",
+          "tree_id": "d131b8b8edad35ab7adc54ab488f924c0ba61ac1",
+          "url": "https://github.com/prisma/prisma/commit/28a7f970d1fa830774a19bf68a2bf618443823bb"
+        },
+        "date": 1637162792804,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.37,
+            "range": "±7.46%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.09,
+            "range": "±3.54%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
