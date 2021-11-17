@@ -4,12 +4,16 @@
   "main": "dist/index.js",
   "module": "dist/esm/index.mjs",
   "types": "dist/index.d.ts",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/migrate"
+  },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>"
   ],
-  "homepage": "https://www.prisma.io",
+  "homepage": "https://www.prisma.io/migrate",
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "prisma": {

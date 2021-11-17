@@ -10,7 +10,11 @@
     "Pierre-Antoine Mills <mills@prisma.io>",
     "Alexey Orlenko <orlenko@prisma.io>"
   ],
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/react-prisma"
+  },
   "homepage": "https://www.prisma.io",
   "devDependencies": {
     "@prisma/client": "workspace:*",

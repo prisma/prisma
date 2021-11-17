@@ -27,7 +27,11 @@
     "node": ">=12.6"
   },
   "homepage": "https://www.prisma.io",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/client"
+  },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",

@@ -4,7 +4,11 @@
   "main": "dist/index.js",
   "module": "dist/esm/index.mjs",
   "types": "dist/index.d.ts",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/sdk"
+  },
   "homepage": "https://www.prisma.io",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
