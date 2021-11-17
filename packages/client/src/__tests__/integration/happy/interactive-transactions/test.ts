@@ -439,6 +439,32 @@ describe('interactive transaction', () => {
 
     expect(result).toBe('result')
   })
+
+  /**
+   * Two concurrent transactions should work
+   */
+  test('concurrent', async () => {
+    await Promise.all([
+      prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+      ]),
+      prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        }),
+      ]),
+    ])
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(2)
+  })
 })
 
 beforeAll(async () => {
