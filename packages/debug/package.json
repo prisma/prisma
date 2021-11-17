@@ -9,7 +9,8 @@
   "repository": "git@github.com:prisma/prisma.git",
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>"
+    "Pierre-Antoine Mills <mills@prisma.io>",
+    "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
