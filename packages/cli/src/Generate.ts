@@ -1,5 +1,6 @@
 /* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import { enginesVersion } from '@prisma/engines'
+import { getClientEngineType } from '@prisma/sdk'
 import type { Command, Generator } from '@prisma/sdk'
 import {
   arg,
@@ -76,9 +77,12 @@ ${chalk.bold('Examples')}
       try {
         await generator.generate()
         const after = Date.now()
-        const version = generator.formatVersionForOutput()
+        const version = generator.manifest?.version
+        const engineType = getClientEngineType(generator.config)
         message.push(
-          `✔ Generated ${chalk.bold(name!)}${version ? ` (${version})` : ''}${toStr} in ${formatms(after - before)}\n`,
+          `✔ Generated ${chalk.bold(name!)} (${
+            version ? `${version} | ${engineType}` : engineType
+          })${toStr} in ${formatms(after - before)}\n`,
         )
         generator.stop()
       } catch (err) {
