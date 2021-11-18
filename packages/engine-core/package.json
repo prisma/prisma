@@ -54,7 +54,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.1",
     "terminal-link": "2.1.1",
-    "undici": "4.4.6"
+    "undici": "4.10.0"
   },
   "files": [
     "README.md",

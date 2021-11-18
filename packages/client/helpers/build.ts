@@ -1,49 +1,45 @@
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { replaceWithPlugin } from '../../../helpers/compile/plugins/replaceWithPlugin'
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
+import resolve from 'resolve'
 import path from 'path'
-import { copy } from 'fs-extra'
-import type * as esbuild from 'esbuild'
+import fs from 'fs'
 
-const external = ['_http_common']
+const inlineUndiciWasm = replaceWithPlugin([
+  [
+    /(await WebAssembly\.compile\().*?'(.*?)'\)\)\)/g,
+    async (regex, contents) => {
+      for (const match of contents.matchAll(regex)) {
+        const engineCoreDir = resolve.sync('@prisma/engine-core')
+        const undiciPackage = resolve.sync('undici/package.json', { basedir: engineCoreDir })
+        const lhttpWasmPath = path.join(path.dirname(undiciPackage), 'lib', match[2])
+        const wasmContents = (await fs.promises.readFile(lhttpWasmPath)).toString('base64')
+        const inlineWasm = `${match[1]}(Buffer.from("${wasmContents}", "base64")))`
 
-const runtimeLifecyclePlugin: esbuild.Plugin = {
-  name: 'cliLifecyclePlugin',
-  setup(build) {
-    // we only do this for the first one of the builds
-    if (build.initialOptions?.format === 'esm') return
+        const test = await WebAssembly.compile(await fs.promises.readFile(lhttpWasmPath))
 
-    build.onStart(async () => {
-      // copy wasm files, etc necessary for undici
-      await copy(
-        path.resolve(__dirname, '../node_modules/@prisma/engine-core/node_modules/undici/lib/llhttp'),
-        path.resolve(__dirname, '../runtime/llhttp'),
-      )
-    })
-  },
-}
 
-// we define the config for generator
-const generatorBuildConfig: BuildOptions = {
-  entryPoints: ['src/generation/generator.ts'],
-  outfile: 'generator-build/index',
-  bundle: true,
-  external: external,
-}
+        // contents = contents.replace(match[0], inlineWasm)
+      }
+
+      return contents
+    },
+  ],
+])
 
 // we define the config for runtime
 const runtimeBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/index',
   bundle: true,
-  external: external,
   define: {
     'globalThis.NOT_PRISMA_DATA_PROXY': 'true',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
-  plugins: [runtimeLifecyclePlugin],
+  plugins: [inlineUndiciWasm],
 }
 
 // we define the config for browser
@@ -52,7 +48,6 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
-  external: external,
 }
 
 // we define the config for proxy
@@ -62,7 +57,6 @@ const proxyBuildConfig: BuildOptions = {
   bundle: true,
   minify: true,
   legalComments: 'none',
-  external: external,
   define: {
     // that helps us to tree-shake unused things out
     'globalThis.NOT_PRISMA_DATA_PROXY': 'false',
@@ -86,6 +80,13 @@ const proxyBuildConfig: BuildOptions = {
     ),
   ],
   logLevel: 'error',
+}
+
+// we define the config for generator
+const generatorBuildConfig: BuildOptions = {
+  entryPoints: ['src/generation/generator.ts'],
+  outfile: 'generator-build/index',
+  bundle: true,
 }
 
 /**

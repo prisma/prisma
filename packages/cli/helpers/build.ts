@@ -78,7 +78,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 const cliBuildConfig: BuildOptions = {
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  external: ['@prisma/engines', '_http_common'],
+  external: ['@prisma/engines'],
   plugins: [resolveHelperPlugin, cliLifecyclePlugin],
   bundle: true,
 }

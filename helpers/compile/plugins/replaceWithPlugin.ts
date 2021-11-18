@@ -1,27 +1,39 @@
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
 
-function applyReplacements(contents: string, replacements: [RegExp, string][]) {
+type Replacement = [RegExp, string | ((regex: RegExp, contents: string) => string | Promise<string>)]
+
+async function applyReplacements(contents: string, replacements: Replacement[]) {
   for (const [regex, replacement] of replacements) {
-    contents = contents.replace(regex, replacement)
+    if (typeof replacement === 'string') {
+      contents = contents.replace(regex, replacement)
+    } else {
+      contents = await replacement(regex, contents)
+    }
   }
 
   return contents
 }
+
+// native nodejs imports so that we can filter out
+const nativeDependencies = new Set(Object.keys((process as any).binding('natives')))
 
 /**
  * Replace the contents of a file with the given replacements.
  * @param replacements
  * @returns
  */
-export const replaceWithPlugin = (replacements: [RegExp, string][]): esbuild.Plugin => {
+export const replaceWithPlugin = (replacements: Replacement[]): esbuild.Plugin => {
   return {
     name: 'replaceWithPlugin',
     setup(build) {
       build.onLoad({ filter: /.*/ }, async (args) => {
+        if (nativeDependencies.has(args.path)) return {}
+        if (!/.*?(.js|.mjs)$/.exec(args.path)) return {}
+
         const contents = await fs.promises.readFile(args.path, 'utf8')
 
-        return { contents: applyReplacements(contents, replacements) }
+        return { contents: await applyReplacements(contents, replacements) }
       })
     },
   }
