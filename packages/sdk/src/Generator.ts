@@ -41,7 +41,7 @@ export class Generator {
   formatVersionForOutput(): string | undefined {
     const version = this.manifest?.version
 
-    if (this.manifest?.reportEngineTypeWithGeneratorVersion) {
+    if (this.manifest?.showEngineTypeInGenerateOutput) {
       const engineType = getClientEngineType(this.config)
       return version ? `${version} | ${engineType}` : engineType
     }
