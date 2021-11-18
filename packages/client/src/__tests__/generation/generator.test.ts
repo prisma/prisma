@@ -55,7 +55,6 @@ describe('generator', () => {
         Object {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
-          reportEngineTypeWithGeneratorVersion: true,
           requiresEngineVersion: ENGINE_VERSION_TEST,
           requiresEngines: Array [
             queryEngine,
@@ -213,7 +212,6 @@ describe('generator', () => {
         Object {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
-          reportEngineTypeWithGeneratorVersion: true,
           requiresEngineVersion: ENGINE_VERSION_TEST,
           requiresEngines: Array [
             queryEngine,
