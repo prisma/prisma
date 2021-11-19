@@ -4,5 +4,8 @@
     "outDir": "dist",
     "emitDeclarationOnly": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  // to not copy local engines to dist
+  // so npm doesn't publish them
+  "exclude": ["src/get-generators/engines"]
 }
