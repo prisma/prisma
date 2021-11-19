@@ -97,7 +97,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
-      await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
+      // await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
       // resolvePkg has caching, so we trick it not to do it 👇
