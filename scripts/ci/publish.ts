@@ -511,6 +511,7 @@ async function publish() {
 
   const dryRun = args['--dry-run'] ?? false
 
+  // TODO: rename BUILDKITE_TAG
   if (args['--publish'] && process.env.BUILDKITE_TAG) {
     if (args['--release']) {
       throw new Error(`Can't provide env var BUILDKITE_TAG and --release at the same time`)
@@ -565,11 +566,12 @@ async function publish() {
     const packages = getPackageDependencies(rawPackages)
     const circles = getCircularDependencies(packages)
     if (circles.length > 0) {
+      // TODO this can be done by esbuild
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
     // TODO: check if we really need GITHUB_CONTEXT
+    // TODO: this is not useful anymore, the logic is
     if (!process.env.GITHUB_CONTEXT) {
-      // TODO: this is probably not useful anymore
       const changes = await getLatestChanges()
 
       console.log(chalk.bold(`Changed files:`))
@@ -602,6 +604,7 @@ async function publish() {
         tag = 'latest'
       }
     } else if (args['--release']) {
+      // TODO:Where each patch branch goes
       prismaVersion = args['--release']
       tag = 'latest'
       tagForE2ECheck = 'dev'
@@ -729,6 +732,7 @@ async function tagEnginesRepo(
     const majorMinor = [major, minor].join('.')
     // ['3.2.0', '3.2.1']
     const patchesPublished: string[] = JSON.parse(
+      // TODO this line is useful for retrieving versions
       await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
     )
 
