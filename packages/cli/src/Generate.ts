@@ -1,12 +1,12 @@
 /* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import { enginesVersion } from '@prisma/engines'
-import { getClientEngineType } from '@prisma/sdk'
 import type { Command, Generator } from '@prisma/sdk'
 import {
   arg,
   format,
   getCommandWithExecutor,
   getGenerators,
+  getGeneratorSuccessMessage,
   getSchemaPath,
   HelpError,
   highlightTS,
@@ -22,7 +22,6 @@ import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 const pkg = eval(`require('../package.json')`)
 
@@ -67,23 +66,11 @@ ${chalk.bold('Examples')}
     const message: string[] = []
 
     for (const generator of generators) {
-      const toStr = generator.options!.generator.output!
-        ? chalk.dim(
-            ` to .${path.sep}${path.relative(process.cwd(), parseEnvValue(generator.options!.generator.output!))}`,
-          )
-        : ''
-      const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
       const before = Date.now()
       try {
         await generator.generate()
         const after = Date.now()
-        const version = generator.manifest?.version
-        const engineType = getClientEngineType(generator.config)
-        message.push(
-          `✔ Generated ${chalk.bold(name!)} (${
-            version ? `${version} | ${engineType}` : engineType
-          })${toStr} in ${formatms(after - before)}\n`,
-        )
+        message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
         generator.stop()
       } catch (err) {
         this.hasGeneratorErrored = true

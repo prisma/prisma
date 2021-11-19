@@ -1,3 +1,4 @@
+export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getRelativeSchemaPath,
   getSchema,
@@ -53,6 +54,7 @@ export { engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { sendPanic } from './sendPanic'
 export type { DatabaseCredentials } from './types'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
+export { formatms } from './utils/formatms'
 export { getEnvPaths } from './utils/getEnvPaths'
 export type { EnvPaths } from './utils/getEnvPaths'
 export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
