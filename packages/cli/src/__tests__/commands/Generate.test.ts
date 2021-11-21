@@ -20,9 +20,7 @@ describe('using cli', () => {
 
   it('should error with exit code 1 with incorrect schema', async () => {
     ctx.fixture('broken-example-project')
-    await expect(ctx.cli('generate').catch((e) => e.exitCode)).resolves.toEqual(
-      1,
-    )
+    await expect(ctx.cli('generate').catch((e) => e.exitCode)).resolves.toEqual(1)
   })
 
   it('should work with a custom generator', async () => {
@@ -35,6 +33,17 @@ describe('using cli', () => {
 
     expect(cleanSnapshot(data.stdout)).toContain(`I am a minimal generator`)
   }, 30000) // timeout
+
+  it('should work with --quiet', async () => {
+    ctx.fixture('example-project')
+    const result = Generate.new().parse(['--quiet'])
+    await expect(result).resolves.toMatchInlineSnapshot(`
+
+✔ Generated Prisma Client (0.0.0) to ./generated/client in XXms
+
+`)
+    await expect(result).resolves.not.toMatch('You can now start using Prisma Client in your code')
+  })
 })
 
 describe('--schema from project directory', () => {
@@ -79,18 +88,14 @@ const prisma = new PrismaClient()
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(
-      `Provided --schema at ${absoluteSchemaPath} doesn't exist.`,
-    )
+    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
 
 describe('--schema from parent directory', () => {
   it('--schema relative path: should work', async () => {
     ctx.fixture('generate-from-parent-dir')
-    const result = Generate.new().parse([
-      '--schema=./subdirectory/schema.prisma',
-    ])
+    const result = Generate.new().parse(['--schema=./subdirectory/schema.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`
 
 ✔ Generated Prisma Client (0.0.0) to ./subdirectory/@prisma/client in XXms
@@ -105,9 +110,7 @@ const prisma = new PrismaClient()
   it('--schema relative path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-parent-dir')
 
-    const result = Generate.new().parse([
-      '--schema=./subdirectory/doesnotexists.prisma',
-    ])
+    const result = Generate.new().parse(['--schema=./subdirectory/doesnotexists.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
       `Provided --schema at ./subdirectory/doesnotexists.prisma doesn't exist.`,
     )
@@ -132,13 +135,9 @@ const prisma = new PrismaClient()
   it('--schema absolute path: should fail - invalid path', async () => {
     ctx.fixture('generate-from-parent-dir')
 
-    const absoluteSchemaPath = path.resolve(
-      './subdirectory/doesnotexists.prisma',
-    )
+    const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(
-      `Provided --schema at ${absoluteSchemaPath} doesn't exist.`,
-    )
+    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
 

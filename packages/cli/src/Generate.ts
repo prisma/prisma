@@ -45,6 +45,7 @@ ${chalk.bold('Options')}
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
      --watch   Watch the Prisma schema and rerun after a change
+ -q, --quiet   Less verbose output
 
 ${chalk.bold('Examples')}
 
@@ -102,6 +103,8 @@ ${chalk.bold('Examples')}
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
+      '--quiet': Boolean,
+      '-q': '--quiet',
       '--watch': Boolean,
       '--schema': String,
       // Only used for checkpoint information
@@ -123,6 +126,8 @@ ${chalk.bold('Examples')}
     }
 
     const watchMode = args['--watch'] || false
+
+    const isQuiet = args['--quiet'] || false
 
     const schemaPath = await getSchemaPath(args['--schema'], { cwd })
     if (!schemaPath) {
@@ -243,12 +248,14 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
+        if (!isQuiet) {
+          hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
 ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${chalk.dim('```')}${breakingChangesStr}${versionsWarning}`
+        }
       }
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
 
