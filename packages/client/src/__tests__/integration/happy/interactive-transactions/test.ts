@@ -1,4 +1,7 @@
+import path from 'path'
 import { getTestClient } from '../../../../utils/getTestClient'
+import { tearDownPostgres } from '../../../../utils/setupPostgres'
+import { migrateDb } from '../../__helpers__/migrateDb'
 
 let PrismaClient, prisma
 
@@ -47,10 +50,10 @@ describe('interactive transaction', () => {
             Invalid \`prisma.user.findMany()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-              39 
-              40 await new Promise((res) => setTimeout(res, 6000))
-              41 
-            → 42 return prisma.user.findMany(
+              42 
+              43 await new Promise((res) => setTimeout(res, 6000))
+              44 
+            → 45 return prisma.user.findMany(
               Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
           `)
   })
@@ -82,10 +85,10 @@ describe('interactive transaction', () => {
             Invalid \`prisma.user.findMany()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-               69 
-               70 await new Promise((res) => setTimeout(res, 600))
-               71 
-            →  72 return prisma.user.findMany(
+               72 
+               73 await new Promise((res) => setTimeout(res, 600))
+               74 
+            →  75 return prisma.user.findMany(
               Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
           `)
   })
@@ -171,11 +174,11 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        Invalid \`prisma.user.findMany()\` invocation:
+                                    Invalid \`prisma.user.findMany()\` invocation:
 
 
-                          Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-                    `)
+                                      Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+                              `)
 
     const users = await prisma.user.findMany()
 
@@ -219,10 +222,10 @@ describe('interactive transaction', () => {
             Invalid \`prisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-              207   },
-              208 })
-              209 
-            → 210 await prisma.user.create(
+              210   },
+              211 })
+              212 
+            → 213 await prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -253,10 +256,10 @@ describe('interactive transaction', () => {
             Invalid \`transactionBoundPrisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-              241 })
-              242 
-              243 const result = prisma.$transaction(async () => {
-            → 244   await transactionBoundPrisma.user.create(
+              244 })
+              245 
+              246 const result = prisma.$transaction(async () => {
+            → 247   await transactionBoundPrisma.user.create(
               Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
           `)
 
@@ -309,10 +312,10 @@ describe('interactive transaction', () => {
             Invalid \`prisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-              292  */
-              293 test('batching rollback', async () => {
-              294   const result = prisma.$transaction([
-            → 295     prisma.user.create(
+              295  */
+              296 test('batching rollback', async () => {
+              297   const result = prisma.$transaction([
+            → 298     prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -332,10 +335,10 @@ describe('interactive transaction', () => {
     })
 
     const result = prisma.$transaction([
-      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")`,
-      prisma.$queryRaw`DELETE FROM User`,
-      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")`,
-      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")`,
+      prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES ('2', 'user_2@website.com')`,
+      prisma.$queryRaw`DELETE FROM "User"`,
+      prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES ('1', 'user_1@website.com')`,
+      prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES ('1', 'user_1@website.com')`,
     ])
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -343,7 +346,7 @@ describe('interactive transaction', () => {
             Invalid \`prisma.executeRaw()\` invocation:
 
 
-              Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+              Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
           `)
 
     const users = await prisma.user.findMany()
@@ -407,10 +410,10 @@ describe('interactive transaction', () => {
             Invalid \`prisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
 
-              390 })
-              391 
-              392 const result = prisma.$transaction([
-            → 393   prisma.user.create(
+              393 })
+              394 
+              395 const result = prisma.$transaction([
+            → 396   prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -468,6 +471,18 @@ describe('interactive transaction', () => {
 })
 
 beforeAll(async () => {
+  if (!process.env.TEST_POSTGRES_URI) {
+    throw new Error('TEST_POSTGRES_URI must be provided for this test')
+  }
+
+  process.env.TEST_POSTGRES_URI += '-interactive-transactions'
+
+  await tearDownPostgres(process.env.TEST_POSTGRES_URI)
+  await migrateDb({
+    connectionString: process.env.TEST_POSTGRES_URI,
+    schemaPath: path.join(__dirname, 'schema.prisma'),
+  })
+
   PrismaClient = await getTestClient()
 })
 

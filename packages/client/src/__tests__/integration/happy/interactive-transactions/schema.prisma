@@ -1,10 +1,10 @@
 datasource db {
-  provider = "sqlite"
-  url      = "file:dev.db"
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["interactiveTransactions"]
 }
 
