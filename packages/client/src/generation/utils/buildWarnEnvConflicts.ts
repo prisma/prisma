@@ -1,4 +1,4 @@
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
+import { ClientEngineType } from '@prisma/sdk'
 
 /**
  * Builds the necessary bits so that our users can get a helpful warning during
