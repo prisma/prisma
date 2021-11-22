@@ -1,7 +1,7 @@
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
-import { ClientEngineType, getClientEngineType } from '../../../../runtime/utils/getClientEngineType'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('missing-engine-native-binaryTarget: library', async () => {

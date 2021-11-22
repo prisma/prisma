@@ -1,4 +1,4 @@
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
+import { ClientEngineType } from '@prisma/sdk'
 import path from 'path'
 
 /**

@@ -1,7 +1,7 @@
 import { getPlatform } from '@prisma/get-platform'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
-import { ClientEngineType, getClientEngineType } from '../../../../runtime/utils/getClientEngineType'
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 // Tests that no error is being thrown when the binary is manually set to chmod 644 because Client fixes that itself
