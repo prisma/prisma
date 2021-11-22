@@ -44,7 +44,7 @@ export class Generator {
   }
 
   /**
-   * Returns the provider name, parsed and resolved from environment variables
+   * Returns the provider name, parsed and resolved from environment variable
    * if necessary.
    */
   getProvider(): string {
