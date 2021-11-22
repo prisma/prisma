@@ -38,7 +38,7 @@ beforeAll(async () => {
     throw new Error('TEST_POSTGRES_URI must be provided for this test')
   }
 
-  process.env.TEST_POSTGRES_URI += '-interactive-transactions-concurrent-postgres' + Math.random()
+  process.env.TEST_POSTGRES_URI += '-interactive-transactions-concurrent-postgres'
 
   await tearDownPostgres(process.env.TEST_POSTGRES_URI)
   await migrateDb({
