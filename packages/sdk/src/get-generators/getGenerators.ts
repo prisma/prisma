@@ -225,8 +225,8 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
     const generatorProviders: string[] = generatorConfigs.map((g) => parseEnvValue(g.provider))
 
     for (const g of generators) {
-      if (g?.manifest?.requiresGenerators && g?.manifest?.requiresGenerators.length > 0) {
-        for (const neededGenerator of g?.manifest?.requiresGenerators) {
+      if (g.manifest && g.manifest.requiresGenerators && g.manifest.requiresGenerators.length > 0) {
+        for (const neededGenerator of g.manifest.requiresGenerators) {
           if (!generatorProviders.includes(neededGenerator)) {
             throw new Error(
               `Generator "${g.manifest.prettyName}" requires generator "${neededGenerator}", but it is missing in your schema.prisma.
@@ -243,12 +243,12 @@ generator gen {
     }
 
     // 3. Download all binaries and binary targets needed
-
     const neededVersions = Object.create(null)
     for (const g of generators) {
       if (
-        g.manifest?.requiresEngines &&
-        Array.isArray(g.manifest?.requiresEngines) &&
+        g.manifest &&
+        g.manifest.requiresEngines &&
+        Array.isArray(g.manifest.requiresEngines) &&
         g.manifest.requiresEngines.length > 0
       ) {
         const neededVersion = getEngineVersionForGenerator(g.manifest, version)
@@ -256,7 +256,7 @@ generator gen {
           neededVersions[neededVersion] = { engines: [], binaryTargets: [] }
         }
 
-        for (const engine of g.manifest?.requiresEngines) {
+        for (const engine of g.manifest.requiresEngines) {
           if (!neededVersions[neededVersion].engines.includes(engine)) {
             neededVersions[neededVersion].engines.push(engine)
           }
