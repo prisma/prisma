@@ -29,7 +29,7 @@
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.7",
     "@typescript-eslint/eslint-plugin": "5.4.0",
-    "@typescript-eslint/parser": "4.33.0",
+    "@typescript-eslint/parser": "5.4.0",
     "chalk": "4.1.2",
     "esbuild": "0.13.14",
     "eslint": "8.3.0",
