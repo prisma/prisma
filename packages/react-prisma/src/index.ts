@@ -85,6 +85,7 @@ export function PrismaClient(this, options): PrismaClientConstructor {
     const delegate = Object.create(null)
     const modelName = lowercase(mapping.model)
 
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-argument */
     const keys = Object.keys(this.client[modelName])
     for (let i = 0; i < keys.length; i++) {
       const method = keys[i]
