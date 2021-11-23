@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1637671080367,
+  "lastUpdate": 1637675444963,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -67956,6 +67956,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.07,
             "range": "±3.31%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 47,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7843dc42202b9f9670daf6100ecd0789a6af01ef",
+          "message": "chore(deps): update dependency eslint to v8 (#9692)\n\n* chore(deps): update dependency eslint to v8\r\n\r\n* chore: update eslint-plugin-jest\r\n\r\n* chore: update @typescript-eslint/eslint-plugin to 5.4.0\r\n\r\n* chore: update @typescript-eslint/parser to 5.4.0\r\n\r\n* chore: @typescript-eslint/no-unsafe-argument warn instead of error\r\n\r\n* chore: seems like one file didn't get merge correctly\r\n\r\n* chore: fix \"no-unsafe-optional-chaining\" errors\r\n\r\n\"Unsafe usage of optional chaining. If it short-circuits with 'undefined' the evaluation will throw TypeError\"\r\n\r\nCo-authored-by: Renovate Bot <bot@renovateapp.com>\r\nCo-authored-by: Joël Galeran <galeran@prisma.io>",
+          "timestamp": "2021-11-23T14:46:58+01:00",
+          "tree_id": "ac99e24e3160032b1a637e92f1ae4121230ed339",
+          "url": "https://github.com/prisma/prisma/commit/7843dc42202b9f9670daf6100ecd0789a6af01ef"
+        },
+        "date": 1637675441908,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.83%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±4.16%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
