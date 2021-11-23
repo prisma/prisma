@@ -1,6 +1,6 @@
 import fs from 'fs'
 import crypto from 'crypto'
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
+import { ClientEngineType } from '@prisma/sdk'
 
 const readFile = fs.promises.readFile
 

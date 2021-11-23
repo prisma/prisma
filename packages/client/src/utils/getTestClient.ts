@@ -7,6 +7,7 @@ import {
   mapPreviewFeatures,
   parseEnvValue,
   printConfigWarnings,
+  getClientEngineType,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
@@ -15,7 +16,6 @@ import { promisify } from 'util'
 import { getDMMF } from '../generation/getDMMF'
 import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'
-import { getClientEngineType } from '../runtime/utils/getClientEngineType'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
 

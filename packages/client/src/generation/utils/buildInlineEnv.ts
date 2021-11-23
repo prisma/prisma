@@ -1,6 +1,5 @@
-import { tryLoadEnvs } from '@prisma/sdk'
-import type { EnvPaths } from '@prisma/sdk/dist/utils/getEnvPaths'
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
+import { tryLoadEnvs, ClientEngineType } from '@prisma/sdk'
+import type { EnvPaths } from '@prisma/sdk'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 
 type LoadedEnv = {

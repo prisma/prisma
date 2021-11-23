@@ -7,11 +7,11 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { logger } from '@prisma/sdk'
 import { mapPreviewFeatures } from '@prisma/sdk'
 import { tryLoadEnvs } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
-import { ClientEngineType, getClientEngineType } from './utils/getClientEngineType'
 import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
@@ -420,6 +420,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         debug(`clientVersion: ${config.clientVersion}`)
+        debug(`clientEngineType: ${this._clientEngineType}`)
 
         this._engine = this.getEngine()
         void this._getActiveProvider()

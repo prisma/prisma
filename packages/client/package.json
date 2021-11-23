@@ -67,10 +67,10 @@
     "@microsoft/api-extractor": "7.18.19",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.6.0-10.2d4fe3c9db298298ff34fa8ade6eadc8e824488e",
-    "@prisma/fetch-engine": "3.6.0-10.2d4fe3c9db298298ff34fa8ade6eadc8e824488e",
+    "@prisma/engines": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407",
+    "@prisma/fetch-engine": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.6.0-10.2d4fe3c9db298298ff34fa8ade6eadc8e824488e",
+    "@prisma/get-platform": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -80,17 +80,17 @@
     "@types/mssql": "6.0.8",
     "@types/node": "12.20.37",
     "@types/pg": "8.6.1",
-    "@typescript-eslint/eslint-plugin": "4.33.0",
-    "@typescript-eslint/parser": "4.33.0",
+    "@typescript-eslint/eslint-plugin": "5.4.0",
+    "@typescript-eslint/parser": "5.4.0",
     "arg": "5.0.1",
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
     "esbuild": "0.13.14",
-    "eslint": "7.32.0",
+    "eslint": "8.3.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.2.4",
+    "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.6.0-10.2d4fe3c9db298298ff34fa8ade6eadc8e824488e"
+    "@prisma/engines-version": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407"
   },
   "lint-staged": {
     "*.ts": [

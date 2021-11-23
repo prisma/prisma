@@ -2,9 +2,9 @@ import { enginesVersion, getEnginesPath } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
+import { ClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
-import { ClientEngineType } from '../runtime/utils/getClientEngineType'
 /**
  * Ensures the correct Query Engine (`node-api`/`binary`) is present. This is required as
  * normally the downloading of the required engine is done in `getGenerators`. As the test

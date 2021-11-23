@@ -7,7 +7,11 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/sdk"
+  },
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",
     "Pierre-Antoine Mills <mills@prisma.io>",
@@ -17,13 +21,13 @@
   "devDependencies": {
     "@types/jest": "27.0.2",
     "@types/node": "12.20.37",
-    "@typescript-eslint/eslint-plugin": "4.33.0",
-    "@typescript-eslint/parser": "4.33.0",
+    "@typescript-eslint/eslint-plugin": "5.4.0",
+    "@typescript-eslint/parser": "5.4.0",
     "esbuild": "0.13.14",
-    "eslint": "7.32.0",
+    "eslint": "8.3.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.2.4",
+    "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "jest": "27.3.1",
     "lint-staged": "12.0.2",
@@ -45,9 +49,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.6.0-10.2d4fe3c9db298298ff34fa8ade6eadc8e824488e",
+    "@prisma/engines": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.6.0-10.2d4fe3c9db298298ff34fa8ade6eadc8e824488e",
+    "@prisma/get-platform": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",

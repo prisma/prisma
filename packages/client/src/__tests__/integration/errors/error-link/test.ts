@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '../../../../runtime/utils/getClientEngineType'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('error-link', async () => {

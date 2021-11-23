@@ -1,3 +1,4 @@
+export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getRelativeSchemaPath,
   getSchema,
@@ -25,6 +26,7 @@ export type {
   GeneratorOptions,
 } from './cli/types'
 export { arg, format, isError } from './cli/utils'
+export { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } from './client/getClientEngineType'
 export { credentialsToUri, uriToCredentials } from './convertCredentials'
 export { drawBox } from './drawBox'
 export * from './engine-commands'
@@ -52,7 +54,9 @@ export { engineEnvVarMap, resolveBinary } from './resolveBinary'
 export { sendPanic } from './sendPanic'
 export type { DatabaseCredentials } from './types'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
+export { formatms } from './utils/formatms'
 export { getEnvPaths } from './utils/getEnvPaths'
+export type { EnvPaths } from './utils/getEnvPaths'
 export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
