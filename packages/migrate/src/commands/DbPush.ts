@@ -1,11 +1,20 @@
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getSchemaPath, logger, isCi, getCommandWithExecutor } from '@prisma/sdk'
+import {
+  arg,
+  format,
+  formatms,
+  HelpError,
+  isError,
+  getSchemaPath,
+  logger,
+  isCi,
+  getCommandWithExecutor,
+} from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
-import { formatms } from '../utils/formatms'
 import { DbPushIgnoreWarningsWithFlagError, DbPushForceFlagRenamedError, NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import type { EngineResults } from '../types'

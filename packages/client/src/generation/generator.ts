@@ -1,11 +1,10 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
-import { parseEnvValue } from '@prisma/sdk'
+import { parseEnvValue, ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import { generateClient } from './generateClient'
 import { getDMMF } from './getDMMF'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
-import { ClientEngineType, getClientEngineType } from '../runtime/utils/getClientEngineType'
 const debug = Debug('prisma:client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
