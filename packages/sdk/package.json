@@ -78,7 +78,7 @@
     "is-ci": "3.0.1",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.6",
-    "p-map": "4.0.0",
+    "p-map": "5.3.0",
     "read-pkg-up": "7.0.1",
     "resolve": "1.20.0",
     "rimraf": "3.0.2",
