@@ -35,7 +35,7 @@
     "scripts"
   ],
   "devDependencies": {
-    "@types/jest": "27.0.2",
+    "@types/jest": "27.0.3",
     "@types/node": "12.20.37",
     "@types/resolve": "1.20.1",
     "@types/shell-quote": "1.7.1",

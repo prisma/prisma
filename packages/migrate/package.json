@@ -23,7 +23,7 @@
     "@prisma/engines-version": "3.6.0-15.5414823bcd672530262a0d7cbbb5b7b559036407",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@types/jest": "27.0.2",
+    "@types/jest": "27.0.3",
     "@types/node": "12.20.37",
     "@types/pg": "8.6.1",
     "@types/prompts": "2.0.14",
