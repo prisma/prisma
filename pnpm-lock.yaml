@@ -259,7 +259,7 @@ importers:
       prettier: 2.4.1
       replace-string: 3.1.0
       rimraf: 3.0.2
-      sort-keys: 4.2.0
+      sort-keys: 5.0.0
       source-map-support: 0.5.20
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
@@ -321,7 +321,7 @@ importers:
       prettier: 2.4.1
       replace-string: 3.1.0
       rimraf: 3.0.2
-      sort-keys: 4.2.0
+      sort-keys: 5.0.0
       source-map-support: 0.5.20
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
@@ -4962,9 +4962,9 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /is-plain-obj/2.1.0:
-    resolution: {integrity: sha512-YWnfyRwxL/+SsrWYfOpUtz5b3YD+nyfkHvjbcanzk8zgyO4ASD67uVMRt8k5bM4lLMDnXfriRhOpemw+NfT1eA==}
-    engines: {node: '>=8'}
+  /is-plain-obj/4.0.0:
+    resolution: {integrity: sha512-NXRbBtUdBioI73y/HmOhogw/U5msYPC9DAtGkJXeFcFWSFZw0mCUsPxk/snTuJHzNKA8kLBK4rH97RMB1BfCXw==}
+    engines: {node: '>=12'}
     dev: true
 
   /is-potential-custom-element-name/1.0.1:
@@ -7342,11 +7342,11 @@ packages:
       is-fullwidth-code-point: 4.0.0
     dev: true
 
-  /sort-keys/4.2.0:
-    resolution: {integrity: sha512-aUYIEU/UviqPgc8mHR6IW1EGxkAXpeRETYcrzg8cLAvUPZcpAlleSXHV2mY7G12GphSH6Gzv+4MMVSSkbdteHg==}
-    engines: {node: '>=8'}
+  /sort-keys/5.0.0:
+    resolution: {integrity: sha512-Pdz01AvCAottHTPQGzndktFNdbRA75BgOfeT1hH+AMnJFv8lynkPi42rfeEhpx1saTEI3YNMWxfqu0sFD1G8pw==}
+    engines: {node: '>=12'}
     dependencies:
-      is-plain-obj: 2.1.0
+      is-plain-obj: 4.0.0
     dev: true
 
   /source-map-support/0.5.20:
