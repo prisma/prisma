@@ -44,8 +44,12 @@ async function findPrismaClientDir(baseDir: string) {
   // for everything to work well we expect `../<client-dir>`
   const relDir = path.relative(CLIDir, clientDir).split(path.sep)
 
+  // check if it is running in yarn PnP environment
+  // @ts-expect-error
+  const isPnP = process.versions.pnp !== undefined
+
   // if the client is not near `prisma`, in parent folder => fail
-  if (relDir[0] !== '..' || relDir[1] === '..') return undefined
+  if (isPnP === false && (relDir[0] !== '..' || relDir[1] === '..')) return undefined
 
   // we return the resolved location as pnpm users will want that
   return resolvedClientDir
