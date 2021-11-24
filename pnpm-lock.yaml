@@ -716,7 +716,6 @@ importers:
       p-map: 4.0.0
       prettier: 2.4.1
       read-pkg-up: 7.0.1
-      resolve: 1.20.0
       rimraf: 3.0.2
       shell-quote: 1.7.3
       string-width: 4.2.3
@@ -756,7 +755,6 @@ importers:
       node-fetch: 2.6.6
       p-map: 4.0.0
       read-pkg-up: 7.0.1
-      resolve: 1.20.0
       rimraf: 3.0.2
       shell-quote: 1.7.3
       string-width: 4.2.3

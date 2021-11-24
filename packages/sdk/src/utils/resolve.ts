@@ -1,19 +1,39 @@
-import { default as _resolve } from 'resolve'
+import fs from 'fs'
 import path from 'path'
 
-async function resolve(id: string, options: _resolve.AsyncOpts) {
-  const _options = { preserveSymlinks: false, ...options }
-
-  return new Promise((res) => {
-    _resolve(id, _options, (e, v) => {
-      if (e) res(undefined)
-
-      res(v)
-    })
-  }) as Promise<string | undefined>
+interface ResolveOptions {
+  basedir?: string
+  preserveSymlinks?: boolean
 }
 
-async function resolvePkg(id: string, options: _resolve.AsyncOpts) {
+const realpathFS = fs.realpath && typeof fs.realpath.native === 'function' ? fs.realpath.native : fs.realpath
+
+async function resolve(id: string, options: ResolveOptions) {
+  const { basedir } = options
+  let { preserveSymlinks } = options
+
+  if (preserveSymlinks === undefined) {
+    preserveSymlinks = true
+  }
+
+  return new Promise<string | undefined>((resolve) => {
+    try {
+      const res = require.resolve(id, { paths: basedir ? [basedir] : undefined })
+
+      if (res && options.preserveSymlinks === false) {
+        realpathFS(res, (err, resolvedPath) => {
+          resolve(err ? undefined : resolvedPath)
+        })
+      } else {
+        resolve(res)
+      }
+    } catch (error) {
+      resolve(undefined)
+    }
+  })
+}
+
+async function resolvePkg(id: string, options: ResolveOptions) {
   const resolvedPath = await resolve(`${id}/package.json`, options)
 
   return resolvedPath && path.dirname(resolvedPath)
