@@ -75,7 +75,7 @@
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "27.0.2",
+    "@types/jest": "27.0.3",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.8",
     "@types/node": "12.20.37",

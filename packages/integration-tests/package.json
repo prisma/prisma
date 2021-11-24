@@ -15,7 +15,7 @@
   "devDependencies": {
     "@prisma/sdk": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
-    "@types/jest": "27.0.2",
+    "@types/jest": "27.0.3",
     "@types/mssql": "6.0.8",
     "@types/node": "12.20.37",
     "@types/pg": "8.6.1",

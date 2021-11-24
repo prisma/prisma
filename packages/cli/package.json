@@ -76,7 +76,7 @@
     "@prisma/studio-server": "0.440.0",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "27.0.2",
+    "@types/jest": "27.0.3",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.2.0",
     "@typescript-eslint/eslint-plugin": "5.4.0",
