@@ -56,7 +56,7 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "@prisma/get-platform": "3.6.0-17.412060b4ab3b81a95d6a0d48d5d3850dadf642bb",
-    "@sindresorhus/slugify": "1.1.2",
+    "@sindresorhus/slugify": "2.1.0",
     "execa": "5.1.1",
     "has-yarn": "2.1.0",
     "indent-string": "4.0.0",

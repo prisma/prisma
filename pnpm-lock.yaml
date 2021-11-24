@@ -4,7 +4,7 @@ importers:
 
   .:
     specifiers:
-      '@sindresorhus/slugify': 1.1.2
+      '@sindresorhus/slugify': 2.1.0
       '@slack/webhook': 6.0.0
       '@types/benchmark': 2.1.1
       '@types/glob': 7.2.0
@@ -53,7 +53,7 @@ importers:
       typescript: 4.4.4
       util: 0.12.4
     devDependencies:
-      '@sindresorhus/slugify': 1.1.2
+      '@sindresorhus/slugify': 2.1.0
       '@slack/webhook': 6.0.0
       '@types/benchmark': 2.1.1
       '@types/glob': 7.2.0
@@ -482,7 +482,7 @@ importers:
   packages/integration-tests:
     specifiers:
       '@prisma/sdk': workspace:*
-      '@sindresorhus/slugify': 1.1.2
+      '@sindresorhus/slugify': 2.1.0
       '@types/jest': 27.0.3
       '@types/mssql': 6.0.8
       '@types/node': 12.20.37
@@ -516,7 +516,7 @@ importers:
       verror: 1.10.1
     devDependencies:
       '@prisma/sdk': link:../sdk
-      '@sindresorhus/slugify': 1.1.2
+      '@sindresorhus/slugify': 2.1.0
       '@types/jest': 27.0.3
       '@types/mssql': 6.0.8
       '@types/node': 12.20.37
@@ -556,7 +556,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.6.0-17.412060b4ab3b81a95d6a0d48d5d3850dadf642bb
       '@prisma/sdk': workspace:*
-      '@sindresorhus/slugify': 1.1.2
+      '@sindresorhus/slugify': 2.1.0
       '@types/jest': 27.0.3
       '@types/node': 12.20.37
       '@types/pg': 8.6.1
@@ -595,7 +595,7 @@ importers:
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/get-platform': 3.6.0-17.412060b4ab3b81a95d6a0d48d5d3850dadf642bb
-      '@sindresorhus/slugify': 1.1.2
+      '@sindresorhus/slugify': 2.1.0
       execa: 5.1.1
       has-yarn: 2.1.0
       indent-string: 4.0.0
@@ -1761,18 +1761,18 @@ packages:
       string-argv: 0.3.1
     dev: true
 
-  /@sindresorhus/slugify/1.1.2:
-    resolution: {integrity: sha512-V9nR/W0Xd9TSGXpZ4iFUcFGhuOJtZX82Fzxj1YISlbSgKvIiNa7eLEZrT0vAraPOt++KHauIVNYgGRgjc13dXA==}
-    engines: {node: '>=10'}
+  /@sindresorhus/slugify/2.1.0:
+    resolution: {integrity: sha512-gU3Gdm/V167BmUwIn8APHZ3SeeRVRUSOdXxnt7Q/JkUHLXaaTA/prYmoRumwsSitJZWUDYMzDWdWgrOdvE8IRQ==}
+    engines: {node: '>=12'}
     dependencies:
-      '@sindresorhus/transliterate': 0.1.2
-      escape-string-regexp: 4.0.0
+      '@sindresorhus/transliterate': 1.5.0
+      escape-string-regexp: 5.0.0
 
-  /@sindresorhus/transliterate/0.1.2:
-    resolution: {integrity: sha512-5/kmIOY9FF32nicXH+5yLNTX4NJ4atl7jRgqAJuIn/iyDFXBktOKDxCvyGE/EzmF4ngSUvjXxQUQlQiZ5lfw+w==}
-    engines: {node: '>=10'}
+  /@sindresorhus/transliterate/1.5.0:
+    resolution: {integrity: sha512-/sfSkoNelLq5riqNRp5uBjHIKBi1MWZk9ubRT1WiBQuTfmDf7BeQkph2DJzRB83QagMPHk2VDjuvpy0VuwyzdA==}
+    engines: {node: '>=12'}
     dependencies:
-      escape-string-regexp: 2.0.0
+      escape-string-regexp: 5.0.0
       lodash.deburr: 4.1.0
 
   /@sinonjs/commons/1.8.3:
@@ -3782,10 +3782,15 @@ packages:
   /escape-string-regexp/2.0.0:
     resolution: {integrity: sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==}
     engines: {node: '>=8'}
+    dev: true
 
   /escape-string-regexp/4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
+
+  /escape-string-regexp/5.0.0:
+    resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
+    engines: {node: '>=12'}
 
   /escodegen/2.0.0:
     resolution: {integrity: sha512-mmHKys/C8BFUGI+MAWNcSYoORYLMdPzjrknd2Vc+bUsjN5bXcr8EhrNB+UTqfL1y3I9c4fw2ihgtMPQLBRiQxw==}
