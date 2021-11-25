@@ -70,6 +70,24 @@ async function main() {
       },
     })
   }
+
+  {
+    const array: ReadonlyArray<string> = []
+
+    await prisma.user.update({
+      where: { id: '0' },
+      data: { info: array },
+    })
+  }
+
+  {
+    const array: string[] = []
+
+    await prisma.user.update({
+      where: { id: '0' },
+      data: { info: array },
+    })
+  }
 }
 
 main().catch((e) => {
