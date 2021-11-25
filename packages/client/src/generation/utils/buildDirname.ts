@@ -6,11 +6,17 @@ import path from 'path'
  * @param clientEngineType
  * @param relativeOutdir
  * @param runtimeDir
+ * @param runtimeName
  * @returns
  */
-export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir: string, runtimeDir: string) {
+export function buildDirname(
+  clientEngineType: ClientEngineType,
+  relativeOutdir: string,
+  runtimeDir: string,
+  runtimeName: string,
+) {
   if (clientEngineType !== ClientEngineType.DataProxy) {
-    return buildDirnameFind(relativeOutdir, runtimeDir)
+    return buildDirnameFind(relativeOutdir, runtimeDir, runtimeName)
   }
 
   return buildDirnameDefault()
@@ -26,14 +32,15 @@ export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir:
  * `__dirname`, which is never available on bundles.
  * @param relativeOutdir
  * @param runtimePath
+ * @param runtimeName
  * @returns
  */
-function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
+function buildDirnameFind(relativeOutdir: string, runtimePath: string, runtimeName: string) {
   // potential client location on serverless envs
   const slsRelativeOutputDir = relativeOutdir.split(path.sep).slice(1).join(path.sep)
 
   return `
-const { findSync } = require('${runtimePath}')
+const { findSync } = require('${runtimePath}/${runtimeName}')
 
 const dirname = findSync(process.cwd(), [
     ${JSON.stringify(relativeOutdir)},

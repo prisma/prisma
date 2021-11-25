@@ -93,7 +93,7 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(engineType)}
-${buildDirname(engineType, relativeOutdir, runtimeDir)}
+${buildDirname(engineType, relativeOutdir, runtimeDir, runtimeName)}
 /**
  * Enums
  */
