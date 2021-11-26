@@ -51,6 +51,42 @@ async function findPrismaClientDir(baseDir: string) {
   return resolvedClientDir
 }
 
+function getPackageJsonPath(baseDir: string): string | undefined {
+  // TODO: these locations (moved from an if statement below in 'prisma-client-js' resolver)
+  // don't look right in general case, we need to find the nearest package.json relative to baseDir.
+  const currentDirectory = path.join(process.cwd(), 'package.json')
+  const parentDirectory = path.join(process.cwd(), '..', 'package.json')
+
+  for (const dir of [currentDirectory, parentDirectory]) {
+    if (fs.existsSync(dir)) {
+      return dir
+    }
+  }
+
+  return undefined
+}
+
+async function isPrismaCliInstalledInCurrentPackage(baseDir: string): Promise<boolean> {
+  const packageJsonPath = getPackageJsonPath(baseDir)
+
+  if (packageJsonPath === undefined) {
+    return false
+  }
+
+  const cliDir = await resolvePkg('prisma', {
+    basedir: baseDir,
+    preserveSymlinks: true,
+  })
+
+  if (cliDir === undefined) {
+    return false
+  }
+
+  const relativeDir = path.relative(path.dirname(packageJsonPath), cliDir)
+
+  return !relativeDir.startsWith('..')
+}
+
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
@@ -75,10 +111,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-      if (
-        !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
-        !fs.existsSync(path.join(process.cwd(), '../package.json'))
-      ) {
+      if (!getPackageJsonPath(baseDir)) {
         // Create default package.json
         const defaultPackageJson = `{
   "name": "my-prisma-project",
@@ -97,7 +130,10 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
-      // await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
+      if ((await isPrismaCliInstalledInCurrentPackage(baseDir)) === false) {
+        await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
+      }
+
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
       // resolvePkg has caching, so we trick it not to do it 👇
