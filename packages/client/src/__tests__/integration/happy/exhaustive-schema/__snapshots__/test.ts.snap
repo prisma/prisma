@@ -16804,6 +16804,8 @@ export namespace Prisma {
 
   export type BytesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesFilter | Buffer
   }
 
@@ -16832,6 +16834,8 @@ export namespace Prisma {
 
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
@@ -17494,11 +17498,15 @@ export namespace Prisma {
 
   export type NestedBytesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesFilter | Buffer
   }
 
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
