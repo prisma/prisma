@@ -51,42 +51,6 @@ async function findPrismaClientDir(baseDir: string) {
   return resolvedClientDir
 }
 
-function getPackageJsonPath(baseDir: string): string | undefined {
-  // TODO: these locations (moved from an if statement below in 'prisma-client-js' resolver)
-  // don't look right in general case, we need to find the nearest package.json relative to baseDir.
-  const currentDirectory = path.join(process.cwd(), 'package.json')
-  const parentDirectory = path.join(process.cwd(), '..', 'package.json')
-
-  for (const dir of [currentDirectory, parentDirectory]) {
-    if (fs.existsSync(dir)) {
-      return dir
-    }
-  }
-
-  return undefined
-}
-
-async function isPrismaCliInstalledInCurrentPackage(baseDir: string): Promise<boolean> {
-  const packageJsonPath = getPackageJsonPath(baseDir)
-
-  if (packageJsonPath === undefined) {
-    return false
-  }
-
-  const cliDir = await resolvePkg('prisma', {
-    basedir: baseDir,
-    preserveSymlinks: true,
-  })
-
-  if (cliDir === undefined) {
-    return false
-  }
-
-  const relativeDir = path.relative(path.dirname(packageJsonPath), cliDir)
-
-  return !relativeDir.startsWith('..')
-}
-
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
@@ -111,7 +75,12 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-      if (!getPackageJsonPath(baseDir)) {
+      // TODO: `prisma generate` may be called deeper than one subdirectory from
+      // the package root.
+      if (
+        !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
+        !fs.existsSync(path.join(process.cwd(), '../package.json'))
+      ) {
         // Create default package.json
         const defaultPackageJson = `{
   "name": "my-prisma-project",
@@ -130,8 +99,10 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
-      if ((await isPrismaCliInstalledInCurrentPackage(baseDir)) === false) {
-        await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
+      const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
+
+      if (!prismaCliDir) {
+        await installPackage(baseDir, `prisma@${version ?? 'latest'}`, 'dev')
       }
 
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
@@ -142,9 +113,9 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       if (!prismaClientDir) {
         throw new Error(
           `Could not resolve @prisma/client despite the installation that we just tried.
-Please try to install it by hand with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
-            getCommandWithExecutor('prisma generate'),
-          )} 🙏.`,
+Please try to install it by hand with ${chalk.bold.greenBright(
+            `${getAddPackageCommandName(baseDir)} @prisma/client`,
+          )} and rerun ${chalk.bold(getCommandWithExecutor('prisma generate'))} 🙏.`,
         )
       }
 
@@ -172,10 +143,23 @@ Please try to install it with ${chalk.bold.greenBright('npm install @prisma/clie
   },
 }
 
-async function installPackage(baseDir: string, pkg: string): Promise<void> {
-  const yarnUsed = hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+function isYarnUsed(baseDir: string): boolean {
+  // TODO: this may give false results for Yarn workspaces, implement proper detection.
+  return hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+}
 
-  const cmdName = yarnUsed ? 'yarn add' : 'npm install'
+function getAddPackageCommandName(baseDir: string, dependencyType?: 'dev'): string {
+  let command = isYarnUsed(baseDir) ? 'yarn add' : 'npm install'
+
+  if (dependencyType === 'dev') {
+    command += ' -D'
+  }
+
+  return command
+}
+
+async function installPackage(baseDir: string, pkg: string, dependencyType?: 'dev'): Promise<void> {
+  const cmdName = getAddPackageCommandName(baseDir, dependencyType)
 
   await execa.command(`${cmdName} ${pkg}`, {
     cwd: baseDir,
