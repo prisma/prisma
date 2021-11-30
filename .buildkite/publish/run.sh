@@ -41,11 +41,13 @@ function retry {
   return 0
 }
 
-npm i --silent -g pnpm@6 --unsafe-perm
+npm i --silent -g pnpm@6 --unsafe-perm # TODO: is this unsafe-perm needed?
 
-retry 6 pnpm i --no-prefer-frozen-lockfile
+retry 6 pnpm i --no-prefer-frozen-lockfile # TODO: can we maybe remove the retry?
+
 pnpm run lint
 
+# TODO: this is probably not used anymore
 if [ "$DEVELOPMENT_ENVIRONMENT_COMMIT" ]; then
   git stash
   git checkout $DEVELOPMENT_ENVIRONMENT_COMMIT
@@ -56,6 +58,7 @@ npm -v
 
 pnpm run setup
 
+# TODO: why is this necessary?
 cd packages/integration-tests
 pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
 cd ../..
