@@ -29,7 +29,8 @@ services:
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
       - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
-      # Other vars
+      # Other vars !\ If not defined, they cannot be accessed
+      # TODO: do an env var cleanup?
       - NPM_TOKEN
       - GITHUB_TOKEN
       - UPDATE_STUDIO
@@ -144,3 +145,5 @@ volumes:
   mysql_isolated:
   mariadb:
   mssql:
+
+# TODO: investigate why isolated containers aren't used in the tests
