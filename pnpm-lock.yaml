@@ -118,7 +118,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.0.3
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.2.0
+      '@types/ws': 8.2.1
       '@typescript-eslint/eslint-plugin': 5.4.0
       '@typescript-eslint/parser': 5.4.0
       chalk: 4.1.2
@@ -170,7 +170,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.0.3
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.2.0
+      '@types/ws': 8.2.1
       '@typescript-eslint/eslint-plugin': 5.4.0_8fbd82ef37e23da98dfca9805cf945cd
       '@typescript-eslint/parser': 5.4.0_eslint@8.3.0+typescript@4.4.4
       chalk: 4.1.2
@@ -2110,10 +2110,10 @@ packages:
       '@types/node': 16.11.6
     dev: true
 
-  /@types/ws/8.2.0:
-    resolution: {integrity: sha512-cyeefcUCgJlEk+hk2h3N+MqKKsPViQgF5boi9TTHSK+PoR9KWBb/C5ccPcDyAqgsbAYHTwulch725DV84+pSpg==}
+  /@types/ws/8.2.1:
+    resolution: {integrity: sha512-SqQ+LhVZaJi7c7sYVkjWALDigi/Wy7h7Iu72gkQp8Y8OWw/DddEVBrTSKu86pQftV2+Gm8lYM61hadPKqyaIeg==}
     dependencies:
-      '@types/node': 16.11.6
+      '@types/node': 16.11.10
     dev: true
 
   /@types/yargs-parser/20.2.1:
