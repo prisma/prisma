@@ -1,8 +1,9 @@
-// import { DMMFClass } from '../runtime/dmmf'
-// import { makeDocument } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
 import chalk from 'chalk'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 chalk.level = 0
 
 const datamodel = `\
@@ -28,13 +29,25 @@ model OptionalUser {
 }
 `
 
-let dmmf
-beforeAll(async () => {
-  const dmmfDocument = await getDMMF({ datamodel })
-  dmmf = new DMMFClass(dmmfDocument)
-})
+// TODO: Windows: tests fail because packages/client/helpers/jestSnapshotSerializer
+// breaks JSON args by replacing backslashes with forward slashes:
+//
+//   query {
+//     findManyUser(where: {
+//       json: {
+// -       equals: "{\"hello\":\"world\"}"
+// +       equals: "{/"hello/":/"world/"}"
+//       }
+//     }) {
+//
+describeIf(process.platform !== 'win32')('json', () => {
+  let dmmf
 
-describe('json', () => {
+  beforeAll(async () => {
+    const dmmfDocument = await getDMMF({ datamodel })
+    dmmf = new DMMFClass(dmmfDocument)
+  })
+
   test('should be able to create json', () => {
     const document = makeDocument({
       dmmf,

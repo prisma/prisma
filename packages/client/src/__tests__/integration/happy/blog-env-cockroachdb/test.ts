@@ -3,7 +3,9 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
 
-describe('Blog fixture: Cockroachdb', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () => {
   let prisma: any = null
   let PrismaHelpers: any = null
   let setupParams: any = null

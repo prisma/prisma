@@ -17,11 +17,20 @@ function normalizeTime(str: string): string {
   return str.replace(/ \d+ms/g, ' XXXms').replace(/ \d+(.\d+)?s/g, ' XXXms')
 }
 
+function normalizePaths(str: string): string {
+  return str
+    .replace(/prisma\\([\w-]+)\.prisma/g, 'prisma/$1.prisma')
+    .replace(/prisma\\seed\.ts/g, 'prisma/seed.ts')
+    .replace(/custom-folder\\seed\.js/g, 'custom-folder/seed.js')
+}
+
 export function test(value) {
   return typeof value === 'string' || value instanceof Error
 }
 
 export function serialize(value) {
   const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
-  return normalizeDbUrl(normalizeTime(normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message)))))
+  return normalizePaths(
+    normalizeDbUrl(normalizeTime(normalizeRustError(normalizeMigrateTimestamps(stripAnsi(message))))),
+  )
 }

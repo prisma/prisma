@@ -14,8 +14,12 @@ test('custom engine binary path (internal API)', async () => {
 
   const platform = await getPlatform()
 
-  const binaryFileName =
+  let binaryFileName =
     getClientEngineType() === ClientEngineType.Library ? getNodeAPIName(platform, 'fs') : `query-engine-${platform}`
+
+  if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
+    binaryFileName += '.exe'
+  }
 
   const defaultBinaryPath = path.join(__dirname, 'node_modules/.prisma/client', binaryFileName)
   const customBinaryPath = path.join(__dirname, binaryFileName)

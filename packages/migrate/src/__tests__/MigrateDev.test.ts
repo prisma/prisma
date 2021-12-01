@@ -7,6 +7,9 @@ import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 const ctx = Context.new().add(consoleContext()).assemble()
 
 process.env.GITHUB_ACTIONS = '1'
@@ -147,7 +150,18 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration (prompt)', async () => {
+  //
+  // TODO: Windows: test fails with:
+  //
+  // [Error: Failed to create a new migration directory.
+  //    0: migration_core::api::CreateMigration
+  //            with migration_name="xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end" draft=false
+  //              at migration-engine\core\src\api.rs:94
+  // ]
+  //
+  // Probably the file name is too long for Windows?
+  //
+  testIf(process.platform !== 'win32')('first migration (prompt)', async () => {
     ctx.fixture('schema-only-sqlite')
 
     prompt.inject([
@@ -729,7 +743,8 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  it('one seed.ts file', async () => {
+  // TODO: Windows: snapshot test fails because of emoji.
+  testIf(process.platform !== 'win32')('one seed.ts file', async () => {
     ctx.fixture('seed-sqlite-ts')
 
     prompt.inject(['y'])
@@ -1312,7 +1327,7 @@ describe('mysql', () => {
   })
 })
 
-describe('SQL Server', () => {
+describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   jest.setTimeout(20000)
 
   const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
