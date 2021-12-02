@@ -563,3 +563,50 @@ jobs:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }}
           name: generator-helper-${{ matrix.os }}
+
+  # macos-with-dbs:
+  #   timeout-minutes: 30
+  #   # macos-11 will become macos-latest on Dec 13
+  #   # https://github.com/actions/virtual-environments/issues/4060
+  #   runs-on: macos-11
+
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node: [16]
+    
+  #   steps:
+  #     - uses: actions/checkout@v2
+
+  #     - name: Cache .pnpm-store
+  #       uses: actions/cache@v1
+  #       with:
+  #         path: ~/.pnpm-store
+  #         key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: ${{ matrix.node }}
+
+  #     - uses: actions/setup-node@v2
+  #       with:
+  #         node-version: ${{ matrix.node }}
+
+  #     - run: bash .github/workflows/setup.sh
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
+
+  #     - run: pnpm run test
+  #       working-directory: packages/sdk
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
+  #         TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+  #         TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+  #         TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
+  #         TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+
+      
