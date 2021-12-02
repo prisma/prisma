@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1638456897961,
+  "lastUpdate": 1638457383006,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -69210,6 +69210,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±1.80%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "0ad49f41019480fa308b0225e862c419fc0586c2",
+          "message": "fix(sdk): avoid unlinking QE library when running \"prisma generate\" (#10507)\n\n* Don't install prisma when it is already present.\r\n* Don't install both prisma and @prisma/client if Yarn on Windows is detected, and ask the user to install them manually.\r\n* Add TODO comments for potential bugs out of scope of this PR.\r\n\r\nFixes #9184",
+          "timestamp": "2021-12-02T16:58:57+02:00",
+          "tree_id": "7a63415b26ff2214a11ef31adaa6a050978a0864",
+          "url": "https://github.com/prisma/prisma/commit/0ad49f41019480fa308b0225e862c419fc0586c2"
+        },
+        "date": 1638457379482,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±3.55%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.1,
+            "range": "±3.50%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
