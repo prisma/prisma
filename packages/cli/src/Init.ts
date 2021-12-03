@@ -156,7 +156,7 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    if (fs.existsSync(prismaFolder)) {
+    if (fs.existsSync(prismaFolder) && fs.lstatSync(prismaFolder).isDirectory()) {
       console.log(
         printError(`A folder called ${chalk.bold('prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
