@@ -5,7 +5,6 @@ import rimraf from 'rimraf'
 import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
-const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
 
 async function sendRequest(message: any): Promise<any> {
   return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
@@ -66,7 +65,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           query: `
               prisma.with_all_field_types.findMany({
                 select: {
@@ -93,7 +91,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           query: `
               prisma.with_all_field_types.create({
                 data: {
@@ -137,7 +134,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           query: `
               prisma.with_all_field_types.update({
                 where: {
@@ -183,7 +179,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           query: `
               prisma.with_all_field_types.delete({
                 where: { id: 2 },
