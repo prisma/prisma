@@ -12,7 +12,7 @@ it('can create database - sqlite', async () => {
 })
 
 //
-// Would need frop logic to be reproducible
+// Would need logic to be reproducible
 // createDatabase is already tested in the sdk tests
 //
 
