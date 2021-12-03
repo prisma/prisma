@@ -71,6 +71,7 @@ function parseJsonFromStderr(stderr: string): MigrateEngineLogLine[] {
   return logs
 }
 
+// could be refactored with engines using JSON RPC instead and just passing the schema
 export async function canConnectToDatabase(
   connectionString: string,
   cwd = process.cwd(),
@@ -82,6 +83,7 @@ export async function canConnectToDatabase(
     )
   }
 
+  // hack to parse the protocol
   const provider = protocolToConnectorType(`${connectionString.split(':')[0]}:`)
 
   if (provider === 'sqlite') {
@@ -89,6 +91,7 @@ export async function canConnectToDatabase(
     if (sqliteExists) {
       return true
     } else {
+      // is this necessary to do in CLI?
       return {
         code: 'P1003',
         message: "SQLite database file doesn't exist",
@@ -126,6 +129,7 @@ export async function canConnectToDatabase(
   return true
 }
 
+// could be refactored with engines using JSON RPC instead and just passing the schema
 export async function createDatabase(connectionString: string, cwd = process.cwd(), migrationEnginePath?: string) {
   const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
 
@@ -226,6 +230,7 @@ export async function execaCommand({
 export async function doesSqliteDbExist(connectionString: string, schemaDir?: string): Promise<boolean> {
   let filePath = connectionString
 
+  // this logic is duplicated
   if (filePath.startsWith('file:')) {
     filePath = filePath.slice(5)
   } else if (filePath.startsWith('sqlite:')) {
