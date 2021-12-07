@@ -1,3 +1,4 @@
+import type { Span } from '@opentelemetry/api'
 import type { Action } from './getPrismaClient'
 import type { Document } from './query'
 
@@ -17,6 +18,8 @@ export type QueryMiddlewareParams = {
   runInTransaction: boolean
   /** TODO what is this */
   args: any // TODO remove any, does this make sense, what is args?
+  /** An opentelemetry span */
+  span?: Span
 }
 
 export type EngineMiddleware<T = unknown> = (

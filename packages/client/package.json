@@ -65,6 +65,7 @@
   ],
   "devDependencies": {
     "@microsoft/api-extractor": "7.18.19",
+    "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "3.6.0-12.4bb6f7cede394fcf7b542438d29a642a8bc89e62",

@@ -1,5 +1,3 @@
-/// <reference lib="webworker" />
-
 import { Engine } from '../common/Engine'
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { request } from './utils/request'
@@ -13,6 +11,7 @@ import { ForcedRetryError } from './errors/ForcedRetryError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { DataProxyError } from './errors/DataProxyError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { URL } from 'url'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 // TODO this is an issue that we cannot share types from the client to other packages
 
@@ -54,7 +53,7 @@ export class DataProxyEngine extends Engine {
     // That's because we instantiate the client outside of the request handler. This essentially prevents immediate execution of the promise.
     // Removing this will produce the following error
     // [Error] Some functionality, such as asynchronous I/O, timeouts, and generating random values, can only be performed while handling a request.
-    const promise = Promise.resolve() 
+    const promise = Promise.resolve()
     this.pushPromise = promise.then(() => this.pushSchema())
   }
 

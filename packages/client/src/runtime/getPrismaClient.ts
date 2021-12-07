@@ -1,4 +1,6 @@
 import Debug from '@prisma/debug'
+import type { Span, Tracer } from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
@@ -33,6 +35,7 @@ import { RequestHandler } from './RequestHandler'
 import { PrismaClientValidationError } from '.'
 import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
+import { runInChildSpan } from './utils/otel/runInChildSpan'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -124,6 +127,10 @@ export interface PrismaClientOptions {
       endpoint?: string
       allowTriggerPanic?: boolean
     }
+  }
+
+  telemetry?: {
+    span: Span
   }
 }
 
@@ -312,6 +319,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
+    private telemetry: PrismaClientOptions['telemetry']
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -379,6 +387,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._dmmf = new DMMFClass(config.document)
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
+
+        this.telemetry = options.telemetry
 
         this._engineConfig = {
           cwd,
@@ -647,6 +657,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         callsite: this._getCallsite(),
         runInTransaction,
         transactionId: transactionId,
+        span: this.telemetry?.span,
       })
     }
 
@@ -810,6 +821,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         callsite: this._getCallsite(),
         runInTransaction,
         transactionId: transactionId,
+        span: this.telemetry?.span,
       })
     }
 
@@ -897,6 +909,7 @@ new PrismaClient({
         runInTransaction: false,
         headers,
         callsite: this._getCallsite(),
+        // span: no span for internals,
       })
     }
 
@@ -1060,6 +1073,8 @@ new PrismaClient({
      * @returns
      */
     private _request(internalParams: InternalRequestParams): Promise<any> {
+      const tracer = trace.getTracer('prisma')
+
       try {
         // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
@@ -1075,13 +1090,20 @@ new PrismaClient({
         const consumer = (changedParams: QueryMiddlewareParams) => {
           // if this `next` was called and there's some more middlewares
           const nextMiddleware = this._middlewares.query.get(++index)
+          // the middleware name is the function name or default if empty
+          const nextMiddlewareName = nextMiddleware?.name || 'middleware'
 
           if (nextMiddleware) {
-            // we pass the modfied params down to the next one, & repeat
-            return nextMiddleware(changedParams, consumer)
+            // by calling `next`, we pass the params to the next middleware
+            return runInChildSpan(nextMiddlewareName, tracer, changedParams.span, (span) => {
+              // we pass the modified params down to the next one, & repeat
+              return nextMiddleware({ ...changedParams, span }, consumer)
+              // calling `next` calls the consumer again with the new params
+            })
           }
 
-          const changedInternalParams = { ...internalParams, ...params }
+          // before we send the execution request, we use the changed params
+          const changedInternalParams = { ...internalParams, ...changedParams }
 
           // TODO remove this once LRT is the default transaction mode
           if (index > 0 && !this._hasPreviewFlag('interactiveTransactions')) {
@@ -1089,16 +1111,22 @@ new PrismaClient({
           }
 
           // no middleware? then we just proceed with request execution
-          return this._executeRequest(changedInternalParams)
+          return runInChildSpan('execute', tracer, changedParams.span, (span) => {
+            return this._executeRequest({ ...changedInternalParams, span })
+          })
         }
 
         if (globalThis.NOT_PRISMA_DATA_PROXY) {
           // async scope https://github.com/prisma/prisma/issues/3148
           const resource = new AsyncResource('prisma-client-request')
-          return resource.runInAsyncScope(() => consumer(params))
+          return runInChildSpan('request', tracer, this.telemetry?.span, (span) => {
+            return resource.runInAsyncScope(() => consumer({ ...params, span }))
+          })
         }
 
-        return consumer(params)
+        return runInChildSpan('request', tracer, this.telemetry?.span, (span) => {
+          return consumer({ ...params, span })
+        })
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -1251,6 +1279,7 @@ new PrismaClient({
                 runInTransaction: runInTransaction ?? false,
                 transactionId: transactionId,
                 unpacker,
+                span: this.telemetry?.span,
               })
 
             return requestPromise

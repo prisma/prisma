@@ -210,6 +210,7 @@ importers:
   packages/client:
     specifiers:
       '@microsoft/api-extractor': 7.18.19
+      '@opentelemetry/api': ^1.0.3
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': 3.6.0-12.4bb6f7cede394fcf7b542438d29a642a8bc89e62
@@ -273,6 +274,7 @@ importers:
       '@prisma/engines-version': 3.6.0-12.4bb6f7cede394fcf7b542438d29a642a8bc89e62
     devDependencies:
       '@microsoft/api-extractor': 7.18.19
+      '@opentelemetry/api': 1.0.3
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
       '@prisma/engines': 3.6.0-12.4bb6f7cede394fcf7b542438d29a642a8bc89e62
@@ -5118,7 +5120,7 @@ packages:
       jest-validate: 27.3.1
       micromatch: 4.0.4
       pretty-format: 27.3.1
-      ts-node: 10.4.0_6a91c474ad69125424415cd74f2719cf
+      ts-node: 10.4.0_54d7f9b57c83a5c5120be11b085b9de6
     transitivePeerDependencies:
       - bufferutil
       - canvas

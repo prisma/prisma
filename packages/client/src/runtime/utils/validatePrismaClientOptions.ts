@@ -3,7 +3,7 @@ import leven from 'js-levenshtein'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 import { PrismaClientConstructorValidationError } from '../query'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnNotFound']
+const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnNotFound', 'telemetry']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -150,6 +150,17 @@ It should have this form: { url: "CONNECTION_STRING" }`,
         value,
       )}`,
     )
+  },
+  telemetry: (value: unknown) => {
+    if (value === undefined) return
+
+    if (value && typeof value === 'object') {
+      if ('span' in value) {
+        return
+      }
+    }
+
+    throw new PrismaClientConstructorValidationError(`Invalid telemetry object. Received ${JSON.stringify(value)}`)
   },
 }
 
