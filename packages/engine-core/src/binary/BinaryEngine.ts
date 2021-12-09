@@ -255,7 +255,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     if (engines.length >= 10) {
       const runningEngines = engines.filter((e) => e.child)
       if (runningEngines.length === 10) {
-        console.warn(`${chalk.yellow('warn(prisma-client)')} Already 10 Prisma Clients are actively running.`)
+        console.warn(`${chalk.yellow('warn(prisma-client)')} There are already 10 Prisma Client engines actively running.`)
       }
     }
   }
