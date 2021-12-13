@@ -21,7 +21,7 @@ test('too-many-engines warning', async () => {
 
   expect(warnings).toMatchInlineSnapshot(`
     Array [
-      warn(prisma-client) Already 10 Prisma Clients are actively running.,
+      warn(prisma-client) There are already 10 Prisma Client engines actively running.,
     ]
   `)
 
