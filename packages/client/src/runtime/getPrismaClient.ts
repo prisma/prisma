@@ -36,6 +36,7 @@ import { PrismaClientValidationError } from '.'
 import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { runInChildSpan } from './utils/otel/runInChildSpan'
+import { createPrismaPromise } from './core/request/createPrismaPromise'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -1535,79 +1536,6 @@ function transactionProxy<T>(thing: T, transactionId: string): T {
       return transactionProxy(target[prop], transactionId)
     },
   }) as any as T
-}
-
-/**
- * Prisma's `Promise` that is backwards-compatible. All additions on top of the
- * original `Promise` are optional so that it can be backwards-compatible.
- * @see [[createPrismaPromise]]
- */
-interface PrismaPromise<A> extends Promise<A> {
-  /**
-   * Extension of the original `.then` function
-   * @param onfulfilled same as regular promises
-   * @param onrejected same as regular promises
-   * @param transactionId for interactive tx ids
-   */
-  then<R1 = A, R2 = never>(
-    onfulfilled?: (value: A) => R1 | PromiseLike<R1>,
-    onrejected?: (error: unknown) => R2 | PromiseLike<R2>,
-    transactionId?: number,
-  ): Promise<R1 | R2>
-
-  /**
-   * Called when executing a batch of regular tx
-   * @param id for regular tx ids
-   */
-  requestTransaction?(id: number): PromiseLike<unknown>
-}
-
-/**
- * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
- * is essentially a proxy for `Promise`. All the transaction-compatible client
- * methods return one, this allows for pre-preparing queries without executing
- * them until `.then` is called. It's the foundation of Prisma's query batching.
- * @param callback that will be wrapped within our promise implementation
- * @see [[PrismaPromise]]
- * @returns
- */
-function createPrismaPromise(
-  callback: (transactionId?: number, runInTransaction?: boolean) => PrismaPromise<unknown>,
-): PrismaPromise<unknown> {
-  // we handle exceptions that happen in the scope as `Promise` rejections
-  const _callback = (transactionId?: number, runInTransaction?: boolean) => {
-    try {
-      return callback(transactionId, runInTransaction)
-    } catch (error) {
-      // and that is because exceptions are not always async
-      return Promise.reject(error) as PrismaPromise<unknown>
-    }
-  }
-
-  return {
-    then(onFulfilled, onRejected, transactionId?: number) {
-      const promise = _callback(transactionId, false)
-
-      return promise.then(onFulfilled, onRejected, transactionId)
-    },
-    catch(onRejected) {
-      return _callback().catch(onRejected)
-    },
-    finally(onFinally) {
-      return _callback().finally(onFinally)
-    },
-    requestTransaction(transactionId: number) {
-      const promise = _callback(transactionId, true)
-
-      if (promise.requestTransaction) {
-        // requestTransaction support for nested promises
-        return promise.requestTransaction(transactionId)
-      }
-
-      return promise
-    },
-    [Symbol.toStringTag]: 'PrismaPromise',
-  }
 }
 
 export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
