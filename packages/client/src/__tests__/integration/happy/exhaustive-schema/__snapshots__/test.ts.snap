@@ -15957,10 +15957,6 @@ export namespace Prisma {
 
   export type JsonFilterBase = {
     equals?: JsonNullValueFilter | InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
@@ -15968,6 +15964,10 @@ export namespace Prisma {
     array_contains?: InputJsonValue | null
     array_starts_with?: InputJsonValue | null
     array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
     not?: JsonNullValueFilter | InputJsonValue
   }
   export type JsonNullableFilter = 
@@ -15979,10 +15979,6 @@ export namespace Prisma {
 
   export type JsonNullableFilterBase = {
     equals?: JsonNullValueFilter | InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
@@ -15990,6 +15986,10 @@ export namespace Prisma {
     array_contains?: InputJsonValue | null
     array_starts_with?: InputJsonValue | null
     array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
     not?: JsonNullValueFilter | InputJsonValue
   }
 
@@ -16141,10 +16141,6 @@ export namespace Prisma {
 
   export type JsonWithAggregatesFilterBase = {
     equals?: JsonNullValueFilter | InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
@@ -16152,6 +16148,10 @@ export namespace Prisma {
     array_contains?: InputJsonValue | null
     array_starts_with?: InputJsonValue | null
     array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
     not?: JsonNullValueFilter | InputJsonValue
     _count?: NestedIntFilter
     _min?: NestedJsonFilter
@@ -16166,10 +16166,6 @@ export namespace Prisma {
 
   export type JsonNullableWithAggregatesFilterBase = {
     equals?: JsonNullValueFilter | InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
@@ -16177,6 +16173,10 @@ export namespace Prisma {
     array_contains?: InputJsonValue | null
     array_starts_with?: InputJsonValue | null
     array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
     not?: JsonNullValueFilter | InputJsonValue
     _count?: NestedIntNullableFilter
     _min?: NestedJsonNullableFilter
@@ -17378,10 +17378,6 @@ export namespace Prisma {
 
   export type NestedJsonFilterBase = {
     equals?: JsonNullValueFilter | InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
@@ -17389,6 +17385,10 @@ export namespace Prisma {
     array_contains?: InputJsonValue | null
     array_starts_with?: InputJsonValue | null
     array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
     not?: JsonNullValueFilter | InputJsonValue
   }
   export type NestedJsonNullableFilter = 
@@ -17400,10 +17400,6 @@ export namespace Prisma {
 
   export type NestedJsonNullableFilterBase = {
     equals?: JsonNullValueFilter | InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
@@ -17411,6 +17407,10 @@ export namespace Prisma {
     array_contains?: InputJsonValue | null
     array_starts_with?: InputJsonValue | null
     array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
     not?: JsonNullValueFilter | InputJsonValue
   }
 
