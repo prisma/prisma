@@ -1,7 +1,7 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
-import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
   getAggregateArgsName,
@@ -43,7 +43,7 @@ export class Model implements Generatable {
   protected mapping?: DMMF.ModelMapping
   constructor(
     protected readonly model: DMMF.Model,
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
     protected readonly collector?: ExportCollector,
   ) {
@@ -322,7 +322,7 @@ ${this.argsTypes.map(TS).join('\n')}
 export class ModelDelegate implements Generatable {
   constructor(
     protected readonly outputType: OutputType,
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
   ) {}
   public toTS(): string {

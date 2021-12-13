@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
-import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
@@ -102,7 +102,7 @@ function executeRawDefinition(this: PrismaClientClass) {
 
 export class PrismaClientClass implements Generatable {
   constructor(
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly outputDir: string,
     protected readonly browser?: boolean,

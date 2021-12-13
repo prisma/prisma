@@ -14,7 +14,7 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
-import { DMMFClass } from './dmmf'
+import { DMMFHelper } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -279,7 +279,7 @@ const aggregateKeys = {
 // TODO improve all these types, need a common place to share them between type
 // gen and this. This will be relevant relevant for type gen tech debt refactor
 export interface Client {
-  _dmmf: DMMFClass
+  _dmmf: DMMFHelper
   _engine: Engine
   _fetcher: PrismaClientFetcher
   _connectionPromise?: Promise<any>
@@ -300,7 +300,7 @@ export interface Client {
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient implements Client {
-    _dmmf: DMMFClass
+    _dmmf: DMMFHelper
     _engine: Engine
     _fetcher: PrismaClientFetcher
     _connectionPromise?: Promise<any>
@@ -384,7 +384,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._dmmf = new DMMFClass(config.document)
+        this._dmmf = new DMMFHelper(config.document)
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
 

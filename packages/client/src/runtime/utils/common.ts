@@ -3,7 +3,7 @@ import indent from 'indent-string'
 import leven from 'js-levenshtein'
 import type { DMMF } from '../dmmf-types'
 import Decimal from 'decimal.js'
-import type { DMMFClass } from '../dmmf'
+import type { DMMFHelper } from '../dmmf'
 
 export interface Dictionary<T> {
   [key: string]: T
@@ -65,7 +65,7 @@ export const needNamespace = {
   Decimal: 'Decimal',
 }
 
-export function needsNamespace(fieldType: DMMF.Field['type'], dmmf: DMMFClass): boolean {
+export function needsNamespace(fieldType: DMMF.Field['type'], dmmf: DMMFHelper): boolean {
   if (typeof fieldType === 'string') {
     if (dmmf.datamodelEnumMap[fieldType]) {
       return false

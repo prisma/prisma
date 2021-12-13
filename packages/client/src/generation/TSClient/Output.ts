@@ -1,5 +1,5 @@
 import indent from 'indent-string'
-import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../runtime/utils/common'
 import { buildComment } from '../utils/types/buildComment'
@@ -10,7 +10,7 @@ import { wrapComment } from './helpers'
 
 export class ModelOutputField implements Generatable {
   constructor(
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly field: DMMF.Field,
     protected readonly useNamespace = false,
   ) {}
@@ -32,7 +32,7 @@ export class ModelOutputField implements Generatable {
 
 export class OutputField implements Generatable {
   constructor(
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly field: DMMF.SchemaField,
     protected readonly useNamespace = false,
   ) {}
@@ -70,7 +70,7 @@ export class OutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
   constructor(
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly type: DMMF.OutputType,
     protected readonly collector?: ExportCollector,
   ) {
