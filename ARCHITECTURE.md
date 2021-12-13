@@ -24,16 +24,18 @@ See [Prisma Generators](https://prismaio.notion.site/Prisma-Generators-a2cdf2622
 
 ## The `DMMF`, or Data Model Meta Format
 
-What the ... is DMMF? It's the Datamodel Meta Format. It is an AST (abstract syntax tree) of the datamodel in the form of JSON.
+What the ... is DMMF? It's the Datamodel Meta Format. It is an AST (abstract syntax tree) of the datamodel in the form of JSON.  
 The whole Prisma Client is just generated based on the DMMF, which comes from the Rust engines.
+
+> ⚠️ Note:  DMMF is a Prisma ORM internal API with no guarantees for stability to outside users. We might - and do - change the DMMF in potentially breaking ways between minor versions. 🐲
 
 ### Upgrading and debugging
 
 <!-- TODO -->
 
-Oftentimes, the Rust team did a change in DMMF, which you now need to integrate. How to do that?
-The first step is to identify, which new `@prisma/engines` version you want to use.
-Either have a look in the **Versions** tab in https://www.npmjs.com/package/@prisma/engines or check out `npm info @prisma/engines` in your terminal.
+Oftentimes, the Rust team did a change in DMMF, which you now need to integrate. How to do that?  
+The first step is to identify, which new `@prisma/engines` version you want to use.  
+Either have a look in the **Versions** tab in https://www.npmjs.com/package/@prisma/engines or check out `npm info @prisma/engines` in your terminal.  
 Let's say you determined, that you want to upgrade to `2.20.0-14.f461292a2242db52d9f4c87995f0237aacd300d2`. To upgrade your local workspace, run this command to upgrade both `@prisma/engines` and `@prisma/engines-version`:
 
 ```bash
@@ -63,5 +65,5 @@ cd ./packages/sdk
 pnpm run test
 ```
 
-If there is a change in the snapshots, only accept them if you're 100% certain, that these changes are expected.
+If there is a change in the snapshots, only accept them if you're 100% certain, that these changes are expected.  
 If not, please always ping the Rust team, if this is an intended change.
