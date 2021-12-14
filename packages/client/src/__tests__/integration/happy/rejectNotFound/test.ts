@@ -55,7 +55,7 @@ for (const constructorKey of Object.keys(cases.constructor)) {
         })
 
         // This function name is important cause we're searching
-        // for it's name in the stack bellow
+        // for its name in the stack below
         const testRejectionOnNotFound = async () => {
           const r = await prisma.user[method]({
             where: { id: 'none' },
