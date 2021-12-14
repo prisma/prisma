@@ -50,21 +50,42 @@ for (const constructorKey of Object.keys(cases.constructor)) {
       const value = currentMethod[valueKey]
       test(`rejectOnNotFound | constructor=${constructorKey} | ${method}=${value}`, async () => {
         // It should fail or not
-        expect.assertions(1)
         const PrismaClient = await getTestClient()
         const prisma = new PrismaClient({
           rejectOnNotFound: constructor,
         })
 
-        // Test Rejection
-        try {
+        // This function name is important cause we're searching
+        // for it's name in the stack bellow
+        const testRejectionOnNotFound = async () => {
           const r = await prisma.user[method]({
             where: { id: 'none' },
             rejectOnNotFound: value,
           })
-          expect(r).toMatchSnapshot()
+
+          // If it got to here, then no error was thrown
+          // so we check the value if it's equal to null
+          expect(r).toBeNull()
+        }
+
+        try {
+          await testRejectionOnNotFound()
         } catch (error) {
-          expect(error).toMatchSnapshot()
+          const { message, stack }: { message: string; stack: string } = error
+          expect(stack).toBeDefined()
+          expect(message).toBeDefined()
+
+          // Checking for the most important parts in the stack trace
+          // 1. The "ErrorName: ErrorMsg"
+          // 2. The function name that the error was thrown from
+          const isCustomError = error.name === 'NotFoundError'
+
+          if (isCustomError) {
+            expect(stack.includes(`NotFoundError: ${error.message}`)).toBeTruthy()
+          } else {
+            expect(stack.includes(`Error: ${error.message}`)).toBeTruthy()
+          }
+          expect(stack.includes('at testRejectionOnNotFound')).toBeTruthy()
         }
         await prisma.$disconnect()
       })
