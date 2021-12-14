@@ -49,7 +49,6 @@ for (const constructorKey of Object.keys(cases.constructor)) {
     for (const valueKey of Object.keys(currentMethod)) {
       const value = currentMethod[valueKey]
       test(`rejectOnNotFound | constructor=${constructorKey} | ${method}=${value}`, async () => {
-        // It should fail or not
         const PrismaClient = await getTestClient()
         const prisma = new PrismaClient({
           rejectOnNotFound: constructor,
@@ -71,21 +70,11 @@ for (const constructorKey of Object.keys(cases.constructor)) {
         try {
           await testRejectionOnNotFound()
         } catch (error) {
-          const { message, stack }: { message: string; stack: string } = error
+          const { message, stack } = error
           expect(stack).toBeDefined()
           expect(message).toBeDefined()
 
-          // Checking for the most important parts in the stack trace
-          // 1. The "ErrorName: ErrorMsg"
-          // 2. The function name that the error was thrown from
-          const isCustomError = error.name === 'NotFoundError'
-
-          if (isCustomError) {
-            expect(stack).toContain(`NotFoundError: ${error.message}`)
-          } else {
-            expect(stack).toContain(`Error: ${error.message}`)
-          }
-          expect(stack).toContain('at testRejectionOnNotFound')
+          expect(error).toMatchSnapshot()
         }
         await prisma.$disconnect()
       })
