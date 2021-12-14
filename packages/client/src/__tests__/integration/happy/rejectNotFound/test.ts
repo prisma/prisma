@@ -81,11 +81,11 @@ for (const constructorKey of Object.keys(cases.constructor)) {
           const isCustomError = error.name === 'NotFoundError'
 
           if (isCustomError) {
-            expect(stack.includes(`NotFoundError: ${error.message}`)).toBeTruthy()
+            expect(stack).toContain(`NotFoundError: ${error.message}`)
           } else {
-            expect(stack.includes(`Error: ${error.message}`)).toBeTruthy()
+            expect(stack).toContain(`Error: ${error.message}`)
           }
-          expect(stack.includes('at testRejectionOnNotFound')).toBeTruthy()
+          expect(stack).toContain('at testRejectionOnNotFound')
         }
         await prisma.$disconnect()
       })
