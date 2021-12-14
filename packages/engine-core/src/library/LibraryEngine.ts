@@ -96,7 +96,9 @@ export class LibraryEngine extends Engine {
     if (engines.length >= 10) {
       const runningEngines = engines.filter((e) => e.engine)
       if (runningEngines.length === 10) {
-        console.warn(`${chalk.yellow('warn(prisma-client)')} There are already 10 Prisma Client engines actively running.`)
+        console.warn(
+          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
+        )
       }
     }
   }
