@@ -75,6 +75,7 @@ for (const constructorKey of Object.keys(cases.constructor)) {
           expect(message).toBeDefined()
 
           expect(error).toMatchSnapshot()
+          expect(stack).toContain('at testRejectionOnNotFound')
         }
         await prisma.$disconnect()
       })
