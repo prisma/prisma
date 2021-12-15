@@ -58,7 +58,9 @@ function getNextUserArgs(callArgs: object, prevArgs: object | undefined, nextDat
  * Dynamically creates a fluent API from a `modelAction` and a `dmmfModelName`.
  * We use the current `dmmfModelName` to determine what can be chained on next.
  * The fluent API allows to chain on model relations to provide an alternative
- * way to fetch and access nested data all at once.
+ * way to fetch and access nested data all at once. When triggered, it calls
+ * `modelActions` after having accumulated `prevDataPath` and `prevUserArgs`
+ * with the chaining. You can find an example of usage at {@link applyModel}.
  * @param client to provide dmmf information
  * @param dmmfModelName the dmmf name of the model to apply the api to
  * @param modelAction a callback action that triggers request execution
@@ -86,19 +88,19 @@ export function applyFluent(
     {} as { [dmmfModelFieldName: string]: DMMF.Field },
   )
 
+  // we return a regular model action but proxy its return
   return (userArgs: object) => {
     // first call defaults: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
+    const prismaPromise = modelAction(nextDataPath)(nextUserArgs)
 
-    // we return an action but we take over the prisma promise
-    return new Proxy(modelAction(nextDataPath)(nextUserArgs), {
+    // take control of the return promise to allow chaining
+    return new Proxy(prismaPromise, {
       get(target, prop: string) {
         // fluent api only works on fields that are relational
-        if (dmmfModelFieldMap[prop]?.kind === 'object') {
-          const dmmfRelModelName = dmmfModelFieldMap[prop].type
-
-          return applyFluent(client, dmmfRelModelName, modelAction, prop, nextDataPath, nextUserArgs)
+        if (dmmfModelFieldMap[prop] !== undefined && dmmfModelFieldMap[prop].kind === 'object') {
+          return applyFluent(client, dmmfModelFieldMap[prop].type, modelAction, prop, nextDataPath, nextUserArgs)
         }
 
         return target[prop] // let the promise behave normally
