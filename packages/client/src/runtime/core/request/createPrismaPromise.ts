@@ -1,4 +1,6 @@
 import type { PrismaPromise } from './PrismaPromise'
+import type { Span } from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -10,12 +12,14 @@ import type { PrismaPromise } from './PrismaPromise'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (transactionId?: number, runInTransaction?: boolean) => PrismaPromise<unknown>,
+  callback: (transactionId?: number, runInTransaction?: boolean, span?: Span) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
+  const span = trace.getSpan(context.active()) // for opentelemetry tracing
+
   // we handle exceptions that happen in the scope as `Promise` rejections
   const _callback = (transactionId?: number, runInTransaction?: boolean) => {
     try {
-      return callback(transactionId, runInTransaction)
+      return callback(transactionId, runInTransaction, span)
     } catch (error) {
       // and that is because exceptions are not always async
       return Promise.reject(error) as PrismaPromise<unknown>

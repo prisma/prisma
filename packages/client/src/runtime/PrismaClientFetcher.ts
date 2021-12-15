@@ -201,7 +201,7 @@ export class PrismaClientFetcher {
     }
     return message
   }
-  unpack(document, data, path, rootField, unpacker?: Unpacker) {
+  unpack(document: Document, data: any, path: string[], rootField: string, unpacker?: Unpacker) {
     if (data?.data) {
       data = data.data
     }
