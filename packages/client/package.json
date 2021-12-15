@@ -99,7 +99,7 @@
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
-    "jest": "27.4.3",
+    "jest": "27.4.5",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.5",
     "lint-staged": "12.0.2",
@@ -119,7 +119,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "27.1.0",
+    "ts-jest": "27.1.1",
     "ts-node": "10.4.0",
     "tsd": "0.18.0",
     "typescript": "4.4.4"
