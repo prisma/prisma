@@ -56,7 +56,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
       // it takes user args and executes the request in a Prisma Promise
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs: object) => {
         return createPrismaPromise((txId, runInTx, span) => {
-          const data = { args: userArgs, dataPath: [] } // the data and its result data path
+          const data = { args: userArgs, dataPath: [] } // the data and the dataPath for the result
           const action = { action: prop, model: dmmfModelName } // the action and its related model
           const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
           const tx = { runInTransaction: !!runInTx, transactionId: txId } // transaction information
@@ -67,17 +67,17 @@ export function applyModel(client: Client, dmmfModelName: string) {
         })
       }
 
-      // or we wrap that promise for it to enable using the fluent api
+      // we give the control over action for building the fluent api
       if (prop === 'findUnique' || prop === 'findFirst') {
         return applyFluent(client, dmmfModelName, action)
       }
 
-      // or we handle the edge case of aggregates that need extra steps
+      // we handle the edge case of aggregates that need extra steps
       if (prop === 'aggregate' || prop === 'count' || prop === 'groupBy') {
-        return applyAggregates(client, dmmfModelName, action)
+        return applyAggregates(client, prop, action)
       }
 
-      return action({}) // and by default, we don't override any params
+      return action({}) // and by default, don't override any params
     },
   })
 }
