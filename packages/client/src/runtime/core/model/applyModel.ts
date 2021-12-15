@@ -13,7 +13,7 @@ const EMPTY_OBJECT = {}
  * @param action the method that has been called
  * @returns
  */
-function isValidAction(client: Client, dmmfModelName: string, action: string): action is Action {
+function isValidActionName(client: Client, dmmfModelName: string, action: string): action is Action {
   // we retrieve the possible actions for that model
   const dmmfModelMapping = client._dmmf.mappingsMap[dmmfModelName]
 
@@ -27,7 +27,7 @@ function isValidAction(client: Client, dmmfModelName: string, action: string): a
 }
 
 /**
- * Dynamically creates a model interface via a proxy
+ * Dynamically creates a model interface via a proxy.
  * @param client to trigger the request execution
  * @param dmmfModelName the dmmf name of the model
  * @returns
@@ -40,26 +40,28 @@ export function applyModel(client: Client, dmmfModelName: string) {
   return new Proxy(EMPTY_OBJECT, {
     get(_, prop: string) {
       // only allow valid actions to be accessed on a model
-      if (!isValidAction(client, dmmfModelName, prop)) return undefined
+      if (!isValidActionName(client, dmmfModelName, prop)) return undefined
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
-      // and we wrap that promise for it to enable using the fluent api
-      // eslint-disable-next-line prettier/prettier
-      return (userArgs: object) =>
-        applyFluent(
-          client,
-          createPrismaPromise((txId, runInTx, span) => {
-            // the groups below are a request's building blocks
-            const data = { args: userArgs, dataPath: [] as string[] } // the data and its result path
-            const action = { action: prop, model: dmmfModelName } // the action and its related model
-            const method = { clientMethod: `${jsModelName}.${prop}` } // action for display purposes
-            const tx = { runInTransaction: !!runInTx, transactionId: txId } // transaction information
-            const trace = { callsite: getCallSite(), span: span } // the stack trace and opentelemetry
+      const action = (dataPath: string[]) => (userArgs: object) => {
+        return createPrismaPromise((txId, runInTx, span) => {
+          const data = { args: userArgs, dataPath: dataPath } // the data and its result data path
+          const action = { action: prop, model: dmmfModelName } // the action and its related model
+          const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
+          const tx = { runInTransaction: !!runInTx, transactionId: txId } // transaction information
+          const trace = { callsite: getCallSite(), span: span } // the stack trace and opentelemetry
 
-            return client._request({ ...data, ...action, ...method, ...tx, ...trace })
-          }),
-        )
+          return client._request({ ...data, ...action, ...method, ...tx, ...trace })
+        })
+      }
+
+      // or we wrap that promise for it to enable using the fluent api
+      if (prop === 'findUnique' || prop === 'findFirst') {
+        return applyFluent(client, dmmfModelName, action)
+      }
+
+      return action([]) // dataPath only matters for the fluent api
     },
   })
 }
