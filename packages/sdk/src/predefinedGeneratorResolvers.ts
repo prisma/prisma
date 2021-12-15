@@ -75,8 +75,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-      // TODO: `prisma generate` may be called deeper than one subdirectory from
-      // the package root.
+      // TODO: should this be relative to `baseDir` rather than `process.cwd()`?
       if (
         !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
         !fs.existsSync(path.join(process.cwd(), '../package.json'))
