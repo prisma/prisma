@@ -208,7 +208,7 @@ export namespace DMMF {
     delete = 'delete',
     deleteMany = 'deleteMany',
     groupBy = 'groupBy',
-    count = 'count',
+    count = 'count', // TODO: count does not actually exist, why?
     aggregate = 'aggregate',
   }
 }

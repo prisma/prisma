@@ -1,9 +1,8 @@
 import type { Client } from '../../getPrismaClient'
-import type { PrismaPromise } from '../request/PrismaPromise'
 import { deepSet } from '../../utils/deep-set'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import type { DMMF } from '@prisma/generator-helper'
-import type { applyModel } from './applyModel'
+import type { applyModel, ModelAction } from './applyModel'
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
@@ -74,7 +73,7 @@ function getNextUserArgs(callArgs: object, prevArgs: object | undefined, nextDat
 export function applyFluent(
   client: Client,
   dmmfModelName: string,
-  modelAction: (dataPath: string[]) => (userArgs: object) => PrismaPromise<unknown>,
+  modelAction: ModelAction,
   fluentPropName?: string,
   prevDataPath?: string[],
   prevUserArgs?: object,
@@ -93,7 +92,7 @@ export function applyFluent(
     // first call defaults: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
-    const prismaPromise = modelAction(nextDataPath)(nextUserArgs)
+    const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
 
     // take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {

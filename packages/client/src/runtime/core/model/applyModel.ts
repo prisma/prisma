@@ -1,10 +1,17 @@
-import type { Action, Client } from '../../getPrismaClient'
+import type { O } from 'ts-toolbelt'
+import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'
+import type { PrismaPromise } from '../request/PrismaPromise'
 import { getCallSite } from '../utils/getCallSite'
+import { applyAggregates } from './applyAggregates'
 import { applyFluent } from './applyFluent'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 const EMPTY_OBJECT = {}
+
+export type ModelAction = (
+  paramOverrides: O.Optional<InternalRequestParams>,
+) => (userArgs: object) => PrismaPromise<unknown>
 
 /**
  * Tells if a given `action` is valid & available for a `model`.
@@ -14,8 +21,11 @@ const EMPTY_OBJECT = {}
  * @returns
  */
 function isValidActionName(client: Client, dmmfModelName: string, action: string): action is Action {
-  // we retrieve the possible actions for that model
+  // we retrieve the possible actions for this model
   const dmmfModelMapping = client._dmmf.mappingsMap[dmmfModelName]
+
+  // TODO: edge case, not actually present in the DMMF
+  if (action === 'count') return true
 
   // these are not allowed or valid actions on a model
   if (['model', 'plural'].includes(action)) return false
@@ -44,15 +54,16 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
-      const action = (dataPath: string[]) => (userArgs: object) => {
+      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs: object) => {
         return createPrismaPromise((txId, runInTx, span) => {
-          const data = { args: userArgs, dataPath: dataPath } // the data and its result data path
+          const data = { args: userArgs, dataPath: [] } // the data and its result data path
           const action = { action: prop, model: dmmfModelName } // the action and its related model
           const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
           const tx = { runInTransaction: !!runInTx, transactionId: txId } // transaction information
           const trace = { callsite: getCallSite(), span: span } // the stack trace and opentelemetry
+          const params = { ...data, ...action, ...method, ...tx, ...trace }
 
-          return client._request({ ...data, ...action, ...method, ...tx, ...trace })
+          return client._request({ ...params, ...paramOverrides })
         })
       }
 
@@ -61,7 +72,12 @@ export function applyModel(client: Client, dmmfModelName: string) {
         return applyFluent(client, dmmfModelName, action)
       }
 
-      return action([]) // dataPath only matters for the fluent api
+      // or we handle the edge case of aggregates that need extra steps
+      if (prop === 'aggregate' || prop === 'count' || prop === 'groupBy') {
+        return applyAggregates(client, dmmfModelName, action)
+      }
+
+      return action({}) // and by default, we don't override any params
     },
   })
 }
