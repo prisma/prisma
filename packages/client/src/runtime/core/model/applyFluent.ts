@@ -93,13 +93,16 @@ export function applyFluent(
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
     const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
+    // TODO: have a custom unpacker here instead of that logic in ClientFetcher
 
     // take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {
       get(target, prop: string) {
         // fluent api only works on fields that are relational
-        if (dmmfModelFieldMap[prop] !== undefined && dmmfModelFieldMap[prop].kind === 'object') {
-          return applyFluent(client, dmmfModelFieldMap[prop].type, modelAction, prop, nextDataPath, nextUserArgs)
+        if (dmmfModelFieldMap[prop] && dmmfModelFieldMap[prop].kind === 'object') {
+          const modelParams = [client, dmmfModelFieldMap[prop].type, modelAction] as const
+
+          return applyFluent(...modelParams, prop, nextDataPath, nextUserArgs)
         }
 
         return target[prop] // let the promise behave normally
