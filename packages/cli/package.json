@@ -98,7 +98,7 @@
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.4.3",
+    "jest": "27.4.5",
     "line-replace": "2.0.1",
     "lint-staged": "12.0.2",
     "log-update": "4.0.0",
@@ -112,7 +112,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
-    "ts-jest": "27.1.0",
+    "ts-jest": "27.1.1",
     "typescript": "4.4.4"
   },
   "scripts": {
