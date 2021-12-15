@@ -75,6 +75,30 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
+      // TODO: `prisma generate` may be called deeper than one subdirectory from
+      // the package root.
+      if (
+        !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
+        !fs.existsSync(path.join(process.cwd(), '../package.json'))
+      ) {
+        // Create default package.json
+        const defaultPackageJson = `{
+  "name": "my-prisma-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \\"Error: no test specified\\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
+`
+        fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
+        console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
+      }
+
       const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
 
       // Automatically installing the packages with Yarn on Windows won't work because
