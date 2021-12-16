@@ -10,9 +10,7 @@ describe.skip('connection-limit-postgres', () => {
 
   test('the client cannot query the db with 100 connections already open', async () => {
     const PrismaClient = await getTestClient()
-    const connectionString =
-      process.env.TEST_POSTGRES_ISOLATED_URI ||
-      'postgres://prisma:prisma@localhost:5435/tests'
+    const connectionString = process.env.TEST_POSTGRES_ISOLATED_URI || 'postgres://prisma:prisma@localhost:5435/tests'
 
     for (let i = 0; i <= 100; i++) {
       const client = new PrismaClient({
@@ -28,9 +26,7 @@ describe.skip('connection-limit-postgres', () => {
         await client.$connect()
       }
     } catch (e) {
-      expect(e.message).toMatch(
-        'Error querying the database: db error: FATAL: sorry, too many clients already',
-      )
+      expect(e.message).toMatch('Error querying the database: db error: FATAL: sorry, too many clients already')
     }
   }, 100_000)
 })

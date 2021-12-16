@@ -5,10 +5,7 @@ import { getTestClient } from '../../../../utils/getTestClient'
 const copyFile = promisify(fs.copyFile)
 
 test('uncheckedScalarInputs', async () => {
-  await copyFile(
-    path.join(__dirname, 'dev.db'),
-    path.join(__dirname, 'dev-tmp.db'),
-  )
+  await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   await prisma.user.deleteMany()

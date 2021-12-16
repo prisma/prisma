@@ -133,13 +133,11 @@ describe('getDMMF', () => {
         @@map("users")
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 
   test('model with autoincrement should fail if mysql', async () => {
@@ -154,13 +152,11 @@ describe('getDMMF', () => {
         @@map("users")
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 
   test('@@unique model', async () => {
@@ -210,39 +206,7 @@ describe('getDMMF', () => {
 
     expect(dmmf).toMatchSnapshot()
   })
-  test('@@id model previewFeature="namedConstraints"', async () => {
-    const dmmf = await getDMMF({
-      datamodel: `
-      datasource db {
-        provider = "postgres"
-        url      = env("MY_POSTGRES_DB")
-      }
-      generator client {
-        provider        = "prisma-client-js"
-        previewFeatures = ["namedConstraints"]
-      }
-      
-      model User1 {
-        id        Int     @default(autoincrement())
-        firstName String
-        lastName  String
-        isAdmin   Boolean @default(false)
-        @@id(fields: [firstName, lastName],  name: "customName")
-      }
-      
-      // Specify a multi-field id attribute on two String fields and one Boolean field
-      model User2 {
-        id        Int     @default(autoincrement())
-        firstName String
-        lastName  String
-        isAdmin   Boolean @default(false)
-        @@id([firstName, lastName, isAdmin])
-      }
-  `,
-    })
 
-    expect(dmmf).toMatchSnapshot()
-  })
   test('@@id model', async () => {
     const dmmf = await getDMMF({
       datamodel: `
@@ -252,9 +216,16 @@ describe('getDMMF', () => {
       }
       generator client {
         provider        = "prisma-client-js"
-        previewFeatures = ["namedConstraints"]
       }
-
+      
+      model User1 {
+        id        Int     @default(autoincrement())
+        firstName String
+        lastName  String
+        isAdmin   Boolean @default(false)
+        @@id(fields: [firstName, lastName], name: "customName") // with name
+      }
+      
       // Specify a multi-field id attribute on two String fields and one Boolean field
       model User2 {
         id        Int     @default(autoincrement())
@@ -268,71 +239,9 @@ describe('getDMMF', () => {
 
     expect(dmmf).toMatchSnapshot()
   })
-  test('@@unique model connectOrCreate', async () => {
-    const dmmf = await getDMMF({
-      datamodel: `
-      datasource db {
-        provider = "postgresql"
-        url      = env("MY_POSTGRES_DB")
-      }
-
-      // From https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/data-model#examples-3
-      // Specify a multi-field unique attribute that includes a relation field
-      model Post {
-        id        Int     @default(autoincrement())
-        author    User    @relation(fields: [authorId], references: [id])
-        authorId  Int
-        title     String
-        published Boolean @default(false)
-        
-        @@unique([authorId, title])
-      }
-      model User {
-        id    Int    @id @default(autoincrement())
-        email String @unique
-        posts Post[]
-      }
-
-      // Specify a multi-field unique attribute on two String fields
-      model User1 {
-        id        Int     @default(autoincrement())
-        firstName String
-        lastName  String
-        isAdmin   Boolean @default(false)
-        @@unique([firstName, lastName])
-      }
-      
-      // Specify a multi-field unique attribute on two String fields and one Boolean field
-      model User2 {
-        id        Int     @default(autoincrement())
-        firstName String
-        lastName  String
-        isAdmin   Boolean @default(false)
-        @@unique([firstName, lastName, isAdmin])
-      }
-  `,
-    })
-
-    expect(dmmf).toMatchSnapshot()
-  })
 
   test('chinook introspected schema', async () => {
-    const file = fs.readFileSync(
-      path.join(fixturesPath, 'chinook.prisma'),
-      'utf-8',
-    )
-    const dmmf = await getDMMF({
-      datamodel: file,
-    })
-    const str = JSON.stringify(dmmf)
-    expect(str.length).toMatchSnapshot()
-  })
-
-  test('chinook introspected schema connectOrCreate', async () => {
-    const file = fs.readFileSync(
-      path.join(fixturesPath, 'chinook.prisma'),
-      'utf-8',
-    )
+    const file = fs.readFileSync(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
     const dmmf = await getDMMF({
       datamodel: file,
     })
@@ -341,10 +250,7 @@ describe('getDMMF', () => {
   })
 
   test('big schema', async () => {
-    const file = fs.readFileSync(
-      path.join(fixturesPath, 'bigschema.prisma'),
-      'utf-8',
-    )
+    const file = fs.readFileSync(path.join(fixturesPath, 'bigschema.prisma'), 'utf-8')
     const dmmf = await getDMMF({
       datamodel: file,
     })
@@ -389,12 +295,10 @@ describe('getDMMF', () => {
       COLLABORATOR
     }
     `
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 })

@@ -1,6 +1,7 @@
-import getStream = require('get-stream')
-import { Client, Pool } from 'undici'
-import { URL } from 'url'
+import getStream from 'get-stream'
+import type { Client } from 'undici'
+import { Pool } from 'undici'
+import type { URL } from 'url'
 
 export type Result<R> = {
   statusCode: Client.ResponseData['statusCode']
@@ -28,15 +29,12 @@ export class Connection {
 
   /**
    * Wrapper to handle HTTP error codes. HTTP errors don't trigger any
-   * execptions because it is optional to handle error status codes.
+   * exceptions because it is optional to handle error status codes.
    * @param response to handle
    * @param handler to execute
    * @returns
    */
-  static async onHttpError<R, HR>(
-    response: Promise<Result<R>>,
-    handler: (result: Result<R>) => HR,
-  ) {
+  static async onHttpError<R, HR>(response: Promise<Result<R>>, handler: (result: Result<R>) => HR) {
     const _response = await response
 
     if (_response.statusCode >= 400) {
@@ -56,8 +54,7 @@ export class Connection {
     if (this._pool) return
 
     this._pool = new Pool(url, {
-      connections: 100,
-      pipelining: 10,
+      connections: 1000,
       keepAliveMaxTimeout: 600e3,
       headersTimeout: 0,
       ...options,
@@ -107,11 +104,7 @@ export class Connection {
    * @param headers
    * @returns
    */
-  post<R>(
-    endpoint: string,
-    body?: Client.DispatchOptions['body'],
-    headers?: Client.DispatchOptions['headers'],
-  ) {
+  post<R>(endpoint: string, body?: Client.DispatchOptions['body'], headers?: Client.DispatchOptions['headers']) {
     return this.raw<R>('POST', endpoint, headers, body)
   }
 

@@ -5,7 +5,7 @@ import hasYarn from 'has-yarn'
 import chalk from 'chalk'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
-import { getPrismaConfigFromPackageJson, logger } from '@prisma/sdk'
+import { getPrismaConfigFromPackageJson, logger, link } from '@prisma/sdk'
 import Debug from '@prisma/debug'
 
 const debug = Debug('prisma:migrate:seed')
@@ -15,9 +15,7 @@ const readFileAsync = promisify(fs.readFile)
   Checks if user has a prisma/seed.ts or prisma/seed.js or prisma/seed.sh
   If prisma.seed is not set in package.json it will return the best error message to help the user
 */
-export async function verifySeedConfigAndReturnMessage(
-  schemaPath: string | null,
-): Promise<string | undefined> {
+export async function verifySeedConfigAndReturnMessage(schemaPath: string | null): Promise<string | undefined> {
   const cwd = process.cwd()
 
   // Detect if seed files are next to prisma.schema file
@@ -33,7 +31,6 @@ export async function verifySeedConfigAndReturnMessage(
   // If new "seed" config is not set, help user to set it
   const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
 
-  // TODO link to docs
   let message = `${chalk.red(
     'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
   )}
@@ -41,7 +38,10 @@ export async function verifySeedConfigAndReturnMessage(
 1. Open the package.json of your project
 `
 
-  if (detected.numberOfSeedFiles === 1) {
+  if (detected.numberOfSeedFiles) {
+    // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+    await legacyTsNodeScriptWarning()
+
     // Probably was using seed before 3.0 and need to add the seed property in package.json
     message += `2. Add the following example to it:`
 
@@ -58,6 +58,12 @@ export async function verifySeedConfigAndReturnMessage(
 \`\`\`
 "prisma": {
   "seed": "ts-node ${detected.ts}"
+}
+\`\`\`
+If you are using ESM (ECMAScript modules):
+\`\`\`
+"prisma": {
+  "seed": "node --loader ts-node/esm ${detected.ts}"
 }
 \`\`\`
 
@@ -82,6 +88,13 @@ ${chalk.bold('TypeScript:')}
   "seed": "ts-node ./prisma/seed.ts"
 }
 \`\`\`
+If you are using ESM (ECMAScript modules):
+\`\`\`
+"prisma": {
+  "seed": "node --loader ts-node/esm ./prisma/seed.ts"
+}
+\`\`\`
+
 And install the required dependencies by running:
 ${packageManager} ts-node typescript @types/node
 
@@ -100,6 +113,8 @@ ${chalk.bold('Bash:')}
 \`\`\`
 And run \`chmod +x prisma/seed.sh\` to make it executable.`
   }
+
+  message += `\nMore information in our documentation:\n${link('https://pris.ly/d/seeding')}`
 
   return message
 }
@@ -142,13 +157,12 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   try {
     await execa.command(command, {
       stdout: 'inherit',
-      stderr: 'pipe',
+      stderr: 'inherit',
     })
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as execa.ExecaError
     debug({ e })
-    console.error(
-      chalk.bold.red(`\nAn error occured while running the seed command:`),
-    )
+    console.error(chalk.bold.red(`\nAn error occured while running the seed command:`))
     console.error(chalk.red(e.stderr || e))
     return false
   }

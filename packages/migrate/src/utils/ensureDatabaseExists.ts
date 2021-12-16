@@ -1,26 +1,24 @@
 import { getSchema, getSchemaDir } from '@prisma/sdk'
 import { getConfig } from '@prisma/sdk'
 import chalk from 'chalk'
-import {
-  DatabaseCredentials,
-  uriToCredentials,
-  createDatabase,
-  canConnectToDatabase,
-} from '@prisma/sdk'
+import type { DatabaseCredentials } from '@prisma/sdk'
+import { uriToCredentials, createDatabase, canConnectToDatabase } from '@prisma/sdk'
 import prompt from 'prompts'
-import execa from 'execa'
+import type execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
 
+// TODO: extract functions in their own files?
+
 export async function getDbInfo(schemaPath?: string): Promise<{
-  name: string
-  url: string
-  schemaWord: 'database'
-  dbLocation?: string
-  dbType?: DbType
-  dbName?: string
-  schema?: string
+  name: string // from datasource name
+  url: string // from getConfig
+  schemaWord: 'database' // legacy? could be removed?
+  dbLocation?: string // host without credentials
+  dbType?: DbType // pretty name
+  dbName?: string // database name
+  schema?: string // only for postgres right now (but SQL Server has this concept too)
 }> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
@@ -62,9 +60,10 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   }
 }
 
-export async function ensureCanConnectToDatabase(
-  schemaPath?: string,
-): Promise<Boolean | Error> {
+// check if we can connect to the database
+// if true: return true
+// if false: throw error
+export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
@@ -73,18 +72,9 @@ export async function ensureCanConnectToDatabase(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  if (activeDatasource.provider === 'mongodb') {
-    throw new Error(
-      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
-    )
-  }
-
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(
-    activeDatasource.url.value,
-    schemaDir,
-  )
+  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
 
   if (canConnect === true) {
     return true
@@ -94,11 +84,7 @@ export async function ensureCanConnectToDatabase(
   }
 }
 
-export async function ensureDatabaseExists(
-  action: MigrateAction,
-  forceCreate = false,
-  schemaPath?: string,
-) {
+export async function ensureDatabaseExists(action: MigrateAction, forceCreate = false, schemaPath?: string) {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
   const activeDatasource = config.datasources[0]
@@ -107,32 +93,26 @@ export async function ensureDatabaseExists(
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
-  if (activeDatasource.provider === 'mongodb') {
-    throw new Error(
-      `"mongodb" provider is not supported with this command. For more info see https://www.prisma.io/docs/concepts/database-connectors/mongodb`,
-    )
-  }
-
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(
-    activeDatasource.url.value,
-    schemaDir,
-  )
+  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
   if (canConnect === true) {
     return
   }
   const { code, message } = canConnect
 
+  // P1003 means we can connect but that the database doesn't exist
   if (code !== 'P1003') {
     throw new Error(`${code}: ${message}`)
   }
 
   // last case: status === 'DatabaseDoesNotExist'
 
+  // a bit weird, is that ever reached?
   if (!schemaDir) {
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
+  // forceCreate is always true in the codebase as of today
   if (forceCreate) {
     if (await createDatabase(activeDatasource.url.value, schemaDir)) {
       // URI parsing is not implemented for SQL server yet
@@ -140,23 +120,21 @@ export async function ensureDatabaseExists(
         return `SQL Server database created.\n`
       }
 
+      // parse the url
       const credentials = uriToCredentials(activeDatasource.url.value)
-      const { schemaWord, dbType, dbName } =
-        getDbinfoFromCredentials(credentials)
+      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+      // not needed to check for sql server here since we returned already earlier if provider = sqlserver
       if (dbType && dbType !== 'SQL Server') {
-        return `${dbType} ${schemaWord} ${chalk.bold(
-          dbName,
-        )} created at ${chalk.bold(getDbLocation(credentials))}`
+        return `${dbType} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
       } else {
+        // SQL Server case, never reached?
         return `${schemaWord} created.`
       }
     }
   } else {
-    await interactivelyCreateDatabase(
-      activeDatasource.url.value,
-      action,
-      schemaDir,
-    )
+    // never reached because forceCreate is always true in the codebase as of today
+    // todo remove
+    await interactivelyCreateDatabase(activeDatasource.url.value, action, schemaDir)
   }
 
   return undefined
@@ -183,9 +161,7 @@ export async function askToCreateDb(
   if (dbName && dbLocation) {
     message = `You are trying to ${action} a migration for ${dbType} ${schemaWord} ${chalk.bold(
       dbName,
-    )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(
-      dbLocation,
-    )}.\n`
+    )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(dbLocation)}.\n`
   } else {
     message = `You are trying to ${action} a migration for ${dbType} ${schemaWord}.\nThe ${schemaWord} doesn't exist.\n`
   }
@@ -218,6 +194,7 @@ export async function askToCreateDb(
   }
 }
 
+// returns the "host" like localhost / 127.0.0.1 + default port
 export function getDbLocation(credentials: DatabaseCredentials): string {
   if (credentials.type === 'sqlite') {
     return credentials.uri!
@@ -240,9 +217,10 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
   return `${credentials.host}:${credentials.port}`
 }
 
+// returns database name + pretty name of db provider
 export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
-  dbName: string | undefined
-  dbType: DbType
+  dbName: string | undefined // database name
+  dbType: DbType // pretty name
   schemaWord: 'database'
 } {
   const dbName = credentials.database
@@ -258,6 +236,7 @@ export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
     case 'sqlite':
       dbType = `SQLite`
       break
+    // this is never reached as url parsing for sql server is not implemented
     case 'sqlserver':
       dbType = `SQL Server`
       break

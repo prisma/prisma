@@ -1,15 +1,6 @@
-import {
-  arg,
-  Command,
-  format,
-  HelpError,
-  isError,
-  link,
-  getSchemaPath,
-  logger,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, HelpError, isError, getSchemaPath, logger } from '@prisma/sdk'
 import chalk from 'chalk'
-import { PreviewFlagError } from '../utils/flagErrors'
 import {
   getSeedCommandFromPackageJson,
   executeSeedCommand,
@@ -25,23 +16,13 @@ export class DbSeed implements Command {
   private static help = format(`
 ${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Seed your database
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db seed is currently in Preview (${link(
-      'https://pris.ly/d/preview',
-    )}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
-${chalk.dim(
-  'When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.',
-)}
-
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db seed [options] --preview-feature
+  ${chalk.dim('$')} prisma db seed [options]
 
 ${chalk.bold('Options')}
 
-    -h, --help   Display this help message
+  -h, --help   Display this help message
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -65,8 +46,12 @@ ${chalk.bold('Options')}
       return this.help()
     }
 
-    if (!args['--preview-feature']) {
-      throw new PreviewFlagError()
+    if (args['--preview-feature']) {
+      logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
+
+      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
+      await legacyTsNodeScriptWarning()
     }
 
     // Print warning if user is using --schema
@@ -78,12 +63,7 @@ ${chalk.bold('Options')}
       )
     }
 
-    // Print warning if user has a "ts-node" script in their package.json, not supported anymore
-    await legacyTsNodeScriptWarning()
-
-    const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
-      process.cwd(),
-    )
+    const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
     if (!seedCommandFromPkgJson) {
       // Only used to help users to setup their seeds from old way to new package.json config
@@ -102,9 +82,7 @@ ${chalk.bold('Options')}
     // Execute user seed command
     const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
     if (successfulSeeding) {
-      return `\n${
-        process.platform === 'win32' ? '' : '🌱  '
-      }The seed command has been executed.`
+      return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
       process.exit(1)
       // For snapshot test, because exit() is mocked

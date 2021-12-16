@@ -1,18 +1,12 @@
 import path from 'path'
-import {
-  getSchemaPathInternal,
-  getSchemaPathSyncInternal,
-} from '../cli/getSchema'
+import { getSchemaPathInternal, getSchemaPathSyncInternal } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
 
 process.env.npm_config_user_agent = 'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
 
 const FIXTURE_CWD = path.resolve(fixturesPath, 'getSchema')
 
-async function testSchemaPath(
-  fixtureName: string,
-  schemaPathFromArgs?: string,
-) {
+async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) {
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   let syncResult: string | null | Error
@@ -85,10 +79,7 @@ Object {
 })
 
 it('throws if schema args path is invalid', async () => {
-  const res = await testSchemaPath(
-    'pkg-json-with-schema-args',
-    path.resolve(FIXTURE_CWD, 'wrong_path'),
-  )
+  const res = await testSchemaPath('pkg-json-with-schema-args', path.resolve(FIXTURE_CWD, 'wrong_path'))
 
   expect(res).toMatchInlineSnapshot(`
 Object {

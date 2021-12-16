@@ -1,51 +1,41 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
-import { getPlatform, Platform, platforms } from '@prisma/get-platform'
+import type { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
+import type { Platform } from '@prisma/get-platform'
+import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import { ChildProcessByStdio, spawn } from 'child_process'
+import type { ChildProcessByStdio } from 'child_process'
+import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
 import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
-import { Readable } from 'stream'
+import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
 import byline from '../tools/byline'
-import {
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-  GetConfigResult,
-} from '../common/Engine'
-import { RequestError } from '../common/errors/types/RequestError'
+import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import { Engine } from '../common/Engine'
+import type { RequestError } from '../common/errors/types/RequestError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
-import {
-  convertLog,
-  getMessage,
-  isRustError,
-  isRustErrorLog,
-  RustError,
-  RustLog,
-} from '../common/errors/utils/log'
+import type { RustError, RustLog } from '../common/errors/utils/log'
+import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { omit } from '../tools/omit'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { Connection, Result } from './Connection'
+import type { Result } from './Connection'
+import { Connection } from './Connection'
 import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
 import type * as Tx from '../common/types/Transaction'
-import {
-  QueryEngineRequestHeaders,
-  QueryEngineResult,
-} from '../common/types/QueryEngine'
+import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type { IncomingHttpHeaders } from 'http'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -191,26 +181,17 @@ export class BinaryEngine extends Engine {
       'referentialActions',
       'microsoftSqlServer',
     ]
-    const removedFlagsUsed = this.previewFeatures.filter((e) =>
-      removedFlags.includes(e),
-    )
+    const removedFlagsUsed = this.previewFeatures.filter((e) => removedFlags.includes(e))
 
-    if (
-      removedFlagsUsed.length > 0 &&
-      !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS
-    ) {
+    if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
       console.log(
-        `${chalk.blueBright(
-          'info',
-        )} The preview flags \`${removedFlagsUsed.join(
+        `${chalk.blueBright('info')} The preview flags \`${removedFlagsUsed.join(
           '`, `',
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
     }
 
-    this.previewFeatures = this.previewFeatures.filter(
-      (e) => !removedFlags.includes(e),
-    )
+    this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = engineEndpoint
 
     if (engineEndpoint) {
@@ -219,21 +200,14 @@ export class BinaryEngine extends Engine {
     }
 
     if (this.platform) {
-      if (
-        !knownPlatforms.includes(this.platform as Platform) &&
-        !fs.existsSync(this.platform)
-      ) {
+      if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
         throw new PrismaClientInitializationError(
-          `Unknown ${chalk.red(
-            'PRISMA_QUERY_ENGINE_BINARY',
-          )} ${chalk.redBright.bold(
+          `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_BINARY')} ${chalk.redBright.bold(
             this.platform,
           )}. Possible binaryTargets: ${chalk.greenBright(
             knownPlatforms.join(', '),
           )} or a path to the query engine binary.
-You may have to run ${chalk.greenBright(
-            'prisma generate',
-          )} for your changes to take effect.`,
+You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
           this.clientVersion!,
         )
       }
@@ -282,9 +256,7 @@ You may have to run ${chalk.greenBright(
       const runningEngines = engines.filter((e) => e.child)
       if (runningEngines.length === 10) {
         console.warn(
-          `${chalk.yellow(
-            'warn(prisma-client)',
-          )} Already 10 Prisma Clients are actively running.`,
+          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
         )
       }
     }
@@ -327,10 +299,7 @@ You may have to run ${chalk.greenBright(
     return this.platformPromise
   }
 
-  private getQueryEnginePath(
-    platform: string,
-    prefix: string = __dirname,
-  ): string {
+  private getQueryEnginePath(platform: string, prefix: string = __dirname): string {
     let queryEnginePath = path.join(prefix, `query-engine-${platform}`)
 
     if (platform === 'windows') {
@@ -401,9 +370,7 @@ You may have to run ${chalk.greenBright(
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
-        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(
-            `${this.incorrectlyPinnedBinaryTarget}`,
-          )}\n`
+        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedBinaryTarget}`)}\n`
         : ''
 
       let errorText = `Query engine binary for current platform "${chalk.bold(
@@ -417,34 +384,23 @@ Searched Locations:
 ${searchedLocations
   .map((f) => {
     let msg = `  ${f}`
-    if (
-      process.env.DEBUG === 'node-engine-search-locations' &&
-      fs.existsSync(f)
-    ) {
+    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
       const dir = fs.readdirSync(f)
       msg += dir.map((d) => `    ${d}`).join('\n')
     }
     return msg
   })
-  .join(
-    '\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''),
-  )}\n`
+  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
         if (
-          this.generator.binaryTargets.find(
-            (object) => object.value === this.platform!,
-          ) ||
-          this.generator.binaryTargets.find(
-            (object) => object.value === 'native',
-          )
+          this.generator.binaryTargets.find((object) => object.value === this.platform!) ||
+          this.generator.binaryTargets.find((object) => object.value === 'native')
         ) {
           errorText += `
-You already added the platform${
-            this.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.generator.binaryTargets
+You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
             .map((t) => `"${chalk.bold(t.value)}"`)
             .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
@@ -455,18 +411,12 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${
-            this.platform
-          }" to the "${chalk.underline(
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
             'binaryTargets',
-          )}" attribute in the "${chalk.underline(
-            'generator',
-          )}" block in the "schema.prisma" file:
+          )}" attribute in the "${chalk.underline('generator')}" block in the "schema.prisma" file:
 ${chalk.greenBright(this.getFixedGenerator())}
 
-Then run "${chalk.greenBright(
-            'prisma generate',
-          )}" for your changes to take effect.
+Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -477,14 +427,10 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
 
     if (this.incorrectlyPinnedBinaryTarget) {
-      console.error(`${chalk.yellow(
-        'Warning:',
-      )} You pinned the platform ${chalk.bold(
+      console.error(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
         this.incorrectlyPinnedBinaryTarget,
       )}, but Prisma Client detects ${chalk.bold(await this.getPlatform())}.
-This means you should very likely pin the platform ${chalk.greenBright(
-        await this.getPlatform(),
-      )} instead.
+This means you should very likely pin the platform ${chalk.greenBright(await this.getPlatform())} instead.
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
@@ -498,10 +444,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator!,
-      binaryTargets: fixBinaryTargets(
-        this.generator!.binaryTargets,
-        this.platform!,
-      ),
+      binaryTargets: fixBinaryTargets(this.generator!.binaryTargets, this.platform!),
     }
 
     return printGeneratorConfig(fixedGenerator)
@@ -639,18 +582,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.setError(json)
               if (this.engineStartDeferred) {
-                const err = new PrismaClientInitializationError(
-                  json.message,
-                  this.clientVersion!,
-                )
+                const err = new PrismaClientInitializationError(json.message, this.clientVersion!)
                 this.engineStartDeferred.reject(err)
               }
             }
           } catch (e) {
-            if (
-              !data.includes('Printing to stderr') &&
-              !data.includes('Listening on ')
-            ) {
+            if (!data.includes('Printing to stderr') && !data.includes('Listening on ')) {
               this.stderrLogs += '\n' + data
             }
           }
@@ -668,11 +605,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.fields?.message?.startsWith('Started http server')
             ) {
               if (this.useUds) {
-                this.connection.open('http://localhost', {
+                this.connection.open('http://127.0.0.1', {
                   socketPath: this.socketPath,
                 })
               } else {
-                this.connection.open(`http://localhost:${this.port}`)
+                this.connection.open(`http://127.0.0.1:${this.port}`)
               }
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
@@ -728,10 +665,7 @@ Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg,
                 this.clientVersion!,
               )
             } else {
-              err = new PrismaClientInitializationError(
-                msg,
-                this.clientVersion!,
-              )
+              err = new PrismaClientInitializationError(msg, this.clientVersion!)
             }
 
             this.engineStartDeferred.reject(err)
@@ -768,9 +702,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           this.connection.close()
           if (code === null && signal === 'SIGABRT' && this.child) {
             const error = new PrismaClientRustPanicError(
-              this.getErrorMessageWithLink(
-                'Panic in Query Engine with SIGABRT signal',
-              ),
+              this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
               this.clientVersion!,
             )
             this.logEmitter.emit('error', error)
@@ -793,21 +725,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
 
         if (this.lastRustError) {
-          return reject(
-            new PrismaClientInitializationError(
-              getMessage(this.lastRustError),
-              this.clientVersion!,
-            ),
-          )
+          return reject(new PrismaClientInitializationError(getMessage(this.lastRustError), this.clientVersion!))
         }
 
         if (this.lastErrorLog) {
-          return reject(
-            new PrismaClientInitializationError(
-              getMessage(this.lastErrorLog),
-              this.clientVersion!,
-            ),
-          )
+          return reject(new PrismaClientInitializationError(getMessage(this.lastErrorLog), this.clientVersion!))
         }
 
         try {
@@ -904,10 +826,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       server.on('error', reject)
       server.listen(0, () => {
         const address = server.address()
-        const port =
-          typeof address === 'string'
-            ? parseInt(address.split(':').slice(-1)[0], 10)
-            : address!.port
+        const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address!.port
         server.close((e) => {
           if (e) {
             reject(e)
@@ -955,31 +874,20 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    numTry = 1,
-  ): Promise<QueryEngineResult<T>> {
+  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
     await this.start()
 
-    this.currentRequestPromise = this.connection.post(
-      '/',
-      stringifyQuery(query),
-      runtimeHeadersToHttpHeaders(headers),
-    )
+    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
     this.lastQuery = query
 
     try {
       const { data, headers } = await this.currentRequestPromise
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw this.graphQLToJSError(data.errors[0])
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(
-          JSON.stringify(data.errors),
-          this.clientVersion!,
-        )
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
       }
 
       // Rust engine returns time in microseconds and we want it in miliseconds
@@ -992,13 +900,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       this.currentRequestPromise = undefined
       return { data, elapsed } as any
-    } catch (error) {
-      logger('req - e', error)
-      if (error instanceof PrismaClientKnownRequestError) {
-        throw error
+    } catch (e: any) {
+      logger('req - e', e)
+      if (e instanceof PrismaClientKnownRequestError) {
+        throw e
       }
 
-      await this.handleRequestError(error, numTry <= MAX_REQUEST_RETRIES)
+      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
       if (numTry <= MAX_REQUEST_RETRIES) {
         logger('trying a retry now')
@@ -1023,11 +931,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
 
     this.lastQuery = JSON.stringify(request)
-    this.currentRequestPromise = this.connection.post(
-      '/',
-      this.lastQuery,
-      runtimeHeadersToHttpHeaders(headers),
-    )
+    this.currentRequestPromise = this.connection.post('/', this.lastQuery, runtimeHeadersToHttpHeaders(headers))
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -1037,7 +941,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors) {
-              throw this.graphQLToJSError(result.errors[0])
+              throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
             }
             return {
               data: result,
@@ -1045,7 +949,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
             }
           })
         } else {
-          throw this.graphQLToJSError(errors[0])
+          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
       })
       .catch(async (e) => {
@@ -1087,18 +991,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         return result.data
       } else if (action === 'commit') {
-        await Connection.onHttpError(
-          this.connection.post(`/transaction/${arg.id}/commit`),
-          transactionHttpErrorHandler,
-        )
+        await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
       } else if (action === 'rollback') {
         await Connection.onHttpError(
           this.connection.post(`/transaction/${arg.id}/rollback`),
           transactionHttpErrorHandler,
         )
       }
-    } catch (error) {
-      this.setError(error)
+    } catch (e: any) {
+      this.setError(e)
     }
 
     return undefined
@@ -1155,10 +1056,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  private handleRequestError = async (
-    error: Error & { code?: string },
-    graceful = false,
-  ) => {
+  private handleRequestError = async (error: Error & { code?: string }, graceful = false) => {
     debug({ error })
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
@@ -1215,24 +1113,6 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
 
     return false
   }
-
-  private graphQLToJSError(
-    error: RequestError,
-  ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
-    if (error.user_facing_error.error_code) {
-      return new PrismaClientKnownRequestError(
-        error.user_facing_error.message,
-        error.user_facing_error.error_code,
-        this.clientVersion!,
-        error.user_facing_error.meta,
-      )
-    }
-
-    return new PrismaClientUnknownRequestError(
-      error.user_facing_error.message,
-      this.clientVersion!,
-    )
-  }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
@@ -1272,7 +1152,6 @@ function initHooks() {
     hookProcess('beforeExit')
     hookProcess('exit')
     hookProcess('SIGINT', true)
-    hookProcess('SIGUSR1', true)
     hookProcess('SIGUSR2', true)
     hookProcess('SIGTERM', true)
     hooksInitialized = true
@@ -1292,9 +1171,7 @@ function transactionHttpErrorHandler<R>(result: Result<R>): never {
  * @param headers to transform
  * @returns
  */
-function runtimeHeadersToHttpHeaders(
-  headers: QueryEngineRequestHeaders,
-): IncomingHttpHeaders {
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): IncomingHttpHeaders {
   return Object.keys(headers).reduce((acc, runtimeHeaderKey) => {
     let httpHeaderKey = runtimeHeaderKey
 

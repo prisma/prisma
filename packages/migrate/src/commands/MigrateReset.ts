@@ -1,34 +1,16 @@
-import {
-  arg,
-  Command,
-  format,
-  getSchemaPath,
-  HelpError,
-  isError,
-  isCi,
-  logger,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError, isCi, logger } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
-import {
-  ExperimentalFlagWithNewMigrateError,
-  EarlyAccessFeatureFlagWithNewMigrateError,
-} from '../utils/flagErrors'
-import {
-  NoSchemaFoundError,
-  MigrateResetEnvNonInteractiveError,
-} from '../utils/errors'
+import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
+import { NoSchemaFoundError, MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 import { printDatasource } from '../utils/printDatasource'
-import {
-  executeSeedCommand,
-  verifySeedConfigAndReturnMessage,
-  getSeedCommandFromPackageJson,
-} from '../utils/seed'
+import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -98,11 +80,7 @@ ${chalk.bold('Examples')}
       throw new NoSchemaFoundError()
     }
 
-    console.info(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     await printDatasource(schemaPath)
 
@@ -125,10 +103,10 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
-        message: `Are you sure you want to reset your database? ${chalk.red(
-          'All data will be lost',
-        )}.`,
+        message: `Are you sure you want to reset your database? ${chalk.red('All data will be lost')}.`,
       })
+
+      console.info() // empty line
 
       if (!confirmation.value) {
         console.info('Reset cancelled.')
@@ -153,6 +131,7 @@ ${chalk.bold('Examples')}
     if (migrationIds.length === 0) {
       console.info(`${chalk.green('Database reset successful\n')}`)
     } else {
+      console.info() // empty line
       console.info(
         `${chalk.green('Database reset successful')}
 
@@ -171,31 +150,20 @@ The following migration(s) have been applied:\n\n${chalk(
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_SEED && !args['--skip-seed']) {
-      const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(
-        process.cwd(),
-      )
+      const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
       if (seedCommandFromPkgJson) {
         console.info() // empty line
-        const successfulSeeding = await executeSeedCommand(
-          seedCommandFromPkgJson,
-        )
+        const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
         if (successfulSeeding) {
-          console.info(
-            `\n${
-              process.platform === 'win32' ? '' : '🌱  '
-            }The seed command has been executed.`,
-          )
+          console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
         }
       } else {
         // Only used to help users to setup their seeds from old way to new package.json config
         const schemaPath = await getSchemaPath(args['--schema'])
-
-        const message = await verifySeedConfigAndReturnMessage(schemaPath)
-        // warn because setup of the feature needs to be done
-        if (message) {
-          logger.warn(message)
-        }
+        // we don't want to output the returned warning message
+        // but we still want to run it for `legacyTsNodeScriptWarning()`
+        await verifySeedConfigAndReturnMessage(schemaPath)
       }
     }
 
@@ -204,9 +172,7 @@ The following migration(s) have been applied:\n\n${chalk(
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateReset.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateReset.help}`)
     }
     return MigrateReset.help
   }

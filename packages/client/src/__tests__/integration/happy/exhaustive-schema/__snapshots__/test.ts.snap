@@ -47,7 +47,6 @@ Prisma.Decimal = Decimal
 /**
  * Re-export of sql-template-tag
  */
-
 Prisma.sql = () => {
   throw new Error(\`sqltag is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
@@ -65,6 +64,13 @@ Prisma.raw = () => {
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.validator = () => (val) => val
+
+/**
+ * Shorthand utilities for JSON filtering
+ */
+Prisma.DbNull = 'DbNull'
+Prisma.JsonNull = 'JsonNull'
+Prisma.AnyNull = 'AnyNull'
 
 /**
  * Enums
@@ -248,9 +254,24 @@ exports.Prisma.SortOrder = makeEnum({
   desc: 'desc'
 });
 
+exports.Prisma.JsonNullValueInput = makeEnum({
+  JsonNull: 'JsonNull'
+});
+
+exports.Prisma.NullableJsonNullValueInput = makeEnum({
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull'
+});
+
 exports.Prisma.QueryMode = makeEnum({
   default: 'default',
   insensitive: 'insensitive'
+});
+
+exports.Prisma.JsonNullValueFilter = makeEnum({
+  DbNull: 'DbNull',
+  JsonNull: 'JsonNull',
+  AnyNull: 'AnyNull'
 });
 exports.ABeautifulEnum = makeEnum({
   A: 'A',
@@ -297,7 +318,7 @@ exports[`exhaustive-schema: generatedTypeScript 1`] = `
  * Client
 **/
 
-import * as runtime from '@prisma/client/runtime';
+import * as runtime from '@prisma/client/runtime/index';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
@@ -308,8 +329,8 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
 
 /**
  * Model Post
+ * 
  */
-
 export type Post = {
   id: number
   createdAt: Date
@@ -321,8 +342,8 @@ export type Post = {
 
 /**
  * Model User
+ * 
  */
-
 export type User = {
   id: number
   email: string
@@ -342,8 +363,8 @@ export type User = {
 
 /**
  * Model M
+ * 
  */
-
 export type M = {
   id: number
   int: number
@@ -362,8 +383,8 @@ export type M = {
 
 /**
  * Model N
+ * 
  */
-
 export type N = {
   id: number
   int: number
@@ -382,8 +403,8 @@ export type N = {
 
 /**
  * Model OneOptional
+ * 
  */
-
 export type OneOptional = {
   id: number
   int: number
@@ -402,8 +423,8 @@ export type OneOptional = {
 
 /**
  * Model ManyRequired
+ * 
  */
-
 export type ManyRequired = {
   id: number
   oneOptionalId: number | null
@@ -423,8 +444,8 @@ export type ManyRequired = {
 
 /**
  * Model OptionalSide1
+ * 
  */
-
 export type OptionalSide1 = {
   id: number
   optionalSide2Id: number | null
@@ -444,8 +465,8 @@ export type OptionalSide1 = {
 
 /**
  * Model OptionalSide2
+ * 
  */
-
 export type OptionalSide2 = {
   id: number
   int: number
@@ -464,12 +485,18 @@ export type OptionalSide2 = {
 
 /**
  * Model A
+ * model comment
  */
-
 export type A = {
+  /**
+   * field comment 1
+   */
   id: string
   email: string
   name: string | null
+  /**
+   * field comment 2
+   */
   int: number
   sInt: number
   bInt: bigint
@@ -480,8 +507,8 @@ export type A = {
 
 /**
  * Model B
+ * 
  */
-
 export type B = {
   id: string
   float: number
@@ -492,8 +519,8 @@ export type B = {
 
 /**
  * Model C
+ * 
  */
-
 export type C = {
   id: string
   char: string
@@ -506,8 +533,8 @@ export type C = {
 
 /**
  * Model D
+ * 
  */
-
 export type D = {
   id: string
   bool: boolean
@@ -519,8 +546,8 @@ export type D = {
 
 /**
  * Model E
+ * 
  */
-
 export type E = {
   id: string
   date: Date
@@ -617,7 +644,7 @@ export class PrismaClient<
   /**
    * Disconnect from the database
    */
-  $disconnect(): Promise<any>;
+  $disconnect(): Promise<void>;
 
   /**
    * Add a middleware
@@ -625,32 +652,50 @@ export class PrismaClient<
   $use(cb: Prisma.Middleware): void
 
   /**
-   * Executes a raw query and returns the number of affected rows
+   * Executes a prepared raw query and returns the number of affected rows.
    * @example
    * \`\`\`
-   * // With parameters use prisma.$executeRaw\`\`, values will be escaped automatically
-   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE id = \${1};\`
-   * // Or
-   * const result = await prisma.$executeRaw('UPDATE User SET cool = $1 WHERE id = $2 ;', true, 1)
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $executeRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
+   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
 
   /**
-   * Performs a raw query and returns the SELECT data
+   * Executes a raw query and returns the number of affected rows.
+   * Susceptible to SQL injections, see documentation.
    * @example
    * \`\`\`
-   * // With parameters use prisma.$queryRaw\`\`, values will be escaped automatically
-   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'ema.il'};\`
-   * // Or
-   * const result = await prisma.$queryRaw('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'ema.il')
-  * \`\`\`
-  * 
-  * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-  */
-  $queryRaw < T = any > (query: string | TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;
+
+  /**
+   * Performs a prepared raw query and returns the \`SELECT\` data.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+
+  /**
+   * Performs a raw query and returns the \`SELECT\` data.
+   * Susceptible to SQL injections, see documentation.
+   * @example
+   * \`\`\`
+   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
 
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
@@ -665,7 +710,8 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
+
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -844,28 +890,68 @@ export namespace Prisma {
    * This type can be useful to enforce some input to be JSON-compatible or as a super-type to be extended from. 
    */
   export type JsonObject = {[Key in string]?: JsonValue}
- 
+
   /**
    * From https://github.com/sindresorhus/type-fest/
    * Matches a JSON array.
    */
   export interface JsonArray extends Array<JsonValue> {}
- 
+
   /**
    * From https://github.com/sindresorhus/type-fest/
    * Matches any valid JSON value.
    */
-  export type JsonValue = string | number | boolean | null | JsonObject | JsonArray
+  export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
 
   /**
-   * Same as JsonObject, but allows undefined
+   * Matches a JSON object.
+   * Unlike \`JsonObject\`, this type allows undefined and read-only properties.
    */
-  export type InputJsonObject = {[Key in string]?: JsonValue}
- 
-  export interface InputJsonArray extends Array<JsonValue> {}
- 
-  export type InputJsonValue = undefined |  string | number | boolean | null | InputJsonObject | InputJsonArray
-   type SelectAndInclude = {
+  export type InputJsonObject = {readonly [Key in string]?: InputJsonValue | null}
+
+  /**
+   * Matches a JSON array.
+   * Unlike \`JsonArray\`, readonly arrays are assignable to this type.
+   */
+  export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
+
+  /**
+   * Matches any valid value that can be used as an input for operations like
+   * create and update as the value of a JSON field. Unlike \`JsonValue\`, this
+   * type allows read-only arrays and read-only object properties and disallows
+   * \`null\` at the top level.
+   *
+   * \`null\` cannot be used as the value of a JSON field because its meaning
+   * would be ambiguous. Use \`Prisma.JsonNull\` to store the JSON null value or
+   * \`Prisma.DbNull\` to clear the JSON value and set the field to the database
+   * NULL value instead.
+   *
+   * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
+   */
+  export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
+
+  /**
+   * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
+   * 
+   * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+   */
+  export const DbNull: 'DbNull'
+
+  /**
+   * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
+   * 
+   * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+   */
+  export const JsonNull: 'JsonNull'
+
+  /**
+   * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
+   * 
+   * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+   */
+  export const AnyNull: 'AnyNull'
+
+  type SelectAndInclude = {
     select: any
     include: any
   }
@@ -1544,15 +1630,10 @@ export namespace Prisma {
 
   export type AggregatePost = {
     _count: PostCountAggregateOutputType | null
-    count: PostCountAggregateOutputType | null
     _avg: PostAvgAggregateOutputType | null
-    avg: PostAvgAggregateOutputType | null
     _sum: PostSumAggregateOutputType | null
-    sum: PostSumAggregateOutputType | null
     _min: PostMinAggregateOutputType | null
-    min: PostMinAggregateOutputType | null
     _max: PostMaxAggregateOutputType | null
-    max: PostMaxAggregateOutputType | null
   }
 
   export type PostAvgAggregateOutputType = {
@@ -1673,19 +1754,11 @@ export namespace Prisma {
     **/
     _count?: true | PostCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | PostCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: PostAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: PostAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -1693,29 +1766,17 @@ export namespace Prisma {
     **/
     _sum?: PostSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: PostSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: PostMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: PostMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: PostMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: PostMaxAggregateInputType
   }
 
   export type GetPostAggregateType<T extends PostAggregateArgs> = {
@@ -1727,8 +1788,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type PostGroupByArgs = {
     where?: PostWhereInput
     orderBy?: Enumerable<PostOrderByWithAggregationInput>
@@ -1760,15 +1821,15 @@ export namespace Prisma {
 
   type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<
     Array<
-      PickArray<PostGroupByOutputType, T['by']> & 
+      PickArray<PostGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof PostGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], PostGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof PostGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PostGroupByOutputType[P]>
             : GetScalarType<T[P], PostGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -2125,7 +2186,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for Post.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * TEST_GITHUB_LINK
    */
   export class Prisma__PostClient<T> implements PrismaPromise<T> {
@@ -2466,15 +2527,10 @@ export namespace Prisma {
 
   export type AggregateUser = {
     _count: UserCountAggregateOutputType | null
-    count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
-    avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
-    sum: UserSumAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
-    min: UserMinAggregateOutputType | null
     _max: UserMaxAggregateOutputType | null
-    max: UserMaxAggregateOutputType | null
   }
 
   export type UserAvgAggregateOutputType = {
@@ -2647,19 +2703,11 @@ export namespace Prisma {
     **/
     _count?: true | UserCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | UserCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: UserAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: UserAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -2667,29 +2715,17 @@ export namespace Prisma {
     **/
     _sum?: UserSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: UserSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: UserMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: UserMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: UserMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: UserMaxAggregateInputType
   }
 
   export type GetUserAggregateType<T extends UserAggregateArgs> = {
@@ -2701,8 +2737,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type UserGroupByArgs = {
     where?: UserWhereInput
     orderBy?: Enumerable<UserOrderByWithAggregationInput>
@@ -2742,15 +2778,15 @@ export namespace Prisma {
 
   type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<
     Array<
-      PickArray<UserGroupByOutputType, T['by']> & 
+      PickArray<UserGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof UserGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], UserGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof UserGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], UserGroupByOutputType[P]>
             : GetScalarType<T[P], UserGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -2792,7 +2828,7 @@ export namespace Prisma {
           P extends 'posts'
         ? Array < PostGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? UserCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -2801,7 +2837,7 @@ export namespace Prisma {
           P extends 'posts'
         ? Array < PostGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? UserCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : User
   : User
@@ -3121,7 +3157,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for User.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__UserClient<T> implements PrismaPromise<T> {
@@ -3462,15 +3498,10 @@ export namespace Prisma {
 
   export type AggregateM = {
     _count: MCountAggregateOutputType | null
-    count: MCountAggregateOutputType | null
     _avg: MAvgAggregateOutputType | null
-    avg: MAvgAggregateOutputType | null
     _sum: MSumAggregateOutputType | null
-    sum: MSumAggregateOutputType | null
     _min: MMinAggregateOutputType | null
-    min: MMinAggregateOutputType | null
     _max: MMaxAggregateOutputType | null
-    max: MMaxAggregateOutputType | null
   }
 
   export type MAvgAggregateOutputType = {
@@ -3637,19 +3668,11 @@ export namespace Prisma {
     **/
     _count?: true | MCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | MCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: MAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: MAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -3657,29 +3680,17 @@ export namespace Prisma {
     **/
     _sum?: MSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: MSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: MMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: MMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: MMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: MMaxAggregateInputType
   }
 
   export type GetMAggregateType<T extends MAggregateArgs> = {
@@ -3691,8 +3702,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type MGroupByArgs = {
     where?: MWhereInput
     orderBy?: Enumerable<MOrderByWithAggregationInput>
@@ -3731,15 +3742,15 @@ export namespace Prisma {
 
   type GetMGroupByPayload<T extends MGroupByArgs> = Promise<
     Array<
-      PickArray<MGroupByOutputType, T['by']> & 
+      PickArray<MGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof MGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], MGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof MGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MGroupByOutputType[P]>
             : GetScalarType<T[P], MGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -3780,7 +3791,7 @@ export namespace Prisma {
           P extends 'n'
         ? Array < NGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? MCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? MCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -3789,7 +3800,7 @@ export namespace Prisma {
           P extends 'n'
         ? Array < NGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? MCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? MCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : M
   : M
@@ -4109,7 +4120,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for M.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__MClient<T> implements PrismaPromise<T> {
@@ -4450,15 +4461,10 @@ export namespace Prisma {
 
   export type AggregateN = {
     _count: NCountAggregateOutputType | null
-    count: NCountAggregateOutputType | null
     _avg: NAvgAggregateOutputType | null
-    avg: NAvgAggregateOutputType | null
     _sum: NSumAggregateOutputType | null
-    sum: NSumAggregateOutputType | null
     _min: NMinAggregateOutputType | null
-    min: NMinAggregateOutputType | null
     _max: NMaxAggregateOutputType | null
-    max: NMaxAggregateOutputType | null
   }
 
   export type NAvgAggregateOutputType = {
@@ -4625,19 +4631,11 @@ export namespace Prisma {
     **/
     _count?: true | NCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | NCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: NAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: NAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -4645,29 +4643,17 @@ export namespace Prisma {
     **/
     _sum?: NSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: NSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: NMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: NMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: NMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: NMaxAggregateInputType
   }
 
   export type GetNAggregateType<T extends NAggregateArgs> = {
@@ -4679,8 +4665,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type NGroupByArgs = {
     where?: NWhereInput
     orderBy?: Enumerable<NOrderByWithAggregationInput>
@@ -4719,15 +4705,15 @@ export namespace Prisma {
 
   type GetNGroupByPayload<T extends NGroupByArgs> = Promise<
     Array<
-      PickArray<NGroupByOutputType, T['by']> & 
+      PickArray<NGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof NGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], NGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof NGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NGroupByOutputType[P]>
             : GetScalarType<T[P], NGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -4768,7 +4754,7 @@ export namespace Prisma {
           P extends 'm'
         ? Array < MGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? NCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? NCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -4777,7 +4763,7 @@ export namespace Prisma {
           P extends 'm'
         ? Array < MGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? NCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? NCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : N
   : N
@@ -5097,7 +5083,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for N.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__NClient<T> implements PrismaPromise<T> {
@@ -5438,15 +5424,10 @@ export namespace Prisma {
 
   export type AggregateOneOptional = {
     _count: OneOptionalCountAggregateOutputType | null
-    count: OneOptionalCountAggregateOutputType | null
     _avg: OneOptionalAvgAggregateOutputType | null
-    avg: OneOptionalAvgAggregateOutputType | null
     _sum: OneOptionalSumAggregateOutputType | null
-    sum: OneOptionalSumAggregateOutputType | null
     _min: OneOptionalMinAggregateOutputType | null
-    min: OneOptionalMinAggregateOutputType | null
     _max: OneOptionalMaxAggregateOutputType | null
-    max: OneOptionalMaxAggregateOutputType | null
   }
 
   export type OneOptionalAvgAggregateOutputType = {
@@ -5613,19 +5594,11 @@ export namespace Prisma {
     **/
     _count?: true | OneOptionalCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | OneOptionalCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: OneOptionalAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: OneOptionalAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -5633,29 +5606,17 @@ export namespace Prisma {
     **/
     _sum?: OneOptionalSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: OneOptionalSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: OneOptionalMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: OneOptionalMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: OneOptionalMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: OneOptionalMaxAggregateInputType
   }
 
   export type GetOneOptionalAggregateType<T extends OneOptionalAggregateArgs> = {
@@ -5667,8 +5628,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type OneOptionalGroupByArgs = {
     where?: OneOptionalWhereInput
     orderBy?: Enumerable<OneOptionalOrderByWithAggregationInput>
@@ -5707,15 +5668,15 @@ export namespace Prisma {
 
   type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<
     Array<
-      PickArray<OneOptionalGroupByOutputType, T['by']> & 
+      PickArray<OneOptionalGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], OneOptionalGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
             : GetScalarType<T[P], OneOptionalGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -5756,7 +5717,7 @@ export namespace Prisma {
           P extends 'many'
         ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
         P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> | null : never
+        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> : never
   } 
     : 'select' extends U
     ? {
@@ -5765,7 +5726,7 @@ export namespace Prisma {
           P extends 'many'
         ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
         P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> | null : never
+        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> : never
   } 
     : OneOptional
   : OneOptional
@@ -6085,7 +6046,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for OneOptional.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__OneOptionalClient<T> implements PrismaPromise<T> {
@@ -6426,15 +6387,10 @@ export namespace Prisma {
 
   export type AggregateManyRequired = {
     _count: ManyRequiredCountAggregateOutputType | null
-    count: ManyRequiredCountAggregateOutputType | null
     _avg: ManyRequiredAvgAggregateOutputType | null
-    avg: ManyRequiredAvgAggregateOutputType | null
     _sum: ManyRequiredSumAggregateOutputType | null
-    sum: ManyRequiredSumAggregateOutputType | null
     _min: ManyRequiredMinAggregateOutputType | null
-    min: ManyRequiredMinAggregateOutputType | null
     _max: ManyRequiredMaxAggregateOutputType | null
-    max: ManyRequiredMaxAggregateOutputType | null
   }
 
   export type ManyRequiredAvgAggregateOutputType = {
@@ -6611,19 +6567,11 @@ export namespace Prisma {
     **/
     _count?: true | ManyRequiredCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | ManyRequiredCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: ManyRequiredAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: ManyRequiredAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -6631,29 +6579,17 @@ export namespace Prisma {
     **/
     _sum?: ManyRequiredSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: ManyRequiredSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: ManyRequiredMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: ManyRequiredMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: ManyRequiredMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: ManyRequiredMaxAggregateInputType
   }
 
   export type GetManyRequiredAggregateType<T extends ManyRequiredAggregateArgs> = {
@@ -6665,8 +6601,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type ManyRequiredGroupByArgs = {
     where?: ManyRequiredWhereInput
     orderBy?: Enumerable<ManyRequiredOrderByWithAggregationInput>
@@ -6706,15 +6642,15 @@ export namespace Prisma {
 
   type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<
     Array<
-      PickArray<ManyRequiredGroupByOutputType, T['by']> & 
+      PickArray<ManyRequiredGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
             : GetScalarType<T[P], ManyRequiredGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -7079,7 +7015,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for ManyRequired.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__ManyRequiredClient<T> implements PrismaPromise<T> {
@@ -7420,15 +7356,10 @@ export namespace Prisma {
 
   export type AggregateOptionalSide1 = {
     _count: OptionalSide1CountAggregateOutputType | null
-    count: OptionalSide1CountAggregateOutputType | null
     _avg: OptionalSide1AvgAggregateOutputType | null
-    avg: OptionalSide1AvgAggregateOutputType | null
     _sum: OptionalSide1SumAggregateOutputType | null
-    sum: OptionalSide1SumAggregateOutputType | null
     _min: OptionalSide1MinAggregateOutputType | null
-    min: OptionalSide1MinAggregateOutputType | null
     _max: OptionalSide1MaxAggregateOutputType | null
-    max: OptionalSide1MaxAggregateOutputType | null
   }
 
   export type OptionalSide1AvgAggregateOutputType = {
@@ -7605,19 +7536,11 @@ export namespace Prisma {
     **/
     _count?: true | OptionalSide1CountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | OptionalSide1CountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: OptionalSide1AvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: OptionalSide1AvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -7625,29 +7548,17 @@ export namespace Prisma {
     **/
     _sum?: OptionalSide1SumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: OptionalSide1SumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: OptionalSide1MinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: OptionalSide1MinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: OptionalSide1MaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: OptionalSide1MaxAggregateInputType
   }
 
   export type GetOptionalSide1AggregateType<T extends OptionalSide1AggregateArgs> = {
@@ -7659,8 +7570,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type OptionalSide1GroupByArgs = {
     where?: OptionalSide1WhereInput
     orderBy?: Enumerable<OptionalSide1OrderByWithAggregationInput>
@@ -7700,15 +7611,15 @@ export namespace Prisma {
 
   type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<
     Array<
-      PickArray<OptionalSide1GroupByOutputType, T['by']> & 
+      PickArray<OptionalSide1GroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
             : GetScalarType<T[P], OptionalSide1GroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -8073,7 +7984,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for OptionalSide1.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__OptionalSide1Client<T> implements PrismaPromise<T> {
@@ -8414,15 +8325,10 @@ export namespace Prisma {
 
   export type AggregateOptionalSide2 = {
     _count: OptionalSide2CountAggregateOutputType | null
-    count: OptionalSide2CountAggregateOutputType | null
     _avg: OptionalSide2AvgAggregateOutputType | null
-    avg: OptionalSide2AvgAggregateOutputType | null
     _sum: OptionalSide2SumAggregateOutputType | null
-    sum: OptionalSide2SumAggregateOutputType | null
     _min: OptionalSide2MinAggregateOutputType | null
-    min: OptionalSide2MinAggregateOutputType | null
     _max: OptionalSide2MaxAggregateOutputType | null
-    max: OptionalSide2MaxAggregateOutputType | null
   }
 
   export type OptionalSide2AvgAggregateOutputType = {
@@ -8589,19 +8495,11 @@ export namespace Prisma {
     **/
     _count?: true | OptionalSide2CountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | OptionalSide2CountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: OptionalSide2AvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: OptionalSide2AvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -8609,29 +8507,17 @@ export namespace Prisma {
     **/
     _sum?: OptionalSide2SumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: OptionalSide2SumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: OptionalSide2MinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: OptionalSide2MinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: OptionalSide2MaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: OptionalSide2MaxAggregateInputType
   }
 
   export type GetOptionalSide2AggregateType<T extends OptionalSide2AggregateArgs> = {
@@ -8643,8 +8529,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type OptionalSide2GroupByArgs = {
     where?: OptionalSide2WhereInput
     orderBy?: Enumerable<OptionalSide2OrderByWithAggregationInput>
@@ -8683,15 +8569,15 @@ export namespace Prisma {
 
   type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<
     Array<
-      PickArray<OptionalSide2GroupByOutputType, T['by']> & 
+      PickArray<OptionalSide2GroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
             : GetScalarType<T[P], OptionalSide2GroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -9055,7 +8941,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for OptionalSide2.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__OptionalSide2Client<T> implements PrismaPromise<T> {
@@ -9396,15 +9282,10 @@ export namespace Prisma {
 
   export type AggregateA = {
     _count: ACountAggregateOutputType | null
-    count: ACountAggregateOutputType | null
     _avg: AAvgAggregateOutputType | null
-    avg: AAvgAggregateOutputType | null
     _sum: ASumAggregateOutputType | null
-    sum: ASumAggregateOutputType | null
     _min: AMinAggregateOutputType | null
-    min: AMinAggregateOutputType | null
     _max: AMaxAggregateOutputType | null
-    max: AMaxAggregateOutputType | null
   }
 
   export type AAvgAggregateOutputType = {
@@ -9559,19 +9440,11 @@ export namespace Prisma {
     **/
     _count?: true | ACountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | ACountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: AAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: AAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -9579,29 +9452,17 @@ export namespace Prisma {
     **/
     _sum?: ASumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: ASumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: AMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: AMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: AMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: AMaxAggregateInputType
   }
 
   export type GetAAggregateType<T extends AAggregateArgs> = {
@@ -9613,8 +9474,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type AGroupByArgs = {
     where?: AWhereInput
     orderBy?: Enumerable<AOrderByWithAggregationInput>
@@ -9649,15 +9510,15 @@ export namespace Prisma {
 
   type GetAGroupByPayload<T extends AGroupByArgs> = Promise<
     Array<
-      PickArray<AGroupByOutputType, T['by']> & 
+      PickArray<AGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof AGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], AGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof AGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AGroupByOutputType[P]>
             : GetScalarType<T[P], AGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -10007,7 +9868,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for A.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__AClient<T> implements PrismaPromise<T> {
@@ -10307,15 +10168,10 @@ export namespace Prisma {
 
   export type AggregateB = {
     _count: BCountAggregateOutputType | null
-    count: BCountAggregateOutputType | null
     _avg: BAvgAggregateOutputType | null
-    avg: BAvgAggregateOutputType | null
     _sum: BSumAggregateOutputType | null
-    sum: BSumAggregateOutputType | null
     _min: BMinAggregateOutputType | null
-    min: BMinAggregateOutputType | null
     _max: BMaxAggregateOutputType | null
-    max: BMaxAggregateOutputType | null
   }
 
   export type BAvgAggregateOutputType = {
@@ -10438,19 +10294,11 @@ export namespace Prisma {
     **/
     _count?: true | BCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | BCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to average
     **/
     _avg?: BAvgAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_avg\`
-    **/
-    avg?: BAvgAggregateInputType
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
@@ -10458,29 +10306,17 @@ export namespace Prisma {
     **/
     _sum?: BSumAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_sum\`
-    **/
-    sum?: BSumAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: BMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: BMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: BMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: BMaxAggregateInputType
   }
 
   export type GetBAggregateType<T extends BAggregateArgs> = {
@@ -10492,8 +10328,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type BGroupByArgs = {
     where?: BWhereInput
     orderBy?: Enumerable<BOrderByWithAggregationInput>
@@ -10524,15 +10360,15 @@ export namespace Prisma {
 
   type GetBGroupByPayload<T extends BGroupByArgs> = Promise<
     Array<
-      PickArray<BGroupByOutputType, T['by']> & 
+      PickArray<BGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof BGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], BGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof BGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], BGroupByOutputType[P]>
             : GetScalarType<T[P], BGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -10878,7 +10714,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for B.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__BClient<T> implements PrismaPromise<T> {
@@ -11178,11 +11014,8 @@ export namespace Prisma {
 
   export type AggregateC = {
     _count: CCountAggregateOutputType | null
-    count: CCountAggregateOutputType | null
     _min: CMinAggregateOutputType | null
-    min: CMinAggregateOutputType | null
     _max: CMaxAggregateOutputType | null
-    max: CMaxAggregateOutputType | null
   }
 
   export type CMinAggregateOutputType = {
@@ -11289,29 +11122,17 @@ export namespace Prisma {
     **/
     _count?: true | CCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | CCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: CMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: CMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: CMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: CMaxAggregateInputType
   }
 
   export type GetCAggregateType<T extends CAggregateArgs> = {
@@ -11323,8 +11144,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type CGroupByArgs = {
     where?: CWhereInput
     orderBy?: Enumerable<COrderByWithAggregationInput>
@@ -11353,15 +11174,15 @@ export namespace Prisma {
 
   type GetCGroupByPayload<T extends CGroupByArgs> = Promise<
     Array<
-      PickArray<CGroupByOutputType, T['by']> & 
+      PickArray<CGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof CGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], CGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof CGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], CGroupByOutputType[P]>
             : GetScalarType<T[P], CGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -11709,7 +11530,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for C.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__CClient<T> implements PrismaPromise<T> {
@@ -12009,11 +11830,8 @@ export namespace Prisma {
 
   export type AggregateD = {
     _count: DCountAggregateOutputType | null
-    count: DCountAggregateOutputType | null
     _min: DMinAggregateOutputType | null
-    min: DMinAggregateOutputType | null
     _max: DMaxAggregateOutputType | null
-    max: DMaxAggregateOutputType | null
   }
 
   export type DMinAggregateOutputType = {
@@ -12106,29 +11924,17 @@ export namespace Prisma {
     **/
     _count?: true | DCountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | DCountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: DMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: DMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: DMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: DMaxAggregateInputType
   }
 
   export type GetDAggregateType<T extends DAggregateArgs> = {
@@ -12140,8 +11946,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type DGroupByArgs = {
     where?: DWhereInput
     orderBy?: Enumerable<DOrderByWithAggregationInput>
@@ -12169,15 +11975,15 @@ export namespace Prisma {
 
   type GetDGroupByPayload<T extends DGroupByArgs> = Promise<
     Array<
-      PickArray<DGroupByOutputType, T['by']> & 
+      PickArray<DGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof DGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], DGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof DGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DGroupByOutputType[P]>
             : GetScalarType<T[P], DGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -12524,7 +12330,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for D.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__DClient<T> implements PrismaPromise<T> {
@@ -12824,11 +12630,8 @@ export namespace Prisma {
 
   export type AggregateE = {
     _count: ECountAggregateOutputType | null
-    count: ECountAggregateOutputType | null
     _min: EMinAggregateOutputType | null
-    min: EMinAggregateOutputType | null
     _max: EMaxAggregateOutputType | null
-    max: EMaxAggregateOutputType | null
   }
 
   export type EMinAggregateOutputType = {
@@ -12917,29 +12720,17 @@ export namespace Prisma {
     **/
     _count?: true | ECountAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_count\`
-    **/
-    count?: true | ECountAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the minimum value
     **/
     _min?: EMinAggregateInputType
     /**
-     * @deprecated since 2.23.0 please use \`_min\`
-    **/
-    min?: EMinAggregateInputType
-    /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
      * Select which fields to find the maximum value
     **/
     _max?: EMaxAggregateInputType
-    /**
-     * @deprecated since 2.23.0 please use \`_max\`
-    **/
-    max?: EMaxAggregateInputType
   }
 
   export type GetEAggregateType<T extends EAggregateArgs> = {
@@ -12951,8 +12742,8 @@ export namespace Prisma {
   }
 
 
-    
-    
+
+
   export type EGroupByArgs = {
     where?: EWhereInput
     orderBy?: Enumerable<EOrderByWithAggregationInput>
@@ -12978,15 +12769,15 @@ export namespace Prisma {
 
   type GetEGroupByPayload<T extends EGroupByArgs> = Promise<
     Array<
-      PickArray<EGroupByOutputType, T['by']> & 
+      PickArray<EGroupByOutputType, T['by']> &
         {
-          [P in ((keyof T) & (keyof EGroupByOutputType))]: P extends '_count' 
-            ? T[P] extends boolean 
-              ? number 
-              : GetScalarType<T[P], EGroupByOutputType[P]> 
+          [P in ((keyof T) & (keyof EGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EGroupByOutputType[P]>
             : GetScalarType<T[P], EGroupByOutputType[P]>
         }
-      > 
+      >
     >
 
 
@@ -13331,7 +13122,7 @@ export namespace Prisma {
   /**
    * The delegate class that acts as a "Promise-like" for E.
    * Why is this prefixed with \`Prisma__\`?
-   * Because we want to prevent naming conflicts as mentioned in 
+   * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__EClient<T> implements PrismaPromise<T> {
@@ -13848,12 +13639,36 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const JsonNullValueInput: {
+    JsonNull: 'JsonNull'
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
+  export const NullableJsonNullValueInput: {
+    DbNull: 'DbNull',
+    JsonNull: 'JsonNull'
+  };
+
+  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
   };
 
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: 'DbNull',
+    JsonNull: 'JsonNull',
+    AnyNull: 'AnyNull'
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -14369,6 +14184,7 @@ export namespace Prisma {
 
   export type OptionalSide1WhereUniqueInput = {
     id?: number
+    optionalSide2Id?: number
   }
 
   export type OptionalSide1OrderByWithAggregationInput = {
@@ -14815,8 +14631,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14833,8 +14649,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14850,8 +14666,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14868,8 +14684,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14886,8 +14702,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14902,8 +14718,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14919,8 +14735,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14934,8 +14750,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14951,8 +14767,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14966,8 +14782,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14983,8 +14799,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14999,8 +14815,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15014,8 +14830,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15030,8 +14846,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15045,8 +14861,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15062,8 +14878,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15077,8 +14893,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15094,8 +14910,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15110,8 +14926,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15125,8 +14941,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15141,8 +14957,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15156,8 +14972,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15173,8 +14989,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15189,8 +15005,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15206,8 +15022,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15223,8 +15039,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15238,8 +15054,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15254,8 +15070,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15269,8 +15085,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15287,8 +15103,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15302,8 +15118,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15320,8 +15136,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15337,8 +15153,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15352,8 +15168,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15369,8 +15185,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15384,8 +15200,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15402,8 +15218,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15417,8 +15233,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15435,8 +15251,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15452,8 +15268,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15467,8 +15283,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15484,8 +15300,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15499,8 +15315,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15516,8 +15332,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15532,8 +15348,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15549,8 +15365,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15566,8 +15382,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15581,8 +15397,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15597,8 +15413,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15820,8 +15636,8 @@ export namespace Prisma {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: InputJsonValue
-    jsonb: InputJsonValue
+    json: JsonNullValueInput | InputJsonValue
+    jsonb: JsonNullValueInput | InputJsonValue
   }
 
   export type DUncheckedCreateInput = {
@@ -15829,8 +15645,8 @@ export namespace Prisma {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: InputJsonValue
-    jsonb: InputJsonValue
+    json: JsonNullValueInput | InputJsonValue
+    jsonb: JsonNullValueInput | InputJsonValue
   }
 
   export type DUpdateInput = {
@@ -15838,8 +15654,8 @@ export namespace Prisma {
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: InputJsonValue
-    jsonb?: InputJsonValue
+    json?: JsonNullValueInput | InputJsonValue
+    jsonb?: JsonNullValueInput | InputJsonValue
   }
 
   export type DUncheckedUpdateInput = {
@@ -15847,8 +15663,8 @@ export namespace Prisma {
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: InputJsonValue
-    jsonb?: InputJsonValue
+    json?: JsonNullValueInput | InputJsonValue
+    jsonb?: JsonNullValueInput | InputJsonValue
   }
 
   export type DCreateManyInput = {
@@ -15856,8 +15672,8 @@ export namespace Prisma {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: InputJsonValue
-    jsonb: InputJsonValue
+    json: JsonNullValueInput | InputJsonValue
+    jsonb: JsonNullValueInput | InputJsonValue
   }
 
   export type DUpdateManyMutationInput = {
@@ -15865,8 +15681,8 @@ export namespace Prisma {
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: InputJsonValue
-    jsonb?: InputJsonValue
+    json?: JsonNullValueInput | InputJsonValue
+    jsonb?: JsonNullValueInput | InputJsonValue
   }
 
   export type DUncheckedUpdateManyInput = {
@@ -15874,8 +15690,8 @@ export namespace Prisma {
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: InputJsonValue
-    jsonb?: InputJsonValue
+    json?: JsonNullValueInput | InputJsonValue
+    jsonb?: JsonNullValueInput | InputJsonValue
   }
 
   export type ECreateInput = {
@@ -16036,35 +15852,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedIntWithAggregatesFilter | number
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatFilter
     _sum?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedIntFilter
     _min?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedIntFilter
     _max?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedIntFilter
   }
 
   export type DateTimeWithAggregatesFilter = {
@@ -16077,23 +15868,8 @@ export namespace Prisma {
     gte?: Date | string
     not?: NestedDateTimeWithAggregatesFilter | Date | string
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedDateTimeFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedDateTimeFilter
     _max?: NestedDateTimeFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedDateTimeFilter
   }
 
   export type StringWithAggregatesFilter = {
@@ -16110,23 +15886,8 @@ export namespace Prisma {
     mode?: QueryMode
     not?: NestedStringWithAggregatesFilter | string
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedStringFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedStringFilter
     _max?: NestedStringFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedStringFilter
   }
 
   export type StringNullableWithAggregatesFilter = {
@@ -16143,46 +15904,16 @@ export namespace Prisma {
     mode?: QueryMode
     not?: NestedStringNullableWithAggregatesFilter | string | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedStringNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedStringNullableFilter
     _max?: NestedStringNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedStringNullableFilter
   }
 
   export type BoolWithAggregatesFilter = {
     equals?: boolean
     not?: NestedBoolWithAggregatesFilter | boolean
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedBoolFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBoolFilter
     _max?: NestedBoolFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBoolFilter
   }
 
   export type IntNullableFilter = {
@@ -16225,19 +15956,19 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonFilterBase>, 'path'>>
 
   export type JsonFilterBase = {
-    equals?: InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
+    equals?: JsonNullValueFilter | InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
-    array_contains?: InputJsonValue
-    array_starts_with?: InputJsonValue
-    array_ends_with?: InputJsonValue
-    not?: InputJsonValue
+    array_contains?: InputJsonValue | null
+    array_starts_with?: InputJsonValue | null
+    array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: JsonNullValueFilter | InputJsonValue
   }
   export type JsonNullableFilter = 
     | PatchUndefined<
@@ -16247,19 +15978,19 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonNullableFilterBase>, 'path'>>
 
   export type JsonNullableFilterBase = {
-    equals?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
+    equals?: JsonNullValueFilter | InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
-    array_contains?: InputJsonValue
-    array_starts_with?: InputJsonValue
-    array_ends_with?: InputJsonValue
-    not?: InputJsonValue | null
+    array_contains?: InputJsonValue | null
+    array_starts_with?: InputJsonValue | null
+    array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: JsonNullValueFilter | InputJsonValue
   }
 
   export type EnumABeautifulEnumFilter = {
@@ -16289,11 +16020,6 @@ export namespace Prisma {
 
   export type PostOrderByRelationAggregateInput = {
     _count?: SortOrder
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: SortOrder
   }
 
   export type UserCountOrderByAggregateInput = {
@@ -16369,35 +16095,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedIntNullableWithAggregatesFilter | number | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _avg?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatNullableFilter
     _sum?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedIntNullableFilter
     _min?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedIntNullableFilter
     _max?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedIntNullableFilter
   }
 
   export type FloatWithAggregatesFilter = {
@@ -16410,35 +16111,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedFloatWithAggregatesFilter | number
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatFilter
     _sum?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedFloatFilter
     _min?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedFloatFilter
     _max?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedFloatFilter
   }
 
   export type FloatNullableWithAggregatesFilter = {
@@ -16451,35 +16127,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedFloatNullableWithAggregatesFilter | number | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _avg?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatNullableFilter
     _sum?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedFloatNullableFilter
     _min?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedFloatNullableFilter
     _max?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedFloatNullableFilter
   }
   export type JsonWithAggregatesFilter = 
     | PatchUndefined<
@@ -16489,37 +16140,22 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase>, 'path'>>
 
   export type JsonWithAggregatesFilterBase = {
-    equals?: InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
+    equals?: JsonNullValueFilter | InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
-    array_contains?: InputJsonValue
-    array_starts_with?: InputJsonValue
-    array_ends_with?: InputJsonValue
-    not?: InputJsonValue
+    array_contains?: InputJsonValue | null
+    array_starts_with?: InputJsonValue | null
+    array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: JsonNullValueFilter | InputJsonValue
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedJsonFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedJsonFilter
     _max?: NestedJsonFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedJsonFilter
   }
   export type JsonNullableWithAggregatesFilter = 
     | PatchUndefined<
@@ -16529,37 +16165,22 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase>, 'path'>>
 
   export type JsonNullableWithAggregatesFilterBase = {
-    equals?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
+    equals?: JsonNullValueFilter | InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
-    array_contains?: InputJsonValue
-    array_starts_with?: InputJsonValue
-    array_ends_with?: InputJsonValue
-    not?: InputJsonValue | null
+    array_contains?: InputJsonValue | null
+    array_starts_with?: InputJsonValue | null
+    array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: JsonNullValueFilter | InputJsonValue
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedJsonNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedJsonNullableFilter
     _max?: NestedJsonNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedJsonNullableFilter
   }
 
   export type EnumABeautifulEnumWithAggregatesFilter = {
@@ -16568,23 +16189,8 @@ export namespace Prisma {
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedEnumABeautifulEnumFilter
     _max?: NestedEnumABeautifulEnumFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedEnumABeautifulEnumFilter
   }
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter = {
@@ -16593,46 +16199,16 @@ export namespace Prisma {
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedEnumABeautifulEnumNullableFilter
     _max?: NestedEnumABeautifulEnumNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedEnumABeautifulEnumNullableFilter
   }
 
   export type BoolNullableWithAggregatesFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableWithAggregatesFilter | boolean | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedBoolNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBoolNullableFilter
     _max?: NestedBoolNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBoolNullableFilter
   }
 
   export type NListRelationFilter = {
@@ -16643,11 +16219,6 @@ export namespace Prisma {
 
   export type NOrderByRelationAggregateInput = {
     _count?: SortOrder
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: SortOrder
   }
 
   export type MCountOrderByAggregateInput = {
@@ -16718,11 +16289,6 @@ export namespace Prisma {
 
   export type MOrderByRelationAggregateInput = {
     _count?: SortOrder
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: SortOrder
   }
 
   export type NCountOrderByAggregateInput = {
@@ -16793,11 +16359,6 @@ export namespace Prisma {
 
   export type ManyRequiredOrderByRelationAggregateInput = {
     _count?: SortOrder
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: SortOrder
   }
 
   export type OneOptionalCountOrderByAggregateInput = {
@@ -17140,35 +16701,10 @@ export namespace Prisma {
     gte?: bigint | number
     not?: NestedBigIntWithAggregatesFilter | bigint | number
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatFilter
     _sum?: NestedBigIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedBigIntFilter
     _min?: NestedBigIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBigIntFilter
     _max?: NestedBigIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBigIntFilter
   }
 
   export type DecimalFilter = {
@@ -17230,35 +16766,10 @@ export namespace Prisma {
     gte?: Decimal | number | string
     not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedDecimalFilter
     _sum?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedDecimalFilter
     _min?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedDecimalFilter
     _max?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedDecimalFilter
   }
 
   export type CCountOrderByAggregateInput = {
@@ -17293,6 +16804,8 @@ export namespace Prisma {
 
   export type BytesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesFilter | Buffer
   }
 
@@ -17321,25 +16834,12 @@ export namespace Prisma {
 
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedBytesFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBytesFilter
     _max?: NestedBytesFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBytesFilter
   }
 
   export type ECountOrderByAggregateInput = {
@@ -17456,10 +16956,10 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
-    connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
     delete?: Enumerable<PostWhereUniqueInput>
+    connect?: Enumerable<PostWhereUniqueInput>
     update?: Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
     updateMany?: Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>
     deleteMany?: Enumerable<PostScalarWhereInput>
@@ -17470,10 +16970,10 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
-    connect?: Enumerable<PostWhereUniqueInput>
     set?: Enumerable<PostWhereUniqueInput>
     disconnect?: Enumerable<PostWhereUniqueInput>
     delete?: Enumerable<PostWhereUniqueInput>
+    connect?: Enumerable<PostWhereUniqueInput>
     update?: Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
     updateMany?: Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>
     deleteMany?: Enumerable<PostScalarWhereInput>
@@ -17489,10 +16989,10 @@ export namespace Prisma {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
-    connect?: Enumerable<NWhereUniqueInput>
     set?: Enumerable<NWhereUniqueInput>
     disconnect?: Enumerable<NWhereUniqueInput>
     delete?: Enumerable<NWhereUniqueInput>
+    connect?: Enumerable<NWhereUniqueInput>
     update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
     updateMany?: Enumerable<NUpdateManyWithWhereWithoutMInput>
     deleteMany?: Enumerable<NScalarWhereInput>
@@ -17508,10 +17008,10 @@ export namespace Prisma {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
-    connect?: Enumerable<MWhereUniqueInput>
     set?: Enumerable<MWhereUniqueInput>
     disconnect?: Enumerable<MWhereUniqueInput>
     delete?: Enumerable<MWhereUniqueInput>
+    connect?: Enumerable<MWhereUniqueInput>
     update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
     updateMany?: Enumerable<MUpdateManyWithWhereWithoutNInput>
     deleteMany?: Enumerable<MScalarWhereInput>
@@ -17536,10 +17036,10 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
     delete?: Enumerable<ManyRequiredWhereUniqueInput>
+    connect?: Enumerable<ManyRequiredWhereUniqueInput>
     update?: Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
     updateMany?: Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>
     deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
@@ -17550,10 +17050,10 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    connect?: Enumerable<ManyRequiredWhereUniqueInput>
     set?: Enumerable<ManyRequiredWhereUniqueInput>
     disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
     delete?: Enumerable<ManyRequiredWhereUniqueInput>
+    connect?: Enumerable<ManyRequiredWhereUniqueInput>
     update?: Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
     updateMany?: Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>
     deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
@@ -17569,9 +17069,9 @@ export namespace Prisma {
     create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     upsert?: OneOptionalUpsertWithoutManyInput
-    connect?: OneOptionalWhereUniqueInput
     disconnect?: boolean
     delete?: boolean
+    connect?: OneOptionalWhereUniqueInput
     update?: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
   }
 
@@ -17585,9 +17085,9 @@ export namespace Prisma {
     create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide2UpsertWithoutOptiInput
-    connect?: OptionalSide2WhereUniqueInput
     disconnect?: boolean
     delete?: boolean
+    connect?: OptionalSide2WhereUniqueInput
     update?: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
   }
 
@@ -17607,9 +17107,9 @@ export namespace Prisma {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
-    connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
     delete?: boolean
+    connect?: OptionalSide1WhereUniqueInput
     update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
@@ -17617,9 +17117,9 @@ export namespace Prisma {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
-    connect?: OptionalSide1WhereUniqueInput
     disconnect?: boolean
     delete?: boolean
+    connect?: OptionalSide1WhereUniqueInput
     update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
@@ -17708,35 +17208,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedIntWithAggregatesFilter | number
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatFilter
     _sum?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedIntFilter
     _min?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedIntFilter
     _max?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedIntFilter
   }
 
   export type NestedFloatFilter = {
@@ -17760,23 +17235,8 @@ export namespace Prisma {
     gte?: Date | string
     not?: NestedDateTimeWithAggregatesFilter | Date | string
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedDateTimeFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedDateTimeFilter
     _max?: NestedDateTimeFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedDateTimeFilter
   }
 
   export type NestedStringWithAggregatesFilter = {
@@ -17792,23 +17252,8 @@ export namespace Prisma {
     endsWith?: string
     not?: NestedStringWithAggregatesFilter | string
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedStringFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedStringFilter
     _max?: NestedStringFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedStringFilter
   }
 
   export type NestedStringNullableWithAggregatesFilter = {
@@ -17824,23 +17269,8 @@ export namespace Prisma {
     endsWith?: string
     not?: NestedStringNullableWithAggregatesFilter | string | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedStringNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedStringNullableFilter
     _max?: NestedStringNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedStringNullableFilter
   }
 
   export type NestedIntNullableFilter = {
@@ -17858,23 +17288,8 @@ export namespace Prisma {
     equals?: boolean
     not?: NestedBoolWithAggregatesFilter | boolean
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedBoolFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBoolFilter
     _max?: NestedBoolFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBoolFilter
   }
 
   export type NestedFloatNullableFilter = {
@@ -17917,35 +17332,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedIntNullableWithAggregatesFilter | number | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _avg?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatNullableFilter
     _sum?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedIntNullableFilter
     _min?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedIntNullableFilter
     _max?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedIntNullableFilter
   }
 
   export type NestedFloatWithAggregatesFilter = {
@@ -17958,35 +17348,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedFloatWithAggregatesFilter | number
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatFilter
     _sum?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedFloatFilter
     _min?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedFloatFilter
     _max?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedFloatFilter
   }
 
   export type NestedFloatNullableWithAggregatesFilter = {
@@ -17999,35 +17364,10 @@ export namespace Prisma {
     gte?: number
     not?: NestedFloatNullableWithAggregatesFilter | number | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _avg?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatNullableFilter
     _sum?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedFloatNullableFilter
     _min?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedFloatNullableFilter
     _max?: NestedFloatNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedFloatNullableFilter
   }
   export type NestedJsonFilter = 
     | PatchUndefined<
@@ -18037,19 +17377,19 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<NestedJsonFilterBase>, 'path'>>
 
   export type NestedJsonFilterBase = {
-    equals?: InputJsonValue
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
+    equals?: JsonNullValueFilter | InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
-    array_contains?: InputJsonValue
-    array_starts_with?: InputJsonValue
-    array_ends_with?: InputJsonValue
-    not?: InputJsonValue
+    array_contains?: InputJsonValue | null
+    array_starts_with?: InputJsonValue | null
+    array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: JsonNullValueFilter | InputJsonValue
   }
   export type NestedJsonNullableFilter = 
     | PatchUndefined<
@@ -18059,19 +17399,19 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase>, 'path'>>
 
   export type NestedJsonNullableFilterBase = {
-    equals?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
+    equals?: JsonNullValueFilter | InputJsonValue
     path?: Array<string>
     string_contains?: string
     string_starts_with?: string
     string_ends_with?: string
-    array_contains?: InputJsonValue
-    array_starts_with?: InputJsonValue
-    array_ends_with?: InputJsonValue
-    not?: InputJsonValue | null
+    array_contains?: InputJsonValue | null
+    array_starts_with?: InputJsonValue | null
+    array_ends_with?: InputJsonValue | null
+    lt?: InputJsonValue
+    lte?: InputJsonValue
+    gt?: InputJsonValue
+    gte?: InputJsonValue
+    not?: JsonNullValueFilter | InputJsonValue
   }
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter = {
@@ -18080,23 +17420,8 @@ export namespace Prisma {
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedEnumABeautifulEnumFilter
     _max?: NestedEnumABeautifulEnumFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedEnumABeautifulEnumFilter
   }
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
@@ -18105,46 +17430,16 @@ export namespace Prisma {
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedEnumABeautifulEnumNullableFilter
     _max?: NestedEnumABeautifulEnumNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedEnumABeautifulEnumNullableFilter
   }
 
   export type NestedBoolNullableWithAggregatesFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableWithAggregatesFilter | boolean | null
     _count?: NestedIntNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntNullableFilter
     _min?: NestedBoolNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBoolNullableFilter
     _max?: NestedBoolNullableFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBoolNullableFilter
   }
 
   export type NestedBigIntFilter = {
@@ -18168,35 +17463,10 @@ export namespace Prisma {
     gte?: bigint | number
     not?: NestedBigIntWithAggregatesFilter | bigint | number
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedFloatFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedFloatFilter
     _sum?: NestedBigIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedBigIntFilter
     _min?: NestedBigIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBigIntFilter
     _max?: NestedBigIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBigIntFilter
   }
 
   export type NestedDecimalFilter = {
@@ -18220,63 +17490,27 @@ export namespace Prisma {
     gte?: Decimal | number | string
     not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _avg?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    avg?: NestedDecimalFilter
     _sum?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    sum?: NestedDecimalFilter
     _min?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedDecimalFilter
     _max?: NestedDecimalFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedDecimalFilter
   }
 
   export type NestedBytesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesFilter | Buffer
   }
 
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
+    in?: Enumerable<Buffer>
+    notIn?: Enumerable<Buffer>
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    count?: NestedIntFilter
     _min?: NestedBytesFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    min?: NestedBytesFilter
     _max?: NestedBytesFilter
-    /**
-     * @deprecated since 2.23 because Aggregation keywords got unified to use underscore as prefix to prevent field clashes.
-     * 
-    **/
-    max?: NestedBytesFilter
   }
 
   export type UserCreateWithoutPostsInput = {
@@ -18287,8 +17521,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18304,8 +17538,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18330,8 +17564,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18347,8 +17581,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18415,8 +17649,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18431,8 +17665,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18486,8 +17720,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18502,8 +17736,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18557,8 +17791,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18573,8 +17807,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18634,8 +17868,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18650,8 +17884,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18675,8 +17909,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18691,8 +17925,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18706,8 +17940,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18722,8 +17956,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18747,8 +17981,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18763,8 +17997,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18778,8 +18012,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18794,8 +18028,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18819,8 +18053,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18835,8 +18069,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18881,8 +18115,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18897,8 +18131,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18913,8 +18147,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18928,8 +18162,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18944,8 +18178,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18960,8 +18194,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18976,8 +18210,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18991,8 +18225,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -19007,8 +18241,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -19023,8 +18257,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: InputJsonValue
-    optionalJson?: InputJsonValue | null
+    json?: JsonNullValueInput | InputJsonValue
+    optionalJson?: NullableJsonNullValueInput | InputJsonValue
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean

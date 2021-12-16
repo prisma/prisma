@@ -1,20 +1,12 @@
-import { OutputType } from './Output'
+import type { OutputType } from './Output'
 import indent from 'indent-string'
 import { DMMF } from '../../runtime/dmmf-types'
 
-import {
-  getModelArgName,
-  getPayloadName,
-  Projection,
-  getArgName,
-} from '../utils'
-import { Generatable } from './Generatable'
+import { getModelArgName, getPayloadName, Projection, getArgName } from '../utils'
+import type { Generatable } from './Generatable'
 
 export class PayloadType implements Generatable {
-  constructor(
-    protected readonly type: OutputType,
-    protected readonly skipFindMany = false,
-  ) {}
+  constructor(protected readonly type: OutputType, protected readonly skipFindMany = false) {}
 
   public toTS(): string {
     const { type } = this
@@ -25,9 +17,7 @@ export class PayloadType implements Generatable {
     const include = this.renderRelations(Projection.include)
     const select = this.renderRelations(Projection.select)
 
-    const findManyArg = this.skipFindMany
-      ? ''
-      : ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}`
+    const findManyArg = this.skipFindMany ? '' : ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}`
 
     return `\
 export type ${getPayloadName(name)}<
@@ -49,9 +39,7 @@ export type ${getPayloadName(name)}<
   private renderRelations(projection: Projection): string {
     const { type } = this
     // TODO: can be optimized, we're calling the filter two times
-    const relations = type.fields.filter(
-      (f) => f.outputType.location === 'outputObjectTypes',
-    )
+    const relations = type.fields.filter((f) => f.outputType.location === 'outputObjectTypes')
     if (relations.length === 0 && projection === Projection.include) {
       return ''
     }
@@ -66,12 +54,7 @@ export type ${getPayloadName(name)}<
     relations
       .map(
         (f) => `P extends '${f.name}'
-? ${this.wrapType(
-          f,
-          `${getPayloadName(
-            (f.outputType.type as DMMF.OutputType).name,
-          )}<S['${projection}'][P]>`,
-        )} :`,
+? ${this.wrapType(f, `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]>`)} :`,
       )
       .join('\n'),
     6,

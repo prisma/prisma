@@ -1,14 +1,8 @@
 import Debug from '@prisma/debug'
-import { enginesVersion, getEnginesPath } from '@prisma/engines'
-import { download } from '@prisma/fetch-engine'
+import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
-import {
-  extractPreviewFeatures,
-  getConfig,
-  getDMMF,
-  getPackedPackage,
-  mapPreviewFeatures,
-} from '@prisma/sdk'
+import { extractPreviewFeatures, getConfig, getDMMF, getPackedPackage, mapPreviewFeatures } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
@@ -16,10 +10,6 @@ import { performance } from 'perf_hooks'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 import { generateClient } from '../generation/generateClient'
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from '../runtime/utils/getClientEngineType'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
@@ -41,9 +31,7 @@ export async function generateInFolder({
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
-    throw new Error(
-      `Project dir missing. Usage: ts-node examples/generate.ts examples/accounts`,
-    )
+    throw new Error(`Project dir missing. Usage: ts-node examples/generate.ts examples/accounts`)
   }
   if (!fs.existsSync(projectDir)) {
     throw new Error(`Path ${projectDir} does not exist`)
@@ -88,26 +76,18 @@ export async function generateInFolder({
 
   const platform = await getPlatform()
 
-  let runtimePath
+  let runtimeDir
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimePath = path.relative(
-        outputDir,
-        path.join(__dirname, '../../runtime'),
-      )
+      runtimeDir = path.relative(outputDir, path.join(__dirname, '../../runtime'))
     } else {
-      runtimePath = path.relative(outputDir, path.join(__dirname, '../runtime'))
+      runtimeDir = path.relative(outputDir, path.join(__dirname, '../runtime'))
     }
   } else if (useBuiltRuntime) {
-    throw new Error(
-      `Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`,
-    )
+    throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
   }
   const enginesPath = getEnginesPath()
-  const queryEngineLibraryPath = path.join(
-    enginesPath,
-    getNodeAPIName(platform, 'fs'),
-  )
+  const queryEngineLibraryPath = path.join(enginesPath, getNodeAPIName(platform, 'fs'))
   const queryEngineBinaryPath = path.join(
     enginesPath,
     `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
@@ -139,7 +119,7 @@ export async function generateInFolder({
     ...config,
     outputDir,
     schemaDir: path.dirname(schemaPath),
-    runtimePath,
+    runtimeDir,
     transpile,
     testMode: true,
     datamodelPath: schemaPath,
@@ -162,7 +142,5 @@ function getSchemaPath(projectDir: string): string {
   if (fs.existsSync(path.join(projectDir, 'prisma/schema.prisma'))) {
     return path.join(projectDir, 'prisma/schema.prisma')
   }
-  throw new Error(
-    `Could not find any schema.prisma in ${projectDir} or sub directories.`,
-  )
+  throw new Error(`Could not find any schema.prisma in ${projectDir} or sub directories.`)
 }

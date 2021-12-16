@@ -1,24 +1,17 @@
-import { getGenerator, getPackedPackage, parseEnvValue } from '@prisma/sdk'
+import { getGenerator, getPackedPackage, parseEnvValue, ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
 import { omit } from '../../omit'
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from '../../runtime/utils/getClientEngineType'
 const del = promisify(rimraf)
 
 jest.setTimeout(30000)
 
 describe('generator', () => {
   test('minimal', async () => {
-    const prismaClientTarget = path.join(
-      __dirname,
-      './node_modules/@prisma/client',
-    )
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
@@ -41,9 +34,7 @@ describe('generator', () => {
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
 
     if (manifest.requiresEngineVersion.length !== 40) {
-      throw new Error(
-        `Generator manifest should have "requiresEngineVersion" with length 40`,
-      )
+      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
@@ -71,8 +62,7 @@ describe('generator', () => {
       `)
     }
 
-    expect(omit(generator.options!.generator, ['output']))
-      .toMatchInlineSnapshot(`
+    expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       Object {
         binaryTargets: Array [],
         config: Object {},
@@ -85,12 +75,9 @@ describe('generator', () => {
       }
     `)
 
-    expect(
-      path.relative(
-        __dirname,
-        parseEnvValue(generator.options!.generator.output!),
-      ),
-    ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
+    expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
+      `node_modules/@prisma/client`,
+    )
 
     await generator.generate()
     const photonDir = path.join(__dirname, 'node_modules/@prisma/client')
@@ -103,10 +90,7 @@ describe('generator', () => {
   })
 
   test('denylist from engine validation', async () => {
-    const prismaClientTarget = path.join(
-      __dirname,
-      './node_modules/@prisma/client',
-    )
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
@@ -152,10 +136,7 @@ describe('generator', () => {
   })
 
   test('schema path does not exist', async () => {
-    const prismaClientTarget = path.join(
-      __dirname,
-      './node_modules/@prisma/client',
-    )
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
@@ -179,17 +160,14 @@ describe('generator', () => {
     } catch (e) {
       doesnNotExistError = e
     } finally {
-      expect(
-        stripAnsi(doesnNotExistError.message).split('generation/')[1],
-      ).toMatchInlineSnapshot(`doesnotexist.prisma does not exist`)
+      expect(stripAnsi(doesnNotExistError.message).split('generation/')[1]).toMatchInlineSnapshot(
+        `doesnotexist.prisma does not exist`,
+      )
     }
   })
 
   test('mongo', async () => {
-    const prismaClientTarget = path.join(
-      __dirname,
-      './node_modules/@prisma/client',
-    )
+    const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {
       await del(prismaClientTarget)
@@ -212,9 +190,7 @@ describe('generator', () => {
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
 
     if (manifest.requiresEngineVersion.length !== 40) {
-      throw new Error(
-        `Generator manifest should have "requiresEngineVersion" with length 40`,
-      )
+      throw new Error(`Generator manifest should have "requiresEngineVersion" with length 40`)
     }
     manifest.requiresEngineVersion = 'ENGINE_VERSION_TEST'
 
@@ -242,8 +218,7 @@ describe('generator', () => {
       `)
     }
 
-    expect(omit(generator.options!.generator, ['output']))
-      .toMatchInlineSnapshot(`
+    expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       Object {
         binaryTargets: Array [],
         config: Object {},
@@ -258,12 +233,9 @@ describe('generator', () => {
       }
     `)
 
-    expect(
-      path.relative(
-        __dirname,
-        parseEnvValue(generator.options!.generator.output!),
-      ),
-    ).toMatchInlineSnapshot(`node_modules/@prisma/client`)
+    expect(path.relative(__dirname, parseEnvValue(generator.options!.generator.output!))).toMatchInlineSnapshot(
+      `node_modules/@prisma/client`,
+    )
 
     await generator.generate()
     const photonDir = path.join(__dirname, 'node_modules/@prisma/client')

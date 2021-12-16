@@ -1,9 +1,6 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
-import {
-  SetupParams,
-  setupPostgres,
-  tearDownPostgres,
-} from '../../../../utils/setupPostgres'
+import type { SetupParams } from '../../../../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
 
 test('Blog fixture: Postgres', async () => {
   await generateTestClient()
@@ -12,9 +9,7 @@ test('Blog fixture: Postgres', async () => {
 
   const { PrismaClientValidationError, prismaVersion } = Prisma
 
-  let originalConnectionString =
-    process.env.TEST_POSTGRES_URI ||
-    'postgres://prisma:prisma@localhost:5432/tests'
+  let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'
   originalConnectionString += '-blog-env-postgresql'
 
   const SetupParams: SetupParams = {
@@ -56,7 +51,7 @@ test('Blog fixture: Postgres', async () => {
   }
 
   // Test queryRaw(string)
-  const rawQuery = await prisma.$queryRaw('SELECT 1')
+  const rawQuery = await prisma.$queryRawUnsafe('SELECT 1')
   expect(rawQuery[0]['?column?']).toBe(1)
 
   // Test queryRaw``
@@ -64,12 +59,11 @@ test('Blog fixture: Postgres', async () => {
   expect(rawQueryTemplate[0]['?column?']).toBe(1)
 
   // Test queryRaw`` with ${param}
-  const rawQueryTemplateWithParams =
-    await prisma.$queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  const rawQueryTemplateWithParams = await prisma.$queryRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   expect(rawQueryTemplateWithParams[0].name).toBe('Alice')
 
   // Test executeRaw(string)
-  const rawexecute = await prisma.$executeRaw('SELECT 1')
+  const rawexecute = await prisma.$executeRawUnsafe('SELECT 1')
   expect(rawexecute).toBe(1)
 
   // Test executeRaw``
@@ -77,8 +71,7 @@ test('Blog fixture: Postgres', async () => {
   expect(rawexecuteTemplate).toBe(1)
 
   // Test executeRaw`` with ${param}
-  const rawexecuteTemplateWithParams =
-    await prisma.$executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
+  const rawexecuteTemplateWithParams = await prisma.$executeRaw`SELECT * FROM "public"."User" WHERE name = ${'Alice'}`
   expect(rawexecuteTemplateWithParams).toBe(1)
 
   // Test validation errors
@@ -92,10 +85,7 @@ test('Blog fixture: Postgres', async () => {
     errorLogs.push(validationError)
   }
 
-  if (
-    !validationError ||
-    !(validationError instanceof PrismaClientValidationError)
-  ) {
+  if (!validationError || !(validationError instanceof PrismaClientValidationError)) {
     throw new Error(`Validation error is incorrect`)
   }
 
@@ -242,9 +232,7 @@ test('Blog fixture: Postgres', async () => {
       jsonData: new Date(),
     },
   })
-  expect(resultJsonUpdateWithoutSetDateTime.title).toBe(
-    'json array updated date',
-  )
+  expect(resultJsonUpdateWithoutSetDateTime.title).toBe('json array updated date')
 
   await prisma.post.delete({
     where: { id: resultJsonArray.id },

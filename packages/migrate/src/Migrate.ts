@@ -1,13 +1,11 @@
-import { parseEnvValue } from '@prisma/sdk'
-import { getSchemaPathSync, getGenerators } from '@prisma/sdk'
+import { getGeneratorSuccessMessage, getSchemaPathSync, getGenerators } from '@prisma/sdk'
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 import { MigrateEngine } from './MigrateEngine'
-import { EngineResults, EngineArgs } from './types'
-import { formatms } from './utils/formatms'
+import type { EngineResults, EngineArgs } from './types'
 import { enginesVersion } from '@prisma/engines-version'
 import { NoSchemaFoundError } from './utils/errors'
 
@@ -23,10 +21,7 @@ export class Migrate {
   public migrationsDirectoryPath: string
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
     this.schemaPath = this.getSchemaPath(schemaPath)
-    this.migrationsDirectoryPath = path.join(
-      path.dirname(this.schemaPath),
-      'migrations',
-    )
+    this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
     this.engine = new MigrateEngine({
       projectDir: path.dirname(this.schemaPath),
       schemaPath: this.schemaPath,
@@ -56,9 +51,7 @@ export class Migrate {
     return this.engine.reset()
   }
 
-  public createMigration(
-    params: EngineArgs.CreateMigrationInput,
-  ): Promise<EngineResults.CreateMigrationOutput> {
+  public createMigration(params: EngineArgs.CreateMigrationInput): Promise<EngineResults.CreateMigrationOutput> {
     return this.engine.createMigration(params)
   }
 
@@ -85,22 +78,14 @@ export class Migrate {
     })
   }
 
-  public async markMigrationApplied({
-    migrationId,
-  }: {
-    migrationId: string
-  }): Promise<void> {
+  public async markMigrationApplied({ migrationId }: { migrationId: string }): Promise<void> {
     return await this.engine.markMigrationApplied({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: migrationId,
     })
   }
 
-  public markMigrationRolledBack({
-    migrationId,
-  }: {
-    migrationId: string
-  }): Promise<void> {
+  public markMigrationRolledBack({ migrationId }: { migrationId: string }): Promise<void> {
     return this.engine.markMigrationRolledBack({
       migrationName: migrationId,
     })
@@ -121,18 +106,13 @@ export class Migrate {
     })
   }
 
-  public async push({
-    force = false,
-  }: {
-    force?: boolean
-  }): Promise<EngineResults.SchemaPush> {
+  public async push({ force = false }: { force?: boolean }): Promise<EngineResults.SchemaPush> {
     const datamodel = this.getDatamodel()
 
-    const { warnings, unexecutable, executedSteps } =
-      await this.engine.schemaPush({
-        force,
-        schema: datamodel,
-      })
+    const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
+      force,
+      schema: datamodel,
+    })
 
     return {
       executedSteps,
@@ -145,11 +125,7 @@ export class Migrate {
     const message: string[] = []
 
     console.info() // empty line
-    logUpdate(
-      `Running generate... ${chalk.dim(
-        '(Use --skip-generate to skip the generators)',
-      )}`,
-    )
+    logUpdate(`Running generate... ${chalk.dim('(Use --skip-generate to skip the generators)')}`)
 
     const generators = await getGenerators({
       schemaPath: this.schemaPath,
@@ -159,33 +135,16 @@ export class Migrate {
     })
 
     for (const generator of generators) {
-      const toStr = generator.options!.generator.output!
-        ? chalk.dim(
-            ` to .${path.sep}${path.relative(
-              process.cwd(),
-              parseEnvValue(generator.options!.generator.output),
-            )}`,
-          )
-        : ''
-      const name = generator.manifest
-        ? generator.manifest.prettyName
-        : parseEnvValue(generator.options!.generator.provider)
-
-      logUpdate(`Running generate... - ${name}`)
+      logUpdate(`Running generate... - ${generator.getPrettyName()}`)
 
       const before = Date.now()
       try {
         await generator.generate()
         const after = Date.now()
-        const version = generator.manifest?.version
-        message.push(
-          `✔ Generated ${chalk.bold(name!)}${
-            version ? ` (${version})` : ''
-          }${toStr} in ${formatms(after - before)}`,
-        )
+        message.push(getGeneratorSuccessMessage(generator, after - before))
         generator.stop()
-      } catch (err) {
-        message.push(`${err.message}`)
+      } catch (e: any) {
+        message.push(`${e.message}`)
         generator.stop()
       }
     }

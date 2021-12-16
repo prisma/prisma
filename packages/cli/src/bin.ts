@@ -34,9 +34,7 @@ process.on('unhandledRejection', (e) => {
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
     chalk.yellow('deprecated') +
-      `  The ${chalk.redBright(
-        'prisma2',
-      )} command is deprecated and has been renamed to ${chalk.greenBright(
+      `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
         'prisma',
       )}.\nPlease execute ${chalk.bold.greenBright(
         'prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : ''),
@@ -100,9 +98,7 @@ import { Format } from './Format'
 import { Doctor } from './Doctor'
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
-import {
-  printUpdateMessage,
-} from './utils/printUpdateMessage'
+import { printUpdateMessage } from './utils/printUpdateMessage'
 import { enginesVersion } from '@prisma/engines'
 import path from 'path'
 import { detectPrisma1 } from './utils/detectPrisma1'
@@ -201,18 +197,14 @@ async function main(): Promise<number> {
       // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
       // (this was not scoped to `prisma-client-js` before Prisma 3.0)
       const generator = config.generators.find(
-        (generator) =>
-          parseEnvValue(generator.provider) === 'prisma-client-js' &&
-          generator.previewFeatures.length > 0,
+        (generator) => parseEnvValue(generator.provider) === 'prisma-client-js' && generator.previewFeatures.length > 0,
       )
       if (generator) {
         schemaPreviewFeatures = generator.previewFeatures
       }
 
       // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((generator) =>
-        parseEnvValue(generator.provider),
-      )
+      schemaGeneratorsProviders = config.generators.map((generator) => parseEnvValue(generator.provider))
     } catch (e) {
       debug('Error from cli/src/bin.ts')
       debug(e)
@@ -230,17 +222,11 @@ async function main(): Promise<number> {
       cli_path: process.argv[1],
       cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
       command: commandArray.join(' '),
-      information:
-        args['--telemetry-information'] ||
-        process.env.PRISMA_TELEMETRY_INFORMATION,
+      information: args['--telemetry-information'] || process.env.PRISMA_TELEMETRY_INFORMATION,
     })
     // if the result is cached and we're outdated, show this prompt
     const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
-    if (
-      checkResult.status === 'ok' &&
-      checkResult.data.outdated &&
-      !shouldHide
-    ) {
+    if (checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
       printUpdateMessage(checkResult)
     }
   } catch (e) {
@@ -257,7 +243,7 @@ process.on('SIGINT', () => {
 /**
  * Run our program
  */
-if (require.main === module) {
+if (eval('require.main === module')) {
   main()
     .then((code) => {
       if (code !== 0) {
@@ -278,12 +264,7 @@ if (require.main === module) {
 
 function handleIndividualError(error): void {
   if (error.rustStack) {
-    handlePanic(
-      error,
-      packageJson.version,
-      enginesVersion,
-      commandArray.join(' '),
-    )
+    handlePanic(error, packageJson.version, enginesVersion, commandArray.join(' '))
       .catch((e) => {
         if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)

@@ -1,4 +1,4 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
 
-ts-node scripts/lint.ts --staged
+pnpm exec ts-node scripts/lint.ts --staged

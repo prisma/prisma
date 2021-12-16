@@ -1,4 +1,4 @@
-import { Key } from 'readline'
+import type { Key } from 'readline'
 
 export type ActionKey =
   | false

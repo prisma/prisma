@@ -17,10 +17,7 @@ export type GeneratorPaths = {
   isNode?: boolean
 }
 
-export type GeneratorResolver = (
-  baseDir: string,
-  version?: string,
-) => Promise<GeneratorPaths>
+export type GeneratorResolver = (baseDir: string, version?: string) => Promise<GeneratorPaths>
 
 export type PredefinedGeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
@@ -60,12 +57,10 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
       'provider = "prisma-client-js"',
     )} in your ${chalk.bold('schema.prisma')} file.
-  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red(
-      '@prisma/photon',
-    )} dependency to ${chalk.green('@prisma/client')}
-  3. Replace ${chalk.red(
-    "import { Photon } from '@prisma/photon'",
-  )} with ${chalk.green(
+  2. Replace your ${chalk.bold('package.json')}'s ${chalk.red('@prisma/photon')} dependency to ${chalk.green(
+      '@prisma/client',
+    )}
+  3. Replace ${chalk.red("import { Photon } from '@prisma/photon'")} with ${chalk.green(
       "import { PrismaClient } from '@prisma/client'",
     )} in your code.
   4. Run ${chalk.green(getCommandWithExecutor('prisma generate'))} again.
@@ -80,6 +75,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
+      // TODO: should this be relative to `baseDir` rather than `process.cwd()`?
       if (
         !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
         !fs.existsSync(path.join(process.cwd(), '../package.json'))
@@ -98,14 +94,34 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
   "license": "ISC"
 }
 `
-        fs.writeFileSync(
-          path.join(process.cwd(), 'package.json'),
-          defaultPackageJson,
-        )
+        fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
-      await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
+      const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
+
+      // Automatically installing the packages with Yarn on Windows won't work because
+      // Yarn will try to unlink the Query Engine DLL, which is currently being used.
+      // See https://github.com/prisma/prisma/issues/9184
+      if (process.platform === 'win32' && isYarnUsed(baseDir)) {
+        const hasCli = (s: string) => (prismaCliDir !== undefined ? s : '')
+        const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
+
+        throw new Error(
+          `Could not resolve ${missingCli(`${chalk.bold('prisma')} and `)}${chalk.bold(
+            '@prisma/client',
+          )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
+            `${chalk.bold.greenBright(`${getAddPackageCommandName(baseDir, 'dev')} prisma`)} and `,
+          )}${chalk.bold.greenBright(`${getAddPackageCommandName(baseDir)} @prisma/client`)}, and rerun ${chalk.bold(
+            getCommandWithExecutor('prisma generate'),
+          )} 🙏.`,
+        )
+      }
+
+      if (!prismaCliDir) {
+        await installPackage(baseDir, `prisma@${version ?? 'latest'}`, 'dev')
+      }
+
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
       // resolvePkg has caching, so we trick it not to do it 👇
@@ -115,26 +131,22 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         throw new Error(
           `Could not resolve @prisma/client despite the installation that we just tried.
 Please try to install it by hand with ${chalk.bold.greenBright(
-            'npm install @prisma/client',
-          )} and rerun ${chalk.bold(
-            getCommandWithExecutor('prisma generate'),
-          )} 🙏.`,
+            `${getAddPackageCommandName(baseDir)} @prisma/client`,
+          )} and rerun ${chalk.bold(getCommandWithExecutor('prisma generate'))} 🙏.`,
         )
       }
 
       console.info(
-        `\n✔ Installed the ${chalk.bold.green(
-          '@prisma/client',
-        )} and ${chalk.bold.green('prisma')} packages in your project`,
+        `\n✔ Installed the ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green(
+          'prisma',
+        )} packages in your project`,
       )
     }
 
     if (!prismaClientDir) {
       throw new Error(
         `Could not resolve @prisma/client.
-Please try to install it with ${chalk.bold.greenBright(
-          'npm install @prisma/client',
-        )} and rerun ${chalk.bold(
+Please try to install it with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
           getCommandWithExecutor('prisma generate'),
         )} 🙏.`,
       )
@@ -148,10 +160,25 @@ Please try to install it with ${chalk.bold.greenBright(
   },
 }
 
-async function installPackage(baseDir: string, pkg: string): Promise<void> {
-  const yarnUsed = hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+function isYarnUsed(baseDir: string): boolean {
+  // TODO: this may give false results for Yarn workspaces or when the schema is
+  // in a non-standard location, implement proper detection.
+  // Possibly related: https://github.com/prisma/prisma/discussions/10488
+  return hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+}
 
-  const cmdName = yarnUsed ? 'yarn add' : 'npm install'
+function getAddPackageCommandName(baseDir: string, dependencyType?: 'dev'): string {
+  let command = isYarnUsed(baseDir) ? 'yarn add' : 'npm install'
+
+  if (dependencyType === 'dev') {
+    command += ' -D'
+  }
+
+  return command
+}
+
+async function installPackage(baseDir: string, pkg: string, dependencyType?: 'dev'): Promise<void> {
+  const cmdName = getAddPackageCommandName(baseDir, dependencyType)
 
   await execa.command(`${cmdName} ${pkg}`, {
     cwd: baseDir,
@@ -200,8 +227,8 @@ async function checkTypeScriptVersion() {
     const typescriptPath = await resolvePkg('typescript', {
       basedir: process.cwd(),
     })
-    const typescriptPkg =
-      typescriptPath && path.join(typescriptPath, 'package.json')
+    debug('typescriptPath', typescriptPath)
+    const typescriptPkg = typescriptPath && path.join(typescriptPath, 'package.json')
     if (typescriptPkg && fs.existsSync(typescriptPkg)) {
       const pjson = require(typescriptPkg)
       const currentVersion = pjson.version
@@ -211,7 +238,7 @@ async function checkTypeScriptVersion() {
             'TypeScript',
           )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${chalk.bold(
             minVersion,
-          )} or ${chalk.bold('newer')}`,
+          )} or ${chalk.bold('newer')}. ${chalk.dim(`TypeScript found in: ${chalk.bold(typescriptPath)}`)}`,
         )
       }
     }

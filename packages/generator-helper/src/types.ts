@@ -1,4 +1,4 @@
-import { DMMF } from './dmmf'
+import type { DMMF } from './dmmf'
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace JsonRPC {
@@ -51,12 +51,7 @@ export interface BinaryTargetsEnvValue {
   value: string
 }
 
-export type ConnectorType =
-  | 'mysql'
-  | 'mongodb'
-  | 'sqlite'
-  | 'postgresql'
-  | 'sqlserver'
+export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'sqlserver'
 
 export interface DataSource {
   name: string
@@ -88,12 +83,7 @@ export type GeneratorOptions = {
   binaryPaths?: BinaryPaths
 }
 
-export type EngineType =
-  | 'queryEngine'
-  | 'libqueryEngine'
-  | 'migrationEngine'
-  | 'introspectionEngine'
-  | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
 
 export type GeneratorManifest = {
   prettyName?: string

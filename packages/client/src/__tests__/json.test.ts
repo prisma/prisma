@@ -80,7 +80,7 @@ describe('json', () => {
       select: {
         where: {
           json: {
-            equals: null,
+            equals: 'JsonNull',
           },
         },
       },
@@ -121,9 +121,7 @@ describe('json', () => {
       rootTypeName: 'query',
       rootField: 'findManyUser',
     })
-    expect(() =>
-      document.validate(undefined, false, 'user', 'colorless'),
-    ).toThrowErrorMatchingSnapshot()
+    expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
 
   test('should be able to update json', () => {

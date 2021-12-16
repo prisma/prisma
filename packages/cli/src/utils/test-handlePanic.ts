@@ -5,18 +5,11 @@ import { IntrospectionEngine } from '@prisma/sdk'
 
 async function main() {
   const packageJsonVersion = '0.0.0'
-  const prismaVersion = 'prismaVersionHash'
+  const engineVersion = 'prismaEngineVersionHash'
   const command = 'something-test'
 
   try {
-    const dirPath = path.join(
-      __dirname,
-      '..',
-      '__tests__',
-      'fixtures',
-      'introspection',
-      'postgresql',
-    )
+    const dirPath = path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql')
 
     process.chdir(dirPath)
 
@@ -32,7 +25,7 @@ async function main() {
   } catch (err) {
     console.debug({ err })
 
-    handlePanic(err, packageJsonVersion, prismaVersion, command)
+    handlePanic(err, packageJsonVersion, engineVersion, command)
       .catch((e) => {
         console.error('Error: ' + e.stack)
         console.error('Error: ' + e.message)

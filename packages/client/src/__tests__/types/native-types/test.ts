@@ -49,6 +49,14 @@ async function main() {
     jsonb: Prisma.JsonValue
   } = await prisma.d.findFirst()
   const e = await prisma.e.findFirst()
+
+  await prisma.d.findFirst({
+    where: {
+      byteA: {
+        in: [Buffer.from('data')],
+      },
+    },
+  })
 }
 
 main()

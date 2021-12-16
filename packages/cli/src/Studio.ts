@@ -1,13 +1,7 @@
 import { enginesVersion } from '@prisma/engines'
-import {
-  arg,
-  Command,
-  format,
-  getSchemaPath,
-  HelpError,
-  isError,
-} from '@prisma/sdk'
-import StudioServer from '@prisma/studio-server'
+import type { Command } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError } from '@prisma/sdk'
+import { StudioServer } from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'
 import open from 'open'
@@ -98,15 +92,10 @@ ${chalk.bold('Examples')}
       )
     }
 
-    console.log(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     const hostname = args['--hostname']
-    const port =
-      args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
+    const port = args['--port'] || (await getPort({ port: getPort.makeRange(5555, 5600) }))
     const browser = args['--browser'] || process.env.BROWSER
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
@@ -118,15 +107,12 @@ ${chalk.bold('Examples')}
       staticAssetDir,
       prismaClient: {
         resolve: {
-          '@prisma/client': path.resolve(
-            __dirname,
-            '../prisma-client/index.js',
-          ),
+          '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
           '@prisma/engines': require.resolve('@prisma/engines'),
         },
       },
       versions: {
-        prisma2: packageJson.version,
+        prisma: packageJson.version,
         queryEngine: enginesVersion,
       },
     })

@@ -76,7 +76,7 @@ describe('handlePanic', () => {
     resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
   )
   const packageJsonVersion = '0.0.0'
-  const prismaVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
 
   // Only works locally (not in CI)
@@ -90,7 +90,7 @@ describe('handlePanic', () => {
     setTimeout(() => sendKeystrokes(io).then(), 5)
 
     try {
-      await handlePanic(error, packageJsonVersion, prismaVersion, command)
+      await handlePanic(error, packageJsonVersion, engineVersion, command)
     } catch (e) {
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
       expect(stripAnsi(e.message)).toMatchSnapshot()
@@ -103,7 +103,7 @@ describe('handlePanic', () => {
   it('no interactive mode in CI', async () => {
     process.env.GITHUB_ACTIONS = 'maybe'
     try {
-      await handlePanic(error, packageJsonVersion, prismaVersion, command)
+      await handlePanic(error, packageJsonVersion, engineVersion, command)
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`Some error message!`)
@@ -151,7 +151,7 @@ describe('handlePanic', () => {
       setTimeout(() => sendKeystrokes(io).then(), 5)
       // This allows this test to be run in the CI
       try {
-        await handlePanic(err, packageJsonVersion, prismaVersion, command)
+        await handlePanic(err, packageJsonVersion, engineVersion, command)
       } catch (err) {
         error = err
       }

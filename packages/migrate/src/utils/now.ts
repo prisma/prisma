@@ -1,10 +1,8 @@
 export function now(): string {
   const now = new Date()
-  return `${now.getUTCFullYear()}${prefixZero(
-    now.getUTCMonth() + 1,
-  )}${prefixZero(now.getUTCDate())}${prefixZero(now.getUTCHours())}${prefixZero(
-    now.getUTCMinutes(),
-  )}${prefixZero(now.getUTCSeconds())}`
+  return `${now.getUTCFullYear()}${prefixZero(now.getUTCMonth() + 1)}${prefixZero(now.getUTCDate())}${prefixZero(
+    now.getUTCHours(),
+  )}${prefixZero(now.getUTCMinutes())}${prefixZero(now.getUTCSeconds())}`
 }
 
 export function timestampToDate(timestamp: string): Date | undefined {

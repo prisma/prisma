@@ -1,25 +1,15 @@
-import {
-  arg,
-  Command,
-  format,
-  getSchemaPath,
-  HelpError,
-  isError,
-  getCommandWithExecutor,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError, getCommandWithExecutor } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
-import {
-  ExperimentalFlagWithNewMigrateError,
-  EarlyAccessFeatureFlagWithNewMigrateError,
-} from '../utils/flagErrors'
+import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
 import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
 import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
-import { EngineResults } from '../types'
+import type { EngineResults } from '../types'
 
 const debug = Debug('prisma:migrate:status')
 
@@ -85,11 +75,7 @@ Check the status of your database migrations
       throw new NoSchemaFoundError()
     }
 
-    console.info(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     await printDatasource(schemaPath)
 
@@ -99,7 +85,7 @@ Check the status of your database migrations
 
     try {
       await ensureCanConnectToDatabase(schemaPath)
-    } catch (e) {
+    } catch (e: any) {
       console.info() // empty line
       return chalk.red(`Database connection error:
 
@@ -132,11 +118,7 @@ ${e.message}`)
 
     if (listMigrationDirectoriesResult.migrations.length > 0) {
       const migrations = listMigrationDirectoriesResult.migrations
-      console.info(
-        `${migrations.length} migration${
-          migrations.length > 1 ? 's' : ''
-        } found in prisma/migrations\n`,
-      )
+      console.info(`${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations\n`)
     } else {
       console.info(`No migration found in prisma/migrations\n`)
     }
@@ -145,26 +127,18 @@ ${e.message}`)
     if (diagnoseResult.history?.diagnostic === 'databaseIsBehind') {
       unappliedMigrations = diagnoseResult.history.unappliedMigrationNames
       console.info(
-        `Following migration${
-          unappliedMigrations.length > 1 ? 's' : ''
-        } have not yet been applied:
+        `Following migration${unappliedMigrations.length > 1 ? 's' : ''} have not yet been applied:
 ${unappliedMigrations.join('\n')}
 
-To apply migrations in development run ${chalk.bold.greenBright(
-          getCommandWithExecutor(`prisma migrate dev`),
-        )}.
-To apply migrations in production run ${chalk.bold.greenBright(
-          getCommandWithExecutor(`prisma migrate deploy`),
-        )}.`,
+To apply migrations in development run ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate dev`))}.
+To apply migrations in production run ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate deploy`))}.`,
       )
     } else if (diagnoseResult.history?.diagnostic === 'historiesDiverge') {
       return `Your local migration history and the migrations table from your database are different:
 
 The last common migration is: ${diagnoseResult.history.lastCommonMigrationName}
 
-The migration${
-        diagnoseResult.history.unappliedMigrationNames.length > 1 ? 's' : ''
-      } have not yet been applied:
+The migration${diagnoseResult.history.unappliedMigrationNames.length > 1 ? 's' : ''} have not yet been applied:
 ${diagnoseResult.history.unappliedMigrationNames.join('\n')}
 
 The migration${
@@ -186,14 +160,11 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`
       if (listMigrationDirectoriesResult.migrations.length === 0) {
         return new HowToBaselineError().message
       } else {
-        const migrationId =
-          listMigrationDirectoriesResult.migrations.shift() as string
+        const migrationId = listMigrationDirectoriesResult.migrations.shift() as string
         return `The current database is not managed by Prisma Migrate.
 
 If you want to keep the current database structure and data and create new migrations, baseline this database with the migration "${migrationId}":
-${chalk.bold.greenBright(
-  getCommandWithExecutor(`prisma migrate resolve --applied "${migrationId}"`),
-)}
+${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --applied "${migrationId}"`))}
 
 Read more about how to baseline an existing production database:
 https://pris.ly/d/migrate-baseline`
@@ -206,9 +177,7 @@ https://pris.ly/d/migrate-baseline`
       const failedMigrations = diagnoseResult.failedMigrationNames
 
       console.info(
-        `Following migration${
-          failedMigrations.length > 1 ? 's' : ''
-        } have failed:
+        `Following migration${failedMigrations.length > 1 ? 's' : ''} have failed:
 ${failedMigrations.join('\n')}
 
 During development if the failed migration(s) have not been deployed to a production database you can then fix the migration(s) and run ${chalk.bold.greenBright(
@@ -219,18 +188,10 @@ During development if the failed migration(s) have not been deployed to a produc
       return `The failed migration(s) can be marked as rolled back or applied:
       
 - If you rolled back the migration(s) manually:
-${chalk.bold.greenBright(
-  getCommandWithExecutor(
-    `prisma migrate resolve --rolled-back "${failedMigrations[0]}"`,
-  ),
-)}
+${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --rolled-back "${failedMigrations[0]}"`))}
 
 - If you fixed the database manually (hotfix):
-${chalk.bold.greenBright(
-  getCommandWithExecutor(
-    `prisma migrate resolve --applied "${failedMigrations[0]}"`,
-  ),
-)}
+${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --applied "${failedMigrations[0]}"`))}
 
 Read more about how to resolve migration issues in a production database:
 https://pris.ly/d/migrate-resolve`
@@ -247,9 +208,7 @@ https://pris.ly/d/migrate-resolve`
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateStatus.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateStatus.help}`)
     }
     return MigrateStatus.help
   }

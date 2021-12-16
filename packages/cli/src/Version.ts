@@ -1,9 +1,9 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
+import type { Command } from '@prisma/sdk'
 import {
   arg,
   BinaryType,
-  Command,
   engineEnvVarMap,
   format,
   getConfig,
@@ -68,9 +68,7 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-    const introspectionEngine = await this.resolveEngine(
-      BinaryType.introspectionEngine,
-    )
+    const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
     // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
     const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
@@ -83,20 +81,13 @@ export class Version implements Command {
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       [
-        `Query Engine${
-          cliQueryEngineBinaryType === BinaryType.libqueryEngine
-            ? ' (Node-API)'
-            : ' (Binary)'
-        }`,
+        `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
         this.printBinaryInfo(queryEngine),
       ],
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
-      [
-        'Default Engines Hash',
-        packageJson.dependencies['@prisma/engines'].split('.').pop(),
-      ],
+      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
@@ -120,9 +111,7 @@ export class Version implements Command {
       const config = await getConfig({
         datamodel,
       })
-      const generator = config.generators.find(
-        (g) => g.previewFeatures.length > 0,
-      )
+      const generator = config.generators.find((g) => g.previewFeatures.length > 0)
       if (generator) {
         return generator.previewFeatures
       }
@@ -132,16 +121,9 @@ export class Version implements Command {
     return []
   }
 
-  private printBinaryInfo({
-    path: absolutePath,
-    version,
-    fromEnvVar,
-  }: BinaryInfo): string {
+  private printBinaryInfo({ path: absolutePath, version, fromEnvVar }: BinaryInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
-    return `${version} (at ${path.relative(
-      process.cwd(),
-      absolutePath,
-    )}${resolved})`
+    return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   }
 
   private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
@@ -166,9 +148,7 @@ export class Version implements Command {
       return JSON.stringify(result, null, 2)
     }
     const maxPad = rows.reduce((acc, curr) => Math.max(acc, curr[0].length), 0)
-    return rows
-      .map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`)
-      .join('\n')
+    return rows.map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`).join('\n')
   }
 
   public help(error?: string): string | HelpError {

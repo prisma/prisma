@@ -27,18 +27,22 @@
     "node": ">=12.6"
   },
   "homepage": "https://www.prisma.io",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/client"
+  },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "maintainers": [
-    "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>",
-    "William Luke <luke@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>"
+    "Pierre-Antoine Mills <mills@prisma.io>",
+    "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
-    "dev": "DEV=true node helpers/build.js",
-    "build": "node helpers/build.js",
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test": "jest --verbose",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "format": "prettier --write .",
@@ -60,32 +64,33 @@
     "index-browser.js"
   ],
   "devDependencies": {
+    "@microsoft/api-extractor": "7.18.19",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "2.31.0-23.119ba9477e0a1edb63c0156d2bd6fc5ae389f53b",
-    "@prisma/fetch-engine": "2.31.0-23.119ba9477e0a1edb63c0156d2bd6fc5ae389f53b",
+    "@prisma/engines": "3.7.0-22.290078778b2852913a326899e0571df61eed1792",
+    "@prisma/fetch-engine": "3.7.0-22.290078778b2852913a326899e0571df61eed1792",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "2.31.0-23.119ba9477e0a1edb63c0156d2bd6fc5ae389f53b",
+    "@prisma/get-platform": "3.7.0-22.290078778b2852913a326899e0571df61eed1792",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "27.0.1",
+    "@types/jest": "27.0.3",
     "@types/js-levenshtein": "1.1.0",
     "@types/mssql": "6.0.8",
-    "@types/node": "12.20.23",
+    "@types/node": "12.20.37",
     "@types/pg": "8.6.1",
-    "@typescript-eslint/eslint-plugin": "4.29.3",
-    "@typescript-eslint/parser": "4.29.3",
+    "@typescript-eslint/eslint-plugin": "5.4.0",
+    "@typescript-eslint/parser": "5.4.0",
     "arg": "5.0.1",
+    "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
-    "esbuild": "0.8.53",
-    "escape-string-regexp": "4.0.0",
-    "eslint": "7.32.0",
+    "esbuild": "0.13.14",
+    "eslint": "8.3.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "24.4.0",
+    "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
@@ -94,31 +99,30 @@
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
-    "jest": "27.1.0",
+    "jest": "27.4.5",
     "js-levenshtein": "1.1.6",
-    "klona": "2.0.4",
-    "lint-staged": "11.1.2",
+    "klona": "2.0.5",
+    "lint-staged": "12.0.2",
+    "lz-string": "1.4.4",
     "make-dir": "3.1.0",
-    "mariadb": "2.5.4",
+    "mariadb": "2.5.5",
     "mssql": "7.2.1",
     "pg": "8.7.1",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
-    "prettier": "2.3.2",
+    "prettier": "2.4.1",
     "replace-string": "3.1.0",
     "rimraf": "3.0.2",
-    "rollup": "2.56.3",
-    "rollup-plugin-dts": "3.0.2",
     "sort-keys": "4.2.0",
-    "source-map-support": "0.5.19",
+    "source-map-support": "0.5.20",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
-    "strip-ansi": "6.0.0",
+    "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "27.0.5",
-    "ts-node": "10.2.1",
-    "tsd": "0.17.0",
-    "typescript": "4.3.5"
+    "ts-jest": "27.1.1",
+    "ts-node": "10.4.0",
+    "tsd": "0.18.0",
+    "typescript": "4.4.4"
   },
   "peerDependencies": {
     "prisma": "*"
@@ -129,12 +133,13 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "2.31.0-23.119ba9477e0a1edb63c0156d2bd6fc5ae389f53b"
+    "@prisma/engines-version": "3.7.0-22.290078778b2852913a326899e0571df61eed1792"
   },
   "lint-staged": {
     "*.ts": [
       "eslint",
       "prettier --write"
     ]
-  }
+  },
+  "sideEffects": false
 }

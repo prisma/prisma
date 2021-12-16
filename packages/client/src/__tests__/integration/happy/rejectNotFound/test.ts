@@ -49,22 +49,33 @@ for (const constructorKey of Object.keys(cases.constructor)) {
     for (const valueKey of Object.keys(currentMethod)) {
       const value = currentMethod[valueKey]
       test(`rejectOnNotFound | constructor=${constructorKey} | ${method}=${value}`, async () => {
-        // It should fail or not
-        expect.assertions(1)
         const PrismaClient = await getTestClient()
         const prisma = new PrismaClient({
           rejectOnNotFound: constructor,
         })
 
-        // Test Rejection
-        try {
+        // This function name is important cause we're searching
+        // for its name in the stack below
+        const testRejectionOnNotFound = async () => {
           const r = await prisma.user[method]({
             where: { id: 'none' },
             rejectOnNotFound: value,
           })
-          expect(r).toMatchSnapshot()
+
+          // If it got to here, then no error was thrown
+          // so we check the value if it's equal to null
+          expect(r).toBeNull()
+        }
+
+        try {
+          await testRejectionOnNotFound()
         } catch (error) {
+          const { message, stack } = error
+          expect(stack).toBeDefined()
+          expect(message).toBeDefined()
+
           expect(error).toMatchSnapshot()
+          expect(stack).toContain('at testRejectionOnNotFound')
         }
         await prisma.$disconnect()
       })

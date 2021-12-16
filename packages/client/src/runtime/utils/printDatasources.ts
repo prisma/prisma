@@ -1,12 +1,6 @@
-import { Dictionary } from './common'
+import type { Dictionary } from './common'
 
-export type ConnectorType =
-  | 'mysql'
-  | 'mongodb'
-  | 'sqlite'
-  | 'postgresql'
-  | 'sqlserver'
-  | 'jdbc:sqlserver'
+export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'sqlserver' | 'jdbc:sqlserver'
 
 export interface GeneratorConfig {
   name: string
@@ -33,6 +27,6 @@ export interface InternalDatasource {
 // We could do import { EnvValue } from '../../isdlToDatamodel2'
 // but we don't want to pull that into the runtime build
 export interface EnvValue {
-  fromEnvVar: null | string
-  value: string
+  fromEnvVar: string | null
+  value: string | null
 }

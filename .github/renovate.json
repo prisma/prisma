@@ -6,7 +6,13 @@
   "dependencyDashboard": true,
   "reviewers": ["@Jolg42", "@millsp"],
   "rebaseWhen": "conflicted",
-  "ignoreDeps": ["esbuild", "sqlite3", "@prisma/engines", "@prisma/engines-version", "@prisma/fetch-engine", "@prisma/get-platform"],
+  "ignoreDeps": [
+    "sqlite3",
+    "@prisma/engines",
+    "@prisma/engines-version",
+    "@prisma/fetch-engine",
+    "@prisma/get-platform"
+  ],
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -14,6 +20,7 @@
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"],
       "excludePackageNames": [
+        "@prisma/studio",
         "@prisma/studio-server",
         "checkpoint-client"
       ],
@@ -23,9 +30,7 @@
       "groupName": "dependencies (non-major)",
       "depTypeList": ["dependencies"],
       "updateTypes": ["patch", "minor"],
-      "excludePackageNames": [
-        "checkpoint-client"
-      ],
+      "excludePackageNames": ["checkpoint-client"],
       "schedule": ["before 8am on Wednesday"]
     },
     {
@@ -37,7 +42,7 @@
     {
       "groupName": "Studio",
       "automerge": "true",
-      "packageNames": ["@prisma/studio-server"],
+      "packageNames": ["@prisma/studio", "@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
       "reviewers": ["@madebysid", "@jolg42", "millsp"]
     },

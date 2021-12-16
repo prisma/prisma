@@ -22,11 +22,8 @@ describe('dmmf', () => {
       }`
 
     const dmmf = await getDMMF({ datamodel })
-    expect(
-      dmmf.schema.inputObjectTypes.prisma.find(
-        (i) => i.name === 'NestedEnumPostKindFilter',
-      ),
-    ).toMatchInlineSnapshot(`
+    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'))
+      .toMatchInlineSnapshot(`
       Object {
         constraints: Object {
           maxNumFields: null,
@@ -95,11 +92,7 @@ describe('dmmf', () => {
         name: NestedEnumPostKindFilter,
       }
     `)
-    expect(
-      dmmf.schema.inputObjectTypes.prisma.find(
-        (i) => i.name === 'EnumPostKindFilter',
-      ),
-    ).toMatchInlineSnapshot(`
+    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter')).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
           maxNumFields: null,
@@ -190,11 +183,8 @@ describe('dmmf', () => {
       }`
 
     const dmmf = await getDMMF({ datamodel })
-    expect(
-      dmmf.schema.inputObjectTypes.prisma.find(
-        (i) => i.name === 'NestedEnumPostKindFilter',
-      ),
-    ).toMatchInlineSnapshot(`
+    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'NestedEnumPostKindFilter'))
+      .toMatchInlineSnapshot(`
       Object {
         constraints: Object {
           maxNumFields: null,
@@ -263,11 +253,7 @@ describe('dmmf', () => {
         name: NestedEnumPostKindFilter,
       }
     `)
-    expect(
-      dmmf.schema.inputObjectTypes.prisma.find(
-        (i) => i.name === 'EnumPostKindFilter',
-      ),
-    ).toMatchInlineSnapshot(`
+    expect(dmmf.schema.inputObjectTypes.prisma.find((i) => i.name === 'EnumPostKindFilter')).toMatchInlineSnapshot(`
       Object {
         constraints: Object {
           maxNumFields: null,
@@ -357,7 +343,6 @@ describe('dmmf', () => {
         AWESOME
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
@@ -376,6 +361,5 @@ describe('dmmf', () => {
         Validation Error Count: 1
       `)
     }
-    /* eslint-enable jest/no-try-expect */
   })
 })
