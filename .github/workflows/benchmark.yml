@@ -1,27 +1,28 @@
 name: Benchmark
-# Run on push only for master, if not it will trigger push & pull_request on PRs at the same time
+# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/master/src/.buildkite/publish/buildkite-entry.sh
-      - "*.md"
-      - ".vscode/**"
-      - "docs/**"
-      - "examples/**"
-      - "LICENSE"
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
+      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
+      - '*.md'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
       - '.github/CODEOWNERS'
-      - "src/.buildkite/**"
-      - "src/.dockerignore"
-      - "src/scripts/ci/publish.ts"
-      - "src/graphs/**"
+      - 'src/.buildkite/**'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - 'graphs/**'
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma benchmark.yml"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma benchmark.yml'
 
 jobs:
   benchmark:
@@ -38,7 +39,7 @@ jobs:
 
       - uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: '12'
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -47,7 +48,6 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       #  This is required as setup.sh can modify pnpm-lock.yml
-      - run: rm -f src/pnpm-lock.yaml
       - run: rm -f ./pnpm-lock.yaml
 
       - name: Run benchmarks
@@ -57,13 +57,13 @@ jobs:
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Benchmark.js Benchmark
-          tool: "benchmarkjs"
+          tool: 'benchmarkjs'
           output-file-path: output.txt
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: "200%"
+          alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: "@williamluke4"
+          alert-comment-cc-users: '@Jolg42,@millsp'

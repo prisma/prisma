@@ -1,0 +1,394 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`json-filtering(postgres) array_contains([1, 2, 3]) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) array_ends_with(12) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) array_starts_with(5) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) filter with Prisma.AnyNull 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
+  },
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) filter with Prisma.DbNull 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
+  },
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) filter with Prisma.JsonNull 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) gt(2) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) gte(2) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        9,
+        10,
+        11,
+        12,
+      ],
+      number: 3,
+      object: Object {
+        a: 7,
+        b: 8,
+        c: 9,
+      },
+      string: cd,
+    },
+  },
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) lt(2) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) lt(2) 2`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) lte(2) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) string_contains(bc) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) string_ends_with(c) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        5,
+        6,
+        7,
+        8,
+      ],
+      number: 2,
+      object: Object {
+        a: 4,
+        b: 5,
+        c: 6,
+      },
+      string: bc,
+    },
+  },
+]
+`;
+
+exports[`json-filtering(postgres) string_starts_with(a) 1`] = `
+Array [
+  Object {
+    json: Object {
+      array: Array [
+        1,
+        2,
+        3,
+        4,
+      ],
+      number: 1,
+      object: Object {
+        a: 1,
+        b: 2,
+        c: 3,
+      },
+      string: ab,
+    },
+  },
+]
+`;

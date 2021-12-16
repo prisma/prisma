@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`json should be able filter json "null" 1`] = `
+query {
+  findManyOptionalUser(where: {
+    json: {
+      equals: "\\"null\\""
+    }
+  }) {
+    id
+    name
+    email
+    json
+  }
+}
+`;
+
+exports[`json should be able filter json 1`] = `
+query {
+  findManyUser(where: {
+    json: {
+      equals: "{\\"hello\\":\\"world\\"}"
+    }
+  }) {
+    id
+    name
+    email
+    json
+    jsonList
+  }
+}
+`;
+
+exports[`json should be able filter json null 1`] = `
+query {
+  findManyOptionalUser(where: {
+    json: {
+      equals: JsonNull
+    }
+  }) {
+    id
+    name
+    email
+    json
+  }
+}
+`;
+
+exports[`json should be able to create json 1`] = `
+mutation {
+  createOneUser(data: {
+    email: "a@a.de"
+    json: "{\\"hello\\":\\"world\\"}"
+    jsonList: ["{\\"hello\\":\\"world\\"}"]
+    name: "Bob"
+  }) {
+    id
+    name
+    email
+    json
+    jsonList
+  }
+}
+`;
+
+exports[`json should error if equals is missing 1`] = `
+
+Invalid \`prisma.user()\` invocation:
+
+{}
+
+Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`select\`? Available args:
+type JsonFilter {
+  equals?: JsonNullValueFilter | Json
+  not?: JsonNullValueFilter | Json
+}
+
+
+`;

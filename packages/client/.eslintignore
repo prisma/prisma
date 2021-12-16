@@ -1,0 +1,10 @@
+/node_modules
+/generator-build
+/declaration
+/runtime
+/sandbox
+
+generated-dmmf.ts
+/src/__tests__/types
+/src/__tests__/benchmarks
+/src/__tests__/__helpers__/dmmf-types.ts

@@ -7,7 +7,9 @@ tmp
 pnpm-debug.log
 sandbox
 .DS_Store
+
 query-engine*
+libquery_engine*
 
 *tmp.db
 dist/
@@ -22,3 +24,11 @@ dist/
 coverage
 
 .eslintcache
+
+node_modules
+.pnpm-store/
+.env*
+yarn-error.log
+.DS_Store
+pnpm-debug.log
+.pnpm-debug.log

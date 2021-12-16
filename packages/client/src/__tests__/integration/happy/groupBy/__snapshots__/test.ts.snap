@@ -1,0 +1,142 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`groupBy 2 fields 1`] = `
+Array [
+  Object {
+    email: bob+0@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+1@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+2@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+3@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+4@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+5@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+6@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+7@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+8@hey.com,
+    name: Bobby Brown,
+  },
+  Object {
+    email: bob+9@hey.com,
+    name: Bobby Brown,
+  },
+]
+`;
+
+exports[`groupBy by  [name, count, min, sum, max, avg] with aggregations 1`] = `
+Array [
+  Object {
+    _count: 10,
+    _min: Object {
+      min: 0,
+    },
+    avg: 0,
+    count: 0,
+    max: 0,
+    min: 0,
+    name: Bobby Brown,
+    sum: 0,
+  },
+]
+`;
+
+exports[`groupBy count field and aggregations 1`] = `
+Array [
+  Object {
+    _count: 10,
+    _min: Object {
+      min: 0,
+    },
+    count: 0,
+  },
+]
+`;
+
+exports[`groupBy email 1`] = `
+Array [
+  Object {
+    email: bob+0@hey.com,
+  },
+  Object {
+    email: bob+1@hey.com,
+  },
+  Object {
+    email: bob+2@hey.com,
+  },
+  Object {
+    email: bob+3@hey.com,
+  },
+  Object {
+    email: bob+4@hey.com,
+  },
+  Object {
+    email: bob+5@hey.com,
+  },
+  Object {
+    email: bob+6@hey.com,
+  },
+  Object {
+    email: bob+7@hey.com,
+  },
+  Object {
+    email: bob+8@hey.com,
+  },
+  Object {
+    email: bob+9@hey.com,
+  },
+]
+`;
+
+exports[`groupBy name 1`] = `
+Array [
+  Object {
+    name: Bobby Brown,
+  },
+]
+`;
+
+exports[`groupBy name and aggregations 1`] = `
+Array [
+  Object {
+    _avg: Object {
+      age: 80,
+    },
+    _count: Object {
+      _all: 10,
+      age: 10,
+    },
+    _max: Object {
+      age: 163,
+    },
+    _min: Object {
+      age: 5,
+    },
+    _sum: Object {
+      age: 800,
+    },
+    name: Bobby Brown,
+  },
+]
+`;

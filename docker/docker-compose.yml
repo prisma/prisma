@@ -1,0 +1,126 @@
+version: '3.7'
+services:
+  # In Docker
+  # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@postgres/tests-migrate
+  # - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/tests
+  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5435/tests
+  # - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
+  # - TEST_MYSQL_ISOLATED_URI=mysql://prisma:prisma@mysql_isolated:3306/tests
+  # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
+  # - TEST_MSSQL_URI=sqlserver://SA:Pr1sm4_Pr1sm4@mssql:1433/master
+  # - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+  # - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+  #
+  # Outside Docker
+  # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate
+  # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests
+  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@localhost:5435/tests
+  # - TEST_MYSQL_URI=mysql://prisma:prisma@localhost:3306/tests
+  # - TEST_MYSQL_ISOLATED_URI=mysql://prisma:prisma@localhost:3307/tests
+  # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
+  # - TEST_MSSQL_URI=sqlserver://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+  # - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+  # - TEST_MONGO_URI=mongodb://root:prisma@localhost:27017/tests?authSource=admin
+
+  postgres:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_DB=tests
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  postgres_isolated:
+    image: postgres:10
+    restart: always
+    environment:
+      - POSTGRES_DB=tests
+      - POSTGRES_USER=prisma
+      - POSTGRES_PASSWORD=prisma
+    volumes:
+      - postgres_isolated:/var/lib/postgresql/data
+    ports:
+      - '5435:5432'
+
+  mysql:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
+    volumes:
+      - mysql:/var/lib/mysql
+    ports:
+      - '3306:3306'
+  mysql_isolated:
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
+    cap_add:
+      - SYS_NICE # CAP_SYS_NICE
+    volumes:
+      - mysql_isolated:/var/lib/mysql
+    ports:
+      - '3307:3306'
+  mariadb:
+    image: mariadb:10
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=tests
+      - MYSQL_USER=prisma
+      - MYSQL_PASSWORD=prisma
+    volumes:
+      - mariadb:/var/lib/mysql
+    ports:
+      - '4306:3306'
+
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=Pr1sm4_Pr1sm4
+    volumes:
+      - mssql:/var/opt/mssql
+    ports:
+      - '1433:1433'
+
+  mongo:
+    image: mongo:4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_DATABASE: tests
+    ports:
+      - '27017:27017'
+
+  mongo-seed:
+    build: ./mongo-seed
+    links:
+      - mongo
+
+volumes:
+  postgres:
+  postgres_isolated:
+  mysql:
+  mysql_isolated:
+  mariadb:
+  mssql:

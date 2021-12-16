@@ -12,9 +12,9 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           stale-issue-message: "DUMMY, FOR ENABLING"
-          days-before-stale: 60
+          days-before-stale: 90
           days-before-close: -1
-          exempt-issue-labels: "kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question"
+          exempt-issue-labels: "kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question,kind/epic,kind/subtask"
           stale-issue-label: "status/needs-action"
           skip-stale-issue-message: true
           skip-stale-pr-message: true

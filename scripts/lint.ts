@@ -19,7 +19,7 @@ async function main() {
     }
   }
 
-  let packages = []
+  let packages = [] as string[]
   if (args['--staged']) {
     packages = await getStagedPackages()
   } else {
@@ -65,20 +65,17 @@ main().catch((e) => {
 })
 
 async function getAllPackages(): Promise<string[]> {
-  const packages = await globby('./src/packages/*/package.json')
+  const packages = await globby('./packages/*/package.json')
   return packages.map((p) => path.basename(path.dirname(p)))
 }
 
-async function lintPackage(
-  pkg: string,
-  stagedOnly: boolean = false,
-): Promise<boolean> {
+async function lintPackage(pkg: string, stagedOnly = false): Promise<boolean> {
   try {
     const lint = process.env.CI ? 'lint-ci' : 'lint'
     const command = `pnpm run ${stagedOnly ? 'precommit' : lint}`
     console.log(`${pkg}: running ${command}`)
     await execa.command(command, {
-      cwd: path.join(__dirname, `../src/packages/${pkg}`),
+      cwd: path.join(__dirname, `../packages/${pkg}`),
       stdio: 'pipe',
       env: {
         ...process.env,
@@ -87,7 +84,7 @@ async function lintPackage(
     })
     printPkg(chalk.bold.greenBright(`✔️`), pkg)
     return true
-  } catch (e) {
+  } catch (e: any) {
     console.log()
     printPkg(e.stdout, pkg)
     printPkg(e.stderr, pkg)
@@ -111,11 +108,11 @@ function printPkg(msg: string, pkg: string) {
 
 async function getStagedPackages(): Promise<string[]> {
   const files: Array<{ filename: string; status: string }> = await staged()
+
   return Object.keys(
-    files.reduce((acc, { filename }) => {
-      if (filename.startsWith('src/packages')) {
-        // "src/packages/".length === 13
-        let packageName = filename.slice(13)
+    files.reduce((acc, { filename, status }) => {
+      if (status !== 'Deleted' && /packages\/.*?\/src\//.exec(filename)) {
+        let packageName = filename.slice('packages/'.length)
         packageName = packageName.slice(0, packageName.indexOf('/'))
         if (!acc[packageName]) {
           acc[packageName] = true

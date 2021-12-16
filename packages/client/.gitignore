@@ -1,0 +1,8 @@
+/node_modules
+/declaration
+/generator-build
+/runtime
+
+pnpm-lock.yaml
+*.tsbuildinfo
+.DS_Store

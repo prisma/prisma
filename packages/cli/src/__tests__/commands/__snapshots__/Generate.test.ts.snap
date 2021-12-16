@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`using cli should work with a custom output dir 1`] = `
+Prisma schema loaded from prisma/schema.prisma
+
+✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./generated/client in XXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+\`\`\`
+import { PrismaClient } from './generated/client'
+const prisma = new PrismaClient()
+\`\`\`
+`;
+
+exports[`using cli should work with a custom output dir 2`] = `
+Array [
+  Object {
+    email: bob@bob.bob,
+    id: 1,
+    name: Bobby Brown Sqlite,
+  },
+]
+`;

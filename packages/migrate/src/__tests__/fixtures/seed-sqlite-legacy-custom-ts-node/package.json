@@ -1,0 +1,11 @@
+{
+  "name": "seed-sqlite-custom-ts-node",
+  "version": "1.0.0",
+  "scripts": {
+    "ts-node": "ts-node --compiler-options '{\"module\":\"CommonJS\"}'"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^14.14.21"
+  }
+}

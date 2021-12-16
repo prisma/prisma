@@ -1,0 +1,14 @@
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id   Int     @id @default(autoincrement())
+  name String?
+  test BigInt
+}

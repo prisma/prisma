@@ -1,0 +1,45 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`update available message dev tag - major 1`] = `
+┌─────────────────────────────────────────────────────────┐
+│  Update available 2.6.1-dev.18 -> 3.0.1-dev.8           │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@dev                          │
+│    npm i @prisma/client@dev                             │
+└─────────────────────────────────────────────────────────┘
+`;
+
+exports[`update available message dev tag - minor 1`] = `
+┌─────────────────────────────────────────────────────────┐
+│  Update available 2.6.1-dev.18 -> 2.16.0-dev.8          │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@dev                          │
+│    npm i @prisma/client@dev                             │
+└─────────────────────────────────────────────────────────┘
+`;
+
+exports[`update available message latest tag - major 1`] = `
+┌─────────────────────────────────────────────────────────┐
+│  Update available 2.6.1 -> 3.0.0                        │
+│                                                         │
+│  This is a major update - please follow the guide at    │
+│  https://pris.ly/d/major-version-upgrade                │
+│                                                         │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+`;
+
+exports[`update available message latest tag - minor 1`] = `
+┌─────────────────────────────────────────────────────────┐
+│  Update available 2.6.1 -> 2.16.0                       │
+│  Run the following to update                            │
+│    npm i --save-dev prisma@latest                       │
+│    npm i @prisma/client@latest                          │
+└─────────────────────────────────────────────────────────┘
+`;

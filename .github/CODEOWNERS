@@ -2,26 +2,4 @@
 
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-*                               @Jolg42 @williamluke4 @millsp 
-
-# root
-/.github/                       @Jolg42 @williamluke4
-/.github/workflows/benchmark.yml @williamluke4 
-/scripts/                       @Jolg42 @williamluke4
-/graphs/                        @williamluke4
-
-# src
-/src/.buildkite/                @Jolg42 @williamluke4
-/src/scripts/                   @Jolg42 
-
-# src/packages
-/src/packages/cli/              @Jolg42 @williamluke4 @millsp
-/src/packages/client/           @williamluke4 @millsp
-/src/packages/debug/            @williamluke4 @millsp
-/src/packages/engine-core/      @williamluke4 @millsp
-/src/packages/generator-helper/ @williamluke4 @millsp
-/src/packages/get-platform/     @williamluke4 @millsp
-/src/packages/migrate/          @Jolg42
-/src/packages/react-prisma/     @williamluke4 @millsp
-/src/packages/sdk/              @Jolg42 @williamluke4 @millsp 
-/src/packages/integration-tests/ @williamluke4 @millsp 
+*                                @Jolg42 @millsp @aqrln

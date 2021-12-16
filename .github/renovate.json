@@ -4,9 +4,15 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "dependencyDashboard": true,
-  "reviewers": ["@jolg42", "@williamluke4", "millsp"],
+  "reviewers": ["@Jolg42", "@millsp"],
   "rebaseWhen": "conflicted",
-  "ignoreDeps": ["esbuild", "sqlite3"],
+  "ignoreDeps": [
+    "sqlite3",
+    "@prisma/engines",
+    "@prisma/engines-version",
+    "@prisma/fetch-engine",
+    "@prisma/get-platform"
+  ],
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -14,23 +20,18 @@
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"],
       "excludePackageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
+        "@prisma/studio",
         "@prisma/studio-server",
         "checkpoint-client"
       ],
-      "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "dependencies (non-major)",
       "depTypeList": ["dependencies"],
       "updateTypes": ["patch", "minor"],
-      "excludePackageNames": [
-        "@prisma/engines",
-        "@prisma/engines-version",
-        "checkpoint-client"
-      ],
-      "schedule": ["before 9am on Monday", "before 9am on Wednesday"]
+      "excludePackageNames": ["checkpoint-client"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "definitelyTyped",
@@ -39,25 +40,17 @@
       "updateTypes": ["patch", "minor"]
     },
     {
-      "groupName": "engines",
-      "automerge": "true",
-      "ignoreUnstable": false,
-      "followTag": "latest",
-      "reviewers": ["@jolg42", "@williamluke4", "millsp"],
-      "packageNames": ["@prisma/engines", "@prisma/engines-version"]
-    },
-    {
       "groupName": "Studio",
       "automerge": "true",
-      "packageNames": ["@prisma/studio-server"],
+      "packageNames": ["@prisma/studio", "@prisma/studio-server"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@madebysid", "@jolg42"]
+      "reviewers": ["@madebysid", "@jolg42", "millsp"]
     },
     {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
       "updateTypes": ["patch", "minor"],
-      "reviewers": ["@Weakky", "jolg42"]
+      "reviewers": ["@Weakky", "jolg42", "millsp"]
     },
     {
       "groupName": "jest",
@@ -71,9 +64,9 @@
     },
     {
       "groupName": "react-prisma",
-      "paths": ["src/packages/react-prisma/**"],
+      "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
-      "schedule": ["before 9am on Monday"]
+      "schedule": ["before 8am on Wednesday"]
     }
   ]
 }
