@@ -269,7 +269,12 @@ export class IntrospectionEngine {
           const binaryPath = await resolveBinary(BinaryType.introspectionEngine)
           debugRpc('starting introspection engine with binary: ' + binaryPath)
 
-          // TODO Why does the engine need the cwd
+          // about `cwd`
+          // If the process is spawned from another directory, all file paths would resolve relative to that instead of the prisma directory
+          // note that it isn't something engines specific but just a process spawning thing.
+          // Paths resolved in engines code include at least:
+          // sqlite database paths
+          // ssl certificate paths
           this.child = spawn(binaryPath, {
             env: process.env,
             cwd: this.cwd,
