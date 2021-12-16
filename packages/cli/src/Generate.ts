@@ -137,6 +137,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
 
     logger.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
+    // TODO Extract logic from here
     let hasJsClient
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
