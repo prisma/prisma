@@ -31,14 +31,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v2
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
-
-      - uses: actions/setup-node@v2
-        with:
+          cache: 'pnpm'
           node-version: '12'
 
       - run: bash .github/workflows/setup.sh
