@@ -68,6 +68,7 @@ ${chalk.bold('Examples')}
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
+    // TODO is the order of getDMMF / getConfig important
     await getDMMF({
       datamodel: schema,
     })
