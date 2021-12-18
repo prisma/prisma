@@ -37,6 +37,8 @@ import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { runInChildSpan } from './utils/otel/runInChildSpan'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
+import { applyModels } from './core/model/applyModels'
+import { getCallSite } from './core/utils/getCallSite'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -147,7 +149,7 @@ export type HookParams = {
   args: any
 }
 
-export type Action = DMMF.ModelAction | 'executeRaw' | 'queryRaw'
+export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw'
 
 export type InternalRequestParams = {
   /**
@@ -269,14 +271,6 @@ const actionOperationMap = {
   groupBy: 'query',
 }
 
-const aggregateKeys = {
-  _avg: true,
-  _count: true,
-  _sum: true,
-  _min: true,
-  _max: true,
-}
-
 // TODO improve all these types, need a common place to share them between type
 // gen and this. This will be relevant relevant for type gen tech debt refactor
 export interface Client {
@@ -297,6 +291,7 @@ export interface Client {
   $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   __internal_triggerPanic(fatal: boolean)
   $transaction(input: any, options?: any)
+  _request(internalParams: InternalRequestParams): Promise<any>
 }
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
@@ -452,12 +447,12 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
-
-        this._bootstrapClient()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
+
+      return applyModels(this) // custom constructor return value
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
@@ -655,7 +650,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         clientMethod: 'executeRaw',
         dataPath: [],
         action: 'executeRaw',
-        callsite: this._getCallsite(),
+        callsite: getCallSite(),
         runInTransaction,
         transactionId: transactionId,
         span: this.telemetry?.span,
@@ -717,13 +712,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
       return this.$executeRawRequest(query, ...values)
-    }
-
-    private _getCallsite() {
-      if (this._errorFormat !== 'minimal') {
-        return new Error().stack
-      }
-      return undefined
     }
 
     /**
@@ -819,7 +807,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         clientMethod: 'queryRaw',
         dataPath: [],
         action: 'queryRaw',
-        callsite: this._getCallsite(),
+        callsite: getCallSite(),
         runInTransaction,
         transactionId: transactionId,
         span: this.telemetry?.span,
@@ -909,7 +897,7 @@ new PrismaClient({
         dataPath: [],
         runInTransaction: false,
         headers,
-        callsite: this._getCallsite(),
+        callsite: getCallSite(),
         // span: no span for internals,
       })
     }
@@ -1073,7 +1061,7 @@ new PrismaClient({
      * @param middlewareIndex
      * @returns
      */
-    private _request(internalParams: InternalRequestParams): Promise<any> {
+    _request(internalParams: InternalRequestParams): Promise<any> {
       const tracer = trace.getTracer('prisma')
 
       try {
@@ -1120,12 +1108,12 @@ new PrismaClient({
         if (globalThis.NOT_PRISMA_DATA_PROXY) {
           // async scope https://github.com/prisma/prisma/issues/3148
           const resource = new AsyncResource('prisma-client-request')
-          return runInChildSpan('request', tracer, this.telemetry?.span, (span) => {
+          return runInChildSpan('request', tracer, internalParams.span, (span) => {
             return resource.runInAsyncScope(() => consumer({ ...params, span }))
           })
         }
 
-        return runInChildSpan('request', tracer, this.telemetry?.span, (span) => {
+        return runInChildSpan('request', tracer, internalParams.span, (span) => {
           return consumer({ ...params, span })
         })
       } catch (e: any) {
@@ -1236,254 +1224,6 @@ new PrismaClient({
       })
     }
 
-    private _bootstrapClient() {
-      const modelClientBuilders = this._dmmf.mappings.modelOperations.reduce((modelClientBuilders, modelMapping) => {
-        const lowerCaseModel = lowerCase(modelMapping.model)
-        const model = this._dmmf.modelMap[modelMapping.model]
-
-        if (!model) {
-          throw new Error(`Invalid mapping ${modelMapping.model}, can't find model`)
-        }
-
-        // creates a builder for `prisma...<function>` in the runtime so that
-        // all models will get their own sub-"client" for query execution
-        const ModelClientBuilder = ({
-          operation,
-          actionName,
-          args,
-          dataPath,
-          modelName,
-          unpacker,
-        }: {
-          operation: string
-          actionName: Action
-          args: any
-          dataPath: string[]
-          modelName: string
-          unpacker?: Unpacker
-        }) => {
-          let requestPromise: Promise<unknown> | undefined
-
-          // prepare a request with current context & prevent multi-calls we
-          // save it into `requestPromise` to allow one request per promise
-          const callsite = this._getCallsite()
-          const request = (transactionId?: number, runInTransaction?: boolean) => {
-            requestPromise =
-              requestPromise ??
-              this._request({
-                args,
-                model: modelName ?? model.name,
-                action: actionName,
-                clientMethod: `${lowerCaseModel}.${actionName}`,
-                dataPath: dataPath,
-                callsite: callsite,
-                runInTransaction: runInTransaction ?? false,
-                transactionId: transactionId,
-                unpacker,
-                span: this.telemetry?.span,
-              })
-
-            return requestPromise
-          }
-
-          // `modelClient` implements promises to have deferred actions that
-          // will be called later on through model delegated functions
-          const modelClient = createPrismaPromise(request)
-
-          // add relation fields
-          for (const field of model.fields.filter((f) => f.kind === 'object')) {
-            modelClient[field.name] = (fieldArgs) => {
-              const prefix = dataPath.includes('select')
-                ? 'select'
-                : dataPath.includes('include')
-                ? 'include'
-                : 'select'
-              const newDataPath = [...dataPath, prefix, field.name]
-              const newArgs = deepSet(args, newDataPath, fieldArgs || true)
-
-              // TODO: ask dom if it can be anything else than a string
-              return modelClientBuilders[field.type as string]({
-                operation,
-                actionName,
-                args: newArgs,
-                dataPath: newDataPath,
-                isList: field.isList,
-                /*
-                 * necessary for user.posts() calls -> the original model name needs to be preserved
-                 */
-                modelName: modelName || model.name,
-              })
-            }
-          }
-
-          return modelClient
-        }
-
-        modelClientBuilders[model.name] = ModelClientBuilder
-
-        return modelClientBuilders
-      }, {})
-
-      for (const mapping of this._dmmf.mappings.modelOperations) {
-        const lowerCaseModel = lowerCase(mapping.model)
-
-        const filteredActionsList = {
-          model: true,
-          plural: true,
-          aggregate: true,
-          groupBy: true,
-        }
-
-        // here we call the `modelClientBuilder` inside of each delegate function
-        // once triggered, the function will return the `modelClient` from above
-        const delegate: any = Object.keys(mapping).reduce((acc, actionName) => {
-          if (!filteredActionsList[actionName]) {
-            const operation = getOperation(actionName as any)
-            acc[actionName] = (args) =>
-              modelClientBuilders[mapping.model]({
-                operation,
-                actionName,
-                dataPath: [],
-                args,
-              })
-          }
-
-          return acc
-        }, {})
-
-        delegate.count = (args) => {
-          let select
-          let unpacker: Unpacker | undefined
-          if (args?.select && typeof args?.select === 'object') {
-            select = { _count: { select: args.select } }
-          } else {
-            select = { _count: { select: { _all: true } } }
-            unpacker = (data) => {
-              data._count = data._count?._all
-              return data
-            }
-          }
-
-          return modelClientBuilders[mapping.model]({
-            operation: 'query',
-            actionName: `aggregate`,
-            args: {
-              ...(args ?? {}),
-              select,
-            },
-            dataPath: ['_count'],
-            unpacker,
-          })
-        }
-
-        delegate.aggregate = (args) => {
-          /**
-           * _avg, _count, _sum, _min, _max need to go into select
-           * For speed reasons we can go with "for in "
-           */
-          let unpacker: Unpacker | undefined = undefined
-          const select = Object.entries(args).reduce((acc, [key, value]) => {
-            // if it is an aggregate like "_avg", wrap it with "select"
-            if (aggregateKeys[key]) {
-              if (!acc.select) {
-                acc.select = {}
-              }
-              // `_count` doesn't have a sub-selection
-              if (key === '_count' || key === 'count') {
-                if (typeof value === 'object' && value) {
-                  acc.select[key] = { select: value }
-                } else {
-                  acc.select[key] = { select: { _all: value } }
-                  unpacker = (data) => {
-                    if (data._count) {
-                      data._count = data._count?._all
-                    } else if (data.count) {
-                      data.count = data.count?._all
-                    }
-                    return data
-                  }
-                }
-              } else {
-                acc.select[key] = { select: value }
-              }
-            } else {
-              acc[key] = value
-            }
-            return acc
-          }, {} as any)
-
-          return modelClientBuilders[mapping.model]({
-            operation: 'query',
-            actionName: 'aggregate', // actionName is just cosmetics 💅🏽
-            rootField: mapping.aggregate,
-            args: select,
-            dataPath: [],
-            unpacker,
-          })
-        }
-
-        delegate.groupBy = (args) => {
-          let unpacker: Unpacker | undefined = undefined
-
-          /**
-           * _avg, _count, _sum, _min, _max need to go into select
-           * For speed reasons we can go with "for in "
-           */
-          const select = Object.entries(args).reduce((acc, [key, value]) => {
-            // if it is an aggregate like "_avg", wrap it with "select"
-            if (aggregateKeys[key]) {
-              if (!acc.select) {
-                acc.select = {}
-              }
-
-              acc.select[key] = { select: value }
-              // otherwise leave it alone
-            } else {
-              acc[key] = value
-            }
-            if (key === '_count') {
-              if (typeof value === 'object' && value) {
-                acc.select[key] = { select: value }
-              } else if (typeof value === 'boolean') {
-                acc.select[key] = { select: { _all: value } }
-                unpacker = (data) => {
-                  if (Array.isArray(data)) {
-                    data = data.map((row) => {
-                      if (row && typeof row._count === 'object' && row._count?._all) {
-                        row._count = row._count?._all
-                      }
-                      return row
-                    })
-                  }
-                  return data
-                }
-              }
-            }
-            if (key === 'by' && Array.isArray(value) && value.length > 0) {
-              if (!acc.select) {
-                acc.select = {}
-              }
-              for (const by of value) {
-                acc.select[by] = true
-              }
-            }
-            return acc
-          }, {} as any)
-
-          return modelClientBuilders[mapping.model]({
-            operation: 'query',
-            actionName: 'groupBy', // actionName is just cosmetics 💅🏽
-            rootField: mapping.groupBy,
-            args: select,
-            dataPath: [],
-            unpacker,
-          })
-        }
-
-        this[lowerCaseModel] = delegate
-      }
-    }
-
     /**
      * Shortcut for checking a preview flag
      * @param feature preview flag
@@ -1493,8 +1233,6 @@ new PrismaClient({
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
   }
-
-  return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
