@@ -7,6 +7,13 @@ Object {
   dataPath: Array [],
   model: User,
   runInTransaction: false,
+  span: NonRecordingSpan {
+    _spanContext: Object {
+      spanId: 0000000000000000,
+      traceFlags: 0,
+      traceId: 00000000000000000000000000000000,
+    },
+  },
 }
 `;
 
@@ -17,5 +24,12 @@ Object {
   dataPath: Array [],
   model: Post,
   runInTransaction: false,
+  span: NonRecordingSpan {
+    _spanContext: Object {
+      spanId: 0000000000000000,
+      traceFlags: 0,
+      traceId: 00000000000000000000000000000000,
+    },
+  },
 }
 `;
