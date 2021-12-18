@@ -2,7 +2,7 @@ import type { Client } from '../../getPrismaClient'
 import { deepSet } from '../../utils/deep-set'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import type { DMMF } from '@prisma/generator-helper'
-import type { applyModel, ModelAction } from './applyModel'
+import type { ModelAction } from './applyModel'
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
@@ -47,7 +47,7 @@ function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
  * // }
  * ```
  */
-function getNextUserArgs(callArgs: object, prevArgs: object | undefined, nextDataPath: string[]) {
+function getNextUserArgs(callArgs: object | undefined, prevArgs: object | undefined, nextDataPath: string[]) {
   if (prevArgs === undefined) return callArgs ?? {}
 
   return deepSet(prevArgs, nextDataPath, callArgs || true) as object
@@ -88,21 +88,23 @@ export function applyFluent(
   )
 
   // we return a regular model action but proxy its return
-  return (userArgs: object) => {
-    // first call defaults: nextDataPath => [], nextUserArgs => userArgs
+  return (userArgs?: object) => {
+    // first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
     const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
-    // TODO: have a custom unpacker here instead of that logic in ClientFetcher
+    // TODO: use an unpacker here instead of ClientFetcher logic
 
-    // take control of the return promise to allow chaining
+    // we take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {
       get(target, prop: string) {
         // fluent api only works on fields that are relational
-        if (dmmfModelFieldMap[prop] && dmmfModelFieldMap[prop].kind === 'object') {
-          const modelParams = [client, dmmfModelFieldMap[prop].type, modelAction] as const
+        if (dmmfModelFieldMap[prop]?.kind === 'object') {
+          const dmmfModelName = dmmfModelFieldMap[prop].type
+          const modelArgs = [dmmfModelName, modelAction, prop] as const
+          const dataArgs = [nextDataPath, nextUserArgs] as const
 
-          return applyFluent(...modelParams, prop, nextDataPath, nextUserArgs)
+          return applyFluent(client, ...modelArgs, ...dataArgs)
         }
 
         return target[prop] // let the promise behave normally

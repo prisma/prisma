@@ -8,8 +8,5 @@ export function getCallSite(errorFormat?: string) {
     return undefined
   }
 
-  const originalError = new Error()
-  const stack = originalError.stack
-
-  return stack
+  return new Error().stack
 }
