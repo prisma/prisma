@@ -1,4 +1,4 @@
-import type { O } from 'ts-toolbelt'
+import type { O, F } from 'ts-toolbelt'
 import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
@@ -11,7 +11,7 @@ const EMPTY_OBJECT = {}
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
-) => (userArgs: object) => PrismaPromise<unknown>
+) => (userArgs?: object) => PrismaPromise<unknown>
 
 /**
  * Tells if a given `action` is valid & available for a `model`.
@@ -48,19 +48,21 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
   // we construct a proxy that acts as the model interface
   return new Proxy(EMPTY_OBJECT, {
-    get(_, prop: string) {
+    get(_, prop: string): F.Return<ModelAction> | undefined {
       // only allow valid actions to be accessed on a model
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
-      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs: object) => {
+      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: object) => {
+        const callSite = getCallSite() // used for showing better errors
+
         return createPrismaPromise((txId, runInTx, span) => {
           const data = { args: userArgs, dataPath: [] } // the data and the dataPath for the result
           const action = { action: prop, model: dmmfModelName } // the action and its related model
           const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
           const tx = { runInTransaction: !!runInTx, transactionId: txId } // transaction information
-          const trace = { callsite: getCallSite(), span: span } // the stack trace and opentelemetry
+          const trace = { callsite: callSite, span: span } // the stack trace and opentelemetry
           const params = { ...data, ...action, ...method, ...tx, ...trace }
 
           return client._request({ ...params, ...paramOverrides })

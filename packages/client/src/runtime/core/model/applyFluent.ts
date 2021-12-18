@@ -94,6 +94,7 @@ export function applyFluent(
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
     const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
+    // TODO: once it's done we can deprecate the use of dataPath
 
     // we take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {
