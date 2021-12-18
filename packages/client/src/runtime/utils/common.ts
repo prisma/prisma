@@ -65,7 +65,7 @@ export const needNamespace = {
   Decimal: 'Decimal',
 }
 
-export function needsNamespace(fieldType: DMMF.Field['type'], dmmf: DMMFHelper): boolean {
+export function needsNamespace(fieldType: DMMF.SchemaField['outputType']['type'], dmmf: DMMFHelper): boolean {
   if (typeof fieldType === 'string') {
     if (dmmf.datamodelEnumMap[fieldType]) {
       return false

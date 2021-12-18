@@ -17,8 +17,7 @@ export class ModelOutputField implements Generatable {
   public toTS(): string {
     const { field, useNamespace } = this
     // ENUMTODO
-    let fieldType =
-      typeof field.type === 'string' ? GraphQLScalarToJSTypeTable[field.type] || field.type : field.type[0].name
+    let fieldType = GraphQLScalarToJSTypeTable[field.type] || field.type
     if (Array.isArray(fieldType)) {
       fieldType = fieldType[0]
     }
