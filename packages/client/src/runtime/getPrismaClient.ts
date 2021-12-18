@@ -1233,6 +1233,8 @@ new PrismaClient({
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
   }
+
+  return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
