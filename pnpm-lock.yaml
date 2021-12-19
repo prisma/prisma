@@ -210,7 +210,7 @@ importers:
   packages/client:
     specifiers:
       '@microsoft/api-extractor': 7.18.19
-      '@opentelemetry/api': ^1.0.3
+      '@opentelemetry/api': 1.0.3
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': 3.7.0-26.432266c87f4558aef2a28b78935ffdf39e9360ca
@@ -5424,8 +5424,9 @@ packages:
       jest-util: 27.4.2
       jest-validate: 27.4.2
       micromatch: 4.0.4
-      pretty-format: 27.3.1
-      ts-node: 10.4.0_54d7f9b57c83a5c5120be11b085b9de6
+      pretty-format: 27.4.2
+      slash: 3.0.0
+      ts-node: 10.4.0_6564ecc9a8cbf2c9707dca1da88a55d9
     transitivePeerDependencies:
       - bufferutil
       - canvas
