@@ -419,6 +419,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         debug(`clientVersion: ${config.clientVersion}`)
+        debug(`clientEngineType: ${this._clientEngineType}`)
 
         this._engine = this.getEngine()
         void this._getActiveProvider()

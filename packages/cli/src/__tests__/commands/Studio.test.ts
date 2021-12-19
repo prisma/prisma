@@ -25,9 +25,7 @@ describe('studio', () => {
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(
-      path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'),
-    )
+    rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'))
     fs.copyFileSync(
       path.join(__dirname, '../fixtures/studio-test-project/dev.db'),
       path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'),
@@ -67,18 +65,19 @@ describe('studio', () => {
       payload: {
         data: {
           schemaHash,
-          query: `
-              prisma.with_all_field_types.findMany({
-                select: {
-                  id: true,
-                  string: true,
-                  int: true,
-                  float: true,
-                  datetime: true,
-                  relation: true,
-                  relation_list: true,
-                }
-              })`,
+          modelName: 'with_all_field_types',
+          operation: 'findMany',
+          args: {
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            },
+          },
         },
       },
     })
@@ -94,35 +93,36 @@ describe('studio', () => {
       payload: {
         data: {
           schemaHash,
-          query: `
-              prisma.with_all_field_types.create({
-                data: {
+          modelName: 'with_all_field_types',
+          operation: 'create',
+          args: {
+            data: {
+              id: 3,
+              string: '',
+              int: 0,
+              float: 0.0,
+              datetime: '2020-08-03T00:00:00.000Z',
+              relation: {
+                connect: {
                   id: 3,
-                  string: "",
-                  int: 0,
-                  float: 0.0,
-                  datetime: "2020-08-03T00:00:00.000Z",
-                  relation: {
-                    connect: {
-                      id: 3
-                    }
-                  },
-                  relation_list: {
-                    connect: {
-                      id: 3
-                    }
-                  }
                 },
-                select: {
-                  id: true,
-                  string: true,
-                  int: true,
-                  float: true,
-                  datetime: true,
-                  relation: true,
-                  relation_list: true,
-                }
-              })`,
+              },
+              relation_list: {
+                connect: {
+                  id: 3,
+                },
+              },
+            },
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            },
+          },
         },
       },
     })
@@ -138,37 +138,38 @@ describe('studio', () => {
       payload: {
         data: {
           schemaHash,
-          query: `
-              prisma.with_all_field_types.update({
-                where: {
-                  id: 1
+          modelName: 'with_all_field_types',
+          operation: 'update',
+          args: {
+            where: {
+              id: 1,
+            },
+            data: {
+              string: 'Changed String',
+              int: 100,
+              float: 100.5,
+              datetime: '2025-08-03T00:00:00.000Z',
+              relation: {
+                connect: {
+                  id: 3,
                 },
-                data: {
-                  string: "Changed String",
-                  int: 100,
-                  float: 100.5,
-                  datetime: "2025-08-03T00:00:00.000Z",
-                  relation: {
-                    connect: {
-                      id: 3
-                    }
-                  },
-                  relation_list: {
-                    connect: {
-                      id: 3
-                    }
-                  }
+              },
+              relation_list: {
+                connect: {
+                  id: 3,
                 },
-                select: {
-                  id: true,
-                  string: true,
-                  int: true,
-                  float: true,
-                  datetime: true,
-                  relation: true,
-                  relation_list: true,
-                }
-              })`,
+              },
+            },
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            },
+          },
         },
       },
     })
@@ -184,19 +185,20 @@ describe('studio', () => {
       payload: {
         data: {
           schemaHash,
-          query: `
-              prisma.with_all_field_types.delete({
-                where: { id: 2 },
-                select: {
-                  id: true,
-                  string: true,
-                  int: true,
-                  float: true,
-                  datetime: true,
-                  relation: true,
-                  relation_list: true,
-                }
-              })`,
+          modelName: 'with_all_field_types',
+          operation: 'delete',
+          args: {
+            where: { id: 2 },
+            select: {
+              id: true,
+              string: true,
+              int: true,
+              float: true,
+              datetime: true,
+              relation: true,
+              relation_list: true,
+            },
+          },
         },
       },
     })

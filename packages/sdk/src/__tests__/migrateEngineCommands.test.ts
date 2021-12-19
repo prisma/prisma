@@ -142,7 +142,7 @@ describe('createDatabase', () => {
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
   })
 
-  test('mssql - create database', async () => {
+  test('sqlserver - create database', async () => {
     let uri = process.env.TEST_MSSQL_JDBC_URI!
     uri = uri.replace(/database=(.*?);/, 'database=can-create-a-db;')
     try {

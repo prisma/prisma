@@ -73,15 +73,18 @@ export namespace DMMF {
     isList: boolean
     isUnique: boolean
     isId: boolean
+    isReadOnly: boolean
+    isGenerated: boolean
+    isUpdatedAt: boolean
     /**
      * Describes the data type in the same the way is is defined in the Prisma schema:
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
     dbNames?: string[] | null
-    isGenerated: boolean
     hasDefaultValue: boolean
     default?: FieldDefault | string | boolean | number
+    relationFromFields?: string[]
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string

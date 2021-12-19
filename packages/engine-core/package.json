@@ -7,7 +7,11 @@
   "types": "dist/index.d.ts",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/sdk"
+  },
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",
     "Pierre-Antoine Mills <mills@prisma.io>",
@@ -15,21 +19,21 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@types/jest": "27.0.2",
+    "@types/jest": "27.0.3",
     "@types/node": "12.20.37",
-    "@typescript-eslint/eslint-plugin": "4.33.0",
-    "@typescript-eslint/parser": "4.33.0",
+    "@typescript-eslint/eslint-plugin": "5.4.0",
+    "@typescript-eslint/parser": "5.4.0",
     "esbuild": "0.13.14",
-    "eslint": "7.32.0",
+    "eslint": "8.3.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.2.4",
+    "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
-    "jest": "27.3.1",
+    "jest": "27.4.5",
     "lint-staged": "12.0.2",
     "prettier": "2.4.1",
     "strip-ansi": "6.0.1",
-    "ts-jest": "27.0.7",
+    "ts-jest": "27.1.1",
     "typescript": "4.4.4"
   },
   "scripts": {
@@ -45,9 +49,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.6.0-12.4bb6f7cede394fcf7b542438d29a642a8bc89e62",
+    "@prisma/engines": "3.7.0-26.432266c87f4558aef2a28b78935ffdf39e9360ca",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.6.0-12.4bb6f7cede394fcf7b542438d29a642a8bc89e62",
+    "@prisma/get-platform": "3.7.0-26.432266c87f4558aef2a28b78935ffdf39e9360ca",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
