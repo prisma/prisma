@@ -6,10 +6,13 @@ test('disconnect-while-query', async () => {
 
   await prisma.user.findMany()
   const a = prisma.user.findMany()
-  prisma.$disconnect()
 
-  await a
+  prisma.$disconnect()
+  await a // re-wakes the engine
   await prisma.$disconnect()
+  await a // re-wakes the engine
 
   expect(await a).toMatchInlineSnapshot(`Array []`)
+
+  await prisma.$disconnect()
 })
