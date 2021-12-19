@@ -55,7 +55,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: object) => {
-        const callSite = getCallSite() // used for showing better errors
+        const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
         return createPrismaPromise((txId, runInTx, otelCtx) => {
           const data = { args: userArgs, dataPath: [] } // data and its dataPath for nested results

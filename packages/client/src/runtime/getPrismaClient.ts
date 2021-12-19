@@ -645,7 +645,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         clientMethod: 'executeRaw',
         dataPath: [],
         action: 'executeRaw',
-        callsite: getCallSite(),
+        callsite: getCallSite(this._errorFormat),
         runInTransaction: runInTransaction ?? false,
         transactionId: transactionId,
         otelCtx: otelCtx,
@@ -803,7 +803,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         clientMethod: 'queryRaw',
         dataPath: [],
         action: 'queryRaw',
-        callsite: getCallSite(),
+        callsite: getCallSite(this._errorFormat),
         runInTransaction: runInTransaction ?? false,
         transactionId: transactionId,
         otelCtx: otelCtx,
@@ -893,7 +893,7 @@ new PrismaClient({
         dataPath: [],
         runInTransaction: false,
         headers,
-        callsite: getCallSite(),
+        callsite: getCallSite(this._errorFormat),
       })
     }
 
