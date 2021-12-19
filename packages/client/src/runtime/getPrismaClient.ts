@@ -1091,20 +1091,15 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        // we execute the middleware consumer and wrap the call for otel
         if (globalThis.NOT_PRISMA_DATA_PROXY) {
           // async scope https://github.com/prisma/prisma/issues/3148
-          const resource = new AsyncResource('prisma-client-request')
-          return resource.runInAsyncScope(() => {
-            return runInChildSpan('request', tracer, internalParams.otelCtx, () => {
-              return consumer(params)
-            })
+          return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
+            return runInChildSpan('request', tracer, internalParams.otelCtx, () => consumer(params))
           })
         }
 
-        return await runInChildSpan('request', tracer, internalParams.otelCtx, () => {
-          return consumer(params)
-        })
+        // we execute the middleware consumer and wrap the call for otel
+        return await runInChildSpan('request', tracer, internalParams.otelCtx, () => consumer(params))
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
