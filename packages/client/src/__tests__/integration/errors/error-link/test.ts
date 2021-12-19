@@ -20,7 +20,11 @@ test('error-link', async () => {
   })
 
   await expect(db.__internal_triggerPanic(true)).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Query engine debug fatal error, shutting down.
+
+          Invalid \`prisma.queryRaw()\` invocation:
+
+
+            Query engine debug fatal error, shutting down.
 
           This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
 
