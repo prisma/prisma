@@ -1055,7 +1055,7 @@ new PrismaClient({
      * @param middlewareIndex
      * @returns
      */
-    _request(internalParams: InternalRequestParams): Promise<any> {
+    async _request(internalParams: InternalRequestParams): Promise<any> {
       const tracer = trace.getTracer('prisma')
 
       try {
@@ -1091,7 +1091,7 @@ new PrismaClient({
         }
 
         // we execute the middleware consumer and wrap the call for otel
-        return runInChildSpan('request', tracer, internalParams.otelCtx, () => {
+        return await runInChildSpan('request', tracer, internalParams.otelCtx, () => {
           if (globalThis.NOT_PRISMA_DATA_PROXY) {
             // async scope https://github.com/prisma/prisma/issues/3148
             const resource = new AsyncResource('prisma-client-request')
