@@ -25,9 +25,12 @@ export function applyModels<C extends Client>(client: C) {
 
       // creates a new model proxy on the fly and caches it
       if (client._dmmf.modelMap[dmmfModelName] !== undefined) {
-        const model = applyModel(client, dmmfModelName)
+        return (modelCache[dmmfModelName] = applyModel(client, dmmfModelName))
+      }
 
-        return (modelCache[dmmfModelName] = model)
+      // above just failed if the model name is lower cased
+      if (client._dmmf.modelMap[prop] !== undefined) {
+        return (modelCache[prop] = applyModel(client, prop))
       }
 
       return target[prop] // returns the base client prop
