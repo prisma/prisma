@@ -16,12 +16,10 @@ import type { ModelAction } from './applyModel'
  * @returns
  */
 export function applyAggregates(client: Client, action: Action, modelAction: ModelAction) {
-  return (userArgs?: object) => {
-    // we effectively take over the aggregate api to perform data changes
-    if (action === 'aggregate') return aggregate(client, userArgs, modelAction)
-    if (action === 'count') return count(client, userArgs, modelAction)
-    if (action === 'groupBy') return groupBy(client, userArgs, modelAction)
+  // we effectively take over the aggregate api to perform data changes
+  if (action === 'aggregate') return (userArgs?: object) => aggregate(client, userArgs, modelAction)
+  if (action === 'count') return (userArgs?: object) => count(client, userArgs, modelAction)
+  if (action === 'groupBy') return (userArgs?: object) => groupBy(client, userArgs, modelAction)
 
-    return undefined!
-  }
+  return undefined
 }
