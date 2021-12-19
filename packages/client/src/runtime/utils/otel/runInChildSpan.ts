@@ -11,12 +11,13 @@ import { trace, context } from '@opentelemetry/api'
  */
 export async function runInChildSpan<R>(
   name: string,
-  tracer: Tracer | undefined,
+  tracer: Tracer,
   parentCtx: Context | undefined,
   cb: (child: Span | undefined) => Promise<R>,
 ) {
-  const childSpan = tracer?.startSpan(name, undefined, parentCtx)
-  const childCtx = trace.setSpan(parentCtx!, childSpan!)
+  const ctx = parentCtx ?? context.active()
+  const childSpan = tracer.startSpan(name, undefined, ctx)
+  const childCtx = trace.setSpan(ctx, childSpan)
   const result = await context.with(childCtx, () => cb(childSpan))
 
   childSpan?.end()
