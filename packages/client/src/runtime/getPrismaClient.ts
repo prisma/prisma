@@ -1128,15 +1128,6 @@ new PrismaClient({
       transactionId,
       unpacker,
     }: InternalRequestParams) {
-      if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
-        throw new Error(`Model missing for action ${action}`)
-      }
-
-      if ((action === 'executeRaw' || action === 'queryRaw') && model) {
-        throw new Error(
-          `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
-        )
-      }
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
