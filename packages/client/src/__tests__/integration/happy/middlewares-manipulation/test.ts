@@ -35,13 +35,6 @@ test('middlewares-manipulation', async () => {
     runInTransaction: false,
     action: 'findMany',
     model: 'User',
-    span: {
-      _spanContext: {
-        spanId: '0000000000000000',
-        traceFlags: 0,
-        traceId: '00000000000000000000000000000000',
-      },
-    },
   })
 
   expect(users).toEqual([])
