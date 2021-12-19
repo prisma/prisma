@@ -1,6 +1,3 @@
-/// <reference lib="webworker" />
-// TODO: this is a problem because it propagates everywhere
-
 import type _https from 'https'
 import { getJSRuntimeName } from './getJSRuntimeName'
 import type { O } from 'ts-toolbelt'
