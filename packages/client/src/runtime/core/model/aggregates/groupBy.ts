@@ -16,7 +16,7 @@ export function groupBy(client: Client, userArgs: object | undefined, modelActio
 
   // we desugar the array into { [key]: boolean }
   if (Array.isArray(userArgs?.['by']) === true) {
-    for (const key of userArgs?.['by']) {
+    for (const key of userArgs?.['by'] ?? []) {
       aggregateArgs['select'][key] = true
     }
   }
