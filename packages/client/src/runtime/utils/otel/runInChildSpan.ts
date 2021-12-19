@@ -1,22 +1,23 @@
-import type { Span, Tracer } from '@opentelemetry/api'
-import { getChildSpan } from './getChildSpan'
+import type { Context, Span, Tracer } from '@opentelemetry/api'
+import { trace, context } from '@opentelemetry/api'
 
-export function runInChildSpan<R>(
+/**
+ * Executes and traces a function inside of a child span.
+ * @param name of the child span
+ * @param tracer currently tracing
+ * @param parent span of the child span
+ * @param cb to trace in the child span
+ * @returns
+ */
+export async function runInChildSpan<R>(
   name: string,
   tracer: Tracer | undefined,
-  parent: Span | undefined,
-  cb: (child: Span | undefined) => R,
+  parentCtx: Context | undefined,
+  cb: (child: Span | undefined) => Promise<R>,
 ) {
-  const childSpan = getChildSpan(name, tracer, parent)
-  const result = cb(childSpan)
-
-  if (result && typeof result['then'] === 'function') {
-    return (result as any as Promise<unknown>).then(() => {
-      childSpan?.end()
-
-      return result
-    }) as any as R
-  }
+  const childSpan = tracer?.startSpan(name, undefined, parentCtx)
+  const childCtx = trace.setSpan(parentCtx!, childSpan!)
+  const result = await context.with(childCtx, () => cb(childSpan))
 
   childSpan?.end()
 

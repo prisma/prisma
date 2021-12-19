@@ -1,6 +1,6 @@
 import type { PrismaPromise } from './PrismaPromise'
-import type { Span } from '@opentelemetry/api'
-import { context, trace } from '@opentelemetry/api'
+import type { Context } from '@opentelemetry/api'
+import { context } from '@opentelemetry/api'
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -12,14 +12,15 @@ import { context, trace } from '@opentelemetry/api'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (transactionId?: number, runInTransaction?: boolean, span?: Span) => PrismaPromise<unknown>,
+  callback: (transactionId?: number, runInTransaction?: boolean, otelCtx?: Context) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
-  const span = trace.getSpan(context.active()) // for opentelemetry tracing
+  const otelCtx = context.active() // get the context at time of creation
+  // because otel isn't able to propagate context when inside of a promise
 
   // we handle exceptions that happen in the scope as `Promise` rejections
   const _callback = (transactionId?: number, runInTransaction?: boolean) => {
     try {
-      return callback(transactionId, runInTransaction, span)
+      return callback(transactionId, runInTransaction, otelCtx)
     } catch (error) {
       // and that is because exceptions are not always async
       return Promise.reject(error) as PrismaPromise<unknown>

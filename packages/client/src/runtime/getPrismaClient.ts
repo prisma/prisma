@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { Span, Tracer } from '@opentelemetry/api'
+import type { Context } from '@opentelemetry/api'
 import { trace } from '@opentelemetry/api'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
@@ -158,6 +158,7 @@ export type InternalRequestParams = {
   headers?: Record<string, string> // TODO what is this
   transactionId?: number // TODO what is this
   unpacker?: Unpacker // TODO what is this
+  otelCtx?: Context // an otel context
 } & QueryMiddlewareParams
 
 // only used by the .use() hooks
@@ -557,7 +558,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private $executeRawInternal(
       transactionId: number | undefined,
       runInTransaction: boolean | undefined,
-      span: Span | undefined,
+      otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -646,7 +647,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         callsite: getCallSite(),
         runInTransaction: runInTransaction ?? false,
         transactionId: transactionId,
-        span: span,
+        otelCtx: otelCtx,
       })
     }
 
@@ -657,9 +658,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const request = (txId?: number, inTx?: boolean, span?: Span) => {
+      const request = (txId?: number, inTx?: boolean, otelCtx?: Context) => {
         try {
-          const promise = this.$executeRawInternal(txId, inTx, span, query, ...values)
+          const promise = this.$executeRawInternal(txId, inTx, otelCtx, query, ...values)
           ;(promise as any).isExecuteRaw = true
           return promise
         } catch (e: any) {
@@ -713,7 +714,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     private $queryRawInternal(
       transactionId: number | undefined,
       runInTransaction: boolean | undefined,
-      span: Span | undefined,
+      otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -804,7 +805,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         callsite: getCallSite(),
         runInTransaction: runInTransaction ?? false,
         transactionId: transactionId,
-        span: span,
+        otelCtx: otelCtx,
       })
     }
 
@@ -815,9 +816,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const request = (txId?: number, inTx?: boolean, span?: Span) => {
+      const request = (txId?: number, inTx?: boolean, otelCtx?: Context) => {
         try {
-          const promise = this.$queryRawInternal(txId, inTx, span, query, ...values)
+          const promise = this.$queryRawInternal(txId, inTx, otelCtx, query, ...values)
           ;(promise as any).isQueryRaw = true
           return promise
         } catch (e: any) {
@@ -892,7 +893,6 @@ new PrismaClient({
         runInTransaction: false,
         headers,
         callsite: getCallSite(),
-        // span: no span for internals,
       })
     }
 
@@ -1073,17 +1073,10 @@ new PrismaClient({
         const consumer = (changedParams: QueryMiddlewareParams) => {
           // if this `next` was called and there's some more middlewares
           const nextMiddleware = this._middlewares.query.get(++index)
-          // the middleware name is the function name or default if empty
-          const nextMiddlewareName = nextMiddleware?.name || 'middleware'
 
-          if (nextMiddleware) {
-            // by calling `next`, we pass the params to the next middleware
-            return runInChildSpan(nextMiddlewareName, tracer, changedParams.span, (span) => {
-              // we pass the modified params down to the next one, & repeat
-              return nextMiddleware({ ...changedParams, span }, consumer)
-              // calling `next` calls the consumer again with the new params
-            })
-          }
+          // we pass the modified params down to the next one, & repeat
+          if (nextMiddleware) return nextMiddleware(changedParams, consumer)
+          // calling `next` calls the consumer again with the new params
 
           // before we send the execution request, we use the changed params
           const changedInternalParams = { ...internalParams, ...changedParams }
@@ -1094,21 +1087,18 @@ new PrismaClient({
           }
 
           // no middleware? then we just proceed with request execution
-          return runInChildSpan('execute', tracer, changedParams.span, (span) => {
-            return this._executeRequest({ ...changedInternalParams, span })
-          })
+          return this._executeRequest(changedInternalParams)
         }
 
-        if (globalThis.NOT_PRISMA_DATA_PROXY) {
-          // async scope https://github.com/prisma/prisma/issues/3148
-          const resource = new AsyncResource('prisma-client-request')
-          return runInChildSpan('request', tracer, internalParams.span, (span) => {
-            return resource.runInAsyncScope(() => consumer({ ...params, span }))
-          })
-        }
+        // we execute the middleware consumer and wrap the call for otel
+        return runInChildSpan('request', tracer, internalParams.otelCtx, () => {
+          if (globalThis.NOT_PRISMA_DATA_PROXY) {
+            // async scope https://github.com/prisma/prisma/issues/3148
+            const resource = new AsyncResource('prisma-client-request')
+            return resource.runInAsyncScope(() => consumer(params))
+          }
 
-        return runInChildSpan('request', tracer, internalParams.span, (span) => {
-          return consumer({ ...params, span })
+          return consumer(params)
         })
       } catch (e: any) {
         e.clientVersion = this._clientVersion
