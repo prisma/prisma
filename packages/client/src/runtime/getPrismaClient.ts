@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import type { Span, Tracer } from '@opentelemetry/api'
-import { context, trace } from '@opentelemetry/api'
+import { trace } from '@opentelemetry/api'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
@@ -23,8 +23,7 @@ import { Middlewares } from './MiddlewareHandler'
 import { PrismaClientFetcher } from './PrismaClientFetcher'
 import { makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
-import { getOutputTypeName, lowerCase } from './utils/common'
-import { deepSet } from './utils/deep-set'
+import { getOutputTypeName } from './utils/common'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
@@ -130,10 +129,6 @@ export interface PrismaClientOptions {
       endpoint?: string
       allowTriggerPanic?: boolean
     }
-  }
-
-  telemetry?: {
-    span: Span
   }
 }
 
@@ -315,7 +310,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
-    private telemetry: PrismaClientOptions['telemetry']
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -383,8 +377,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._dmmf = new DMMFHelper(config.document)
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
-
-        this.telemetry = options.telemetry
 
         this._engineConfig = {
           cwd,
@@ -563,8 +555,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Executes a raw query. Always returns a number
      */
     private $executeRawInternal(
-      runInTransaction: boolean,
       transactionId: number | undefined,
+      runInTransaction: boolean | undefined,
+      span: Span | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -651,9 +644,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         dataPath: [],
         action: 'executeRaw',
         callsite: getCallSite(),
-        runInTransaction,
+        runInTransaction: runInTransaction ?? false,
         transactionId: transactionId,
-        span: this.telemetry?.span,
+        span: span,
       })
     }
 
@@ -664,9 +657,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const request = (transactionId?: number, runInTransaction?: boolean) => {
+      const request = (txId?: number, inTx?: boolean, span?: Span) => {
         try {
-          const promise = this.$executeRawInternal(runInTransaction ?? false, transactionId, query, ...values)
+          const promise = this.$executeRawInternal(txId, inTx, span, query, ...values)
           ;(promise as any).isExecuteRaw = true
           return promise
         } catch (e: any) {
@@ -718,8 +711,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
-      runInTransaction: boolean,
       transactionId: number | undefined,
+      runInTransaction: boolean | undefined,
+      span: Span | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -808,9 +802,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         dataPath: [],
         action: 'queryRaw',
         callsite: getCallSite(),
-        runInTransaction,
+        runInTransaction: runInTransaction ?? false,
         transactionId: transactionId,
-        span: this.telemetry?.span,
+        span: span,
       })
     }
 
@@ -821,9 +815,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const request = (transactionId?: number, runInTransaction?: boolean) => {
+      const request = (txId?: number, inTx?: boolean, span?: Span) => {
         try {
-          const promise = this.$queryRawInternal(runInTransaction ?? false, transactionId, query, ...values)
+          const promise = this.$queryRawInternal(txId, inTx, span, query, ...values)
           ;(promise as any).isQueryRaw = true
           return promise
         } catch (e: any) {
