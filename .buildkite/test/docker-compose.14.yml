@@ -50,6 +50,7 @@ services:
       - mssql
       - mongo
       - mongo-seed
+      - cockroachdb
 
   postgres:
     image: postgres:10
