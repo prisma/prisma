@@ -15,7 +15,7 @@ describe('Blog fixture: Cockroachdb', () => {
     const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
     PrismaHelpers = Prisma
 
-    let originalConnectionString = process.env.TEST_COCKROACH_URI || 'postgresql://prisma@127.0.0.1:26257/tests'
+    let originalConnectionString = process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests'
     originalConnectionString += '-blog-env-cockroachdb'
 
     setupParams = {
