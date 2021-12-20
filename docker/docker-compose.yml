@@ -14,7 +14,7 @@ services:
   # Outside Docker
   # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate
   # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests
-  # - TEST_COCKROACH_URI=postgresql://prisma@127.0.0.1:26257/
+  # - TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
   # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@localhost:5435/tests
   # - TEST_MYSQL_URI=mysql://prisma:prisma@localhost:3306/tests
   # - TEST_MYSQL_ISOLATED_URI=mysql://prisma:prisma@localhost:3307/tests
