@@ -17,6 +17,7 @@ import {
   parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
+import chokidar from 'chokidar'
 import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
@@ -81,7 +82,7 @@ ${chalk.bold('Examples')}
             `This combination of Prisma CLI (>= 2.20) and Prisma Client (< 2.20) is not supported. Please update \`@prisma/client\` to ${pkg.version}   \n\n`,
           )
         } else {
-          message.push(`${err.message}\n\n`)
+          message.push(`${err.message}\n`)
         }
       }
     }
@@ -207,6 +208,9 @@ Please run \`prisma generate\` manually.`
     }
 
     const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
+    const watchedText = () => {
+
+    }
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
@@ -216,8 +220,8 @@ Please run \`prisma generate\` manually.`
       if (prismaClientJSGenerator) {
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-              path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
-            )
+            path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+          )
           : '@prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
           ? `
@@ -229,8 +233,8 @@ ${breakingChangesMessage}`
         const versionsWarning =
           versionsOutOfSync && logger.should.warn
             ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${pkg.version}`)} and ${chalk.bold(
-                `@prisma/client@${clientGeneratorVersion}`,
-              )} don't match.
+              `@prisma/client@${clientGeneratorVersion}`,
+            )} don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
@@ -258,36 +262,35 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     } else {
       logUpdate(watchingText + '\n' + this.logText)
 
-      fs.watch(schemaPath, async (eventType) => {
-        if (eventType === 'change') {
-          let generatorsWatch: Generator[] | undefined
-          try {
-            generatorsWatch = await getGenerators({
-              schemaPath,
-              printDownloadProgress: !watchMode,
-              version: enginesVersion,
-              cliVersion: pkg.version,
-            })
+      chokidar.watch(schemaPath).on('change', async () => {
+        let generatorsWatch: Generator[] | undefined
+        try {
+          logUpdate(watchingText + '\n' + this.logText + `${chalk.green("Building...")}`);
 
-            if (!generatorsWatch || generatorsWatch.length === 0) {
-              this.logText += `${missingGeneratorMessage}\n`
-            } else {
-              logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
-              try {
-                await this.runGenerate({
-                  generators: generatorsWatch,
-                })
-                logUpdate(watchingText + '\n' + this.logText)
-              } catch (errRunGenerate) {
-                this.logText += `${errRunGenerate.message}\n\n`
-                logUpdate(watchingText + '\n' + this.logText)
-              }
+          generatorsWatch = await getGenerators({
+            schemaPath,
+            printDownloadProgress: !watchMode,
+            version: enginesVersion,
+            cliVersion: pkg.version,
+          })
+
+          if (!generatorsWatch || generatorsWatch.length === 0) {
+            this.logText += `${missingGeneratorMessage}\n`
+          } else {
+            try {
+              await this.runGenerate({
+                generators: generatorsWatch,
+              })
+              logUpdate(watchingText + '\n' + this.logText)
+            } catch (errRunGenerate) {
+              this.logText += `${errRunGenerate.message}\n\n`
+              logUpdate(watchingText + '\n' + this.logText)
             }
-            // logUpdate(watchingText + '\n' + this.logText)
-          } catch (errGetGenerators) {
-            this.logText += `${errGetGenerators.message}\n\n`
-            logUpdate(watchingText + '\n' + this.logText)
           }
+          // logUpdate(watchingText + '\n' + this.logText)
+        } catch (errGetGenerators) {
+          this.logText += `${errGetGenerators.message}\n\n`
+          logUpdate(watchingText + '\n' + this.logText)
         }
       })
       await new Promise((_) => null) // eslint-disable-line @typescript-eslint/no-unused-vars
