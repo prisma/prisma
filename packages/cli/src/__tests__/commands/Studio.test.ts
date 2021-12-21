@@ -5,7 +5,6 @@ import rimraf from 'rimraf'
 import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
-const schemaHash = 'e1b6a1a8d633d83d0cb7db993af86f17'
 
 async function sendRequest(message: any): Promise<any> {
   return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
@@ -64,7 +63,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           modelName: 'with_all_field_types',
           operation: 'findMany',
           args: {
@@ -92,7 +90,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           modelName: 'with_all_field_types',
           operation: 'create',
           args: {
@@ -137,7 +134,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           modelName: 'with_all_field_types',
           operation: 'update',
           args: {
@@ -184,7 +180,6 @@ describe('studio', () => {
       action: 'clientRequest',
       payload: {
         data: {
-          schemaHash,
           modelName: 'with_all_field_types',
           operation: 'delete',
           args: {

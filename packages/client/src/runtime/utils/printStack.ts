@@ -97,7 +97,19 @@ function parseStack({
     const exists = fs.existsSync(trace.file)
     if (exists) {
       const file = fs.readFileSync(trace.file, 'utf-8')
-      const slicedFile = file.split('\n').slice(start, lineNumber).join('\n')
+      const slicedFile = file
+        .split('\n')
+        .slice(start, lineNumber)
+        .map((line) => {
+          if (line.endsWith('\r')) {
+            // Strip trailing \r characters in case the original file has Windows line endings.
+            // Otherwise the calculations in string manipulations below are off by one, leading
+            // to inconsistent results.
+            return line.slice(0, -1)
+          }
+          return line
+        })
+        .join('\n')
       const lines = dedent(slicedFile).split('\n')
 
       const theLine = lines[lines.length - 1]

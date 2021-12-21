@@ -160,7 +160,7 @@ describe('generator', () => {
     } catch (e) {
       doesnNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message).split('generation/')[1]).toMatchInlineSnapshot(
+      expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
         `doesnotexist.prisma does not exist`,
       )
     }
