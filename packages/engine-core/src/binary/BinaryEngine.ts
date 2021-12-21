@@ -977,29 +977,22 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
-    try {
-      if (action === 'start') {
-        const jsonOptions = JSON.stringify({
-          max_wait: arg?.maxWait ?? 2000, // default
-          timeout: arg?.timeout ?? 5000, // default
-        })
+    if (action === 'start') {
+      const jsonOptions = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
+      })
 
-        const result = await Connection.onHttpError(
-          this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
-          transactionHttpErrorHandler,
-        )
+      const result = await Connection.onHttpError(
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+        transactionHttpErrorHandler,
+      )
 
-        return result.data
-      } else if (action === 'commit') {
-        await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
-      } else if (action === 'rollback') {
-        await Connection.onHttpError(
-          this.connection.post(`/transaction/${arg.id}/rollback`),
-          transactionHttpErrorHandler,
-        )
-      }
-    } catch (e: any) {
-      this.setError(e)
+      return result.data
+    } else if (action === 'commit') {
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+    } else if (action === 'rollback') {
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), transactionHttpErrorHandler)
     }
 
     return undefined

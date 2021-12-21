@@ -1022,7 +1022,7 @@ new PrismaClient({
         await this._engine.transaction('commit', info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', info)
+        await this._engine.transaction('rollback', info).catch(() => {})
 
         throw e
       }
