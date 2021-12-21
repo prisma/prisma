@@ -208,9 +208,6 @@ Please run \`prisma generate\` manually.`
     }
 
     const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
-    const watchedText = () => {
-
-    }
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
@@ -220,8 +217,8 @@ Please run \`prisma generate\` manually.`
       if (prismaClientJSGenerator) {
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-            path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
-          )
+              path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+            )
           : '@prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
           ? `
@@ -233,8 +230,8 @@ ${breakingChangesMessage}`
         const versionsWarning =
           versionsOutOfSync && logger.should.warn
             ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${pkg.version}`)} and ${chalk.bold(
-              `@prisma/client@${clientGeneratorVersion}`,
-            )} don't match.
+                `@prisma/client@${clientGeneratorVersion}`,
+              )} don't match.
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
