@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1640014638996,
+  "lastUpdate": 1640086812294,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -72180,6 +72180,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±3.81%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "garren.smith@gmail.com",
+            "name": "garren smith",
+            "username": "garrensmith"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0631b2d97b895645b35a40d0327aa58191ce056",
+          "message": "test(client): Add cockroachdb blog tests (#10772)",
+          "timestamp": "2021-12-21T13:36:22+02:00",
+          "tree_id": "cf6f4d14d37282250bc3babca88068eebe8f9197",
+          "url": "https://github.com/prisma/prisma/commit/f0631b2d97b895645b35a40d0327aa58191ce056"
+        },
+        "date": 1640086808798,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.44,
+            "range": "±5.20%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±2.50%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
