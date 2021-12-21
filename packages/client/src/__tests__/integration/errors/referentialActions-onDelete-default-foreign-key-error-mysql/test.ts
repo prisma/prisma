@@ -42,6 +42,8 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
     })
 
     expect(await prisma.user.findMany()).toHaveLength(1)
+    expect(await prisma.profile.findMany()).toHaveLength(1)
+    expect(await prisma.post.findMany()).toHaveLength(1)
 
     try {
       await prisma.user.delete({
@@ -61,6 +63,9 @@ Invalid \`prisma.user.delete()\` invocation in
 → 47   await prisma.user.delete(
   Foreign key constraint failed on the field: \`authorId\`
 `)
+      expect(await prisma.user.findMany()).toHaveLength(1)
+      expect(await prisma.profile.findMany()).toHaveLength(1)
+      expect(await prisma.post.findMany()).toHaveLength(1)
     }
   })
 })
