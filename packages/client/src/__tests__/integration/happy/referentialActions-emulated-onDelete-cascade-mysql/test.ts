@@ -8,7 +8,7 @@ const baseUri = process.env.TEST_MYSQL_URI
 
 describe('referentialActions(mysql)', () => {
   beforeAll(async () => {
-    process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-Cascade'
+    process.env.TEST_MYSQL_URI += '-referentialActions-emulated-onDelete-Cascade'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
       connectionString: process.env.TEST_MYSQL_URI!,
