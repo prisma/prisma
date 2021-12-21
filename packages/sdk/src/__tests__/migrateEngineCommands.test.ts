@@ -8,6 +8,13 @@ import {
 } from '../migrateEngineCommands'
 import { uriToCredentials, credentialsToUri } from '../convertCredentials'
 
+if (process.env.CI) {
+  // 5s is often not enough for the "postgresql - create database" test on macOS CI.
+  jest.setTimeout(60000)
+}
+
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 describe('execaCommand', () => {
   test('check if connection string is in error', async () => {
     try {
@@ -142,7 +149,7 @@ describe('createDatabase', () => {
     await expect(createDatabase(uriFromCredentials, __dirname)).resolves.toEqual(false)
   })
 
-  test('sqlserver - create database', async () => {
+  testIf(!process.env.TEST_SKIP_MSSQL)('sqlserver - create database', async () => {
     let uri = process.env.TEST_MSSQL_JDBC_URI!
     uri = uri.replace(/database=(.*?);/, 'database=can-create-a-db;')
     try {
@@ -151,7 +158,7 @@ describe('createDatabase', () => {
     await expect(createDatabase(uri, __dirname)).resolves.toEqual(true)
   })
 
-  test('sqlserver - database already exists', async () => {
+  testIf(!process.env.TEST_SKIP_MSSQL)('sqlserver - database already exists', async () => {
     const uri = process.env.TEST_MSSQL_JDBC_URI!
     await expect(createDatabase(uri, __dirname)).resolves.toEqual(false)
   })

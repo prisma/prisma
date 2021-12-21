@@ -49,7 +49,14 @@ test('ignore comments', () => {
     ]
   `)
 
-  expect(serializeDatasources(result)).toMatchInlineSnapshot(`
+  let serializedResult = serializeDatasources(result)
+
+  // TODO: Windows: fixup to work around a bug in jestSnapshotSerializer
+  if (process.platform === 'win32') {
+    serializedResult = serializedResult.replace(/\\\\/g, '/')
+  }
+
+  expect(serializedResult).toMatchInlineSnapshot(`
     [
       {
         "name": "db",
@@ -107,7 +114,14 @@ test('basic happy path', () => {
     ]
   `)
 
-  expect(serializeDatasources(result)).toMatchInlineSnapshot(`
+  let serializedResult = serializeDatasources(result)
+
+  // TODO: Windows: fixup to work around a bug in jestSnapshotSerializer
+  if (process.platform === 'win32') {
+    serializedResult = serializedResult.replace(/\\\\/g, '/')
+  }
+
+  expect(serializedResult).toMatchInlineSnapshot(`
     [
       {
         "name": "db",
