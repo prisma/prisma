@@ -3,7 +3,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-describe('referentialActions(postgresql)', () => {
+describe('referentialActions(sqlite)', () => {
   beforeAll(async () => {
     await migrateDb({
       connectionString: `file:./dev.db`,
