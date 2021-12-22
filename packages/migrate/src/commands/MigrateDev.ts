@@ -195,37 +195,6 @@ ${chalk.bold('Examples')}
       throw e
     }
 
-    // If database was created or reset we want to run the seed if not skipped
-    if (
-      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
-      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
-      !args['--skip-seed']
-    ) {
-      // Run seed if 1 or more seed files are present
-      // And catch the error to continue execution
-      try {
-        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
-
-        if (seedCommandFromPkgJson) {
-          console.info() // empty line
-          const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
-          if (successfulSeeding) {
-            console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
-          } else {
-            console.info() // empty line
-          }
-        } else {
-          // Only used to help users to setup their seeds from old way to new package.json config
-          const schemaPath = await getSchemaPath(args['--schema'])
-          // we don't want to output the returned warning message
-          // but we still want to run it for `legacyTsNodeScriptWarning()`
-          await verifySeedConfigAndReturnMessage(schemaPath)
-        }
-      } catch (e) {
-        console.error(e)
-      }
-    }
-
     let evaluateDataLossResult: EngineResults.EvaluateDataLossOutput
     try {
       evaluateDataLossResult = await migrate.evaluateDataLoss()
@@ -341,6 +310,37 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
       await migrate.tryToRunGenerate()
       console.info() // empty line
+    }
+
+    // If database was created or reset we want to run the seed if not skipped
+    if (
+      (wasDbCreated || devDiagnostic.action.tag === 'reset') &&
+      !process.env.PRISMA_MIGRATE_SKIP_SEED &&
+      !args['--skip-seed']
+    ) {
+      // Run seed if 1 or more seed files are present
+      // And catch the error to continue execution
+      try {
+        const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
+
+        if (seedCommandFromPkgJson) {
+          console.info() // empty line
+          const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+          if (successfulSeeding) {
+            console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
+          } else {
+            console.info() // empty line
+          }
+        } else {
+          // Only used to help users to setup their seeds from old way to new package.json config
+          const schemaPath = await getSchemaPath(args['--schema'])
+          // we don't want to output the returned warning message
+          // but we still want to run it for `legacyTsNodeScriptWarning()`
+          await verifySeedConfigAndReturnMessage(schemaPath)
+        }
+      } catch (e) {
+        console.error(e)
+      }
     }
 
     return ''

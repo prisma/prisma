@@ -25,7 +25,7 @@ set -ex
 echo $BUILDKITE_TAG
 # echo $CHANGED_COUNT
 echo $BUILDKITE_SOURCE
-echo $UPDATE_STUDIO
+echo $UPDATE_STUDIO # TODO can we to remove this?
 
 # if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ] || [ $UPDATE_STUDIO ]; then
   buildkite-agent pipeline upload .buildkite/publish/publish.yml

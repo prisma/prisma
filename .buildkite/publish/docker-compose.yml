@@ -29,7 +29,10 @@ services:
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
       - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
-      # Other vars
+      # CockroachDB
+      - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/
+      # Other vars !\ If not defined, they cannot be accessed
+      # TODO: do an env var cleanup?
       - NPM_TOKEN
       - GITHUB_TOKEN
       - UPDATE_STUDIO
@@ -57,6 +60,7 @@ services:
       - mssql
       - mongo
       - mongo-seed
+      - cockroachdb
 
   postgres:
     image: postgres:10
@@ -137,6 +141,13 @@ services:
     links:
       - mongo
 
+  cockroachdb:
+    image: prismagraphql/build:cockroach-custom
+    restart: always
+    command: start-single-node --insecure
+    ports:
+      - '26257:26257'
+
 volumes:
   postgres:
   postgres_isolated:
@@ -144,3 +155,4 @@ volumes:
   mysql_isolated:
   mariadb:
   mssql:
+# TODO: investigate why isolated containers aren't used in the tests

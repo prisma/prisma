@@ -1,6 +1,9 @@
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 process.env.GITHUB_ACTIONS = '1'
 
+// TODO: Windows: some snapshot tests fail on Windows because of emoji.
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 import prompt from 'prompts'
 import { MigrateReset } from '../commands/MigrateReset'
 import { consoleContext, Context } from './__helpers__/context'
@@ -211,7 +214,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  it('reset - seed.js', async () => {
+  testIf(process.platform !== 'win32')('reset - seed.js', async () => {
     ctx.fixture('seed-sqlite-js')
     prompt.inject(['y']) // simulate user yes input
 
@@ -236,7 +239,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  it('reset - seed.ts', async () => {
+  testIf(process.platform !== 'win32')('reset - seed.ts', async () => {
     ctx.fixture('seed-sqlite-ts')
     prompt.inject(['y']) // simulate user yes input
 

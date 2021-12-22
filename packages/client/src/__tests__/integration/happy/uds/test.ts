@@ -1,6 +1,10 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('blog', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+const udsSupportedByOperatingSystem = process.platform !== 'win32'
+
+testIf(udsSupportedByOperatingSystem)('blog', async () => {
   await generateTestClient()
 
   const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')

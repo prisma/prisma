@@ -54,8 +54,7 @@ export class Connection {
     if (this._pool) return
 
     this._pool = new Pool(url, {
-      connections: 100,
-      pipelining: 10,
+      connections: 1000,
       keepAliveMaxTimeout: 600e3,
       headersTimeout: 0,
       bodyTimeout: 0,

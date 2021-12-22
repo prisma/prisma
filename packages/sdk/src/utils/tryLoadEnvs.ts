@@ -122,6 +122,14 @@ export function loadEnv(envPath: string | null | undefined): DotenvLoadEnvResult
       dotenvResult: dotenvExpand(
         dotenv.config({
           path: envPath,
+          // Useful to debug dotenv parsing, prints errors & warnings
+          // Set to any value to enable
+          // Example for empty .env file
+          // [dotenv][DEBUG] did not match key and value when parsing line 1:
+          //
+          // Value needs to be null or undefined, false is truthy
+          // https://github.com/motdotla/dotenv/blob/7301ac9be0b2c766f865bbe24280bf82586d25aa/lib/main.js#L89-L91
+          debug: process.env.DOTENV_CONFIG_DEBUG ? true : undefined,
         }),
       ),
       message: chalk.dim(`Environment variables loaded from ${path.relative(process.cwd(), envPath)}`),
