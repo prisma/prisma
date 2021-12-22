@@ -47,6 +47,20 @@ test('basic event logging - binary', async () => {
     onQuery.mock.calls[0][0].duration = 0
   }
 
+  // jestSnapshotSerializer can't replace the serialized date. Additionally,
+  // this allows us to check that the type is actually Date, otherwise the tests
+  // would have passed with strings in the `timestamp` field, since those would
+  // look identically in the snapshots.
+  const replaceTimestamp = (fn: jest.Mock) => {
+    for (const [event] of fn.mock.calls) {
+      if (event.timestamp instanceof Date && !Number.isNaN(event.timestamp.valueOf())) {
+        event.timestamp = new Date(0)
+      }
+    }
+  }
+  replaceTimestamp(onInfo)
+  replaceTimestamp(onQuery)
+
   expect(onInfo.mock.calls).toMatchInlineSnapshot(`
     Array [
       Array [
