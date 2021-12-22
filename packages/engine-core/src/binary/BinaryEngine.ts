@@ -1178,8 +1178,8 @@ function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Incomi
     if (runtimeHeaderKey === 'transactionId') {
       httpHeaderKey = 'X-transaction-id'
     }
-    // if header key isn't changed, a copy happens
 
+    // if header key isn't changed, a copy happens
     acc[httpHeaderKey] = headers[runtimeHeaderKey]
 
     return acc

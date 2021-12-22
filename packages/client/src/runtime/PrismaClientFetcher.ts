@@ -53,7 +53,15 @@ export class PrismaClientFetcher {
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
         const runTransaction = requests[0].runInTransaction
-        return this.prisma._engine.requestBatch(queries, {}, runTransaction)
+        const traceparents = requests.map((r) => r.headers?.traceparent)
+
+        return this.prisma._engine.requestBatch(
+          queries,
+          {
+            traceparents: JSON.stringify(traceparents),
+          },
+          runTransaction,
+        )
       },
       singleLoader: (request) => {
         const query = String(request.document)

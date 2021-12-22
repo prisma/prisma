@@ -441,11 +441,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    this.executingQueryPromise = this.engine!.query(
-      this.lastQuery,
-      JSON.stringify(headers), // TODO these aren't headers on the engine side
-      headers.transactionId,
-    )
+    this.executingQueryPromise = this.engine!.query(this.lastQuery, JSON.stringify(headers), headers.transactionId)
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 

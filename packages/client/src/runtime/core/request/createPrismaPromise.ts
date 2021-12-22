@@ -18,9 +18,9 @@ export function createPrismaPromise(
   // because otel isn't able to propagate context when inside of a promise
 
   // we handle exceptions that happen in the scope as `Promise` rejections
-  const _callback = (transactionId?: number, runInTransaction?: boolean) => {
+  const _callback = (txId?: number, inTx?: boolean) => {
     try {
-      return callback(transactionId, runInTransaction, otelCtx)
+      return callback(txId, inTx, otelCtx)
     } catch (error) {
       // and that is because exceptions are not always async
       return Promise.reject(error) as PrismaPromise<unknown>
@@ -28,10 +28,10 @@ export function createPrismaPromise(
   }
 
   return {
-    then(onFulfilled, onRejected, transactionId?: number) {
-      const promise = _callback(transactionId, false)
+    then(onFulfilled, onRejected, txId?: number) {
+      const promise = _callback(txId, false)
 
-      return promise.then(onFulfilled, onRejected, transactionId)
+      return promise.then(onFulfilled, onRejected, txId)
     },
     catch(onRejected) {
       return _callback().catch(onRejected)
@@ -39,12 +39,12 @@ export function createPrismaPromise(
     finally(onFinally) {
       return _callback().finally(onFinally)
     },
-    requestTransaction(transactionId: number) {
-      const promise = _callback(transactionId, true)
+    requestTransaction(txId: number) {
+      const promise = _callback(txId, true)
 
       if (promise.requestTransaction) {
         // requestTransaction support for nested promises
-        return promise.requestTransaction(transactionId)
+        return promise.requestTransaction(txId)
       }
 
       return promise

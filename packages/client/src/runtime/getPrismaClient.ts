@@ -38,6 +38,7 @@ import { runInChildSpan } from './utils/otel/runInChildSpan'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import { applyModels } from './core/model/applyModels'
 import { getCallSite } from './core/utils/getCallSite'
+import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -155,6 +156,7 @@ export type InternalRequestParams = {
    */
   clientMethod: string // TODO what is this
   callsite?: string // TODO what is this
+  /** Headers metadata that will be passed to the Engine */
   headers?: Record<string, string> // TODO what is this
   transactionId?: number // TODO what is this
   unpacker?: Unpacker // TODO what is this
@@ -557,8 +559,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Executes a raw query. Always returns a number
      */
     private $executeRawInternal(
-      transactionId: number | undefined,
-      runInTransaction: boolean | undefined,
+      txId: number | undefined,
+      inTx: boolean | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
@@ -646,8 +648,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         dataPath: [],
         action: 'executeRaw',
         callsite: getCallSite(this._errorFormat),
-        runInTransaction: runInTransaction ?? false,
-        transactionId: transactionId,
+        runInTransaction: inTx ?? false,
+        transactionId: txId,
         otelCtx: otelCtx,
       })
     }
@@ -713,8 +715,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
-      transactionId: number | undefined,
-      runInTransaction: boolean | undefined,
+      txId: number | undefined,
+      inTx: boolean | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
@@ -804,8 +806,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         dataPath: [],
         action: 'queryRaw',
         callsite: getCallSite(this._errorFormat),
-        runInTransaction: runInTransaction ?? false,
-        transactionId: transactionId,
+        runInTransaction: inTx ?? false,
+        transactionId: txId,
         otelCtx: otelCtx,
       })
     }
@@ -1116,6 +1118,7 @@ new PrismaClient({
       model,
       headers,
       transactionId,
+      otelCtx,
       unpacker,
     }: InternalRequestParams) {
       let rootField: string | undefined
@@ -1179,6 +1182,8 @@ new PrismaClient({
         debug(`Generated request:`)
         debug(query + '\n')
       }
+
+      headers = applyTracingHeaders(headers, otelCtx)
 
       return this._fetcher.request({
         document,
