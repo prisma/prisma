@@ -12,16 +12,16 @@ const inlineUndiciWasm = replaceWithPlugin([
     /(await WebAssembly\.compile\().*?'(.*?)'\)\)\)/g,
     async (regex, contents) => {
       for (const match of contents.matchAll(regex)) {
-        const engineCoreDir = resolve.sync('@prisma/engine-core')
-        const undiciPackage = resolve.sync('undici/package.json', { basedir: engineCoreDir })
-        const lhttpWasmPath = path.join(path.dirname(undiciPackage), 'lib', match[2])
-        const wasmContents = (await fs.promises.readFile(lhttpWasmPath)).toString('base64')
-        const inlineWasm = `${match[1]}(Buffer.from("${wasmContents}", "base64")))`
+        if (match[2].includes('simd') === false) {
+          // we only bundle the wasm files that are not simd compiled
+          const engineCoreDir = resolve.sync('@prisma/engine-core')
+          const undiciPackage = resolve.sync('undici/package.json', { basedir: engineCoreDir })
+          const lhttpWasmPath = path.join(path.dirname(undiciPackage), 'lib', match[2])
+          const wasmContents = (await fs.promises.readFile(lhttpWasmPath)).toString('base64')
+          const inlineWasm = `${match[1]}(Buffer.from("${wasmContents}", "base64")))`
 
-        const test = await WebAssembly.compile(await fs.promises.readFile(lhttpWasmPath))
-
-
-        // contents = contents.replace(match[0], inlineWasm)
+          contents = contents.replace(match[0], inlineWasm)
+        }
       }
 
       return contents
