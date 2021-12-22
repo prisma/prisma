@@ -67,14 +67,14 @@ test('basic event logging - binary', async () => {
         Object {
           message: Starting a postgresql pool with 17 connections.,
           target: quaint::pooled,
-          timestamp: Date { NaN },
+          timestamp: 1970-01-01T00:00:00.000Z,
         },
       ],
       Array [
         Object {
           message: Started http server on http://127.0.0.1:00000,
           target: query_engine::server,
-          timestamp: Date { NaN },
+          timestamp: 1970-01-01T00:00:00.000Z,
         },
       ],
     ]
@@ -88,7 +88,7 @@ test('basic event logging - binary', async () => {
           params: [0],
           query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
           target: quaint::connector::metrics,
-          timestamp: Date { NaN },
+          timestamp: 1970-01-01T00:00:00.000Z,
         },
       ],
     ]
