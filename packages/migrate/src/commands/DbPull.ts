@@ -1,6 +1,7 @@
 import type { Command } from '@prisma/sdk'
 import {
   format,
+  formatms,
   HelpError,
   getSchemaPath,
   arg,
@@ -14,7 +15,6 @@ import chalk from 'chalk'
 import path from 'path'
 import type { IntrospectionWarnings, IntrospectionSchemaVersion } from '@prisma/sdk'
 import { IntrospectionEngine } from '@prisma/sdk'
-import { formatms } from '../utils/formatms'
 import fs from 'fs'
 import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import { printDatasources } from '../utils/printDatasources'
@@ -131,6 +131,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 
     let schema: string | null = null
 
+    // Makes sure we have a schema to pass to the engine
     if (url && schemaPath) {
       schema = this.urlToDatasource(url)
       const rawSchema = fs.readFileSync(schemaPath, 'utf-8')

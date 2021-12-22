@@ -75,6 +75,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     await checkTypeScriptVersion()
 
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
+      // TODO: should this be relative to `baseDir` rather than `process.cwd()`?
       if (
         !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
         !fs.existsSync(path.join(process.cwd(), '../package.json'))
@@ -97,7 +98,30 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
         console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
       }
 
-      await installPackage(baseDir, `-D prisma@${version ?? 'latest'}`)
+      const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
+
+      // Automatically installing the packages with Yarn on Windows won't work because
+      // Yarn will try to unlink the Query Engine DLL, which is currently being used.
+      // See https://github.com/prisma/prisma/issues/9184
+      if (process.platform === 'win32' && isYarnUsed(baseDir)) {
+        const hasCli = (s: string) => (prismaCliDir !== undefined ? s : '')
+        const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
+
+        throw new Error(
+          `Could not resolve ${missingCli(`${chalk.bold('prisma')} and `)}${chalk.bold(
+            '@prisma/client',
+          )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
+            `${chalk.bold.greenBright(`${getAddPackageCommandName(baseDir, 'dev')} prisma`)} and `,
+          )}${chalk.bold.greenBright(`${getAddPackageCommandName(baseDir)} @prisma/client`)}, and rerun ${chalk.bold(
+            getCommandWithExecutor('prisma generate'),
+          )} 🙏.`,
+        )
+      }
+
+      if (!prismaCliDir) {
+        await installPackage(baseDir, `prisma@${version ?? 'latest'}`, 'dev')
+      }
+
       await installPackage(baseDir, `@prisma/client@${version ?? 'latest'}`)
 
       // resolvePkg has caching, so we trick it not to do it 👇
@@ -106,9 +130,9 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       if (!prismaClientDir) {
         throw new Error(
           `Could not resolve @prisma/client despite the installation that we just tried.
-Please try to install it by hand with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
-            getCommandWithExecutor('prisma generate'),
-          )} 🙏.`,
+Please try to install it by hand with ${chalk.bold.greenBright(
+            `${getAddPackageCommandName(baseDir)} @prisma/client`,
+          )} and rerun ${chalk.bold(getCommandWithExecutor('prisma generate'))} 🙏.`,
         )
       }
 
@@ -136,10 +160,25 @@ Please try to install it with ${chalk.bold.greenBright('npm install @prisma/clie
   },
 }
 
-async function installPackage(baseDir: string, pkg: string): Promise<void> {
-  const yarnUsed = hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+function isYarnUsed(baseDir: string): boolean {
+  // TODO: this may give false results for Yarn workspaces or when the schema is
+  // in a non-standard location, implement proper detection.
+  // Possibly related: https://github.com/prisma/prisma/discussions/10488
+  return hasYarn(baseDir) || hasYarn(path.join(baseDir, '..'))
+}
 
-  const cmdName = yarnUsed ? 'yarn add' : 'npm install'
+function getAddPackageCommandName(baseDir: string, dependencyType?: 'dev'): string {
+  let command = isYarnUsed(baseDir) ? 'yarn add' : 'npm install'
+
+  if (dependencyType === 'dev') {
+    command += ' -D'
+  }
+
+  return command
+}
+
+async function installPackage(baseDir: string, pkg: string, dependencyType?: 'dev'): Promise<void> {
+  const cmdName = getAddPackageCommandName(baseDir, dependencyType)
 
   await execa.command(`${cmdName} ${pkg}`, {
     cwd: baseDir,

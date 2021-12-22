@@ -6,6 +6,7 @@ import {
   format,
   getCommandWithExecutor,
   getGenerators,
+  getGeneratorSuccessMessage,
   getSchemaPath,
   HelpError,
   highlightTS,
@@ -21,7 +22,6 @@ import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { formatms } from './utils/formatms'
 import { simpleDebounce } from './utils/simpleDebounce'
 const pkg = eval(`require('../package.json')`)
 
@@ -66,20 +66,11 @@ ${chalk.bold('Examples')}
     const message: string[] = []
 
     for (const generator of generators) {
-      const toStr = generator.options!.generator.output!
-        ? chalk.dim(
-            ` to .${path.sep}${path.relative(process.cwd(), parseEnvValue(generator.options!.generator.output!))}`,
-          )
-        : ''
-      const name = generator.manifest ? generator.manifest.prettyName : generator.options!.generator.provider
       const before = Date.now()
       try {
         await generator.generate()
         const after = Date.now()
-        const version = generator.manifest?.version
-        message.push(
-          `✔ Generated ${chalk.bold(name!)}${version ? ` (${version})` : ''}${toStr} in ${formatms(after - before)}\n`,
-        )
+        message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
         generator.stop()
       } catch (err) {
         this.hasGeneratorErrored = true
@@ -146,6 +137,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
 
     logger.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
+    // TODO Extract logic from here
     let hasJsClient
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null

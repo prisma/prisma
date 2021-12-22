@@ -5,9 +5,12 @@ import prompt from 'prompts'
 import { DbPush } from '../commands/DbPush'
 import { consoleContext, Context } from './__helpers__/context'
 
+// TODO: Windows: a lot of snapshot tests here fail on Windows because of emoji.
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 const ctx = Context.new().add(consoleContext()).assemble()
 
-describe('push', () => {
+describeIf(process.platform !== 'win32')('push', () => {
   it('--preview-feature flag is not required anymore', async () => {
     ctx.fixture('empty')
 

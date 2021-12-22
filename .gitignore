@@ -10,6 +10,7 @@ sandbox
 
 query-engine*
 libquery_engine*
+query_engine-windows.dll.node
 
 *tmp.db
 dist/

@@ -5,6 +5,7 @@ export enum ClientEngineType {
   Binary = 'binary',
   DataProxy = 'dataproxy',
 }
+
 export const DEFAULT_CLIENT_ENGINE_TYPE = ClientEngineType.Library
 
 export function getClientEngineType(generatorConfig?: GeneratorConfig): ClientEngineType {

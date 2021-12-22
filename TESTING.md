@@ -27,6 +27,8 @@ export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-mi
 export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
 export TEST_MONGO_URI="mongodb://root:prisma@localhost:27017/tests?authSource=admin"
+
+export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
 ```
 
 - Load the environnment variables with:

@@ -1,6 +1,6 @@
 import { BinaryEngine } from '@prisma/engine-core'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import path from 'path'
-import { ClientEngineType, getClientEngineType } from '../runtime/utils/getClientEngineType'
 
 describe('BinaryEngine', () => {
   test('should error correctly with invalid flags', async () => {

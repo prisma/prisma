@@ -93,6 +93,8 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
   return data
 }
 
+// TODO Add comments
+// TODO Rename datamodelPath to schemaPath
 async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
   let data: ConfigMetaFormat | undefined
 
@@ -100,8 +102,9 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
-    let tempDatamodelPath: string | undefined = options.datamodelPath
-    if (!tempDatamodelPath) {
+    // If we do not get the path we write the datamodel to a tmp location
+    let tempDatamodelPath: string | undefined
+    if (!options.datamodelPath) {
       try {
         tempDatamodelPath = await tmpWrite(options.datamodel!)
       } catch (err) {
@@ -115,13 +118,13 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
     const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], {
       cwd: options.cwd,
       env: {
-        PRISMA_DML_PATH: tempDatamodelPath,
+        PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
         RUST_BACKTRACE: '1',
       },
       maxBuffer: MAX_BUFFER,
     })
 
-    if (!options.datamodelPath) {
+    if (tempDatamodelPath) {
       await unlink(tempDatamodelPath)
     }
 

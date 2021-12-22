@@ -1,8 +1,8 @@
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
+import { ClientEngineType } from '@prisma/sdk'
 import path from 'path'
 import { map } from '../../../../../helpers/blaze/map'
-import { ClientEngineType } from '../../runtime/utils/getClientEngineType'
 
 // NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
 
