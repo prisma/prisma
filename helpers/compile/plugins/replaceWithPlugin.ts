@@ -1,3 +1,4 @@
+import { builtinModules } from 'module'
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
 
@@ -15,9 +16,6 @@ async function applyReplacements(contents: string, replacements: Replacement[]) 
   return contents
 }
 
-// native nodejs imports so that we can filter out
-const nativeDependencies = new Set(Object.keys((process as any).binding('natives')))
-
 /**
  * Replace the contents of a file with the given replacements.
  * @param replacements
@@ -28,7 +26,8 @@ export const replaceWithPlugin = (replacements: Replacement[]): esbuild.Plugin =
     name: 'replaceWithPlugin',
     setup(build) {
       build.onLoad({ filter: /.*/ }, async (args) => {
-        if (nativeDependencies.has(args.path)) return {}
+        // we skip, don't attempt to edit files that aren't js
+        if (builtinModules.includes(args.path)) return {}
         if (!/.*?(.js|.mjs)$/.exec(args.path)) return {}
 
         const contents = await fs.promises.readFile(args.path, 'utf8')

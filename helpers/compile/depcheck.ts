@@ -1,4 +1,5 @@
 import * as esbuild from 'esbuild'
+import { builtinModules } from 'module'
 import glob from 'globby'
 import path from 'path'
 
@@ -37,11 +38,6 @@ const unusedIgnore = [
 // packages that aren't missing but are detected
 const missingIgnore = ['.prisma', '@prisma/client']
 
-// native nodejs imports so that we can filter out
-const nativeDependencies = new Set(
-  Object.keys((process as any).binding('natives')),
-)
-
 /**
  * Checks for unused and missing dependencies
  */
@@ -79,12 +75,12 @@ const unusedPlugin: esbuild.Plugin = {
     build.onEnd(() => {
       // we take all the dependencies that aren't collected and are native
       const unusedDependencies = [...dependencies].filter((dep) => {
-        return !collectedDependencies.has(dep) || nativeDependencies.has(dep)
+        return !collectedDependencies.has(dep) || builtinModules.includes(dep)
       })
 
       // we take all the collected deps that aren't deps and aren't native
       const missingDependencies = [...collectedDependencies].filter((dep) => {
-        return !dependencies.has(dep) && !nativeDependencies.has(dep)
+        return !dependencies.has(dep) && !builtinModules.includes(dep)
       })
 
       // we exclude the deps that match our unusedIgnore patterns

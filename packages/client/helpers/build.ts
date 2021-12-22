@@ -13,7 +13,7 @@ const inlineUndiciWasm = replaceWithPlugin([
     async (regex, contents) => {
       for (const match of contents.matchAll(regex)) {
         if (match[2].includes('simd') === false) {
-          // we only bundle the wasm files that are not simd compiled
+          // we only bundle lhttp wasm files that are not simd compiled
           const engineCoreDir = resolve.sync('@prisma/engine-core')
           const undiciPackage = resolve.sync('undici/package.json', { basedir: engineCoreDir })
           const lhttpWasmPath = path.join(path.dirname(undiciPackage), 'lib', match[2])
