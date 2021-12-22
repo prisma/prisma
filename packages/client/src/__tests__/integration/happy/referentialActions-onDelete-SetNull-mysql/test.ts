@@ -27,7 +27,7 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
   })
 
   test('delete 1 user, should set to null in profile', async () => {
-    await prisma.user.create({
+    const first = await prisma.user.create({
       data: {
         name: 'Alice',
         email: 'alice@prisma.io',
@@ -36,7 +36,7 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
         },
       },
     })
-    await prisma.user.create({
+    const second = await prisma.user.create({
       data: {
         name: 'Bob',
         email: 'bob@prisma.io',
@@ -48,7 +48,7 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
 
     expect(await prisma.user.findMany()).toHaveLength(2)
     expect(await prisma.post.findMany()).toHaveLength(2)
-    expect(await prisma.post.findUnique({ where: { title: 'Hello Earth' } }).authorId).not.toEqual(null);
+    expect((await prisma.post.findUnique({ where: { id: second.id } })).authorId).not.toEqual(null)
 
     const deleteBob = await prisma.user.delete({
       where: {
@@ -58,6 +58,6 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
 
     expect(await prisma.user.findMany()).toHaveLength(1)
     expect(await prisma.post.findMany()).toHaveLength(2)
-    expect(await prisma.post.findUnique({ where: { title: 'Hello Earth' } }).authorId).toEqual(null);
+    expect((await prisma.post.findUnique({ where: { id: second.id } })).authorId).toEqual(null)
   })
 })

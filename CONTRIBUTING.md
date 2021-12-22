@@ -107,7 +107,7 @@ Run the tests:
 ##### Creating a new folder-based integration test
 
 If you want to create a new one, we recommend to copy over the [minimal test](https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration/happy/minimal) and adjust it to your needs.
-It will give you an in-memory Prisma Client instance to use in the test. It utilizes the `getTestClient`) helper method.
+It will give you an in-memory Prisma Client instance to use in the test. It utilizes the `getTestClient` helper method.
 
 Sometimes you need an actual generated Client, that has been generated to the filesystem. In that case use `generateTestClient`. An example that uses this helper is the [blog example](https://github.com/prisma/prisma/tree/main/packages/client/src/__tests__/integration/happy/blog)
 
