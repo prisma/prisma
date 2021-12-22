@@ -250,7 +250,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         timestamp: Date.now(),
         query: event.query,
         params: event.params,
-        duration: event.duration_ms,
+        duration: Number(event.duration_ms),
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {

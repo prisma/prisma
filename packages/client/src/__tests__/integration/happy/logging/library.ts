@@ -63,7 +63,7 @@ test('basic event logging - library', async () => {
     Array [
       Array [
         Object {
-          duration: 2,
+          duration: 0,
           params: [0],
           query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
           target: quaint::connector::metrics,
