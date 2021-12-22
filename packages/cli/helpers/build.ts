@@ -52,12 +52,6 @@ const cliLifecyclePlugin: esbuild.Plugin = {
         overwrite: true,
       })
 
-      // we copy the lhttp runtime from prisma-client to build
-      await copy(path.join(__dirname, '../prisma-client/runtime/llhttp'), './build/llhttp', {
-        recursive: true,
-        overwrite: true,
-      })
-
       // we copy the contents from checkpoint-client to build
       await copyFile(
         path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
