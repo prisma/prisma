@@ -66,8 +66,8 @@ test('basic event logging - library', async () => {
       Array [
         Object {
           message: Starting a postgresql pool with 17 connections.,
-          target: undefined,
-          timestamp: undefined,
+          target: quaint::pooled,
+          timestamp: 1970-01-01T00:00:00.000Z,
         },
       ],
     ]
