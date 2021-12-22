@@ -48,7 +48,7 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
 
     expect(await prisma.user.findMany()).toHaveLength(2)
     expect(await prisma.post.findMany()).toHaveLength(2)
-    expect(await prisma.user.findUnique({ where: { email: 'alice@prisma.io' } }).authorId).not.toEqual(null);
+    expect(await prisma.post.findUnique({ where: { title: 'Hello Earth' } }).authorId).not.toEqual(null);
 
     const deleteBob = await prisma.user.delete({
       where: {
@@ -58,6 +58,6 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
 
     expect(await prisma.user.findMany()).toHaveLength(1)
     expect(await prisma.post.findMany()).toHaveLength(2)
-    expect(await prisma.user.findUnique({ where: { email: 'alice@prisma.io' } }).authorId).toBeNull();
+    expect(await prisma.post.findUnique({ where: { title: 'Hello Earth' } }).authorId).toBeNull();
   })
 })
