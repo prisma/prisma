@@ -404,7 +404,7 @@ importers:
       terminal-link: 2.1.1
       ts-jest: 27.1.2
       typescript: 4.4.4
-      undici: 4.10.0
+      undici: 4.12.1
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 3.8.0-5.4f46a9eae52ebe9bc7c675c3e6ba65a4b614eeab
@@ -417,7 +417,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       terminal-link: 2.1.1
-      undici: 4.10.0
+      undici: 4.12.1
     devDependencies:
       '@types/jest': 27.0.3
       '@types/node': 16.6.2
@@ -8427,8 +8427,8 @@ packages:
     resolution: {integrity: sha512-hzSoAVtJF+3ZtiFX0VgfFPHEDRm7Y/QPjGyNo4TVdnDTdft3tr8hEkD25a1jC+TjTuE7tkHGKkhwCgs9dgBB2g==}
     dev: true
 
-  /undici/4.10.0:
-    resolution: {integrity: sha512-W7NwyQzfiSYIZ+maOvz/u9tPFyAYhstF9XhtohK7txvD1jg41oatcHVq6Zls81LhzGvh4BN5WpQGuMiT4IipoA==}
+  /undici/4.12.1:
+    resolution: {integrity: sha512-MSfap7YiQJqTPP12C11PFRs9raZuVicDbwsZHTjB0a8+SsCqt7KdUis54f373yf7ZFhJzAkGJLaKm0202OIxHg==}
     engines: {node: '>=12.18'}
     dev: false
 
