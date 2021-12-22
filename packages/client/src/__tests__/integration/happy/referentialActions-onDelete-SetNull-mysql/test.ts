@@ -58,6 +58,6 @@ describe('referentialActions(mysql, onDelete-SetNull)', () => {
 
     expect(await prisma.user.findMany()).toHaveLength(1)
     expect(await prisma.post.findMany()).toHaveLength(2)
-    expect(await prisma.post.findUnique({ where: { title: 'Hello Earth' } }).authorId).toBeNull();
+    expect(await prisma.post.findUnique({ where: { title: 'Hello Earth' } }).authorId).toEqual(null);
   })
 })
