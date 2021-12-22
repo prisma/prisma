@@ -8,6 +8,7 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 let prisma
 describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions(mssql)', () => {
   beforeAll(async () => {
+    process.env.TEST_MSSQL_JDBC_URI += 'schema=referentialActionsonDeletecascade;'
     await migrateDb({
       connectionString: process.env.TEST_MSSQL_JDBC_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
