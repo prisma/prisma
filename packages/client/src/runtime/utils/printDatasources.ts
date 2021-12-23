@@ -1,6 +1,13 @@
 import type { Dictionary } from './common'
 
-export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'sqlserver' | 'jdbc:sqlserver'
+export type ConnectorType =
+  | 'mysql'
+  | 'mongodb'
+  | 'sqlite'
+  | 'postgresql'
+  | 'sqlserver'
+  | 'jdbc:sqlserver'
+  | 'cockroachdb'
 
 export interface GeneratorConfig {
   name: string

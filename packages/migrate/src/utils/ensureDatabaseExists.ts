@@ -7,7 +7,7 @@ import prompt from 'prompts'
 import type execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
-export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
+export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB'
 
 // TODO: extract functions in their own files?
 
@@ -235,6 +235,9 @@ export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
       break
     case 'sqlite':
       dbType = `SQLite`
+      break
+    case 'cockroachdb':
+      dbType = `CockroachDB`
       break
     // this is never reached as url parsing for sql server is not implemented
     case 'sqlserver':
