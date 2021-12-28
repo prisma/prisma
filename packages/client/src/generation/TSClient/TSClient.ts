@@ -119,6 +119,7 @@ ${buildDMMF(engineType, this.dmmfString)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
+Prisma.config = config
 ${buildInlineDatasource(engineType, datasources)}
 ${await buildInlineSchema(engineType, schemaPath)}
 ${buildInlineEnv(engineType, datasources, envPaths)}
