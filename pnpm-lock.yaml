@@ -123,7 +123,7 @@ importers:
       '@typescript-eslint/parser': 5.4.0
       chalk: 4.1.2
       checkpoint-client: 1.1.20
-      debug: 4.3.2
+      debug: 4.3.3
       dotenv: 10.0.0
       esbuild: 0.13.14
       eslint: 8.5.0
@@ -175,7 +175,7 @@ importers:
       '@typescript-eslint/parser': 5.4.0_eslint@8.5.0+typescript@4.5.4
       chalk: 4.1.2
       checkpoint-client: 1.1.20
-      debug: 4.3.2
+      debug: 4.3.3
       dotenv: 10.0.0
       esbuild: 0.13.14
       eslint: 8.5.0
