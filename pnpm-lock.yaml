@@ -252,7 +252,7 @@ importers:
       lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 2.5.5
-      mssql: 7.2.1
+      mssql: 7.3.0
       pg: 8.7.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -314,7 +314,7 @@ importers:
       lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 2.5.5
-      mssql: 7.2.1
+      mssql: 7.3.0
       pg: 8.7.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -502,7 +502,7 @@ importers:
       jest: 27.4.5
       lint-staged: 12.1.4
       mariadb: 2.5.5
-      mssql: 7.2.1
+      mssql: 7.3.0
       pg: 8.7.1
       prettier: 2.5.1
       replace-string: 3.1.0
@@ -536,7 +536,7 @@ importers:
       jest: 27.4.5_ts-node@10.4.0
       lint-staged: 12.1.4
       mariadb: 2.5.5
-      mssql: 7.2.1
+      mssql: 7.3.0
       pg: 8.7.1
       prettier: 2.5.1
       replace-string: 3.1.0
@@ -836,7 +836,7 @@ packages:
       '@types/node-fetch': 2.5.12
       '@types/tunnel': 0.0.3
       form-data: 4.0.0
-      node-fetch: 2.6.5
+      node-fetch: 2.6.6
       process: 0.11.10
       tough-cookie: 4.0.0
       tslib: 2.3.1
@@ -896,7 +896,7 @@ packages:
       tslib: 2.3.1
     dev: true
 
-  /@azure/identity/1.5.2_debug@4.3.2:
+  /@azure/identity/1.5.2_debug@4.3.3:
     resolution: {integrity: sha512-vqyeRbd2i0h9F4mqW5JbkP1xfabqKQ21l/81osKhpOQ2LtwaJW6nw4+0PsVYnxcbPHFCIZt6EWAk74a3OGYZJA==}
     engines: {node: '>=12.0.0'}
     dependencies:
@@ -905,9 +905,9 @@ packages:
       '@azure/core-rest-pipeline': 1.3.1
       '@azure/core-tracing': 1.0.0-preview.12
       '@azure/logger': 1.0.3
-      '@azure/msal-node': 1.0.0-beta.6_debug@4.3.2
+      '@azure/msal-node': 1.0.0-beta.6_debug@4.3.3
       '@types/stoppable': 1.1.1
-      axios: 0.21.4_debug@4.3.2
+      axios: 0.21.4_debug@4.3.3
       events: 3.3.0
       jws: 4.0.0
       msal: 1.4.14
@@ -953,7 +953,7 @@ packages:
       '@azure/core-auth': 1.3.2
       abort-controller: 3.0.0
       form-data: 2.5.1
-      node-fetch: 2.6.5
+      node-fetch: 2.6.6
       tough-cookie: 3.0.1
       tslib: 1.14.1
       tunnel: 0.0.6
@@ -961,12 +961,12 @@ packages:
       xml2js: 0.4.23
     dev: true
 
-  /@azure/ms-rest-nodeauth/3.1.0_debug@4.3.2:
+  /@azure/ms-rest-nodeauth/3.1.0_debug@4.3.3:
     resolution: {integrity: sha512-F4NKrbkZg0qD3+rUM8fvJHOFRkXFoEiptYTZtLBruN3VwBFIqbTFW0fmgRyBW9seZl+mX2OexQA5GzWenSA3Kw==}
     dependencies:
       '@azure/ms-rest-azure-env': 2.0.0
       '@azure/ms-rest-js': 2.6.0
-      adal-node: 0.2.3_debug@4.3.2
+      adal-node: 0.2.3_debug@4.3.3
     transitivePeerDependencies:
       - debug
     dev: true
@@ -975,16 +975,16 @@ packages:
     resolution: {integrity: sha512-/i5dXM+QAtO+6atYd5oHGBAx48EGSISkXNXViheliOQe+SIFMDo3gSq3lL54W0suOSAsVPws3XnTaIHlla0PIQ==}
     engines: {node: '>=0.8.0'}
     dependencies:
-      debug: 4.3.2
+      debug: 4.3.3
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@azure/msal-node/1.0.0-beta.6_debug@4.3.2:
+  /@azure/msal-node/1.0.0-beta.6_debug@4.3.3:
     resolution: {integrity: sha512-ZQI11Uz1j0HJohb9JZLRD8z0moVcPks1AFW4Q/Gcl67+QvH4aKEJti7fjCcipEEZYb/qzLSO8U6IZgPYytsiJQ==}
     dependencies:
       '@azure/msal-common': 4.5.1
-      axios: 0.21.4_debug@4.3.2
+      axios: 0.21.4_debug@4.3.3
       jsonwebtoken: 8.5.1
       uuid: 8.3.2
     transitivePeerDependencies:
@@ -1994,7 +1994,7 @@ packages:
   /@types/node-fetch/2.5.12:
     resolution: {integrity: sha512-MKgC4dlq4kKNa/mYrwpKfzQMB5X3ee5U6fSprkKpToBqBmX4nFZL9cW5jl6sWn+xpRJ7ypWh2yyqqr8UUCstSw==}
     dependencies:
-      '@types/node': 16.11.15
+      '@types/node': 16.11.17
       form-data: 3.0.1
     dev: true
 
@@ -2083,7 +2083,7 @@ packages:
   /@types/stoppable/1.1.1:
     resolution: {integrity: sha512-b8N+fCADRIYYrGZOcmOR8ZNBOqhktWTB/bMUl5LvGtT201QKJZOOH5UsFyI3qtteM6ZAJbJqZoBcLqqxKIwjhw==}
     dependencies:
-      '@types/node': 16.11.15
+      '@types/node': 16.11.17
     dev: true
 
   /@types/tar/6.1.1:
@@ -2102,7 +2102,7 @@ packages:
   /@types/tunnel/0.0.3:
     resolution: {integrity: sha512-sOUTGn6h1SfQ+gbgqC364jLFBw2lnFqkgF3q0WovEHRLMrVD1sd5aufqi/aJObLekJO+Aq5z646U4Oxy6shXMA==}
     dependencies:
-      '@types/node': 16.11.15
+      '@types/node': 16.11.17
     dev: true
 
   /@types/ws/8.2.2:
@@ -2418,13 +2418,13 @@ packages:
     hasBin: true
     dev: true
 
-  /adal-node/0.2.3_debug@4.3.2:
+  /adal-node/0.2.3_debug@4.3.3:
     resolution: {integrity: sha512-gMKr8RuYEYvsj7jyfCv/4BfKToQThz20SP71N3AtFn3ia3yAR8Qt2T3aVQhuJzunWs2b38ZsQV0qsZPdwZr7VQ==}
     engines: {node: '>= 0.6.15'}
     dependencies:
       '@xmldom/xmldom': 0.7.5
       async: 2.6.3
-      axios: 0.21.4_debug@4.3.2
+      axios: 0.21.4_debug@4.3.3
       date-utils: 1.2.21
       jws: 3.2.2
       underscore: 1.13.1
@@ -2636,10 +2636,10 @@ packages:
       - debug
     dev: true
 
-  /axios/0.21.4_debug@4.3.2:
+  /axios/0.21.4_debug@4.3.3:
     resolution: {integrity: sha512-ut5vewkiu8jjGBdqpM44XxjuCjq9LAKeHVmoVfHVzy8eHgxxq8SbAVQNovDA8mVi05kP0Ea/n/UzcSHcTJQfNg==}
     dependencies:
-      follow-redirects: 1.14.4_debug@4.3.2
+      follow-redirects: 1.14.4_debug@4.3.3
     transitivePeerDependencies:
       - debug
     dev: true
@@ -4324,7 +4324,7 @@ packages:
         optional: true
     dev: true
 
-  /follow-redirects/1.14.4_debug@4.3.2:
+  /follow-redirects/1.14.4_debug@4.3.3:
     resolution: {integrity: sha512-zwGkiSXC1MUJG/qmeIFH2HBJx9u0V46QGUe3YR1fXG8bXQxq7fLj0RjLZQ5nubr9qNJUZrH+xUcwXEoXNpfS+g==}
     engines: {node: '>=4.0'}
     peerDependencies:
@@ -4333,7 +4333,7 @@ packages:
       debug:
         optional: true
     dependencies:
-      debug: 4.3.2
+      debug: 4.3.3
     dev: true
 
   /foreach/2.0.5:
@@ -6272,16 +6272,16 @@ packages:
       tslib: 1.14.1
     dev: true
 
-  /mssql/7.2.1:
-    resolution: {integrity: sha512-kq0hVeD1tR+ikZqmLwgQqLGSavOhrrwaiYsYxdUQASifc3oIOFRx2IHpuWk+8oLI6Ab/s3o3JfpFX1v1Nf2sxA==}
+  /mssql/7.3.0:
+    resolution: {integrity: sha512-3NGxDomH5Lci2g0EUrsejHIsvtFwlIE6A9SNFWQ2/JD4Dh0+5XVFHeyB4RXKb+nRMDosSUBAQDIVSuLXo5XFZA==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
       '@tediousjs/connection-string': 0.3.0
-      debug: 4.3.2
+      debug: 4.3.3
       rfdc: 1.3.0
       tarn: 3.0.1
-      tedious: 11.8.0_debug@4.3.2
+      tedious: 11.8.0_debug@4.3.3
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -6337,13 +6337,6 @@ packages:
   /node-fetch/2.6.1:
     resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
     engines: {node: 4.x || >=6.0.0}
-
-  /node-fetch/2.6.5:
-    resolution: {integrity: sha512-mmlIVHJEu5rnIxgEgez6b9GgWXbkZj5YZ7fx+2r94a2E+Uirsp6HsPTPlomfdHtpt/B0cdKviwkoaM6pyvUOpQ==}
-    engines: {node: 4.x || >=6.0.0}
-    dependencies:
-      whatwg-url: 5.0.0
-    dev: true
 
   /node-fetch/2.6.6:
     resolution: {integrity: sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==}
@@ -7342,7 +7335,7 @@ packages:
     dependencies:
       call-bind: 1.0.2
       get-intrinsic: 1.1.1
-      object-inspect: 1.11.0
+      object-inspect: 1.12.0
     dev: true
 
   /signal-exit/3.0.5:
@@ -7742,15 +7735,15 @@ packages:
     engines: {node: '>=8.0.0'}
     dev: true
 
-  /tedious/11.8.0_debug@4.3.2:
+  /tedious/11.8.0_debug@4.3.3:
     resolution: {integrity: sha512-GtFrO694x/7CRiUBt0AI4jrMtrkXV+ywifiOrDy4K0ufJLeKB4rgmPjy5Ws366fCaBaKlqQ9RnJ+sCJ1Jbd1lw==}
     engines: {node: '>= 10'}
     dependencies:
-      '@azure/identity': 1.5.2_debug@4.3.2
+      '@azure/identity': 1.5.2_debug@4.3.3
       '@azure/keyvault-keys': 4.3.0
-      '@azure/ms-rest-nodeauth': 3.1.0_debug@4.3.2
+      '@azure/ms-rest-nodeauth': 3.1.0_debug@4.3.3
       '@js-joda/core': 3.2.0
-      adal-node: 0.2.3_debug@4.3.2
+      adal-node: 0.2.3_debug@4.3.3
       bl: 5.0.0
       depd: 2.0.0
       iconv-lite: 0.6.3

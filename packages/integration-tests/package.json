@@ -34,7 +34,7 @@
     "jest": "27.4.5",
     "lint-staged": "12.1.4",
     "mariadb": "2.5.5",
-    "mssql": "7.2.1",
+    "mssql": "7.3.0",
     "pg": "8.7.1",
     "prettier": "2.5.1",
     "replace-string": "3.1.0",
