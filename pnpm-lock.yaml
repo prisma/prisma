@@ -260,7 +260,7 @@ importers:
       replace-string: 3.1.0
       rimraf: 3.0.2
       sort-keys: 4.2.0
-      source-map-support: 0.5.20
+      source-map-support: 0.5.21
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
@@ -322,7 +322,7 @@ importers:
       replace-string: 3.1.0
       rimraf: 3.0.2
       sort-keys: 4.2.0
-      source-map-support: 0.5.20
+      source-map-support: 0.5.21
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
@@ -7402,6 +7402,13 @@ packages:
 
   /source-map-support/0.5.20:
     resolution: {integrity: sha512-n1lZZ8Ve4ksRqizaBQgxXDgKwttHDhyfQjA6YZZn8+AroHbsIz+JjwxQDxbp+7y5OYCI8t1Yk7etjD9CRd2hIw==}
+    dependencies:
+      buffer-from: 1.1.2
+      source-map: 0.6.1
+    dev: true
+
+  /source-map-support/0.5.21:
+    resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
