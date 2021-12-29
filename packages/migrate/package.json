@@ -37,7 +37,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
-    "fs-jetpack": "4.2.0",
+    "fs-jetpack": "4.3.0",
     "jest": "27.4.5",
     "lint-staged": "12.1.4",
     "make-dir": "3.1.0",

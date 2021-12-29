@@ -30,7 +30,7 @@
     "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
-    "fs-jetpack": "4.2.0",
+    "fs-jetpack": "4.3.0",
     "jest": "27.4.5",
     "lint-staged": "12.1.4",
     "mariadb": "2.5.5",
