@@ -20,7 +20,7 @@ importers:
       chalk: 4.1.2
       chokidar: 3.5.2
       esbuild: 0.13.14
-      esbuild-register: 3.1.2
+      esbuild-register: 3.3.1
       eslint: 8.5.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -69,7 +69,7 @@ importers:
       chalk: 4.1.2
       chokidar: 3.5.2
       esbuild: 0.13.14
-      esbuild-register: 3.1.2_esbuild@0.13.14
+      esbuild-register: 3.3.1_esbuild@0.13.14
       eslint: 8.5.0
       eslint-config-prettier: 8.3.0_eslint@8.5.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.5.0
@@ -3687,13 +3687,12 @@ packages:
     dev: true
     optional: true
 
-  /esbuild-register/3.1.2_esbuild@0.13.14:
-    resolution: {integrity: sha512-RbKnUm/dXQZq6q8j7xfLBP06AhDQHS5g2FAAlAYV2Zw5obMKs8Bk777Jt4WD34pAx/Xyh5oAPESCYYtqhJ8Ufw==}
+  /esbuild-register/3.3.1_esbuild@0.13.14:
+    resolution: {integrity: sha512-DjK9rOeo+Dhq8DXKy52DF2+O7zNPXkFRg9lZfqXDGLU6AzrULxBJZPOOFcH6WCNfkwqymKOZoNvd/ncCvEjwdw==}
     peerDependencies:
       esbuild: '>=0.12 <1'
     dependencies:
       esbuild: 0.13.14
-      jsonc-parser: 3.0.0
     dev: true
 
   /esbuild-sunos-64/0.13.14:
@@ -5749,10 +5748,6 @@ packages:
     hasBin: true
     dependencies:
       minimist: 1.2.5
-    dev: true
-
-  /jsonc-parser/3.0.0:
-    resolution: {integrity: sha512-fQzRfAbIBnR0IQvftw9FJveWiHp72Fg20giDrHz6TdfB12UH/uue0D3hm57UB5KgAVuniLMCaS8P1IMj9NR7cA==}
     dev: true
 
   /jsonfile/4.0.0:

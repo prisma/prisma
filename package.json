@@ -47,7 +47,7 @@
     "chalk": "4.1.2",
     "chokidar": "3.5.2",
     "esbuild": "0.13.14",
-    "esbuild-register": "3.1.2",
+    "esbuild-register": "3.3.1",
     "eslint": "8.5.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
