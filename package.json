@@ -25,7 +25,7 @@
     "pull": "ts-node scripts/ci/publish.ts --pull",
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
     "precommit-all": "ts-node scripts/lint.ts --staged",
-    "eslint": "eslint",
+    "eslint": "8.5.0",
     "lint": "ts-node scripts/lint.ts",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "prepare": "is-ci || husky install"
@@ -48,7 +48,7 @@
     "chokidar": "3.5.2",
     "esbuild": "0.13.14",
     "esbuild-register": "3.1.2",
-    "eslint": "8.3.0",
+    "eslint": "8.5.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "25.3.0",
