@@ -36,7 +36,7 @@
     "mariadb": "2.5.5",
     "mssql": "7.2.1",
     "pg": "8.7.1",
-    "prettier": "2.4.1",
+    "prettier": "2.5.1",
     "replace-string": "3.1.0",
     "sqlite-async": "1.1.2",
     "string-hash": "1.1.3",
