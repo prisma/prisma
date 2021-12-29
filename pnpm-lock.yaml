@@ -140,7 +140,7 @@ importers:
       is-installed-globally: 0.4.0
       jest: 27.4.5
       line-replace: 2.0.1
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       log-update: 4.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.6
@@ -192,7 +192,7 @@ importers:
       is-installed-globally: 0.4.0
       jest: 27.4.5_ts-node@10.4.0
       line-replace: 2.0.1
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       log-update: 4.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.6
@@ -248,7 +248,7 @@ importers:
       jest: 27.4.5
       js-levenshtein: 1.1.6
       klona: 2.0.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 2.5.5
@@ -310,7 +310,7 @@ importers:
       jest: 27.4.5_ts-node@10.4.0
       js-levenshtein: 1.1.6
       klona: 2.0.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 2.5.5
@@ -346,7 +346,7 @@ importers:
       eslint-plugin-jest: 25.3.0
       eslint-plugin-prettier: 4.0.0
       jest: 27.4.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       ms: 2.1.3
       prettier: 2.5.1
       strip-ansi: 6.0.1
@@ -367,7 +367,7 @@ importers:
       eslint-plugin-jest: 25.3.0_8e4587ffdbad7ecbf6b0774bd21bf51b
       eslint-plugin-prettier: 4.0.0_94e1b6d3ce6ea916847122712570e9ae
       jest: 27.4.5_ts-node@10.4.0
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       prettier: 2.5.1
       strip-ansi: 6.0.1
       ts-jest: 27.1.2_f6aa49e3d154612e407c573b48717fe6
@@ -394,7 +394,7 @@ importers:
       get-stream: 6.0.1
       indent-string: 4.0.0
       jest: 27.4.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       prettier: 2.5.1
@@ -428,7 +428,7 @@ importers:
       eslint-plugin-jest: 25.3.0_8e4587ffdbad7ecbf6b0774bd21bf51b
       eslint-plugin-prettier: 4.0.0_94e1b6d3ce6ea916847122712570e9ae
       jest: 27.4.5_ts-node@10.4.0
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       prettier: 2.5.1
       strip-ansi: 6.0.1
       ts-jest: 27.1.2_f6aa49e3d154612e407c573b48717fe6
@@ -451,7 +451,7 @@ importers:
       eslint-plugin-jest: 25.3.0
       eslint-plugin-prettier: 4.0.0
       jest: 27.4.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       prettier: 2.5.1
       ts-jest: 27.1.2
       ts-node: 10.4.0
@@ -473,7 +473,7 @@ importers:
       eslint-plugin-jest: 25.3.0_8e4587ffdbad7ecbf6b0774bd21bf51b
       eslint-plugin-prettier: 4.0.0_94e1b6d3ce6ea916847122712570e9ae
       jest: 27.4.5_ts-node@10.4.0
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       prettier: 2.5.1
       ts-jest: 27.1.2_f6aa49e3d154612e407c573b48717fe6
       ts-node: 10.4.0_9303900730675ceadab88ac326bf0384
@@ -500,7 +500,7 @@ importers:
       execa: 5.1.1
       fs-jetpack: 4.2.0
       jest: 27.4.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       mariadb: 2.5.5
       mssql: 7.2.1
       pg: 8.7.1
@@ -534,7 +534,7 @@ importers:
       execa: 5.1.1
       fs-jetpack: 4.2.0
       jest: 27.4.5_ts-node@10.4.0
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       mariadb: 2.5.5
       mssql: 7.2.1
       pg: 8.7.1
@@ -576,7 +576,7 @@ importers:
       has-yarn: 2.1.0
       indent-string: 4.0.0
       jest: 27.4.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       log-update: 4.0.0
       make-dir: 3.1.0
       mariadb: 2.5.5
@@ -626,7 +626,7 @@ importers:
       eslint-plugin-prettier: 4.0.0_94e1b6d3ce6ea916847122712570e9ae
       fs-jetpack: 4.2.0
       jest: 27.4.5_ts-node@10.4.0
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       make-dir: 3.1.0
       mariadb: 2.5.5
       mock-stdin: 1.0.0
@@ -710,7 +710,7 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.1
       jest: 27.4.5
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       make-dir: 3.1.0
       node-fetch: 2.6.6
       p-map: 4.0.0
@@ -783,7 +783,7 @@ importers:
       eslint-plugin-jest: 25.3.0_8e4587ffdbad7ecbf6b0774bd21bf51b
       eslint-plugin-prettier: 4.0.0_94e1b6d3ce6ea916847122712570e9ae
       jest: 27.4.5_ts-node@10.4.0
-      lint-staged: 12.0.2
+      lint-staged: 12.1.4
       prettier: 2.5.1
       ts-jest: 27.1.2_f6aa49e3d154612e407c573b48717fe6
       ts-node: 10.4.0_9303900730675ceadab88ac326bf0384
@@ -2028,10 +2028,6 @@ packages:
   /@types/normalize-package-data/2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
 
-  /@types/parse-json/4.0.0:
-    resolution: {integrity: sha512-//oorEZjL6sbPcKUaCdIGlIUeH26mgzimjBB77G6XRgnDl/L5wOnpyBGRe/Mmf5CVW3PwEBE1NjiMZ/ssFh4wA==}
-    dev: true
-
   /@types/pg/8.6.3:
     resolution: {integrity: sha512-P0RrXJcw1hPS+KF0nBCC3FEEdZBfRsHbYtAzbY2QTc0gC4jFQvjQxIKXs0X/NgPhPI4DbAzdeW7WMCjaWjT7Pg==}
     dependencies:
@@ -3004,11 +3000,6 @@ packages:
       wrap-ansi: 7.0.0
     dev: true
 
-  /clone/2.1.2:
-    resolution: {integrity: sha1-G39Ln1kfHo+DZwQBYANFoCiHQ18=}
-    engines: {node: '>=0.8'}
-    dev: true
-
   /co/4.6.0:
     resolution: {integrity: sha1-bqa989hTrlTMuOR7+gvz+QMfsYQ=}
     engines: {iojs: '>= 1.0.0', node: '>= 0.12.0'}
@@ -3126,17 +3117,6 @@ packages:
       vary: 1.1.2
     dev: true
 
-  /cosmiconfig/7.0.1:
-    resolution: {integrity: sha512-a1YWNUV2HwGimB7dU2s1wUMurNKjpx60HxBB6xUM8Re+2s1g1IIfJvFR0/iCF+XHdE0GMTKTuLR32UQff4TEyQ==}
-    engines: {node: '>=10'}
-    dependencies:
-      '@types/parse-json': 4.0.0
-      import-fresh: 3.3.0
-      parse-json: 5.2.0
-      path-type: 4.0.0
-      yaml: 1.10.2
-    dev: true
-
   /crc-32/1.2.0:
     resolution: {integrity: sha512-1uBwHxF+Y/4yF5G48fwnKq6QsIXheor3ZLPT80yGBV1oEUwpPojlEhQbWKVw1VwcTQyMGHK1/XMmTjmlsmTTGA==}
     engines: {node: '>=0.8'}
@@ -3229,19 +3209,6 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
-    dev: true
-
-  /debug/4.3.2_supports-color@9.0.2:
-    resolution: {integrity: sha512-mOp8wKcvj7XxC78zLgw/ZA+6TSgkoE2C/ienthhRD298T7UNwAg9diBpLRxC0mOezLl4B0xV7M0cCO6P/O0Xhw==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
-      supports-color: 9.0.2
     dev: true
 
   /debug/4.3.3:
@@ -4663,11 +4630,6 @@ packages:
     resolution: {integrity: sha512-EykJT/Q1KjTWctppgIAgfSO0tKVuZUjhgMr17kqTumMl6Afv3EISleU7qZUzoXDFTAHTDC4NOoG/ZxU3EvlMPQ==}
     engines: {node: '>=8'}
 
-  /has-flag/5.0.1:
-    resolution: {integrity: sha512-CsNUt5x9LUdx6hnk/E2SZLsDyvfqANZSUq4+D3D8RzDJ2M+HDTIkF60ibS1vHaK55vzgiZw1bEPFG9yH7l33wA==}
-    engines: {node: '>=12'}
-    dev: true
-
   /has-symbols/1.0.2:
     resolution: {integrity: sha512-chXa79rL/UC2KlX17jo3vRGz0azaWEx5tGqZg5pO3NUyEJVB17dMruQlzCCOfUvElghKcm5194+BCRvi2Rv/Gw==}
     engines: {node: '>= 0.4'}
@@ -5928,27 +5890,6 @@ packages:
   /lines-and-columns/1.1.6:
     resolution: {integrity: sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=}
 
-  /lint-staged/12.0.2:
-    resolution: {integrity: sha512-tpCvACqc7bykziGJmXG0G8YG2RaCrWiDBwmrP9wU7i/3za9JMOvCECQmXjw/sO4ICC70ApVwyqixS1htQX9Haw==}
-    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
-    hasBin: true
-    dependencies:
-      cli-truncate: 3.1.0
-      colorette: 2.0.16
-      commander: 8.3.0
-      cosmiconfig: 7.0.1
-      debug: 4.3.2_supports-color@9.0.2
-      execa: 5.1.1
-      listr2: 3.13.3
-      micromatch: 4.0.4
-      normalize-path: 3.0.0
-      object-inspect: 1.11.0
-      string-argv: 0.3.1
-      supports-color: 9.0.2
-    transitivePeerDependencies:
-      - enquirer
-    dev: true
-
   /lint-staged/12.1.4:
     resolution: {integrity: sha512-RgDz9nsFsE0/5eL9Vat0AvCuk0+j5mEuzBIVfrRH5FRtt5wibYe8zTjZs2nuqLFrLAGQGYnj8+HJxolcj08i/A==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
@@ -5969,22 +5910,6 @@ packages:
       yaml: 1.10.2
     transitivePeerDependencies:
       - enquirer
-    dev: true
-
-  /listr2/3.13.3:
-    resolution: {integrity: sha512-VqAgN+XVfyaEjSaFewGPcDs5/3hBbWVaX1VgWv2f52MF7US45JuARlArULctiB44IIcEk3JF7GtoFCLqEdeuPA==}
-    engines: {node: '>=10.0.0'}
-    peerDependencies:
-      enquirer: '>= 2.3.0 < 3'
-    dependencies:
-      cli-truncate: 2.1.0
-      clone: 2.1.2
-      colorette: 2.0.16
-      log-update: 4.0.0
-      p-map: 4.0.0
-      rxjs: 7.4.0
-      through: 2.3.8
-      wrap-ansi: 7.0.0
     dev: true
 
   /listr2/3.13.5:
@@ -7732,13 +7657,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       has-flag: 4.0.0
-    dev: true
-
-  /supports-color/9.0.2:
-    resolution: {integrity: sha512-ii6tc8ImGFrgMPYq7RVAMKkhPo9vk8uA+D3oKbJq/3Pk2YSMv1+9dUAesa9UxMbxBTvxwKTQffBahNVNxEvM8Q==}
-    engines: {node: '>=12'}
-    dependencies:
-      has-flag: 5.0.1
     dev: true
 
   /supports-color/9.2.1:

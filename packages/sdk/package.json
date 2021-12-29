@@ -49,7 +49,7 @@
     "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-prettier": "4.0.0",
     "jest": "27.4.5",
-    "lint-staged": "12.0.2",
+    "lint-staged": "12.1.4",
     "prettier": "2.5.1",
     "ts-jest": "27.1.2",
     "ts-node": "10.4.0",
