@@ -121,8 +121,8 @@
     "strip-indent": "3.0.0",
     "ts-jest": "27.1.2",
     "ts-node": "10.4.0",
-    "tsd": "0.18.0",
-    "typescript": "4.4.4"
+    "tsd": "0.19.1",
+    "typescript": "4.5.4"
   },
   "peerDependencies": {
     "prisma": "*"
