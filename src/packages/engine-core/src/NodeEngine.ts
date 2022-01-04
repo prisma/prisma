@@ -209,7 +209,7 @@ export class NodeEngine implements Engine {
       this.port = Number(url.port)
     }
 
-    // TODO
+    // TODO What is this exactly? I have trouble understanding what the error message really tells me via this conditional.
     if (this.platform) {
       if (
         !knownPlatforms.includes(this.platform as Platform) &&
