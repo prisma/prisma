@@ -542,7 +542,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
     }
 
-    // TODO What is this and why?
+    // overriding the datasource from client constructor (https://github.com/prisma/prisma/pull/7730/files#r657089170)
     if (this.datasources) {
       env.OVERWRITE_DATASOURCES = this.printDatasources()
     }
