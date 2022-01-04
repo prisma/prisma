@@ -506,7 +506,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return printGeneratorConfig(fixedGenerator)
   }
 
-  // TODO ??
+  // TODO give better name (see usages)
   private printDatasources(): string {
     if (this.datasources) {
       return JSON.stringify(this.datasources)
