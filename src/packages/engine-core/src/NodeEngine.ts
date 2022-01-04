@@ -493,7 +493,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     return prismaPath
   }
 
-  // TODO
+  // TODO Fixed as in "not broken" or fixed as in "written down"? If any of these, why and how and where?
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.generator!,
