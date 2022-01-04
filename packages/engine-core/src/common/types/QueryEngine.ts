@@ -1,10 +1,7 @@
-import { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
 // Events
-export type QueryEngineEvent =
-  | QueryEngineLogEvent
-  | QueryEngineQueryEvent
-  | QueryEnginePanicEvent
+export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent
 
 export type QueryEngineLogEvent = {
   level: string
@@ -33,13 +30,7 @@ export type QueryEnginePanicEvent = {
 }
 
 // Configuration
-export type QueryEngineLogLevel =
-  | 'trace'
-  | 'debug'
-  | 'info'
-  | 'warn'
-  | 'error'
-  | 'off'
+export type QueryEngineLogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'off'
 
 export type QueryEngineConfig = {
   // TODO rename datamodel here and other places

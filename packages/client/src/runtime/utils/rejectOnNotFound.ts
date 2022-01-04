@@ -1,5 +1,5 @@
-import { isError } from '@prisma/sdk/dist/cli/utils'
-import { Action } from '../getPrismaClient'
+import { isError } from '@prisma/sdk'
+import type { Action } from '../getPrismaClient'
 
 export type RejectOnNotFound = boolean | ((error: Error) => Error) | undefined
 export type InstanceRejectOnNotFound =
@@ -11,7 +11,6 @@ export class NotFoundError extends Error {
   constructor(message: string) {
     super(message)
     this.name = 'NotFoundError'
-    this.stack = undefined
   }
 }
 
@@ -29,21 +28,12 @@ export function getRejectOnNotFound(
   clientInstance?: InstanceRejectOnNotFound,
 ): RejectOnNotFound {
   let rejectOnNotFound: RejectOnNotFound
-  if (
-    args &&
-    typeof args === 'object' &&
-    'rejectOnNotFound' in args &&
-    args['rejectOnNotFound'] !== undefined
-  ) {
+  if (args && typeof args === 'object' && 'rejectOnNotFound' in args && args['rejectOnNotFound'] !== undefined) {
     rejectOnNotFound = args['rejectOnNotFound']
     delete args['rejectOnNotFound']
   } else if (typeof clientInstance === 'boolean') {
     rejectOnNotFound = clientInstance
-  } else if (
-    clientInstance &&
-    typeof clientInstance === 'object' &&
-    action in clientInstance
-  ) {
+  } else if (clientInstance && typeof clientInstance === 'object' && action in clientInstance) {
     const rejectPerOperation = clientInstance[action]
     if (rejectPerOperation && typeof rejectPerOperation === 'object') {
       if (modelName in rejectPerOperation) {
@@ -51,12 +41,7 @@ export function getRejectOnNotFound(
       }
       return undefined
     }
-    rejectOnNotFound = getRejectOnNotFound(
-      action,
-      modelName,
-      args,
-      rejectPerOperation,
-    )
+    rejectOnNotFound = getRejectOnNotFound(action, modelName, args, rejectPerOperation)
   } else if (typeof clientInstance === 'function') {
     rejectOnNotFound = clientInstance
   } else {

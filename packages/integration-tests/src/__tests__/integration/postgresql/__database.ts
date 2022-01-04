@@ -1,5 +1,5 @@
 import * as PG from 'pg'
-import { Context, Input } from '../../__helpers__/integrationTest'
+import type { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {
   name: 'postgresql',
@@ -23,9 +23,7 @@ export const database = {
 } as Input<PG.Client>['database']
 
 function getConnectionString(ctx: Context) {
-  const serviceConnectionString =
-    process.env.TEST_POSTGRES_BASE_URI ||
-    'postgres://prisma:prisma@localhost:5432'
+  const serviceConnectionString = process.env.TEST_POSTGRES_BASE_URI || 'postgres://prisma:prisma@localhost:5432'
   const connectionString = `${serviceConnectionString}/tests?schema=${ctx.id}&connection_limit=1`
   return connectionString
 }

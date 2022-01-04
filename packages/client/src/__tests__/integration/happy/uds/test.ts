@@ -1,19 +1,15 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('blog', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+const udsSupportedByOperatingSystem = process.platform !== 'win32'
+
+testIf(udsSupportedByOperatingSystem)('blog', async () => {
   await generateTestClient()
 
   const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
 
-  const {
-    prismaVersion,
-    sql,
-    raw,
-    join,
-    empty,
-    PrismaClientValidationError,
-    PrismaClientKnownRequestError,
-  } = Prisma
+  const { prismaVersion, sql, raw, join, empty, PrismaClientValidationError, PrismaClientKnownRequestError } = Prisma
 
   const requests: any[] = []
   const db = new PrismaClient({
@@ -79,11 +75,7 @@ test('blog', async () => {
   expect(rawQuery[0]['1']).toBe(1)
 
   // Test queryRaw(string, values)
-  const rawQueryWithValues = await db.$queryRawUnsafe(
-    'SELECT $1 AS name, $2 AS id',
-    'Alice',
-    42,
-  )
+  const rawQueryWithValues = await db.$queryRawUnsafe('SELECT $1 AS name, $2 AS id', 'Alice', 42)
 
   expect(rawQueryWithValues[0]).toEqual({
     name: 'Alice',
@@ -95,8 +87,7 @@ test('blog', async () => {
   expect(rawQueryTemplate[0]['1']).toBe(1)
 
   // Test queryRaw`` with ${param}
-  const rawQueryTemplateWithParams =
-    await db.$queryRaw`SELECT * FROM User WHERE name = ${'Alice'}`
+  const rawQueryTemplateWithParams = await db.$queryRaw`SELECT * FROM User WHERE name = ${'Alice'}`
   expect(rawQueryTemplateWithParams[0].name).toBe('Alice')
 
   // Test queryRaw`` with prisma.sql``
@@ -115,24 +106,15 @@ test('blog', async () => {
    */
 
   // Test .$executeRaw((string)
-  const executeRaw = await db.$executeRawUnsafe(
-    'UPDATE User SET name = $1 WHERE id = $2',
-    'name',
-    'id',
-  )
+  const executeRaw = await db.$executeRawUnsafe('UPDATE User SET name = $1 WHERE id = $2', 'name', 'id')
   expect(executeRaw).toBe(0)
 
   // Test .$executeRaw((string, values)
-  const executeRawWithValues = await db.$executeRawUnsafe(
-    'UPDATE User SET name = $1 WHERE id = $2',
-    'Alice',
-    'id',
-  )
+  const executeRawWithValues = await db.$executeRawUnsafe('UPDATE User SET name = $1 WHERE id = $2', 'Alice', 'id')
   expect(executeRawWithValues).toBe(0)
 
   // Test $executeRaw
-  const $executeRawTemplate =
-    await db.$executeRaw`UPDATE User SET name = ${'name'} WHERE id = ${'id'}`
+  const $executeRawTemplate = await db.$executeRaw`UPDATE User SET name = ${'name'} WHERE id = ${'id'}`
   expect($executeRawTemplate).toBe(0)
 
   // Test validation errors
@@ -144,10 +126,7 @@ test('blog', async () => {
   } catch (e) {
     validationError = e
   }
-  if (
-    !validationError ||
-    !(validationError instanceof PrismaClientValidationError)
-  ) {
+  if (!validationError || !(validationError instanceof PrismaClientValidationError)) {
     throw new Error(`Validation error is incorrect`)
   }
 
@@ -163,10 +142,7 @@ test('blog', async () => {
   } catch (e) {
     knownRequestError = e
   }
-  if (
-    !knownRequestError ||
-    !(knownRequestError instanceof PrismaClientKnownRequestError)
-  ) {
+  if (!knownRequestError || !(knownRequestError instanceof PrismaClientKnownRequestError)) {
     throw new Error(`Known request error is incorrect`)
   } else {
     if (!knownRequestError.message.includes('.user.create()')) {

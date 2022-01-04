@@ -21,8 +21,8 @@
 // @ts-ignore
 /* tslint:disable */
 
-const stream = require('stream'),
-  util = require('util')
+import stream from 'stream'
+import util from 'util'
 
 // convinience API
 export default function byline(readStream, options?: any) {
@@ -72,7 +72,7 @@ function LineStream(this: any, options) {
     if (!this.encoding) {
       // but we can't do this for old-style streams
       if (src instanceof stream.Readable) {
-        this.encoding = src._readableState.encoding
+        this.encoding = (src as any)._readableState.encoding
       }
     }
   })

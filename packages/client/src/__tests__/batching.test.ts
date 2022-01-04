@@ -14,9 +14,7 @@ describe('batching', () => {
       _engine: {
         requestBatch: (batch) => {
           batches.push(batch)
-          return Promise.resolve(
-            batch.map(() => ({ data: { data: null }, elapsed: 0.2 })),
-          )
+          return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
         request: (request) => {
           requests.push(request)
@@ -129,9 +127,7 @@ describe('batching', () => {
       _engine: {
         requestBatch: (batch) => {
           batches.push(batch)
-          return Promise.resolve(
-            batch.map(() => ({ data: { data: null }, elapsed: 0.2 })),
-          )
+          return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
         request: (request) => {
           requests.push(request)
@@ -233,9 +229,7 @@ describe('batching', () => {
       _engine: {
         requestBatch: (batch) => {
           batches.push(batch)
-          return Promise.resolve(
-            batch.map(() => ({ data: { data: null }, elapsed: 0.2 })),
-          )
+          return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
         request: (request) => {
           requests.push(request)

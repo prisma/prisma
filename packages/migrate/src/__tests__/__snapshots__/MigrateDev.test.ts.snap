@@ -1,9 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MongoDB schema only - should fail with unsupported 2`] = `Array []`;
-
-exports[`MongoDB schema only - should fail with unsupported 3`] = `Array []`;
-
 exports[`SQL Server create first migration 3`] = `Array []`;
 
 exports[`SQL Server create first migration 4`] = `Array []`;

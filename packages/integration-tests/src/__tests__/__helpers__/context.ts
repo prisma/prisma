@@ -1,6 +1,7 @@
-import execa, { ExecaChildProcess } from 'execa'
+import type { ExecaChildProcess } from 'execa'
+import execa from 'execa'
 import fs from 'fs-jetpack'
-import { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack } from 'fs-jetpack/types'
 import path from 'path'
 import tempy from 'tempy'
 
@@ -50,14 +51,10 @@ export const Context = {
       c.mocked = c.mocked ?? {}
       c.mocked.cwd = process.cwd()
       c.cli = (...input) => {
-        return execa.node(
-          path.join(__dirname, '../../../build/index.js'),
-          input,
-          {
-            cwd: c.fs.cwd(),
-            stdio: 'pipe',
-          },
-        )
+        return execa.node(path.join(__dirname, '../../../build/index.js'), input, {
+          cwd: c.fs.cwd(),
+          stdio: 'pipe',
+        })
       }
       process.chdir(c.tmpDir)
     })
@@ -73,10 +70,9 @@ export const Context = {
 /**
  * Factory for creating a context contributor possibly configured in some special way.
  */
-type ContextContributorFactory<Settings, Context, NewContext> =
-  Settings extends {}
-    ? () => ContextContributor<Context, NewContext>
-    : (settings: Settings) => ContextContributor<Context, NewContext>
+type ContextContributorFactory<Settings, Context, NewContext> = Settings extends {}
+  ? () => ContextContributor<Context, NewContext>
+  : (settings: Settings) => ContextContributor<Context, NewContext>
 
 /**
  * A function that provides additonal test context.
@@ -88,9 +84,7 @@ type ContextContributor<Context, NewContext> = (ctx: Context) => NewContext
  */
 function factory<Context>(ctx: Context) {
   return {
-    add<NewContext>(
-      contextContributor: ContextContributor<Context, NewContext>,
-    ) {
+    add<NewContext>(contextContributor: ContextContributor<Context, NewContext>) {
       contextContributor(ctx)
       return factory<Context & NewContext>(ctx as any)
     },
@@ -114,12 +108,8 @@ export const consoleContext: ContextContributorFactory<
   }
 > = () => (ctx) => {
   beforeEach(() => {
-    ctx.mocked['console.error'] = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {})
-    ctx.mocked['console.log'] = jest
-      .spyOn(console, 'log')
-      .mockImplementation(() => {})
+    ctx.mocked['console.error'] = jest.spyOn(console, 'error').mockImplementation(() => {})
+    ctx.mocked['console.log'] = jest.spyOn(console, 'log').mockImplementation(() => {})
   })
 
   afterEach(() => {

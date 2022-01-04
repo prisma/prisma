@@ -1,18 +1,22 @@
 import path from 'path'
-import {
-  getSchemaPathInternal,
-  getSchemaPathSyncInternal,
-} from '../cli/getSchema'
+import { getSchemaPathInternal, getSchemaPathSyncInternal } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
+
+if (process.env.CI) {
+  // 5s is often not enough for the "finds the schema path in the root
+  // package.json of a yarn workspace from a child package" test on macOS CI.
+  jest.setTimeout(60000)
+}
 
 process.env.npm_config_user_agent = 'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
 
 const FIXTURE_CWD = path.resolve(fixturesPath, 'getSchema')
 
-async function testSchemaPath(
-  fixtureName: string,
-  schemaPathFromArgs?: string,
-) {
+function toUnixPath(path: string) {
+  return path.replace(/\\/g, '/')
+}
+
+async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) {
   const cwd = path.resolve(FIXTURE_CWD, fixtureName)
 
   let syncResult: string | null | Error
@@ -38,19 +42,19 @@ async function testSchemaPath(
    * Make paths relatives to enable snapshot testing on any machines
    */
   if (typeof syncResult === 'string') {
-    syncResult = path.relative('.', syncResult)
+    syncResult = toUnixPath(path.relative('.', syncResult))
   }
 
   if (typeof asyncResult === 'string') {
-    asyncResult = path.relative('.', asyncResult)
+    asyncResult = toUnixPath(path.relative('.', asyncResult))
   }
 
   if (syncResult instanceof Error) {
-    syncResult.message = syncResult.message.replace(__dirname, '.')
+    syncResult.message = toUnixPath(syncResult.message.replace(__dirname, '.'))
   }
 
   if (asyncResult instanceof Error) {
-    asyncResult.message = asyncResult.message.replace(__dirname, '.')
+    asyncResult.message = toUnixPath(asyncResult.message.replace(__dirname, '.'))
   }
 
   return {
@@ -85,10 +89,7 @@ Object {
 })
 
 it('throws if schema args path is invalid', async () => {
-  const res = await testSchemaPath(
-    'pkg-json-with-schema-args',
-    path.resolve(FIXTURE_CWD, 'wrong_path'),
-  )
+  const res = await testSchemaPath('pkg-json-with-schema-args', path.resolve(FIXTURE_CWD, 'wrong_path'))
 
   expect(res).toMatchInlineSnapshot(`
 Object {

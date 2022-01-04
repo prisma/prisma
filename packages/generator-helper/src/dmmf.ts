@@ -51,7 +51,6 @@ export namespace DMMF {
   }
   export interface Model {
     name: string
-    isEmbedded: boolean
     dbName: string | null
     fields: Field[]
     fieldMap?: Record<string, Field>
@@ -65,11 +64,7 @@ export namespace DMMF {
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
-  export type FieldLocation =
-    | 'scalar'
-    | 'inputObjectTypes'
-    | 'outputObjectTypes'
-    | 'enumTypes'
+  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
 
   export interface Field {
     kind: FieldKind
@@ -78,11 +73,14 @@ export namespace DMMF {
     isList: boolean
     isUnique: boolean
     isId: boolean
-    type: string
-    dbNames?: string[] | null
+    isReadOnly: boolean
     isGenerated: boolean
+    isUpdatedAt: boolean
+    type: string | DMMF.SchemaEnum | DMMF.OutputType | DMMF.SchemaArg
+    dbNames?: string[] | null
     hasDefaultValue: boolean
     default?: FieldDefault | string | boolean | number
+    relationFromFields?: string[]
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
@@ -147,7 +145,6 @@ export namespace DMMF {
     name: string
     fields: SchemaField[]
     fieldMap?: Record<string, SchemaField>
-    isEmbedded?: boolean
   }
 
   export interface SchemaField {
@@ -161,6 +158,7 @@ export namespace DMMF {
     }
     args: SchemaArg[]
     deprecation?: Deprecation
+    documentation?: string
   }
 
   export interface Deprecation {

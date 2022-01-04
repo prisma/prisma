@@ -1,21 +1,10 @@
-import {
-  arg,
-  Command,
-  format,
-  getSchemaPath,
-  HelpError,
-  isError,
-  getCommandWithExecutor,
-  link,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import {
-  ExperimentalFlagWithNewMigrateError,
-  EarlyAccessFeatureFlagWithNewMigrateError,
-} from '../utils/flagErrors'
+import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
@@ -87,11 +76,7 @@ ${chalk.bold('Examples')}
       throw new NoSchemaFoundError()
     }
 
-    console.info(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     await printDatasource(schemaPath)
 
@@ -99,29 +84,29 @@ ${chalk.bold('Examples')}
 
     const migrate = new Migrate(schemaPath)
 
-    // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
-    if (wasDbCreated) {
+    try {
+      // Automatically create the database if it doesn't exist
+      const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
+      if (wasDbCreated) {
+        console.info() // empty line
+        console.info(wasDbCreated)
+      }
+    } catch (e) {
       console.info() // empty line
-      console.info(wasDbCreated)
+      throw e
     }
 
     const diagnoseResult = await migrate.diagnoseMigrationHistory({
       optInToShadowDatabase: false,
     })
     debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
-    const listMigrationDirectoriesResult =
-      await migrate.listMigrationDirectories()
+    const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
 
     console.info() // empty line
     if (listMigrationDirectoriesResult.migrations.length > 0) {
       const migrations = listMigrationDirectoriesResult.migrations
-      console.info(
-        `${migrations.length} migration${
-          migrations.length > 1 ? 's' : ''
-        } found in prisma/migrations`,
-      )
+      console.info(`${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations`)
     } else {
       console.info(`No migration found in prisma/migrations`)
     }
@@ -129,15 +114,14 @@ ${chalk.bold('Examples')}
     const editedMigrationNames = diagnoseResult.editedMigrationNames
     if (editedMigrationNames.length > 0) {
       console.info(
-        `${chalk.yellow(
-          'WARNING The following migrations have been modified since they were applied:',
-        )}
+        `${chalk.yellow('WARNING The following migrations have been modified since they were applied:')}
 ${editedMigrationNames.join('\n')}`,
       )
     }
 
     let migrationIds: string[]
     try {
+      console.info() // empty line
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
@@ -148,9 +132,7 @@ ${editedMigrationNames.join('\n')}`,
     if (migrationIds.length === 0) {
       return chalk.greenBright(`No pending migrations to apply.`)
     } else {
-      return `The following migration${
-        migrationIds.length > 1 ? 's' : ''
-      } have been applied:\n\n${chalk(
+      return `The following migration${migrationIds.length > 1 ? 's' : ''} have been applied:\n\n${chalk(
         printFilesFromMigrationIds('migrations', migrationIds, {
           'migration.sql': '',
         }),
@@ -162,9 +144,7 @@ ${chalk.greenBright('All migrations have been successfully applied.')}`
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${MigrateDeploy.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateDeploy.help}`)
     }
     return MigrateDeploy.help
   }

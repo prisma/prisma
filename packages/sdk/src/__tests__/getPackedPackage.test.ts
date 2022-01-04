@@ -4,15 +4,13 @@ import fs from 'fs'
 
 describe('getPackedPackage', () => {
   it('test argument vulnerability', async () => {
+    jest.setTimeout(10000)
+    
     const outputDir = '/tmp/some-prisma-target-folder'
     const packageDir = 'foo`touch /tmp/getPackedPackage-exploit`'
 
     try {
-      await getPackedPackage(
-        '@prisma/client',
-        path.join(__dirname, outputDir),
-        packageDir,
-      )
+      await getPackedPackage('@prisma/client', path.join(__dirname, outputDir), packageDir)
     } catch (e) {
       //
     } finally {

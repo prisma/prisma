@@ -41,9 +41,7 @@ export function extractSqliteSources(
       }
 
       if (!startLine) {
-        throw new Error(
-          `Could not parse datamodel, invalid datasource block without opening \`{\``,
-        )
+        throw new Error(`Could not parse datamodel, invalid datasource block without opening \`{\``)
       }
 
       const startMatch = startRegex.exec(startLine)
@@ -56,20 +54,11 @@ export function extractSqliteSources(
         } else {
           overrides.push({
             name: startMatch[1],
-            url: absolutizeRelativePath(
-              match[3],
-              cwd,
-              outputDir,
-              absolutePaths,
-            ),
+            url: absolutizeRelativePath(match[3], cwd, outputDir, absolutePaths),
           })
         }
       } else {
-        throw new Error(
-          `Could not parse datamodel, line ${
-            searchIndex + 1
-          }: \`${startLine}\` is not parseable`,
-        )
+        throw new Error(`Could not parse datamodel, line ${searchIndex + 1}: \`${startLine}\` is not parseable`)
       }
     }
   })

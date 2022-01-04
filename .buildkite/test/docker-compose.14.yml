@@ -27,6 +27,10 @@ services:
       - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+      # MongoDB
+      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+      # CockroachDB
+      - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/
       # Other vars
       - BUILDKITE
       - BUILDKITE_PARALLEL_JOB
@@ -44,6 +48,9 @@ services:
       - mysql_isolated
       - mariadb
       - mssql
+      - mongo
+      - mongo-seed
+      - cockroachdb
 
   postgres:
     image: postgres:10
@@ -108,6 +115,28 @@ services:
       - SA_PASSWORD=Pr1sm4_Pr1sm4
     volumes:
       - mssql:/var/opt/mssql
+
+  mongo:
+    image: mongo:4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_DATABASE: tests
+    ports:
+      - '27017:27017'
+
+  mongo-seed:
+    build: ../../docker/mongo-seed
+    links:
+      - mongo
+
+  cockroachdb:
+    image: prismagraphql/build:cockroach-custom
+    restart: always
+    command: start-single-node --insecure
+    ports:
+      - '26257:26257'
 
 volumes:
   postgres:

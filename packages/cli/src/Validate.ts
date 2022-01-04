@@ -1,12 +1,5 @@
-import {
-  arg,
-  Command,
-  format,
-  getConfig,
-  getDMMF,
-  getSchemaPath,
-  HelpError,
-} from '@prisma/sdk'
+import type { Command } from '@prisma/sdk'
+import { arg, format, getConfig, getDMMF, getSchemaPath, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -71,14 +64,11 @@ ${chalk.bold('Examples')}
       )
     }
 
-    console.log(
-      chalk.dim(
-        `Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`,
-      ),
-    )
+    console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
+    // TODO is the order of getDMMF / getConfig important
     await getDMMF({
       datamodel: schema,
     })
@@ -93,9 +83,7 @@ ${chalk.bold('Examples')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(
-        `\n${chalk.bold.red(`!`)} ${error}\n${Validate.help}`,
-      )
+      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Validate.help}`)
     }
     return Validate.help
   }

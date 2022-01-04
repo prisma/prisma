@@ -1,4 +1,4 @@
-import 'debug'
+/// <reference types="debug" />
 import DebugNode from './node'
 
 const cache: any[] = []

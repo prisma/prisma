@@ -1,12 +1,12 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
-import { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFClass } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
-import { InternalDatasource } from '../../runtime/utils/printDatasources'
-import { DatasourceOverwrite } from './../extractSqliteSources'
+import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
-import { Generatable } from './Generatable'
+import type { Generatable } from './Generatable'
 
 function batchingTransactionDefinition(this: PrismaClientClass) {
   return `
@@ -122,9 +122,7 @@ export class PrismaClientClass implements Generatable {
  * \`\`\`
  * const prisma = new PrismaClient()
  * // Fetch zero or more ${capitalize(example.plural)}
- * const ${lowerCase(example.plural)} = await prisma.${lowerCase(
-      example.model,
-    )}.findMany()
+ * const ${lowerCase(example.plural)} = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
  * 
@@ -179,7 +177,7 @@ export class PrismaClient<
   /**
    * Disconnect from the database
    */
-  $disconnect(): Promise<any>;
+  $disconnect(): Promise<void>;
 
   /**
    * Add a middleware
@@ -199,9 +197,7 @@ ${[
           const methodName = lowerCase(m.model)
           return `\
 /**
- * \`prisma.${methodName}\`: Exposes CRUD operations for the **${
-            m.model
-          }** model.
+ * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more ${capitalize(m.plural)}

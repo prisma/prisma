@@ -1,5 +1,5 @@
 async function main() {
-  await new Promise((resolve) => setTimeout(resolve, 100))
+  await new Promise((resolve) => setTimeout(resolve, 0))
   console.log('Hello from seed.js')
 }
 

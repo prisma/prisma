@@ -1,9 +1,4 @@
-import {
-  GeneratorOptions,
-  GeneratorManifest,
-  JsonRPC,
-  GeneratorConfig,
-} from './types'
+import type { GeneratorOptions, GeneratorManifest, JsonRPC, GeneratorConfig } from './types'
 import byline from './byline'
 
 export interface Handler {
@@ -23,7 +18,8 @@ export function generatorHandler(handler: Handler): void {
           result: result,
           id: json.id,
         })
-      } catch (e) {
+      } catch (_e) {
+        const e = _e as Error
         respond({
           jsonrpc: '2.0',
           error: {
@@ -47,7 +43,8 @@ export function generatorHandler(handler: Handler): void {
             },
             id: json.id,
           })
-        } catch (e) {
+        } catch (_e) {
+          const e = _e as Error
           respond({
             jsonrpc: '2.0',
             error: {

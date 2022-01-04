@@ -1,8 +1,7 @@
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
-const { platforms } = require('@prisma/get-platform')
-const escapeString = require('escape-string-regexp')
+const { platformRegex } = require('@prisma/sdk')
 
 function trimErrorPaths(str) {
   const parentDir = path.dirname(path.dirname(__dirname))
@@ -11,23 +10,34 @@ function trimErrorPaths(str) {
 }
 
 function normalizeToUnixPaths(str) {
+  // TODO: Windows: this breaks some tests by replacing backslashes outside of file names.
   return replaceAll(str, path.sep, '/')
 }
-
-const platformRegex = new RegExp(
-  '(' + platforms.map((p) => escapeString(p)).join('|') + ')',
-  'g',
-)
 
 function removePlatforms(str) {
   return str.replace(platformRegex, 'TEST_PLATFORM')
 }
 
 function normalizeGithubLinks(str) {
+  return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/\S+/, 'TEST_GITHUB_LINK')
+}
+
+function normalizeTsClientStackTrace(str) {
+  return str.replace(/([/\\]client[/\\]src[/\\]__tests__[/\\].*test.ts)(:\d*:\d*)/, '$1:0:0')
+}
+
+// When updating snapshots this is sensitive to OS
+// macOS will update extension to .dylib.node, but CI uses .so.node for example
+// Note that on Windows the file name doesn't start with "lib".
+function normalizeNodeApiLibFilePath(str) {
   return str.replace(
-    /https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/\S+/,
-    'TEST_GITHUB_LINK',
+    /((lib)?query_engine-TEST_PLATFORM.)(.*)(.node)/,
+    'libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node',
   )
+}
+
+function normalizeBinaryFilePath(str) {
+  return str.replace(/query-engine-TEST_PLATFORM\.exe/, 'query-engine-TEST_PLATFORM')
 }
 
 const serializer = {
@@ -35,14 +45,14 @@ const serializer = {
     return typeof value === 'string' || value instanceof Error
   },
   serialize(value) {
-    const message =
-      typeof value === 'string'
-        ? value
-        : value instanceof Error
-        ? value.message
-        : ''
+    const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
+    // TODO: consider introducing a helper function like pipe or compose
     return normalizeGithubLinks(
-      normalizeToUnixPaths(removePlatforms(trimErrorPaths(stripAnsi(message)))),
+      normalizeToUnixPaths(
+        normalizeBinaryFilePath(
+          normalizeNodeApiLibFilePath(removePlatforms(normalizeTsClientStackTrace(trimErrorPaths(stripAnsi(message))))),
+        ),
+      ),
     )
   },
 }

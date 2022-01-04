@@ -3,6 +3,8 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 // @ts-ignore trick to get typings at dev time
 import type { PrismaClient } from './node_modules/@prisma/client'
 
@@ -62,14 +64,14 @@ describe('full-text-search (postgres)', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+      ]
+    `)
   })
 
   /**
@@ -85,24 +87,24 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-  Object {
-    email: email2@email.io,
-    id: 2,
-    name: 0 2 4 6 8,
-  },
-  Object {
-    email: email3@email.io,
-    id: 3,
-    name: 1 3 5 7 9,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
   })
 
   /**
@@ -118,14 +120,14 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+      ]
+    `)
   })
 
   /**
@@ -141,24 +143,24 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email1@email.io,
-    id: 1,
-    name: 0 1 2 3 4 5 6 7 8,
-  },
-  Object {
-    email: email2@email.io,
-    id: 2,
-    name: 0 2 4 6 8,
-  },
-  Object {
-    email: email3@email.io,
-    id: 3,
-    name: 1 3 5 7 9,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
   })
 
   /**
@@ -174,14 +176,14 @@ Array [
     })
 
     expect(result).toMatchInlineSnapshot(`
-Array [
-  Object {
-    email: email2@email.io,
-    id: 2,
-    name: 0 2 4 6 8,
-  },
-]
-`)
+      Array [
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+      ]
+    `)
   })
 
   /**
@@ -201,23 +203,140 @@ Array [
 
   /**
    * Use an invalid operator
+   *
+   * TODO: Windows: temporarily skipped because of jestSnapshotSerializer bug.
    */
-  test('bad operator', async () => {
-    const result = prisma.user.findMany({
-      where: {
-        name: {
-          search: '0 1',
+  testIf(process.platform !== 'win32')('bad operator', async () => {
+    const result = prisma.user
+      .findMany({
+        where: {
+          name: {
+            search: '0 1',
+          },
+        },
+      })
+      .catch((error) => {
+        // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
+        error.message = error.message.replace(/line: Some\(\d+\)/, 'line: Some(0)')
+        throw error
+      })
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+      Invalid \`.findMany()\` invocation in
+      /client/src/__tests__/integration/happy/full-text-search/test.ts:0:0
+
+        208  */
+        209 testIf(process.platform !== 'win32')('bad operator', async () => {
+        210   const result = prisma.user
+      → 211     .findMany(
+        Error occurred during query execution:
+      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState("42601"), message: "syntax error in tsquery: \\"0 1\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }) })
+    `)
+  })
+
+  test('order by relevance on a single field', async () => {
+    const users = await prisma.user.findMany({
+      orderBy: {
+        _relevance: {
+          fields: ['name'],
+          search: '1 & 2 & 3',
+          sort: 'desc',
         },
       },
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+    expect(users).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+      ]
+    `)
+  })
 
-Invalid \`prisma.user.findMany()\` invocation:
+  test('order by relevance on multiple fields', async () => {
+    const users = await prisma.user.findMany({
+      orderBy: {
+        _relevance: {
+          fields: ['name', 'email'],
+          search: '3',
+          sort: 'asc',
+        },
+      },
+    })
 
+    expect(users).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
+  })
 
-  Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState("42601"), message: "syntax error in tsquery: \\"0 1\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(514), routine: Some("makepol") }) }) })
-`)
+  test('multiple order by statements on different fields', async () => {
+    const users = await prisma.user.findMany({
+      orderBy: [
+        {
+          _relevance: {
+            fields: ['name'],
+            search: '0',
+            sort: 'desc',
+          },
+        },
+        {
+          _relevance: {
+            fields: ['email'],
+            search: 'email1@email.io',
+            sort: 'asc',
+          },
+        },
+      ],
+    })
+
+    expect(users).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          email: email2@email.io,
+          id: 2,
+          name: 0 2 4 6 8,
+        },
+        Object {
+          email: email1@email.io,
+          id: 1,
+          name: 0 1 2 3 4 5 6 7 8,
+        },
+        Object {
+          email: email3@email.io,
+          id: 3,
+          name: 1 3 5 7 9,
+        },
+      ]
+    `)
   })
 })

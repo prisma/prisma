@@ -1,9 +1,6 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
-import {
-  SetupParams,
-  setupMysql,
-  tearDownMysql,
-} from '../../../../utils/setupMysql'
+import type { SetupParams } from '../../../../utils/setupMysql'
+import { setupMysql, tearDownMysql } from '../../../../utils/setupMysql'
 
 describe('int-errors', () => {
   let prisma
@@ -12,8 +9,7 @@ describe('int-errors', () => {
   beforeAll(async () => {
     await generateTestClient()
     const { PrismaClient } = require('@prisma/client')
-    let originalConnectionString =
-      process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests'
+    let originalConnectionString = process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests'
 
     originalConnectionString += '-signed-int'
 

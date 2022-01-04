@@ -90,7 +90,6 @@ test('document stringify', () => {
             type: 'invalidFieldName',
             outputType: {
               fields: [],
-              isEmbedded: false,
               name: 'User',
               fieldMap: {},
             },

@@ -6,6 +6,11 @@ import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
 
+if (process.env.CI) {
+  // 10s is not always enough for the "big schema" test on macOS CI.
+  jest.setTimeout(60_000)
+}
+
 describe('getDMMF', () => {
   test('simple model, no datasource', async () => {
     const dmmf = await getDMMF({
@@ -133,13 +138,11 @@ describe('getDMMF', () => {
         @@map("users")
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 
   test('model with autoincrement should fail if mysql', async () => {
@@ -154,13 +157,11 @@ describe('getDMMF', () => {
         @@map("users")
       }`
 
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 
   test('@@unique model', async () => {
@@ -245,10 +246,7 @@ describe('getDMMF', () => {
   })
 
   test('chinook introspected schema', async () => {
-    const file = fs.readFileSync(
-      path.join(fixturesPath, 'chinook.prisma'),
-      'utf-8',
-    )
+    const file = fs.readFileSync(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
     const dmmf = await getDMMF({
       datamodel: file,
     })
@@ -257,10 +255,7 @@ describe('getDMMF', () => {
   })
 
   test('big schema', async () => {
-    const file = fs.readFileSync(
-      path.join(fixturesPath, 'bigschema.prisma'),
-      'utf-8',
-    )
+    const file = fs.readFileSync(path.join(fixturesPath, 'bigschema.prisma'), 'utf-8')
     const dmmf = await getDMMF({
       datamodel: file,
     })
@@ -305,12 +300,10 @@ describe('getDMMF', () => {
       COLLABORATOR
     }
     `
-    /* eslint-disable jest/no-try-expect */
     try {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchSnapshot()
     }
-    /* eslint-enable jest/no-try-expect */
   })
 })

@@ -2,8 +2,10 @@ import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 let prisma
-describe('referentialActions(postgresql)', () => {
+describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions(mssql)', () => {
   beforeAll(async () => {
     await migrateDb({
       connectionString: process.env.TEST_MSSQL_JDBC_URI!,

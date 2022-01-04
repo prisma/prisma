@@ -1,38 +1,23 @@
 import Debug from '@prisma/debug'
-import {
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-} from '@prisma/engine-core'
+import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
-import {
-  DataSource,
-  GeneratorConfig,
-} from '@prisma/generator-helper/dist/types'
-import * as logger from '@prisma/sdk/dist/logger'
-import { mapPreviewFeatures } from '@prisma/sdk/dist/utils/mapPreviewFeatures'
-import { tryLoadEnvs } from '@prisma/sdk/dist/utils/tryLoadEnvs'
+import { DataProxyEngine } from '@prisma/engine-core'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { logger } from '@prisma/sdk'
+import { mapPreviewFeatures } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
-import {
-  ClientEngineType,
-  getClientEngineType,
-} from './utils/getClientEngineType'
 import { DMMFClass } from './dmmf'
 import { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import {
-  EngineMiddleware,
-  Middlewares,
-  Namespace,
-  QueryMiddleware,
-  QueryMiddlewareParams,
-} from './MiddlewareHandler'
+import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
+import { Middlewares } from './MiddlewareHandler'
 import { PrismaClientFetcher } from './PrismaClientFetcher'
 import { makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
@@ -40,17 +25,26 @@ import { getOutputTypeName, lowerCase } from './utils/common'
 import { deepSet } from './utils/deep-set'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
-import {
-  getRejectOnNotFound,
-  InstanceRejectOnNotFound,
-  RejectOnNotFound,
-} from './utils/rejectOnNotFound'
+import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
+import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { RequestHandler } from './RequestHandler'
 import { PrismaClientValidationError } from '.'
+import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
+import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
+
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
+
+declare global {
+  // eslint-disable-next-line no-var
+  var NOT_PRISMA_DATA_PROXY: true
+}
+
+// @ts-ignore esbuild trick to set a default
+// eslint-disable-next-line no-self-assign
+;(globalThis = globalThis).NOT_PRISMA_DATA_PROXY = true
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
@@ -82,7 +76,7 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 export type Datasource = {
   url?: string
 }
-export type Datasources = Record<string, Datasource>
+export type Datasources = { [name in string]: Datasource }
 
 export interface PrismaClientOptions {
   /**
@@ -179,12 +173,11 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> =
-  T extends LogDefinition
-    ? T['emit'] extends 'event'
-      ? T['level']
-      : never
+export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
+  ? T['emit'] extends 'event'
+    ? T['level']
     : never
+  : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
   | GetLogType<T[1]>
@@ -205,7 +198,12 @@ export type LogEvent = {
 }
 /* End Types for Logging */
 
-export interface GetPrismaClientOptions {
+/**
+ * Config that is stored into the generated client. When the generated client is
+ * loaded, this same config is passed to {@link getPrismaClient} which creates a
+ * closure with that config around a non-instantiated [[PrismaClient]].
+ */
+export interface GetPrismaClientConfig {
   document: DMMF.Document
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
@@ -215,10 +213,35 @@ export interface GetPrismaClientOptions {
   }
   relativePath: string
   dirname: string
+  filename?: string
   clientVersion?: string
   engineVersion?: string
   datasourceNames: string[]
   activeProvider: string
+
+  /**
+   * The contents of the schema encoded into a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineSchema?: string
+
+  /**
+   * The contents of the env saved into a special object
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineEnv?: LoadedEnv
+
+  /**
+   * The contents of the datasource url saved in a string
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineDatasources?: InlineDatasources
+
+  /**
+   * The string hash that was produced for a given schema
+   * @remarks only used for the purpose of data proxy
+   */
+  inlineSchemaHash?: string
 }
 
 const actionOperationMap = {
@@ -258,24 +281,18 @@ export interface Client {
   _engineConfig: EngineConfig
   _clientVersion: string
   _errorFormat: ErrorFormat
-  $use<T>(
-    arg0: Namespace | QueryMiddleware<T>,
-    arg1?: QueryMiddleware | EngineMiddleware<T>,
-  )
+  $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>)
   $on(eventType: EngineEventType, callback: (event: any) => void)
   $connect()
   $disconnect()
   _runDisconnect()
-  $executeRaw(
-    query: TemplateStringsArray | sqlTemplateTag.Sql,
-    ...values: any[]
-  )
+  $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   __internal_triggerPanic(fatal: boolean)
   $transaction(input: any, options?: any)
 }
 
-export function getPrismaClient(config: GetPrismaClientOptions) {
+export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient implements Client {
     _dmmf: DMMFClass
     _engine: Engine
@@ -308,13 +325,13 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
       this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:
-          config.relativeEnvPaths.rootEnvPath &&
-          path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
+          config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
         schemaEnvPath:
-          config.relativeEnvPaths.schemaEnvPath &&
-          path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
+          config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
-      const loadedEnv = tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+
+      const loadedEnv = globalThis.NOT_PRISMA_DATA_PROXY && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
         const internal = options.__internal ?? {}
@@ -327,8 +344,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         if (internal.hooks) {
           this._hooks = internal.hooks
         }
+
         let cwd = path.resolve(config.dirname, config.relativePath)
 
+        // TODO this logic should not be needed anymore #findSync
         if (!fs.existsSync(cwd)) {
           cwd = config.dirname
         }
@@ -344,11 +363,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
             url,
           }))
 
-        const datasources = mergeBy(
-          [],
-          inputDatasources,
-          (source: any) => source.name,
-        )
+        const datasources = mergeBy([], inputDatasources, (source: any) => source.name)
 
         const engineConfig = internal.engine || {}
 
@@ -371,7 +386,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
@@ -383,16 +398,18 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
             Boolean(
               typeof options.log === 'string'
                 ? options.log === 'query'
-                : options.log.find((o) =>
-                    typeof o === 'string' ? o === 'query' : o.level === 'query',
-                  ),
+                : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          env: loadedEnv ? loadedEnv.parsed : {},
+          // we attempt to load env with fs -> attempt inline env -> default
+          env: loadedEnv ? loadedEnv.parsed : config.inlineEnv?.parsed ?? {},
           flags: [],
           clientVersion: config.clientVersion,
           previewFeatures: mapPreviewFeatures(this._previewFeatures),
           useUds: internal.useUds,
           activeProvider: config.activeProvider,
+          inlineSchema: config.inlineSchema,
+          inlineDatasources: config.inlineDatasources,
+          inlineSchemaHash: config.inlineSchemaHash,
         }
 
         // Append the mongodb experimental flag if the provider is mongodb
@@ -404,6 +421,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
         }
 
         debug(`clientVersion: ${config.clientVersion}`)
+        debug(`clientEngineType: ${this._clientEngineType}`)
 
         this._engine = this.getEngine()
         void this._getActiveProvider()
@@ -417,25 +435,17 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
 
         if (options.log) {
           for (const log of options.log) {
-            const level =
-              typeof log === 'string'
-                ? log
-                : log.emit === 'stdout'
-                ? log.level
-                : null
+            const level = typeof log === 'string' ? log : log.emit === 'stdout' ? log.level : null
             if (level) {
               this.$on(level, (event) => {
-                logger.log(
-                  `${logger.tags[level] ?? ''}`,
-                  event.message || event.query,
-                )
+                logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
               })
             }
           }
         }
 
         this._bootstrapClient()
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -443,11 +453,19 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
-    private getEngine() {
-      if (this._clientEngineType === ClientEngineType.Binary) {
-        return new BinaryEngine(this._engineConfig)
+    private getEngine(): Engine {
+      if (this._clientEngineType === ClientEngineType.Library) {
+        return (
+          // this is for tree-shaking for esbuild
+          globalThis.NOT_PRISMA_DATA_PROXY && new LibraryEngine(this._engineConfig)
+        )
+      } else if (this._clientEngineType === ClientEngineType.Binary) {
+        return (
+          // this is for tree-shaking for esbuild
+          globalThis.NOT_PRISMA_DATA_PROXY && new BinaryEngine(this._engineConfig)
+        )
       } else {
-        return new LibraryEngine(this._engineConfig)
+        return new DataProxyEngine(this._engineConfig)
       }
     }
 
@@ -458,10 +476,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     $use<T>(middleware: QueryMiddleware<T>)
     $use<T>(namespace: 'all', cb: QueryMiddleware<T>) // TODO: 'all' actually means 'query', to be changed
     $use<T>(namespace: 'engine', cb: EngineMiddleware<T>)
-    $use<T>(
-      arg0: Namespace | QueryMiddleware<T>,
-      arg1?: QueryMiddleware | EngineMiddleware<T>,
-    ) {
+    $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>) {
       // TODO use a mixin and move this into MiddlewareHandler
       if (typeof arg0 === 'function') {
         this._middlewares.query.use(arg0 as QueryMiddleware)
@@ -503,7 +518,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     $connect() {
       try {
         return this._engine.start()
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -525,7 +540,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     $disconnect() {
       try {
         return this._engine.stop()
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -559,11 +574,7 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           values: serializeRawParameters(values || []),
           __prismaRawParamaters__: true,
         }
-        checkAlter(
-          queryString,
-          values,
-          'prisma.$executeRawUnsafe(<SQL>, [...values])',
-        )
+        checkAlter(queryString, values, 'prisma.$executeRawUnsafe(<SQL>, [...values])')
       } else if (isReadonlyArray(query)) {
         // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
         switch (this._activeProvider) {
@@ -579,15 +590,12 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
             break
           }
 
+          case 'cockroachdb':
           case 'postgresql': {
             const queryInstance = sqlTemplateTag.sqltag(query, ...values)
 
             queryString = queryInstance.text
-            checkAlter(
-              queryString,
-              queryInstance.values,
-              'prisma.$executeRaw`<SQL>`',
-            )
+            checkAlter(queryString, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
             parameters = {
               values: serializeRawParameters(queryInstance.values),
               __prismaRawParamaters__: true,
@@ -603,6 +611,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
             }
             break
           }
+          default: {
+            throw new Error(`The ${this._activeProvider} provider does not support $executeRaw`)
+          }
         }
       } else {
         // If this was called as prisma.$executeRaw(sql`<SQL>`), use prepared statements from sql-template-tag
@@ -611,17 +622,16 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
           case 'mysql':
             queryString = query.sql
             break
+          case 'cockroachdb':
           case 'postgresql':
             queryString = query.text
-            checkAlter(
-              queryString,
-              query.values,
-              'prisma.$executeRaw(sql`<SQL>`)',
-            )
+            checkAlter(queryString, query.values, 'prisma.$executeRaw(sql`<SQL>`)')
             break
           case 'sqlserver':
             queryString = mssqlPreparedStatement(query.strings)
             break
+          default:
+            throw new Error(`The ${this._activeProvider} provider does not support $executeRaw`)
         }
         parameters = {
           values: serializeRawParameters(query.values),
@@ -658,15 +668,10 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
     ) {
       const request = (transactionId?: number, runInTransaction?: boolean) => {
         try {
-          const promise = this.$executeRawInternal(
-            runInTransaction ?? false,
-            transactionId,
-            query,
-            ...values,
-          )
+          const promise = this.$executeRawInternal(runInTransaction ?? false, transactionId, query, ...values)
           ;(promise as any).isExecuteRaw = true
           return promise
-        } catch (e) {
+        } catch (e: any) {
           e.clientVersion = this._clientVersion
           throw e
         }
@@ -683,15 +688,9 @@ export function getPrismaClient(config: GetPrismaClientOptions) {
      * @param values
      * @returns
      */
-    $executeRaw(
-      query: TemplateStringsArray | sqlTemplateTag.Sql,
-      ...values: any[]
-    ) {
+    $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise(() => {
-        if (
-          (query as TemplateStringsArray).raw ||
-          (query as sqlTemplateTag.Sql).sql
-        ) {
+        if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
           return this.$executeRawRequest(query, ...values)
         }
 
@@ -759,6 +758,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             break
           }
 
+          case 'cockroachdb':
           case 'postgresql': {
             const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
 
@@ -780,6 +780,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             }
             break
           }
+          default: {
+            throw new Error(`The ${this._activeProvider} provider does not support $queryRaw`)
+          }
         }
       } else {
         // If this was called as prisma.$queryRaw(Prisma.sql`<SQL>`), use prepared statements from sql-template-tag
@@ -789,12 +792,16 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           case 'mysql':
             queryString = query.sql
             break
+          case 'cockroachdb':
           case 'postgresql':
             queryString = query.text
             break
           case 'sqlserver':
             queryString = mssqlPreparedStatement(query.strings)
             break
+          default: {
+            throw new Error(`The ${this._activeProvider} provider does not support $queryRaw`)
+          }
         }
         parameters = {
           values: serializeRawParameters(query.values),
@@ -832,15 +839,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     ) {
       const request = (transactionId?: number, runInTransaction?: boolean) => {
         try {
-          const promise = this.$queryRawInternal(
-            runInTransaction ?? false,
-            transactionId,
-            query,
-            ...values,
-          )
+          const promise = this.$queryRawInternal(runInTransaction ?? false, transactionId, query, ...values)
           ;(promise as any).isQueryRaw = true
           return promise
-        } catch (e) {
+        } catch (e: any) {
           e.clientVersion = this._clientVersion
           throw e
         }
@@ -857,15 +859,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param values
      * @returns
      */
-    $queryRaw(
-      query: TemplateStringsArray | sqlTemplateTag.Sql,
-      ...values: any[]
-    ) {
+    $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise(() => {
-        if (
-          (query as TemplateStringsArray).raw ||
-          (query as sqlTemplateTag.Sql).sql
-        ) {
+        if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
           return this.$queryRawRequest(query, ...values)
         }
 
@@ -905,9 +901,7 @@ new PrismaClient({
 
       // TODO: make a `fatal` boolean instead & let be handled in `engine-core`
       // in `runtimeHeadersToHttpHeaders` maybe add a shared in `Engine`
-      const headers: Record<string, string> = fatal
-        ? { 'X-DEBUG-FATAL': '1' }
-        : { 'X-DEBUG-NON-FATAL': '1' }
+      const headers: Record<string, string> = fatal ? { 'X-DEBUG-FATAL': '1' } : { 'X-DEBUG-NON-FATAL': '1' }
 
       return this._request({
         action: 'queryRaw',
@@ -941,8 +935,7 @@ new PrismaClient({
           )
         }
         if (
-          (!p.requestTransaction ||
-            typeof p.requestTransaction !== 'function') &&
+          (!p.requestTransaction || typeof p.requestTransaction !== 'function') &&
           !p?.isQueryRaw &&
           !p?.isExecuteRaw
         ) {
@@ -983,7 +976,7 @@ new PrismaClient({
     private async $___transaction(promises: Array<any>): Promise<any> {
       try {
         return this.$___transactionInternal(promises)
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
@@ -1003,9 +996,8 @@ new PrismaClient({
 
       try {
         return this._transaction(input, options)
-      } catch (e) {
+      } catch (e: any) {
         e.clientVersion = this._clientVersion
-
         throw e
       }
     }
@@ -1044,7 +1036,7 @@ new PrismaClient({
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', info)
-      } catch (e) {
+      } catch (e: any) {
         // it went bad, then we rollback the transaction
         await this._engine.transaction('rollback', info)
 
@@ -1086,9 +1078,6 @@ new PrismaClient({
      */
     private _request(internalParams: InternalRequestParams): Promise<any> {
       try {
-        let index = -1
-        // async scope https://github.com/prisma/prisma/issues/3148
-        const resource = new AsyncResource('prisma-client-request')
         // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
           args: internalParams.args,
@@ -1098,6 +1087,7 @@ new PrismaClient({
           model: internalParams.model,
         }
 
+        let index = -1
         // prepare recursive fn that will pipe params through middlewares
         const consumer = (changedParams: QueryMiddlewareParams) => {
           // if this `next` was called and there's some more middlewares
@@ -1119,10 +1109,15 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        return resource.runInAsyncScope(() => consumer(params))
-      } catch (e) {
-        e.clientVersion = this._clientVersion
+        if (globalThis.NOT_PRISMA_DATA_PROXY) {
+          // async scope https://github.com/prisma/prisma/issues/3148
+          const resource = new AsyncResource('prisma-client-request')
+          return resource.runInAsyncScope(() => consumer(params))
+        }
 
+        return consumer(params)
+      } catch (e: any) {
+        e.clientVersion = this._clientVersion
         throw e
       }
     }
@@ -1181,12 +1176,7 @@ new PrismaClient({
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
 
-      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(
-        action,
-        typeName,
-        args,
-        this._rejectOnNotFound,
-      )
+      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1235,100 +1225,91 @@ new PrismaClient({
     }
 
     private _bootstrapClient() {
-      const modelClientBuilders = this._dmmf.mappings.modelOperations.reduce(
-        (modelClientBuilders, modelMapping) => {
-          const lowerCaseModel = lowerCase(modelMapping.model)
-          const model = this._dmmf.modelMap[modelMapping.model]
+      const modelClientBuilders = this._dmmf.mappings.modelOperations.reduce((modelClientBuilders, modelMapping) => {
+        const lowerCaseModel = lowerCase(modelMapping.model)
+        const model = this._dmmf.modelMap[modelMapping.model]
 
-          if (!model) {
-            throw new Error(
-              `Invalid mapping ${modelMapping.model}, can't find model`,
-            )
+        if (!model) {
+          throw new Error(`Invalid mapping ${modelMapping.model}, can't find model`)
+        }
+
+        // creates a builder for `prisma...<function>` in the runtime so that
+        // all models will get their own sub-"client" for query execution
+        const ModelClientBuilder = ({
+          operation,
+          actionName,
+          args,
+          dataPath,
+          modelName,
+          unpacker,
+        }: {
+          operation: string
+          actionName: Action
+          args: any
+          dataPath: string[]
+          modelName: string
+          unpacker?: Unpacker
+        }) => {
+          let requestPromise: Promise<unknown> | undefined
+
+          // prepare a request with current context & prevent multi-calls we
+          // save it into `requestPromise` to allow one request per promise
+          const callsite = this._getCallsite()
+          const request = (transactionId?: number, runInTransaction?: boolean) => {
+            requestPromise =
+              requestPromise ??
+              this._request({
+                args,
+                model: modelName ?? model.name,
+                action: actionName,
+                clientMethod: `${lowerCaseModel}.${actionName}`,
+                dataPath: dataPath,
+                callsite: callsite,
+                runInTransaction: runInTransaction ?? false,
+                transactionId: transactionId,
+                unpacker,
+              })
+
+            return requestPromise
           }
 
-          // creates a builder for `prisma...<function>` in the runtime so that
-          // all models will get their own sub-"client" for query execution
-          const ModelClientBuilder = ({
-            operation,
-            actionName,
-            args,
-            dataPath,
-            modelName,
-            unpacker,
-          }: {
-            operation: string
-            actionName: Action
-            args: any
-            dataPath: string[]
-            modelName: string
-            unpacker?: Unpacker
-          }) => {
-            let requestPromise: Promise<unknown> | undefined
+          // `modelClient` implements promises to have deferred actions that
+          // will be called later on through model delegated functions
+          const modelClient = createPrismaPromise(request)
 
-            // prepare a request with current context & prevent multi-calls we
-            // save it into `requestPromise` to allow one request per promise
-            const callsite = this._getCallsite()
-            const request = (
-              transactionId?: number,
-              runInTransaction?: boolean,
-            ) => {
-              requestPromise =
-                requestPromise ??
-                this._request({
-                  args,
-                  model: modelName ?? model.name,
-                  action: actionName,
-                  clientMethod: `${lowerCaseModel}.${actionName}`,
-                  dataPath: dataPath,
-                  callsite: callsite,
-                  runInTransaction: runInTransaction ?? false,
-                  transactionId: transactionId,
-                  unpacker,
-                })
+          // add relation fields
+          for (const field of model.fields.filter((f) => f.kind === 'object')) {
+            modelClient[field.name] = (fieldArgs) => {
+              const prefix = dataPath.includes('select')
+                ? 'select'
+                : dataPath.includes('include')
+                ? 'include'
+                : 'select'
+              const newDataPath = [...dataPath, prefix, field.name]
+              const newArgs = deepSet(args, newDataPath, fieldArgs || true)
 
-              return requestPromise
+              // TODO: ask dom if it can be anything else than a string
+              return modelClientBuilders[field.type as string]({
+                operation,
+                actionName,
+                args: newArgs,
+                dataPath: newDataPath,
+                isList: field.isList,
+                /*
+                 * necessary for user.posts() calls -> the original model name needs to be preserved
+                 */
+                modelName: modelName || model.name,
+              })
             }
-
-            // `modelClient` implements promises to have deferred actions that
-            // will be called later on through model delegated functions
-            const modelClient = createPrismaPromise(request)
-
-            // add relation fields
-            for (const field of model.fields.filter(
-              (f) => f.kind === 'object',
-            )) {
-              modelClient[field.name] = (fieldArgs) => {
-                const prefix = dataPath.includes('select')
-                  ? 'select'
-                  : dataPath.includes('include')
-                  ? 'include'
-                  : 'select'
-                const newDataPath = [...dataPath, prefix, field.name]
-                const newArgs = deepSet(args, newDataPath, fieldArgs || true)
-
-                return modelClientBuilders[field.type]({
-                  operation,
-                  actionName,
-                  args: newArgs,
-                  dataPath: newDataPath,
-                  isList: field.isList,
-                  /*
-                   * necessary for user.posts() calls -> the original model name needs to be preserved
-                   */
-                  modelName: modelName || model.name,
-                })
-              }
-            }
-
-            return modelClient
           }
 
-          modelClientBuilders[model.name] = ModelClientBuilder
+          return modelClient
+        }
 
-          return modelClientBuilders
-        },
-        {},
-      )
+        modelClientBuilders[model.name] = ModelClientBuilder
+
+        return modelClientBuilders
+      }, {})
 
       for (const mapping of this._dmmf.mappings.modelOperations) {
         const lowerCaseModel = lowerCase(mapping.model)
@@ -1455,11 +1436,7 @@ new PrismaClient({
                 unpacker = (data) => {
                   if (Array.isArray(data)) {
                     data = data.map((row) => {
-                      if (
-                        row &&
-                        typeof row._count === 'object' &&
-                        row._count?._all
-                      ) {
+                      if (row && typeof row._count === 'object' && row._count?._all) {
                         row._count = row._count?._all
                       }
                       return row
@@ -1583,10 +1560,7 @@ interface PrismaPromise<A> extends Promise<A> {
  * @returns
  */
 function createPrismaPromise(
-  callback: (
-    transactionId?: number,
-    runInTransaction?: boolean,
-  ) => PrismaPromise<unknown>,
+  callback: (transactionId?: number, runInTransaction?: boolean) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   // we handle exceptions that happen in the scope as `Promise` rejections
   const _callback = (transactionId?: number, runInTransaction?: boolean) => {

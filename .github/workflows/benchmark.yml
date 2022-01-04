@@ -9,20 +9,20 @@ on:
       # - `pull_request` see below
       # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
-      - "*.md"
-      - ".devcontainer/**"
-      - ".vscode/**"
-      - "docs/**"
-      - "examples/**"
-      - "LICENSE"
+      - '*.md'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
       - '.github/CODEOWNERS'
-      - "src/.buildkite/**"
-      - ".dockerignore"
-      - "scripts/ci/publish.ts"
-      - "graphs/**"
+      - 'src/.buildkite/**'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - 'graphs/**'
 
 env:
-  PRISMA_TELEMETRY_INFORMATION: "prisma benchmark.yml"
+  PRISMA_TELEMETRY_INFORMATION: 'prisma benchmark.yml'
 
 jobs:
   benchmark:
@@ -32,14 +32,14 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v1
+        uses: actions/cache@v2
         with:
           path: ~/.pnpm-store
           key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
 
       - uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: '12'
 
       - run: bash .github/workflows/setup.sh
         env:
@@ -57,13 +57,13 @@ jobs:
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Benchmark.js Benchmark
-          tool: "benchmarkjs"
+          tool: 'benchmarkjs'
           output-file-path: output.txt
           # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           # Show alert with commit comment on detecting possible performance regression
-          alert-threshold: "200%"
+          alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: "@williamluke4"
+          alert-comment-cc-users: '@Jolg42,@millsp'
