@@ -213,6 +213,7 @@ export interface GetPrismaClientConfig {
   }
   relativePath: string
   dirname: string
+  filename?: string
   clientVersion?: string
   engineVersion?: string
   datasourceNames: string[]
@@ -385,7 +386,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
