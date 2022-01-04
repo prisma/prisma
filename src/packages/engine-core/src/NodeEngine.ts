@@ -352,7 +352,7 @@ You may have to run ${chalk.greenBright(
     }
 
     const platform = await this.getPlatform()
-    // TODO
+    // TODO How can we describe this in words? Why "pinned" in the variable name?
     if (this.platform && this.platform !== platform) {
       this.incorrectlyPinnedBinaryTarget = this.platform
     }
