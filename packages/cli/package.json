@@ -85,7 +85,7 @@
     "checkpoint-client": "1.1.20",
     "debug": "4.3.3",
     "dotenv": "10.0.0",
-    "esbuild": "0.14.10",
+    "esbuild": "0.13.14",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",

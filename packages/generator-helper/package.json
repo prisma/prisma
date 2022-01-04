@@ -41,7 +41,7 @@
     "@types/node": "12.20.39",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
-    "esbuild": "0.14.10",
+    "esbuild": "0.13.14",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
