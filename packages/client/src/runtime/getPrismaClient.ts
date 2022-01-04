@@ -1094,7 +1094,7 @@ new PrismaClient({
           const nextMiddleware = this._middlewares.query.get(++index)
 
           if (nextMiddleware) {
-            // we pass the modfied params down to the next one, & repeat
+            // we pass the modified params down to the next one, & repeat
             return nextMiddleware(changedParams, consumer)
           }
 
