@@ -357,7 +357,7 @@ You may have to run ${chalk.greenBright(
       this.incorrectlyPinnedBinaryTarget = this.platform
     }
 
-    // TODO
+    // TODO Fallback to the var above - but why? Shouldn't it be the same already?
     this.platform = this.platform || platform
 
     // TODO Special case for filename `NodeEngine` - Why?
@@ -485,7 +485,7 @@ This means you should very likely pin the platform ${chalk.greenBright(
 ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
-    // TODO What and why?
+    // Make executable on non Windows platforms
     if (process.platform !== 'win32') {
       plusX(prismaPath)
     }
