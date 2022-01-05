@@ -15,7 +15,7 @@
   "devDependencies": {
     "@prisma/sdk": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
-    "@types/jest": "27.0.3",
+    "@types/jest": "27.4.0",
     "@types/mssql": "6.0.8",
     "@types/node": "12.20.39",
     "@types/pg": "8.6.3",
@@ -31,7 +31,7 @@
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fs-jetpack": "4.3.0",
-    "jest": "27.4.5",
+    "jest": "27.4.6",
     "lint-staged": "12.1.5",
     "mariadb": "2.5.5",
     "mssql": "7.3.0",
