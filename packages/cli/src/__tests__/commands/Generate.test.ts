@@ -17,7 +17,7 @@ describe('using cli', () => {
     const { main } = await import(ctx.fs.path('main.ts'))
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
     await expect(main()).resolves.toMatchSnapshot()
-  }, 30000) // timeout
+  }, 60000) // timeout
 
   it('should error with exit code 1 with incorrect schema', async () => {
     ctx.fixture('broken-example-project')
