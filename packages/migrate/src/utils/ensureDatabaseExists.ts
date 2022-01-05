@@ -41,13 +41,20 @@ export async function getDbInfo(schemaPath?: string): Promise<{
     const dbLocation = getDbLocation(credentials)
     const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
-    return {
+    const dbInfo = {
       name: activeDatasource.name,
       dbLocation,
       ...dbinfoFromCredentials,
       url,
       schema: credentials.schema,
     }
+
+    // For CockroachDB we cannot rely on the connection URL, only on the provider
+    if (activeDatasource.provider === 'cockroachdb') {
+      dbInfo.dbType = 'CockroachDB'
+    }
+
+    return dbInfo
   } catch (e) {
     return {
       name: activeDatasource.name,
@@ -123,8 +130,14 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
       // parse the url
       const credentials = uriToCredentials(activeDatasource.url.value)
       const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+      let databaseProvider = dbType
+
       // not needed to check for sql server here since we returned already earlier if provider = sqlserver
       if (dbType && dbType !== 'SQL Server') {
+        // For CockroachDB we cannot rely on the connection URL, only on the provider
+        if (activeDatasource.provider === 'cockroachdb') {
+          databaseProvider = 'CockroachDB'
+        }
         return `${dbType} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
       } else {
         // SQL Server case, never reached?
