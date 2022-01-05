@@ -110,7 +110,7 @@ describe('full-text-search (mysql)', () => {
   /**
    * Test search with the `-` operators
    */
-  test('findMany with & and |', async () => {
+  test('findMany with -', async () => {
     const result = await prisma.user.findMany({
       where: {
         name: {
