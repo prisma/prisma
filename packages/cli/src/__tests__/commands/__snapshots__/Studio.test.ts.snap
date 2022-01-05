@@ -6,59 +6,23 @@ Object {
   channel: -prisma,
   payload: Object {
     data: Object {
-      params: Object {
-        action: create,
-        args: Object {
-          data: Object {
-            datetime: 2020-08-03T00:00:00.000Z,
-            float: 0,
-            id: 3,
-            int: 0,
-            relation: Object {
-              connect: Object {
-                id: 3,
-              },
-            },
-            relation_list: Object {
-              connect: Object {
-                id: 3,
-              },
-            },
-            string: ,
-          },
-          select: Object {
-            datetime: true,
-            float: true,
-            id: true,
-            int: true,
-            relation: true,
-            relation_list: true,
-            string: true,
-          },
-        },
-        dataPath: Array [],
-        model: with_all_field_types,
-        runInTransaction: false,
-      },
-      response: Object {
-        datetime: 2020-08-03T00:00:00.000Z,
-        float: 0,
+      datetime: 2020-08-03T00:00:00.000Z,
+      float: 0,
+      id: 3,
+      int: 0,
+      relation: Object {
         id: 3,
-        int: 0,
-        relation: Object {
+        name: Relation Target 003,
+        waft_id: 3,
+      },
+      relation_list: Array [
+        Object {
           id: 3,
           name: Relation Target 003,
           waft_id: 3,
         },
-        relation_list: Array [
-          Object {
-            id: 3,
-            name: Relation Target 003,
-            waft_id: 3,
-          },
-        ],
-        string: ,
-      },
+      ],
+      string: ,
     },
     error: null,
   },
@@ -72,39 +36,17 @@ Object {
   channel: -prisma,
   payload: Object {
     data: Object {
-      params: Object {
-        action: delete,
-        args: Object {
-          select: Object {
-            datetime: true,
-            float: true,
-            id: true,
-            int: true,
-            relation: true,
-            relation_list: true,
-            string: true,
-          },
-          where: Object {
-            id: 2,
-          },
-        },
-        dataPath: Array [],
-        model: with_all_field_types,
-        runInTransaction: false,
-      },
-      response: Object {
-        datetime: 1970-01-01T00:00:00.000Z,
-        float: 0,
+      datetime: 1970-01-01T00:00:00.000Z,
+      float: 0,
+      id: 2,
+      int: 0,
+      relation: Object {
         id: 2,
-        int: 0,
-        relation: Object {
-          id: 2,
-          name: Relation Target 002,
-          waft_id: 2,
-        },
-        relation_list: Array [],
-        string: Delete me,
+        name: Relation Target 002,
+        waft_id: 2,
       },
+      relation_list: Array [],
+      string: Delete me,
     },
     error: null,
   },
@@ -117,53 +59,34 @@ Object {
   action: clientRequest,
   channel: -prisma,
   payload: Object {
-    data: Object {
-      params: Object {
-        action: findMany,
-        args: Object {
-          select: Object {
-            datetime: true,
-            float: true,
-            id: true,
-            int: true,
-            relation: true,
-            relation_list: true,
-            string: true,
-          },
-        },
-        dataPath: Array [],
-        model: with_all_field_types,
-        runInTransaction: false,
-      },
-      response: Array [
-        Object {
-          datetime: 2020-08-03T00:00:00.000Z,
-          float: 3.14,
+    data: Array [
+      Object {
+        datetime: 2020-08-03T00:00:00.000Z,
+        float: 3.14,
+        id: 1,
+        int: 42,
+        relation: Object {
           id: 1,
-          int: 42,
-          relation: Object {
-            id: 1,
-            name: Relation Target 001,
-            waft_id: 1,
-          },
-          relation_list: Array [],
-          string: Some string,
+          name: Relation Target 001,
+          waft_id: 1,
         },
-        Object {
-          datetime: 1970-01-01T00:00:00.000Z,
-          float: 0,
+        relation_list: Array [],
+        string: Some string,
+      },
+      Object {
+        datetime: 1970-01-01T00:00:00.000Z,
+        float: 0,
+        id: 2,
+        int: 0,
+        relation: Object {
           id: 2,
-          int: 0,
-          relation: Object {
-            id: 2,
-            name: Relation Target 002,
-            waft_id: 2,
-          },
-          relation_list: Array [],
-          string: Delete me,
+          name: Relation Target 002,
+          waft_id: 2,
         },
-      ],
-    },
+        relation_list: Array [],
+        string: Delete me,
+      },
+    ],
     error: null,
   },
   requestId: 1,
@@ -176,61 +99,23 @@ Object {
   channel: -prisma,
   payload: Object {
     data: Object {
-      params: Object {
-        action: update,
-        args: Object {
-          data: Object {
-            datetime: 2025-08-03T00:00:00.000Z,
-            float: 100.5,
-            int: 100,
-            relation: Object {
-              connect: Object {
-                id: 3,
-              },
-            },
-            relation_list: Object {
-              connect: Object {
-                id: 3,
-              },
-            },
-            string: Changed String,
-          },
-          select: Object {
-            datetime: true,
-            float: true,
-            id: true,
-            int: true,
-            relation: true,
-            relation_list: true,
-            string: true,
-          },
-          where: Object {
-            id: 1,
-          },
-        },
-        dataPath: Array [],
-        model: with_all_field_types,
-        runInTransaction: false,
+      datetime: 2025-08-03T00:00:00.000Z,
+      float: 100.5,
+      id: 1,
+      int: 100,
+      relation: Object {
+        id: 3,
+        name: Relation Target 003,
+        waft_id: 1,
       },
-      response: Object {
-        datetime: 2025-08-03T00:00:00.000Z,
-        float: 100.5,
-        id: 1,
-        int: 100,
-        relation: Object {
+      relation_list: Array [
+        Object {
           id: 3,
           name: Relation Target 003,
           waft_id: 1,
         },
-        relation_list: Array [
-          Object {
-            id: 3,
-            name: Relation Target 003,
-            waft_id: 1,
-          },
-        ],
-        string: Changed String,
-      },
+      ],
+      string: Changed String,
     },
     error: null,
   },

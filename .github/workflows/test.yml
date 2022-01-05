@@ -106,7 +106,7 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 20
+    timeout-minutes: 25
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -575,7 +575,7 @@ jobs:
   # minimize the time spent waiting for a free runner.
   #
   no-docker:
-    timeout-minutes: 60
+    timeout-minutes: 40
     runs-on: ${{ matrix.os }}
     needs: detect_jobs_to_run
 

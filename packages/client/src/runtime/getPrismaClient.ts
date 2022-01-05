@@ -213,6 +213,7 @@ export interface GetPrismaClientConfig {
   }
   relativePath: string
   dirname: string
+  filename?: string
   clientVersion?: string
   engineVersion?: string
   datasourceNames: string[]
@@ -385,7 +386,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
@@ -1093,11 +1094,11 @@ new PrismaClient({
           const nextMiddleware = this._middlewares.query.get(++index)
 
           if (nextMiddleware) {
-            // we pass the modfied params down to the next one, & repeat
+            // we pass the modified params down to the next one, & repeat
             return nextMiddleware(changedParams, consumer)
           }
 
-          const changedInternalParams = { ...internalParams, ...params }
+          const changedInternalParams = { ...internalParams, ...changedParams }
 
           // TODO remove this once LRT is the default transaction mode
           if (index > 0 && !this._hasPreviewFlag('interactiveTransactions')) {
