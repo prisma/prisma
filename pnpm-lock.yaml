@@ -112,8 +112,8 @@ importers:
       '@prisma/get-platform': 3.8.0-26.367f1321e79a7ba33fcac73ed17111312b87e526
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
-      '@prisma/studio': 0.450.0
-      '@prisma/studio-server': 0.450.0
+      '@prisma/studio': 0.451.0
+      '@prisma/studio-server': 0.451.0
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.0
@@ -164,8 +164,8 @@ importers:
       '@prisma/get-platform': 3.8.0-26.367f1321e79a7ba33fcac73ed17111312b87e526
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
-      '@prisma/studio': 0.450.0
-      '@prisma/studio-server': 0.450.0
+      '@prisma/studio': 0.451.0
+      '@prisma/studio-server': 0.451.0
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.0
@@ -1786,15 +1786,15 @@ packages:
     dependencies:
       '@prisma/debug': 3.7.0
 
-  /@prisma/studio-common/0.450.0:
-    resolution: {integrity: sha512-a5aCOddMEESLoVM/DAhsBT6Q/RDOFM+64kXTiQhYImrE6Vdwa1VJdq9Ip6z/hLsTVF4OIO7JgLo6bLhGOQaAlQ==}
+  /@prisma/studio-common/0.451.0:
+    resolution: {integrity: sha512-TLALqK/OqjVowakHbvAeRVxrGmfdAZK0eMQ0n8aCIzUgjPQP05roWVV4t28aAyFQdDR7PGD3uXYi78fhqRwKlw==}
     engines: {node: '>= 12'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.450.0:
-    resolution: {integrity: sha512-Vg4+jpZ0WU6m4/FzZMphC3WiNPBDIUnLgQ1ZaO1G0Vul8ZrzCvf+pMl2fN7xItX6EOuYEYr64tnPPnF2BkHiNg==}
+  /@prisma/studio-pcw/0.451.0:
+    resolution: {integrity: sha512-4hHKIxJqi0czprVkiqfqAG4Lhgdtr7eY7tqoTGpc20x4S9kRwAlOs7jYkew5/04hRbPOOUXMrGqtwlTsOFuNSQ==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
@@ -1806,27 +1806,26 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.450.0:
-    resolution: {integrity: sha512-S9zKg7PUxa2w0HfuY3RkUSEyePwsq0KzMvaVGvItitOXxTwRIoYyuINb5bbZ0lyWRdurkpZrqCM3ppYzn7dgpA==}
+  /@prisma/studio-server/0.451.0:
+    resolution: {integrity: sha512-CJgaUIkbBUIqS/xsQZx/qINbVeywqALCWduvCpLodRAIv2co137v6Xbkmp9/EbMWyRZMzT553Di6bL2jvsGK8g==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/studio': 0.450.0
-      '@prisma/studio-common': 0.450.0
-      '@prisma/studio-pcw': 0.450.0
+      '@prisma/studio': 0.451.0
+      '@prisma/studio-common': 0.451.0
+      '@prisma/studio-pcw': 0.451.0
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
-  /@prisma/studio/0.450.0:
-    resolution: {integrity: sha512-ztyJxkLvihID+TqENXahURj8W9zjHOHY8jL0ItSGoHLjUyZkx2esZgxX08LP1Wcfxvykz3pQXVLHAyqo7e08pA==}
+  /@prisma/studio/0.451.0:
+    resolution: {integrity: sha512-uo79yjkV9HawH9hDDXeDjZlS1sk3hlqj/7po0RKnWG5EgtqNeXPd/68LkD/1ng6n4esi/Sbg7UfD6/EtD3BdtQ==}
     dev: true
 
   /@rushstack/node-core-library/3.44.3:
