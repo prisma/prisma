@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1641382328755,
+  "lastUpdate": 1641384077652,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -74952,6 +74952,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±0.76%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "garren.smith@gmail.com",
+            "name": "garren smith",
+            "username": "garrensmith"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ced2329c52a8a589e8b6868dc4a333e0ed5ee7ed",
+          "message": "feat(client): Add mysql fulltext search tests (#10968)\n\n* feat(client): Add mysql fulltext search tests\n\n* fixes from review\n\n* fix test",
+          "timestamp": "2022-01-05T12:57:43+01:00",
+          "tree_id": "a24f73a3af852b7021fcc869cd913ce59304e9dd",
+          "url": "https://github.com/prisma/prisma/commit/ced2329c52a8a589e8b6868dc4a333e0ed5ee7ed"
+        },
+        "date": 1641384073773,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±7.14%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±4.62%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
