@@ -132,6 +132,9 @@
   "dependencies": {
     "@prisma/engines": "3.8.0-26.367f1321e79a7ba33fcac73ed17111312b87e526"
   },
+  "peerDependencies": {
+    "encoding": "^0.1.13"
+  },
   "lint-staged": {
     "*.ts": [
       "eslint",
