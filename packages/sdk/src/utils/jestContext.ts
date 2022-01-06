@@ -1,6 +1,7 @@
-import execa, { ExecaChildProcess } from 'execa'
+import execa from 'execa'
+import type { ExecaChildProcess } from 'execa'
 import fs from 'fs-jetpack'
-import { FSJetpack } from 'fs-jetpack/types'
+import type { FSJetpack } from 'fs-jetpack/types'
 import path from 'path'
 import tempy from 'tempy'
 
@@ -35,19 +36,21 @@ type BaseContext = {
  * - Mocked process.cwd via Node process.chdir
  * - Fixture loader for boostrapping the temporary directory with content
  */
-export const Context = {
+export const jestContext = {
   new: function (ctx: BaseContext = {} as any) {
     const c = ctx as BaseContext
+    const originalCwd = process.cwd()
 
     beforeEach(() => {
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
       c.fixture = (name: string) => {
         // copy the fixture in isolated tmp directory
-        c.fs.copy(path.join(__dirname, '..', 'fixtures', name), '.', {
+        c.fs.copy(path.join(originalCwd, 'src', '__tests__', 'fixtures', name), '.', {
           overwrite: true,
         })
         // symlink to local client version in tmp dir
+        // TODO change path?
         c.fs.symlink(
           path.join(__dirname, '..', '..', '..', '..', 'client'),
           path.join(c.fs.cwd(), 'node_modules', '@prisma', 'client'),
@@ -57,15 +60,11 @@ export const Context = {
         cwd: process.cwd(),
       }
       c.cli = (...input) => {
-        return execa.node(
-          path.join(__dirname, '../../../build/index.js'),
-          input,
-          {
-            cwd: c.fs.cwd(),
-            stdio: 'pipe',
-            all: true,
-          },
-        )
+        return execa.node(path.join(originalCwd, '../cli/build/index.js'), input, {
+          cwd: c.fs.cwd(),
+          stdio: 'pipe',
+          all: true,
+        })
       }
       process.chdir(c.tmpDir)
     })
@@ -81,10 +80,9 @@ export const Context = {
 /**
  * Factory for creating a context contributor possibly configured in some special way.
  */
-type ContextContributorFactory<Settings, Context, NewContext> =
-  Settings extends {}
-    ? () => ContextContributor<Context, NewContext>
-    : (settings: Settings) => ContextContributor<Context, NewContext>
+type ContextContributorFactory<Settings, Context, NewContext> = Settings extends {}
+  ? () => ContextContributor<Context, NewContext>
+  : (settings: Settings) => ContextContributor<Context, NewContext>
 
 /**
  * A function that provides additonal test context.
@@ -96,10 +94,9 @@ type ContextContributor<Context, NewContext> = (ctx: Context) => NewContext
  */
 function factory<Context>(ctx: Context) {
   return {
-    add<NewContext>(
-      contextContributor: ContextContributor<Context, NewContext>,
-    ) {
+    add<NewContext>(contextContributor: ContextContributor<Context, NewContext>) {
       contextContributor(ctx)
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       return factory<Context & NewContext>(ctx as any)
     },
     assemble(): Context {
@@ -111,7 +108,7 @@ function factory<Context>(ctx: Context) {
 /**
  * Test context contributor. Mocks console.error with a Jest spy before each test.
  */
-export const consoleContext: ContextContributorFactory<
+export const jestConsoleContext: ContextContributorFactory<
   {},
   BaseContext,
   {
@@ -124,18 +121,10 @@ export const consoleContext: ContextContributorFactory<
   }
 > = () => (ctx) => {
   beforeEach(() => {
-    ctx.mocked['console.error'] = jest
-      .spyOn(console, 'error')
-      .mockImplementation(() => {})
-    ctx.mocked['console.log'] = jest
-      .spyOn(console, 'log')
-      .mockImplementation(() => {})
-    ctx.mocked['console.info'] = jest
-      .spyOn(console, 'info')
-      .mockImplementation(() => {})
-    ctx.mocked['console.warn'] = jest
-      .spyOn(console, 'warn')
-      .mockImplementation(() => {})
+    ctx.mocked['console.error'] = jest.spyOn(console, 'error').mockImplementation(() => {})
+    ctx.mocked['console.log'] = jest.spyOn(console, 'log').mockImplementation(() => {})
+    ctx.mocked['console.info'] = jest.spyOn(console, 'info').mockImplementation(() => {})
+    ctx.mocked['console.warn'] = jest.spyOn(console, 'warn').mockImplementation(() => {})
   })
 
   afterEach(() => {

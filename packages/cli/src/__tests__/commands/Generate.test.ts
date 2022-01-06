@@ -1,9 +1,9 @@
 import path from 'path'
 import { getClientEngineType } from '@prisma/sdk'
 import { Generate } from '../../Generate'
-import { consoleContext, Context } from '../__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('using cli', () => {
   it('should work with a custom output dir', async () => {

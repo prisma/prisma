@@ -2,18 +2,15 @@ import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
 import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
-import { consoleContext, Context } from '../__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 test('is schema and env written on disk replace', async () => {
   const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema())
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -25,10 +22,7 @@ test('works with url param', async () => {
   const result = await ctx.cli('init', '--url', 'file:dev.db')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema('sqlite'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -48,10 +42,7 @@ test('works with provider param - postgresql', async () => {
   const result = await ctx.cli('init', '--datasource-provider', 'postgresql')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema('postgresql'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -71,10 +62,7 @@ test('works with provider param - mysql', async () => {
   const result = await ctx.cli('init', '--datasource-provider', 'mysql')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema('mysql'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -94,10 +82,7 @@ test('works with provider param - SQLITE', async () => {
   const result = await ctx.cli('init', '--datasource-provider', 'SQLITE')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema('sqlite'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -117,10 +102,7 @@ test('works with provider param - SqlServer', async () => {
   const result = await ctx.cli('init', '--datasource-provider', 'SqlServer')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema('sqlserver'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -140,10 +122,7 @@ test('works with provider param - MongoDB', async () => {
   const result = await ctx.cli('init', '--datasource-provider', 'MongoDB')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema('mongodb'))
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -165,17 +144,11 @@ test('errors with invalid provider param', async () => {
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {
-  fs.writeFileSync(
-    join(ctx.tmpDir, '.env'),
-    `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`,
-  )
+  fs.writeFileSync(join(ctx.tmpDir, '.env'), `DATABASE_URL="postgres://dont:overwrite@me:5432/tests"`)
   const result = await ctx.cli('init')
   expect(stripAnsi(result.all!)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema())
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
@@ -187,10 +160,7 @@ test('appends when .env present', async () => {
   const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
-  const schema = fs.readFileSync(
-    join(ctx.tmpDir, 'prisma', 'schema.prisma'),
-    'utf-8',
-  )
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
   expect(schema).toMatch(defaultSchema())
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')

@@ -705,6 +705,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
+      fs-jetpack: 4.3.0
       global-dirs: 3.0.0
       globby: 11.0.4
       has-yarn: 2.1.0
@@ -782,6 +783,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.6.0
       eslint-plugin-jest: 25.3.4_fc7ad14cecfc112c3a62fcc1531edd55
       eslint-plugin-prettier: 4.0.0_1c588f61426b1faf18812943f1678311
+      fs-jetpack: 4.3.0
       jest: 27.4.6_ts-node@10.4.0
       lint-staged: 12.1.5
       prettier: 2.5.1
@@ -5225,7 +5227,7 @@ packages:
       micromatch: 4.0.4
       pretty-format: 27.4.6
       slash: 3.0.0
-      ts-node: 10.4.0_60e8b8d4e7c9a6973679cdf61ab01fe0
+      ts-node: 10.4.0_9303900730675ceadab88ac326bf0384
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil
