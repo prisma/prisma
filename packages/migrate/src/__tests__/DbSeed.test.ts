@@ -1,12 +1,12 @@
 import fs from 'fs-jetpack'
 import execa from 'execa'
 import { DbSeed } from '../commands/DbSeed'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 // TODO: Windows: snapshot tests fail on Windows because of emoji.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describeIf(process.platform !== 'win32')('seed', () => {
   it('seed.js', async () => {

@@ -1,6 +1,6 @@
 import path from 'path'
 import { DbPull } from '../commands/DbPull'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
@@ -14,7 +14,7 @@ if (isMacOrWindowsCI) {
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common/sqlite', () => {
   test('basic introspection', async () => {
@@ -71,7 +71,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in schema.prisma …
 
-      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
+      ✔ Introspected 3 yolo schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -94,7 +94,7 @@ describe('common/sqlite', () => {
 
       Introspecting …
 
-      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
+      ✔ Introspected 3 yolo schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -125,7 +125,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in prisma/reintrospection.prisma …
 
-      ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
+      ✔ Introspected 3 yolo prisma/reintrospection.prisma in XXXms
             
       *** WARNING ***
 
@@ -193,14 +193,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                              // *** WARNING ***
-                                                                                                              // 
-                                                                                                              // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                              // - Model "AwesomeNewPost"
-                                                                                                              // - Model "AwesomeProfile"
-                                                                                                              // - Model "AwesomeUser"
-                                                                                                              // 
-                                                                        `)
+                                                                                                                                                                    // *** WARNING ***
+                                                                                                                                                                    // 
+                                                                                                                                                                    // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                    // - Model "AwesomeNewPost"
+                                                                                                                                                                    // - Model "AwesomeProfile"
+                                                                                                                                                                    // - Model "AwesomeUser"
+                                                                                                                                                                    // 
+                                                                                                            `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -217,7 +217,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in prisma/schema.prisma …
 
-      ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
+      ✔ Introspected 3 yolo prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)
@@ -229,18 +229,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        P4001 The introspected database was empty: 
+                                                P4001 The introspected database was empty: 
 
-                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                        To fix this, you have two options:
+                                                To fix this, you have two options:
 
-                        - manually create a table in your database.
-                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                - manually create a table in your database.
+                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                        Then you can run prisma db pull again. 
+                                                Then you can run prisma db pull again. 
 
-                    `)
+                                        `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -258,18 +258,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        P4001 The introspected database was empty: 
+                                                P4001 The introspected database was empty: 
 
-                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                        To fix this, you have two options:
+                                                To fix this, you have two options:
 
-                        - manually create a table in your database.
-                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                - manually create a table in your database.
+                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                        Then you can run prisma db pull again. 
+                                                Then you can run prisma db pull again. 
 
-                    `)
+                                        `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -328,7 +328,7 @@ describe('common/sqlite', () => {
 
       Introspecting based on datasource defined in prisma/invalid.prisma …
 
-      ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
+      ✔ Introspected 3 yolo prisma/invalid.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
     `)

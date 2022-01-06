@@ -27,14 +27,14 @@ test('works with url param', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="file:dev.db"
-`)
+    DATABASE_URL="file:dev.db"
+  `)
 })
 
 test('works with provider param - postgresql', async () => {
@@ -47,14 +47,14 @@ test('works with provider param - postgresql', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
-`)
+    DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
+  `)
 })
 
 test('works with provider param - mysql', async () => {
@@ -67,14 +67,14 @@ test('works with provider param - mysql', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
-`)
+    DATABASE_URL="mysql://johndoe:randompassword@localhost:5432/mydb"
+  `)
 })
 
 test('works with provider param - SQLITE', async () => {
@@ -87,14 +87,14 @@ test('works with provider param - SQLITE', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="file:./dev.db"
-`)
+    DATABASE_URL="file:./dev.db"
+  `)
 })
 
 test('works with provider param - SqlServer', async () => {
@@ -107,14 +107,14 @@ test('works with provider param - SqlServer', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;"
-`)
+    DATABASE_URL="sqlserver://localhost:5432;database=mydb;user=SA;password=randompassword;"
+  `)
 })
 
 test('works with provider param - MongoDB', async () => {
@@ -127,14 +127,14 @@ test('works with provider param - MongoDB', async () => {
 
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
-# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
-# See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority"
-`)
+    DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority"
+  `)
 })
 
 test('errors with invalid provider param', async () => {

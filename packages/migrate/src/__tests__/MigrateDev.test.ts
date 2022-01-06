@@ -2,7 +2,7 @@ import prompt from 'prompts'
 import fs from 'fs-jetpack'
 import path from 'path'
 import { MigrateDev } from '../commands/MigrateDev'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
@@ -10,7 +10,7 @@ import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPost
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 process.env.GITHUB_ACTIONS = '1'
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'

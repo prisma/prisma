@@ -159,35 +159,35 @@ describe('handlePanic', () => {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
-Error in migration engine.
-Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
+        Error in migration engine.
+        [/some/rust/path:0:0] This is the debugPanic artificial panic
 
-Please create an issue with your \`schema.prisma\` at
-https://github.com/prisma/prisma/issues/new
+        Please create an issue with your \`schema.prisma\` at
+        TEST_GITHUB_LINK
 
-`)
+      `)
     } else {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
 
-                  console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
+                          console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
 
-                ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
+                        ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
 
-                ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
+                        ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
 
-                ✔ Submit error report › No
-
-
-
-                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
-
-                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
-
-                ✔ Would you like to create a Github issue? › No
+                        ✔ Submit error report › No
 
 
-            `)
+
+                        ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
+
+                        ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
+
+                        ✔ Would you like to create a Github issue? › No
+
+
+                  `)
     }
     captureStdout.stopCapture()
   })

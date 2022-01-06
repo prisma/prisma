@@ -45,7 +45,7 @@ export const jestContext = {
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
       c.fixture = (name: string) => {
-        // copy the fixture in isolated tmp directory
+        // copy the specific fixture directory in isolated tmp directory
         c.fs.copy(path.join(originalCwd, 'src', '__tests__', 'fixtures', name), '.', {
           overwrite: true,
         })

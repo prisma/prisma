@@ -104,7 +104,7 @@ function removePlatforms(str) {
 }
 
 function normalizeGithubLinks(str) {
-  return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/\S+/, 'TEST_GITHUB_LINK')
+  return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/new\S+/, 'TEST_GITHUB_LINK')
 }
 
 function normalizeTsClientStackTrace(str) {
@@ -138,7 +138,7 @@ function normalizeRustError(str) {
 }
 
 function normalizeTime(str) {
-  // sometimes soneting can take a few seconds when usually it's less than 1s
+  // sometimes someting can take a few seconds when usually it's less than 1s or a few ms
   return str.replace(/ \d+ms/g, ' XXXms').replace(/ \d+(.\d+)?s/g, ' XXXms')
 }
 
@@ -172,6 +172,11 @@ module.exports = {
   serialize(value) {
     const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
     return pipe(
+      // Generic
+      stripAnsi,
+      normalizePaths,
+      // normalizeTmpDir,
+      normalizeTime,
       // From Client package
       normalizeGithubLinks,
       normalizeToUnixPaths,
@@ -180,16 +185,11 @@ module.exports = {
       removePlatforms,
       normalizeTsClientStackTrace,
       trimErrorPaths,
-      normalizePaths,
       normalizePrismaPaths,
       // From Migrate/CLI package
       normalizeDbUrl,
-      normalizeTime,
       normalizeRustError,
       normalizeMigrateTimestamps,
-      // normalizeTmpDir,
-      // Generic
-      stripAnsi,
     )(message)
   },
 }
