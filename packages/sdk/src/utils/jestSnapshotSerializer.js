@@ -144,11 +144,14 @@ function normalizeTime(str) {
 
 /**
  * Replace dynamic variable bits of Prisma schema with static strings.
+ * Only for integration-tests
  */
-function prepareSchemaForSnapshot(schema) {
+function prepareSchemaForSnapshot(str) {
+  if (!str.includes('tmp/prisma-tests/integration-test')) return str
+
   const urlRegex = /url\s*=\s*.+/
   const outputRegex = /output\s*=\s*.+/
-  return schema
+  return str
     .split('\n')
     .map((line) => {
       const urlMatch = urlRegex.exec(line)
@@ -190,6 +193,8 @@ module.exports = {
       normalizeDbUrl,
       normalizeRustError,
       normalizeMigrateTimestamps,
+      // integration-tests pkg
+      prepareSchemaForSnapshot,
     )(message)
   },
 }
