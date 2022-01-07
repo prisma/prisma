@@ -47,7 +47,7 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.findMany()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            <PROJECT_ROOT>/src/__tests__/integration/happy/interactive-transactions/test.ts:44:26
 
               41 
               42 await new Promise((res) => setTimeout(res, 6000))
@@ -86,7 +86,7 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.findMany()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            <PROJECT_ROOT>/src/__tests__/integration/happy/interactive-transactions/test.ts:78:28
 
                75 
                76 await new Promise((res) => setTimeout(res, 600))
@@ -177,11 +177,11 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                            Invalid \`prisma.user.findMany()\` invocation:
+                                                                        Invalid \`prisma.user.findMany()\` invocation:
 
 
-                                                              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-                                                  `)
+                                                                          Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+                                                            `)
 
     const users = await prisma.user.findMany()
 
@@ -223,7 +223,7 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            <PROJECT_ROOT>/src/__tests__/integration/happy/interactive-transactions/test.ts:216:25
 
               213   },
               214 })
@@ -257,7 +257,7 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            <PROJECT_ROOT>/src/__tests__/integration/happy/interactive-transactions/test.ts:250:41
 
               247 })
               248 
@@ -313,7 +313,7 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            <PROJECT_ROOT>/src/__tests__/integration/happy/interactive-transactions/test.ts:301:19
 
               298  */
               299 test('batching rollback', async () => {
@@ -346,11 +346,11 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                Invalid \`prisma.executeRaw()\` invocation:
+                                                            Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                                  Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
-                                        `)
+                                                              Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+                                                  `)
 
     const users = await prisma.user.findMany()
 
@@ -411,7 +411,7 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            <PROJECT_ROOT>/src/__tests__/integration/happy/interactive-transactions/test.ts:399:19
 
               396 })
               397 

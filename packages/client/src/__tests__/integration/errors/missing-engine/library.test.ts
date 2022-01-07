@@ -34,7 +34,7 @@ test('missing-engine: library', async () => {
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-engine/library.test.ts:0:0
+          <PROJECT_ROOT>/library.test.ts:33:23
 
             30 })
             31 
@@ -44,17 +44,17 @@ test('missing-engine: library', async () => {
           You incorrectly pinned it to TEST_PLATFORM
 
           This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+          (Prisma Client looked in "<PROJECT_ROOT>/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.dylib.node")
 
           Searched Locations:
 
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine
+            <PROJECT_ROOT>/node_modules/.prisma/client
+            <PROJECT_ROOT>/node_modules/@prisma/client/runtime
+            <PROJECT_ROOT>/node_modules/@prisma/client
+            <PROJECT_ROOT>/node_modules/.prisma/client
+            <PROJECT_ROOT>
             /tmp/prisma-engines
-            /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
+            <PROJECT_ROOT>/node_modules/.prisma/client
 
 
           To solve this problem, add the platform "TEST_PLATFORM" to the "binaryTargets" attribute in the "generator" block in the "schema.prisma" file:

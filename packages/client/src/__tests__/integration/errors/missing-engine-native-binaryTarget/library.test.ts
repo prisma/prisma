@@ -34,7 +34,7 @@ test('missing-engine-native-binaryTarget: library', async () => {
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/library.test.ts:0:0
+          <PROJECT_ROOT>/library.test.ts:33:23
 
             30 })
             31 
@@ -44,22 +44,22 @@ test('missing-engine-native-binaryTarget: library', async () => {
           You incorrectly pinned it to TEST_PLATFORM
 
           This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+          (Prisma Client looked in "<PROJECT_ROOT>/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.dylib.node")
 
           Searched Locations:
 
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
+            <PROJECT_ROOT>/node_modules/.prisma/client
+            <PROJECT_ROOT>/node_modules/@prisma/client/runtime
+            <PROJECT_ROOT>/node_modules/@prisma/client
+            <PROJECT_ROOT>/node_modules/.prisma/client
+            <PROJECT_ROOT>
             /tmp/prisma-engines
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+            <PROJECT_ROOT>/node_modules/.prisma/client
 
           You already added the platform "native" to the "generator" block
           in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
           but something went wrong. That's suboptimal.
 
-          Please create an issue at TEST_GITHUB_LINK
+          Please create an issue at https://github.com/prisma/prisma/issues/new
         `)
 })

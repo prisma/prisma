@@ -21,15 +21,15 @@ describe('invalid-url', () => {
     } catch (err) {
       expect(err).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.findUnique()\` invocation in
-/client/src/__tests__/integration/errors/invalid-url/test.ts:0:0
+        Invalid \`prisma.user.findUnique()\` invocation in
+        <PROJECT_ROOT>/test.ts:16:25
 
-  13 expect.assertions(1)
-  14 
-  15 try {
-→ 16   await prisma.user.findUnique(
-  The provided database string is invalid. The provided arguments are not supported in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
-`)
+          13 expect.assertions(1)
+          14 
+          15 try {
+        → 16   await prisma.user.findUnique(
+          The provided database string is invalid. The provided arguments are not supported in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+      `)
     }
   })
 

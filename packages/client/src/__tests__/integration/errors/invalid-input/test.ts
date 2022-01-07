@@ -18,28 +18,28 @@ test('invalid-input', async () => {
   } catch (e) {
     expect(e).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.create()\` invocation in
-/client/src/__tests__/integration/errors/invalid-input/test.ts:0:0
+      Invalid \`prisma.user.create()\` invocation in
+      <PROJECT_ROOT>/src/__tests__/integration/errors/invalid-input/test.ts:10:23
 
-   7 await prisma.user.deleteMany()
-   8 
-   9 try {
-→ 10   await prisma.user.create({
-         data: {
-           email: 'a@a.de',
-           posts: {
-             connect: {
-               id: []
-               ~~
-             }
-           }
-         }
-       })
+         7 await prisma.user.deleteMany()
+         8 
+         9 try {
+      → 10   await prisma.user.create({
+               data: {
+                 email: 'a@a.de',
+                 posts: {
+                   connect: {
+                     id: []
+                     ~~
+                   }
+                 }
+               }
+             })
 
-Argument id: Got invalid value [] on prisma.createOneUser. Provided List<>, expected String.
+      Argument id: Got invalid value [] on prisma.createOneUser. Provided List<>, expected String.
 
 
-`)
+    `)
   }
 
   await prisma.$disconnect()
