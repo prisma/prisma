@@ -39,9 +39,10 @@ type BaseContext = {
 export const jestContext = {
   new: function (ctx: BaseContext = {} as any) {
     const c = ctx as BaseContext
-    const originalCwd = process.cwd()
 
     beforeEach(() => {
+      const originalCwd = process.cwd()
+
       c.tmpDir = tempy.directory()
       c.fs = fs.cwd(c.tmpDir)
       c.fixture = (name: string) => {
