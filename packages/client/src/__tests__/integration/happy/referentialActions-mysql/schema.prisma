@@ -1,0 +1,58 @@
+datasource db {
+  provider = "mysql"
+  url      = env("TEST_MYSQL_URI")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Defaults
+
+model DefaultsParent {
+  id                Int                      @id @default(autoincrement())
+  name              String                   @unique
+  mandatoryChildren DefaultsMandatoryChild[]
+  // optionalChild     DefaultsOptionalChild?
+}
+
+model DefaultsMandatoryChild {
+  id       Int            @id @default(autoincrement())
+  name     String         @unique
+  parent   DefaultsParent @relation(fields: [parentId], references: [id]) // implicit: onDelete: Restrict, onUpdate: Cascade - per https://www.prisma.io/docs/concepts/components/prisma-schema/relations/referential-actions#referential-action-defaults
+  parentId Int
+}
+
+// TODO Optional relation
+// model DefaultsOptionalChild {
+//   id       Int             @id @default(autoincrement())
+//   name     String          @unique
+//   parent   DefaultsParent? @relation(fields: [parentId], references: [id]) // implicit: onDelete: SetNull, onUpdate: Cascade - per https://www.prisma.io/docs/concepts/components/prisma-schema/relations/referential-actions#referential-action-defaults
+//   parentId Int?            @unique
+// }
+
+// OnDelete: Cascade
+
+model OnDeleteCascadeParent {
+  id                Int                             @id @default(autoincrement())
+  name              String                          @unique
+  mandatoryChildren OnDeleteCascadeMandatoryChild[]
+}
+
+model OnDeleteCascadeMandatoryChild {
+  id       Int                   @id @default(autoincrement())
+  name     String                @unique
+  parent   OnDeleteCascadeParent @relation(fields: [parentId], references: [id], onDelete: Cascade)
+  parentId Int
+}
+
+// OnDelete: Restrict
+// OnDelete: NoAction
+// OnDelete: SetNull
+// OnDelete: SetDefault
+
+// OnUpdate: Cascade
+// OnUpdate: Restrict
+// OnUpdate: NoAction
+// OnUpdate: SetNull
+// OnUpdate: SetDefault
