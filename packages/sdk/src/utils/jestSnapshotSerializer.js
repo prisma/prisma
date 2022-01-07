@@ -175,8 +175,10 @@ module.exports = {
   serialize(value) {
     const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
     return pipe(
-      // Generic
       stripAnsi,
+      // integration-tests pkg
+      prepareSchemaForSnapshot,
+      // Generic
       normalizePaths,
       // normalizeTmpDir,
       normalizeTime,
@@ -193,8 +195,6 @@ module.exports = {
       normalizeDbUrl,
       normalizeRustError,
       normalizeMigrateTimestamps,
-      // integration-tests pkg
-      prepareSchemaForSnapshot,
     )(message)
   },
 }
