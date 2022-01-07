@@ -136,6 +136,7 @@ export class MigrateEngine {
     } catch (e) {
       console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
     }
+
     if (result) {
       if (result.id) {
         if (!this.listeners[result.id]) {
@@ -145,15 +146,11 @@ export class MigrateEngine {
           this.listeners[result.id](result)
           delete this.listeners[result.id]
         }
-      } else {
-        // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
-        if (result.is_panic) {
-          throw new Error(`Response: ${result.message}`)
-        } else if (result.message) {
-          console.error(chalk.red(`Response: ${result.message}`))
-        } else {
-          console.error(chalk.red(`Response: ${JSON.stringify(result)}`))
-        }
+      } else if (result.method) {
+          // This is a notification.
+          if (result.method === "print" && Boolean(result.params?.content)) {
+              process.stdout.write(result.params?.content)
+          }
       }
     }
   }
@@ -246,10 +243,6 @@ export class MigrateEngine {
 
           try {
             const json: MigrateEngineLogLine = JSON.parse(data)
-
-            if (json.fields?.migrate_action === 'log') {
-              console.info(json.fields.message)
-            }
 
             this.messages.push(json.fields.message)
 
