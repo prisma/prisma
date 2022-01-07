@@ -1,4 +1,3 @@
-const os = require('os')
 const path = require('path')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
@@ -107,6 +106,8 @@ module.exports = {
   },
   serialize(value) {
     const message = typeof value === 'string' ? value : value instanceof Error ? value.message : ''
+
+    // order is important
     return pipe(
       stripAnsi,
       // integration-tests pkg
@@ -117,9 +118,9 @@ module.exports = {
       normalizeTime,
       // From Client package
       normalizeGithubLinks,
-      normalizeBinaryFilePath,
-      normalizeNodeApiLibFilePath,
       removePlatforms,
+      normalizeNodeApiLibFilePath,
+      normalizeBinaryFilePath,
       normalizeTsClientStackTrace,
       trimErrorPaths,
       normalizePrismaPaths,

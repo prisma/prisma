@@ -44,7 +44,7 @@ test('missing-engine: library', async () => {
           You incorrectly pinned it to TEST_PLATFORM
 
           This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.dylib.node")
+          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
           Searched Locations:
 
