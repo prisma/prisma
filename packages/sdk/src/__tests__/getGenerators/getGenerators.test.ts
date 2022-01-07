@@ -558,15 +558,15 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "[33mWarning:[39m Your current platform \`[1mdarwin[22m\` is not included in your generator's \`binaryTargets\` configuration \\"env(\\\\\\"BINARY_TARGETS_ENV_VAR_TEST\\\\\\")\\".
-          To fix it, use this generator config in your [1mschema.prisma[22m:
-          [92mgenerator gen_env {[39m
-      [92m  provider      = \\"predefined-generator\\"[39m
-      [92m  binaryTargets = \\"env(\\\\\\"BINARY_TARGETS_ENV_VAR_TEST\\\\\\")\\"[39m
-      [92m}[39m
-          [90mNote, that by providing \`native\`, Prisma Client automatically resolves \`darwin\`.[39m
-      [90m    Read more about deploying Prisma Client: [4mhttps://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md[24m[39m
+    expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      "Warning: Your current platform \`darwin\` is not included in your generator's \`binaryTargets\` configuration \\"env(\\\\\\"BINARY_TARGETS_ENV_VAR_TEST\\\\\\")\\".
+          To fix it, use this generator config in your schema.prisma:
+          generator gen_env {
+        provider      = \\"predefined-generator\\"
+        binaryTargets = \\"env(\\\\\\"BINARY_TARGETS_ENV_VAR_TEST\\\\\\")\\"
+      }
+          Note, that by providing \`native\`, Prisma Client automatically resolves \`darwin\`.
+          Read more about deploying Prisma Client: https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md
       "
     `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

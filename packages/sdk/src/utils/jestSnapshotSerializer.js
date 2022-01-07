@@ -99,16 +99,16 @@ function normalizeToUnixPaths(str) {
   return replaceAll(str, path.sep, '/')
 }
 
-function removePlatforms(str) {
-  return str.replace(platformRegex, 'TEST_PLATFORM')
-}
-
 function normalizeGithubLinks(str) {
   return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/new\S+/, 'TEST_GITHUB_LINK')
 }
 
 function normalizeTsClientStackTrace(str) {
   return str.replace(/([/\\]client[/\\]src[/\\]__tests__[/\\].*test.ts)(:\d*:\d*)/, '$1:0:0')
+}
+
+function removePlatforms(str) {
+  return str.replace(platformRegex, 'TEST_PLATFORM')
 }
 
 // When updating snapshots this is sensitive to OS
