@@ -55,7 +55,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
       expect(e.message).toMatchInlineSnapshot(`
 
         Invalid \`prisma.user.delete()\` invocation in
-        <PROJECT_ROOT>/test.ts:49:31
+        /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-mysql/test.ts:0:0
 
           46 expect(await prisma.post.findMany()).toHaveLength(1)
           47 

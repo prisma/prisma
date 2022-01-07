@@ -19,7 +19,7 @@ test('invalid-input', async () => {
     expect(e).toMatchInlineSnapshot(`
 
       Invalid \`prisma.user.create()\` invocation in
-      <PROJECT_ROOT>/src/__tests__/integration/errors/invalid-input/test.ts:10:23
+      /client/src/__tests__/integration/errors/invalid-input/test.ts:0:0
 
          7 await prisma.user.deleteMany()
          8 

@@ -33,7 +33,7 @@ describe('using cli', () => {
     }
 
     expect(cleanSnapshot(data.stdout)).toContain(`I am a minimal generator`)
-  }, 30000) // timeout
+  }, 50000) // timeout
 })
 
 describe('--schema from project directory', () => {

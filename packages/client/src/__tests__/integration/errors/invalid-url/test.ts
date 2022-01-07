@@ -22,7 +22,7 @@ describe('invalid-url', () => {
       expect(err).toMatchInlineSnapshot(`
 
         Invalid \`prisma.user.findUnique()\` invocation in
-        <PROJECT_ROOT>/test.ts:16:25
+        /client/src/__tests__/integration/errors/invalid-url/test.ts:0:0
 
           13 expect.assertions(1)
           14 

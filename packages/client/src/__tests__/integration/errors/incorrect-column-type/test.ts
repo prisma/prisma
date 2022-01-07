@@ -15,7 +15,7 @@ test('incorrect-column-type', async () => {
   await expect(prisma.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`expect(prisma.user.findMany()\` invocation in
-          <PROJECT_ROOT>/src/__tests__/integration/errors/incorrect-column-type/test.ts:15:28
+          /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:0:0
 
             12   ],
             13 })

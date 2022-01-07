@@ -34,7 +34,7 @@ test('missing-engine-native-binaryTarget: library', async () => {
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`prisma.user.findMany()\` invocation in
-          <PROJECT_ROOT>/library.test.ts:33:23
+          /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/library.test.ts:0:0
 
             30 })
             31 
@@ -44,17 +44,17 @@ test('missing-engine-native-binaryTarget: library', async () => {
           You incorrectly pinned it to TEST_PLATFORM
 
           This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "<PROJECT_ROOT>/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.dylib.node")
+          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.dylib.node")
 
           Searched Locations:
 
-            <PROJECT_ROOT>/node_modules/.prisma/client
-            <PROJECT_ROOT>/node_modules/@prisma/client/runtime
-            <PROJECT_ROOT>/node_modules/@prisma/client
-            <PROJECT_ROOT>/node_modules/.prisma/client
-            <PROJECT_ROOT>
+            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
+            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
+            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
             /tmp/prisma-engines
-            <PROJECT_ROOT>/node_modules/.prisma/client
+            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
 
           You already added the platform "native" to the "generator" block
           in the "schema.prisma" file as described in https://pris.ly/d/client-generator,

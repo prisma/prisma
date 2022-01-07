@@ -21,7 +21,7 @@ describe('can-not-connect-to-database', () => {
       expect(err).toMatchInlineSnapshot(`
 
         Invalid \`prisma.user.findUnique()\` invocation in
-        <PROJECT_ROOT>/test.ts:15:25
+        /client/src/__tests__/integration/errors/can-not-connect-to-database/test.ts:0:0
 
           12 test('auto-connect', async () => {
           13   expect.assertions(1)

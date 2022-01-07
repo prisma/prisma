@@ -6,7 +6,7 @@ test('missing-column', async () => {
   await expect(client.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(`
 
           Invalid \`expect(client.user.findMany()\` invocation in
-          <PROJECT_ROOT>/src/__tests__/integration/errors/missing-column/test.ts:6:28
+          /client/src/__tests__/integration/errors/missing-column/test.ts:0:0
 
             3 test('missing-column', async () => {
             4   const PrismaClient = await getTestClient()
