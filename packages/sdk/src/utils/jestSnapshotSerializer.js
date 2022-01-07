@@ -52,9 +52,9 @@ function normalizePaths(value) {
     (val) => val.split(tempDirReal).join('<TEMP_DIR>'),
     (val) => val.split(tempDir).join('<TEMP_DIR>'),
 
-    // Replace home directory with <HOME_DIR>
-    (val) => val.split(homeDirReal).join('<HOME_DIR>'),
-    (val) => val.split(homeDir).join('<HOME_DIR>'),
+    // // Replace home directory with <HOME_DIR>
+    // (val) => val.split(homeDirReal).join('<HOME_DIR>'),
+    // (val) => val.split(homeDir).join('<HOME_DIR>'),
 
     // handle HOME_DIR nested inside TEMP_DIR
     (val) => val.split(`<TEMP_DIR>${path.sep + homeRelativeToTemp}`).join('<HOME_DIR>'),

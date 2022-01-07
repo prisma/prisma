@@ -37,7 +37,7 @@ test('uncheckedScalarInputs validation', async () => {
     expect(e).toMatchInlineSnapshot(`
 
       Invalid \`prisma.trip.create()\` invocation in
-      <HOME_DIR>/Dev/prisma-meow/packages/client/src/__tests__/integration/errors/uncheckedScalarValidation/test.ts:0:0
+      <PROJECT_ROOT>/src/__tests__/integration/errors/uncheckedScalarValidation/test.ts:9:23
 
          6 const prisma = new PrismaClient()
          7 

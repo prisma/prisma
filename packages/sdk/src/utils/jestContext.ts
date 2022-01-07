@@ -51,11 +51,7 @@ export const jestContext = {
           overwrite: true,
         })
         // symlink to local client version in tmp dir
-        // TODO change path?
-        c.fs.symlink(
-          path.join(__dirname, '..', '..', '..', '..', 'client'),
-          path.join(c.fs.cwd(), 'node_modules', '@prisma', 'client'),
-        )
+        c.fs.symlink(path.join(originalCwd, '..', 'client'), path.join(c.fs.cwd(), 'node_modules', '@prisma', 'client'))
       }
       c.mocked = c.mocked ?? {
         cwd: process.cwd(),

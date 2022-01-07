@@ -24,7 +24,7 @@ test('union validation', async () => {
     expect(e).toMatchInlineSnapshot(`
 
       Invalid \`prisma.organization.create()\` invocation in
-      <HOME_DIR>/Dev/prisma-meow/packages/client/src/__tests__/integration/errors/union-validation/test.ts:0:0
+      <PROJECT_ROOT>/src/__tests__/integration/errors/union-validation/test.ts:9:31
 
          6 const prisma = new PrismaClient()
          7 
