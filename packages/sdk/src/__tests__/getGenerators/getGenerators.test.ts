@@ -553,17 +553,9 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-      "Warning: Your current platform \`darwin\` is not included in your generator's \`binaryTargets\` configuration \\"env(\\\\\\"BINARY_TARGETS_ENV_VAR_TEST\\\\\\")\\".
-          To fix it, use this generator config in your schema.prisma:
-          generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = \\"env(\\\\\\"BINARY_TARGETS_ENV_VAR_TEST\\\\\\")\\"
-      }
-          Note, that by providing \`native\`, Prisma Client automatically resolves \`darwin\`.
-          Read more about deploying Prisma Client: https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md
-      "
-    `)
+    const consoleLog = stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))
+    expect(consoleLog).toContain('Warning: Your current platform')
+    expect(consoleLog).toContain(`s not included in your generator's \`binaryTargets\` configuration`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
