@@ -37,7 +37,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -57,7 +57,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -77,7 +77,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -110,7 +110,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -140,7 +140,7 @@ query {
         title
         content
         authorId
-        optionnal
+        optional
       }
     }
   }
@@ -161,7 +161,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -194,7 +194,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -221,7 +221,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -250,7 +250,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -300,7 +300,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -317,7 +317,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String | null,
-?   optionnal?: Float | null,
+?   optional?: Float | null,
 ?   author?: {
 ?     create?: UserCreateWithoutPostsInput | UserUncheckedCreateWithoutPostsInput,
 ?     connectOrCreate?: UserCreateOrConnectWithoutPostsInput,
@@ -354,7 +354,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -376,7 +376,7 @@ Invalid \`prisma.createOnePost()\` invocation:
 ?   createdAt?: DateTime,
 ?   updatedAt?: DateTime,
 ?   content?: String | null,
-?   optionnal?: Float | null,
+?   optional?: Float | null,
 ?   categories?: {
 ?     create?: CategoryCreateWithoutPostsInput | CategoryCreateWithoutPostsInput | CategoryUncheckedCreateWithoutPostsInput | CategoryUncheckedCreateWithoutPostsInput,
 ?     connectOrCreate?: CategoryCreateOrConnectWithoutPostsInput | CategoryCreateOrConnectWithoutPostsInput,
