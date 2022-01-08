@@ -1,5 +1,5 @@
 // Taken from https://github.com/unclechu/node-deep-extend/blob/master/lib/deep-extend.js
-// es2017-ified by Tim Suchanek, now it's about 2.5 times faster
+// es2017-Simplified by Tim Suchanek, now it's about 2.5 times faster
 /*!
  * @description Recursive object extending
  * @author Viacheslav Lotsmanov <lotsmanov89@gmail.com>
@@ -71,7 +71,7 @@ function safeGetProperty(object, property): any {
 }
 
 /**
- * Extening object that entered in first argument.
+ * Extending object that entered in first argument.
  *
  * Returns extended object or false if have no target object or incorrect type.
  *
