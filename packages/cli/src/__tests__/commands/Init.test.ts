@@ -73,7 +73,7 @@ test('works with provider param - mysql', async () => {
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="mysql://johndoe:randompassword@localhost:5432/mydb"
+    DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
   `)
 })
 
@@ -113,7 +113,7 @@ test('works with provider param - SqlServer', async () => {
     # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
-    DATABASE_URL="sqlserver://localhost:5432;database=mydb;user=SA;password=randompassword;"
+    DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;"
   `)
 })
 
