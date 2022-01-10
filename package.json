@@ -54,7 +54,7 @@
     "eslint-plugin-jest": "25.3.4",
     "eslint-plugin-prettier": "4.0.0",
     "eventemitter3": "4.0.7",
-    "execa": "5.1.1",
+    "execa": "6.0.0",
     "glob": "7.2.0",
     "globby": "11.0.4",
     "graphviz": "0.0.9",

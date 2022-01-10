@@ -91,7 +91,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "25.3.4",
     "eslint-plugin-prettier": "4.0.0",
-    "execa": "5.1.1",
+    "execa": "6.0.0",
     "fast-deep-equal": "3.1.3",
     "fs-extra": "10.0.0",
     "fs-jetpack": "4.3.0",
