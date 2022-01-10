@@ -37,7 +37,7 @@
     "mssql": "7.3.0",
     "pg": "8.7.1",
     "prettier": "2.5.1",
-    "replace-string": "3.1.0",
+    "replace-string": "4.0.0",
     "sqlite-async": "1.1.2",
     "string-hash": "1.1.3",
     "strip-ansi": "6.0.1",
