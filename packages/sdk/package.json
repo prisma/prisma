@@ -72,7 +72,7 @@
     "dotenv": "10.0.0",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
-    "find-up": "5.0.0",
+    "find-up": "6.2.0",
     "global-dirs": "3.0.0",
     "globby": "11.1.0",
     "has-yarn": "2.1.0",
