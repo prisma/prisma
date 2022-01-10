@@ -143,7 +143,7 @@ export class LibraryEngine extends Engine {
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
         `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_LIBRARY')} ${chalk.redBright.bold(
-          this.platform,
+          platform,
         )}. Possible binaryTargets: ${chalk.greenBright(
           knownPlatforms.join(', '),
         )} or a path to the query engine library.
