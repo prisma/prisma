@@ -264,7 +264,7 @@ importers:
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
-      strip-indent: 3.0.0
+      strip-indent: 4.0.0
       ts-jest: 27.1.2
       ts-node: 10.4.0
       tsd: 0.19.1
@@ -326,7 +326,7 @@ importers:
       sql-template-tag: 4.0.0
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
-      strip-indent: 3.0.0
+      strip-indent: 4.0.0
       ts-jest: 27.1.2_96b3dccf67dffb8a903f55c0ad4de774
       ts-node: 10.4.0_9303900730675ceadab88ac326bf0384
       tsd: 0.19.1
@@ -588,7 +588,7 @@ importers:
       prettier: 2.5.1
       prompts: 2.4.2
       strip-ansi: 6.0.1
-      strip-indent: 3.0.0
+      strip-indent: 4.0.0
       tempy: 1.0.1
       ts-jest: 27.1.2
       typescript: 4.5.4
@@ -605,7 +605,7 @@ importers:
       pkg-up: 3.1.0
       prompts: 2.4.2
       strip-ansi: 6.0.1
-      strip-indent: 3.0.0
+      strip-indent: 4.0.0
     devDependencies:
       '@prisma/engines-version': 3.8.0-41.8f1d9bccda3c881608903cfbefae0d55e2b6833d
       '@prisma/generator-helper': link:../generator-helper
@@ -721,7 +721,7 @@ importers:
       shell-quote: 1.7.3
       string-width: 4.2.3
       strip-ansi: 6.0.1
-      strip-indent: 3.0.0
+      strip-indent: 4.0.0
       tar: 6.1.11
       temp-dir: 2.0.0
       temp-write: 4.0.0
@@ -761,7 +761,7 @@ importers:
       shell-quote: 1.7.3
       string-width: 4.2.3
       strip-ansi: 6.0.1
-      strip-indent: 3.0.0
+      strip-indent: 4.0.0
       tar: 6.1.11
       temp-dir: 2.0.0
       temp-write: 4.0.0
@@ -7555,6 +7555,13 @@ packages:
   /strip-indent/3.0.0:
     resolution: {integrity: sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==}
     engines: {node: '>=8'}
+    dependencies:
+      min-indent: 1.0.1
+    dev: true
+
+  /strip-indent/4.0.0:
+    resolution: {integrity: sha512-mnVSV2l+Zv6BLpSD/8V87CW/y9EmmbYzGCIavsnsI6/nwn26DwffM/yztm30Z/I2DY9wdS3vXVCMnHDgZaVNoA==}
+    engines: {node: '>=12'}
     dependencies:
       min-indent: 1.0.1
 
