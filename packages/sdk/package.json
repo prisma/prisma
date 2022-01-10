@@ -77,7 +77,7 @@
     "has-yarn": "2.1.0",
     "is-ci": "3.0.1",
     "make-dir": "3.1.0",
-    "node-fetch": "2.6.6",
+    "node-fetch": "3.1.0",
     "p-map": "4.0.0",
     "read-pkg-up": "7.0.1",
     "resolve": "1.21.0",
