@@ -24,7 +24,7 @@ services:
   # - TEST_MONGO_URI=mongodb://root:prisma@localhost:27017/tests?authSource=admin
 
   postgres:
-    image: postgres:10
+    image: postgres:14
     restart: always
     environment:
       - POSTGRES_DB=tests
@@ -36,7 +36,7 @@ services:
       - '5432:5432'
 
   postgres_isolated:
-    image: postgres:10
+    image: postgres:14
     restart: always
     environment:
       - POSTGRES_DB=tests
