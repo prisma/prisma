@@ -697,7 +697,7 @@ importers:
       cli-truncate: 2.1.0
       dotenv: 10.0.0
       esbuild: 0.13.14
-      escape-string-regexp: 4.0.0
+      escape-string-regexp: 5.0.0
       eslint: 8.6.0
       eslint-config-prettier: 8.3.0
       eslint-plugin-eslint-comments: 3.2.0
@@ -745,7 +745,7 @@ importers:
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
       dotenv: 10.0.0
-      escape-string-regexp: 4.0.0
+      escape-string-regexp: 5.0.0
       execa: 5.1.1
       find-up: 5.0.0
       global-dirs: 3.0.0
@@ -3831,6 +3831,11 @@ packages:
   /escape-string-regexp/4.0.0:
     resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
     engines: {node: '>=10'}
+
+  /escape-string-regexp/5.0.0:
+    resolution: {integrity: sha512-/veY75JbMK4j1yjvuUxuVsiS/hr/4iHs9FTT6cgTexxdE0Ly/glccBAkloH/DofkjRbZU3bnoj38mOmhkZ0lHw==}
+    engines: {node: '>=12'}
+    dev: false
 
   /escodegen/2.0.0:
     resolution: {integrity: sha512-mmHKys/C8BFUGI+MAWNcSYoORYLMdPzjrknd2Vc+bUsjN5bXcr8EhrNB+UTqfL1y3I9c4fw2ihgtMPQLBRiQxw==}
