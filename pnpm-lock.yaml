@@ -399,7 +399,7 @@ importers:
       p-retry: 4.6.1
       prettier: 2.5.1
       strip-ansi: 6.0.1
-      terminal-link: 2.1.1
+      terminal-link: 3.0.0
       ts-jest: 27.1.2
       typescript: 4.5.4
       undici: 3.3.6
@@ -414,7 +414,7 @@ importers:
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
-      terminal-link: 2.1.1
+      terminal-link: 3.0.0
       undici: 3.3.6
     devDependencies:
       '@types/jest': 27.4.0
@@ -726,7 +726,7 @@ importers:
       temp-dir: 2.0.0
       temp-write: 4.0.0
       tempy: 1.0.1
-      terminal-link: 2.1.1
+      terminal-link: 3.0.0
       tmp: 0.2.1
       ts-jest: 27.1.2
       ts-node: 10.4.0
@@ -766,7 +766,7 @@ importers:
       temp-dir: 2.0.0
       temp-write: 4.0.0
       tempy: 1.0.1
-      terminal-link: 2.1.1
+      terminal-link: 3.0.0
       tmp: 0.2.1
     devDependencies:
       '@types/jest': 27.4.0
@@ -2471,6 +2471,13 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       type-fest: 0.21.3
+
+  /ansi-escapes/5.0.0:
+    resolution: {integrity: sha512-5GFMVX8HqE/TB+FuBJGuO5XG0WrsA6ptUqoODaT/n9mmUaZFkqnBueB4leqGBCmrUHnCnC4PCZTCd0E7QQ83bA==}
+    engines: {node: '>=12'}
+    dependencies:
+      type-fest: 1.4.0
+    dev: false
 
   /ansi-regex/2.1.1:
     resolution: {integrity: sha1-w7M6te42DYbg5ijwRorn7yfWVN8=}
@@ -7730,6 +7737,15 @@ packages:
     dependencies:
       ansi-escapes: 4.3.2
       supports-hyperlinks: 2.2.0
+    dev: true
+
+  /terminal-link/3.0.0:
+    resolution: {integrity: sha512-flFL3m4wuixmf6IfhFJd1YPiLiMuxEc8uHRM1buzIeZPm22Au2pDqBJQgdo7n1WfPU1ONFGv7YDwpFBmHGF6lg==}
+    engines: {node: '>=12'}
+    dependencies:
+      ansi-escapes: 5.0.0
+      supports-hyperlinks: 2.2.0
+    dev: false
 
   /test-exclude/6.0.0:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
@@ -8064,6 +8080,11 @@ packages:
   /type-fest/0.8.1:
     resolution: {integrity: sha512-4dbzIzqvjtgiM5rw1k5rEHtBANKmdudhGyBEajN01fEyhaAIhsoKNy6y7+IN93IfpFtwY9iqi7kD+xwKhQsNJA==}
     engines: {node: '>=8'}
+
+  /type-fest/1.4.0:
+    resolution: {integrity: sha512-yGSza74xk0UG8k+pLh5oeoYirvIiWo5t0/o3zHHAO2tRDiZcxWP7fywNlXhqb6/r6sWvwi+RsyQMWhVLe4BVuA==}
+    engines: {node: '>=10'}
+    dev: false
 
   /type-is/1.6.18:
     resolution: {integrity: sha512-TkRKr9sUTxEH8MdfuCSP7VizJyzRNMjj2J2do2Jr3Kym598JVdEksuzPQCnlFPW4ky9Q+iA+ma9BGm06XQBy8g==}
