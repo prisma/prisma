@@ -187,7 +187,9 @@ describe('postgresql', () => {
   })
 })
 
-describe('cockroachdb', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
     jest.setTimeout(10000)
