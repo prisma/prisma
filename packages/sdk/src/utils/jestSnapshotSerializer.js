@@ -62,7 +62,7 @@ function normalizeMigrateTimestamps(str) {
 }
 
 function normalizeDbUrl(str) {
-  return str.replace(/(localhost|postgres|mysql|mssql):\d+/g, 'localhost:5432')
+  return str.replace(/(localhost|postgres|mysql|mssql):(\d+)/g, 'localhost:$2')
 }
 
 function normalizeRustError(str) {
