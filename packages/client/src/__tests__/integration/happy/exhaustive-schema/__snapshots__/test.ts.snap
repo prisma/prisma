@@ -2187,7 +2187,7 @@ export namespace Prisma {
    * The delegate class that acts as a "Promise-like" for Post.
    * Why is this prefixed with \`Prisma__\`?
    * Because we want to prevent naming conflicts as mentioned in
-   * TEST_GITHUB_LINK
+   * https://github.com/prisma/prisma-client-js/issues/707
    */
   export class Prisma__PostClient<T> implements PrismaPromise<T> {
     [prisma]: true;

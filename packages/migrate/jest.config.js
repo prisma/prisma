@@ -14,8 +14,7 @@ module.exports = {
     'test-handlePanic.ts',
     'test-interactivelyCreateDatabase.ts',
   ],
-  // todo duplicated serializer from client package, should share
-  snapshotSerializers: ['./src/__tests__/__helpers__/snapshotSerializer.ts'],
+  snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
   // to get rid of "jest-haste-map: Haste module naming collision: package name"
   modulePathIgnorePatterns: ['<rootDir>/src/__tests__/fixtures/'],
 }
