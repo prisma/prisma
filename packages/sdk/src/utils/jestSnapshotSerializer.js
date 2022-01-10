@@ -26,10 +26,10 @@ function trimErrorPaths(str) {
   return replaceAll(str, parentDir, '')
 }
 
-// function normalizeToUnixPaths(str) {
-//   // TODO: Windows: this breaks some tests by replacing backslashes outside of file names.
-//   return replaceAll(str, path.sep, '/')
-// }
+function normalizeToUnixPaths(str) {
+  // TODO: Windows: this breaks some tests by replacing backslashes outside of file names.
+  return replaceAll(str, path.sep, '/')
+}
 
 function normalizeGithubLinks(str) {
   return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/new\S+/, 'TEST_GITHUB_LINK')
@@ -113,7 +113,7 @@ module.exports = {
       // integration-tests pkg
       prepareSchemaForSnapshot,
       // Generic
-      // normalizeToUnixPaths,
+      normalizeToUnixPaths,
       normalizeTmpDir,
       normalizeTime,
       // From Client package
