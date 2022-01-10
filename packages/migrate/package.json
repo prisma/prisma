@@ -60,7 +60,7 @@
     "execa": "5.1.1",
     "has-yarn": "2.1.0",
     "indent-string": "4.0.0",
-    "log-update": "4.0.0",
+    "log-update": "5.0.0",
     "new-github-issue-url": "0.2.1",
     "open": "7.4.2",
     "pkg-up": "3.1.0",
