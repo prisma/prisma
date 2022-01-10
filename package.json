@@ -61,7 +61,7 @@
     "husky": "7.0.4",
     "is-ci": "3.0.1",
     "node-fetch": "2.6.6",
-    "p-map": "4.0.0",
+    "p-map": "5.3.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.1",
     "path-browserify": "1.0.1",
