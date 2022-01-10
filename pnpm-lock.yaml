@@ -395,7 +395,7 @@ importers:
       indent-string: 4.0.0
       jest: 27.4.6
       lint-staged: 12.1.5
-      new-github-issue-url: 0.2.1
+      new-github-issue-url: 1.0.0
       p-retry: 4.6.1
       prettier: 2.5.1
       strip-ansi: 6.0.1
@@ -412,7 +412,7 @@ importers:
       execa: 5.1.1
       get-stream: 6.0.1
       indent-string: 4.0.0
-      new-github-issue-url: 0.2.1
+      new-github-issue-url: 1.0.0
       p-retry: 4.6.1
       terminal-link: 2.1.1
       undici: 3.3.6
@@ -581,7 +581,7 @@ importers:
       make-dir: 3.1.0
       mariadb: 2.5.5
       mock-stdin: 1.0.0
-      new-github-issue-url: 0.2.1
+      new-github-issue-url: 1.0.0
       open: 7.4.2
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -600,7 +600,7 @@ importers:
       has-yarn: 2.1.0
       indent-string: 4.0.0
       log-update: 4.0.0
-      new-github-issue-url: 0.2.1
+      new-github-issue-url: 1.0.0
       open: 7.4.2
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -6265,9 +6265,9 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /new-github-issue-url/0.2.1:
-    resolution: {integrity: sha512-md4cGoxuT4T4d/HDOXbrUHkTKrp/vp+m3aOA7XXVYwNsUNMK49g3SQicTSeV5GIz/5QVGAeYRAOlyp9OvlgsYA==}
-    engines: {node: '>=10'}
+  /new-github-issue-url/1.0.0:
+    resolution: {integrity: sha512-wa9jlUFg3v6S3ddijQiB18SY4u9eJYcUe5sHa+6SB8m1UUbtX+H/bBglxOLnhhF1zIHuhWXnKBAa8kBeKRIozQ==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dev: false
 
   /node-abi/2.30.1:

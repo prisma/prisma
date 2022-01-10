@@ -56,7 +56,7 @@
     "execa": "5.1.1",
     "get-stream": "6.0.1",
     "indent-string": "4.0.0",
-    "new-github-issue-url": "0.2.1",
+    "new-github-issue-url": "1.0.0",
     "p-retry": "4.6.1",
     "terminal-link": "2.1.1",
     "undici": "3.3.6"
