@@ -3,12 +3,12 @@ process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 import prompt from 'prompts'
 import { DbPush } from '../commands/DbPush'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 // TODO: Windows: a lot of snapshot tests here fail on Windows because of emoji.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describeIf(process.platform !== 'win32')('push', () => {
   it('--preview-feature flag is not required anymore', async () => {

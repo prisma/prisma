@@ -7,6 +7,9 @@ import { getGenerators } from '../../get-generators/getGenerators'
 import { omit } from '../../omit'
 import { pick } from '../../pick'
 import { resolveBinary } from '../../resolveBinary'
+import { jestConsoleContext, jestContext } from '../../utils/jestContext'
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 jest.setTimeout(20000)
 
@@ -184,6 +187,11 @@ describe('getGenerators', () => {
       }
     `)
 
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+
     generators.forEach((g) => g.stop())
   })
 
@@ -269,6 +277,11 @@ describe('getGenerators', () => {
       }
     `)
 
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+
     generators.forEach((g) => g.stop())
   })
 
@@ -288,20 +301,20 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-              Array [
-                Object {
-                  "defaultOutput": "default-output",
-                  "denylist": Array [
-                    "SomeForbiddenType",
-                  ],
-                  "prettyName": "This is a pretty pretty name",
-                  "requiresEngines": Array [
-                    "queryEngine",
-                    "migrationEngine",
-                  ],
-                },
-              ]
-          `)
+      Array [
+        Object {
+          "defaultOutput": "default-output",
+          "denylist": Array [
+            "SomeForbiddenType",
+          ],
+          "prettyName": "This is a pretty pretty name",
+          "requiresEngines": Array [
+            "queryEngine",
+            "migrationEngine",
+          ],
+        },
+      ]
+    `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
@@ -343,16 +356,21 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-              Object {
-                "config": Object {},
-                "name": "gen_env",
-                "previewFeatures": Array [],
-                "provider": Object {
-                  "fromEnvVar": null,
-                  "value": "predefined-generator",
-                },
-              }
-          `)
+      Object {
+        "config": Object {},
+        "name": "gen_env",
+        "previewFeatures": Array [],
+        "provider": Object {
+          "fromEnvVar": null,
+          "value": "predefined-generator",
+        },
+      }
+    `)
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
@@ -373,20 +391,20 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-              Array [
-                Object {
-                  "defaultOutput": "default-output",
-                  "denylist": Array [
-                    "SomeForbiddenType",
-                  ],
-                  "prettyName": "This is a pretty pretty name",
-                  "requiresEngines": Array [
-                    "queryEngine",
-                    "migrationEngine",
-                  ],
-                },
-              ]
-          `)
+      Array [
+        Object {
+          "defaultOutput": "default-output",
+          "denylist": Array [
+            "SomeForbiddenType",
+          ],
+          "prettyName": "This is a pretty pretty name",
+          "requiresEngines": Array [
+            "queryEngine",
+            "migrationEngine",
+          ],
+        },
+      ]
+    `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
       Object {
@@ -421,30 +439,126 @@ describe('getGenerators', () => {
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-              Object {
-                "binaryTargets": Array [
-                  Object {
-                    "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-                    "value": "darwin",
-                  },
-                  Object {
-                    "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-                    "value": "windows",
-                  },
-                  Object {
-                    "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-                    "value": "debian-openssl-1.1.x",
-                  },
-                ],
-                "config": Object {},
-                "name": "gen_env",
-                "previewFeatures": Array [],
-                "provider": Object {
-                  "fromEnvVar": null,
-                  "value": "predefined-generator",
-                },
-              }
-          `)
+      Object {
+        "binaryTargets": Array [
+          Object {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "darwin",
+          },
+          Object {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "windows",
+          },
+          Object {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "debian-openssl-1.1.x",
+          },
+        ],
+        "config": Object {},
+        "name": "gen_env",
+        "previewFeatures": Array [],
+        "provider": Object {
+          "fromEnvVar": null,
+          "value": "predefined-generator",
+        },
+      }
+    `)
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+
+    generators.forEach((g) => g.stop())
+  })
+
+  it('basic - binaryTargets as env var - linux-musl (missing current platform)', async () => {
+    process.env.BINARY_TARGETS_ENV_VAR_TEST = '["linux-musl"]'
+
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
+      providerAliases: aliases,
+    })
+
+    expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "defaultOutput": "default-output",
+          "denylist": Array [
+            "SomeForbiddenType",
+          ],
+          "prettyName": "This is a pretty pretty name",
+          "requiresEngines": Array [
+            "queryEngine",
+            "migrationEngine",
+          ],
+        },
+      ]
+    `)
+
+    expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
+      Object {
+        "datamodel": "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:./dev.db\\"
+      }
+
+      generator gen_env {
+        provider      = \\"predefined-generator\\"
+        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+      }
+
+      model User {
+        id   Int    @id
+        name String
+      }
+      ",
+        "datasources": Array [
+          Object {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": "sqlite",
+            "url": Object {
+              "fromEnvVar": null,
+              "value": "file:./dev.db",
+            },
+          },
+        ],
+        "otherGenerators": Array [],
+      }
+    `)
+
+    expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
+      Object {
+        "binaryTargets": Array [
+          Object {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "linux-musl",
+          },
+        ],
+        "config": Object {},
+        "name": "gen_env",
+        "previewFeatures": Array [],
+        "provider": Object {
+          "fromEnvVar": null,
+          "value": "predefined-generator",
+        },
+      }
+    `)
+
+    const consoleLog = stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))
+    expect(consoleLog).toContain('Warning: Your current platform')
+    expect(consoleLog).toContain(`s not included in your generator's \`binaryTargets\` configuration`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
 
     generators.forEach((g) => g.stop())
   })
@@ -512,10 +626,15 @@ describe('getGenerators', () => {
         providerAliases: aliases,
       }),
     ).rejects.toThrow('Unknown')
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('fail if datasource is missing', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
@@ -544,10 +663,15 @@ describe('getGenerators', () => {
         "
       `)
     }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('fail if no model(s) found - sqlite', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
@@ -577,10 +701,15 @@ describe('getGenerators', () => {
         "
       `)
     }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('fail if no model(s) found - mongodb', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
@@ -610,10 +739,15 @@ describe('getGenerators', () => {
         "
       `)
     }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('fail if mongoDb not found in previewFeatures - prisma-client-js - mongodb', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
@@ -629,25 +763,30 @@ describe('getGenerators', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-"
-In order to use the mongodb provider,
-you need to set the mongodb feature flag.
-You can define the feature flag like this:
+        "
+        In order to use the mongodb provider,
+        you need to set the mongodb feature flag.
+        You can define the feature flag like this:
 
-generator client {
-    provider = \\"prisma-client-js\\"
-    previewFeatures = [\\"mongoDb\\"]
-}
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"mongoDb\\"]
+        }
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-"
-`)
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
     }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   test('fail if mongoDb not found in previewFeatures - prisma-client-go - mongodb', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
@@ -663,27 +802,32 @@ https://pris.ly/d/prisma-schema
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-"
-In order to use the mongodb provider,
-you need to set the mongodb feature flag.
-You can define the feature flag like this:
+        "
+        In order to use the mongodb provider,
+        you need to set the mongodb feature flag.
+        You can define the feature flag like this:
 
-generator client {
-    provider = \\"prisma-client-js\\"
-    previewFeatures = [\\"mongoDb\\"]
-}
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"mongoDb\\"]
+        }
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-"
-`)
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
     }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   // skipped because breaks in CI: https://github.com/prisma/prisma/runs/3729932474#step:8:596
   // thrown: "Exceeded timeout of 20000 ms for a test.
   test.skip('should not be blocked with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
