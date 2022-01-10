@@ -223,7 +223,7 @@ importers:
       '@types/debug': 4.1.7
       '@types/jest': 27.4.0
       '@types/js-levenshtein': 1.1.1
-      '@types/mssql': 6.0.8
+      '@types/mssql': 7.1.4
       '@types/node': 12.20.39
       '@types/pg': 8.6.3
       '@typescript-eslint/eslint-plugin': 5.9.0
@@ -285,7 +285,7 @@ importers:
       '@types/debug': 4.1.7
       '@types/jest': 27.4.0
       '@types/js-levenshtein': 1.1.1
-      '@types/mssql': 6.0.8
+      '@types/mssql': 7.1.4
       '@types/node': 12.20.39
       '@types/pg': 8.6.3
       '@typescript-eslint/eslint-plugin': 5.9.0_bd2fd93dbcc607ad2f21b784bccfe0c8
@@ -484,7 +484,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.4.0
-      '@types/mssql': 6.0.8
+      '@types/mssql': 7.1.4
       '@types/node': 12.20.39
       '@types/pg': 8.6.3
       '@types/sqlite3': 3.1.8
@@ -518,7 +518,7 @@ importers:
       '@prisma/sdk': link:../sdk
       '@sindresorhus/slugify': 1.1.2
       '@types/jest': 27.4.0
-      '@types/mssql': 6.0.8
+      '@types/mssql': 7.1.4
       '@types/node': 12.20.39
       '@types/pg': 8.6.3
       '@types/sqlite3': 3.1.8
@@ -2083,17 +2083,18 @@ packages:
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
 
-  /@types/mssql/6.0.8:
-    resolution: {integrity: sha512-N3dr3o1c6EXhHhhNRaKpLTdAoXT/s6qDEJET5FID2gFCj58vIV9q/7RtkvYdE6ntpkJF5F9hpURhxT/oC62yLw==}
+  /@types/mssql/7.1.4:
+    resolution: {integrity: sha512-WqK7aICej9PXMIhdHlVtJ7kj/SezW8AjJ3zEn837StU8B/m1CGXOFUKlESdTlxbWDh6EzATbnnRKaRZgqjIWDA==}
     dependencies:
-      '@types/node': 16.11.15
+      '@types/node': 16.11.19
       '@types/tedious': 4.0.5
+      tarn: 3.0.1
     dev: true
 
   /@types/node-fetch/2.5.12:
     resolution: {integrity: sha512-MKgC4dlq4kKNa/mYrwpKfzQMB5X3ee5U6fSprkKpToBqBmX4nFZL9cW5jl6sWn+xpRJ7ypWh2yyqqr8UUCstSw==}
     dependencies:
-      '@types/node': 16.11.17
+      '@types/node': 16.11.19
       form-data: 3.0.1
     dev: true
 
@@ -2115,10 +2116,6 @@ packages:
 
   /@types/node/16.11.15:
     resolution: {integrity: sha512-LMGR7iUjwZRxoYnfc9+YELxwqkaLmkJlo4/HUvOMyGvw9DaHO0gtAbH2FUdoFE6PXBTYZIT7x610r7kdo8o1fQ==}
-
-  /@types/node/16.11.17:
-    resolution: {integrity: sha512-C1vTZME8cFo8uxY2ui41xcynEotVkczIVI5AjLmy5pkpBv/FtG+jhtOlfcPysI8VRVwoOMv6NJm44LGnoMSWkw==}
-    dev: true
 
   /@types/node/16.11.19:
     resolution: {integrity: sha512-BPAcfDPoHlRQNKktbsbnpACGdypPFBuX4xQlsWDE7B8XXcfII+SpOLay3/qZmCLb39kV5S1RTYwXdkx2lwLYng==}
@@ -2186,7 +2183,7 @@ packages:
   /@types/stoppable/1.1.1:
     resolution: {integrity: sha512-b8N+fCADRIYYrGZOcmOR8ZNBOqhktWTB/bMUl5LvGtT201QKJZOOH5UsFyI3qtteM6ZAJbJqZoBcLqqxKIwjhw==}
     dependencies:
-      '@types/node': 16.11.17
+      '@types/node': 16.11.19
     dev: true
 
   /@types/tar/6.1.1:
@@ -2199,13 +2196,13 @@ packages:
   /@types/tedious/4.0.5:
     resolution: {integrity: sha512-zlnChTP63Bds6kMBuKOR+qJPB9wcYf1zVm78qiXTnT1gbcU6wdTmSp28cd2BPxePy4mrGM6TnQG1fmHxQW1pZw==}
     dependencies:
-      '@types/node': 16.11.15
+      '@types/node': 16.11.19
     dev: true
 
   /@types/tunnel/0.0.3:
     resolution: {integrity: sha512-sOUTGn6h1SfQ+gbgqC364jLFBw2lnFqkgF3q0WovEHRLMrVD1sd5aufqi/aJObLekJO+Aq5z646U4Oxy6shXMA==}
     dependencies:
-      '@types/node': 16.11.17
+      '@types/node': 16.11.19
     dev: true
 
   /@types/ws/8.2.2:
