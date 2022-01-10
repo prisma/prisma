@@ -242,7 +242,7 @@ importers:
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
-      indent-string: 4.0.0
+      indent-string: 5.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
       jest: 27.4.6
@@ -304,7 +304,7 @@ importers:
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
-      indent-string: 4.0.0
+      indent-string: 5.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
       jest: 27.4.6_ts-node@10.4.0
@@ -392,7 +392,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
       get-stream: 6.0.1
-      indent-string: 4.0.0
+      indent-string: 5.0.0
       jest: 27.4.6
       lint-staged: 12.1.5
       new-github-issue-url: 0.2.1
@@ -411,7 +411,7 @@ importers:
       chalk: 4.1.2
       execa: 5.1.1
       get-stream: 6.0.1
-      indent-string: 4.0.0
+      indent-string: 5.0.0
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       terminal-link: 2.1.1
@@ -574,7 +574,7 @@ importers:
       execa: 5.1.1
       fs-jetpack: 4.3.0
       has-yarn: 2.1.0
-      indent-string: 4.0.0
+      indent-string: 5.0.0
       jest: 27.4.6
       lint-staged: 12.1.5
       log-update: 4.0.0
@@ -598,7 +598,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       execa: 5.1.1
       has-yarn: 2.1.0
-      indent-string: 4.0.0
+      indent-string: 5.0.0
       log-update: 4.0.0
       new-github-issue-url: 0.2.1
       open: 7.4.2
@@ -4814,6 +4814,10 @@ packages:
   /indent-string/4.0.0:
     resolution: {integrity: sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==}
     engines: {node: '>=8'}
+
+  /indent-string/5.0.0:
+    resolution: {integrity: sha512-m6FAo/spmsW2Ab2fU35JTYwtOKa2yAwXSwgjSv1TJzh4Mh7mC3lzAOVLBprb72XsTrgkEIsl7YrFNAiDiRhIGg==}
+    engines: {node: '>=12'}
 
   /inflight/1.0.6:
     resolution: {integrity: sha1-Sb1jMdfQLQwJvJEKEHW6gWW1bfk=}
