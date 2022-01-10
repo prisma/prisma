@@ -31,7 +31,7 @@ export TEST_MONGO_URI="mongodb://root:prisma@localhost:27017/tests?authSource=ad
 export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
 ```
 
-- Load the environnment variables with:
+- Load the environment variables with:
 
 ```sh
 direnv allow
