@@ -41,7 +41,7 @@
     "sqlite-async": "1.1.2",
     "string-hash": "1.1.3",
     "strip-ansi": "6.0.1",
-    "tempy": "1.0.1",
+    "tempy": "2.0.0",
     "ts-jest": "27.1.2",
     "ts-node": "10.4.0",
     "typescript": "4.5.4",
