@@ -113,7 +113,6 @@ module.exports = {
       // integration-tests pkg
       prepareSchemaForSnapshot,
       // Generic
-      normalizeToUnixPaths,
       normalizeTmpDir,
       normalizeTime,
       // From Client package
@@ -124,6 +123,8 @@ module.exports = {
       normalizeTsClientStackTrace,
       trimErrorPaths,
       normalizePrismaPaths,
+      // remove windows \\
+      normalizeToUnixPaths,
       // From Migrate/CLI package
       normalizeDbUrl,
       normalizeRustError,
