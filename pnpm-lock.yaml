@@ -244,7 +244,7 @@ importers:
       get-own-enumerable-property-symbols: 3.0.2
       indent-string: 4.0.0
       is-obj: 2.0.0
-      is-regexp: 2.1.0
+      is-regexp: 3.1.0
       jest: 27.4.6
       js-levenshtein: 1.1.6
       klona: 2.0.5
@@ -306,7 +306,7 @@ importers:
       get-own-enumerable-property-symbols: 3.0.2
       indent-string: 4.0.0
       is-obj: 2.0.0
-      is-regexp: 2.1.0
+      is-regexp: 3.1.0
       jest: 27.4.6_ts-node@10.4.0
       js-levenshtein: 1.1.6
       klona: 2.0.5
@@ -5013,9 +5013,9 @@ packages:
       has-tostringtag: 1.0.0
     dev: true
 
-  /is-regexp/2.1.0:
-    resolution: {integrity: sha512-OZ4IlER3zmRIoB9AqNhEggVxqIH4ofDns5nRrPS6yQxXE1TPCUpFznBfRQmQa8uC+pXqjMnukiJBxCisIxiLGA==}
-    engines: {node: '>=6'}
+  /is-regexp/3.1.0:
+    resolution: {integrity: sha512-rbku49cWloU5bSMI+zaRaXdQHXnthP6DZ/vLnfdSKyL4zUzuWnomtOEiZZOd+ioQ+avFo/qau3KPTc7Fjy1uPA==}
+    engines: {node: '>=12'}
     dev: true
 
   /is-shared-array-buffer/1.0.1:
