@@ -35,7 +35,7 @@ importers:
       is-ci: 3.0.1
       node-fetch: 2.6.6
       p-map: 4.0.0
-      p-reduce: 2.1.0
+      p-reduce: 3.0.0
       p-retry: 4.6.1
       path-browserify: 1.0.1
       prettier: 2.5.1
@@ -84,7 +84,7 @@ importers:
       is-ci: 3.0.1
       node-fetch: 2.6.6
       p-map: 4.0.0
-      p-reduce: 2.1.0
+      p-reduce: 3.0.0
       p-retry: 4.6.1
       path-browserify: 1.0.1
       prettier: 2.5.1
@@ -6568,9 +6568,9 @@ packages:
     dependencies:
       aggregate-error: 3.1.0
 
-  /p-reduce/2.1.0:
-    resolution: {integrity: sha512-2USApvnsutq8uoxZBGbbWM0JIYLiEMJ9RlaN7fAzVNb9OZN0SHjjTTfIcb667XynS5Y1VhwDJVDa72TnPzAYWw==}
-    engines: {node: '>=8'}
+  /p-reduce/3.0.0:
+    resolution: {integrity: sha512-xsrIUgI0Kn6iyDYm9StOpOeK29XM1aboGji26+QEortiFST1hGZaUQOLhtEbqHErPpGW/aSz6allwK2qcptp0Q==}
+    engines: {node: '>=12'}
     dev: true
 
   /p-retry/4.6.1:
