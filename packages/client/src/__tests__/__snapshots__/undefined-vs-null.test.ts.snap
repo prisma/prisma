@@ -17,7 +17,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
@@ -35,7 +35,7 @@ mutation {
     title
     content
     authorId
-    optionnal
+    optional
   }
 }
 `;
