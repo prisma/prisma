@@ -111,7 +111,7 @@ services:
       - '1433:1433'
 
   mongo:
-    image: mongo:4
+    image: mongo:5
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root

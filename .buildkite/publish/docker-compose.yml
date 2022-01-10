@@ -126,7 +126,7 @@ services:
       - mssql:/var/opt/mssql
 
   mongo:
-    image: mongo:4
+    image: mongo:5
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
