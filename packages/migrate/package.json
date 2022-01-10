@@ -30,7 +30,7 @@
     "@types/sqlite3": "3.1.8",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
-    "chalk": "4.1.2",
+    "chalk": "5.0.0",
     "esbuild": "0.13.14",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",

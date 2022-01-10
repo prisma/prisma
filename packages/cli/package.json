@@ -81,7 +81,7 @@
     "@types/ws": "8.2.2",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
-    "chalk": "4.1.2",
+    "chalk": "5.0.0",
     "checkpoint-client": "1.1.20",
     "debug": "4.3.3",
     "dotenv": "10.0.0",
