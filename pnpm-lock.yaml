@@ -573,7 +573,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
       fs-jetpack: 4.3.0
-      has-yarn: 2.1.0
+      has-yarn: 3.0.0
       indent-string: 4.0.0
       jest: 27.4.6
       lint-staged: 12.1.5
@@ -597,7 +597,7 @@ importers:
       '@prisma/get-platform': 3.8.0-41.8f1d9bccda3c881608903cfbefae0d55e2b6833d
       '@sindresorhus/slugify': 1.1.2
       execa: 5.1.1
-      has-yarn: 2.1.0
+      has-yarn: 3.0.0
       indent-string: 4.0.0
       log-update: 4.0.0
       new-github-issue-url: 0.2.1
@@ -707,7 +707,7 @@ importers:
       find-up: 5.0.0
       global-dirs: 3.0.0
       globby: 11.1.0
-      has-yarn: 2.1.0
+      has-yarn: 3.0.0
       is-ci: 3.0.1
       jest: 27.4.6
       lint-staged: 12.1.5
@@ -750,7 +750,7 @@ importers:
       find-up: 5.0.0
       global-dirs: 3.0.0
       globby: 11.1.0
-      has-yarn: 2.1.0
+      has-yarn: 3.0.0
       is-ci: 3.0.1
       make-dir: 3.1.0
       node-fetch: 2.6.6
@@ -4647,9 +4647,9 @@ packages:
     resolution: {integrity: sha1-4Ob+aijPUROIVeCG0Wkedx3iqLk=}
     dev: true
 
-  /has-yarn/2.1.0:
-    resolution: {integrity: sha512-UqBRqi4ju7T+TqGNdqAO0PaSVGsDGJUBQvk9eUWNGRY1CFGDzYhLWoM7JQEemnlvVcv/YEmc2wNW8BC24EnUsw==}
-    engines: {node: '>=8'}
+  /has-yarn/3.0.0:
+    resolution: {integrity: sha512-IrsVwUHhEULx3R8f/aA8AHuEzAorplsab/v8HBzEiIukwq5i/EC+xmOW+HfP1OaDP+2JkgT1yILHN2O3UFIbcA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dev: false
 
   /has/1.0.3:
