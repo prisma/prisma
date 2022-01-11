@@ -1,7 +1,5 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-const testIf = (condition: boolean) => (condition ? test : test.skip)
-
 let PrismaClient, prisma
 
 describe('interactive transactions', () => {
@@ -56,7 +54,7 @@ describe('interactive transactions', () => {
    *     Received promise resolved instead of rejected
    *     Resolved to value: [{"email": "user_1@website.com", "id": "0d258eae-1c22-4af1-8c95-68a17e995c2e", "name": null}]
    */
-  testIf(process.platform !== 'darwin' || !process.env.CI)('timeout override', async () => {
+  test('timeout override', async () => {
     const result = prisma.$transaction(
       async (prisma) => {
         await prisma.user.create({
@@ -65,7 +63,7 @@ describe('interactive transactions', () => {
           },
         })
 
-        await new Promise((res) => setTimeout(res, 600))
+        await new Promise((res) => setTimeout(res, 6000))
       },
       {
         maxWait: 200,

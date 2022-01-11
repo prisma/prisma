@@ -62,9 +62,10 @@ describe('interactive transactions', () => {
           },
         })
 
-        await new Promise((res) => setTimeout(res, 600))
+        await new Promise((res) => setTimeout(res, 6000))
       },
       {
+        maxWait: 200,
         timeout: 500,
       },
     )
