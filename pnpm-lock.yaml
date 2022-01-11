@@ -124,7 +124,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       debug: 4.3.3
-      dotenv: 10.0.0
+      dotenv: 11.0.0
       esbuild: 0.13.14
       eslint: 8.6.0
       eslint-config-prettier: 8.3.0
@@ -176,7 +176,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       debug: 4.3.3
-      dotenv: 10.0.0
+      dotenv: 11.0.0
       esbuild: 0.13.14
       eslint: 8.6.0
       eslint-config-prettier: 8.3.0_eslint@8.6.0
@@ -695,7 +695,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
-      dotenv: 10.0.0
+      dotenv: 11.0.0
       esbuild: 0.13.14
       escape-string-regexp: 4.0.0
       eslint: 8.6.0
@@ -745,7 +745,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
-      dotenv: 10.0.0
+      dotenv: 11.0.0
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
@@ -3374,9 +3374,9 @@ packages:
       webidl-conversions: 5.0.0
     dev: true
 
-  /dotenv/10.0.0:
-    resolution: {integrity: sha512-rlBi9d8jpv9Sf1klPjNfFAuWDjKLwTIJJ/VxtoTwIR6hnZxcEOQCZg2oIL3MWBYw5GpUDKOEnND7LXTbIpQ03Q==}
-    engines: {node: '>=10'}
+  /dotenv/11.0.0:
+    resolution: {integrity: sha512-Fp/b504Y5W+e+FpCxTFMUZ7ZEQkQYF0rx+KZtmwixJxGQbLHrhCwo3FjZgNC8vIfrSi29PABNbMoCGD9YoiXbQ==}
+    engines: {node: '>=12'}
 
   /ecc-jsbn/0.1.2:
     resolution: {integrity: sha1-OoOpBOVDUyh4dMVkt1SThoSamMk=}
@@ -5225,7 +5225,7 @@ packages:
       micromatch: 4.0.4
       pretty-format: 27.4.6
       slash: 3.0.0
-      ts-node: 10.4.0_9303900730675ceadab88ac326bf0384
+      ts-node: 10.4.0_60e8b8d4e7c9a6973679cdf61ab01fe0
     transitivePeerDependencies:
       - '@babel/core'
       - bufferutil

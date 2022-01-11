@@ -84,7 +84,7 @@
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.20",
     "debug": "4.3.3",
-    "dotenv": "10.0.0",
+    "dotenv": "11.0.0",
     "esbuild": "0.13.14",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
