@@ -115,19 +115,18 @@ export class LibraryEngine extends Engine {
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      const result = await this.engine?.startTransaction(jsonOptions, '{}')
-      return this.parseEngineResponse<Tx.Info>(result)
+      result = await this.engine?.startTransaction(jsonOptions, '{}')
     } else if (action === 'commit') {
-      const result = await this.engine?.commitTransaction(arg.id, '{}')
-      const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
-      if (response.error_code) throw response
+      result = await this.engine?.commitTransaction(arg.id, '{}')
     } else if (action === 'rollback') {
       result = await this.engine?.rollbackTransaction(arg.id, '{}')
-      const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
-      if (response.error_code) throw response
     }
 
-    return undefined
+    const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
+
+    if (response.error_code) throw response
+
+    return response as Tx.Info | undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
