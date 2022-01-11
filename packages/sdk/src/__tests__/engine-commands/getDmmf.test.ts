@@ -6,6 +6,11 @@ import { fixturesPath } from '../__utils__/fixtures'
 
 jest.setTimeout(10_000)
 
+if (process.env.CI) {
+  // 10s is not always enough for the "big schema" test on macOS CI.
+  jest.setTimeout(60_000)
+}
+
 describe('getDMMF', () => {
   test('simple model, no datasource', async () => {
     const dmmf = await getDMMF({

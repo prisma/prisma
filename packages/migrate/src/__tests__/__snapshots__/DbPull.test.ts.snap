@@ -120,7 +120,7 @@ exports[`MongoDB re-introspection should error (not supported) 2`] = ``;
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:5432;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  url      = "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 }
 
 model jobs {
@@ -359,7 +359,7 @@ model User {
 exports[`mysql basic introspection --url 2`] = `
 datasource db {
   provider = "mysql"
-  url      = "mysql://root:root@localhost:5432/tests"
+  url      = "mysql://root:root@localhost:3306/tests"
 }
 
 model your_log {

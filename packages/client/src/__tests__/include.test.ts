@@ -1,8 +1,8 @@
-import stripAnsi from 'strip-ansi'
-import { blog } from '../fixtures/blog'
 import { DMMFClass } from '../runtime/dmmf'
-import { makeDocument } from '../runtime/query'
+import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
+import { makeDocument } from '../runtime/query'
+import stripAnsi from 'strip-ansi'
 
 let dmmf
 beforeAll(async () => {
@@ -210,7 +210,7 @@ The \`include\` statement for type Post must not be empty. Available options are
             title
             content
             authorId
-            optionnal
+            optional
           }
         }
       }
@@ -421,7 +421,7 @@ Unknown field \`mauthor\` for include statement on model Post. Available options
                 title
                 content
                 authorId
-                optionnal
+                optional
               }
             }
           }

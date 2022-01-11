@@ -24,7 +24,7 @@ query {
       title
       content
       authorId
-      optionnal
+      optional
     }
   }
 }
@@ -40,7 +40,7 @@ query {
     title
     content
     authorId
-    optionnal
+    optional
     author {
       id
       email
@@ -87,7 +87,7 @@ query {
     title
     content
     authorId
-    optionnal
+    optional
     author {
       id
       email
@@ -110,7 +110,7 @@ query {
         title
         content
         authorId
-        optionnal
+        optional
       }
     }
   }

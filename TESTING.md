@@ -27,9 +27,11 @@ export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-mi
 export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
 export TEST_MONGO_URI="mongodb://root:prisma@localhost:27017/tests?authSource=admin"
+
+export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
 ```
 
-- Load the environnment variables with:
+- Load the environment variables with:
 
 ```sh
 direnv allow
@@ -39,15 +41,17 @@ direnv allow
 
 1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
 
-   ```sh
-   pnpm run jest <fileNamePattern> -t <testNamePattern>
-   ```
+Note: the following command `pnpm run test` can be used inside the packages folders like `packages/client`. In the base folder you can only run `pnpm run test` without extra arguments.
 
-   and to update snapshots use the -u option like this (the `--` are required, anything after the dashes will be passed to Jest):
+```sh
+pnpm run test <fileNamePattern> -t <testNamePattern>
+```
 
-   ```sh
-   pnpm run jest <fileNamePattern> -- -u
-   ```
+and to update snapshots use the -u option like this (the `--` are required, anything after the dashes will be passed to Jest):
+
+```sh
+pnpm run test <fileNamePattern> -- -u
+```
 
 1. In `integration-tests` [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout) is used. If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:
 

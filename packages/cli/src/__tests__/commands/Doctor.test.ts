@@ -1,24 +1,22 @@
 import { Doctor } from '../../Doctor'
-import { consoleContext, Context } from '../__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it.skip('doctor should succeed when schema and db do match', async () => {
   ctx.fixture('example-project')
   const result = Doctor.new().parse([])
   await expect(result).resolves.toEqual('Everything in sync 🔄')
-  expect(
-    ctx.mocked['console.error'].mock.calls.join('\n'),
-  ).toMatchInlineSnapshot(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(
+    `👩‍⚕️🏥 Prisma Doctor checking the database...`,
+  )
 })
 
 it('should fail when db is missing', async () => {
   ctx.fixture('schema-db-out-of-sync')
   ctx.fs.remove('dev.db')
   const result = Doctor.new().parse([])
-  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-    `P1003: SQLite database file doesn't exist`,
-  )
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`P1003: SQLite database file doesn't exist`)
 })
 
 it('should fail when Prisma schema is missing', async () => {

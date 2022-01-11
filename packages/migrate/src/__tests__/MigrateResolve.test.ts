@@ -1,12 +1,8 @@
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { consoleContext, Context } from './__helpers__/context'
-import {
-  SetupParams,
-  setupPostgres,
-  tearDownPostgres,
-} from '../utils/setupPostgres'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -44,30 +40,18 @@ describe('common', () => {
   })
   it('should fail if both --applied or --rolled-back', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateResolve.new().parse([
-      '--applied=something_applied',
-      '--rolled-back=something_rolledback',
-    ])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Pass either --applied or --rolled-back, not both.`,
-    )
+    const result = MigrateResolve.new().parse(['--applied=something_applied', '--rolled-back=something_rolledback'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Pass either --applied or --rolled-back, not both.`)
   })
 })
 
 describe('sqlite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = MigrateResolve.new().parse([
-      '--schema=./prisma/empty.prisma',
+    const result = MigrateResolve.new().parse(['--schema=./prisma/empty.prisma', '--applied=something_applied'])
+    await expect(result).rejects.toMatchInlineSnapshot(`P1003: SQLite database file doesn't exist`)
 
-      '--applied=something_applied',
-    ])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `P1003: SQLite database file doesn't exist`,
-    )
-
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
@@ -103,10 +87,7 @@ The migration does_not_exist could not be found. Please make sure that the migra
 
   it('--applied should fail if migration is not in a failed state', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse([
-      '--applied',
-      '20201014154943_init',
-    ])
+    const result = MigrateResolve.new().parse(['--applied', '20201014154943_init'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             P3008
 
@@ -117,15 +98,9 @@ The migration does_not_exist could not be found. Please make sure that the migra
 
   it('--applied should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse([
-      '--applied',
-      '20201106130852_failed',
-    ])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Migration 20201231000000_failed marked as applied.`,
-    )
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    const result = MigrateResolve.new().parse(['--applied', '20201106130852_failed'])
+    await expect(result).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as applied.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
@@ -150,10 +125,7 @@ The migration does_not_exist could not be found. Please make sure that the migra
 
   it('--rolled-back should fail if migration is not in a failed state', async () => {
     ctx.fixture('existing-db-1-migration')
-    const result = MigrateResolve.new().parse([
-      '--rolled-back',
-      '20201014154943_init',
-    ])
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201014154943_init'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             P3012
 
@@ -164,15 +136,9 @@ The migration does_not_exist could not be found. Please make sure that the migra
 
   it('--rolled-back should work on a failed migration', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse([
-      '--rolled-back',
-      '20201106130852_failed',
-    ])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Migration 20201231000000_failed marked as rolled back.`,
-    )
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'])
+    await expect(result).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as rolled back.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
@@ -182,25 +148,14 @@ The migration does_not_exist could not be found. Please make sure that the migra
 
   it('--rolled-back works if migration is already rolled back', async () => {
     ctx.fixture('existing-db-1-failed-migration')
-    const result = MigrateResolve.new().parse([
-      '--rolled-back',
-      '20201106130852_failed',
-    ])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Migration 20201231000000_failed marked as rolled back.`,
-    )
+    const result = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'])
+    await expect(result).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as rolled back.`)
 
     // Try again
-    const result2 = MigrateResolve.new().parse([
-      '--rolled-back',
-      '20201106130852_failed',
-    ])
-    await expect(result2).resolves.toMatchInlineSnapshot(
-      `Migration 20201231000000_failed marked as rolled back.`,
-    )
+    const result2 = MigrateResolve.new().parse(['--rolled-back', '20201106130852_failed'])
+    await expect(result2).resolves.toMatchInlineSnapshot(`Migration 20201231000000_failed marked as rolled back.`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       Prisma schema loaded from prisma/schema.prisma
@@ -217,19 +172,14 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-postgresql')
     jest.setTimeout(6000)
 
-    const result = MigrateResolve.new().parse([
-      '--schema=./prisma/invalid-url.prisma',
-
-      '--applied=something_applied',
-    ])
+    const result = MigrateResolve.new().parse(['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'])
     await expect(result).rejects.toMatchInlineSnapshot(`
             P1001: Can't reach database server at \`doesnotexist\`:\`5432\`
 
             Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
     `)
