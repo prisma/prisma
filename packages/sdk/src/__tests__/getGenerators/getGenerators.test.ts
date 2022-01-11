@@ -824,6 +824,44 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
+  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
+    expect.assertions(5)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'proxy-and-interactiveTransactions-client-js.prisma'),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        The dataProxy and interactiveTransactions Preview Features can not be enabled at the same time.
+        Remove interactiveTransactions from previewFeatures, for example:
+
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"dataProxy\\"]
+        }
+
+        More information in our documentation:
+        https://pris.ly/d/data-proxy
+        "
+      `)
+    }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
   // skipped because breaks in CI: https://github.com/prisma/prisma/runs/3729932474#step:8:596
   // thrown: "Exceeded timeout of 20000 ms for a test.
   test.skip('should not be blocked with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
