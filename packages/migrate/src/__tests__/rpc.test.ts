@@ -2,9 +2,9 @@ import { getSchemaPath } from '@prisma/sdk'
 import { Migrate } from '../Migrate'
 import path from 'path'
 import fs from 'fs-jetpack'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('getDatabaseVersion', async () => {
   ctx.fixture('schema-only')

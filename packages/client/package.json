@@ -67,17 +67,17 @@
     "@microsoft/api-extractor": "7.19.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.8.0-39.c3eecc84ac8d11972b9167175f8c4038487ba3f6",
-    "@prisma/fetch-engine": "3.8.0-39.c3eecc84ac8d11972b9167175f8c4038487ba3f6",
+    "@prisma/engines": "3.8.0-41.8f1d9bccda3c881608903cfbefae0d55e2b6833d",
+    "@prisma/fetch-engine": "3.8.0-41.8f1d9bccda3c881608903cfbefae0d55e2b6833d",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.8.0-39.c3eecc84ac8d11972b9167175f8c4038487ba3f6",
+    "@prisma/get-platform": "3.8.0-41.8f1d9bccda3c881608903cfbefae0d55e2b6833d",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
     "@types/jest": "27.4.0",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "6.0.8",
+    "@types/mssql": "7.1.4",
     "@types/node": "12.20.39",
     "@types/pg": "8.6.3",
     "@typescript-eslint/eslint-plugin": "5.9.0",
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.8.0-39.c3eecc84ac8d11972b9167175f8c4038487ba3f6"
+    "@prisma/engines-version": "3.8.0-41.8f1d9bccda3c881608903cfbefae0d55e2b6833d"
   },
   "lint-staged": {
     "*.ts": [

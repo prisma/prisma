@@ -177,11 +177,11 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                            Invalid \`prisma.user.findMany()\` invocation:
+                                                                                    Invalid \`prisma.user.findMany()\` invocation:
 
 
-                                                              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-                                                  `)
+                                                                                      Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+                                                                      `)
 
     const users = await prisma.user.findMany()
 
@@ -346,11 +346,11 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                Invalid \`prisma.executeRaw()\` invocation:
+                                                                        Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                                  Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
-                                        `)
+                                                                          Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+                                                            `)
 
     const users = await prisma.user.findMany()
 

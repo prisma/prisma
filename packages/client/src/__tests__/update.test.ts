@@ -1,6 +1,7 @@
-import chalk from 'chalk'
-import { blog } from '../fixtures/blog'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+
+import { blog } from '../fixtures/blog'
+import chalk from 'chalk'
 import { getDMMF } from '../generation/getDMMF'
 chalk.level = 0
 
@@ -31,7 +32,7 @@ describe('minimal update transformation', () => {
         posts: {
           updateMany: {
             data: {
-              optionnal: null,
+              optional: null,
               content: {
                 set: null,
               },
@@ -55,7 +56,7 @@ describe('minimal update transformation', () => {
             posts: {
               updateMany: {
                 data: {
-                  optionnal: null
+                  optional: null
                   content: {
                     set: null
                   }

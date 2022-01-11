@@ -2,12 +2,12 @@ process.env.GITHUB_ACTIONS = '1'
 
 import prompt from 'prompts'
 import { DbDrop } from '../commands/DbDrop'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 // TODO: Windows: snapshot tests fail on Windows because of emoji and different error messages.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describeIf(process.platform !== 'win32')('drop', () => {
   it('requires --preview-feature flag', async () => {

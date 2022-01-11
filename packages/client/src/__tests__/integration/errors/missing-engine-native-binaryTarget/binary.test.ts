@@ -63,6 +63,6 @@ test('missing-engine-native-binaryTarget: binary', async () => {
           in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
           but something went wrong. That's suboptimal.
 
-          Please create an issue at TEST_GITHUB_LINK
+          Please create an issue at https://github.com/prisma/prisma/issues/new
         `)
 })
