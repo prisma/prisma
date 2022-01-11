@@ -629,20 +629,20 @@ describe('getGenerators', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-"
-In order to use the mongodb provider,
-you need to set the mongodb feature flag.
-You can define the feature flag like this:
+        "
+        In order to use the mongodb provider,
+        you need to set the mongodb feature flag.
+        You can define the feature flag like this:
 
-generator client {
-    provider = \\"prisma-client-js\\"
-    previewFeatures = [\\"mongoDb\\"]
-}
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"mongoDb\\"]
+        }
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-"
-`)
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
     }
   })
 
@@ -663,20 +663,53 @@ https://pris.ly/d/prisma-schema
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-"
-In order to use the mongodb provider,
-you need to set the mongodb feature flag.
-You can define the feature flag like this:
+        "
+        In order to use the mongodb provider,
+        you need to set the mongodb feature flag.
+        You can define the feature flag like this:
 
-generator client {
-    provider = \\"prisma-client-js\\"
-    previewFeatures = [\\"mongoDb\\"]
-}
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"mongoDb\\"]
+        }
 
-More information in our documentation:
-https://pris.ly/d/prisma-schema
-"
-`)
+        More information in our documentation:
+        https://pris.ly/d/prisma-schema
+        "
+      `)
+    }
+  })
+
+  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
+    expect.assertions(1)
+    const aliases = {
+      'predefined-generator': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'proxy-and-interactiveTransactions-client-js.prisma'),
+        providerAliases: aliases,
+        skipDownload: true,
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        "
+        The dataProxy and interactiveTransactions Preview Features can not be enabled at the same time.
+        Remove interactiveTransactions from previewFeatures, for example:
+
+        generator client {
+            provider = \\"prisma-client-js\\"
+            previewFeatures = [\\"dataProxy\\"]
+        }
+
+        More information in our documentation:
+        https://pris.ly/d/data-proxy
+        "
+      `)
     }
   })
 
