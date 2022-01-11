@@ -231,10 +231,12 @@ export function getSelectReturnType({
   if (isList || hideCondition) {
     const listOpen = isList ? 'Array<' : ''
     const listClose = isList ? '>' : ''
+    // this is only true if we are chaining on the list field
+    const nullableList = isList && isField ? ' | null' : ''
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
+    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${nullableList}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
       name,
     )}<T>${listClose}${promiseClose}>`
   }
