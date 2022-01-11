@@ -3,12 +3,12 @@
 exports[`format should add a trailing EOL 1`] = `
 generator client {
   provider = "prisma-client-js"
-  output = "***"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model Post {
@@ -41,12 +41,12 @@ model User {
 exports[`format should add missing backrelation 1`] = `
 generator client {
   provider = "prisma-client-js"
-  output = "***"
+  output   = "../generated/client"
 }
 
 datasource db {
   provider = "sqlite"
-  url = "***"
+  url      = "file:dev.db"
 }
 
 model Post {

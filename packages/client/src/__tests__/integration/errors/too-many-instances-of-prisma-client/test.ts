@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('too-many-engines warning', async () => {
+test('too-many-instances-of-prisma-client warning', async () => {
   const PrismaClient = await getTestClient()
   const oldConsoleWarn = console.warn
   const warnings: any[] = []
@@ -21,7 +21,7 @@ test('too-many-engines warning', async () => {
 
   expect(warnings).toMatchInlineSnapshot(`
     Array [
-      warn(prisma-client) Already 10 Prisma Clients are actively running.,
+      warn(prisma-client) There are already 10 instances of Prisma Client actively running.,
     ]
   `)
 

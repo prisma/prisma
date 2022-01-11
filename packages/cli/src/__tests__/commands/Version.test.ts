@@ -1,15 +1,14 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
-import { engineEnvVarMap } from '@prisma/sdk'
+import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/sdk'
 import makeDir from 'make-dir'
 import path from 'path'
-import { consoleContext, Context } from '../__helpers__/context'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
-const version = 'e6bd3dc12d849124a04c3a8e6bd9c194381afda3'
+const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
 
 describe('version', () => {
   // Node-API Tests

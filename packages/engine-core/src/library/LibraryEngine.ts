@@ -96,7 +96,9 @@ export class LibraryEngine extends Engine {
     if (engines.length >= 10) {
       const runningEngines = engines.filter((e) => e.engine)
       if (runningEngines.length === 10) {
-        console.warn(`${chalk.yellow('warn(prisma-client)')} Already 10 Prisma Clients are actively running.`)
+        console.warn(
+          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
+        )
       }
     }
   }
@@ -486,6 +488,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     this.platform = this.platform ?? (await getPlatform())
 
+    // TODO Why special case dependent on file name?
     if (__filename.includes('LibraryEngine')) {
       enginePath = path.join(getEnginesPath(), getNodeAPIName(this.platform, 'fs'))
       return { enginePath, searchedLocations }
@@ -505,7 +508,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
-      debug(`Search for Query Engine Library in ${location}`)
+      debug(`Searching for Query Engine Library in ${location}`)
       enginePath = path.join(location, getNodeAPIName(this.platform, 'fs'))
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
@@ -589,6 +592,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     return enginePath
   }
 
+  // TODO Fixed as in "not broken" or fixed as in "written down"? If any of these, why and how and where?
   private getFixedGenerator(): string {
     const fixedGenerator = {
       ...this.config.generator!,
