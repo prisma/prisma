@@ -2,9 +2,9 @@ import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
 import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
-import { consoleContext, Context } from '../__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 test('is schema and env written on disk replace', async () => {
   const result = await ctx.cli('init')

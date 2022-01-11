@@ -224,7 +224,7 @@ describe('full-text-search (postgres)', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
       Invalid \`.findMany()\` invocation in
-      /client/src/__tests__/integration/happy/full-text-search/test.ts:0:0
+      /client/src/__tests__/integration/happy/full-text-search-postgres/test.ts:0:0
 
         208  */
         209 testIf(process.platform !== 'win32')('bad operator', async () => {

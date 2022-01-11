@@ -6,9 +6,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 import prompt from 'prompts'
 import { MigrateReset } from '../commands/MigrateReset'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common', () => {
   it('wrong flag', async () => {

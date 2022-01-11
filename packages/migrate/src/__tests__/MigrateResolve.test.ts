@@ -1,8 +1,8 @@
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
