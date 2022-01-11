@@ -203,12 +203,12 @@ describe('interactive transactions', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              187   },
-              188 })
-              189 
-            → 190 await prisma.user.create(
+              193   },
+              194 })
+              195 
+            → 196 await prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -237,12 +237,12 @@ describe('interactive transactions', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              221 })
-              222 
-              223 const result = prisma.$transaction(async () => {
-            → 224   await transactionBoundPrisma.user.create(
+              227 })
+              228 
+              229 const result = prisma.$transaction(async () => {
+            → 230   await transactionBoundPrisma.user.create(
               Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
           `)
 
@@ -293,12 +293,12 @@ describe('interactive transactions', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              272  */
-              273 test('batching rollback', async () => {
-              274   const result = prisma.$transaction([
-            → 275     prisma.user.create(
+              278  */
+              279 test('batching rollback', async () => {
+              280   const result = prisma.$transaction([
+            → 281     prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -326,11 +326,11 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                            Invalid \`prisma.executeRaw()\` invocation:
+                                                                        Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                                              Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
-                                                  `)
+                                                                          Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+                                                            `)
 
     const users = await prisma.user.findMany()
 
@@ -391,12 +391,12 @@ describe('interactive transactions', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              370 })
-              371 
-              372 const result = prisma.$transaction([
-            → 373   prisma.user.create(
+              376 })
+              377 
+              378 const result = prisma.$transaction([
+            → 379   prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
