@@ -812,11 +812,6 @@ describe('getGenerators', () => {
             previewFeatures = [\\"mongoDb\\"]
         }
 
-        generator client {
-            provider = \\"prisma-client-js\\"
-            previewFeatures = [\\"mongoDb\\"]
-        }
-
         More information in our documentation:
         https://pris.ly/d/prisma-schema
         "
@@ -830,7 +825,7 @@ describe('getGenerators', () => {
   })
 
   test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
-    expect.assertions(1)
+    expect.assertions(5)
     const aliases = {
       'predefined-generator': {
         generatorPath: generatorPath,
@@ -860,6 +855,11 @@ describe('getGenerators', () => {
         "
       `)
     }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
   // skipped because breaks in CI: https://github.com/prisma/prisma/runs/3729932474#step:8:596
