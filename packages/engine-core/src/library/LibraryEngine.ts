@@ -108,6 +108,7 @@ export class LibraryEngine extends Engine {
   async transaction(action: any, arg?: any) {
     await this.start()
 
+    let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
@@ -117,9 +118,13 @@ export class LibraryEngine extends Engine {
       const result = await this.engine?.startTransaction(jsonOptions, '{}')
       return this.parseEngineResponse<Tx.Info>(result)
     } else if (action === 'commit') {
-      await this.engine?.commitTransaction(arg.id, '{}')
+      const result = await this.engine?.commitTransaction(arg.id, '{}')
+      const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
+      if (response.error_code) throw response
     } else if (action === 'rollback') {
-      await this.engine?.rollbackTransaction(arg.id, '{}')
+      result = await this.engine?.rollbackTransaction(arg.id, '{}')
+      const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
+      if (response.error_code) throw response
     }
 
     return undefined

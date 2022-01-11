@@ -1152,7 +1152,7 @@ function initHooks() {
 }
 
 /**
- * Decides how to handle error reponses for transactions
+ * Decides how to handle error responses for transactions
  * @param result
  */
 function transactionHttpErrorHandler<R>(result: Result<R>): never {
