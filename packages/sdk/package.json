@@ -48,7 +48,6 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "25.3.4",
     "eslint-plugin-prettier": "4.0.0",
-    "fs-jetpack": "4.3.0",
     "jest": "27.4.7",
     "lint-staged": "12.1.5",
     "prettier": "2.5.1",
