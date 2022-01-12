@@ -98,7 +98,7 @@
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.4.6",
+    "jest": "27.4.7",
     "line-replace": "2.0.1",
     "lint-staged": "12.1.5",
     "log-update": "4.0.0",

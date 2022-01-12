@@ -99,7 +99,7 @@
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
-    "jest": "27.4.6",
+    "jest": "27.4.7",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.5",
     "lint-staged": "12.1.5",
