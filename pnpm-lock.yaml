@@ -749,6 +749,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
+      fs-jetpack: 4.3.0
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
@@ -783,7 +784,6 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.6.0
       eslint-plugin-jest: 25.3.4_fc7ad14cecfc112c3a62fcc1531edd55
       eslint-plugin-prettier: 4.0.0_1c588f61426b1faf18812943f1678311
-      fs-jetpack: 4.3.0
       jest: 27.4.6_ts-node@10.4.0
       lint-staged: 12.1.5
       prettier: 2.5.1
@@ -1823,7 +1823,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -4406,7 +4405,6 @@ packages:
     dependencies:
       minimatch: 3.0.4
       rimraf: 2.7.1
-    dev: true
 
   /fs-minipass/1.2.7:
     resolution: {integrity: sha512-GWSSJGFy4e9GUeCcbIkED+bgAoFyj7XF1mV8rma3QW4NIqX9Kyx79N/PF61H5udOV3aY1IaMLs6pGbH71nlCTA==}
@@ -7147,7 +7145,6 @@ packages:
     hasBin: true
     dependencies:
       glob: 7.2.0
-    dev: true
 
   /rimraf/3.0.2:
     resolution: {integrity: sha512-JZkJMZkAGFFPP2YqXZXPbMlMBgsxzE8ILs4lMIX/2o0L9UBw9O/Y3o6wFw/i9YLapcUJWwqbi3kdxIPdC62TIA==}
