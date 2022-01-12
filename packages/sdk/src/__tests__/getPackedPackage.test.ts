@@ -4,8 +4,6 @@ import fs from 'fs'
 
 describe('getPackedPackage', () => {
   it('test argument vulnerability', async () => {
-    jest.setTimeout(10000)
-    
     const outputDir = '/tmp/some-prisma-target-folder'
     const packageDir = 'foo`touch /tmp/getPackedPackage-exploit`'
 
@@ -16,5 +14,5 @@ describe('getPackedPackage', () => {
     } finally {
       expect(fs.existsSync('/tmp/getPackedPackage-exploit')).toBe(false)
     }
-  })
+  }, 20000)
 })
