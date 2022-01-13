@@ -11,6 +11,7 @@ beforeAll(async () => {
 })
 
 test('connect to client generated 1 directory level', async () => {
+  // @ts-ignore
   const { PrismaClient } = await import('./prismaClient')
   const prisma = new PrismaClient()
 
