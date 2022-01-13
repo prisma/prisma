@@ -1,0 +1,15 @@
+datasource db {
+    provider = "sqlite"
+    url      = "file:dev.db"
+}
+
+generator client {
+    provider      = "prisma-client-js"
+    binaryTargets = ["native"]
+}
+
+model User {
+    id    String  @id @default(uuid())
+    email String  @unique
+    name  String?
+}
