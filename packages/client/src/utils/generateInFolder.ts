@@ -52,11 +52,11 @@ export async function generateInFolder({
     previewFeatures,
   })
 
-  const setOutputDir = relativeOutputDir ? path.join(projectDir, relativeOutputDir) : undefined
+  if (relativeOutputDir === undefined) {
+    relativeOutputDir = transpile ? 'node_modules/@prisma/client' : '@prisma/client'
+  }
 
-  const outputDir =
-    setOutputDir ??
-    (transpile ? path.join(projectDir, 'node_modules/@prisma/client') : path.join(projectDir, '@prisma/client'))
+  const outputDir = path.join(projectDir, relativeOutputDir)
 
   // if (transpile && config.generators[0]?.output) {
   //   outputDir = path.join(path.dirname(schemaPath), config.generators[0]?.output)
