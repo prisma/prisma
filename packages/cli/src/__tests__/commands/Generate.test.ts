@@ -134,7 +134,7 @@ describe('--schema from parent directory', () => {
 function cleanSnapshot(str: string): string {
   return str
     .replace(/\d+ms/g, 'XXms')
-    .replace(/\d+s/g, 'XXms')
+    .replace(/\d+(?>\.\d+)?s/g, 'XXms')
     .replace(/\(version:.+\)/g, '(version: 0.0.0)')
     .replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
 }
