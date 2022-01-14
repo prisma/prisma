@@ -48,6 +48,7 @@ export const depCheckPlugin = (bundle?: boolean): esbuild.Plugin => ({
     const pkgContents = require(pkgJsonPath) as Record<string, string>
     const regDependencies = Object.keys(pkgContents['dependencies'] ?? {})
     const devDependencies = Object.keys(pkgContents['devDependencies'] ?? {})
+    const peerDependencies = Object.keys(pkgContents['peerDependencies'] ?? {})
     const dependencies = [...regDependencies, ...(bundle ? devDependencies : [])]
 
     // we prepare to collect dependencies that are only packages
@@ -89,13 +90,13 @@ export const depCheckPlugin = (bundle?: boolean): esbuild.Plugin => ({
 
       // we exclude the deps that match our unusedIgnore patterns
       const filteredMissingDeps = missingDependencies.filter((dep) => {
-        return !missingIgnore.some((pattern) => dep.match(pattern))
+        return !missingIgnore.some((pattern) => dep.match(pattern)) && !peerDependencies.includes(dep)
       })
 
-      console.warn('unusedDependencies', filteredUnusedDeps)
-      console.warn('missingDependencies', filteredMissingDeps)
+      console.warn('unusedDependencies', JSON.stringify(filteredUnusedDeps))
+      console.warn('missingDependencies', JSON.stringify(filteredMissingDeps))
 
-      if (missingDependencies.length > 0) process.exit(1)
+      if (filteredMissingDeps.length > 0) process.exit(1)
     })
   },
 })
