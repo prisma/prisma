@@ -95,6 +95,7 @@ export function applyFluent(
     const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
     // TODO: once it's done we can deprecate the use of dataPath
+    const ownKeys = getOwnKeys(client, dmmfModelName)
 
     // we take control of the return promise to allow chaining
     return new Proxy(prismaPromise, {
@@ -110,6 +111,15 @@ export function applyFluent(
 
         return target[prop] // let the promise behave normally
       },
+      ownKeys: () => ownKeys,
+      has: (_, prop: string) => ownKeys.includes(prop),
     })
   }
+}
+
+// the only accessible fields are relations to be chained on
+function getOwnKeys(client: Client, dmmfModelName: string) {
+  return client._dmmf.modelMap[dmmfModelName].fields
+    .filter((field) => field.kind === 'object')
+    .map((field) => field.name)
 }

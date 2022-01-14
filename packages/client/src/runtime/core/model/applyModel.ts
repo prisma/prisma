@@ -24,11 +24,11 @@ function isValidActionName(client: Client, dmmfModelName: string, action: string
   // we retrieve the possible actions for this model
   const dmmfModelMapping = client._dmmf.mappingsMap[dmmfModelName]
 
-  // TODO: edge case, not actually present in the DMMF
-  if (action === 'count') return true
-
   // these are not allowed or valid actions on a model
   if (['model', 'plural'].includes(action)) return false
+
+  // count is a special case, it is not a model action
+  if (action === 'count') return true // we emulate it
 
   // only valid actions are allowed to be called on models
   if (dmmfModelMapping[action] === undefined) return false
@@ -45,6 +45,7 @@ function isValidActionName(client: Client, dmmfModelName: string, action: string
 export function applyModel(client: Client, dmmfModelName: string) {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
+  const ownKeys = getOwnKeys(client, dmmfModelName)
 
   // we construct a proxy that acts as the model interface
   return new Proxy(EMPTY_OBJECT, {
@@ -81,5 +82,12 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
       return action({}) // and by default, don't override any params
     },
+    ownKeys: () => ownKeys,
+    has: (_, prop: string) => ownKeys.includes(prop),
   })
+}
+
+// the only accessible fields are the ones that are actions
+function getOwnKeys(client: Client, dmmfModelName: string) {
+  return [...Object.keys(client._dmmf.mappingsMap[dmmfModelName]), 'count']
 }

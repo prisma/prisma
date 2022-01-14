@@ -1,5 +1,6 @@
 import type { Client } from '../../getPrismaClient'
 import { applyModel } from './applyModel'
+import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
 
 /**
@@ -12,10 +13,10 @@ import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
 export function applyModels<C extends Client>(client: C) {
   // we don't want to create a new proxy on each prop access
   const modelCache = {} as { [key: string]: object }
+  const ownKeys = getOwnKeys(client)
 
   return new Proxy(client, {
     get(target, prop: string) {
-      // for any prop that is accessed, we get its dmmf name
       const dmmfModelName = jsToDMMFModelName(prop)
 
       // see if a model proxy has already been created before
@@ -30,10 +31,17 @@ export function applyModels<C extends Client>(client: C) {
 
       // above just failed if the model name is lower cased
       if (client._dmmf.modelMap[prop] !== undefined) {
-        return (modelCache[prop] = applyModel(client, prop))
+        return (modelCache[dmmfModelName] = applyModel(client, prop))
       }
 
       return target[prop] // returns the base client prop
     },
+    ownKeys: () => ownKeys,
+    has: (_, prop: string) => ownKeys.includes(prop),
   })
+}
+
+// the only accessible fields are the ones that are models
+function getOwnKeys(client: Client) {
+  return [...Object.keys(client._dmmf.modelMap).map(dmmfToJSModelName), ...Object.keys(client)]
 }
