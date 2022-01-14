@@ -221,6 +221,7 @@ export interface GetPrismaClientConfig {
   }
   relativePath: string
   dirname: string
+  filename?: string
   clientVersion?: string
   engineVersion?: string
   datasourceNames: string[]
@@ -386,7 +387,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, 'schema.prisma'),
+          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
@@ -590,6 +591,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             break
           }
 
+          case 'cockroachdb':
           case 'postgresql': {
             const queryInstance = sqlTemplateTag.sqltag(query, ...values)
 
@@ -610,6 +612,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
             break
           }
+          default: {
+            throw new Error(`The ${this._activeProvider} provider does not support $executeRaw`)
+          }
         }
       } else {
         // If this was called as prisma.$executeRaw(sql`<SQL>`), use prepared statements from sql-template-tag
@@ -618,6 +623,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           case 'mysql':
             queryString = query.sql
             break
+          case 'cockroachdb':
           case 'postgresql':
             queryString = query.text
             checkAlter(queryString, query.values, 'prisma.$executeRaw(sql`<SQL>`)')
@@ -625,6 +631,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           case 'sqlserver':
             queryString = mssqlPreparedStatement(query.strings)
             break
+          default:
+            throw new Error(`The ${this._activeProvider} provider does not support $executeRaw`)
         }
         parameters = {
           values: serializeRawParameters(query.values),
@@ -746,6 +754,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             break
           }
 
+          case 'cockroachdb':
           case 'postgresql': {
             const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
 
@@ -767,6 +776,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             }
             break
           }
+          default: {
+            throw new Error(`The ${this._activeProvider} provider does not support $queryRaw`)
+          }
         }
       } else {
         // If this was called as prisma.$queryRaw(Prisma.sql`<SQL>`), use prepared statements from sql-template-tag
@@ -776,12 +788,16 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           case 'mysql':
             queryString = query.sql
             break
+          case 'cockroachdb':
           case 'postgresql':
             queryString = query.text
             break
           case 'sqlserver':
             queryString = mssqlPreparedStatement(query.strings)
             break
+          default: {
+            throw new Error(`The ${this._activeProvider} provider does not support $queryRaw`)
+          }
         }
         parameters = {
           values: serializeRawParameters(query.values),

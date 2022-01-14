@@ -29,6 +29,8 @@ services:
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
       - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+      # CockroachDB
+      - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/
       # Other vars
       - BUILDKITE
       - BUILDKITE_PARALLEL_JOB
@@ -48,6 +50,7 @@ services:
       - mssql
       - mongo
       - mongo-seed
+      - cockroachdb
 
   postgres:
     image: postgres:10
@@ -127,6 +130,13 @@ services:
     build: ../../docker/mongo-seed
     links:
       - mongo
+
+  cockroachdb:
+    image: prismagraphql/build:cockroach-custom
+    restart: always
+    command: start-single-node --insecure
+    ports:
+      - '26257:26257'
 
 volumes:
   postgres:

@@ -1,6 +1,6 @@
-import * as esbuild from 'esbuild'
-import glob from 'globby'
+import type * as esbuild from 'esbuild'
 import path from 'path'
+import { builtinModules } from 'module'
 
 // packages that aren't detected but used
 // TODO: these could be scoped at the root
@@ -37,23 +37,19 @@ const unusedIgnore = [
 // packages that aren't missing but are detected
 const missingIgnore = ['.prisma', '@prisma/client']
 
-// native nodejs imports so that we can filter out
-const nativeDependencies = new Set(
-  Object.keys((process as any).binding('natives')),
-)
-
 /**
- * Checks for unused and missing dependencies
+ * Checks for unused and missing dependencies.
  */
-const unusedPlugin: esbuild.Plugin = {
-  name: 'unusedPlugin',
+export const depCheckPlugin = (bundle?: boolean): esbuild.Plugin => ({
+  name: 'depCheckPlugin',
   setup(build) {
     // we load the package.json of the project do do our analysis
     const pkgJsonPath = path.join(process.cwd(), 'package.json')
-    const pkgContents = require(pkgJsonPath) as object
+    const pkgContents = require(pkgJsonPath) as Record<string, object>
     const regDependencies = Object.keys(pkgContents['dependencies'] ?? {})
     const devDependencies = Object.keys(pkgContents['devDependencies'] ?? {})
-    const dependencies = new Set([...regDependencies, ...devDependencies])
+    const peerDependencies = Object.keys(pkgContents['peerDependencies'] ?? {})
+    const dependencies = [...regDependencies, ...(bundle ? devDependencies : [])]
 
     // we prepare to collect dependencies that are only packages
     const collectedDependencies = new Set<string>()
@@ -79,12 +75,12 @@ const unusedPlugin: esbuild.Plugin = {
     build.onEnd(() => {
       // we take all the dependencies that aren't collected and are native
       const unusedDependencies = [...dependencies].filter((dep) => {
-        return !collectedDependencies.has(dep) || nativeDependencies.has(dep)
+        return !collectedDependencies.has(dep) || builtinModules.includes(dep)
       })
 
       // we take all the collected deps that aren't deps and aren't native
       const missingDependencies = [...collectedDependencies].filter((dep) => {
-        return !dependencies.has(dep) && !nativeDependencies.has(dep)
+        return !dependencies.includes(dep) && !builtinModules.includes(dep)
       })
 
       // we exclude the deps that match our unusedIgnore patterns
@@ -94,25 +90,13 @@ const unusedPlugin: esbuild.Plugin = {
 
       // we exclude the deps that match our unusedIgnore patterns
       const filteredMissingDeps = missingDependencies.filter((dep) => {
-        return !missingIgnore.some((pattern) => dep.match(pattern))
+        return !missingIgnore.some((pattern) => dep.match(pattern)) && !peerDependencies.includes(dep)
       })
 
-      console.warn('unusedDependencies', filteredUnusedDeps)
-      console.warn('missingDependencies', filteredMissingDeps)
+      console.warn('unusedDependencies', JSON.stringify(filteredUnusedDeps))
+      console.warn('missingDependencies', JSON.stringify(filteredMissingDeps))
+
+      if (filteredMissingDeps.length > 0) process.exit(1)
     })
   },
-}
-
-void esbuild
-  .build({
-    entryPoints: glob.sync('**/*.{j,t}s', {
-      ignore: ['**/packages/**/*', '**/*.d.ts'],
-      gitignore: true,
-    }),
-    logLevel: 'silent', // there will be errors
-    bundle: true, // we bundle to get everything
-    write: false, // no need to write for analysis
-    outdir: 'out',
-    plugins: [unusedPlugin],
-  })
-  .catch(() => {})
+})

@@ -1,11 +1,14 @@
 import fs from 'fs-jetpack'
 import execa from 'execa'
 import { DbSeed } from '../commands/DbSeed'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+// TODO: Windows: snapshot tests fail on Windows because of emoji.
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-describe('seed', () => {
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+describeIf(process.platform !== 'win32')('seed', () => {
   it('seed.js', async () => {
     ctx.fixture('seed-sqlite-js')
 
@@ -85,7 +88,7 @@ describe('seed', () => {
   })
 })
 
-describe('seed - legacy', () => {
+describeIf(process.platform !== 'win32')('seed - legacy', () => {
   it('no seed file', async () => {
     ctx.fixture('seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')

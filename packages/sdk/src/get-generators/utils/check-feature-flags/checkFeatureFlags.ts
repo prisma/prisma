@@ -1,4 +1,5 @@
 import type { ConfigMetaFormat } from '../../../engine-commands'
+import { forbiddenTransactionsWithProxyFlagMessage } from './forbiddenTransactionsWithProxyFlagMessage'
 
 import { mongoFeatureFlagMissingMessage } from './mongoFeatureFlagMissingMessage'
 import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage'
@@ -6,6 +7,7 @@ import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage
 export function checkFeatureFlags(config: ConfigMetaFormat) {
   checkMongoFeatureFlag(config)
   checkProxyFeatureFlag(config)
+  checkForbiddenTransactionsWithProxyFlag(config)
 }
 
 function checkMongoFeatureFlag(config: ConfigMetaFormat) {
@@ -28,5 +30,17 @@ function checkProxyFeatureFlag(config: ConfigMetaFormat) {
     })
   ) {
     throw new Error(proxyFeatureFlagMissingMessage)
+  }
+}
+
+// TODO: this check should be gone as soon as Data Proxy supports Interactive Transactions
+function checkForbiddenTransactionsWithProxyFlag(config: ConfigMetaFormat) {
+  if (
+    config.generators.some((g) => {
+      const lowerCasePreviewFeatures = g.previewFeatures.map((pf) => pf.toLowerCase())
+      return ['dataProxy', 'interactiveTransactions'].every((pf) => lowerCasePreviewFeatures.includes(pf.toLowerCase()))
+    })
+  ) {
+    throw new Error(forbiddenTransactionsWithProxyFlagMessage)
   }
 }

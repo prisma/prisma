@@ -1,8 +1,8 @@
 import { getSchemaPath, getSchema, getConfig, createDatabase } from '@prisma/sdk'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('can create database - sqlite', async () => {
   ctx.fixture('schema-only-sqlite')

@@ -101,8 +101,6 @@ describe('middleware', () => {
       return result
     })
 
-    const users = await db.user.findMany()
-    console.warn(users)
     // The name should be overwritten by the middleware
     const u = await db.user.findFirst({
       where: {
@@ -112,6 +110,41 @@ describe('middleware', () => {
     expect(u.id).toBe(user.id)
     await db.user.deleteMany()
 
+    db.$disconnect()
+  })
+
+  test('pass new params', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
+
+    db.$use((params, next) => {
+      if (params.action === 'create' && params.model === 'User') {
+        return next({
+          ...params,
+          args: {
+            data: {
+              ...params.args.data,
+              name: 'set from middleware',
+            },
+          },
+        })
+      }
+      return next(params)
+    })
+
+    const { id } = await db.user.create({
+      data: {
+        email: 'test@test.com',
+      },
+    })
+
+    const user = await db.user.findFirst({
+      where: { id },
+    })
+
+    expect(user.name).toBe('set from middleware')
+
+    await db.user.deleteMany()
     db.$disconnect()
   })
 

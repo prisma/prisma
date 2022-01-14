@@ -1,6 +1,6 @@
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should read .env file in prisma folder when there is no schema', async () => {
   process.argv.push('--version')
