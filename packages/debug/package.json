@@ -31,14 +31,12 @@
     "jest": "27.4.7",
     "lint-staged": "12.1.5",
     "prettier": "2.5.1",
-    "strip-ansi": "6.0.1",
     "ts-jest": "27.1.2",
     "typescript": "4.5.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "prepublishOnly": "pnpm run build",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
@@ -52,7 +50,8 @@
   ],
   "dependencies": {
     "@types/debug": "4.1.7",
-    "ms": "2.1.3"
+    "ms": "2.1.3",
+    "strip-ansi": "6.0.1"
   },
   "lint-staged": {
     "*.ts": [

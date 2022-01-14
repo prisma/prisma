@@ -42,7 +42,6 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test": "jest --verbose",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "format": "prettier --write .",
