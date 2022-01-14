@@ -101,18 +101,17 @@ export function applyFluent(
     return new Proxy(prismaPromise, {
       get(target, prop: string) {
         // fluent api only works on fields that are relational
-        if (dmmfModelFieldMap[prop]?.kind === 'object') {
-          const dmmfModelName = dmmfModelFieldMap[prop].type
-          const modelArgs = [dmmfModelName, modelAction, prop] as const
-          const dataArgs = [nextDataPath, nextUserArgs] as const
+        if (!ownKeys.includes(prop)) return target[prop]
 
-          return applyFluent(client, ...modelArgs, ...dataArgs)
-        }
+        // here we are sure that prop is a field of type object
+        const dmmfModelName = dmmfModelFieldMap[prop].type
+        const modelArgs = [dmmfModelName, modelAction, prop] as const
+        const dataArgs = [nextDataPath, nextUserArgs] as const
 
-        return target[prop] // let the promise behave normally
+        return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      ownKeys: () => ownKeys,
       has: (_, prop: string) => ownKeys.includes(prop),
+      ownKeys: () => ownKeys,
     })
   }
 }
@@ -120,6 +119,6 @@ export function applyFluent(
 // the only accessible fields are relations to be chained on
 function getOwnKeys(client: Client, dmmfModelName: string) {
   return client._dmmf.modelMap[dmmfModelName].fields
-    .filter((field) => field.kind === 'object')
+    .filter((field) => field.kind === 'object') // relations
     .map((field) => field.name)
 }

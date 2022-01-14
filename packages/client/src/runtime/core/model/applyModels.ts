@@ -36,8 +36,8 @@ export function applyModels<C extends Client>(client: C) {
 
       return target[prop] // returns the base client prop
     },
-    ownKeys: () => ownKeys,
     has: (_, prop: string) => ownKeys.includes(prop),
+    ownKeys: () => ownKeys,
   })
 }
 

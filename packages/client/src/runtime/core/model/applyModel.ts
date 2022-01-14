@@ -14,29 +14,6 @@ export type ModelAction = (
 ) => (userArgs?: object) => PrismaPromise<unknown>
 
 /**
- * Tells if a given `action` is valid & available for a `model`.
- * @param client to provide dmmf information
- * @param dmmfModelName the dmmf name of the model
- * @param action the method that has been called
- * @returns
- */
-function isValidActionName(client: Client, dmmfModelName: string, action: string): action is Action {
-  // we retrieve the possible actions for this model
-  const dmmfModelMapping = client._dmmf.mappingsMap[dmmfModelName]
-
-  // these are not allowed or valid actions on a model
-  if (['model', 'plural'].includes(action)) return false
-
-  // count is a special case, it is not a model action
-  if (action === 'count') return true // we emulate it
-
-  // only valid actions are allowed to be called on models
-  if (dmmfModelMapping[action] === undefined) return false
-
-  return true
-}
-
-/**
  * Dynamically creates a model interface via a proxy.
  * @param client to trigger the request execution
  * @param dmmfModelName the dmmf name of the model
@@ -50,7 +27,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
   // we construct a proxy that acts as the model interface
   return new Proxy(EMPTY_OBJECT, {
     get(_, prop: string): F.Return<ModelAction> | undefined {
-      // only allow valid actions to be accessed on a model
+      // only allow actions that are valid and available for this model
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
 
       // we return a function as the model action that we want to expose
@@ -82,12 +59,19 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
       return action({}) // and by default, don't override any params
     },
-    ownKeys: () => ownKeys,
     has: (_, prop: string) => ownKeys.includes(prop),
+    ownKeys: () => ownKeys,
   })
 }
 
 // the only accessible fields are the ones that are actions
 function getOwnKeys(client: Client, dmmfModelName: string) {
-  return [...Object.keys(client._dmmf.mappingsMap[dmmfModelName]), 'count']
+  return [...Object.keys(client._dmmf.mappingsMap[dmmfModelName]), 'count'].filter(
+    (key) => !['model', 'plural'].includes(key),
+  )
+}
+
+// tells if a given `action` is valid & available for a `model`
+function isValidActionName(client: Client, dmmfModelName: string, action: string): action is Action {
+  return getOwnKeys(client, dmmfModelName).includes(action)
 }
