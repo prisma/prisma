@@ -45,7 +45,7 @@ export const depCheckPlugin = (bundle?: boolean): esbuild.Plugin => ({
   setup(build) {
     // we load the package.json of the project do do our analysis
     const pkgJsonPath = path.join(process.cwd(), 'package.json')
-    const pkgContents = require(pkgJsonPath) as Record<string, string>
+    const pkgContents = require(pkgJsonPath) as Record<string, object>
     const regDependencies = Object.keys(pkgContents['dependencies'] ?? {})
     const devDependencies = Object.keys(pkgContents['devDependencies'] ?? {})
     const peerDependencies = Object.keys(pkgContents['peerDependencies'] ?? {})
