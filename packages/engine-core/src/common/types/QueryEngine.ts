@@ -61,7 +61,6 @@ export type QueryEngineResult<T> = {
 
 export type QueryEngineRequestHeaders = {
   traceparent?: string
-  traceparents?: string
   transactionId?: string
   fatal?: string // TODO
 }

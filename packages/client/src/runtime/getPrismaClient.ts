@@ -426,7 +426,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        // eslint-disable-next-line prettier/prettier
         if (!this._hasPreviewFlag('interactiveTransactions')) {
           this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
         } else {
