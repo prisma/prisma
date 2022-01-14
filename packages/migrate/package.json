@@ -71,7 +71,6 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "run": "node dist/bin.js",
     "precommit": "lint-staged",
     "format": "prettier --write .",

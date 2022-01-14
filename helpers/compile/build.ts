@@ -4,7 +4,7 @@ import { flatten } from '../blaze/flatten'
 import { pipe } from '../blaze/pipe'
 import { map } from '../blaze/map'
 import { transduce } from '../blaze/transduce'
-import glob from 'glob'
+import glob from 'globby'
 import path from 'path'
 import { watch as createWatcher } from 'chokidar'
 import { tscPlugin } from './plugins/tscPlugin'
@@ -12,6 +12,7 @@ import { onErrorPlugin } from './plugins/onErrorPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { handle } from '../blaze/handle'
 import { replaceWithPlugin } from './plugins/replaceWithPlugin'
+import { depCheckPlugin } from './plugins/depCheckPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
@@ -134,10 +135,38 @@ async function executeEsBuild(options: BuildOptions) {
 }
 
 /**
+ * A blank esbuild run to do an analysis of our deps
+ */
+async function dependencyCheck(options: BuildOptions) {
+  // we only check our dependencies for a full build
+  if (process.env.DEV === 'true') return options
+
+  // we need to bundle everything to do the analysis
+  const buildPromise = esbuild.build({
+    entryPoints: glob.sync('**/*.{j,t}s', {
+      ignore: ['**/packages/**/*', '**/*.d.ts'],
+      gitignore: true,
+    }),
+    logLevel: 'silent', // there will be errors
+    bundle: true, // we bundle to get everything
+    write: false, // no need to write for analysis
+    outdir: 'out',
+    plugins: [depCheckPlugin(options.bundle)],
+  })
+
+  // we absolutely don't care if it has any errors
+  await buildPromise.catch(() => {})
+
+  return options
+}
+
+/**
  * Execution pipeline that applies a set of actions
  * @param options
  */
 export async function build(options: BuildOptions[]) {
+  await transduce.async(options, dependencyCheck)
+
   return transduce.async(
     createBuildOptions(options),
     pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch),
