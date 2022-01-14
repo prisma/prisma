@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1642179634400,
+  "lastUpdate": 1642183376683,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -77341,6 +77341,72 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client size",
             "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2b2f6cc16ef78bcfe2bccc7dfc6576c2aed922cc",
+          "message": "chore(deps): update engines to 3.9.0-7.7a48cf2c1aea8ec23e6dff2500845f31bdf2c468 (#11174)",
+          "timestamp": "2022-01-14T17:59:05Z",
+          "tree_id": "d8757b5b720354e17d394a62468af96c7700fded",
+          "url": "https://github.com/prisma/prisma/commit/2b2f6cc16ef78bcfe2bccc7dfc6576c2aed922cc"
+        },
+        "date": 1642183372780,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±6.68%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.17%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 42,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
