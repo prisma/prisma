@@ -144,7 +144,7 @@ async function dependencyCheck(options: BuildOptions) {
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
-      ignore: ['**/packages/**/*', '**/*.d.ts'],
+      ignore: ['./src/__tests__/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors
