@@ -118,7 +118,6 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "format": "prettier --write .",
