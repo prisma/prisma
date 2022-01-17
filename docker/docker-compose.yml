@@ -125,6 +125,17 @@ services:
     links:
       - mongo
 
+  mongo5:
+    image: prismagraphql/mongo-single-replica:5.0.3
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "root"
+      MONGO_INITDB_ROOT_PASSWORD: "prisma"
+      MONGO_INITDB_DATABASE: tests
+      INIT_WAIT_SEC: $INIT_WAIT_SEC
+    ports:
+      - "27018:27018"
+
 volumes:
   postgres:
   postgres_isolated:
