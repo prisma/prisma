@@ -9,8 +9,6 @@ services:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
-    volumes:
-      - postgres:/var/lib/postgresql/data
     ports:
       - '5432:5432'
 
@@ -21,8 +19,6 @@ services:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
-    volumes:
-      - postgres_isolated:/var/lib/postgresql/data
     ports:
       - '5435:5432'
 
@@ -45,8 +41,6 @@ services:
     # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
     cap_add:
       - SYS_NICE # CAP_SYS_NICE
-    volumes:
-      - mysql:/var/lib/mysql
     ports:
       - '3306:3306'
   mysql_isolated:
@@ -61,8 +55,6 @@ services:
     # https://stackoverflow.com/questions/55559386/how-to-fix-mbind-operation-not-permitted-in-mysql-error-log
     cap_add:
       - SYS_NICE # CAP_SYS_NICE
-    volumes:
-      - mysql_isolated:/var/lib/mysql
     ports:
       - '3307:3306'
   mariadb:
@@ -73,8 +65,6 @@ services:
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma
-    volumes:
-      - mariadb:/var/lib/mysql
     ports:
       - '4306:3306'
 
@@ -84,8 +74,6 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Pr1sm4_Pr1sm4
-    volumes:
-      - mssql:/var/opt/mssql
     ports:
       - '1433:1433'
 
@@ -114,11 +102,3 @@ services:
       INIT_WAIT_SEC: $INIT_WAIT_SEC
     ports:
       - "27018:27018"
-
-volumes:
-  postgres:
-  postgres_isolated:
-  mysql:
-  mysql_isolated:
-  mariadb:
-  mssql:
