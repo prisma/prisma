@@ -1,28 +1,7 @@
 version: '3.7'
-services:
-  # In Docker
-  # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@postgres/tests-migrate
-  # - TEST_POSTGRES_URI=postgres://prisma:prisma@postgres/tests
-  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@postgres_isolated:5435/tests
-  # - TEST_MYSQL_URI=mysql://prisma:prisma@mysql:3306/tests
-  # - TEST_MYSQL_ISOLATED_URI=mysql://prisma:prisma@mysql_isolated:3306/tests
-  # - TEST_MARIADB_URI=mysql://prisma:prisma@mariadb:4306/tests
-  # - TEST_MSSQL_URI=sqlserver://SA:Pr1sm4_Pr1sm4@mssql:1433/master
-  # - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-  # - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
-  #
-  # Outside Docker
-  # - TEST_POSTGRES_URI_MIGRATE=postgres://prisma:prisma@localhost:5432/tests-migrate
-  # - TEST_POSTGRES_URI=postgres://prisma:prisma@localhost:5432/tests
-  # - TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
-  # - TEST_POSTGRES_ISOLATED_URI=postgres://prisma:prisma@localhost:5435/tests
-  # - TEST_MYSQL_URI=mysql://prisma:prisma@localhost:3306/tests
-  # - TEST_MYSQL_ISOLATED_URI=mysql://prisma:prisma@localhost:3307/tests
-  # - TEST_MARIADB_URI=mysql://prisma:prisma@localhost:4306/tests
-  # - TEST_MSSQL_URI=sqlserver://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-  # - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-  # - TEST_MONGO_URI=mongodb://root:prisma@localhost:27017/tests?authSource=admin
 
+# See https://github.com/prisma/prisma/blob/main/TESTING.md#environment-variables
+services:
   postgres:
     image: postgres:10
     restart: always
