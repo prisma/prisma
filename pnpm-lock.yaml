@@ -124,7 +124,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       debug: 4.3.3
-      dotenv: 11.0.0
+      dotenv: 13.0.1
       esbuild: 0.13.14
       eslint: 8.6.0
       eslint-config-prettier: 8.3.0
@@ -176,7 +176,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       debug: 4.3.3
-      dotenv: 11.0.0
+      dotenv: 13.0.1
       esbuild: 0.13.14
       eslint: 8.6.0
       eslint-config-prettier: 8.3.0_eslint@8.6.0
@@ -697,7 +697,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
-      dotenv: 11.0.0
+      dotenv: 13.0.1
       esbuild: 0.13.14
       escape-string-regexp: 4.0.0
       eslint: 8.6.0
@@ -748,7 +748,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.20
       cli-truncate: 2.1.0
-      dotenv: 11.0.0
+      dotenv: 13.0.1
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
@@ -3305,8 +3305,8 @@ packages:
       webidl-conversions: 5.0.0
     dev: true
 
-  /dotenv/11.0.0:
-    resolution: {integrity: sha512-Fp/b504Y5W+e+FpCxTFMUZ7ZEQkQYF0rx+KZtmwixJxGQbLHrhCwo3FjZgNC8vIfrSi29PABNbMoCGD9YoiXbQ==}
+  /dotenv/13.0.1:
+    resolution: {integrity: sha512-u3KAkK+VHk01+D7V6SFtSJl2JScX1Yi4anKsKXS4oT8s8LnL5xgJe7XFAZ1bSsOfAmxU54OwOuhaLv3v70oXgw==}
     engines: {node: '>=12'}
 
   /eastasianwidth/0.2.0:
