@@ -183,7 +183,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       if (!this.QueryEngineConstructor) {
         try {
           // this require needs to be resolved at runtime, tell webpack to ignore it
-          this.library = eval('require')(this.libQueryEnginePath) as Library
+          this.library = require(this.libQueryEnginePath) as Library
           this.QueryEngineConstructor = this.library.QueryEngine
         } catch (e) {
           if (fs.existsSync(this.libQueryEnginePath)) {
@@ -494,9 +494,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return { enginePath, searchedLocations }
     }
     const searchLocations: string[] = [
-      eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
-      this.config.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
-      path.join(eval('__dirname'), '..'), // parentDirName
+      require('path').join(__dirname, '../../../.prisma/client'), // Dot Prisma Path
+      this.config.generator?.output?.value ?? __dirname, // Custom Generator Path
+      path.join(__dirname, '..'), // parentDirName
       path.dirname(this.config.datamodelPath), // Datamodel Dir
       this.config.cwd, //cwdPath
       '/tmp/prisma-engines',

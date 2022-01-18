@@ -14,9 +14,7 @@ if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
 }
 
 async function ensurePostInstall() {
-  const initPkgPath = eval(
-    `require('path').resolve(process.env.INIT_CWD, 'package.json')`,
-  )
+  const initPkgPath = require('path').resolve(process.env.INIT_CWD, 'package.json')
   if (fs.existsSync(initPkgPath)) {
     if (addPostInstallHook(initPkgPath)) {
       return

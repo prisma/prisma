@@ -208,8 +208,8 @@ export async function generateClient({
     }),
   )
   const runtimeSourceDir = testMode
-    ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
-    : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
+    ? require('path').join(__dirname, '../../runtime')
+    : require('path').join(__dirname, '../runtime')
 
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {

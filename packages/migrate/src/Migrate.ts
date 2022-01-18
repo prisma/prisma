@@ -10,7 +10,7 @@ import { enginesVersion } from '@prisma/engines-version'
 import { NoSchemaFoundError } from './utils/errors'
 
 const debug = Debug('prisma:migrate')
-const packageJson = eval(`require('../package.json')`) // tslint:disable-line
+const packageJson = require('../package.json') // tslint:disable-line
 
 export class Migrate {
   get devMigrationsDir(): string {

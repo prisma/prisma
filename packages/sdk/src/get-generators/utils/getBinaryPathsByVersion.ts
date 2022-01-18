@@ -39,7 +39,7 @@ export async function getBinaryPathsByVersion({
     }
 
     // download
-    let binaryTargetBaseDir = eval(`require('path').join(__dirname, '..')`)
+    let binaryTargetBaseDir = (require('path') as typeof path).join(__dirname, '..')
 
     if (version !== currentVersion) {
       binaryTargetBaseDir = path.join(binaryTargetBaseDir, `./engines/${currentVersion}/`)

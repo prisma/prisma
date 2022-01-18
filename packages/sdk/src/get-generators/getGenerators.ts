@@ -84,7 +84,7 @@ export async function getGenerators({
 
   // overwrite query engine if the version is provided
   if (version && !prismaPath) {
-    const potentialPath = eval(`require('path').join(__dirname, '..')`)
+    const potentialPath = require('path').join(__dirname, '..')
     // for pkg we need to make an exception
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {

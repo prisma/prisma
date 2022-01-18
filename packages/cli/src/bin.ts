@@ -243,7 +243,7 @@ process.on('SIGINT', () => {
 /**
  * Run our program
  */
-if (eval('require.main === module')) {
+if (require.main === module) {
   main()
     .then((code) => {
       if (code !== 0) {

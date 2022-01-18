@@ -45,7 +45,7 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
     return process.env[envVar]!
   }
 
-  const dir = eval('__dirname')
+  const dir = __dirname
 
   const binaryName = await getBinaryName(name)
 
@@ -83,7 +83,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
-  const dir = eval('__dirname')
+  const dir = __dirname
   if (dir.startsWith('/snapshot/')) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
