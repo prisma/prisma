@@ -26,8 +26,8 @@ export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=tests;user=SA;pa
 export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
-export TEST_MONGO_URI="mongodb://root:prisma@localhost:27017/tests?authSource=admin"
-export TEST_MONGO_RS_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
+export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
+export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
 
 export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
 ```

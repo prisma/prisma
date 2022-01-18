@@ -28,7 +28,8 @@ services:
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
-      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27018/tests?authSource=admin
+      - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongo:27017/tests-migrate?authSource=admin
       # CockroachDB
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/
       # Other vars
@@ -116,20 +117,31 @@ services:
     volumes:
       - mssql:/var/opt/mssql
 
-  mongo:
+  mongo_migrate:
     image: mongo:4
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
-      MONGO_INITDB_DATABASE: tests
+      MONGO_INITDB_DATABASE: tests-migrate
     ports:
       - '27017:27017'
 
   mongo-seed:
-    build: ../../docker/mongo-seed
+    build: ./mongo-seed
     links:
-      - mongo
+      - mongo_migrate
+
+  mongo:
+    image: prismagraphql/mongo-single-replica:5.0.3
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "prisma"
+      MONGO_INITDB_ROOT_PASSWORD: "prisma"
+      MONGO_PORT: 27018
+      INIT_WAIT_SEC: $INIT_WAIT_SEC
+    ports:
+      - "27018:27018"
 
   cockroachdb:
     image: prismagraphql/build:cockroach-custom
