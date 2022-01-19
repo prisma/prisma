@@ -707,7 +707,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fs-jetpack: 4.3.0
+      fs-jetpack: 4.3.1
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
@@ -752,7 +752,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fs-jetpack: 4.3.0
+      fs-jetpack: 4.3.1
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
@@ -4518,6 +4518,14 @@ packages:
     dependencies:
       minimatch: 3.0.4
       rimraf: 2.7.1
+    dev: true
+
+  /fs-jetpack/4.3.1:
+    resolution: {integrity: sha512-dbeOK84F6BiQzk2yqqCVwCPWTxAvVGJ3fMQc6E2wuEohS28mR6yHngbrKuVCK1KHRx/ccByDylqu4H5PCP2urQ==}
+    dependencies:
+      minimatch: 3.0.4
+      rimraf: 2.7.1
+    dev: false
 
   /fs-minipass/1.2.7:
     resolution: {integrity: sha512-GWSSJGFy4e9GUeCcbIkED+bgAoFyj7XF1mV8rma3QW4NIqX9Kyx79N/PF61H5udOV3aY1IaMLs6pGbH71nlCTA==}
