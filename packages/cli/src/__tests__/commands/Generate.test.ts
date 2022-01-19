@@ -15,7 +15,7 @@ describe('using cli', () => {
     }
 
     const { main } = await import(ctx.fs.path('main.ts'))
-    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+    expect(replaceEngineType(data.stdout)).toMatchSnapshot()
     await expect(main()).resolves.toMatchSnapshot()
   }, 60000) // timeout
 
@@ -32,7 +32,7 @@ describe('using cli', () => {
       throw new Error(data.stderr + data.stdout)
     }
 
-    expect(cleanSnapshot(data.stdout)).toContain(`I am a minimal generator`)
+    expect(data.stdout).toContain(`I am a minimal generator`)
   }, 50000) // timeout
 })
 
@@ -130,14 +130,6 @@ describe('--schema from parent directory', () => {
     await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
-
-function cleanSnapshot(str: string): string {
-  return str
-    .replace(/\d+ms/g, 'XXms')
-    .replace(/\d+s/g, 'XXs')
-    .replace(/\(version:.+\)/g, '(version: 0.0.0)')
-    .replace(new RegExp(getClientEngineType(), 'g'), 'TEST_ENGINE_TYPE')
-}
 
 function replaceEngineType(result: string | Error) {
   if (result instanceof Error) {
