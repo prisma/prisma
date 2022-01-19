@@ -17,7 +17,7 @@
     "@sindresorhus/slugify": "1.1.2",
     "@types/jest": "27.4.0",
     "@types/mssql": "7.1.4",
-    "@types/node": "12.20.41",
+    "@types/node": "12.20.42",
     "@types/pg": "8.6.4",
     "@types/sqlite3": "3.1.8",
     "@typescript-eslint/eslint-plugin": "5.9.0",
