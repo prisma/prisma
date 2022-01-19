@@ -86,6 +86,7 @@ services:
     build: ./mongo-seed
     depends_on:
       - mongo_migrate
+
   mongo:
     image: prismagraphql/mongo-single-replica:5.0.3
     restart: always
