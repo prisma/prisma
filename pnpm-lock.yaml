@@ -33,7 +33,7 @@ importers:
       graphviz: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
-      node-fetch: 2.6.6
+      node-fetch: 2.6.7
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -82,7 +82,7 @@ importers:
       graphviz: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
-      node-fetch: 2.6.6
+      node-fetch: 2.6.7
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -143,7 +143,7 @@ importers:
       lint-staged: 12.1.5
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.6
+      node-fetch: 2.6.7
       open: 7.4.2
       pkg-up: 3.1.0
       prettier: 2.5.1
@@ -195,7 +195,7 @@ importers:
       lint-staged: 12.1.5
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.6
+      node-fetch: 2.6.7
       open: 7.4.2
       pkg-up: 3.1.0
       prettier: 2.5.1
@@ -715,7 +715,7 @@ importers:
       jest: 27.4.7
       lint-staged: 12.1.5
       make-dir: 3.1.0
-      node-fetch: 2.6.6
+      node-fetch: 2.6.7
       p-map: 4.0.0
       prettier: 2.5.1
       read-pkg-up: 7.0.1
@@ -758,7 +758,7 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.1
       make-dir: 3.1.0
-      node-fetch: 2.6.6
+      node-fetch: 2.6.7
       p-map: 4.0.0
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
@@ -6203,6 +6203,17 @@ packages:
   /node-fetch/2.6.6:
     resolution: {integrity: sha512-Z8/6vRlTUChSdIgMa51jxQ4lrw/Jy5SOW10ObaA47/RElsAN2c5Pn8bTgFGWn/ibwzXTE8qwr1Yzx28vsecXEA==}
     engines: {node: 4.x || >=6.0.0}
+    dependencies:
+      whatwg-url: 5.0.0
+
+  /node-fetch/2.6.7:
+    resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
     dependencies:
       whatwg-url: 5.0.0
 
