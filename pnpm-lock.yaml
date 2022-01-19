@@ -152,7 +152,7 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.1
       tempy: 1.0.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       typescript: 4.5.4
     dependencies:
       '@prisma/engines': 3.9.0-7.7a48cf2c1aea8ec23e6dff2500845f31bdf2c468
@@ -204,7 +204,7 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.1
       tempy: 1.0.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       typescript: 4.5.4
 
   packages/client:
@@ -265,7 +265,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       ts-node: 10.4.0
       tsd: 0.19.1
       typescript: 4.5.4
@@ -327,7 +327,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       ts-node: 10.4.0_6119b188113f5da5576f5d8bf1955281
       tsd: 0.19.1
       typescript: 4.5.4
@@ -350,7 +350,7 @@ importers:
       ms: 2.1.3
       prettier: 2.5.1
       strip-ansi: 6.0.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       typescript: 4.5.4
     dependencies:
       '@types/debug': 4.1.7
@@ -370,7 +370,7 @@ importers:
       jest: 27.4.7_ts-node@10.4.0
       lint-staged: 12.1.5
       prettier: 2.5.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       typescript: 4.5.4
 
   packages/engine-core:
@@ -400,7 +400,7 @@ importers:
       prettier: 2.5.1
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       typescript: 4.5.4
       undici: 3.3.6
     dependencies:
@@ -431,7 +431,7 @@ importers:
       jest: 27.4.7_ts-node@10.4.0
       lint-staged: 12.1.5
       prettier: 2.5.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       typescript: 4.5.4
 
   packages/generator-helper:
@@ -453,7 +453,7 @@ importers:
       jest: 27.4.7
       lint-staged: 12.1.5
       prettier: 2.5.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       ts-node: 10.4.0
       typescript: 4.5.4
     dependencies:
@@ -475,7 +475,7 @@ importers:
       jest: 27.4.7_ts-node@10.4.0
       lint-staged: 12.1.5
       prettier: 2.5.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       ts-node: 10.4.0_6119b188113f5da5576f5d8bf1955281
       typescript: 4.5.4
 
@@ -510,7 +510,7 @@ importers:
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       ts-node: 10.4.0
       typescript: 4.5.4
       verror: 1.10.1
@@ -544,7 +544,7 @@ importers:
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       ts-node: 10.4.0_6119b188113f5da5576f5d8bf1955281
       typescript: 4.5.4
       verror: 1.10.1
@@ -591,7 +591,7 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tempy: 1.0.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -635,7 +635,7 @@ importers:
       mock-stdin: 1.0.0
       prettier: 2.5.1
       tempy: 1.0.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       typescript: 4.5.4
 
   packages/react-prisma:
@@ -732,7 +732,7 @@ importers:
       tempy: 1.0.1
       terminal-link: 2.1.1
       tmp: 0.2.1
-      ts-jest: 27.1.2
+      ts-jest: 27.1.3
       ts-node: 10.4.0
       typescript: 4.5.4
     dependencies:
@@ -791,7 +791,7 @@ importers:
       jest: 27.4.7_ts-node@10.4.0
       lint-staged: 12.1.5
       prettier: 2.5.1
-      ts-jest: 27.1.2_1072804fb7e5fd3a91d8c07d0f36b472
+      ts-jest: 27.1.3_1072804fb7e5fd3a91d8c07d0f36b472
       ts-node: 10.4.0_6119b188113f5da5576f5d8bf1955281
       typescript: 4.5.4
 
@@ -7856,8 +7856,8 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /ts-jest/27.1.2_1072804fb7e5fd3a91d8c07d0f36b472:
-    resolution: {integrity: sha512-eSOiJOWq6Hhs6Khzk5wKC5sgWIXgXqOCiIl1+3lfnearu58Hj4QpE5tUhQcA3xtZrELbcvAGCsd6HB8OsaVaTA==}
+  /ts-jest/27.1.3_1072804fb7e5fd3a91d8c07d0f36b472:
+    resolution: {integrity: sha512-6Nlura7s6uM9BVUAoqLH7JHyMXjz8gluryjpPXxr3IxZdAXnU6FhjvVLHFtfd1vsE1p8zD1OJfskkc0jhTSnkA==}
     engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
     hasBin: true
     peerDependencies:
