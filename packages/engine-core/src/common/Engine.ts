@@ -53,7 +53,6 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
-  useUds?: boolean
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
