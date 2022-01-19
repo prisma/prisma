@@ -21,8 +21,8 @@ export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-m
 
 export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
 
-export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/tests" # for `mssql` lib used in some tests
-export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=tests;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
+export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
