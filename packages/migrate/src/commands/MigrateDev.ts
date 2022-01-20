@@ -284,6 +284,10 @@ ${chalk.bold('Examples')}
       migrate.stop()
     }
 
+    // the log from engine "Applying migration `20201231000000_name`"
+    // should normally be logged around here in time, before the next console
+    // in our macOS tests it shows it happening after "Your database is now in sync with your schema."
+    // the following solves the issue
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     // For display only, empty line
