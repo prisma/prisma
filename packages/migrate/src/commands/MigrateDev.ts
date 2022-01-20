@@ -284,6 +284,8 @@ ${chalk.bold('Examples')}
       migrate.stop()
     }
 
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
     // For display only, empty line
     migrationIdsApplied.length > 0 && console.info()
 
