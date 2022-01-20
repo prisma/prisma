@@ -123,10 +123,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  // TODO: Something has changed on the engines side and this test is failing
-  // only on macOS and on the binary, further investigation needs to be done
-  // https://prisma-company.slack.com/archives/CUXLS0Z6K/p1642627124037800?thread_ts=1642443261.001000&cid=CUXLS0Z6K
-  testIf(process.platform !== 'darwin')('first migration (--name)', async () => {
+  it('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first'])
 
