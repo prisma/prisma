@@ -99,3 +99,4 @@ services:
       - '27018:27018'
     volumes:
       - '../../docker/mongo-home/:/home/mongodb/'
+    command: chmod -R 777 /home/mongodb/
