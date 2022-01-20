@@ -123,7 +123,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
-  it('first migration (--name)', async () => {
+  testIf(process.platform !== 'darwin')('first migration (--name)', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--name=first'])
 
