@@ -159,7 +159,5 @@ services:
       INIT_WAIT_SEC: 2
     ports:
       - 27018:27018
-    volumes:
-      - '../../docker/mongo-home/:/home/mongodb/'
 
 # TODO: investigate why isolated containers aren't used in the tests
