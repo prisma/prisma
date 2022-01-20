@@ -158,6 +158,8 @@ services:
       MONGO_PORT: 27018
       INIT_WAIT_SEC: 2
     ports:
-      - '27018:27018'
+      - 27018:27018
+    volumes:
+      - '.:/home/mongodb/'
 
 # TODO: investigate why isolated containers aren't used in the tests
