@@ -97,5 +97,3 @@ services:
       INIT_WAIT_SEC: 10
     ports:
       - '27018:27018'
-    # volumes:
-    #   - '../../docker/mongo-home/:/home/mongodb/'
