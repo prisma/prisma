@@ -160,6 +160,6 @@ services:
     ports:
       - 27018:27018
     volumes:
-      - '.:/home/mongodb/'
+      - '../../docker/mongo-home/:/home/mongodb/'
 
 # TODO: investigate why isolated containers aren't used in the tests
