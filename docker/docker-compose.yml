@@ -97,6 +97,5 @@ services:
       INIT_WAIT_SEC: 2
     ports:
       - '27018:27018'
-    volumes:
-      - '../../docker/mongo-home/:/home/mongodb/'
-    command: chmod -R 777 /home/mongodb/
+    # volumes:
+    #   - '../../docker/mongo-home/:/home/mongodb/'
