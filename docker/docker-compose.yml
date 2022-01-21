@@ -90,7 +90,7 @@ services:
   mongo:
     image: mongo:4
     restart: always
-    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip", "0.0.0.0"]
+    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip", "0.0.0.0", "--port", "27018"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
