@@ -28,7 +28,7 @@ services:
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
-      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27018/tests?authSource=admin
       - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongo_migrate:27017/tests-migrate?authSource=admin
       # CockroachDB
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/
@@ -50,6 +50,7 @@ services:
       - mariadb
       - mssql
       - mongo
+      - mongo_replica
       # - mongo_migrate
       # - mongo_seed
       - cockroachdb
@@ -142,13 +143,13 @@ services:
   mongo:
     image: mongo:4
     restart: always
-    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip_all"]
+    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip", "0.0.0.0"]
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_INITDB_DATABASE: tests
     ports:
-      - '27017:27017'
+      - '27018:27018'
 
   mongo_replica:
     build: ../../docker/mongo-replica
