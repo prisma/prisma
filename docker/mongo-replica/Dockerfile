@@ -1,4 +1,4 @@
-FROM mongo:5
+FROM mongo:4
 
 EXPOSE 27017
 
