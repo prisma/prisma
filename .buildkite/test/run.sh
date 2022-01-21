@@ -30,4 +30,5 @@ npm -v
 
 pnpm run setup
 
-pnpm run test
+echo $TEST_MONGO_URI
+# pnpm run test
