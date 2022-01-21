@@ -50,8 +50,8 @@ services:
       - mariadb
       - mssql
       - mongo
-      - mongo_migrate
-      - mongo_seed
+      # - mongo_migrate
+      # - mongo_seed
       - cockroachdb
 
   postgres:
