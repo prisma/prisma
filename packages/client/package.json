@@ -42,7 +42,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "jest --verbose -- mongo",
+    "test": "jest --verbose mongo",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
