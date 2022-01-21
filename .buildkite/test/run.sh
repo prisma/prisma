@@ -28,8 +28,6 @@ fi
 node -v
 npm -v
 
-pnpm -r run dev
+pnpm run setup
 
-cd packages/client
-
-pnpm run test -- mongo
+pnpm run test

@@ -61,7 +61,7 @@
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
     "jest": "jest",
-    "test": "# jest --maxConcurrency=8 --verbose",
+    "test": " jest --maxConcurrency=8 --verbose",
     "precommit": "lint-staged"
   },
   "files": [

@@ -42,7 +42,7 @@
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
-    "test": "# jest",
+    "test": " jest",
     "precommit": "lint-staged"
   },
   "dependencies": {
