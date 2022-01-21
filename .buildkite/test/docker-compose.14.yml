@@ -153,5 +153,7 @@ services:
 
   mongo_replica:
     build: ../../docker/mongo-replica
+    environment:
+      HOST: 'mongo:27018'
     depends_on:
       - mongo
