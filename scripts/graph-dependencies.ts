@@ -1,11 +1,9 @@
 import { readdirSync, statSync } from 'fs'
-import { digraph } from 'graphviz'
+import { digraph } from 'graphviz-mit'
 import { join } from 'path'
 
 const getDirectories = (path: string) => {
-  const packages = readdirSync(path).filter((any) =>
-    statSync(join(path, any)).isDirectory(),
-  )
+  const packages = readdirSync(path).filter((any) => statSync(join(path, any)).isDirectory())
   const result = packages.map((pkg) => ({
     dirName: pkg,
     path: join('..', path, pkg),
