@@ -88,6 +88,17 @@ services:
   #     - mongo_migrate
 
   mongo:
-    build: ./mongo-replica
+    image: mongo:4
+    restart: always
+    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip_all"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_DATABASE: tests
     ports:
       - '27017:27017'
+
+  mongo_replica:
+    build: ./mongo-replica
+    depends_on:
+      - mongo
