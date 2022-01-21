@@ -146,6 +146,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
       MONGO_PORT: 27018
-      INIT_WAIT_SEC: 2
+      INIT_WAIT_SEC: 30 # Works for BK
     ports:
       - '27018:27018'

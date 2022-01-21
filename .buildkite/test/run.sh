@@ -30,4 +30,4 @@ npm -v
 
 pnpm run setup
 
-pnpm run test -- mongo
+pnpm run test
