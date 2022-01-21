@@ -77,7 +77,7 @@
     "format": "prettier --write .",
     "lint": "eslint --cache --fix --ext .ts .",
     "lint-ci": "eslint --ext .ts .",
-    "test": " jest --verbose",
+    "test": "jest --verbose",
     "prepublishOnly": "pnpm run build"
   },
   "files": [

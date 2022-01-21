@@ -101,6 +101,7 @@ services:
   mongo_replica:
     build: ./mongo-replica
     environment:
-      HOST: 'localhost:27018'
+      HOST: 'localhost'
+      PORT: 27018
     depends_on:
       - mongo
