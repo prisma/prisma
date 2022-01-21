@@ -72,20 +72,20 @@ services:
     ports:
       - '1433:1433'
 
-  # mongo_migrate:
-  #   image: mongo:4
-  #   restart: always
-  #   environment:
-  #     MONGO_INITDB_ROOT_USERNAME: root
-  #     MONGO_INITDB_ROOT_PASSWORD: prisma
-  #     MONGO_INITDB_DATABASE: tests-migrate
-  #   ports:
-  #     - '27017:27017'
+  mongo_migrate:
+    image: mongo:4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_INITDB_DATABASE: tests-migrate
+    ports:
+      - '27017:27017'
 
-  # mongo_seed:
-  #   build: ./mongo-seed
-  #   depends_on:
-  #     - mongo_migrate
+  mongo_seed:
+    build: ./mongo-seed
+    depends_on:
+      - mongo_migrate
 
   mongo:
     image: mongo:4
