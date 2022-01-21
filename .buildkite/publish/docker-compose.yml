@@ -152,6 +152,6 @@ services:
   mongo:
     build: ../../docker/mongo-replica
     ports:
-      - '27018:27018'
+      - '27017:27017'
 
 # TODO: investigate why isolated containers aren't used in the tests
