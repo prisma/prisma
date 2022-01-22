@@ -60,7 +60,7 @@
     "graphviz-mit": "0.0.9",
     "husky": "7.0.4",
     "is-ci": "3.0.1",
-    "node-fetch": "2.6.7",
+    "node-fetch": "3.1.1",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.1",

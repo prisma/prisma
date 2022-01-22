@@ -33,7 +33,7 @@ importers:
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
-      node-fetch: 2.6.7
+      node-fetch: 3.1.1
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -82,7 +82,7 @@ importers:
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
-      node-fetch: 2.6.7
+      node-fetch: 3.1.1
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.1
@@ -143,7 +143,7 @@ importers:
       lint-staged: 12.1.5
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.7
+      node-fetch: 3.1.1
       open: 7.4.2
       pkg-up: 3.1.0
       prettier: 2.5.1
@@ -195,7 +195,7 @@ importers:
       lint-staged: 12.1.5
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.7
+      node-fetch: 3.1.1
       open: 7.4.2
       pkg-up: 3.1.0
       prettier: 2.5.1
@@ -715,7 +715,7 @@ importers:
       jest: 27.4.7
       lint-staged: 12.1.5
       make-dir: 3.1.0
-      node-fetch: 2.6.7
+      node-fetch: 3.1.1
       p-map: 4.0.0
       prettier: 2.5.1
       read-pkg-up: 7.0.1
@@ -758,7 +758,7 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.1
       make-dir: 3.1.0
-      node-fetch: 2.6.7
+      node-fetch: 3.1.1
       p-map: 4.0.0
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
@@ -3211,6 +3211,10 @@ packages:
     dev: true
     optional: true
 
+  /data-uri-to-buffer/4.0.0:
+    resolution: {integrity: sha512-Vr3mLBA8qWmcuschSLAOogKgQ/Jwxulv3RNE4FXnYWRGujzrRWQI4m12fQqRkwX06C0KanhLr4hK+GydchZsaA==}
+    engines: {node: '>= 12'}
+
   /data-urls/2.0.0:
     resolution: {integrity: sha512-X5eWTSXO/BJmpdIKCRuKUgSCgAN0OwliVK3yPKbwIWU1Tdw5BRajxlzMidvh+gwko9AfQ9zIj52pzF91Q3YAvQ==}
     engines: {node: '>=10'}
@@ -4349,6 +4353,13 @@ packages:
       bser: 2.1.1
     dev: true
 
+  /fetch-blob/3.1.4:
+    resolution: {integrity: sha512-Eq5Xv5+VlSrYWEqKrusxY1C3Hm/hjeAsCGVG3ft7pZahlUAChpGZT/Ms1WmSLnEAisEXszjzu/s+ce6HZB2VHA==}
+    engines: {node: ^12.20 || >= 14.13}
+    dependencies:
+      node-domexception: 1.0.0
+      web-streams-polyfill: 3.2.0
+
   /file-entry-cache/6.0.1:
     resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
     engines: {node: ^10.12.0 || >=12.0.0}
@@ -4483,6 +4494,12 @@ packages:
       asynckit: 0.4.0
       combined-stream: 1.0.8
       mime-types: 2.1.34
+
+  /formdata-polyfill/4.0.10:
+    resolution: {integrity: sha512-buewHzMvYL29jdeQTVILecSaZKnt/RJWjoZCF5OW60Z67/GmSLBkOFM7qh1PI3zFNtJbaZL5eQu1vLfazOwj4g==}
+    engines: {node: '>=12.20.0'}
+    dependencies:
+      fetch-blob: 3.1.4
 
   /forwarded/0.2.0:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
@@ -6381,6 +6398,10 @@ packages:
   /node-addon-api/3.2.1:
     resolution: {integrity: sha512-mmcei9JghVNDYydghQmeDX8KoAm0FAiYyIcUt/N4nhyAipB17pllZQDOJD2fotxABnt4Mdz+dKTO7eftLg4d0A==}
 
+  /node-domexception/1.0.0:
+    resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
+    engines: {node: '>=10.5.0'}
+
   /node-fetch/2.6.1:
     resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
     engines: {node: 4.x || >=6.0.0}
@@ -6401,6 +6422,14 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+
+  /node-fetch/3.1.1:
+    resolution: {integrity: sha512-SMk+vKgU77PYotRdWzqZGTZeuFKlsJ0hu4KPviQKkfY+N3vn2MIzr0rvpnYpR8MtB3IEuhlEcuOLbGvLRlA+yg==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      data-uri-to-buffer: 4.0.0
+      fetch-blob: 3.1.4
+      formdata-polyfill: 4.0.10
 
   /node-gyp/3.8.0:
     resolution: {integrity: sha512-3g8lYefrRRzvGeSowdJKAKyks8oUpLEd/DyPV4eMhVlhJ0aNaZqIrNUIPuEWWTAoPqyFkfGrM67MC69baqn6vA==}
@@ -8271,6 +8300,10 @@ packages:
     dependencies:
       makeerror: 1.0.12
     dev: true
+
+  /web-streams-polyfill/3.2.0:
+    resolution: {integrity: sha512-EqPmREeOzttaLRm5HS7io98goBgZ7IVz79aDvqjD0kYXLtFZTc0T/U6wHTPKyIjb+MdN7DFIIX6hgdBEpWmfPA==}
+    engines: {node: '>= 8'}
 
   /webidl-conversions/3.0.1:
     resolution: {integrity: sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=}
