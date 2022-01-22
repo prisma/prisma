@@ -144,28 +144,28 @@ services:
     ports:
       - '27017:27017'
 
-  mongo_seed:
-    build: ../../docker/mongo-seed
-    depends_on:
-      - mongo_migrate
+  # mongo_seed:
+  #   build: ../../docker/mongo-seed
+  #   depends_on:
+  #     - mongo_migrate
 
-    image: mongo:4
-    restart: always
-    entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip", "0.0.0.0", "--port", "27018"]
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: prisma
-      MONGO_INITDB_DATABASE: tests
-    ports:
-      - '27018:27018'
+  #   image: mongo:4
+  #   restart: always
+  #   entrypoint: ["/usr/bin/mongod", "--replSet", "rs0", "--bind_ip", "0.0.0.0", "--port", "27018"]
+  #   environment:
+  #     MONGO_INITDB_ROOT_USERNAME: root
+  #     MONGO_INITDB_ROOT_PASSWORD: prisma
+  #     MONGO_INITDB_DATABASE: tests
+  #   ports:
+  #     - '27018:27018'
 
-  mongo_replica:
+  mongo:
     build: ../../docker/mongo-replica
     environment:
       HOST: 'mongo'
       PORT: 27018
-    depends_on:
-      - mongo
+    ports:
+      - '27018:27018'
 
 
 # TODO: investigate why isolated containers aren't used in the tests
