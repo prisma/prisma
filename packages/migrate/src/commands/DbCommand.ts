@@ -23,6 +23,7 @@ ${chalk.bold('Commands')}
         pull   Pull the state from the database to the Prisma schema using introspection
         push   Push the state from Prisma schema to the database during prototyping
         seed   Seed your database
+     execute   Execute native commands to your database (Preview)
 
 ${chalk.bold('Examples')}
 
@@ -34,6 +35,10 @@ ${chalk.bold('Examples')}
 
   Using prisma db seed
   ${chalk.dim('$')} prisma db seed
+
+  Using prisma db execute
+  ${chalk.dim('$')} prisma db execute --preview-feature TODO
+
 `)
 
   private constructor(private readonly cmds: Commands) {}

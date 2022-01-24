@@ -50,6 +50,7 @@ import { MigrateReset } from './commands/MigrateReset'
 import { MigrateDeploy } from './commands/MigrateDeploy'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
+import { DbExecute } from './commands/DbExecute'
 import { DbPush } from './commands/DbPush'
 import { DbPull } from './commands/DbPull'
 import { DbDrop } from './commands/DbDrop'
@@ -71,6 +72,7 @@ async function main(): Promise<number> {
     status: MigrateStatus.new(),
     resolve: MigrateResolve.new(),
     // for convenient debugging
+    execute: DbExecute.new(),
     pull: DbPull.new(),
     push: DbPush.new(),
     drop: DbDrop.new(),

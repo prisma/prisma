@@ -427,3 +427,20 @@ it('devDiagnostic - reset because drift', async () => {
 
   migrate.stop()
 })
+
+it('dbExecute - sqlite', async () => {
+  ctx.fixture('schema-only-sqlite')
+  const migrate = new Migrate()
+  const result = migrate.engine.dbExecute({
+    datasourceType: {
+      tag: 'url',
+      url: 'file:dev.db',
+    },
+    script: `-- CreateTable
+    SELECT 1
+    `,
+  })
+
+  await expect(result).resolves.toMatchInlineSnapshot(`null`)
+  migrate.stop()
+})
