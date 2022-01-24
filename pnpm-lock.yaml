@@ -29,7 +29,7 @@ importers:
       eventemitter3: 4.0.7
       execa: 5.1.1
       glob: 7.2.0
-      globby: 11.0.4
+      globby: 13.0.0
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
@@ -78,7 +78,7 @@ importers:
       eventemitter3: 4.0.7
       execa: 5.1.1
       glob: 7.2.0
-      globby: 11.0.4
+      globby: 13.0.0
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
@@ -709,7 +709,7 @@ importers:
       find-up: 5.0.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
-      globby: 11.1.0
+      globby: 13.0.0
       has-yarn: 2.1.0
       is-ci: 3.0.1
       jest: 27.4.7
@@ -754,7 +754,7 @@ importers:
       find-up: 5.0.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
-      globby: 11.1.0
+      globby: 13.0.0
       has-yarn: 2.1.0
       is-ci: 3.0.1
       make-dir: 3.1.0
@@ -4327,6 +4327,16 @@ packages:
       merge2: 1.4.1
       micromatch: 4.0.4
 
+  /fast-glob/3.2.11:
+    resolution: {integrity: sha512-xrO3+1bxSo3ZVHAnqzyuewYT6aMFHRAd4Kcs92MAonjwQZLsK9d0SF1IyQ3k5PoirxTW0Oe/RqFgMQ6TcNE5Ew==}
+    engines: {node: '>=8.6.0'}
+    dependencies:
+      '@nodelib/fs.stat': 2.0.5
+      '@nodelib/fs.walk': 1.2.8
+      glob-parent: 5.1.2
+      merge2: 1.4.1
+      micromatch: 4.0.4
+
   /fast-json-stable-stringify/2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
     dev: true
@@ -4704,6 +4714,16 @@ packages:
       ignore: 5.2.0
       merge2: 1.4.1
       slash: 3.0.0
+
+  /globby/13.0.0:
+    resolution: {integrity: sha512-peWsS6/uJ4lRXg7qK11lnkMTIdoDp35bpJzpR3vpRNFkP1qMNsM7OQvUqwe6r+9RCT6VpEAhL9DDrK/jD0PGvw==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      dir-glob: 3.0.1
+      fast-glob: 3.2.11
+      ignore: 5.2.0
+      merge2: 1.4.1
+      slash: 4.0.0
 
   /graceful-fs/4.2.9:
     resolution: {integrity: sha512-NtNxqUcXgpW2iMrfqSfR73Glt39K+BLwWsPs94yR63v45T0Wbej7eRmL5cWfwEgqXnmjQp3zaJTshdRW/qC2ZQ==}
@@ -7365,6 +7385,10 @@ packages:
   /slash/3.0.0:
     resolution: {integrity: sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==}
     engines: {node: '>=8'}
+
+  /slash/4.0.0:
+    resolution: {integrity: sha512-3dOsAHXXUkQTpOYcoAxLIorMTp4gIQr5IW3iVb7A7lFIp0VHhnynm9izx6TssdrIcVIESAlVjtnO2K8bg+Coew==}
+    engines: {node: '>=12'}
 
   /slice-ansi/3.0.0:
     resolution: {integrity: sha512-pSyv7bSTC7ig9Dcgbw9AuRNUb5k5V6oDudjZoMBSr13qpLBG7tB+zgCkARjq7xIUgdz5P1Qe8u+rSGdouOOIyQ==}
