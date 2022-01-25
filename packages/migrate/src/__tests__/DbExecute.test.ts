@@ -150,7 +150,26 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    it('should fail with P1013 error with invalid url with --file --url', async () => {
+      ctx.fixture('schema-only-sqlite')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
     // TODO, it's passing?
+    //  it('should fail with P1001 error with unreachable url with --file --url', async () => {
     it('should pass with --file --url=file:doesnotexists.db', async () => {
       ctx.fixture('introspection/sqlite')
 
@@ -159,69 +178,39 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    it('should fail with P1013 error with invalid url with --file --url', async () => {
-      ctx.fixture('schema-only-sqlite')
-
-      fs.writeFileSync('script.sql', '-- empty')
-      const result = DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1013
-
-              The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
-
-            `)
-    })
-
-    it('should fail with P1001 error with unreachable url with --file --url', async () => {
-      ctx.fixture('schema-only-sqlite')
-
-      fs.writeFileSync('script.sql', '-- empty')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--url=mysql://johndoe:randompassword@doesnotexist:5432/mydb',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1001
-
-              Can't reach database server at \`doesnotexist\`:\`5432\`
-
-              Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
-
-            `)
-    })
-
     it('should fail with P1014 error with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', 'DROP TABLE "test-doesnotexists";')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1014
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1014')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1014
 
-              The underlying table for model \`test-doesnotexists\` does not exist.
+          The underlying table for model \`test-doesnotexists\` does not exist.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', 'ThisisnotSQL,itshouldfail')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              near "ThisisnotSQL": syntax error
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          near "ThisisnotSQL": syntax error
 
 
-            `)
+        `)
+      }
     })
   })
 
@@ -320,51 +309,62 @@ COMMIT;`,
 
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-postgresql')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty`;')
-      const result = DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1013
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
 
-              The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-postgresql')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty`;')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--url=mysql://johndoe:randompassword@doesnotexist:5432/mydb',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1001
+      try {
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1001')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1001
 
-              Can't reach database server at \`doesnotexist\`:\`5432\`
+          Can't reach database server at \`doesnotexist\`:\`5432\`
 
-              Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+          Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with P1003 error with --file --schema', async () => {
       ctx.fixture('schema-only-postgresql')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', 'DROP DATABASE "test-doesnotexists";')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1003
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1003')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1003
 
-              Database \`tests-migrate-db-execute.public\` does not exist on the database server at \`localhost:5432\`.
+          Database \`tests-migrate-db-execute.public\` does not exist on the database server at \`localhost:5432\`.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with invalid SQL error from database with --file --schema', async () => {
@@ -455,34 +455,44 @@ COMMIT;`,
 
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-mysql')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty')
-      const result = DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1013
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
 
-              The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-mysql')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--url=mysql://johndoe:randompassword@doesnotexist:5432/mydb',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1001
+      try {
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=mysql://johndoe:randompassword@doesnotexist:3306/mydb',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1001')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1001
 
-              Can't reach database server at \`doesnotexist\`:\`5432\`
+          Can't reach database server at \`doesnotexist\`:\`3306\`
 
-              Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+          Please make sure your database server is running at \`doesnotexist\`:\`3306\`.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with SQL error from database with --file --schema', async () => {
@@ -519,17 +529,21 @@ COMMIT;`,
   })
 
   describe('sqlserver', () => {
-    const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+    const connectionString = process.env.TEST_MSSQL_URI!
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!
     const setupParams: SetupParams = {
       connectionString,
       dirname: '',
     }
 
     beforeAll(async () => {
-      await tearDownMSSQL(setupParams).catch((e) => {
+      await setupMSSQL(setupParams).catch((e) => {
         console.error(e)
       })
-      await setupMSSQL(setupParams).catch((e) => {
+    })
+
+    afterAll(async () => {
+      await tearDownMSSQL(setupParams).catch((e) => {
         console.error(e)
       })
     })
@@ -555,12 +569,7 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--url',
-        process.env.TEST_MSSQL_JDBC_URI_MIGRATE!,
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--preview-feature', '--url', jdbcConnectionString, '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -614,34 +623,42 @@ COMMIT;`,
 
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty')
-      const result = DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1013
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
 
-              The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
 
-            `)
+        `)
+      }
     })
 
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
+      expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--url=mysql://johndoe:randompassword@doesnotexist:5432/mydb',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1001
+      try {
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=sqlserver://doesnotexist:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        // TODO: Code not defined?
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          Error creating a database connection.
 
-              Can't reach database server at \`doesnotexist\`:\`5432\`
 
-              Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
-
-            `)
+        `)
+      }
     })
 
     it('should fail with SQL error from database with --file --schema', async () => {

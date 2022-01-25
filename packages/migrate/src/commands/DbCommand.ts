@@ -36,9 +36,8 @@ ${chalk.bold('Examples')}
   Using prisma db seed
   ${chalk.dim('$')} prisma db seed
 
-  Using prisma db execute
-  ${chalk.dim('$')} prisma db execute --preview-feature TODO
-
+  Using prisma db execute (Preview)
+  ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 `)
 
   private constructor(private readonly cmds: Commands) {}

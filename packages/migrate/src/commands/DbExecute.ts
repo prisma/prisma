@@ -14,19 +14,20 @@ export class DbExecute implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Execute native commands to your database
+${process.platform === 'win32' ? '' : chalk.bold('📝 ')}Execute native commands to your database
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `Prisma db push is currently in Preview (${link('https://pris.ly/d/preview')}).
+    `${chalk.green(`prisma db execute`)} is currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 
-Run a native database command on the specified database.
-You need to specify the datasource and the command input. 
+This command takes as input a datasource and a script. 
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
-On SQL databases, this command takes as input a SQL script. The whole script will be sent as a single command to the database.
 
-This command is currently not supported on MongoDB.
+On SQL databases, this command takes as input a SQL script.
+The whole script will be sent as a single command to the database.
+
+${chalk.italic(`This command is currently not supported on MongoDB.`)}
 
 ${chalk.bold('Usage')}
 
@@ -34,22 +35,22 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-      -h, --help   Display this help message
-           --url   URL of the datasource to run the command on
-        --schema   Path to your Prisma schema file to take the datasource URL from
-         --stdin   Use the terminal standard input as input
-          --file   Custom path to your file to execute
-
+-h, --help   Display this help message
+     --url   URL of the datasource to run the command on
+  --schema   Path to your Prisma schema file to take the datasource URL from
+   --stdin   Use the terminal standard input as the script to be executed.
+    --file   Path to a file. The content will be sent as the script to be executed.
 
 ${chalk.bold('Examples')}
+ 
+  Execute the content of a SQL script file to the database URL from schema.
+  ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 
-  Standard input as source and explicit database url.
+  Execute the SQL script from stdin to the database url.
   ${chalk.dim(
     '$',
   )} echo 'SELECT \`hello world\`;' | prisma db execute --preview-feature --stdin --url="mysql://localhost/testdb"
 
-  SQL file as input and database URL from schema file.
-  ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
