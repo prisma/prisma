@@ -17,7 +17,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
       dirname: __dirname,
     }
 
-    await setupMSSQL(setupParams, 'tests-migrate')
+    await setupMSSQL(setupParams)
 
     await generateTestClient()
     const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
