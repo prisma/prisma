@@ -158,7 +158,7 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
       migrate.stop()
     }
 
-    return ``
+    return `Script executed successfully.`
   }
 
   public help(error?: string): string | HelpError {
