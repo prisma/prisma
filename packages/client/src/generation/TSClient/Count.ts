@@ -12,7 +12,7 @@ import {
   getGroupByPayloadName,
   getModelArgName,
   getSelectName,
-  getSelectReturnType,
+  getReturnType,
   Projection,
 } from '../utils'
 import { ArgsType } from './Args'
@@ -106,7 +106,7 @@ ${indent(
         `${getMethodJSDoc(actionName, mapping, model)}
 ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
-): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
+): ${getReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n\n'),
   TAB_SIZE,
@@ -219,7 +219,7 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
+${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

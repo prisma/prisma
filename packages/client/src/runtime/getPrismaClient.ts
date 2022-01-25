@@ -139,7 +139,7 @@ export type HookParams = {
   args: any
 }
 
-export type Action = DMMF.ModelAction | 'executeRaw' | 'queryRaw'
+export type Action = DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 
 export type InternalRequestParams = {
   /**
@@ -260,6 +260,9 @@ const actionOperationMap = {
   queryRaw: 'mutation',
   aggregate: 'query',
   groupBy: 'query',
+  runCommandRaw: 'mutation',
+  findRaw: 'query',
+  aggregateRaw: 'query',
 }
 
 const aggregateKeys = {
@@ -1138,7 +1141,7 @@ new PrismaClient({
         throw new Error(`Model missing for action ${action}`)
       }
 
-      if ((action === 'executeRaw' || action === 'queryRaw') && model) {
+      if ((action === 'executeRaw' || action === 'queryRaw' || action === 'runCommandRaw') && model) {
         throw new Error(
           `executeRaw and queryRaw can't be executed on a model basis. The model ${model} has been provided`,
         )
@@ -1146,7 +1149,7 @@ new PrismaClient({
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
-      if (action === 'executeRaw' || action === 'queryRaw') {
+      if (action === 'executeRaw' || action === 'queryRaw' || action === 'runCommandRaw') {
         rootField = action
       }
 

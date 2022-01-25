@@ -121,7 +121,15 @@ export class MinimalArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${typeName} = {
-${indent(args.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
+${indent(
+  args
+    .map((arg) => {
+      const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
+      return new InputField(arg, false, noEnumerable).toTS()
+    })
+    .join('\n'),
+  TAB_SIZE,
+)}
 }
 `
   }
