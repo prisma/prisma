@@ -529,10 +529,10 @@ COMMIT;`,
   })
 
   describe('sqlserver', () => {
-    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace(
-      'tests-migrate',
-      'tests-migrate-db-execute',
-    )
+    const jdbcConnectionString = (
+      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
+      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+    ).replace('tests-migrate', 'tests-migrate-db-execute')
     // TODO remove when engine doesn't validate datasource anymore by default from schema
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
 
