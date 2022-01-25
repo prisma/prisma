@@ -82,7 +82,7 @@ services:
     ports:
       - '27017:27017'
 
-  mongo_seed:
+  mongo_migrate_seed:
     build: ./mongo-seed
     depends_on:
       - mongo_migrate
