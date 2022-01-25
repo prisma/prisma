@@ -1337,19 +1337,19 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   }
 
   beforeAll(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupMSSQL(setupParams).catch((e) => {
+    await setupMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   afterEach(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })

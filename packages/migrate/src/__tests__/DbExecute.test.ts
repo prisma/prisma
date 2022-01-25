@@ -529,21 +529,26 @@ COMMIT;`,
   })
 
   describe('sqlserver', () => {
-    const connectionString = process.env.TEST_MSSQL_URI!
-    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
+    // TODO remove when engine doesn't validate datasource anymore by default from schema
+    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
+
     const setupParams: SetupParams = {
-      connectionString,
+      connectionString: process.env.TEST_MSSQL_URI!,
       dirname: '',
     }
 
     beforeAll(async () => {
-      await setupMSSQL(setupParams).catch((e) => {
+      await setupMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
         console.error(e)
       })
     })
 
     afterAll(async () => {
-      await tearDownMSSQL(setupParams).catch((e) => {
+      await tearDownMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
         console.error(e)
       })
     })
