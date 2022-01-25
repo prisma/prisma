@@ -286,8 +286,11 @@ COMMIT;`,
 
     // Limitation of postgresql
     // DROP DATABASE cannot be executed from a function or multi-command string
+    // on GitHub Actions, for macOS and Windows it errors with
+    // DROP DATABASE cannot run inside a transaction block
     it('should fail if DROP DATABASE with --file --schema', async () => {
       ctx.fixture('schema-only-postgresql')
+      expect.assertions(2)
 
       fs.writeFileSync(
         'script.sql',
@@ -296,16 +299,12 @@ COMMIT;`,
       CREATE DATABASE "test-dbexecute";
       DROP DATABASE "test-dbexecute";`,
       )
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
-      await expect(result).rejects.toMatchInlineSnapshot(`
-              db error: ERROR: DROP DATABASE cannot be executed from a function or multi-command string
-
-
-            `)
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toContain('ERROR: DROP DATABASE cannot')
+      }
     })
 
     it('should fail with P1013 error with invalid url with --file --url', async () => {
