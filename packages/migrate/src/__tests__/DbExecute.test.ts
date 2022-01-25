@@ -45,10 +45,11 @@ describe('db execute', () => {
   it('should fail if missing --schema and --url', async () => {
     ctx.fixture('empty')
 
-    const result = DbExecute.new().parse(['--preview-feature', '--stdin'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `--stdin was passed but the input was empty. See \`prisma db execute -h\``,
-    )
+    const result = DbExecute.new().parse(['--preview-feature', '--file=1'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            Either --url or --schema must be provided.
+            See \`prisma db execute -h\`
+          `)
   })
 
   it('should fail if both --schema and --url are provided', async () => {

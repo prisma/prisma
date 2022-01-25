@@ -99,7 +99,7 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
         `--url and --schema cannot be used at the same time. Only 1 must be provided.
 See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
-    } else if (!args['--stdin'] && !args['--file']) {
+    } else if (!args['--url'] && !args['--schema']) {
       throw new Error(
         `Either --url or --schema must be provided.
 See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
