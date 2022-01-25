@@ -6,6 +6,7 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 describe('db execute', () => {
   describe('generic', () => {
@@ -528,7 +529,7 @@ COMMIT;`,
     })
   })
 
-  describe('sqlserver', () => {
+  describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
     const jdbcConnectionString = (
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
       'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
