@@ -245,4 +245,35 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       `)
     })
   })
+
+  describe('runCommandRaw', () => {
+    test('aggregate', async () => {
+      await prisma.user.create({ data: { email: '1@a.de', name: 'A' } })
+      await prisma.user.create({ data: { email: '3@a.de', name: 'A' } })
+
+      const users = await prisma.$runCommandRaw({
+        aggregate: 'User',
+        pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
+        explain: false,
+      })
+
+      expect(users).toMatchInlineSnapshot(`
+        Object {
+          cursor: Object {
+            firstBatch: Array [
+              Object {
+                email: 1@a.de,
+              },
+              Object {
+                email: 3@a.de,
+              },
+            ],
+            id: 0,
+            ns: tests.User,
+          },
+          ok: 1,
+        }
+      `)
+    })
+  })
 })
