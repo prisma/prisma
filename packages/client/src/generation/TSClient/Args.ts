@@ -104,13 +104,17 @@ ${indent(bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'), T
 export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
-    protected readonly model: DMMF.Model,
+    protected readonly type: DMMF.OutputType,
     protected readonly action?: DMMF.ModelAction,
     protected readonly collector?: ExportCollector,
   ) {}
   public toTS(): string {
     const { action, args } = this
-    const { name } = this.model
+    const { name } = this.type
+
+    for (const arg of args) {
+      arg.comment = getArgFieldJSDoc(this.type, action, arg)
+    }
 
     const typeName = getModelArgName(name, action)
 

@@ -2399,6 +2399,10 @@ export namespace Prisma {
    * Post createMany
    */
   export type PostCreateManyArgs = {
+    /**
+     * The data used to create many Posts.
+     * 
+    **/
     data: Enumerable<PostCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -2435,7 +2439,15 @@ export namespace Prisma {
    * Post updateMany
    */
   export type PostUpdateManyArgs = {
+    /**
+     * The data used to update Posts.
+     * 
+    **/
     data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyInput>
+    /**
+     * Filter which Posts to update
+     * 
+    **/
     where?: PostWhereInput
   }
 
@@ -2498,6 +2510,10 @@ export namespace Prisma {
    * Post deleteMany
    */
   export type PostDeleteManyArgs = {
+    /**
+     * Filter which Posts to delete
+     * 
+    **/
     where?: PostWhereInput
   }
 
@@ -3370,6 +3386,10 @@ export namespace Prisma {
    * User createMany
    */
   export type UserCreateManyArgs = {
+    /**
+     * The data used to create many Users.
+     * 
+    **/
     data: Enumerable<UserCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -3406,7 +3426,15 @@ export namespace Prisma {
    * User updateMany
    */
   export type UserUpdateManyArgs = {
+    /**
+     * The data used to update Users.
+     * 
+    **/
     data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyInput>
+    /**
+     * Filter which Users to update
+     * 
+    **/
     where?: UserWhereInput
   }
 
@@ -3469,6 +3497,10 @@ export namespace Prisma {
    * User deleteMany
    */
   export type UserDeleteManyArgs = {
+    /**
+     * Filter which Users to delete
+     * 
+    **/
     where?: UserWhereInput
   }
 
@@ -4333,6 +4365,10 @@ export namespace Prisma {
    * M createMany
    */
   export type MCreateManyArgs = {
+    /**
+     * The data used to create many MS.
+     * 
+    **/
     data: Enumerable<MCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -4369,7 +4405,15 @@ export namespace Prisma {
    * M updateMany
    */
   export type MUpdateManyArgs = {
+    /**
+     * The data used to update MS.
+     * 
+    **/
     data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyInput>
+    /**
+     * Filter which MS to update
+     * 
+    **/
     where?: MWhereInput
   }
 
@@ -4432,6 +4476,10 @@ export namespace Prisma {
    * M deleteMany
    */
   export type MDeleteManyArgs = {
+    /**
+     * Filter which MS to delete
+     * 
+    **/
     where?: MWhereInput
   }
 
@@ -5296,6 +5344,10 @@ export namespace Prisma {
    * N createMany
    */
   export type NCreateManyArgs = {
+    /**
+     * The data used to create many NS.
+     * 
+    **/
     data: Enumerable<NCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -5332,7 +5384,15 @@ export namespace Prisma {
    * N updateMany
    */
   export type NUpdateManyArgs = {
+    /**
+     * The data used to update NS.
+     * 
+    **/
     data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyInput>
+    /**
+     * Filter which NS to update
+     * 
+    **/
     where?: NWhereInput
   }
 
@@ -5395,6 +5455,10 @@ export namespace Prisma {
    * N deleteMany
    */
   export type NDeleteManyArgs = {
+    /**
+     * Filter which NS to delete
+     * 
+    **/
     where?: NWhereInput
   }
 
@@ -6259,6 +6323,10 @@ export namespace Prisma {
    * OneOptional createMany
    */
   export type OneOptionalCreateManyArgs = {
+    /**
+     * The data used to create many OneOptionals.
+     * 
+    **/
     data: Enumerable<OneOptionalCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -6295,7 +6363,15 @@ export namespace Prisma {
    * OneOptional updateMany
    */
   export type OneOptionalUpdateManyArgs = {
+    /**
+     * The data used to update OneOptionals.
+     * 
+    **/
     data: XOR<OneOptionalUpdateManyMutationInput, OneOptionalUncheckedUpdateManyInput>
+    /**
+     * Filter which OneOptionals to update
+     * 
+    **/
     where?: OneOptionalWhereInput
   }
 
@@ -6358,6 +6434,10 @@ export namespace Prisma {
    * OneOptional deleteMany
    */
   export type OneOptionalDeleteManyArgs = {
+    /**
+     * Filter which OneOptionals to delete
+     * 
+    **/
     where?: OneOptionalWhereInput
   }
 
@@ -7228,6 +7308,10 @@ export namespace Prisma {
    * ManyRequired createMany
    */
   export type ManyRequiredCreateManyArgs = {
+    /**
+     * The data used to create many ManyRequireds.
+     * 
+    **/
     data: Enumerable<ManyRequiredCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -7264,7 +7348,15 @@ export namespace Prisma {
    * ManyRequired updateMany
    */
   export type ManyRequiredUpdateManyArgs = {
+    /**
+     * The data used to update ManyRequireds.
+     * 
+    **/
     data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyInput>
+    /**
+     * Filter which ManyRequireds to update
+     * 
+    **/
     where?: ManyRequiredWhereInput
   }
 
@@ -7327,6 +7419,10 @@ export namespace Prisma {
    * ManyRequired deleteMany
    */
   export type ManyRequiredDeleteManyArgs = {
+    /**
+     * Filter which ManyRequireds to delete
+     * 
+    **/
     where?: ManyRequiredWhereInput
   }
 
@@ -8197,6 +8293,10 @@ export namespace Prisma {
    * OptionalSide1 createMany
    */
   export type OptionalSide1CreateManyArgs = {
+    /**
+     * The data used to create many OptionalSide1s.
+     * 
+    **/
     data: Enumerable<OptionalSide1CreateManyInput>
     skipDuplicates?: boolean
   }
@@ -8233,7 +8333,15 @@ export namespace Prisma {
    * OptionalSide1 updateMany
    */
   export type OptionalSide1UpdateManyArgs = {
+    /**
+     * The data used to update OptionalSide1s.
+     * 
+    **/
     data: XOR<OptionalSide1UpdateManyMutationInput, OptionalSide1UncheckedUpdateManyInput>
+    /**
+     * Filter which OptionalSide1s to update
+     * 
+    **/
     where?: OptionalSide1WhereInput
   }
 
@@ -8296,6 +8404,10 @@ export namespace Prisma {
    * OptionalSide1 deleteMany
    */
   export type OptionalSide1DeleteManyArgs = {
+    /**
+     * Filter which OptionalSide1s to delete
+     * 
+    **/
     where?: OptionalSide1WhereInput
   }
 
@@ -9154,6 +9266,10 @@ export namespace Prisma {
    * OptionalSide2 createMany
    */
   export type OptionalSide2CreateManyArgs = {
+    /**
+     * The data used to create many OptionalSide2s.
+     * 
+    **/
     data: Enumerable<OptionalSide2CreateManyInput>
     skipDuplicates?: boolean
   }
@@ -9190,7 +9306,15 @@ export namespace Prisma {
    * OptionalSide2 updateMany
    */
   export type OptionalSide2UpdateManyArgs = {
+    /**
+     * The data used to update OptionalSide2s.
+     * 
+    **/
     data: XOR<OptionalSide2UpdateManyMutationInput, OptionalSide2UncheckedUpdateManyInput>
+    /**
+     * Filter which OptionalSide2s to update
+     * 
+    **/
     where?: OptionalSide2WhereInput
   }
 
@@ -9253,6 +9377,10 @@ export namespace Prisma {
    * OptionalSide2 deleteMany
    */
   export type OptionalSide2DeleteManyArgs = {
+    /**
+     * Filter which OptionalSide2s to delete
+     * 
+    **/
     where?: OptionalSide2WhereInput
   }
 
@@ -10060,6 +10188,10 @@ export namespace Prisma {
    * A createMany
    */
   export type ACreateManyArgs = {
+    /**
+     * The data used to create many AS.
+     * 
+    **/
     data: Enumerable<ACreateManyInput>
     skipDuplicates?: boolean
   }
@@ -10091,7 +10223,15 @@ export namespace Prisma {
    * A updateMany
    */
   export type AUpdateManyArgs = {
+    /**
+     * The data used to update AS.
+     * 
+    **/
     data: XOR<AUpdateManyMutationInput, AUncheckedUpdateManyInput>
+    /**
+     * Filter which AS to update
+     * 
+    **/
     where?: AWhereInput
   }
 
@@ -10144,6 +10284,10 @@ export namespace Prisma {
    * A deleteMany
    */
   export type ADeleteManyArgs = {
+    /**
+     * Filter which AS to delete
+     * 
+    **/
     where?: AWhereInput
   }
 
@@ -10906,6 +11050,10 @@ export namespace Prisma {
    * B createMany
    */
   export type BCreateManyArgs = {
+    /**
+     * The data used to create many BS.
+     * 
+    **/
     data: Enumerable<BCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -10937,7 +11085,15 @@ export namespace Prisma {
    * B updateMany
    */
   export type BUpdateManyArgs = {
+    /**
+     * The data used to update BS.
+     * 
+    **/
     data: XOR<BUpdateManyMutationInput, BUncheckedUpdateManyInput>
+    /**
+     * Filter which BS to update
+     * 
+    **/
     where?: BWhereInput
   }
 
@@ -10990,6 +11146,10 @@ export namespace Prisma {
    * B deleteMany
    */
   export type BDeleteManyArgs = {
+    /**
+     * Filter which BS to delete
+     * 
+    **/
     where?: BWhereInput
   }
 
@@ -11722,6 +11882,10 @@ export namespace Prisma {
    * C createMany
    */
   export type CCreateManyArgs = {
+    /**
+     * The data used to create many CS.
+     * 
+    **/
     data: Enumerable<CCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -11753,7 +11917,15 @@ export namespace Prisma {
    * C updateMany
    */
   export type CUpdateManyArgs = {
+    /**
+     * The data used to update CS.
+     * 
+    **/
     data: XOR<CUpdateManyMutationInput, CUncheckedUpdateManyInput>
+    /**
+     * Filter which CS to update
+     * 
+    **/
     where?: CWhereInput
   }
 
@@ -11806,6 +11978,10 @@ export namespace Prisma {
    * C deleteMany
    */
   export type CDeleteManyArgs = {
+    /**
+     * Filter which CS to delete
+     * 
+    **/
     where?: CWhereInput
   }
 
@@ -12522,6 +12698,10 @@ export namespace Prisma {
    * D createMany
    */
   export type DCreateManyArgs = {
+    /**
+     * The data used to create many DS.
+     * 
+    **/
     data: Enumerable<DCreateManyInput>
     skipDuplicates?: boolean
   }
@@ -12553,7 +12733,15 @@ export namespace Prisma {
    * D updateMany
    */
   export type DUpdateManyArgs = {
+    /**
+     * The data used to update DS.
+     * 
+    **/
     data: XOR<DUpdateManyMutationInput, DUncheckedUpdateManyInput>
+    /**
+     * Filter which DS to update
+     * 
+    **/
     where?: DWhereInput
   }
 
@@ -12606,6 +12794,10 @@ export namespace Prisma {
    * D deleteMany
    */
   export type DDeleteManyArgs = {
+    /**
+     * Filter which DS to delete
+     * 
+    **/
     where?: DWhereInput
   }
 
@@ -13314,6 +13506,10 @@ export namespace Prisma {
    * E createMany
    */
   export type ECreateManyArgs = {
+    /**
+     * The data used to create many ES.
+     * 
+    **/
     data: Enumerable<ECreateManyInput>
     skipDuplicates?: boolean
   }
@@ -13345,7 +13541,15 @@ export namespace Prisma {
    * E updateMany
    */
   export type EUpdateManyArgs = {
+    /**
+     * The data used to update ES.
+     * 
+    **/
     data: XOR<EUpdateManyMutationInput, EUncheckedUpdateManyInput>
+    /**
+     * Filter which ES to update
+     * 
+    **/
     where?: EWhereInput
   }
 
@@ -13398,6 +13602,10 @@ export namespace Prisma {
    * E deleteMany
    */
   export type EDeleteManyArgs = {
+    /**
+     * Filter which ES to delete
+     * 
+    **/
     where?: EWhereInput
   }
 

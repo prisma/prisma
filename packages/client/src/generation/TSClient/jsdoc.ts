@@ -326,4 +326,37 @@ const { count } = await ${ctx.method}({
       where: (singular, plural) => `Filter which ${plural} to delete`,
     },
   },
+  aggregateRaw: {
+    body: (ctx) =>
+      `Perform aggregation operations on a ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which aggregations you would like to apply.
+@example
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  pipeline: [
+    { $match: { status: "registered" } },
+    { $group: { _id: "$country", total: { $sum: 1 } } }
+  ]
+})`,
+    fields: {
+      pipeline: () =>
+        'A sequence of data aggregation operations or stages ${@link https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/ MongoDB Docs}.',
+      options: () =>
+        'Additional options that passes to the aggregate command ${@link https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/ MongoDB Docs}.',
+    },
+  },
+  findRaw: {
+    body: (ctx) =>
+      `Find zero or more ${ctx.plural} that matches the filter.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
+@example
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  filter: { age: { $gt: 25 } } 
+})`,
+    fields: {
+      filter: () =>
+        'Specifies the selection filter using query operators ${@link https://docs.mongodb.com/manual/reference/method/db.collection.find/ MongoDB Docs}.',
+      options: () =>
+        'Specifies the fields to return in the documents that match the query filter ${@link https://docs.mongodb.com/manual/reference/method/db.collection.find/ MongoDB Docs}.',
+    },
+  },
 }
