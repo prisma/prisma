@@ -74,7 +74,11 @@ export async function generateInFolder({
         overwrite: true,
       })
     } else {
-      await getPackedPackage('@prisma/client', outputDir)
+      await getPackedPackage(
+        '@prisma/client',
+        outputDir,
+        process.cwd().endsWith('output-directory') ? path.join(__dirname, '..', '..') : undefined,
+      )
     }
   }
 
