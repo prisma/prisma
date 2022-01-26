@@ -100,6 +100,29 @@ function executeRawDefinition(this: PrismaClientClass) {
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;`
 }
 
+function runCommandRawDefinition(this: PrismaClientClass) {
+  // we do not generate `$executeRaw...` definitions if not supported
+  if (!this.dmmf.mappings.otherOperations.write.includes('runCommandRaw')) {
+    return '' // https://github.com/prisma/prisma/issues/8189
+  }
+
+  return `
+  /**
+   * Executes a raw mongo command and returns the result of it.
+   * @example
+   * \`\`\`
+   * const user = await (prisma as any).$runCommandRaw({
+   *   aggregate: 'User',
+   *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
+   *   explain: false,
+   * })
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $runCommandRaw(command: Prisma.InputJsonValue): PrismaPromise<Prisma.JsonObject>;`
+}
+
 export class PrismaClientClass implements Generatable {
   constructor(
     protected readonly dmmf: DMMFClass,
@@ -188,6 +211,7 @@ ${[
   queryRawDefinition.bind(this)(),
   batchingTransactionDefinition.bind(this)(),
   interactiveTransactionDefinition.bind(this)(),
+  runCommandRawDefinition.bind(this)(),
 ].join('\n')}
 
     ${indent(

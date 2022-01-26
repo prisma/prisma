@@ -836,6 +836,7 @@ export function selectionToFields(
       field.outputType.location === 'scalar' &&
       field.name !== 'executeRaw' &&
       field.name !== 'queryRaw' &&
+      field.name !== 'runCommandRaw' &&
       outputType.name !== 'Query' &&
       !name.startsWith('aggregate') &&
       field.name !== 'count' // TODO: Find a cleaner solution

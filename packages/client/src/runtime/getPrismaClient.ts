@@ -708,6 +708,30 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     /**
+     * Executes a raw command only for MongoDB
+     *
+     * @param command
+     * @returns
+     */
+    $runCommandRaw(command: object) {
+      if (config.activeProvider !== 'mongodb') {
+        throw new PrismaClientValidationError(`The ${config.activeProvider} provider does not support $runCommandRaw`)
+      }
+
+      return createPrismaPromise((txId, inTx) => {
+        return this._request({
+          args: { command: command },
+          clientMethod: 'runCommandRaw',
+          dataPath: [],
+          action: 'runCommandRaw',
+          callsite: this._getCallsite(),
+          runInTransaction: inTx ?? false,
+          transactionId: txId,
+        })
+      })
+    }
+
+    /**
      * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
      * @see https://github.com/prisma/prisma/issues/7142
      *
@@ -1137,7 +1161,7 @@ new PrismaClient({
       transactionId,
       unpacker,
     }: InternalRequestParams) {
-      if (action !== 'executeRaw' && action !== 'queryRaw' && !model) {
+      if (action !== 'executeRaw' && action !== 'queryRaw' && action !== 'runCommandRaw' && !model) {
         throw new Error(`Model missing for action ${action}`)
       }
 
