@@ -1,5 +1,5 @@
 export { DMMF } from './dmmf-types'
-export { DMMFClass } from './dmmf'
+export { DMMFHelper as DMMFClass } from './dmmf'
 export { makeDocument, transformDocument, unpack, PrismaClientValidationError } from './query'
 
 export {
