@@ -1074,7 +1074,8 @@ new PrismaClient({
      * @returns
      */
     async _request(internalParams: InternalRequestParams): Promise<any> {
-      const tracer = trace.getTracer('prisma')
+      // TODO remove this check once tracing is no longer in preview
+      if (!this._hasPreviewFlag('tracing')) delete internalParams['otelCtx']
 
       try {
         // make sure that we don't leak extra properties to users
@@ -1111,12 +1112,12 @@ new PrismaClient({
         if (globalThis.NOT_PRISMA_DATA_PROXY) {
           // https://github.com/prisma/prisma/issues/3148 not for the data proxy
           return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
-            return runInChildSpan('request', tracer, internalParams.otelCtx, () => consumer(params))
+            return runInChildSpan('request', internalParams.otelCtx, () => consumer(params))
           })
         }
 
         // we execute the middleware consumer and wrap the call for otel
-        return await runInChildSpan('request', tracer, internalParams.otelCtx, () => consumer(params))
+        return await runInChildSpan('request', internalParams.otelCtx, () => consumer(params))
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
