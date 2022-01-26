@@ -1,6 +1,9 @@
+import path from 'path'
+import fs from 'fs'
+const util = require('util')
+const exec = util.promisify(require('child_process').exec)
 import { DbExecute } from '../commands/DbExecute'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import fs from 'fs'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
@@ -105,10 +108,40 @@ describe('db execute', () => {
   })
 
   describe('sqlite', () => {
+    const pathToBin = path.resolve('src/bin.ts')
     const sqlScript = `-- Drop & Create & Drop
 DROP TABLE IF EXISTS 'test-dbexecute';
 CREATE TABLE 'test-dbexecute' ("id" INTEGER PRIMARY KEY);
 DROP TABLE 'test-dbexecute';`
+
+    // TODO remove later
+    it('should fail for legacy reasons if no schema file with --file --url', async () => {
+      ctx.fixture('empty')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--preview-feature', '--url=./dev.db', '--file=./script.sql'])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Could not find a schema.prisma file that is required for this command.
+              You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+            `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(
+        `A "./prisma/schema.prisma" file is required in the current working directory when using \`--url\`, for legacy reasons, this requirement will be removed later.`,
+      )
+    })
+
+    it('should pass with --stdin --schema', async () => {
+      ctx.fixture('schema-only-sqlite')
+
+      const { stdout, stderr } = await exec(
+        `echo "${sqlScript}" | ${pathToBin} db execute --preview-feature --stdin --schema=./prisma/schema.prisma`,
+      )
+
+      expect(stderr).toBeFalsy()
+      expect(stdout).toMatchInlineSnapshot(`
+        Script executed successfully.
+
+      `)
+    }, 15_000)
 
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')

@@ -44,12 +44,14 @@ if (process.argv.length > 2) {
 import chalk from 'chalk'
 import Debug from '@prisma/debug'
 
+import { CLI } from './CLI'
 import { MigrateCommand } from './commands/MigrateCommand'
 import { MigrateDev } from './commands/MigrateDev'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateDeploy } from './commands/MigrateDeploy'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
+import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
 import { DbPush } from './commands/DbPush'
 import { DbPull } from './commands/DbPull'
@@ -65,19 +67,23 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
  */
 async function main(): Promise<number> {
   // create a new CLI with our subcommands
-  const cli = MigrateCommand.new({
-    dev: MigrateDev.new(),
-    reset: MigrateReset.new(),
-    deploy: MigrateDeploy.new(),
-    status: MigrateStatus.new(),
-    resolve: MigrateResolve.new(),
-    // for convenient debugging
-    execute: DbExecute.new(),
-    pull: DbPull.new(),
-    push: DbPush.new(),
-    drop: DbDrop.new(),
-    seed: DbSeed.new(),
+  const cli = CLI.new({
+    migrate: MigrateCommand.new({
+      dev: MigrateDev.new(),
+      status: MigrateStatus.new(),
+      resolve: MigrateResolve.new(),
+      reset: MigrateReset.new(),
+      deploy: MigrateDeploy.new(),
+    }),
+    db: DbCommand.new({
+      execute: DbExecute.new(),
+      pull: DbPull.new(),
+      push: DbPush.new(),
+      // drop: DbDrop.new(),
+      seed: DbSeed.new(),
+    }),
   })
+
   // parse the arguments
   const result = await cli.parse(commandArray)
   if (result instanceof HelpError) {

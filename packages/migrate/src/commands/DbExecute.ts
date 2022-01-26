@@ -4,7 +4,7 @@ import { arg, format, HelpError, isError, getSchemaPath, link, getCommandWithExe
 import path from 'path'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
-import { NoSchemaFoundError, DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
+import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
 import type { EngineArgs } from '../types'
 import getStdin from 'get-stdin'
 
@@ -149,9 +149,22 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
       }
     }
 
-    // console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
-    // await printDatasource(schemaPath)
-    const migrate = new Migrate()
+    // TODO remove after refactor of engine
+    // errors with the following if calling engine without a schema file
+    // [Error: Could not find a schema.prisma file that is required for this command.
+    // You can either provide it with --schema, set it as `prisma.schema` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location]
+    //
+    // here await getSchemaPath() will try to resolve a schema in default location(s),
+    // so it would not fail if --url is used when a prisma.schema file is around
+    /* eslint-disable-next-line @typescript-eslint/no-unsafe-argument */
+    const requiredSchemaBecauseLegacy: any =
+      datasourceType.tag === 'schema' ? datasourceType.schema : await getSchemaPath()
+    if (!requiredSchemaBecauseLegacy) {
+      console.error(
+        'A "./prisma/schema.prisma" file is required in the current working directory when using `--url`, for legacy reasons, this requirement will be removed later.',
+      )
+    }
+    const migrate = new Migrate(requiredSchemaBecauseLegacy)
 
     try {
       await migrate.engine.dbExecute({
