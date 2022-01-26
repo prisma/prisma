@@ -29,7 +29,7 @@ export function applyModels<C extends Client>(client: C) {
         return (modelCache[dmmfModelName] = applyModel(client, dmmfModelName))
       }
 
-      // above just failed if the model name is lower cased
+      // above silently failed if model name is lower cased
       if (client._dmmf.modelMap[prop] !== undefined) {
         return (modelCache[dmmfModelName] = applyModel(client, prop))
       }

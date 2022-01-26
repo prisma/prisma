@@ -89,7 +89,7 @@ export function applyFluent(
 
   // we return a regular model action but proxy its return
   return (userArgs?: object) => {
-    // first call: nextDataPath => [], nextUserArgs => userArgs
+    // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
     const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
@@ -108,6 +108,7 @@ export function applyFluent(
         const modelArgs = [dmmfModelName, modelAction, prop] as const
         const dataArgs = [nextDataPath, nextUserArgs] as const
 
+        // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
       has: (_, prop: string) => ownKeys.includes(prop),

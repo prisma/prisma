@@ -10,7 +10,6 @@ test('disconnect-while-query', async () => {
   prisma.$disconnect()
   await a // re-wakes the engine
   await prisma.$disconnect()
-  await a // re-wakes the engine
 
   expect(await a).toMatchInlineSnapshot(`Array []`)
 

@@ -47,16 +47,10 @@ function desugarCountInUserArgs(userArgs: object) {
  * @param userArgs the user input
  * @returns
  */
-export function createSugarUnpacker(userArgs: object) {
+export function createUnpacker(userArgs: object) {
   return (data: object) => {
     if (typeof userArgs['_count'] === 'boolean') {
-      if (Array.isArray(data)) {
-        data.forEach((row) => {
-          row['_count'] = row['_count']['_all']
-        })
-      } else {
-        data['_count'] = data['_count']['_all']
-      }
+      data['_count'] = data['_count']['_all']
     }
 
     return data
@@ -73,7 +67,7 @@ export function createSugarUnpacker(userArgs: object) {
  */
 export function aggregate(client: Client, userArgs: object | undefined, modelAction: ModelAction) {
   const aggregateArgs = desugarUserArgs(userArgs ?? {})
-  const aggregateUnpacker = createSugarUnpacker(userArgs ?? {})
+  const aggregateUnpacker = createUnpacker(userArgs ?? {})
 
   return modelAction({
     action: 'aggregate',

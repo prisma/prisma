@@ -1093,8 +1093,8 @@ new PrismaClient({
           const nextMiddleware = this._middlewares.query.get(++index)
 
           // we pass the modified params down to the next one, & repeat
-          if (nextMiddleware) return nextMiddleware(changedParams, consumer)
           // calling `next` calls the consumer again with the new params
+          if (nextMiddleware) return nextMiddleware(changedParams, consumer)
 
           // before we send the execution request, we use the changed params
           const changedInternalParams = { ...internalParams, ...changedParams }
@@ -1109,7 +1109,7 @@ new PrismaClient({
         }
 
         if (globalThis.NOT_PRISMA_DATA_PROXY) {
-          // async scope https://github.com/prisma/prisma/issues/3148
+          // https://github.com/prisma/prisma/issues/3148 not for the data proxy
           return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
             return runInChildSpan('request', tracer, internalParams.otelCtx, () => consumer(params))
           })

@@ -393,8 +393,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
+    const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(request)
-    const headerStr = JSON.stringify(headers)
 
     try {
       await this.start()

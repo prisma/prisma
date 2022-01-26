@@ -1,7 +1,45 @@
 import type { Client } from '../../../getPrismaClient'
 import type { ModelAction } from '../applyModel'
-import { desugarUserArgs } from './aggregate'
-import { createSugarUnpacker } from './aggregate'
+import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
+
+/**
+ * Transforms the `userArgs` for the `.groupBy` shorthand. It is an API sugar.
+ * It reuses the logic from the `.aggregate` shorthand and adds additional
+ * handling for the `by` clause. The goal here is to desugar it into something
+ * that is understood by the QE.
+ * @param userArgs to transform
+ * @returns
+ */
+function desugarUserArgs(userArgs: object) {
+  const _userArgs = desugarUserArgsAggregate(userArgs)
+
+  // we desugar the array into { [key]: boolean }
+  if (Array.isArray(userArgs?.['by']) === true) {
+    for (const key of userArgs?.['by'] ?? []) {
+      _userArgs['select'][key] = true
+    }
+  }
+
+  return _userArgs
+}
+
+/**
+ * Creates an unpacker that adds sugar to the basic result of the QE. An
+ * unpacker helps to transform a result before returning it to the user.
+ * @param userArgs the user input
+ * @returns
+ */
+export function createUnpacker(userArgs: object) {
+  return (data: object[]) => {
+    if (typeof userArgs['_count'] === 'boolean') {
+      data.forEach((row) => {
+        row['_count'] = row['_count']['_all']
+      })
+    }
+
+    return data
+  }
+}
 
 /**
  * Executes the `.groupBy` action on a model by reusing {@link aggregate}.
@@ -11,18 +49,11 @@ import { createSugarUnpacker } from './aggregate'
  * @returns
  */
 export function groupBy(client: Client, userArgs: object | undefined, modelAction: ModelAction) {
-  const aggregateArgs = desugarUserArgs(userArgs ?? {})
-  const aggregateUnpacker = createSugarUnpacker(userArgs ?? {})
-
-  // we desugar the array into { [key]: boolean }
-  if (Array.isArray(userArgs?.['by']) === true) {
-    for (const key of userArgs?.['by'] ?? []) {
-      aggregateArgs['select'][key] = true
-    }
-  }
+  const groupByArgs = desugarUserArgs(userArgs ?? {})
+  const groupByUnpacker = createUnpacker(userArgs ?? {})
 
   return modelAction({
     action: 'groupBy',
-    unpacker: aggregateUnpacker,
-  })(aggregateArgs)
+    unpacker: groupByUnpacker,
+  })(groupByArgs)
 }
