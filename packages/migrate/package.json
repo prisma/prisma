@@ -20,7 +20,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.9.0-38.feat-mongo-query-raw-25fdf1a7d1e40665fe1ac01138786f8a82a86900",
+    "@prisma/engines-version": "3.9.0-46.feat-mongo-query-raw-0e82f4d739182f5d6734e6a74b41625ce32cf1c0",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.4.0",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.9.0-38.feat-mongo-query-raw-25fdf1a7d1e40665fe1ac01138786f8a82a86900",
+    "@prisma/get-platform": "3.9.0-46.feat-mongo-query-raw-0e82f4d739182f5d6734e6a74b41625ce32cf1c0",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
