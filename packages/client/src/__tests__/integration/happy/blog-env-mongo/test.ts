@@ -1,12 +1,12 @@
-import sql from 'sql-template-tag'
 import { generateTestClient } from '../../../../utils/getTestClient'
-import type { SetupParams } from '../../../../utils/setupMSSQL'
-import { setupMSSQL } from '../../../../utils/setupMSSQL'
+
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
-  let prisma: any = null // Generated Client instance
+  let prisma: PrismaClient // Generated Client instance
   let PrismaHelpers: any = null
   const requests: any[] = []
 
@@ -32,7 +32,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
   })
 
-  afterAll(async () => {
+  afterEach(async () => {
+    for (const key of Object.keys(prisma)) {
+      await prisma[key]?.['deleteMany']?.()
+    }
     await prisma.$disconnect()
   })
 
@@ -46,12 +49,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   })
 
   test('does not leak connection strings in node_modules', () => {
+    // @ts-expect-error
     expect(prisma.internalDatasources).toBeUndefined()
   })
 
   test('invokes beforeRequest hook', async () => {
     await prisma.user.findMany()
-    expect(requests).toHaveLength(1)
+    expect(requests.length).toBeGreaterThan(0)
   })
 
   test('can throw validation errors', async () => {
@@ -61,6 +65,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
 
     try {
       await prisma.post.create({
+        // @ts-expect-error
         data: {},
       })
 
@@ -71,7 +76,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     }
   })
 
-  test.skip('can run findMany queries', async () => {
+  test('can run findMany queries', async () => {
     await prisma.post.create({
       data: {
         published: false,
@@ -83,7 +88,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     expect(posts).not.toHaveLength(0)
   })
 
-  test.skip('can run findMany queries with a `null` where', async () => {
+  test('can run findMany queries with a `null` where', async () => {
     await prisma.post.create({
       data: {
         published: false,
@@ -110,7 +115,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     expect(post).not.toBeUndefined()
   })
 
-  test.skip('can run delete queries', async () => {
+  test('can run delete queries', async () => {
     const post = await prisma.post.create({
       data: {
         published: false,
@@ -128,16 +133,16 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
 
     expect(deletedPost).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      content: null,
-      published: false,
-      title: Some title,
-    }
-  `)
+          Object {
+            authorId: null,
+            content: null,
+            published: false,
+            title: Some title,
+          }
+      `)
   })
 
-  test.skip('can run update queries', async () => {
+  test('can run update queries', async () => {
     const post = await prisma.post.create({
       data: {
         published: false,
@@ -160,113 +165,84 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
 
     expect(updatedPost).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      content: null,
-      published: false,
-      title: Updated title,
-    }
-  `)
+          Object {
+            authorId: null,
+            content: null,
+            published: false,
+            title: Updated title,
+          }
+      `)
   })
 
-  // describe('$queryRaw', () => {
-  //   test('$queryRaw(sql`<SQL>`)', async () => {
-  //     await prisma.user.create({ data: { email: 'c@a.de', name: 'C' } })
-  //     const users = await prisma.$queryRaw(sql`SELECT * FROM [dbo].[User]`)
-  //     expect(users).not.toHaveLength(0)
-  //   })
+  describe('$findRaw', () => {
+    test('all', async () => {
+      await prisma.user.create({ data: { email: 'c@a.de', name: 'C' } })
+      const users = await prisma.user.findRaw({})
+      expect(users).not.toHaveLength(0)
+    })
 
-  //   test('$queryRaw(sql`<SQL>`) with params', async () => {
-  //     await prisma.user.create({ data: { email: 'd@a.de', name: 'D' } })
-  //     const users = await prisma.$queryRaw(sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`)
-  //     expect(users).not.toHaveLength(0)
-  //   })
+    test('single', async () => {
+      await prisma.user.create({ data: { email: 'd@a.de', name: 'D' } })
+      const users = await prisma.user.findRaw({ filter: { name: 'D' } })
+      expect(users).toHaveLength(1)
+    })
 
-  //   test('$queryRaw`<SQL>`', async () => {
-  //     await prisma.user.create({ data: { email: 'e@a.de', name: 'E' } })
-  //     const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User]`
-  //     expect(users).not.toHaveLength(0)
-  //   })
+    test('projection', async () => {
+      await prisma.user.create({ data: { email: 'e@a.de', name: 'E' } })
+      const users = await prisma.user.findRaw({
+        filter: { name: 'E' },
+        options: { projection: { _id: false } },
+      })
+      expect(users).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            email: e@a.de,
+            name: E,
+          },
+        ]
+      `)
+    })
+  })
 
-  //   test('$queryRaw`<SQL>` with join', async () => {
-  //     const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE id IN (${PrismaHelpers.join([
-  //       '42',
-  //       '333',
-  //       '2048',
-  //     ])})`
-  //     expect(users).toHaveLength(0)
-  //   })
+  describe('$aggregateRaw', () => {
+    test('group', async () => {
+      await prisma.user.create({ data: { email: '1@a.de', name: 'A' } })
+      await prisma.user.create({ data: { email: '2@a.de', name: 'A' } })
+      await prisma.user.create({ data: { email: '3@a.de', name: 'B' } })
+      await prisma.user.create({ data: { email: '4@a.de', name: 'B' } })
+      const users = await prisma.user.aggregateRaw({
+        pipeline: [{ $group: { _id: '$name', total: { $sum: 1 } } }, { $sort: { _id: -1 } }],
+      })
+      expect(users).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            _id: B,
+            total: 2,
+          },
+          Object {
+            _id: A,
+            total: 2,
+          },
+        ]
+      `)
+    })
 
-  //   test('$queryRaw`<SQL>` with params', async () => {
-  //     await prisma.user.create({ data: { email: 'f@a.de', name: 'F' } })
-  //     const users = await prisma.$queryRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
-  //     expect(users[0].name).toBe('F')
-  //   })
-
-  //   test('$queryRaw(string) error', async () => {
-  //     const users = prisma.$queryRaw('<strings will throw>')
-
-  //     await expect(users).rejects.toThrowErrorMatchingSnapshot()
-  //   })
-  // })
-
-  // describe('$queryRawUnsafe', () => {
-  //   test('$queryRawUnsafe(string)', async () => {
-  //     await prisma.user.create({ data: { email: 'a@a.de', name: 'A' } })
-  //     const users = await prisma.$queryRawUnsafe('SELECT * FROM [dbo].[User]')
-  //     expect(users).not.toHaveLength(0)
-  //   })
-
-  //   test('$queryRawUnsafe(string) with params', async () => {
-  //     await prisma.user.create({ data: { email: 'b@a.de', name: 'B' } })
-  //     const users = await prisma.$queryRawUnsafe('SELECT * FROM [dbo].[User] WHERE name = @P1', 'B')
-  //     expect(users).not.toHaveLength(0)
-  //   })
-  // })
-
-  // describe('$executeRaw', () => {
-  //   test('$executeRaw(sql`<SQL>`)', async () => {
-  //     await prisma.user.create({ data: { email: 'c@b.de', name: 'C' } })
-  //     const users = await prisma.$executeRaw(sql`SELECT * FROM [dbo].[User]`)
-  //     expect(users).not.toBe(0)
-  //   })
-
-  //   test('$executeRaw(sql`<SQL>`) with params', async () => {
-  //     await prisma.user.create({ data: { email: 'd@b.de', name: 'D' } })
-  //     const users = await prisma.$executeRaw(sql`SELECT * FROM [dbo].[User] WHERE name = ${'D'}`)
-  //     expect(users).not.toBe(0)
-  //   })
-
-  //   test('$executeRaw`<SQL>`', async () => {
-  //     await prisma.user.create({ data: { email: 'e@b.de', name: 'E' } })
-  //     const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User]`
-  //     expect(users).not.toBe(0)
-  //   })
-
-  //   test('$executeRaw`<SQL>` with params', async () => {
-  //     await prisma.user.create({ data: { email: 'f@b.de', name: 'F' } })
-  //     const users = await prisma.$executeRaw`SELECT * FROM [dbo].[User] WHERE name = ${'F'}`
-  //     expect(users).not.toBe(0)
-  //   })
-
-  //   test('$executeRaw(string) error', async () => {
-  //     const users = prisma.$executeRaw('<strings will throw>')
-
-  //     await expect(users).rejects.toThrowErrorMatchingSnapshot()
-  //   })
-  // })
-
-  // describe('$executeRawUnsafe', () => {
-  //   test('$executeRawUnsafe(string)', async () => {
-  //     await prisma.user.create({ data: { email: 'a@b.de', name: 'A' } })
-  //     const users = await prisma.$executeRawUnsafe('SELECT * FROM [dbo].[User]')
-  //     expect(users).not.toBe(0)
-  //   })
-
-  //   test('$executeRawUnsafe(string) with params', async () => {
-  //     await prisma.user.create({ data: { email: 'b@b.de', name: 'B' } })
-  //     const users = await prisma.$executeRawUnsafe('SELECT * FROM [dbo].[User] WHERE name = @P1', 'B')
-  //     expect(users).not.toBe(0)
-  //   })
-  // })
+    test('match', async () => {
+      await prisma.user.create({ data: { email: '1@a.de', name: 'A' } })
+      await prisma.user.create({ data: { email: '3@a.de', name: 'A' } })
+      const users = await prisma.user.aggregateRaw({
+        pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
+      })
+      expect(users).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            email: 1@a.de,
+          },
+          Object {
+            email: 3@a.de,
+          },
+        ]
+      `)
+    })
+  })
 })
