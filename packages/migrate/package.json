@@ -20,7 +20,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.9.0-36.itx-work-two-2a8355b464c1d0642a253b2935968b35c74a0d8b",
+    "@prisma/engines-version": "3.9.0-43.itx-work-two-7e19ef4e3391e0b9eee54ea31f5a0b50c3c6384d",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.4.0",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.9.0-36.itx-work-two-2a8355b464c1d0642a253b2935968b35c74a0d8b",
+    "@prisma/get-platform": "3.9.0-43.itx-work-two-7e19ef4e3391e0b9eee54ea31f5a0b50c3c6384d",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
