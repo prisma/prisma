@@ -210,6 +210,7 @@ importers:
   packages/client:
     specifiers:
       '@microsoft/api-extractor': 7.19.3
+      '@opentelemetry/api': 1.0.3
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': 3.9.0-44.45e6871398e3e66d16be7a12a029938abdc1709c
@@ -273,6 +274,7 @@ importers:
       '@prisma/engines-version': 3.9.0-44.45e6871398e3e66d16be7a12a029938abdc1709c
     devDependencies:
       '@microsoft/api-extractor': 7.19.3
+      '@opentelemetry/api': 1.0.3
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
       '@prisma/engines': 3.9.0-44.45e6871398e3e66d16be7a12a029938abdc1709c
@@ -1612,6 +1614,11 @@ packages:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.13.0
 
+  /@opentelemetry/api/1.0.3:
+    resolution: {integrity: sha512-puWxACExDe9nxbBB3lOymQFrLYml2dVOrd7USiVRnSbgXE+KwBu+HxFvxrzfqsiSda9IWsXJG1ef7C1O2/GmKQ==}
+    engines: {node: '>=8.0.0'}
+    dev: true
+
   /@opentelemetry/api/1.0.4:
     resolution: {integrity: sha512-BuJuXRSJNQ3QoKA6GWWDyuLpOUck+9hAXNMCnrloc1aWVoy6Xq6t9PUV08aBZ4Lutqq2LEHM486bpZqoViScog==}
     engines: {node: '>=8.0.0'}
@@ -1694,7 +1701,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 

@@ -41,17 +41,21 @@ test('count', async () => {
   } catch (err) {
     expect(err.message).toMatchInlineSnapshot(`
 
-      Invalid \`prisma.user.aggregate()\` invocation:
+      Invalid \`prisma.user.count()\` invocation:
 
       {
-        _count: {
-      ?   _all?: true,
-      ?   email?: true,
-      ?   age?: true,
-      ?   name?: true,
-          posts: true,
-          ~~~~~
-      ?   id?: true
+        select: {
+          _count: {
+            select: {
+      ?       _all?: true,
+      ?       email?: true,
+      ?       age?: true,
+      ?       name?: true,
+              posts: true,
+              ~~~~~
+      ?       id?: true
+            }
+          }
         }
       }
 
