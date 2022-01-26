@@ -49,7 +49,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   })
 
   test('does not leak connection strings in node_modules', () => {
-    // @ts-expect-error
+    // @ts-ignore
     expect(prisma.internalDatasources).toBeUndefined()
   })
 
@@ -65,7 +65,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
 
     try {
       await prisma.post.create({
-        // @ts-expect-error
+        // @ts-ignore
         data: {},
       })
 
@@ -174,7 +174,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       `)
   })
 
-  describe('$findRaw', () => {
+  describe('findRaw', () => {
     test('all', async () => {
       await prisma.user.create({ data: { email: 'c@a.de', name: 'C' } })
       const users = await prisma.user.findRaw({})
@@ -204,7 +204,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
   })
 
-  describe('$aggregateRaw', () => {
+  describe('aggregateRaw', () => {
     test('group', async () => {
       await prisma.user.create({ data: { email: '1@a.de', name: 'A' } })
       await prisma.user.create({ data: { email: '2@a.de', name: 'A' } })
