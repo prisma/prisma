@@ -67,8 +67,8 @@ describe('db execute', () => {
       try {
         await DbExecute.new().parse(['--preview-feature', '--file=./doesnotexists.sql', '--schema=1'])
       } catch (e) {
-        expect(e.code).toEqual('ENOENT')
-        expect(e.message).toContain('ENOENT')
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
       }
     })
 
@@ -76,12 +76,12 @@ describe('db execute', () => {
       ctx.fixture('empty')
       expect.assertions(2)
 
-      fs.writeFileSync('script.js', '-- empty')
+      fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse(['--preview-feature', '--file=./script.sql', '--schema=./doesnoexists.schema'])
       } catch (e) {
-        expect(e.code).toEqual('ENOENT')
-        expect(e.message).toContain('ENOENT')
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`Provided --schema at ./doesnoexists.schema doesn't exist.`)
       }
     })
   })

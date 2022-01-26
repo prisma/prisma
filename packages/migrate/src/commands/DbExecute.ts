@@ -110,7 +110,16 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
     let script = ''
     // Read file
     if (args['--file']) {
-      script = fs.readFileSync(path.resolve(args['--file']), 'utf-8')
+      try {
+        script = fs.readFileSync(path.resolve(args['--file']), 'utf-8')
+      } catch (e) {
+        if (e.code === 'ENOENT') {
+          throw new Error(`Provided --file at ${args['--file']} doesn't exist.`)
+        } else {
+          console.error(`An error occurred while reading the provided --file at ${args['--file']}`)
+          throw e
+        }
+      }
     }
     // Read stdin
     if (args['--stdin']) {
@@ -119,22 +128,24 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
 
     let datasourceType: EngineArgs.DbExecuteDatasourceType
 
-    const schemaPath = await getSchemaPath(args['--schema'])
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
     // Execute command(s) to url passed
     if (args['--url']) {
       datasourceType = {
         tag: 'url',
         url: args['--url'],
       }
-    } else {
+    }
+    // Execute command(s) to url from schema
+    else {
+      // validate that schema file exists
+      // throws an error if it doesn't
+      const schemaPath = await getSchemaPath(args['--schema'])
+
       // Execute command(s) to url from schema
       datasourceType = {
         tag: 'schema',
-        schema: schemaPath,
+        // if schemaPath is undefined, getSchemaPath will error
+        schema: schemaPath!,
       }
     }
 
