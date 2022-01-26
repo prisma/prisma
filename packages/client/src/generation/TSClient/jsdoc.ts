@@ -339,9 +339,9 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })`,
     fields: {
       pipeline: () =>
-        'A sequence of data aggregation operations or stages ${@link https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/ MongoDB Docs}.',
+        'A sequence of data aggregation operations or stages ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.',
       options: () =>
-        'Additional options that passes to the aggregate command ${@link https://docs.mongodb.com/manual/reference/method/db.collection.aggregate/ MongoDB Docs}.',
+        'Additional options that passes to the aggregate command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.',
     },
   },
   findRaw: {
@@ -354,9 +354,9 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
 })`,
     fields: {
       filter: () =>
-        'Specifies the selection filter using query operators ${@link https://docs.mongodb.com/manual/reference/method/db.collection.find/ MongoDB Docs}.',
+        'Specifies the selection filter using query operators ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.',
       options: () =>
-        'Specifies the fields to return in the documents that match the query filter ${@link https://docs.mongodb.com/manual/reference/method/db.collection.find/ MongoDB Docs}.',
+        'Specifies the fields to return in the documents that match the query filter ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.',
     },
   },
 }
