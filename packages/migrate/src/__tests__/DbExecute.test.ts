@@ -151,6 +151,14 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    it('should pass with empty --file --url=file:dev.db', async () => {
+      ctx.fixture('introspection/sqlite')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse(['--preview-feature', '--url=file:dev.db', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlite')
       expect.assertions(2)
@@ -169,8 +177,7 @@ COMMIT;`,
       }
     })
 
-    // TODO, it's passing?
-    //  it('should fail with P1001 error with unreachable url with --file --url', async () => {
+    // the default behavior with sqlite is to create the db if it doesn't exists, no failure expected
     it('should pass with --file --url=file:doesnotexists.db', async () => {
       ctx.fixture('introspection/sqlite')
 
@@ -284,6 +291,14 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    it('should pass with empty --file --url', async () => {
+      ctx.fixture('schema-only-postgresql')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse(['--preview-feature', '--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
     // Limitation of postgresql
     // DROP DATABASE cannot be executed from a function or multi-command string
     // on GitHub Actions, for macOS and Windows it errors with
@@ -311,7 +326,7 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
       expect.assertions(2)
 
-      fs.writeFileSync('script.sql', '-- empty`;')
+      fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
@@ -329,7 +344,7 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
       expect.assertions(2)
 
-      fs.writeFileSync('script.sql', '-- empty`;')
+      fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
           '--preview-feature',
@@ -422,6 +437,23 @@ DROP DATABASE \`test-dbexecute\`;`
         '--file=./script.sql',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    // Only fails on MySQL
+    it('should fail with empty --file --schema', async () => {
+      ctx.fixture('schema-only-mysql')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse([
+        '--preview-feature',
+        '--schema=./prisma/schema.prisma',
+        '--file=./script.sql',
+      ])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Query was empty
+
+
+            `)
     })
 
     it('should pass using a transaction with --file --schema', async () => {
@@ -570,6 +602,18 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    it('should pass with empty --file --schema', async () => {
+      ctx.fixture('schema-only-sqlserver')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse([
+        '--preview-feature',
+        '--schema=./prisma/schema.prisma',
+        '--file=./script.sql',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -656,7 +700,9 @@ COMMIT;`,
           '--file=./script.sql',
         ])
       } catch (e) {
-        // TODO: Code not defined?
+        // It should error with P1001 but code is undefined
+        // Tracked in following issue:
+        // https://github.com/prisma/prisma/issues/11407
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
           Error creating a database connection.

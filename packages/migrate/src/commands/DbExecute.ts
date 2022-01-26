@@ -115,14 +115,6 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
     // Read stdin
     if (args['--stdin']) {
       script = await getStdin()
-      // If input is empty, stop here
-      if (!script) {
-        throw new Error(
-          `--stdin was passed but the input was empty. See \`${chalk.green(
-            getCommandWithExecutor('prisma db execute -h'),
-          )}\``,
-        )
-      }
     }
 
     let datasourceType: EngineArgs.DbExecuteDatasourceType
