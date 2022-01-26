@@ -10,6 +10,7 @@ import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPost
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
   describe('generic', () => {
@@ -129,19 +130,23 @@ DROP TABLE 'test-dbexecute';`
       )
     })
 
-    it('should pass with --stdin --schema', async () => {
-      ctx.fixture('schema-only-sqlite')
+    // On Windows: snapshot output = "-- Drop & Create & Drop"
+    testIf(process.platform !== 'win32')(
+      'should pass with --stdin --schema',
+      async () => {
+        ctx.fixture('schema-only-sqlite')
 
-      const { stdout, stderr } = await exec(
-        `echo "${sqlScript}" | ${pathToBin} db execute --preview-feature --stdin --schema=./prisma/schema.prisma`,
-      )
-
-      expect(stderr).toBeFalsy()
-      expect(stdout).toMatchInlineSnapshot(`
+        const { stdout, stderr } = await exec(
+          `echo "${sqlScript}" | ${pathToBin} db execute --preview-feature --stdin --schema=./prisma/schema.prisma`,
+        )
+        expect(stderr).toBeFalsy()
+        expect(stdout).toMatchInlineSnapshot(`
         Script executed successfully.
 
       `)
-    }, 15_000)
+      },
+      15_000,
+    )
 
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')
