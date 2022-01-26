@@ -67,10 +67,10 @@
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.9.0-7.7a48cf2c1aea8ec23e6dff2500845f31bdf2c468",
-    "@prisma/fetch-engine": "3.9.0-7.7a48cf2c1aea8ec23e6dff2500845f31bdf2c468",
+    "@prisma/engines": "3.9.0-26.dc0a52eb727200247416de740694bde98a7b0603",
+    "@prisma/fetch-engine": "3.9.0-26.dc0a52eb727200247416de740694bde98a7b0603",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.9.0-7.7a48cf2c1aea8ec23e6dff2500845f31bdf2c468",
+    "@prisma/get-platform": "3.9.0-26.dc0a52eb727200247416de740694bde98a7b0603",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -78,7 +78,7 @@
     "@types/jest": "27.4.0",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.4",
-    "@types/node": "12.20.41",
+    "@types/node": "12.20.42",
     "@types/pg": "8.6.4",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
@@ -119,7 +119,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "27.1.2",
+    "ts-jest": "27.1.3",
     "ts-node": "10.4.0",
     "tsd": "0.19.1",
     "typescript": "4.5.4"
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.9.0-7.7a48cf2c1aea8ec23e6dff2500845f31bdf2c468"
+    "@prisma/engines-version": "3.9.0-26.dc0a52eb727200247416de740694bde98a7b0603"
   },
   "lint-staged": {
     "*.ts": [
