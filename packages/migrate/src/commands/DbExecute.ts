@@ -24,7 +24,7 @@ There may be bugs and it's not recommended to use it in production environments.
 This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
     `--schema`,
   )} and a script, using ${chalk.green(`--stdin`)} or ${chalk.green(`--file`)}.
-The input paramaters are mutually exclusive, only 1 of each (datasource & script) must be provided.
+The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
  
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
 

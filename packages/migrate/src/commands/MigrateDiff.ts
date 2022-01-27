@@ -144,14 +144,14 @@ ${chalk.bold('Examples')}
       throw new MigrateDiffNeedsPreviewFeatureFlagError()
     }
 
-    const numberOfFromParamaterProvided =
+    const numberOfFromParameterProvided =
       Number(Boolean(args['--from-empty'])) +
       Number(Boolean(args['--from-schema-datasource'])) +
       Number(Boolean(args['--from-schema-datamodel'])) +
       Number(Boolean(args['--from-url'])) +
       Number(Boolean(args['--from-migrations']))
 
-    const numberOfToParamaterProvided =
+    const numberOfToParameterProvided =
       Number(Boolean(args['--to-empty'])) +
       Number(Boolean(args['--to-schema-datasource'])) +
       Number(Boolean(args['--to-schema-datamodel'])) +
@@ -159,13 +159,13 @@ ${chalk.bold('Examples')}
       Number(Boolean(args['--to-migrations']))
 
     // One of --to or --from is required
-    if (numberOfFromParamaterProvided !== 1 || numberOfToParamaterProvided !== 1) {
+    if (numberOfFromParameterProvided !== 1 || numberOfToParameterProvided !== 1) {
       const errorMessages: string[] = []
-      if (numberOfFromParamaterProvided !== 1) {
-        errorMessages.push(`${numberOfFromParamaterProvided} \`--from-...\` parameter(s) provided. 1 must be provided.`)
+      if (numberOfFromParameterProvided !== 1) {
+        errorMessages.push(`${numberOfFromParameterProvided} \`--from-...\` parameter(s) provided. 1 must be provided.`)
       }
-      if (numberOfToParamaterProvided !== 1) {
-        errorMessages.push(`${numberOfToParamaterProvided} \`--to-...\` parameter(s) provided. 1 must be provided.`)
+      if (numberOfToParameterProvided !== 1) {
+        errorMessages.push(`${numberOfToParameterProvided} \`--to-...\` parameter(s) provided. 1 must be provided.`)
       }
       throw new Error(`${errorMessages.join('\n')}
 See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
