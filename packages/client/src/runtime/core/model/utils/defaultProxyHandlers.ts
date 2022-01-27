@@ -1,7 +1,7 @@
 const defaultPropertyDescriptor = {
   enumerable: true,
   configurable: true,
-  writable: false,
+  writable: true,
 }
 
 export function defaultProxyHandlers(ownKeys: string[]) {
