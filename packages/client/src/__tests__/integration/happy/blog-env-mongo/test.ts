@@ -59,6 +59,8 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   })
 
   test('can throw validation errors', async () => {
+    expect.assertions(2)
+
     const {
       Prisma: { PrismaClientValidationError },
     } = require('./node_modules/@prisma/client')
@@ -68,8 +70,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         // @ts-ignore
         data: {},
       })
-
-      expect(false).toBe(true) // The line above needs to throw, so this should never be executed, but if it does (aka the line above did not throw, as expected), it will fail the test
     } catch (e) {
       expect(e).not.toBeUndefined()
       expect(e).toBeInstanceOf(PrismaClientValidationError)

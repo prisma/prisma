@@ -714,7 +714,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $runCommandRaw(command: object) {
       if (config.activeProvider !== 'mongodb') {
-        throw new PrismaClientValidationError(`The ${config.activeProvider} provider does not support $runCommandRaw`)
+        throw new PrismaClientValidationError(`The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`)
       }
 
       return createPrismaPromise((txId, inTx, otelCtx) => {
