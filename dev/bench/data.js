@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643273058739,
+  "lastUpdate": 1643281335046,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -79637,6 +79637,72 @@ window.BENCHMARK_DATA = {
           {
             "name": "typescript compilation ~50 Models",
             "value": 0.09,
+            "range": "±2.82%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "963c92d4b0a928f30b8c2402191b72d5da3e93f3",
+          "message": "feat(db execute): db execute CLI command (#11371)\n\n* feat(db execute): db execute CLI command\r\n\r\nRelated: https://github.com/prisma/migrations-team/issues/313\r\n\r\n* fix condition\r\n\r\n* more tests\r\n\r\n* tests + Script executed successfully.\r\n\r\n* tests + help text\r\n\r\n* sql server tests\r\n\r\n* undo setupMSSQL for client\r\n\r\n* default for TEST_MSSQL_JDBC_URI_MIGRATE for docker gh action\r\n\r\n* describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver'\r\n\r\n* tweak test for postgres limitation\r\n\r\n* remove empty script check and add tests\r\n\r\n* doesnotexists errors file and schema files\r\n\r\n* refactor internal migrate package CLI + error for missing schema because legacy\r\n\r\n* add missing file\r\n\r\n* skip --stdin test on windows\r\n\r\n* tweak help output\r\n\r\n* Apply suggestions from code review",
+          "timestamp": "2022-01-27T11:58:07+01:00",
+          "tree_id": "564f6887b49ecf127115ae31573a85970e08d7a2",
+          "url": "https://github.com/prisma/prisma/commit/963c92d4b0a928f30b8c2402191b72d5da3e93f3"
+        },
+        "date": 1643281331019,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.45,
+            "range": "±3.75%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
             "range": "±2.82%",
             "unit": "ops/sec",
             "extra": "5 samples"
