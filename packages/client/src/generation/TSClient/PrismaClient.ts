@@ -101,17 +101,17 @@ function executeRawDefinition(this: PrismaClientClass) {
 }
 
 function runCommandRawDefinition(this: PrismaClientClass) {
-  // we do not generate `$executeRaw...` definitions if not supported
+  // we do not generate `$runCommandRaw` definitions if not supported
   if (!this.dmmf.mappings.otherOperations.write.includes('runCommandRaw')) {
     return '' // https://github.com/prisma/prisma/issues/8189
   }
 
   return `
   /**
-   * Executes a raw mongo command and returns the result of it.
+   * Executes a raw MongoDB command and returns the result of it.
    * @example
    * \`\`\`
-   * const user = await (prisma as any).$runCommandRaw({
+   * const user = await prisma.$runCommandRaw({
    *   aggregate: 'User',
    *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
    *   explain: false,
