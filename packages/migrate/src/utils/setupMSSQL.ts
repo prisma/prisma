@@ -25,7 +25,7 @@ function getMSSQLConfig(url: string): mssql.config {
   }
 }
 
-export async function setupMSSQL(options: SetupParams): Promise<void> {
+export async function setupMSSQL(options: SetupParams, databaseName: string): Promise<void> {
   const { connectionString } = options
   const { dirname } = options
   const config = getMSSQLConfig(connectionString)
@@ -33,16 +33,27 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
   const connection = await connectionPool.connect()
 
   try {
-    await connection.query(`
-      CREATE DATABASE [tests-migrate-shadowdb]
-      CREATE DATABASE [tests-migrate]
+    if (databaseName === 'tests-migrate') {
+      await connection.query(`
+CREATE DATABASE [tests-migrate-shadowdb]
+CREATE DATABASE [tests-migrate]
     `)
+    } else {
+      await connection.query(`
+CREATE DATABASE [${databaseName}]
+    `)
+    }
   } catch (e) {
     console.warn(e)
   }
 
   if (dirname !== '') {
-    let schema = 'USE [tests-migrate]\n'
+    let schema = ''
+    if (databaseName === 'tests-migrate') {
+      schema = 'USE [tests-migrate]\n'
+    } else {
+      schema = `USE [${databaseName}]\n`
+    }
     schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
     await connection.query(schema)
   }
@@ -50,15 +61,21 @@ export async function setupMSSQL(options: SetupParams): Promise<void> {
   await connection.close()
 }
 
-export async function tearDownMSSQL(options: SetupParams) {
+export async function tearDownMSSQL(options: SetupParams, databaseName: 'tests-migrate' | string) {
   const { connectionString } = options
   const config = getMSSQLConfig(connectionString)
   const connectionPool = new mssql.ConnectionPool(config)
   const connection = await connectionPool.connect()
 
-  await connection.query(`
-    DROP DATABASE IF EXISTS "tests-migrate-shadowdb";
-    DROP DATABASE IF EXISTS "tests-migrate";
+  if (databaseName === 'tests-migrate') {
+    await connection.query(`
+DROP DATABASE IF EXISTS "tests-migrate-shadowdb";
+DROP DATABASE IF EXISTS "tests-migrate";
 `)
+  } else {
+    await connection.query(`
+DROP DATABASE IF EXISTS "${databaseName}";
+`)
+  }
   await connection.close()
 }

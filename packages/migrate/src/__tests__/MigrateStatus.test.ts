@@ -1,9 +1,5 @@
-import fs from 'fs-jetpack'
-import path from 'path'
 import { MigrateStatus } from '../commands/MigrateStatus'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { tearDownMysql } from '../utils/setupMysql'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

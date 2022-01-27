@@ -440,19 +440,19 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
 
   beforeAll(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupMSSQL(setupParams).catch((e) => {
+    await setupMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   afterEach(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })

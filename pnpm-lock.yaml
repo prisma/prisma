@@ -575,6 +575,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       execa: 5.1.1
       fs-jetpack: 4.3.0
+      get-stdin: 8.0.0
       has-yarn: 2.1.0
       indent-string: 4.0.0
       jest: 27.4.7
@@ -601,6 +602,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       chalk: 4.1.2
       execa: 5.1.1
+      get-stdin: 8.0.0
       has-yarn: 2.1.0
       indent-string: 4.0.0
       log-update: 4.0.0
@@ -4594,6 +4596,11 @@ packages:
     resolution: {integrity: sha512-g/Q1aTSDOxFpchXC4i8ZWvxA1lnPqx/JHqcpIw0/LX9T8x/GBbi6YnlN5nhaKIFkT8oFsscUKgDJYxfwfS6QsQ==}
     engines: {node: '>=8'}
     dev: true
+
+  /get-stdin/8.0.0:
+    resolution: {integrity: sha512-sY22aA6xchAzprjyqmSEQv4UbAAzRN0L2dQB0NlN5acTTK9Don6nhoc3eAbUnpZiCANAMfd/+40kVdKfFygohg==}
+    engines: {node: '>=10'}
+    dev: false
 
   /get-stream/6.0.1:
     resolution: {integrity: sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg==}
