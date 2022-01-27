@@ -21,7 +21,11 @@ ${chalk.bold.yellow('WARNING')} ${chalk.bold(
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 
-This command takes as input a datasource and a script. 
+This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
+    `--schema`,
+  )} and a script, using ${chalk.green(`--stdin`)} or ${chalk.green(`--file`)}.
+The input paramaters are mutually exclusive, only 1 of each (datasource & script) must be provided.
+ 
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
 
 On SQL databases, this command takes as input a SQL script.
@@ -36,21 +40,27 @@ ${chalk.bold('Usage')}
 ${chalk.bold('Options')}
 
 -h, --help   Display this help message
+
+${chalk.italic('Datasource input, only 1 must be provided:')}
      --url   URL of the datasource to run the command on
   --schema   Path to your Prisma schema file to take the datasource URL from
-   --stdin   Use the terminal standard input as the script to be executed.
-    --file   Path to a file. The content will be sent as the script to be executed.
+
+${chalk.italic('Script input, only 1 must be provided:')}
+   --stdin   Use the terminal standard input as the script to be executed
+    --file   Path to a file. The content will be sent as the script to be executed
 
 ${chalk.bold('Examples')}
  
-  Execute the content of a SQL script file to the database URL from schema.
+  Execute the content of a SQL script file to the datasource URL taken from the schema
   ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 
-  Execute the SQL script from stdin to the database url.
+  Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
+  ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
+
+  Like previous example, but exposing the datasource url credentials to your terminal history
   ${chalk.dim(
     '$',
-  )} echo 'SELECT \`hello world\`;' | prisma db execute --preview-feature --stdin --url="mysql://localhost/testdb"
-
+  )} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="mysql://root:root@localhost/mydb"
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {

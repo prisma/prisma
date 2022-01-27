@@ -14,16 +14,20 @@ ${chalk.bold('Usage')}
 
   ${chalk.dim('$')} prisma db [command] [options]
 
+${chalk.bold('Flag')}
+
+--preview-feature   Run Preview Prisma commands
+
 ${chalk.bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
 ${chalk.bold('Commands')}
-        pull   Pull the state from the database to the Prisma schema using introspection
-        push   Push the state from Prisma schema to the database during prototyping
-        seed   Seed your database
-     execute   Execute native commands to your database (Preview)
+     pull   Pull the state from the database to the Prisma schema using introspection
+     push   Push the state from Prisma schema to the database during prototyping
+     seed   Seed your database
+  execute   Execute native commands to your database (Preview)
 
 ${chalk.bold('Examples')}
 
