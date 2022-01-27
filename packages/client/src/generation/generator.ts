@@ -5,6 +5,7 @@ import { parseEnvValue, ClientEngineType, getClientEngineType } from '@prisma/sd
 import { generateClient } from './generateClient'
 import { getDMMF } from './getDMMF'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
+import { dmmfToTypes } from './utils/types/dmmfToTypes'
 const debug = Debug('prisma:client:generator')
 
 // As specced in https://github.com/prisma/specs/tree/master/generators
@@ -52,4 +53,4 @@ if (process.argv[1] === __filename) {
   })
 }
 
-export { getDMMF, externalToInternalDmmf }
+export { getDMMF, externalToInternalDmmf, dmmfToTypes }
