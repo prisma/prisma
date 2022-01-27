@@ -1,7 +1,7 @@
 import type { Command, Commands } from '@prisma/sdk'
 import { arg, format, HelpError, isError, logger, link, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
-import { ExperimentalFlagWithNewMigrateError } from '../utils/flagErrors'
+import { ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 
 export class MigrateCommand implements Command {
   public static new(cmds: Commands): MigrateCommand {
@@ -78,7 +78,7 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
+      throw new ExperimentalFlagWithMigrateError()
     }
 
     // display help for help flag or no subcommand
@@ -86,7 +86,9 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (['up', 'save', 'down'].includes(args._[0])) {
+    const commandName = args._[0]
+
+    if (['up', 'save', 'down'].includes(commandName)) {
       throw new Error(
         `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
 Read more about how to upgrade: ${link('https://pris.ly/d/migrate-upgrade')}`,
@@ -101,13 +103,21 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     // check if we have that subcommand
-    const cmd = this.cmds[args._[0]]
+    const cmd = this.cmds[commandName]
     if (cmd) {
-      const argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
+      let argsForCmd: string[]
+      if (commandName === 'diff') {
+        argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
+      } else {
+        // Filter our --preview-feature flag for other migrate commands that do not consider it valid
+        const filteredArgs = args._.filter((item) => item !== '--preview-feature')
+        argsForCmd = filteredArgs.slice(1)
+      }
+
       return cmd.parse(argsForCmd)
     }
 
-    return unknownCommand(MigrateCommand.help, args._[0])
+    return unknownCommand(MigrateCommand.help, commandName)
   }
 
   public help(error?: string): string | HelpError {

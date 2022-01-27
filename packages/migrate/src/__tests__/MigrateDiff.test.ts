@@ -228,22 +228,22 @@ describe('migrate diff', () => {
   })
 
   describe('mongodb', () => {
-    it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
-      ctx.fixture('schema-only-mongodb')
+    // it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
+    //   ctx.fixture('schema-only-mongodb')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-url',
-        process.env.TEST_MONGO_URI!,
-        // '--to-empty',
-        '--to-schema-datamodel=./prisma/schema.prisma',
-      ])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        [+] Collection \`User\`
+    //   const result = MigrateDiff.new().parse([
+    //     '--preview-feature',
+    //     '--from-url',
+    //     process.env.TEST_MONGO_URI!,
+    //     // '--to-empty',
+    //     '--to-schema-datamodel=./prisma/schema.prisma',
+    //   ])
+    //   await expect(result).resolves.toMatchInlineSnapshot(``)
+    //   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    //     [+] Collection \`User\`
 
-      `)
-    })
+    //   `)
+    // })
 
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-mongodb')
