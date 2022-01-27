@@ -101,14 +101,7 @@ describe('db execute', () => {
         '--file=./script.js',
       ])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              P1012
-
-              error: Environment variable not found: TEST_MONGO_URI_MIGRATE.
-                -->  schema.prisma:3
-                 | 
-               2 |   provider = "mongodb"
-               3 |   url      = env("TEST_MONGO_URI_MIGRATE") 
-                 | 
+              dbExecute is not supported on MongoDB
 
 
             `)
