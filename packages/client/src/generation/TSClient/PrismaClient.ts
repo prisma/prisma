@@ -120,7 +120,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $runCommandRaw(command: Prisma.InputJsonValue): PrismaPromise<Prisma.JsonObject>;`
+  $runCommandRaw(command: Prisma.InputJsonObject): PrismaPromise<Prisma.JsonObject>;`
 }
 
 export class PrismaClientClass implements Generatable {
