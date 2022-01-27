@@ -106,3 +106,13 @@ export class DbExecuteNeedsPreviewFeatureFlagError extends Error {
     )
   }
 }
+
+export class MigrateDiffNeedsPreviewFeatureFlagError extends Error {
+  constructor() {
+    super(
+      `This command is in Preview. Use the --preview-feature flag to use it like ${chalk.bold.greenBright(
+        getCommandWithExecutor(`prisma migrate diff --preview-feature`),
+      )}`,
+    )
+  }
+}

@@ -93,17 +93,18 @@ Read more about how to upgrade: ${link('https://pris.ly/d/migrate-upgrade')}`,
       )
     }
 
+    // Legacy warning only if --preview-feature is place before the command like below
+    // prisma migrate --preview-feature command
     if (args['--preview-feature']) {
       logger.warn(`Prisma Migrate was in Preview and is now Generally Available.
 You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
-    const filteredArgs = args._.filter((item) => item !== '--preview-feature')
-
     // check if we have that subcommand
-    const cmd = this.cmds[filteredArgs[0]]
+    const cmd = this.cmds[args._[0]]
     if (cmd) {
-      return cmd.parse(filteredArgs.slice(1))
+      const argsForCmd = args['--preview-feature'] ? [...args._.slice(1), `--preview-feature`] : args._.slice(1)
+      return cmd.parse(argsForCmd)
     }
 
     return unknownCommand(MigrateCommand.help, args._[0])

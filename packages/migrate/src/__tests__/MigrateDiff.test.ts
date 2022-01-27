@@ -9,6 +9,9 @@ import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPost
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
+// TODO tests
+// exitCode != 0
+
 describe('migrate diff', () => {
   describe('generic', () => {
     it('--preview-feature flag is required', async () => {
@@ -16,7 +19,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse([])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `This command is in Preview. Use the --preview-feature flag to use it like prisma db execute --preview-feature`,
+        `This command is in Preview. Use the --preview-feature flag to use it like prisma migrate diff --preview-feature`,
       )
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
@@ -92,17 +95,63 @@ describe('migrate diff', () => {
         `)
       }
     })
+
+    it('should fail for empty/empty', async () => {
+      ctx.fixture('empty')
+      expect.assertions(2)
+
+      try {
+        await MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-empty'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`
+          Could not find a schema.prisma file that is required for this command.
+          You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+        `)
+      }
+    })
   })
 
   describe('mongodb', () => {
-    it('should diff', async () => {
+    it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
+      ctx.fixture('schema-only-mongodb')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        process.env.TEST_MONGO_URI!,
+        // '--to-empty',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        [+] Collection \`User\`
+
+      `)
+    })
+
+    it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-mongodb')
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',
         '--from-empty',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        [+] Collection \`User\`
+
+      `)
+    })
+
+    it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
+      ctx.fixture('schema-only-mongodb')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-schema-datamodel=./prisma/schema.prisma',
         '--to-empty',
-        // '--to-schema-datamodel=./prisma/schema.prisma',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -114,8 +163,7 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse([
         '--preview-feature',
         '--from-empty',
-        '--to-empty',
-        // '--to-schema-datamodel=./prisma/schema.prisma',
+        '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
       ])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
@@ -161,29 +209,29 @@ describe('migrate diff', () => {
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
     })
 
-    it('should diff --from-empty --to-schema-datamodel=./schema.prisma', async () => {
+    it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',
         '--from-empty',
-        '--to-schema-datamodel=./schema.prisma',
+        '--to-schema-datamodel=./prisma/schema.prisma',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [+] Added tables
-          - Blog
+                                        [+] Added tables
+                                          - Blog
 
-      `)
+                              `)
     })
-    it('should diff --from-empty --to-schema-datamodel=./schema.prisma --script', async () => {
+    it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',
         '--from-empty',
-        '--to-schema-datamodel=./schema.prisma',
+        '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -197,28 +245,28 @@ describe('migrate diff', () => {
       `)
     })
 
-    it('should diff --from-schema-datamodel=./schema.prisma --to-empty', async () => {
+    it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',
-        '--from-schema-datamodel=./schema.prisma',
+        '--from-schema-datamodel=./prisma/schema.prisma',
         '--to-empty',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                [-] Removed tables
-                  - Blog
+                                                [-] Removed tables
+                                                  - Blog
 
-            `)
+                                    `)
     })
-    it('should diff --from-schema-datamodel=./schema.prisma --to-empty --script', async () => {
+    it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',
-        '--from-schema-datamodel=./schema.prisma',
+        '--from-schema-datamodel=./prisma/schema.prisma',
         '--to-empty',
         '--script',
       ])
@@ -244,77 +292,222 @@ describe('migrate diff', () => {
     })
   })
 
-  // describe('postgresql', () => {
-  //   const connectionString = (
-  //     process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-  //   ).replace('tests-migrate', 'tests-migrate-db-execute')
-  //   // TODO remove when engine doesn't validate datasource anymore by default from schema
-  //   process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-  //   const setupParams: SetupParams = {
-  //     connectionString,
-  //     dirname: '',
-  //   }
+  describe('postgresql', () => {
+    const connectionString = (
+      process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
+    ).replace('tests-migrate', 'tests-migrate-migrate-diff')
+    // TODO remove when engine doesn't validate datasource anymore by default from schema
+    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    const setupParams: SetupParams = {
+      connectionString,
+      dirname: '',
+    }
 
-  //   beforeAll(async () => {
-  //     await setupPostgres(setupParams).catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
+    beforeAll(async () => {
+      await setupPostgres(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
 
-  //   afterAll(async () => {
-  //     await tearDownPostgres(setupParams).catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
-  // })
+    afterAll(async () => {
+      await tearDownPostgres(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
 
-  // describe('mysql', () => {
-  //   const connectionString = (
-  //     process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-  //   ).replace('tests-migrate', 'tests-migrate-db-execute')
-  //   // TODO remove when engine doesn't validate datasource anymore by default from schema
-  //   process.env.TEST_MYSQL_URI_MIGRATE = connectionString
-  //   const setupParams: SetupParams = {
-  //     connectionString,
-  //     dirname: '',
-  //   }
+    it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
+      ctx.fixture('schema-only-postgresql')
 
-  //   beforeAll(async () => {
-  //     await setupMysql(setupParams).catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        connectionString,
+        '--to-schema-datamodel=./prisma/schema.prisma',
+        '--script',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- CreateTable
+        CREATE TABLE "Blog" (
+            "id" INTEGER NOT NULL,
+            "viewCount20" INTEGER NOT NULL,
 
-  //   afterAll(async () => {
-  //     await tearDownMysql(setupParams).catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
-  // })
+            CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
+        );
 
-  // describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-  //   const jdbcConnectionString = (
-  //     process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-  //     'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-  //   ).replace('tests-migrate', 'tests-migrate-db-execute')
-  //   // TODO remove when engine doesn't validate datasource anymore by default from schema
-  //   process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
+      `)
+    })
 
-  //   const setupParams: SetupParams = {
-  //     connectionString: process.env.TEST_MSSQL_URI!,
-  //     dirname: '',
-  //   }
+    it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
+      ctx.fixture('introspection/sqlite')
 
-  //   beforeAll(async () => {
-  //     await setupMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        connectionString,
+        '--to-url=file:dev.db',
+        '--script',
+      ])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Error in migration engine.
+              Reason: [/some/rust/path:0:0] Missing native type in postgres_renderer::render_column_type()
 
-  //   afterAll(async () => {
-  //     await tearDownMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
-  //       console.error(e)
-  //     })
-  //   })
-  // })
+              Please create an issue with your \`schema.prisma\` at
+              https://github.com/prisma/prisma/issues/new
+
+            `)
+    })
+  })
+
+  describe('mysql', () => {
+    const connectionString = (
+      process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
+    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    // TODO remove when engine doesn't validate datasource anymore by default from schema
+    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    const setupParams: SetupParams = {
+      connectionString,
+      dirname: '',
+    }
+
+    beforeAll(async () => {
+      await setupMysql(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    afterAll(async () => {
+      await tearDownMysql(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
+      ctx.fixture('schema-only-mysql')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        connectionString,
+        '--to-schema-datamodel=./prisma/schema.prisma',
+        '--script',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- CreateTable
+        CREATE TABLE \`Blog\` (
+            \`id\` INTEGER NOT NULL,
+            \`viewCount20\` INTEGER NOT NULL,
+
+            PRIMARY KEY (\`id\`)
+        ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+      `)
+    })
+
+    it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
+      ctx.fixture('introspection/sqlite')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        connectionString,
+        '--to-url=file:dev.db',
+        '--script',
+      ])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Error in migration engine.
+              Reason: [/some/rust/path:0:0] Column native type missing in mysql_renderer::render_column_type()
+
+              Please create an issue with your \`schema.prisma\` at
+              https://github.com/prisma/prisma/issues/new
+
+            `)
+    })
+  })
+
+  describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
+    const jdbcConnectionString = (
+      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
+      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    // TODO remove when engine doesn't validate datasource anymore by default from schema
+    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
+
+    const setupParams: SetupParams = {
+      connectionString: process.env.TEST_MSSQL_URI!,
+      dirname: '',
+    }
+
+    beforeAll(async () => {
+      await setupMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+        console.error(e)
+      })
+    })
+
+    afterAll(async () => {
+      await tearDownMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+        console.error(e)
+      })
+    })
+
+    it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
+      ctx.fixture('schema-only-sqlserver')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        jdbcConnectionString,
+        '--to-schema-datamodel=./prisma/schema.prisma',
+        '--script',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        BEGIN TRY
+
+        BEGIN TRAN;
+
+        -- CreateTable
+        CREATE TABLE [dbo].[Blog] (
+            [id] INT NOT NULL,
+            [viewCount20] INT NOT NULL,
+            CONSTRAINT [Blog_pkey] PRIMARY KEY ([id])
+        );
+
+        COMMIT TRAN;
+
+        END TRY
+        BEGIN CATCH
+
+        IF @@TRANCOUNT > 0
+        BEGIN
+            ROLLBACK TRAN;
+        END;
+        THROW
+
+        END CATCH
+
+      `)
+    })
+
+    it('should fail for 2 different connectors --from-url=jdbcConnectionString --to-url=file:dev.db --script', async () => {
+      ctx.fixture('introspection/sqlite')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        jdbcConnectionString,
+        '--to-url=file:dev.db',
+        '--script',
+      ])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Error in migration engine.
+              Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()
+
+              Please create an issue with your \`schema.prisma\` at
+              https://github.com/prisma/prisma/issues/new
+
+            `)
+    })
+  })
 })

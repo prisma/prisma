@@ -1,8 +1,9 @@
+import path from 'path'
 import type { Command } from '@prisma/sdk'
 import { arg, format, HelpError, isError, getSchemaPath, link, getCommandWithExecutor } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
-import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
+import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
 import type { EngineArgs, EngineResults } from '../types'
 import Debug from '@prisma/debug'
 
@@ -135,7 +136,7 @@ ${chalk.bold('Examples')}
     }
 
     if (!args['--preview-feature']) {
-      throw new DbExecuteNeedsPreviewFeatureFlagError()
+      throw new MigrateDiffNeedsPreviewFeatureFlagError()
     }
 
     const numberOfFromParamaterProvided =
@@ -173,12 +174,12 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
     } else if (args['--from-schema-datasource']) {
       from = {
         tag: 'schemaDatasource',
-        schema: args['--from-schema-datasource'],
+        schema: path.resolve(args['--from-schema-datasource']),
       }
     } else if (args['--from-schema-datamodel']) {
       from = {
         tag: 'schemaDatamodel',
-        schema: args['--from-schema-datamodel'],
+        schema: path.resolve(args['--from-schema-datamodel']),
       }
     } else if (args['--from-url']) {
       from = {
@@ -188,7 +189,7 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
     } else if (args['--from-migrations']) {
       from = {
         tag: 'migrations',
-        path: args['--from-migrations'],
+        path: path.resolve(args['--from-migrations']),
       }
     }
 
@@ -200,12 +201,12 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
     } else if (args['--to-schema-datasource']) {
       to = {
         tag: 'schemaDatasource',
-        schema: args['--to-schema-datasource'],
+        schema: path.resolve(args['--to-schema-datasource']),
       }
     } else if (args['--to-schema-datamodel']) {
       to = {
         tag: 'schemaDatamodel',
-        schema: args['--to-schema-datamodel'],
+        schema: path.resolve(args['--to-schema-datamodel']),
       }
     } else if (args['--to-url']) {
       to = {
@@ -215,7 +216,7 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
     } else if (args['--to-migrations']) {
       to = {
         tag: 'migrations',
-        path: args['--to-migrations'],
+        path: path.resolve(args['--to-migrations']),
       }
     }
 
