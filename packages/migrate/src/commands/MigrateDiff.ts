@@ -16,21 +16,22 @@ export class MigrateDiff implements Command {
   private static help = format(`
 ${
   process.platform === 'win32' ? '' : chalk.bold('🔍 ')
-}Compares the database schema from two arbitrary sources, and displays the differences either as a human-readable summary (by default) or executable script.
+}Compares the database schema from two arbitrary sources, and displays the differences either as a human-readable summary (by default) or an executable script.
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `${chalk.green(`prisma migrate diff`)} is currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
 
-TODO: Link to use cases to docs
-
 ${chalk.green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
+${chalk.green(`prisma db execute`)} can be used to execute its ${chalk.green(`--script`)} output.
 
 The command takes a source ${chalk.green(`--from-...`)} and a destination ${chalk.green(`--to-...`)}
 It compares the source with the destination to generate the diff. 
 The diff can be interpreted as generating a migration that brings the source schema (from) to the shape of the destination schema (to).
 The default output is a human readable diff, it can be rendered as SQL using \`--script\` on SQL databases.
+
+See the documentation for more information ${link('https://pris.ly/d/migrate-diff')}
 
 ${chalk.bold('Usage')}
 
@@ -47,8 +48,8 @@ ${chalk.italic('From and To inputs, 1 of each must be provided:')}
 --from-schema-datasource / --to-schema-datasource  Path to a Prisma schema file, uses the datasource url for the diff
               --from-migrations / --to-migrations  Path to the Prisma Migrate migrations directory
 
-${chalk.italic('Shadow database:')}
-                            --shadow-database-url  (optional in most cases) URL for the shadow database
+${chalk.italic('Shadow database, only required if using --from-migrations or --to-migrations:')}
+                            --shadow-database-url  URL for the shadow database
 
 ${chalk.italic('Output format:')}
                                          --script  Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
@@ -98,6 +99,13 @@ ${chalk.bold('Examples')}
     --from-migrations ./migrations \\
     --to-url "$PROD_DB" \\
     --script
+
+  Execute the --script output with \`prisma db execute\` using bash pipe \`|\`
+  ${chalk.dim('$')} prisma migrate diff \\
+  --preview-feature \\
+  --from-[...] \\
+  --to-[...]  \\
+  --script | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
