@@ -222,7 +222,6 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
 
     const migrate = new Migrate()
 
-    // const migrate = new Migrate()
     let result: EngineResults.MigrateDiffOutput
     try {
       result = await migrate.engine.migrateDiff({

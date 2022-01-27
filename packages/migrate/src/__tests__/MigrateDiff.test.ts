@@ -112,71 +112,6 @@ describe('migrate diff', () => {
     })
   })
 
-  describe('mongodb', () => {
-    it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
-      ctx.fixture('schema-only-mongodb')
-
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-url',
-        process.env.TEST_MONGO_URI!,
-        // '--to-empty',
-        '--to-schema-datamodel=./prisma/schema.prisma',
-      ])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        [+] Collection \`User\`
-
-      `)
-    })
-
-    it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
-      ctx.fixture('schema-only-mongodb')
-
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-empty',
-        '--to-schema-datamodel=./prisma/schema.prisma',
-      ])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        [+] Collection \`User\`
-
-      `)
-    })
-
-    it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
-      ctx.fixture('schema-only-mongodb')
-
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-schema-datamodel=./prisma/schema.prisma',
-        '--to-empty',
-      ])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    })
-
-    it('should fail with not supported error with --script', async () => {
-      ctx.fixture('schema-only-mongodb')
-
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-empty',
-        '--to-schema-datamodel=./prisma/schema.prisma',
-        '--script',
-      ])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
-              Reason: [/some/rust/path:0:0] internal error: entered unreachable code
-
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
-
-            `)
-    })
-  })
-
   describe('sqlite', () => {
     // TODO next 2 tests: is it expected to not fail when diffing from/to an unexisting sqlite db?
     it('should diff --from-empty --to-url=file:doesnotexists.db', async () => {
@@ -288,6 +223,71 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Could not find a schema.prisma file that is required for this command.
               You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+            `)
+    })
+  })
+
+  describe('mongodb', () => {
+    it('should diff --from-url=$TEST_MONGO_URI --to-schema-datamodel=./prisma/schema.prisma', async () => {
+      ctx.fixture('schema-only-mongodb')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url',
+        process.env.TEST_MONGO_URI!,
+        // '--to-empty',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        [+] Collection \`User\`
+
+      `)
+    })
+
+    it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
+      ctx.fixture('schema-only-mongodb')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-empty',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        [+] Collection \`User\`
+
+      `)
+    })
+
+    it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
+      ctx.fixture('schema-only-mongodb')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-schema-datamodel=./prisma/schema.prisma',
+        '--to-empty',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+
+    it('should fail with not supported error with --script', async () => {
+      ctx.fixture('schema-only-mongodb')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-empty',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+        '--script',
+      ])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Error in migration engine.
+              Reason: [/some/rust/path:0:0] internal error: entered unreachable code
+
+              Please create an issue with your \`schema.prisma\` at
+              https://github.com/prisma/prisma/issues/new
+
             `)
     })
   })
