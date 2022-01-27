@@ -67,9 +67,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.9.0-46.feat-mongo-query-raw-0e82f4d739182f5d6734e6a74b41625ce32cf1c0",
+    "@prisma/fetch-engine": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.9.0-46.feat-mongo-query-raw-0e82f4d739182f5d6734e6a74b41625ce32cf1c0",
+    "@prisma/get-platform": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.456.0",
@@ -129,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "3.9.0-46.feat-mongo-query-raw-0e82f4d739182f5d6734e6a74b41625ce32cf1c0"
+    "@prisma/engines": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa"
   },
   "lint-staged": {
     "*.ts": [
