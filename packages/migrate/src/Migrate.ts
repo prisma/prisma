@@ -13,9 +13,6 @@ const debug = Debug('prisma:migrate')
 const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 export class Migrate {
-  get devMigrationsDir(): string {
-    return path.join(path.dirname(this.schemaPath), 'migrations/dev')
-  }
   public engine: MigrateEngine
   private schemaPath: string
   public migrationsDirectoryPath: string

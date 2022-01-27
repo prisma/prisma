@@ -103,6 +103,9 @@ export class MigrateEngine {
   public reset(): Promise<void> {
     return this.runCommand(this.getRPCPayload('reset', undefined))
   }
+  public dbExecute(args: EngineArgs.DbExecuteInput): Promise<EngineResults.DbExecuteOutput> {
+    return this.runCommand(this.getRPCPayload('dbExecute', args))
+  }
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
