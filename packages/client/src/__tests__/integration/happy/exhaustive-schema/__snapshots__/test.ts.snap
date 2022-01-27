@@ -651,7 +651,7 @@ export class PrismaClient<
    */
   $use(cb: Prisma.Middleware): void
 
-  /**
+/**
    * Executes a prepared raw query and returns the number of affected rows.
    * @example
    * \`\`\`
@@ -711,7 +711,6 @@ export class PrismaClient<
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
-
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.

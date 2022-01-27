@@ -206,13 +206,16 @@ export class PrismaClient<
    * Add a middleware
    */
   $use(cb: Prisma.Middleware): void
+
 ${[
   executeRawDefinition.bind(this)(),
   queryRawDefinition.bind(this)(),
   batchingTransactionDefinition.bind(this)(),
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
-].join('\n')}
+]
+  .join('\n')
+  .trim()}
 
     ${indent(
       dmmf.mappings.modelOperations
