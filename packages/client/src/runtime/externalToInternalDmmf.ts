@@ -27,9 +27,10 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
       }
       return model.fields.some((f) => f.kind !== 'object')
     })
+    // TODO most of this is probably not needed anymore
     .map((mapping: any) => ({
       model: mapping.model,
-      plural: pluralize(lowerCase(mapping.model)),
+      plural: pluralize(lowerCase(mapping.model)), // TODO not needed anymore
       findUnique: mapping.findUnique || mapping.findSingle,
       findFirst: mapping.findFirst,
       findMany: mapping.findMany,
@@ -42,6 +43,8 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
       upsert: mapping.upsertOne || mapping.upsertSingle || mapping.upsert,
       aggregate: mapping.aggregate,
       groupBy: mapping.groupBy,
+      findRaw: mapping.findRaw,
+      aggregateRaw: mapping.aggregateRaw,
     }))
 
   return {

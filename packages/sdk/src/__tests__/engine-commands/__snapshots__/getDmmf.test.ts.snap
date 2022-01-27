@@ -23002,12 +23002,14 @@ Object {
     "modelOperations": Array [
       Object {
         "aggregate": "aggregateA",
+        "aggregateRaw": "aggregateARaw",
         "createMany": "createManyA",
         "createOne": "createOneA",
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
         "findMany": "findManyA",
+        "findRaw": "findARaw",
         "findUnique": "findUniqueA",
         "groupBy": "groupByA",
         "model": "A",
@@ -23018,7 +23020,9 @@ Object {
     ],
     "otherOperations": Object {
       "read": Array [],
-      "write": Array [],
+      "write": Array [
+        "runCommandRaw",
+      ],
     },
   },
   "schema": Object {
@@ -25578,6 +25582,76 @@ Object {
                 "type": "A",
               },
             },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "filter",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "options",
+                },
+              ],
+              "isNullable": false,
+              "name": "findARaw",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Json",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "pipeline",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "options",
+                },
+              ],
+              "isNullable": false,
+              "name": "aggregateARaw",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Json",
+              },
+            },
           ],
           "name": "Query",
         },
@@ -25838,6 +25912,29 @@ Object {
                 "location": "outputObjectTypes",
                 "namespace": "prisma",
                 "type": "AffectedRowsOutput",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Json",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "command",
+                },
+              ],
+              "isNullable": false,
+              "name": "runCommandRaw",
+              "outputType": Object {
+                "isList": false,
+                "location": "scalar",
+                "type": "Json",
               },
             },
           ],

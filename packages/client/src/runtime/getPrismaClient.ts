@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import type { Context } from '@opentelemetry/api'
-import { trace } from '@opentelemetry/api'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { LibraryEngine } from '@prisma/engine-core'
 import { BinaryEngine } from '@prisma/engine-core'
@@ -144,7 +143,7 @@ export type HookParams = {
   args: any
 }
 
-export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw'
+export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 
 export type InternalRequestParams = {
   /**
@@ -267,6 +266,9 @@ const actionOperationMap = {
   queryRaw: 'mutation',
   aggregate: 'query',
   groupBy: 'query',
+  runCommandRaw: 'mutation',
+  findRaw: 'query',
+  aggregateRaw: 'query',
 }
 
 // TODO improve all these types, need a common place to share them between type
@@ -705,6 +707,31 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     /**
+     * Executes a raw command only for MongoDB
+     *
+     * @param command
+     * @returns
+     */
+    $runCommandRaw(command: object) {
+      if (config.activeProvider !== 'mongodb') {
+        throw new PrismaClientValidationError(`The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`)
+      }
+
+      return createPrismaPromise((txId, inTx, otelCtx) => {
+        return this._request({
+          args: { command: command },
+          clientMethod: 'runCommandRaw',
+          dataPath: [],
+          action: 'runCommandRaw',
+          callsite: getCallSite(),
+          runInTransaction: inTx ?? false,
+          transactionId: txId,
+          otelCtx: otelCtx,
+        })
+      })
+    }
+
+    /**
      * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
      * @see https://github.com/prisma/prisma/issues/7142
      *
@@ -1138,7 +1165,7 @@ new PrismaClient({
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 
-      if (action === 'executeRaw' || action === 'queryRaw') {
+      if (action === 'executeRaw' || action === 'queryRaw' || action === 'runCommandRaw') {
         rootField = action
       }
 

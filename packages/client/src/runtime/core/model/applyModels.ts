@@ -1,5 +1,6 @@
 import type { Client } from '../../getPrismaClient'
 import { applyModel } from './applyModel'
+import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
 
@@ -36,8 +37,7 @@ export function applyModels<C extends Client>(client: C) {
 
       return target[prop] // returns the base client prop
     },
-    has: (_, prop: string) => ownKeys.includes(prop),
-    ownKeys: () => ownKeys,
+    ...defaultProxyHandlers(ownKeys),
   })
 }
 
