@@ -26,8 +26,11 @@ There may be bugs and it's not recommended to use it in production environments.
 ${chalk.green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).
 ${chalk.green(`prisma db execute`)} can be used to execute its ${chalk.green(`--script`)} output.
 
-The command takes a source ${chalk.green(`--from-...`)} and a destination ${chalk.green(`--to-...`)}
-It compares the source with the destination to generate the diff. 
+The command takes a source ${chalk.green(`--from-...`)} and a destination ${chalk.green(`--to-...`)}.
+The source and destination must use the same provider,
+e.g. a diff using 2 different providers like PostgreSQL and SQLite is not supported.
+
+It compares the source with the destination to generate a diff. 
 The diff can be interpreted as generating a migration that brings the source schema (from) to the shape of the destination schema (to).
 The default output is a human readable diff, it can be rendered as SQL using \`--script\` on SQL databases.
 
@@ -41,28 +44,22 @@ ${chalk.bold('Options')}
 
                                        -h, --help  Display this help message
 
-${chalk.italic('From and To inputs, 1 of each must be provided:')}
+${chalk.italic('From and To inputs (1 from and 1 to must be provided):')}
                             --from-url / --to-url  A datasource URL
                         --from-empty / --to-empty  Flag to assume from or to is an empty datamodel
   --from-schema-datamodel / --to-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
 --from-schema-datasource / --to-schema-datasource  Path to a Prisma schema file, uses the datasource url for the diff
               --from-migrations / --to-migrations  Path to the Prisma Migrate migrations directory
 
-${chalk.italic('Shadow database, only required if using --from-migrations or --to-migrations:')}
+${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
                             --shadow-database-url  URL for the shadow database
 
 ${chalk.italic('Output format:')}
                                          --script  Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
 
-
-     --url   URL of the datasource to run the command on
-  --schema   Path to your Prisma schema file to take the datasource URL from
-   --stdin   Use the terminal standard input as the script to be executed.
-    --file   Path to a file. The content will be sent as the script to be executed.
-
 ${chalk.bold('Flag')}
 
-  --preview-feature   Run Preview Prisma commands
+                                --preview-feature  Run Preview Prisma commands
 
 ${chalk.bold('Examples')}
  
