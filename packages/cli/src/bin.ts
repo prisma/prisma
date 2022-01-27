@@ -79,6 +79,7 @@ import {
   MigrateStatus,
   MigrateReset,
   MigrateDeploy,
+  MigrateDiff,
   DbExecute,
   DbPush,
   DbPull,
@@ -128,6 +129,7 @@ async function main(): Promise<number> {
         resolve: MigrateResolve.new(),
         reset: MigrateReset.new(),
         deploy: MigrateDeploy.new(),
+        diff: MigrateDiff.new(),
       }),
       db: DbCommand.new({
         execute: DbExecute.new(),

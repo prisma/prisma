@@ -106,6 +106,9 @@ export class MigrateEngine {
   public dbExecute(args: EngineArgs.DbExecuteInput): Promise<EngineResults.DbExecuteOutput> {
     return this.runCommand(this.getRPCPayload('dbExecute', args))
   }
+  public migrateDiff(args: EngineArgs.MigrateDiffInput): Promise<EngineResults.MigrateDiffOutput> {
+    return this.runCommand(this.getRPCPayload('diff', args))
+  }
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }

@@ -51,10 +51,10 @@ ${chalk.italic('Script input, only 1 must be provided:')}
 
 ${chalk.bold('Examples')}
  
-  Execute the content of a SQL script file on the datasource URL taken from the schema
+  Execute the content of a SQL script file to the datasource URL taken from the schema
   ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 
-  Execute the SQL script from stdin on the datasource URL specified via the \`DATABASE_URL\` environment variable
+  Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
