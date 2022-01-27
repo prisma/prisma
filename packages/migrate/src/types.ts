@@ -90,6 +90,24 @@ export namespace EngineArgs {
     migrationsDirectoryPath: string
   }
 
+  type DbExecuteDatasourceTypeSchema = {
+    // Path to the Prisma schema file to take the datasource URL from.
+    tag: 'schema'
+    schema: string
+  }
+  type DbExecuteDatasourceTypeUrl = {
+    // The URL of the database to run the command on.
+    tag: 'url'
+    url: string
+  }
+  export type DbExecuteDatasourceType = DbExecuteDatasourceTypeSchema | DbExecuteDatasourceTypeUrl
+
+  export interface DbExecuteInput {
+    // The location of the live database to connect to.
+    datasourceType: DbExecuteDatasourceType
+    // The input script.
+    script: string
+  }
   export interface SchemaPush {
     schema: string
     force: boolean
@@ -136,12 +154,12 @@ export namespace EngineResults {
   export interface ApplyMigrationsOutput {
     appliedMigrationNames: string[]
   }
-
   export interface SchemaPush {
     executedSteps: number
     warnings: string[]
     unexecutable: string[]
   }
+  export interface DbExecuteOutput {}
 }
 
 export interface FileMap {
