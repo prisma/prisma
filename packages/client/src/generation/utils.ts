@@ -1,6 +1,6 @@
 import indent from 'indent-string'
 import path from 'path'
-import type { DMMFClass } from '../runtime/dmmf'
+import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 
 export enum Projection {
@@ -140,7 +140,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
   }
 }
 
-export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DMMF.ModelAction): string {
+export function getDefaultArgName(dmmf: DMMFHelper, modelName: string, action: DMMF.ModelAction): string {
   const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
 
   const fieldName = mapping[action]

@@ -167,10 +167,9 @@ The migration does_not_exist could not be found. Please make sure that the migra
 })
 
 describe('postgresql', () => {
-  // Skipping because timeout is now too long to wait for
-  it.skip('should fail if no postgres db - invalid url', async () => {
+  it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
-    jest.setTimeout(6000)
+    jest.setTimeout(10000)
 
     const result = MigrateResolve.new().parse(['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'])
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -182,6 +181,29 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+})
+
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  it('should fail if no db - invalid url', async () => {
+    ctx.fixture('schema-only-cockroachdb')
+    jest.setTimeout(10000)
+
+    const result = MigrateResolve.new().parse(['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            P1001: Can't reach database server at \`something.cockroachlabs.cloud\`:\`26257\`
+
+            Please make sure your database server is running at \`something.cockroachlabs.cloud\`:\`26257\`.
+          `)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/invalid-url.prisma
+      Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" at "something.cockroachlabs.cloud:26257"
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()

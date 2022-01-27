@@ -1,5 +1,5 @@
-import { DMMFClass } from '../runtime/dmmf'
 import { blog } from '../fixtures/blog'
+import { DMMFHelper } from '../runtime/dmmf'
 import { getDMMF } from '../generation/getDMMF'
 import { makeDocument } from '../runtime/query'
 import stripAnsi from 'strip-ansi'
@@ -7,7 +7,7 @@ import stripAnsi from 'strip-ansi'
 let dmmf
 beforeAll(async () => {
   const dmmfDocument = await getDMMF({ datamodel: blog })
-  dmmf = new DMMFClass(dmmfDocument)
+  dmmf = new DMMFHelper(dmmfDocument)
 })
 
 describe('include validation', () => {

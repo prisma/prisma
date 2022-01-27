@@ -64,6 +64,7 @@
   ],
   "devDependencies": {
     "@microsoft/api-extractor": "7.19.3",
+    "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "3.9.0-46.feat-mongo-query-raw-0e82f4d739182f5d6734e6a74b41625ce32cf1c0",
@@ -89,7 +90,7 @@
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.3.4",
+    "eslint-plugin-jest": "26.0.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
