@@ -52,10 +52,12 @@ export class RequestHandler {
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
-
-        return this.client._engine.requestBatch(queries, {
+        const headers = {
           transactionId: requests[0].transactionId,
-        })
+          traceparent: requests[0].headers?.traceparent,
+        }
+
+        return this.client._engine.requestBatch(queries, headers)
       },
       singleLoader: (request) => {
         const query = String(request.document)

@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
-import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
   getAggregateArgsName,
@@ -12,7 +12,7 @@ import {
   getGroupByPayloadName,
   getModelArgName,
   getSelectName,
-  getSelectReturnType,
+  getReturnType,
   Projection,
 } from '../utils'
 import { ArgsType } from './Args'
@@ -27,7 +27,7 @@ import { PayloadType } from './Payload'
 export class Count implements Generatable {
   constructor(
     protected readonly type: DMMF.OutputType,
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
     protected readonly collector?: ExportCollector,
   ) {}
@@ -75,7 +75,7 @@ ${this.argsTypes.map(TS).join('\n')}
 class CountDelegate implements Generatable {
   constructor(
     protected readonly outputType: OutputType,
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
   ) {}
   public toTS(): string {
@@ -106,7 +106,7 @@ ${indent(
         `${getMethodJSDoc(actionName, mapping, model)}
 ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
-): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
+): ${getReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n\n'),
   TAB_SIZE,
@@ -219,7 +219,7 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
+${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

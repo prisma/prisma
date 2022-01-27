@@ -440,19 +440,19 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
 
   beforeAll(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupMSSQL(setupParams).catch((e) => {
+    await setupMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   afterEach(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
@@ -480,7 +480,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 // TODO: macOS: disabled on CI because it fails with timeout. Somehow jest.setTimeout
 // doesn't seem to work in this test case particularly.
 describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
-  const MONGO_URI = process.env.TEST_MONGO_URI || 'mongodb://root:prisma@localhost:27017/tests?authSource=admin'
+  const MONGO_URI =
+    process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')

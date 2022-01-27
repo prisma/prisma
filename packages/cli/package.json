@@ -67,13 +67,13 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f",
+    "@prisma/fetch-engine": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f",
+    "@prisma/get-platform": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.452.0",
-    "@prisma/studio-server": "0.452.0",
+    "@prisma/studio": "0.456.0",
+    "@prisma/studio-server": "0.456.0",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "27.4.0",
@@ -84,12 +84,12 @@
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.20",
     "debug": "4.3.3",
-    "dotenv": "10.0.0",
+    "dotenv": "14.2.0",
     "esbuild": "0.13.14",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.3.4",
+    "eslint-plugin-jest": "26.0.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
@@ -98,12 +98,12 @@
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.4.6",
+    "jest": "27.4.7",
     "line-replace": "2.0.1",
     "lint-staged": "12.1.5",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
-    "node-fetch": "2.6.6",
+    "node-fetch": "2.6.7",
     "open": "7.4.2",
     "pkg-up": "3.1.0",
     "prettier": "2.5.1",
@@ -112,13 +112,12 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
-    "ts-jest": "27.1.2",
+    "ts-jest": "27.1.3",
     "typescript": "4.5.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "format": "prettier --write .",
@@ -130,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f"
+    "@prisma/engines": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa"
   },
   "lint-staged": {
     "*.ts": [

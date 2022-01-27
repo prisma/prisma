@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
-import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
@@ -100,9 +100,32 @@ function executeRawDefinition(this: PrismaClientClass) {
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;`
 }
 
+function runCommandRawDefinition(this: PrismaClientClass) {
+  // we do not generate `$runCommandRaw` definitions if not supported
+  if (!this.dmmf.mappings.otherOperations.write.includes('runCommandRaw')) {
+    return '' // https://github.com/prisma/prisma/issues/8189
+  }
+
+  return `
+  /**
+   * Executes a raw MongoDB command and returns the result of it.
+   * @example
+   * \`\`\`
+   * const user = await prisma.$runCommandRaw({
+   *   aggregate: 'User',
+   *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
+   *   explain: false,
+   * })
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $runCommandRaw(command: Prisma.InputJsonObject): PrismaPromise<Prisma.JsonObject>;`
+}
+
 export class PrismaClientClass implements Generatable {
   constructor(
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly outputDir: string,
     protected readonly browser?: boolean,
@@ -183,12 +206,16 @@ export class PrismaClient<
    * Add a middleware
    */
   $use(cb: Prisma.Middleware): void
+
 ${[
   executeRawDefinition.bind(this)(),
   queryRawDefinition.bind(this)(),
   batchingTransactionDefinition.bind(this)(),
   interactiveTransactionDefinition.bind(this)(),
-].join('\n')}
+  runCommandRawDefinition.bind(this)(),
+]
+  .join('\n')
+  .trim()}
 
     ${indent(
       dmmf.mappings.modelOperations

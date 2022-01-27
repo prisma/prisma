@@ -42,7 +42,6 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test": "jest --verbose",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "format": "prettier --write .",
@@ -65,12 +64,13 @@
   ],
   "devDependencies": {
     "@microsoft/api-extractor": "7.19.3",
+    "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f",
-    "@prisma/fetch-engine": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f",
+    "@prisma/engines": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
+    "@prisma/fetch-engine": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f",
+    "@prisma/get-platform": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -78,8 +78,8 @@
     "@types/jest": "27.4.0",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.4",
-    "@types/node": "12.20.39",
-    "@types/pg": "8.6.3",
+    "@types/node": "12.20.42",
+    "@types/pg": "8.6.4",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
     "arg": "5.0.1",
@@ -90,7 +90,7 @@
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.3.4",
+    "eslint-plugin-jest": "26.0.0",
     "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
@@ -99,7 +99,7 @@
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
-    "jest": "27.4.6",
+    "jest": "27.4.7",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.5",
     "lint-staged": "12.1.5",
@@ -119,7 +119,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "27.1.2",
+    "ts-jest": "27.1.3",
     "ts-node": "10.4.0",
     "tsd": "0.19.1",
     "typescript": "4.5.4"
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.8.0-43.34df67547cf5598f5a6cd3eb45f14ee70c3fb86f"
+    "@prisma/engines-version": "3.9.0-48.0619ee5e87cf64117ba4d78d3e2da8b8db2500fa"
   },
   "lint-staged": {
     "*.ts": [

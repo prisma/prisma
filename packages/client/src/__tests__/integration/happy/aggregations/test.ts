@@ -116,27 +116,27 @@ describe('aggregations', () => {
     } catch (err) {
       expect(err.message).toMatchInlineSnapshot(`
 
-                Invalid \`prisma.user.aggregate()\` invocation:
+        Invalid \`prisma.user.aggregate()\` invocation:
 
-                {
-                  where: {
-                    age: {
-                      gt: -1
-                    }
-                  },
-                  skip: 0,
-                  take: 10000,
-                  _avg: {
-                ?   age?: true,
-                    email: true
-                    ~~~~~
-                  }
-                }
+        {
+          _avg: {
+        ?   age?: true,
+            email: true
+            ~~~~~
+          },
+          where: {
+            age: {
+              gt: -1
+            }
+          },
+          skip: 0,
+          take: 10000
+        }
 
 
-                Unknown field \`email\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`age\`?
+        Unknown field \`email\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`age\`?
 
-            `)
+      `)
     }
 
     await prisma.$disconnect()
