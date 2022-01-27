@@ -3,6 +3,7 @@ import { deepSet } from '../../utils/deep-set'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import type { DMMF } from '@prisma/generator-helper'
 import type { ModelAction } from './applyModel'
+import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
@@ -111,8 +112,7 @@ export function applyFluent(
         // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      has: (_, prop: string) => ownKeys.includes(prop),
-      ownKeys: () => ownKeys,
+      ...defaultProxyHandlers(ownKeys),
     })
   }
 }

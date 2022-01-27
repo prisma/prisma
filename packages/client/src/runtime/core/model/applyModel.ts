@@ -5,6 +5,7 @@ import type { PrismaPromise } from '../request/PrismaPromise'
 import { getCallSite } from '../utils/getCallSite'
 import { applyAggregates } from './applyAggregates'
 import { applyFluent } from './applyFluent'
+import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 const EMPTY_OBJECT = {}
@@ -59,8 +60,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
       return action({}) // and by default, don't override any params
     },
-    has: (_, prop: string) => ownKeys.includes(prop),
-    ownKeys: () => ownKeys,
+    ...defaultProxyHandlers(ownKeys),
   })
 }
 
