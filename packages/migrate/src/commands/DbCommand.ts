@@ -31,7 +31,7 @@ ${chalk.bold('Flag')}
 
 ${chalk.bold('Examples')}
 
-  Run \`prisma db pul\`
+  Run \`prisma db pull\`
   ${chalk.dim('$')} prisma db pull
 
   Run \`prisma db push\`

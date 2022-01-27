@@ -44,7 +44,7 @@ ${chalk.bold('Options')}
 
                                        -h, --help  Display this help message
 
-${chalk.italic('From and To inputs (1 from and 1 to must be provided):')}
+${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
                             --from-url / --to-url  A datasource URL
                         --from-empty / --to-empty  Flag to assume from or to is an empty datamodel
   --from-schema-datamodel / --to-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
@@ -162,10 +162,10 @@ ${chalk.bold('Examples')}
     if (numberOfFromParamaterProvided !== 1 || numberOfToParamaterProvided !== 1) {
       const errorMessages: string[] = []
       if (numberOfFromParamaterProvided !== 1) {
-        errorMessages.push(`${numberOfFromParamaterProvided} \`--from-...\` paramater(s) provided. 1 must be provided.`)
+        errorMessages.push(`${numberOfFromParamaterProvided} \`--from-...\` parameter(s) provided. 1 must be provided.`)
       }
       if (numberOfToParamaterProvided !== 1) {
-        errorMessages.push(`${numberOfToParamaterProvided} \`--to-...\` paramater(s) provided. 1 must be provided.`)
+        errorMessages.push(`${numberOfToParamaterProvided} \`--to-...\` parameter(s) provided. 1 must be provided.`)
       }
       throw new Error(`${errorMessages.join('\n')}
 See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
