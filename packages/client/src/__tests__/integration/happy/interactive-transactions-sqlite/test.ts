@@ -49,10 +49,6 @@ describe('interactive transactions', () => {
 
   /**
    * Transactions should fail if they time out on `timeout`
-   *
-   * TODO: macOS: this test is flaky on CI on macOS and often fails with:
-   *     Received promise resolved instead of rejected
-   *     Resolved to value: [{"email": "user_1@website.com", "id": "0d258eae-1c22-4af1-8c95-68a17e995c2e", "name": null}]
    */
   test('timeout override', async () => {
     const result = prisma.$transaction(
