@@ -101,7 +101,14 @@ describe('db execute', () => {
         '--file=./script.js',
       ])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              dbExecute is not supported on MongoDB
+              P1012
+
+              error: Environment variable not found: TEST_MONGO_URI_MIGRATE.
+                -->  schema.prisma:3
+                 | 
+               2 |   provider = "mongodb"
+               3 |   url      = env("TEST_MONGO_URI_MIGRATE") 
+                 | 
 
 
             `)
@@ -141,9 +148,9 @@ DROP TABLE 'test-dbexecute';`
         )
         expect(stderr).toBeFalsy()
         expect(stdout).toMatchInlineSnapshot(`
-        Script executed successfully.
+                  Script executed successfully.
 
-      `)
+              `)
       },
       15_000,
     )
@@ -197,7 +204,7 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    it('should fail with P1013 error with invalid url with --file --url', async () => {
+    it('should fail with P1012 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlite')
       expect.assertions(2)
 
@@ -205,11 +212,17 @@ COMMIT;`,
       try {
         await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
-        expect(e.code).toEqual('P1013')
+        expect(e.code).toEqual('P1012')
         expect(e.message).toMatchInlineSnapshot(`
-          P1013
+          P1012
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          error: Datasource provider not known: "invalidurl".
+            -->  schema.prisma:3
+             | 
+           2 |             datasource db {
+           3 |                 provider = "invalidurl"
+             | 
+
 
         `)
       }
@@ -366,13 +379,41 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb',
+          '--file=./script.sql',
+        ])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    it('should fail with P1012 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-postgresql')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1012')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1012
+
+          error: Datasource provider not known: "invalidurl".
+            -->  schema.prisma:3
+             | 
+           2 |             datasource db {
+           3 |                 provider = "invalidurl"
+             | 
+
 
         `)
       }
@@ -529,13 +570,41 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=mysql://johndoe::::////::randompassword@doesnotexist:3306/mydb',
+          '--file=./script.sql',
+        ])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    it('should fail with P1012 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-mysql')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1012')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1012
+
+          error: Datasource provider not known: "invalidurl".
+            -->  schema.prisma:3
+             | 
+           2 |             datasource db {
+           3 |                 provider = "invalidurl"
+             | 
+
 
         `)
       }
@@ -714,13 +783,41 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=sqlserver://doesnotexist:1433;;;;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
+          '--file=./script.sql',
+        ])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. Error parsing connection string: Conversion error: Invalid property key in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    it('should fail with P1012 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-sqlserver')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1012')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1012
+
+          error: Datasource provider not known: "invalidurl".
+            -->  schema.prisma:3
+             | 
+           2 |             datasource db {
+           3 |                 provider = "invalidurl"
+             | 
+
 
         `)
       }
