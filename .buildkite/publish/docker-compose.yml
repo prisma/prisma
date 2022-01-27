@@ -152,8 +152,10 @@ services:
   mongo:
     build: ../../docker/mongo-replica
     environment:
-      HOST: 'mongo'
-      PORT: 27018
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_REPLICA_HOST: mongo
+      MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
 
