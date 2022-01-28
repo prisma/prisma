@@ -138,18 +138,13 @@ describe('interactive transactions', () => {
         },
       })
 
-      await prisma.$transaction(
-        async (prisma) => {
-          await prisma.user.create({
-            data: {
-              email: 'user_2@website.com',
-            },
-          })
-        },
-        {
-          timeout: 1000,
-        },
-      )
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        })
+      })
 
       return tx.user.findMany()
     })
@@ -197,15 +192,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
+                        Invalid \`prisma.user.create()\` invocation in
+                        /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              192   },
-              193 })
-              194 
-            → 195 await prisma.user.create(
-              Unique constraint failed on the fields: (\`email\`)
-          `)
+                          183   },
+                          184 })
+                          185 
+                        → 186 await prisma.user.create(
+                          Unique constraint failed on the fields: (\`email\`)
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -231,15 +226,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
+                        Invalid \`transactionBoundPrisma.user.create()\` invocation in
+                        /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              226 })
-              227 
-              228 const result = prisma.$transaction(async () => {
-            → 229   await transactionBoundPrisma.user.create(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
-          `)
+                          217 })
+                          218 
+                          219 const result = prisma.$transaction(async () => {
+                        → 220   await transactionBoundPrisma.user.create(
+                          Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -287,15 +282,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
+                        Invalid \`prisma.user.create()\` invocation in
+                        /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              277  */
-              278 test('batching rollback', async () => {
-              279   const result = prisma.$transaction([
-            → 280     prisma.user.create(
-              Unique constraint failed on the fields: (\`email\`)
-          `)
+                          268  */
+                          269 test('batching rollback', async () => {
+                          270   const result = prisma.$transaction([
+                        → 271     prisma.user.create(
+                          Unique constraint failed on the fields: (\`email\`)
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -308,6 +303,7 @@ describe('interactive transactions', () => {
   test('batching raw rollback', async () => {
     await prisma.user.create({
       data: {
+        id: '1',
         email: 'user_1@website.com',
       },
     })
@@ -321,11 +317,11 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                                                Invalid \`prisma.executeRaw()\` invocation:
+                                                                                                                        Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                                                                                  Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
-                                                                                `)
+                                                                                                                          Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+                                                                                                    `)
 
     const users = await prisma.user.findMany()
 
@@ -388,10 +384,10 @@ describe('interactive transactions', () => {
             Invalid \`prisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions-sqlite/test.ts:0:0
 
-              375 })
-              376 
-              377 const result = prisma.$transaction([
-            → 378   prisma.user.create(
+              367 })
+              368 
+              369 const result = prisma.$transaction([
+            → 370   prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
