@@ -241,13 +241,7 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
 
     debug(result)
 
-    if (result.exitCode !== 0) {
-      console.error(`An error occured: exit code = ${result.exitCode} .`)
-      process.exit(result.exitCode)
-      // For snapshot test, because exit() is mocked
-      return ``
-    }
-
+    // Return nothing
     return ``
   }
 

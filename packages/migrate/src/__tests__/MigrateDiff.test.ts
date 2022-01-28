@@ -1,5 +1,3 @@
-import path from 'path'
-import fs from 'fs'
 import { MigrateDiff } from '../commands/MigrateDiff'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
@@ -8,9 +6,6 @@ import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPost
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
-// TODO tests
-// exitCode != 0
 
 describe('migrate diff', () => {
   describe('generic', () => {
@@ -130,11 +125,25 @@ describe('migrate diff', () => {
     })
 
     it('should diff --from-empty --to-url=file:dev.db', async () => {
-      ctx.fixture('schema-only-sqlite')
+      ctx.fixture('introspection/sqlite')
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                [+] Added tables
+                  - Post
+                  - Profile
+                  - User
+                  - _Migration
+
+                [*] Changed the \`Profile\` table
+                  [+] Added unique index on columns (userId)
+
+                [*] Changed the \`User\` table
+                  [+] Added unique index on columns (email)
+
+            `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -155,10 +164,10 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                        [+] Added tables
-                                          - Blog
+                                                        [+] Added tables
+                                                          - Blog
 
-                              `)
+                                          `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -191,10 +200,10 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                [-] Removed tables
-                                                  - Blog
+                                                                [-] Removed tables
+                                                                  - Blog
 
-                                    `)
+                                                `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')

@@ -210,10 +210,7 @@ export namespace EngineResults {
     unexecutable: string[]
   }
   export interface DbExecuteOutput {}
-  export interface MigrateDiffOutput {
-    // The exit code that the CLI should return.
-    exitCode: number
-  }
+  export interface MigrateDiffOutput {}
 }
 
 export interface FileMap {
