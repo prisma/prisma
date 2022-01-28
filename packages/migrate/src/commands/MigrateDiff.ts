@@ -167,7 +167,7 @@ ${chalk.bold('Examples')}
       if (numberOfToParameterProvided !== 1) {
         errorMessages.push(`${numberOfToParameterProvided} \`--to-...\` parameter(s) provided. 1 must be provided.`)
       }
-      throw new Error(`${errorMessages.join('\n')}
+      throw new Error(`\n${errorMessages.join('\n')}
 See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
     }
 

@@ -24,6 +24,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--preview-feature'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
               0 \`--from-...\` parameter(s) provided. 1 must be provided.
               0 \`--to-...\` parameter(s) provided. 1 must be provided.
               See prisma migrate diff -h
@@ -35,6 +36,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
               0 \`--to-...\` parameter(s) provided. 1 must be provided.
               See prisma migrate diff -h
             `)
@@ -45,6 +47,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--to-empty'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
               0 \`--from-...\` parameter(s) provided. 1 must be provided.
               See prisma migrate diff -h
             `)
@@ -55,6 +58,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--from-url=file:dev.db'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
               2 \`--from-...\` parameter(s) provided. 1 must be provided.
               0 \`--to-...\` parameter(s) provided. 1 must be provided.
               See prisma migrate diff -h
@@ -66,6 +70,7 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--to-empty', '--to-url=file:dev.db'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
               0 \`--from-...\` parameter(s) provided. 1 must be provided.
               2 \`--to-...\` parameter(s) provided. 1 must be provided.
               See prisma migrate diff -h
