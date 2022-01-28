@@ -44,5 +44,5 @@ export function applyModels<C extends Client>(client: C) {
 
 // the only accessible fields are the ones that are models
 function getOwnKeys(client: Client) {
-  return Object.keys(client._dmmf.modelMap).map(dmmfToJSModelName)
+  return [...Object.keys(client._dmmf.modelMap).map(dmmfToJSModelName), ...Object.keys(client)]
 }
