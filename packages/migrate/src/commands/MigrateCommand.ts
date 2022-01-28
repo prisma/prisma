@@ -53,10 +53,10 @@ ${chalk.bold('Examples')}
   ${chalk.dim('$')} prisma migrate status --schema=./schema.prisma
 
   Compare the database schema from two databases and render the diff as a SQL script (Preview)
-  ${chalk.dim('$')} prisma migrate diff \
-    --preview-feature \
-    --from-url "$DATABASE_URL" \
-    --to-url "postgresql://login:password@localhost:5432/db"
+  ${chalk.dim('$')} prisma migrate diff \\
+    --preview-feature \\
+    --from-url "$DATABASE_URL" \\
+    --to-url "postgresql://login:password@localhost:5432/db" \\
     --script
 `)
 
