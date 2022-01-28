@@ -67,10 +67,10 @@
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac",
-    "@prisma/fetch-engine": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac",
+    "@prisma/engines": "3.9.0-53.a2f8e1465a0a4a0fd4b2e3daec9cca32c0d421c8",
+    "@prisma/fetch-engine": "3.9.0-53.a2f8e1465a0a4a0fd4b2e3daec9cca32c0d421c8",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac",
+    "@prisma/get-platform": "3.9.0-53.a2f8e1465a0a4a0fd4b2e3daec9cca32c0d421c8",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac"
+    "@prisma/engines-version": "3.9.0-53.a2f8e1465a0a4a0fd4b2e3daec9cca32c0d421c8"
   },
   "lint-staged": {
     "*.ts": [
