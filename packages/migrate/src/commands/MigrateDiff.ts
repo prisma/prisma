@@ -99,10 +99,10 @@ ${chalk.bold('Examples')}
 
   Execute the --script output with \`prisma db execute\` using bash pipe \`|\`
   ${chalk.dim('$')} prisma migrate diff \\
-  --preview-feature \\
-  --from-[...] \\
-  --to-[...]  \\
-  --script | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
+    --preview-feature \\
+    --from-[...] \\
+    --to-[...]  \\
+    --script | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
