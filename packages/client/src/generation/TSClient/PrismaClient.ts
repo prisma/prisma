@@ -254,7 +254,7 @@ export type HasReject<
   ? IsReject<LocalRejectSettings>
   : GlobalRejectSettings extends RejectPerOperation
   ? Action extends keyof GlobalRejectSettings
-    ? GlobalRejectSettings[Action] extends boolean
+    ? GlobalRejectSettings[Action] extends RejectOnNotFound
       ? IsReject<GlobalRejectSettings[Action]>
       : GlobalRejectSettings[Action] extends RejectPerModel
       ? Model extends keyof GlobalRejectSettings[Action]

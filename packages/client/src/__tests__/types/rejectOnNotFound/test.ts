@@ -64,8 +64,8 @@ async function main() {
       findFirst: true,
     },
   })
-  const r1p4: User = await p3.user.findUnique({ where: { id: '' } })
-  const r2p4: User = await p3.user.findFirst({
+  const r1p4: User = await p4.user.findUnique({ where: { id: '' } })
+  const r2p4: User = await p4.user.findFirst({
     rejectOnNotFound: true,
   })
   const p5 = new PrismaClient({
