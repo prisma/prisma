@@ -272,6 +272,7 @@ jobs:
         if: ${{ matrix.database == 'sqlite' }}
         working-directory: packages/integration-tests
 
+      # TODO Replace with `run test` command as everywhere else?
       - run: pnpm run jest integration/${{ matrix.database }} -- --maxConcurrency=8
         working-directory: packages/integration-tests
         env:
