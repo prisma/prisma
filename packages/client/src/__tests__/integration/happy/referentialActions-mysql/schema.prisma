@@ -47,9 +47,68 @@ model OnDeleteCascadeMandatoryChild {
 }
 
 // OnDelete: Restrict
+
+model OnDeleteRestrictParent {
+  id                Int                              @id @default(autoincrement())
+  name              String                           @unique
+  mandatoryChildren OnDeleteRestrictMandatoryChild[]
+}
+
+model OnDeleteRestrictMandatoryChild {
+  id       Int                    @id @default(autoincrement())
+  name     String                 @unique
+  parent   OnDeleteRestrictParent @relation(fields: [parentId], references: [id], onDelete: Restrict)
+  parentId Int
+}
+
 // OnDelete: NoAction
+
+model OnDeleteNoActionParent {
+  id                Int                              @id @default(autoincrement())
+  name              String                           @unique
+  mandatoryChildren OnDeleteNoActionMandatoryChild[]
+}
+
+model OnDeleteNoActionMandatoryChild {
+  id       Int                    @id @default(autoincrement())
+  name     String                 @unique
+  parent   OnDeleteNoActionParent @relation(fields: [parentId], references: [id], onDelete: NoAction)
+  parentId Int
+}
+
 // OnDelete: SetNull
+
+model OnDeleteSetNullParent {
+  id                Int                             @id @default(autoincrement())
+  name              String                          @unique
+  mandatoryChildren OnDeleteSetNullMandatoryChild[]
+}
+
+model OnDeleteSetNullMandatoryChild {
+  id       Int                    @id @default(autoincrement())
+  name     String                 @unique
+  parent   OnDeleteSetNullParent? @relation(fields: [parentId], references: [id], onDelete: SetNull)
+  parentId Int?
+  //          ^                 ^
+  // Has to be optional so schema can be migrated, as `onDelete` could putt `NULL` there.
+}
+
 // OnDelete: SetDefault
+
+model OnDeleteSetDefaultParent {
+  id                Int                                @id @default(autoincrement())
+  name              String                             @unique
+  mandatoryChildren OnDeleteSetDefaultMandatoryChild[]
+}
+
+model OnDeleteSetDefaultMandatoryChild {
+  id       Int                      @id @default(autoincrement())
+  name     String                   @unique
+  parent   OnDeleteSetDefaultParent @relation(fields: [parentId], references: [id], onDelete: SetDefault)
+  parentId Int                      @default(1)
+  //                                    ^
+  //                        Needs default so action can trigger
+}
 
 // OnUpdate: Cascade
 // OnUpdate: Restrict

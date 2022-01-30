@@ -8,39 +8,46 @@ const baseUri = process.env.TEST_MYSQL_URI
 
 const fooCreate = {
   data: {
-    name: 'Foo',
+    name: 'FooParent',
     mandatoryChildren: {
-      create: [{ name: 'Foo 1' }, { name: 'Foo 2' }],
+      create: [{ name: 'FooChild 1' }, { name: 'FooChild 2' }],
     },
   },
 }
 const barCreate = {
   data: {
-    name: 'Bar',
+    name: 'BarParent',
     mandatoryChildren: {
-      create: [{ name: 'Bar 1' }, { name: 'Bar 2' }],
+      create: [{ name: 'BarChild 1' }, { name: 'BarChild 2' }],
     },
   },
 }
-const barDelete = {
+const barParentDelete = {
   where: {
-    name: 'Bar',
+    name: 'BarParent',
   },
 }
-const fooUpdate = {
+const fooParentUpdate = {
   data: {
     id: 999,
   },
   where: {
-    name: 'Foo',
+    name: 'FooParent',
   },
 }
-const fooFindUnique = {
+const fooParentFindUnique = {
   where: {
-    name: 'Foo',
+    name: 'FooParent',
   },
   include: {
     mandatoryChildren: true,
+  },
+}
+const barChildrenFind = {
+  where: {
+    name: {
+      startsWith: 'BarChild',
+    },
   },
 }
 
@@ -56,6 +63,16 @@ describe('referentialActions(mysql)', () => {
     const { PrismaClient } = require('./node_modules/@prisma/client')
     prisma = new PrismaClient({
       errorFormat: 'minimal',
+      log: [
+        {
+          emit: 'event',
+          level: 'query',
+        },
+      ],
+    })
+    prisma.$on('query', (e) => {
+      console.log('Query: ' + e.query)
+      console.log('Params: ' + e.params)
     })
   })
 
@@ -64,15 +81,26 @@ describe('referentialActions(mysql)', () => {
     process.env.TEST_MYSQL_URI = baseUri
   })
 
-  test('defaults', async () => {
-    await prisma.defaultsParent.create(fooCreate)
-    await prisma.defaultsParent.create(barCreate)
+  async function seedData(parentModel) {
+    await prisma[parentModel].create(fooCreate)
+    await prisma[parentModel].create(barCreate)
+  }
 
-    // Confirm expected data got created
-    expect(await prisma.defaultsParent.findMany()).toHaveLength(2)
-    expect(await prisma.defaultsMandatoryChild.findMany()).toHaveLength(4)
+  async function confirmDeleteCascaded(parentModel, mandatoryChildModel) {
+    expect(await prisma[parentModel].findMany()).toHaveLength(1)
+    expect(await prisma[mandatoryChildModel].findMany()).toHaveLength(2)
+  }
+
+  async function confirmDeleteNoCascade(parentModel, mandatoryChildModel) {
+    expect(await prisma[parentModel].findMany()).toHaveLength(1)
+    expect(await prisma[mandatoryChildModel].findMany()).toHaveLength(4)
+  }
+
+  async function confirmSeed(parentModel, mandatoryChildModel) {
+    expect(await prisma[parentModel].findMany()).toHaveLength(2)
+    expect(await prisma[mandatoryChildModel].findMany()).toHaveLength(4)
     expect(
-      await prisma.defaultsParent.findMany({
+      await prisma[parentModel].findMany({
         include: {
           mandatoryChildren: true,
         },
@@ -84,52 +112,39 @@ describe('referentialActions(mysql)', () => {
           mandatoryChildren: Array [
             Object {
               id: 3,
-              name: Bar 1,
+              name: BarChild 1,
               parentId: 2,
             },
             Object {
               id: 4,
-              name: Bar 2,
+              name: BarChild 2,
               parentId: 2,
             },
           ],
-          name: Bar,
+          name: BarParent,
         },
         Object {
           id: 1,
           mandatoryChildren: Array [
             Object {
               id: 1,
-              name: Foo 1,
+              name: FooChild 1,
               parentId: 1,
             },
             Object {
               id: 2,
-              name: Foo 2,
+              name: FooChild 2,
               parentId: 1,
             },
           ],
-          name: Foo,
+          name: FooParent,
         },
       ]
     `)
+  }
 
-    // Delete
-    try {
-      await prisma.defaultsParent.delete(barDelete)
-    } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(`Foreign key constraint failed on the field: \`parentId\``)
-    }
-
-    // Confirm delete got prevented
-    expect(await prisma.defaultsParent.findMany()).toHaveLength(2)
-    expect(await prisma.defaultsMandatoryChild.findMany()).toHaveLength(4)
-
-    // Update
-    await prisma.defaultsParent.update(fooUpdate)
-
-    // Confirm update cascaded
-    const foo = await prisma.defaultsParent.findUnique(fooFindUnique)
+  async function confirmUpdateCascaded(parentModel) {
+    const foo = await prisma[parentModel].findUnique(fooParentFindUnique)
     expect(foo).toHaveProperty('id', 999)
     expect(foo.mandatoryChildren).toHaveLength(2)
     expect(foo).toMatchInlineSnapshot(`
@@ -138,36 +153,168 @@ describe('referentialActions(mysql)', () => {
         mandatoryChildren: Array [
           Object {
             id: 1,
-            name: Foo 1,
+            name: FooChild 1,
             parentId: 999,
           },
           Object {
             id: 2,
-            name: Foo 2,
+            name: FooChild 2,
             parentId: 999,
           },
         ],
-        name: Foo,
+        name: FooParent,
       }
     `)
+  }
 
-    // Confirm nothing got deleted
-    expect(await prisma.defaultsParent.findMany()).toHaveLength(2)
-    expect(await prisma.defaultsMandatoryChild.findMany()).toHaveLength(4)
+  async function confirmDeleteSetNull(mandatoryChildModel) {
+    const bar = await prisma[mandatoryChildModel].findMany(barChildrenFind)
+    expect(bar).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          id: 3,
+          name: BarChild 1,
+          parentId: null,
+        },
+        Object {
+          id: 4,
+          name: BarChild 2,
+          parentId: null,
+        },
+      ]
+    `)
+  }
+
+  async function confirmDeleteSetDefault(mandatoryChildModel) {
+    const bar = await prisma[mandatoryChildModel].findMany(barChildrenFind)
+    expect(bar).toHaveProperty('id', 999)
+    expect(bar.mandatoryChildren).toHaveLength(2)
+    expect(bar).toMatchInlineSnapshot(`
+      Object {
+        id: 999,
+        mandatoryChildren: Array [
+          Object {
+            id: 1,
+            name: FooChild 1,
+            parentId: 999,
+          },
+          Object {
+            id: 2,
+            name: FooChild 2,
+            parentId: 999,
+          },
+        ],
+        name: FooParent,
+      }
+    `)
+  }
+
+  async function seed(parentModel, mandatoryChildModel) {
+    await seedData(parentModel)
+    await confirmSeed(parentModel, mandatoryChildModel)
+  }
+
+  // TODO Expand to also include optional relation
+
+  /*
+  Clause	  Optional relations	Mandatory relations
+  onDelete	SetNull	            Restrict
+  onUpdate	Cascade	            Cascade
+                                  ^^
+  */
+  test('defaults', async () => {
+    const parentModel = 'defaultsParent'
+    const mandatoryChildModel = 'defaultsMandatoryChild'
+    await seed(parentModel, mandatoryChildModel)
+
+    try {
+      await prisma[parentModel].delete(barParentDelete)
+    } catch (e) {
+      expect(e.message).toMatchInlineSnapshot(`Foreign key constraint failed on the field: \`parentId\``)
+    }
+    await confirmSeed(parentModel, mandatoryChildModel)
+
+    await prisma[parentModel].update(fooParentUpdate)
+    await confirmUpdateCascaded(parentModel)
   })
 
   test('onDelete: Cascade', async () => {
-    await prisma.onDeleteCascadeParent.create(fooCreate)
-    await prisma.onDeleteCascadeParent.create(barCreate)
+    const parentModel = 'onDeleteCascadeParent'
+    const mandatoryChildModel = 'onDeleteCascadeMandatoryChild'
+    await seed(parentModel, mandatoryChildModel)
 
-    expect(await prisma.onDeleteCascadeParent.findMany()).toHaveLength(2)
-    expect(await prisma.onDeleteCascadeMandatoryChild.findMany()).toHaveLength(4)
+    await prisma[parentModel].delete(barParentDelete)
+    await confirmDeleteCascaded(parentModel, mandatoryChildModel)
 
-    await prisma.onDeleteCascadeParent.delete(barDelete)
+    await prisma[parentModel].update(fooParentUpdate)
+    await confirmUpdateCascaded(parentModel)
 
-    expect(await prisma.onDeleteCascadeParent.findMany()).toHaveLength(1)
-    expect(await prisma.onDeleteCascadeMandatoryChild.findMany()).toHaveLength(2)
-
-    // TODO Update
+    await confirmDeleteCascaded(parentModel, mandatoryChildModel)
   })
+
+  // Identical to Default here!
+  test('onDelete: Restrict', async () => {
+    const parentModel = 'onDeleteRestrictParent'
+    const mandatoryChildModel = 'onDeleteRestrictMandatoryChild'
+    await seed(parentModel, mandatoryChildModel)
+
+    try {
+      await prisma[parentModel].delete(barParentDelete)
+    } catch (e) {
+      expect(e.message).toMatchInlineSnapshot(`Foreign key constraint failed on the field: \`parentId\``)
+    }
+    await confirmSeed(parentModel, mandatoryChildModel)
+
+    await prisma[parentModel].update(fooParentUpdate)
+    await confirmUpdateCascaded(parentModel)
+  })
+
+  // Identical to Default here!
+  test('onDelete: NoAction', async () => {
+    const parentModel = 'onDeleteNoActionParent'
+    const mandatoryChildModel = 'onDeleteNoActionMandatoryChild'
+    await seed(parentModel, mandatoryChildModel)
+
+    try {
+      await prisma[parentModel].delete(barParentDelete)
+    } catch (e) {
+      expect(e.message).toMatchInlineSnapshot(`Foreign key constraint failed on the field: \`parentId\``)
+    }
+    await confirmSeed(parentModel, mandatoryChildModel)
+
+    await prisma[parentModel].update(fooParentUpdate)
+    await confirmUpdateCascaded(parentModel)
+  })
+
+  test('onDelete: SetNull', async () => {
+    const parentModel = 'onDeleteSetNullParent'
+    const mandatoryChildModel = 'onDeleteSetNullMandatoryChild'
+    await seed(parentModel, mandatoryChildModel)
+
+    await prisma[parentModel].delete(barParentDelete)
+    await confirmDeleteNoCascade(parentModel, mandatoryChildModel)
+    await confirmDeleteSetNull(mandatoryChildModel)
+
+    await prisma[parentModel].update(fooParentUpdate)
+    await confirmUpdateCascaded(parentModel)
+
+    await confirmDeleteNoCascade(parentModel, mandatoryChildModel)
+  })
+
+  /*
+  test('onDelete: SetDefault', async () => {
+    const parentModel = 'onDeleteSetDefaultParent'
+    const mandatoryChildModel = 'onDeleteSetDefaultMandatoryChild'
+    await seed(parentModel, mandatoryChildModel)
+
+    await prisma[parentModel].delete(barParentDelete)
+    await confirmDeleteNoCascade(parentModel, mandatoryChildModel)
+    await confirmDeleteSetDefault(mandatoryChildModel)
+
+    await prisma[parentModel].update(fooParentUpdate)
+    await confirmUpdateCascaded(parentModel)
+
+    await confirmDeleteNoCascade(parentModel, mandatoryChildModel)
+  })
+  */
 })
