@@ -110,8 +110,8 @@ ${indent(
         .filter((f) => f.outputType.location === 'outputObjectTypes')
         .map((f) => {
           if (f.outputType.location === 'outputObjectTypes') {
-            return `${f.name}?: ${getAggregateInputType((f.outputType.type as DMMF.OutputType).name)}${
-              f.name === '_count' ? ' | true' : ''
+            return `${f.name}?: ${
+              f.name === '_count' ? 'true' : getAggregateInputType((f.outputType.type as DMMF.OutputType).name)
             }`
           }
 
