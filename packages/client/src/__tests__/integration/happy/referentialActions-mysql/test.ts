@@ -91,7 +91,7 @@ describe('referentialActions(mysql)', () => {
     expect(await prisma[mandatoryChildModel].findMany()).toHaveLength(2)
   }
 
-  async function confirmDeleteNoCascade(parentModel, mandatoryChildModel) {
+  async function confirmDeleteNotCascaded(parentModel, mandatoryChildModel) {
     expect(await prisma[parentModel].findMany()).toHaveLength(1)
     expect(await prisma[mandatoryChildModel].findMany()).toHaveLength(4)
   }
@@ -222,9 +222,7 @@ describe('referentialActions(mysql)', () => {
   onUpdate	Cascade	            Cascade
                                   ^^
   */
-  test('defaults', async () => {
-    const parentModel = 'defaultsParent'
-    const mandatoryChildModel = 'defaultsMandatoryChild'
+  async function testDefaults(parentModel, mandatoryChildModel) {
     await seed(parentModel, mandatoryChildModel)
 
     try {
@@ -236,6 +234,12 @@ describe('referentialActions(mysql)', () => {
 
     await prisma[parentModel].update(fooParentUpdate)
     await confirmUpdateCascaded(parentModel)
+  }
+
+  test('defaults', async () => {
+    const parentModel = 'defaultsParent'
+    const mandatoryChildModel = 'defaultsMandatoryChild'
+    await testDefaults(parentModel, mandatoryChildModel)
   })
 
   test('onDelete: Cascade', async () => {
@@ -256,34 +260,14 @@ describe('referentialActions(mysql)', () => {
   test('onDelete: Restrict', async () => {
     const parentModel = 'onDeleteRestrictParent'
     const mandatoryChildModel = 'onDeleteRestrictMandatoryChild'
-    await seed(parentModel, mandatoryChildModel)
-
-    try {
-      await prisma[parentModel].delete(barParentDelete)
-    } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(`Foreign key constraint failed on the field: \`parentId\``)
-    }
-    await confirmSeed(parentModel, mandatoryChildModel)
-
-    await prisma[parentModel].update(fooParentUpdate)
-    await confirmUpdateCascaded(parentModel)
+    await testDefaults(parentModel, mandatoryChildModel)
   })
 
   // Identical to Default here!
   test('onDelete: NoAction', async () => {
     const parentModel = 'onDeleteNoActionParent'
     const mandatoryChildModel = 'onDeleteNoActionMandatoryChild'
-    await seed(parentModel, mandatoryChildModel)
-
-    try {
-      await prisma[parentModel].delete(barParentDelete)
-    } catch (e) {
-      expect(e.message).toMatchInlineSnapshot(`Foreign key constraint failed on the field: \`parentId\``)
-    }
-    await confirmSeed(parentModel, mandatoryChildModel)
-
-    await prisma[parentModel].update(fooParentUpdate)
-    await confirmUpdateCascaded(parentModel)
+    await testDefaults(parentModel, mandatoryChildModel)
   })
 
   test('onDelete: SetNull', async () => {
@@ -292,16 +276,17 @@ describe('referentialActions(mysql)', () => {
     await seed(parentModel, mandatoryChildModel)
 
     await prisma[parentModel].delete(barParentDelete)
-    await confirmDeleteNoCascade(parentModel, mandatoryChildModel)
+    await confirmDeleteNotCascaded(parentModel, mandatoryChildModel)
     await confirmDeleteSetNull(mandatoryChildModel)
 
     await prisma[parentModel].update(fooParentUpdate)
     await confirmUpdateCascaded(parentModel)
 
-    await confirmDeleteNoCascade(parentModel, mandatoryChildModel)
+    await confirmDeleteNotCascaded(parentModel, mandatoryChildModel)
   })
 
   /*
+  // Not supported: https://github.com/prisma/prisma/issues/11498
   test('onDelete: SetDefault', async () => {
     const parentModel = 'onDeleteSetDefaultParent'
     const mandatoryChildModel = 'onDeleteSetDefaultMandatoryChild'
