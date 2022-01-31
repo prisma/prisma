@@ -83,6 +83,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 
     const log = (...messages): void => {
       if (!args['--print']) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
         console.info(...messages)
       }
     }
@@ -116,6 +117,7 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     }
 
     const url: string | undefined = args['--url']
+    // getSchemaPathAndPrint is not flexible enough for this use case
     let schemaPath = await getSchemaPath(args['--schema'])
 
     // Do not print if --print is passed to only have the schema in stdout

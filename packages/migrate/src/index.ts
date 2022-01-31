@@ -15,5 +15,6 @@ export { DbDrop } from './commands/DbDrop'
 export { DbSeed } from './commands/DbSeed'
 export { default as byline } from './utils/byline'
 export { handlePanic } from './utils/handlePanic'
+export { getSchemaPathAndPrint } from './utils/getSchemaPathAndPrint'
 
 export * from './types'
