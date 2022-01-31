@@ -1,5 +1,6 @@
 import type { Client } from '../../getPrismaClient'
 import { applyModel } from './applyModel'
+import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
 
@@ -16,7 +17,10 @@ export function applyModels<C extends Client>(client: C) {
   const ownKeys = getOwnKeys(client)
 
   return new Proxy(client, {
-    get(target, prop: string) {
+    get(target, prop) {
+      // return base property if it already exists in client
+      if (prop in target || typeof prop === 'symbol') return target[prop]
+
       const dmmfModelName = jsToDMMFModelName(prop)
 
       // see if a model proxy has already been created before
@@ -33,11 +37,8 @@ export function applyModels<C extends Client>(client: C) {
       if (client._dmmf.modelMap[prop] !== undefined) {
         return (modelCache[dmmfModelName] = applyModel(client, prop))
       }
-
-      return target[prop] // returns the base client prop
     },
-    has: (_, prop: string) => ownKeys.includes(prop),
-    ownKeys: () => ownKeys,
+    ...defaultProxyHandlers(ownKeys),
   })
 }
 

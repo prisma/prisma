@@ -115,19 +115,12 @@ DROP TABLE IF EXISTS 'test-dbexecute';
 CREATE TABLE 'test-dbexecute' ("id" INTEGER PRIMARY KEY);
 DROP TABLE 'test-dbexecute';`
 
-    // TODO remove later
-    it('should fail for legacy reasons if no schema file with --file --url', async () => {
+    it('should pass if no schema file in directory with --file --url', async () => {
       ctx.fixture('empty')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url=./dev.db', '--file=./script.sql'])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Could not find a schema.prisma file that is required for this command.
-              You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-            `)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(
-        `A "./prisma/schema.prisma" file is required in the current working directory when using \`--url\`, for legacy reasons, this requirement will be removed later.`,
-      )
+      const result = DbExecute.new().parse(['--preview-feature', '--url=file:./dev.db', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
     // On Windows: snapshot output = "-- Drop & Create & Drop"
@@ -141,9 +134,9 @@ DROP TABLE 'test-dbexecute';`
         )
         expect(stderr).toBeFalsy()
         expect(stdout).toMatchInlineSnapshot(`
-        Script executed successfully.
+                  Script executed successfully.
 
-      `)
+              `)
       },
       15_000,
     )
@@ -209,7 +202,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector.
 
         `)
       }
@@ -264,8 +257,10 @@ COMMIT;`,
     const connectionString = (
       process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
     ).replace('tests-migrate', 'tests-migrate-db-execute')
-    // TODO remove when engine doesn't validate datasource anymore by default from schema
+
+    // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+
     const setupParams: SetupParams = {
       connectionString,
       dirname: '',
@@ -366,13 +361,34 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. Error parsing connection string: invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+    it('should fail with P1013 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-postgresql')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
         await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector.
 
         `)
       }
@@ -441,8 +457,10 @@ COMMIT;`,
     const connectionString = (
       process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
     ).replace('tests-migrate', 'tests-migrate-db-execute')
-    // TODO remove when engine doesn't validate datasource anymore by default from schema
+
+    // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+
     const setupParams: SetupParams = {
       connectionString,
       dirname: '',
@@ -529,13 +547,34 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=mysql://johndoe::::////::randompassword@doesnotexist:3306/mydb',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. Error parsing connection string: invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+    it('should fail with P1013 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-mysql')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
         await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector.
 
         `)
       }
@@ -603,7 +642,8 @@ COMMIT;`,
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
       'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
     ).replace('tests-migrate', 'tests-migrate-db-execute')
-    // TODO remove when engine doesn't validate datasource anymore by default from schema
+
+    // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
 
     const setupParams: SetupParams = {
@@ -714,13 +754,34 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
+        await DbExecute.new().parse([
+          '--preview-feature',
+          '--url=sqlserver://doesnotexist:1433;;;;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. Error parsing connection string: Conversion error: Invalid property key in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+    it('should fail with P1013 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-sqlserver')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
         await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
           P1013
 
-          The provided database string is invalid. Error parsing connection string: relative URL without a base in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector.
 
         `)
       }

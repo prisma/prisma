@@ -261,7 +261,7 @@ ${chalk.bold('Examples')}
     let migrationIds: string[]
     try {
       const createMigrationResult = await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
         prismaSchema: migrate.getDatamodel(),

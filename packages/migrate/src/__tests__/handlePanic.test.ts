@@ -139,7 +139,7 @@ describe('handlePanic', () => {
     try {
       const migrate = new Migrate(schemaPath)
       await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
         prismaSchema: migrate.getDatamodel(),
@@ -216,7 +216,7 @@ describe('handlePanic', () => {
     try {
       const migrate = new Migrate(schemaPath)
       await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
         prismaSchema: migrate.getDatamodel(),

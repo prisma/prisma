@@ -197,6 +197,8 @@ export namespace DMMF {
     aggregate?: string | null
     groupBy?: string | null
     count?: string | null
+    findRaw?: string | null
+    aggregateRaw?: string | null
   }
 
   export enum ModelAction {
@@ -213,5 +215,7 @@ export namespace DMMF {
     groupBy = 'groupBy',
     count = 'count', // TODO: count does not actually exist, why?
     aggregate = 'aggregate',
+    findRaw = 'findRaw',
+    aggregateRaw = 'aggregateRaw',
   }
 }
