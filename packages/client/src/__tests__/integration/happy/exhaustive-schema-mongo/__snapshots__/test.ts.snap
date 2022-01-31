@@ -254,24 +254,9 @@ exports.Prisma.SortOrder = makeEnum({
   desc: 'desc'
 });
 
-exports.Prisma.JsonNullValueInput = makeEnum({
-  JsonNull: 'JsonNull'
-});
-
-exports.Prisma.NullableJsonNullValueInput = makeEnum({
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull'
-});
-
 exports.Prisma.QueryMode = makeEnum({
   default: 'default',
   insensitive: 'insensitive'
-});
-
-exports.Prisma.JsonNullValueFilter = makeEnum({
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull',
-  AnyNull: 'AnyNull'
 });
 exports.ABeautifulEnum = makeEnum({
   A: 'A',
@@ -332,7 +317,7 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
  * 
  */
 export type Post = {
-  id: number
+  id: string
   createdAt: Date
   title: string
   content: string | null
@@ -345,7 +330,7 @@ export type Post = {
  * 
  */
 export type User = {
-  id: number
+  id: string
   email: string
   int: number
   optionalInt: number | null
@@ -366,7 +351,7 @@ export type User = {
  * 
  */
 export type M = {
-  id: number
+  id: string
   int: number
   optionalInt: number | null
   float: number
@@ -386,7 +371,7 @@ export type M = {
  * 
  */
 export type N = {
-  id: number
+  id: string
   int: number
   optionalInt: number | null
   float: number
@@ -406,7 +391,7 @@ export type N = {
  * 
  */
 export type OneOptional = {
-  id: number
+  id: string
   int: number
   optionalInt: number | null
   float: number
@@ -426,7 +411,7 @@ export type OneOptional = {
  * 
  */
 export type ManyRequired = {
-  id: number
+  id: string
   oneOptionalId: number | null
   int: number
   optionalInt: number | null
@@ -447,7 +432,7 @@ export type ManyRequired = {
  * 
  */
 export type OptionalSide1 = {
-  id: number
+  id: string
   optionalSide2Id: number | null
   int: number
   optionalInt: number | null
@@ -468,7 +453,7 @@ export type OptionalSide1 = {
  * 
  */
 export type OptionalSide2 = {
-  id: number
+  id: string
   int: number
   optionalInt: number | null
   float: number
@@ -652,52 +637,6 @@ export class PrismaClient<
   $use(cb: Prisma.Middleware): void
 
 /**
-   * Executes a prepared raw query and returns the number of affected rows.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
-
-  /**
-   * Executes a raw query and returns the number of affected rows.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$executeRawUnsafe('UPDATE User SET cool = $1 WHERE email = $2 ;', true, 'user@email.com')
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;
-
-  /**
-   * Performs a prepared raw query and returns the \`SELECT\` data.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
-
-  /**
-   * Performs a raw query and returns the \`SELECT\` data.
-   * Susceptible to SQL injections, see documentation.
-   * @example
-   * \`\`\`
-   * const result = await prisma.$queryRawUnsafe('SELECT * FROM User WHERE id = $1 OR email = $2;', 1, 'user@email.com')
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;
-
-  /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
    * @example
    * \`\`\`
@@ -711,6 +650,22 @@ export class PrismaClient<
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
+
+
+  /**
+   * Executes a raw MongoDB command and returns the result of it.
+   * @example
+   * \`\`\`
+   * const user = await prisma.$runCommandRaw({
+   *   aggregate: 'User',
+   *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
+   *   explain: false,
+   * })
+   * \`\`\`
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+   */
+  $runCommandRaw(command: Prisma.InputJsonObject): PrismaPromise<Prisma.JsonObject>;
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -1637,17 +1592,15 @@ export namespace Prisma {
   }
 
   export type PostAvgAggregateOutputType = {
-    id: number | null
     authorId: number | null
   }
 
   export type PostSumAggregateOutputType = {
-    id: number | null
     authorId: number | null
   }
 
   export type PostMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     createdAt: Date | null
     title: string | null
     content: string | null
@@ -1656,7 +1609,7 @@ export namespace Prisma {
   }
 
   export type PostMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     createdAt: Date | null
     title: string | null
     content: string | null
@@ -1676,12 +1629,10 @@ export namespace Prisma {
 
 
   export type PostAvgAggregateInputType = {
-    id?: true
     authorId?: true
   }
 
   export type PostSumAggregateInputType = {
-    id?: true
     authorId?: true
   }
 
@@ -1806,7 +1757,7 @@ export namespace Prisma {
 
 
   export type PostGroupByOutputType = {
-    id: number
+    id: string
     createdAt: Date
     title: string
     content: string | null
@@ -2055,6 +2006,33 @@ export namespace Prisma {
     upsert<T extends PostUpsertArgs>(
       args: SelectSubset<T, PostUpsertArgs>
     ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+
+    /**
+     * Find zero or more Posts that matches the filter.
+     * @param {PostFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const post = await prisma.post.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: PostFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a Post.
+     * @param {PostAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const post = await prisma.post.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: PostAggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of Posts.
@@ -2404,7 +2382,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<PostCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -2519,6 +2496,40 @@ export namespace Prisma {
 
 
   /**
+   * Post findRaw
+   */
+  export type PostFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * Post aggregateRaw
+   */
+  export type PostAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * Post without action
    */
   export type PostArgs = {
@@ -2550,7 +2561,6 @@ export namespace Prisma {
   }
 
   export type UserAvgAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -2558,7 +2568,6 @@ export namespace Prisma {
   }
 
   export type UserSumAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -2566,7 +2575,7 @@ export namespace Prisma {
   }
 
   export type UserMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     email: string | null
     int: number | null
     optionalInt: number | null
@@ -2581,7 +2590,7 @@ export namespace Prisma {
   }
 
   export type UserMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     email: string | null
     int: number | null
     optionalInt: number | null
@@ -2615,7 +2624,6 @@ export namespace Prisma {
 
 
   export type UserAvgAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -2623,7 +2631,6 @@ export namespace Prisma {
   }
 
   export type UserSumAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -2771,7 +2778,7 @@ export namespace Prisma {
 
 
   export type UserGroupByOutputType = {
-    id: number
+    id: string
     email: string
     int: number
     optionalInt: number | null
@@ -3042,6 +3049,33 @@ export namespace Prisma {
     upsert<T extends UserUpsertArgs>(
       args: SelectSubset<T, UserUpsertArgs>
     ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+
+    /**
+     * Find zero or more Users that matches the filter.
+     * @param {UserFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const user = await prisma.user.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: UserFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a User.
+     * @param {UserAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const user = await prisma.user.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: UserAggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of Users.
@@ -3391,7 +3425,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<UserCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -3506,6 +3539,40 @@ export namespace Prisma {
 
 
   /**
+   * User findRaw
+   */
+  export type UserFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * User aggregateRaw
+   */
+  export type UserAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * User without action
    */
   export type UserArgs = {
@@ -3537,7 +3604,6 @@ export namespace Prisma {
   }
 
   export type MAvgAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -3545,7 +3611,6 @@ export namespace Prisma {
   }
 
   export type MSumAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -3553,7 +3618,7 @@ export namespace Prisma {
   }
 
   export type MMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -3567,7 +3632,7 @@ export namespace Prisma {
   }
 
   export type MMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -3599,7 +3664,6 @@ export namespace Prisma {
 
 
   export type MAvgAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -3607,7 +3671,6 @@ export namespace Prisma {
   }
 
   export type MSumAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -3752,7 +3815,7 @@ export namespace Prisma {
 
 
   export type MGroupByOutputType = {
-    id: number
+    id: string
     int: number
     optionalInt: number | null
     float: number
@@ -4021,6 +4084,33 @@ export namespace Prisma {
     upsert<T extends MUpsertArgs>(
       args: SelectSubset<T, MUpsertArgs>
     ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+
+    /**
+     * Find zero or more Ms that matches the filter.
+     * @param {MFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const m = await prisma.m.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: MFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a M.
+     * @param {MAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const m = await prisma.m.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: MAggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of Ms.
@@ -4370,7 +4460,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<MCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -4485,6 +4574,40 @@ export namespace Prisma {
 
 
   /**
+   * M findRaw
+   */
+  export type MFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * M aggregateRaw
+   */
+  export type MAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * M without action
    */
   export type MArgs = {
@@ -4516,7 +4639,6 @@ export namespace Prisma {
   }
 
   export type NAvgAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -4524,7 +4646,6 @@ export namespace Prisma {
   }
 
   export type NSumAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -4532,7 +4653,7 @@ export namespace Prisma {
   }
 
   export type NMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -4546,7 +4667,7 @@ export namespace Prisma {
   }
 
   export type NMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -4578,7 +4699,6 @@ export namespace Prisma {
 
 
   export type NAvgAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -4586,7 +4706,6 @@ export namespace Prisma {
   }
 
   export type NSumAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -4731,7 +4850,7 @@ export namespace Prisma {
 
 
   export type NGroupByOutputType = {
-    id: number
+    id: string
     int: number
     optionalInt: number | null
     float: number
@@ -5000,6 +5119,33 @@ export namespace Prisma {
     upsert<T extends NUpsertArgs>(
       args: SelectSubset<T, NUpsertArgs>
     ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+
+    /**
+     * Find zero or more Ns that matches the filter.
+     * @param {NFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const n = await prisma.n.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: NFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a N.
+     * @param {NAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const n = await prisma.n.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: NAggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of Ns.
@@ -5349,7 +5495,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<NCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -5464,6 +5609,40 @@ export namespace Prisma {
 
 
   /**
+   * N findRaw
+   */
+  export type NFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * N aggregateRaw
+   */
+  export type NAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * N without action
    */
   export type NArgs = {
@@ -5495,7 +5674,6 @@ export namespace Prisma {
   }
 
   export type OneOptionalAvgAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -5503,7 +5681,6 @@ export namespace Prisma {
   }
 
   export type OneOptionalSumAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -5511,7 +5688,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -5525,7 +5702,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -5557,7 +5734,6 @@ export namespace Prisma {
 
 
   export type OneOptionalAvgAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -5565,7 +5741,6 @@ export namespace Prisma {
   }
 
   export type OneOptionalSumAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -5710,7 +5885,7 @@ export namespace Prisma {
 
 
   export type OneOptionalGroupByOutputType = {
-    id: number
+    id: string
     int: number
     optionalInt: number | null
     float: number
@@ -5979,6 +6154,33 @@ export namespace Prisma {
     upsert<T extends OneOptionalUpsertArgs>(
       args: SelectSubset<T, OneOptionalUpsertArgs>
     ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+
+    /**
+     * Find zero or more OneOptionals that matches the filter.
+     * @param {OneOptionalFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const oneOptional = await prisma.oneOptional.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: OneOptionalFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a OneOptional.
+     * @param {OneOptionalAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const oneOptional = await prisma.oneOptional.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: OneOptionalAggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of OneOptionals.
@@ -6328,7 +6530,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<OneOptionalCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -6443,6 +6644,40 @@ export namespace Prisma {
 
 
   /**
+   * OneOptional findRaw
+   */
+  export type OneOptionalFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * OneOptional aggregateRaw
+   */
+  export type OneOptionalAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * OneOptional without action
    */
   export type OneOptionalArgs = {
@@ -6474,7 +6709,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredAvgAggregateOutputType = {
-    id: number | null
     oneOptionalId: number | null
     int: number | null
     optionalInt: number | null
@@ -6483,7 +6717,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredSumAggregateOutputType = {
-    id: number | null
     oneOptionalId: number | null
     int: number | null
     optionalInt: number | null
@@ -6492,7 +6725,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredMinAggregateOutputType = {
-    id: number | null
+    id: string | null
     oneOptionalId: number | null
     int: number | null
     optionalInt: number | null
@@ -6507,7 +6740,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredMaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     oneOptionalId: number | null
     int: number | null
     optionalInt: number | null
@@ -6541,7 +6774,6 @@ export namespace Prisma {
 
 
   export type ManyRequiredAvgAggregateInputType = {
-    id?: true
     oneOptionalId?: true
     int?: true
     optionalInt?: true
@@ -6550,7 +6782,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredSumAggregateInputType = {
-    id?: true
     oneOptionalId?: true
     int?: true
     optionalInt?: true
@@ -6699,7 +6930,7 @@ export namespace Prisma {
 
 
   export type ManyRequiredGroupByOutputType = {
-    id: number
+    id: string
     oneOptionalId: number | null
     int: number
     optionalInt: number | null
@@ -6964,6 +7195,33 @@ export namespace Prisma {
     upsert<T extends ManyRequiredUpsertArgs>(
       args: SelectSubset<T, ManyRequiredUpsertArgs>
     ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+
+    /**
+     * Find zero or more ManyRequireds that matches the filter.
+     * @param {ManyRequiredFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const manyRequired = await prisma.manyRequired.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: ManyRequiredFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a ManyRequired.
+     * @param {ManyRequiredAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const manyRequired = await prisma.manyRequired.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: ManyRequiredAggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of ManyRequireds.
@@ -7313,7 +7571,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<ManyRequiredCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -7428,6 +7685,40 @@ export namespace Prisma {
 
 
   /**
+   * ManyRequired findRaw
+   */
+  export type ManyRequiredFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * ManyRequired aggregateRaw
+   */
+  export type ManyRequiredAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * ManyRequired without action
    */
   export type ManyRequiredArgs = {
@@ -7459,7 +7750,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1AvgAggregateOutputType = {
-    id: number | null
     optionalSide2Id: number | null
     int: number | null
     optionalInt: number | null
@@ -7468,7 +7758,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1SumAggregateOutputType = {
-    id: number | null
     optionalSide2Id: number | null
     int: number | null
     optionalInt: number | null
@@ -7477,7 +7766,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1MinAggregateOutputType = {
-    id: number | null
+    id: string | null
     optionalSide2Id: number | null
     int: number | null
     optionalInt: number | null
@@ -7492,7 +7781,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1MaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     optionalSide2Id: number | null
     int: number | null
     optionalInt: number | null
@@ -7526,7 +7815,6 @@ export namespace Prisma {
 
 
   export type OptionalSide1AvgAggregateInputType = {
-    id?: true
     optionalSide2Id?: true
     int?: true
     optionalInt?: true
@@ -7535,7 +7823,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1SumAggregateInputType = {
-    id?: true
     optionalSide2Id?: true
     int?: true
     optionalInt?: true
@@ -7684,7 +7971,7 @@ export namespace Prisma {
 
 
   export type OptionalSide1GroupByOutputType = {
-    id: number
+    id: string
     optionalSide2Id: number | null
     int: number
     optionalInt: number | null
@@ -7949,6 +8236,33 @@ export namespace Prisma {
     upsert<T extends OptionalSide1UpsertArgs>(
       args: SelectSubset<T, OptionalSide1UpsertArgs>
     ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+
+    /**
+     * Find zero or more OptionalSide1s that matches the filter.
+     * @param {OptionalSide1FindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const optionalSide1 = await prisma.optionalSide1.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: OptionalSide1FindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a OptionalSide1.
+     * @param {OptionalSide1AggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const optionalSide1 = await prisma.optionalSide1.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: OptionalSide1AggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of OptionalSide1s.
@@ -8298,7 +8612,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<OptionalSide1CreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -8413,6 +8726,40 @@ export namespace Prisma {
 
 
   /**
+   * OptionalSide1 findRaw
+   */
+  export type OptionalSide1FindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * OptionalSide1 aggregateRaw
+   */
+  export type OptionalSide1AggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
    * OptionalSide1 without action
    */
   export type OptionalSide1Args = {
@@ -8444,7 +8791,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide2AvgAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -8452,7 +8798,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide2SumAggregateOutputType = {
-    id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -8460,7 +8805,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2MinAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -8474,7 +8819,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2MaxAggregateOutputType = {
-    id: number | null
+    id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -8506,7 +8851,6 @@ export namespace Prisma {
 
 
   export type OptionalSide2AvgAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -8514,7 +8858,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide2SumAggregateInputType = {
-    id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -8659,7 +9002,7 @@ export namespace Prisma {
 
 
   export type OptionalSide2GroupByOutputType = {
-    id: number
+    id: string
     int: number
     optionalInt: number | null
     float: number
@@ -8922,6 +9265,33 @@ export namespace Prisma {
     upsert<T extends OptionalSide2UpsertArgs>(
       args: SelectSubset<T, OptionalSide2UpsertArgs>
     ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+
+    /**
+     * Find zero or more OptionalSide2s that matches the filter.
+     * @param {OptionalSide2FindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const optionalSide2 = await prisma.optionalSide2.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: OptionalSide2FindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a OptionalSide2.
+     * @param {OptionalSide2AggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const optionalSide2 = await prisma.optionalSide2.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: OptionalSide2AggregateRawArgs
+    ): PrismaPromise<JsonObject>
 
     /**
      * Count the number of OptionalSide2s.
@@ -9271,7 +9641,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<OptionalSide2CreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -9382,6 +9751,40 @@ export namespace Prisma {
      * 
     **/
     where?: OptionalSide2WhereInput
+  }
+
+
+  /**
+   * OptionalSide2 findRaw
+   */
+  export type OptionalSide2FindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * OptionalSide2 aggregateRaw
+   */
+  export type OptionalSide2AggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
   }
 
 
@@ -9867,6 +10270,33 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
 
     /**
+     * Find zero or more As that matches the filter.
+     * @param {AFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const a = await prisma.a.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: AFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a A.
+     * @param {AAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const a = await prisma.a.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: AAggregateRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
      * Count the number of As.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -10193,7 +10623,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<ACreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -10289,6 +10718,40 @@ export namespace Prisma {
      * 
     **/
     where?: AWhereInput
+  }
+
+
+  /**
+   * A findRaw
+   */
+  export type AFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * A aggregateRaw
+   */
+  export type AAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
   }
 
 
@@ -10729,6 +11192,33 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
 
     /**
+     * Find zero or more Bs that matches the filter.
+     * @param {BFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const b = await prisma.b.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: BFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a B.
+     * @param {BAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const b = await prisma.b.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: BAggregateRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Bs.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -11055,7 +11545,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<BCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -11151,6 +11640,40 @@ export namespace Prisma {
      * 
     **/
     where?: BWhereInput
+  }
+
+
+  /**
+   * B findRaw
+   */
+  export type BFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * B aggregateRaw
+   */
+  export type BAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
   }
 
 
@@ -11561,6 +12084,33 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
 
     /**
+     * Find zero or more Cs that matches the filter.
+     * @param {CFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const c = await prisma.c.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: CFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a C.
+     * @param {CAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const c = await prisma.c.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: CAggregateRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Cs.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -11887,7 +12437,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<CCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -11983,6 +12532,40 @@ export namespace Prisma {
      * 
     **/
     where?: CWhereInput
+  }
+
+
+  /**
+   * C findRaw
+   */
+  export type CFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * C aggregateRaw
+   */
+  export type CAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
   }
 
 
@@ -12377,6 +12960,33 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
 
     /**
+     * Find zero or more Ds that matches the filter.
+     * @param {DFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const d = await prisma.d.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: DFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a D.
+     * @param {DAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const d = await prisma.d.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: DAggregateRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Ds.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -12703,7 +13313,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<DCreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -12799,6 +13408,40 @@ export namespace Prisma {
      * 
     **/
     where?: DWhereInput
+  }
+
+
+  /**
+   * D findRaw
+   */
+  export type DFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * D aggregateRaw
+   */
+  export type DAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
   }
 
 
@@ -13185,6 +13828,33 @@ export namespace Prisma {
     ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
 
     /**
+     * Find zero or more Es that matches the filter.
+     * @param {EFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const e = await prisma.e.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: EFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a E.
+     * @param {EAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const e = await prisma.e.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: EAggregateRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
      * Count the number of Es.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -13511,7 +14181,6 @@ export namespace Prisma {
      * 
     **/
     data: Enumerable<ECreateManyInput>
-    skipDuplicates?: boolean
   }
 
 
@@ -13607,6 +14276,40 @@ export namespace Prisma {
      * 
     **/
     where?: EWhereInput
+  }
+
+
+  /**
+   * E findRaw
+   */
+  export type EFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * E aggregateRaw
+   */
+  export type EAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
   }
 
 
@@ -13847,36 +14550,12 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-  export const JsonNullValueInput: {
-    JsonNull: 'JsonNull'
-  };
-
-  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
-  export const NullableJsonNullValueInput: {
-    DbNull: 'DbNull',
-    JsonNull: 'JsonNull'
-  };
-
-  export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
-
-
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
   };
 
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
-
-
-  export const JsonNullValueFilter: {
-    DbNull: 'DbNull',
-    JsonNull: 'JsonNull',
-    AnyNull: 'AnyNull'
-  };
-
-  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -13888,7 +14567,7 @@ export namespace Prisma {
     AND?: Enumerable<PostWhereInput>
     OR?: Enumerable<PostWhereInput>
     NOT?: Enumerable<PostWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     createdAt?: DateTimeFilter | Date | string
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
@@ -13908,7 +14587,7 @@ export namespace Prisma {
   }
 
   export type PostWhereUniqueInput = {
-    id?: number
+    id?: string
   }
 
   export type PostOrderByWithAggregationInput = {
@@ -13929,7 +14608,7 @@ export namespace Prisma {
     AND?: Enumerable<PostScalarWhereWithAggregatesInput>
     OR?: Enumerable<PostScalarWhereWithAggregatesInput>
     NOT?: Enumerable<PostScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     createdAt?: DateTimeWithAggregatesFilter | Date | string
     title?: StringWithAggregatesFilter | string
     content?: StringNullableWithAggregatesFilter | string | null
@@ -13941,7 +14620,7 @@ export namespace Prisma {
     AND?: Enumerable<UserWhereInput>
     OR?: Enumerable<UserWhereInput>
     NOT?: Enumerable<UserWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     email?: StringFilter | string
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -13977,7 +14656,7 @@ export namespace Prisma {
   }
 
   export type UserWhereUniqueInput = {
-    id?: number
+    id?: string
     email?: string
   }
 
@@ -14007,7 +14686,7 @@ export namespace Prisma {
     AND?: Enumerable<UserScalarWhereWithAggregatesInput>
     OR?: Enumerable<UserScalarWhereWithAggregatesInput>
     NOT?: Enumerable<UserScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     email?: StringWithAggregatesFilter | string
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -14027,7 +14706,7 @@ export namespace Prisma {
     AND?: Enumerable<MWhereInput>
     OR?: Enumerable<MWhereInput>
     NOT?: Enumerable<MWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     n?: NListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14061,7 +14740,7 @@ export namespace Prisma {
   }
 
   export type MWhereUniqueInput = {
-    id?: number
+    id?: string
   }
 
   export type MOrderByWithAggregationInput = {
@@ -14089,7 +14768,7 @@ export namespace Prisma {
     AND?: Enumerable<MScalarWhereWithAggregatesInput>
     OR?: Enumerable<MScalarWhereWithAggregatesInput>
     NOT?: Enumerable<MScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -14108,7 +14787,7 @@ export namespace Prisma {
     AND?: Enumerable<NWhereInput>
     OR?: Enumerable<NWhereInput>
     NOT?: Enumerable<NWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     m?: MListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14142,7 +14821,7 @@ export namespace Prisma {
   }
 
   export type NWhereUniqueInput = {
-    id?: number
+    id?: string
   }
 
   export type NOrderByWithAggregationInput = {
@@ -14170,7 +14849,7 @@ export namespace Prisma {
     AND?: Enumerable<NScalarWhereWithAggregatesInput>
     OR?: Enumerable<NScalarWhereWithAggregatesInput>
     NOT?: Enumerable<NScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -14189,7 +14868,7 @@ export namespace Prisma {
     AND?: Enumerable<OneOptionalWhereInput>
     OR?: Enumerable<OneOptionalWhereInput>
     NOT?: Enumerable<OneOptionalWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     many?: ManyRequiredListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14223,7 +14902,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalWhereUniqueInput = {
-    id?: number
+    id?: string
   }
 
   export type OneOptionalOrderByWithAggregationInput = {
@@ -14251,7 +14930,7 @@ export namespace Prisma {
     AND?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
     OR?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
     NOT?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -14270,7 +14949,7 @@ export namespace Prisma {
     AND?: Enumerable<ManyRequiredWhereInput>
     OR?: Enumerable<ManyRequiredWhereInput>
     NOT?: Enumerable<ManyRequiredWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
     oneOptionalId?: IntNullableFilter | number | null
     int?: IntFilter | number
@@ -14306,7 +14985,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredWhereUniqueInput = {
-    id?: number
+    id?: string
   }
 
   export type ManyRequiredOrderByWithAggregationInput = {
@@ -14335,7 +15014,7 @@ export namespace Prisma {
     AND?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
     OR?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
     NOT?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     oneOptionalId?: IntNullableWithAggregatesFilter | number | null
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -14355,7 +15034,7 @@ export namespace Prisma {
     AND?: Enumerable<OptionalSide1WhereInput>
     OR?: Enumerable<OptionalSide1WhereInput>
     NOT?: Enumerable<OptionalSide1WhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
     optionalSide2Id?: IntNullableFilter | number | null
     int?: IntFilter | number
@@ -14391,7 +15070,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1WhereUniqueInput = {
-    id?: number
+    id?: string
     optionalSide2Id?: number
   }
 
@@ -14421,7 +15100,7 @@ export namespace Prisma {
     AND?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
     OR?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
     NOT?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     optionalSide2Id?: IntNullableWithAggregatesFilter | number | null
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -14441,7 +15120,7 @@ export namespace Prisma {
     AND?: Enumerable<OptionalSide2WhereInput>
     OR?: Enumerable<OptionalSide2WhereInput>
     NOT?: Enumerable<OptionalSide2WhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     opti?: XOR<OptionalSide1RelationFilter, OptionalSide1WhereInput> | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14475,7 +15154,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2WhereUniqueInput = {
-    id?: number
+    id?: string
   }
 
   export type OptionalSide2OrderByWithAggregationInput = {
@@ -14503,7 +15182,7 @@ export namespace Prisma {
     AND?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
     OR?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
     NOT?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
-    id?: IntWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter | string
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -14773,6 +15452,7 @@ export namespace Prisma {
   }
 
   export type PostCreateInput = {
+    id?: string
     createdAt?: Date | string
     title: string
     content?: string | null
@@ -14781,7 +15461,7 @@ export namespace Prisma {
   }
 
   export type PostUncheckedCreateInput = {
-    id?: number
+    id?: string
     createdAt?: Date | string
     title: string
     content?: string | null
@@ -14798,7 +15478,6 @@ export namespace Prisma {
   }
 
   export type PostUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14807,7 +15486,7 @@ export namespace Prisma {
   }
 
   export type PostCreateManyInput = {
-    id?: number
+    id?: string
     createdAt?: Date | string
     title: string
     content?: string | null
@@ -14823,7 +15502,6 @@ export namespace Prisma {
   }
 
   export type PostUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -14832,6 +15510,7 @@ export namespace Prisma {
   }
 
   export type UserCreateInput = {
+    id?: string
     email: string
     int: number
     optionalInt?: number | null
@@ -14839,8 +15518,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14849,7 +15528,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateInput = {
-    id?: number
+    id?: string
     email: string
     int: number
     optionalInt?: number | null
@@ -14857,8 +15536,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14874,8 +15553,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14884,7 +15563,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     email?: StringFieldUpdateOperationsInput | string
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14892,8 +15570,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14902,7 +15580,7 @@ export namespace Prisma {
   }
 
   export type UserCreateManyInput = {
-    id?: number
+    id?: string
     email: string
     int: number
     optionalInt?: number | null
@@ -14910,8 +15588,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14926,8 +15604,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14935,7 +15613,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     email?: StringFieldUpdateOperationsInput | string
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -14943,8 +15620,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -14952,14 +15629,15 @@ export namespace Prisma {
   }
 
   export type MCreateInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14968,15 +15646,15 @@ export namespace Prisma {
   }
 
   export type MUncheckedCreateInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -14990,8 +15668,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15000,15 +15678,14 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15016,15 +15693,15 @@ export namespace Prisma {
   }
 
   export type MCreateManyInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15038,8 +15715,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15047,15 +15724,14 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15063,14 +15739,15 @@ export namespace Prisma {
   }
 
   export type NCreateInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15079,15 +15756,15 @@ export namespace Prisma {
   }
 
   export type NUncheckedCreateInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15101,8 +15778,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15111,15 +15788,14 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15127,15 +15803,15 @@ export namespace Prisma {
   }
 
   export type NCreateManyInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15149,8 +15825,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15158,15 +15834,14 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15174,14 +15849,15 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15190,15 +15866,15 @@ export namespace Prisma {
   }
 
   export type OneOptionalUncheckedCreateInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15213,8 +15889,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15223,15 +15899,14 @@ export namespace Prisma {
   }
 
   export type OneOptionalUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15240,15 +15915,15 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateManyInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15262,8 +15937,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15271,15 +15946,14 @@ export namespace Prisma {
   }
 
   export type OneOptionalUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15287,14 +15961,15 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15303,7 +15978,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedCreateInput = {
-    id?: number
+    id?: string
     oneOptionalId?: number | null
     int: number
     optionalInt?: number | null
@@ -15311,8 +15986,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15326,8 +16001,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15336,7 +16011,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     oneOptionalId?: NullableIntFieldUpdateOperationsInput | number | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15344,8 +16018,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15353,7 +16027,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateManyInput = {
-    id?: number
+    id?: string
     oneOptionalId?: number | null
     int: number
     optionalInt?: number | null
@@ -15361,8 +16035,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15376,8 +16050,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15385,7 +16059,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     oneOptionalId?: NullableIntFieldUpdateOperationsInput | number | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15393,8 +16066,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15402,14 +16075,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide1CreateInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15418,7 +16092,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedCreateInput = {
-    id?: number
+    id?: string
     optionalSide2Id?: number | null
     int: number
     optionalInt?: number | null
@@ -15426,8 +16100,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15441,8 +16115,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15451,7 +16125,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     optionalSide2Id?: NullableIntFieldUpdateOperationsInput | number | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15459,8 +16132,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15468,7 +16141,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1CreateManyInput = {
-    id?: number
+    id?: string
     optionalSide2Id?: number | null
     int: number
     optionalInt?: number | null
@@ -15476,8 +16149,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15491,8 +16164,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15500,7 +16173,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     optionalSide2Id?: NullableIntFieldUpdateOperationsInput | number | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15508,8 +16180,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15517,14 +16189,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide2CreateInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15533,15 +16206,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UncheckedCreateInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15556,8 +16229,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15566,15 +16239,14 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UncheckedUpdateInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15583,15 +16255,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide2CreateManyInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -15605,8 +16277,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15614,15 +16286,14 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UncheckedUpdateManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -15654,7 +16325,6 @@ export namespace Prisma {
   }
 
   export type AUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
@@ -15666,7 +16336,6 @@ export namespace Prisma {
   }
 
   export type AUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
@@ -15684,13 +16353,9 @@ export namespace Prisma {
     int: number
     sInt: number
     bInt: bigint | number
-    inc_int?: number
-    inc_sInt?: number
-    inc_bInt?: bigint | number
   }
 
   export type AUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
@@ -15702,7 +16367,6 @@ export namespace Prisma {
   }
 
   export type AUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
     name?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
@@ -15730,7 +16394,6 @@ export namespace Prisma {
   }
 
   export type BUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
@@ -15738,7 +16401,6 @@ export namespace Prisma {
   }
 
   export type BUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
@@ -15754,7 +16416,6 @@ export namespace Prisma {
   }
 
   export type BUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
@@ -15762,7 +16423,6 @@ export namespace Prisma {
   }
 
   export type BUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
     decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
@@ -15790,7 +16450,6 @@ export namespace Prisma {
   }
 
   export type CUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     char?: StringFieldUpdateOperationsInput | string
     vChar?: StringFieldUpdateOperationsInput | string
     text?: StringFieldUpdateOperationsInput | string
@@ -15800,7 +16459,6 @@ export namespace Prisma {
   }
 
   export type CUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     char?: StringFieldUpdateOperationsInput | string
     vChar?: StringFieldUpdateOperationsInput | string
     text?: StringFieldUpdateOperationsInput | string
@@ -15820,7 +16478,6 @@ export namespace Prisma {
   }
 
   export type CUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
     char?: StringFieldUpdateOperationsInput | string
     vChar?: StringFieldUpdateOperationsInput | string
     text?: StringFieldUpdateOperationsInput | string
@@ -15830,7 +16487,6 @@ export namespace Prisma {
   }
 
   export type CUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
     char?: StringFieldUpdateOperationsInput | string
     vChar?: StringFieldUpdateOperationsInput | string
     text?: StringFieldUpdateOperationsInput | string
@@ -15844,8 +16500,8 @@ export namespace Prisma {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: JsonNullValueInput | InputJsonValue
-    jsonb: JsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    jsonb: InputJsonValue
   }
 
   export type DUncheckedCreateInput = {
@@ -15853,26 +16509,24 @@ export namespace Prisma {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: JsonNullValueInput | InputJsonValue
-    jsonb: JsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    jsonb: InputJsonValue
   }
 
   export type DUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: JsonNullValueInput | InputJsonValue
-    jsonb?: JsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    jsonb?: InputJsonValue | InputJsonValue
   }
 
   export type DUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: JsonNullValueInput | InputJsonValue
-    jsonb?: JsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    jsonb?: InputJsonValue | InputJsonValue
   }
 
   export type DCreateManyInput = {
@@ -15880,26 +16534,24 @@ export namespace Prisma {
     bool: boolean
     byteA: Buffer
     xml: string
-    json: JsonNullValueInput | InputJsonValue
-    jsonb: JsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    jsonb: InputJsonValue
   }
 
   export type DUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: JsonNullValueInput | InputJsonValue
-    jsonb?: JsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    jsonb?: InputJsonValue | InputJsonValue
   }
 
   export type DUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
     bool?: BoolFieldUpdateOperationsInput | boolean
     byteA?: BytesFieldUpdateOperationsInput | Buffer
     xml?: StringFieldUpdateOperationsInput | string
-    json?: JsonNullValueInput | InputJsonValue
-    jsonb?: JsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    jsonb?: InputJsonValue | InputJsonValue
   }
 
   export type ECreateInput = {
@@ -15917,14 +16569,12 @@ export namespace Prisma {
   }
 
   export type EUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -15938,39 +16588,15 @@ export namespace Prisma {
   }
 
   export type EUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type EUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
-  }
-
-  export type IntFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
-  }
-
-  export type DateTimeFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeFilter | Date | string
   }
 
   export type StringFilter = {
@@ -15986,6 +16612,17 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringFilter | string
+  }
+
+  export type DateTimeFilter = {
+    equals?: Date | string
+    in?: Enumerable<Date> | Enumerable<string>
+    notIn?: Enumerable<Date> | Enumerable<string>
+    lt?: Date | string
+    lte?: Date | string
+    gt?: Date | string
+    gte?: Date | string
+    not?: NestedDateTimeFilter | Date | string
   }
 
   export type StringNullableFilter = {
@@ -16013,6 +16650,17 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
+  export type IntFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntFilter | number
+  }
+
   export type PostCountOrderByAggregateInput = {
     id?: SortOrder
     createdAt?: SortOrder
@@ -16023,7 +16671,6 @@ export namespace Prisma {
   }
 
   export type PostAvgOrderByAggregateInput = {
-    id?: SortOrder
     authorId?: SortOrder
   }
 
@@ -16046,38 +16693,7 @@ export namespace Prisma {
   }
 
   export type PostSumOrderByAggregateInput = {
-    id?: SortOrder
     authorId?: SortOrder
-  }
-
-  export type IntWithAggregatesFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedIntFilter
-    _min?: NestedIntFilter
-    _max?: NestedIntFilter
-  }
-
-  export type DateTimeWithAggregatesFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeWithAggregatesFilter | Date | string
-    _count?: NestedIntFilter
-    _min?: NestedDateTimeFilter
-    _max?: NestedDateTimeFilter
   }
 
   export type StringWithAggregatesFilter = {
@@ -16096,6 +16712,20 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedStringFilter
     _max?: NestedStringFilter
+  }
+
+  export type DateTimeWithAggregatesFilter = {
+    equals?: Date | string
+    in?: Enumerable<Date> | Enumerable<string>
+    notIn?: Enumerable<Date> | Enumerable<string>
+    lt?: Date | string
+    lte?: Date | string
+    gt?: Date | string
+    gte?: Date | string
+    not?: NestedDateTimeWithAggregatesFilter | Date | string
+    _count?: NestedIntFilter
+    _min?: NestedDateTimeFilter
+    _max?: NestedDateTimeFilter
   }
 
   export type StringNullableWithAggregatesFilter = {
@@ -16122,6 +16752,22 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedBoolFilter
     _max?: NestedBoolFilter
+  }
+
+  export type IntWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    _max?: NestedIntFilter
   }
 
   export type IntNullableFilter = {
@@ -16164,19 +16810,8 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonFilterBase>, 'path'>>
 
   export type JsonFilterBase = {
-    equals?: JsonNullValueFilter | InputJsonValue
-    path?: Array<string>
-    string_contains?: string
-    string_starts_with?: string
-    string_ends_with?: string
-    array_contains?: InputJsonValue | null
-    array_starts_with?: InputJsonValue | null
-    array_ends_with?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: JsonNullValueFilter | InputJsonValue
+    equals?: InputJsonValue
+    not?: InputJsonValue
   }
   export type JsonNullableFilter = 
     | PatchUndefined<
@@ -16186,19 +16821,8 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonNullableFilterBase>, 'path'>>
 
   export type JsonNullableFilterBase = {
-    equals?: JsonNullValueFilter | InputJsonValue
-    path?: Array<string>
-    string_contains?: string
-    string_starts_with?: string
-    string_ends_with?: string
-    array_contains?: InputJsonValue | null
-    array_starts_with?: InputJsonValue | null
-    array_ends_with?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: JsonNullValueFilter | InputJsonValue
+    equals?: InputJsonValue | null
+    not?: InputJsonValue | null
   }
 
   export type EnumABeautifulEnumFilter = {
@@ -16248,7 +16872,6 @@ export namespace Prisma {
   }
 
   export type UserAvgOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16286,7 +16909,6 @@ export namespace Prisma {
   }
 
   export type UserSumOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16348,19 +16970,8 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase>, 'path'>>
 
   export type JsonWithAggregatesFilterBase = {
-    equals?: JsonNullValueFilter | InputJsonValue
-    path?: Array<string>
-    string_contains?: string
-    string_starts_with?: string
-    string_ends_with?: string
-    array_contains?: InputJsonValue | null
-    array_starts_with?: InputJsonValue | null
-    array_ends_with?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: JsonNullValueFilter | InputJsonValue
+    equals?: InputJsonValue
+    not?: InputJsonValue
     _count?: NestedIntFilter
     _min?: NestedJsonFilter
     _max?: NestedJsonFilter
@@ -16373,19 +16984,8 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase>, 'path'>>
 
   export type JsonNullableWithAggregatesFilterBase = {
-    equals?: JsonNullValueFilter | InputJsonValue
-    path?: Array<string>
-    string_contains?: string
-    string_starts_with?: string
-    string_ends_with?: string
-    array_contains?: InputJsonValue | null
-    array_starts_with?: InputJsonValue | null
-    array_ends_with?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: JsonNullValueFilter | InputJsonValue
+    equals?: InputJsonValue | null
+    not?: InputJsonValue | null
     _count?: NestedIntNullableFilter
     _min?: NestedJsonNullableFilter
     _max?: NestedJsonNullableFilter
@@ -16446,7 +17046,6 @@ export namespace Prisma {
   }
 
   export type MAvgOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16482,7 +17081,6 @@ export namespace Prisma {
   }
 
   export type MSumOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16516,7 +17114,6 @@ export namespace Prisma {
   }
 
   export type NAvgOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16552,7 +17149,6 @@ export namespace Prisma {
   }
 
   export type NSumOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16586,7 +17182,6 @@ export namespace Prisma {
   }
 
   export type OneOptionalAvgOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16622,7 +17217,6 @@ export namespace Prisma {
   }
 
   export type OneOptionalSumOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16652,7 +17246,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredAvgOrderByAggregateInput = {
-    id?: SortOrder
     oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -16691,7 +17284,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredSumOrderByAggregateInput = {
-    id?: SortOrder
     oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -16722,7 +17314,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1AvgOrderByAggregateInput = {
-    id?: SortOrder
     optionalSide2Id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -16761,7 +17352,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1SumOrderByAggregateInput = {
-    id?: SortOrder
     optionalSide2Id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -16791,7 +17381,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide2AvgOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -16827,7 +17416,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide2SumOrderByAggregateInput = {
-    id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -17351,28 +17939,6 @@ export namespace Prisma {
     set?: Buffer
   }
 
-  export type NestedIntFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
-  }
-
-  export type NestedDateTimeFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeFilter | Date | string
-  }
-
   export type NestedStringFilter = {
     equals?: string
     in?: Enumerable<string>
@@ -17385,6 +17951,17 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringFilter | string
+  }
+
+  export type NestedDateTimeFilter = {
+    equals?: Date | string
+    in?: Enumerable<Date> | Enumerable<string>
+    notIn?: Enumerable<Date> | Enumerable<string>
+    lt?: Date | string
+    lte?: Date | string
+    gt?: Date | string
+    gte?: Date | string
+    not?: NestedDateTimeFilter | Date | string
   }
 
   export type NestedStringNullableFilter = {
@@ -17406,7 +17983,7 @@ export namespace Prisma {
     not?: NestedBoolFilter | boolean
   }
 
-  export type NestedIntWithAggregatesFilter = {
+  export type NestedIntFilter = {
     equals?: number
     in?: Enumerable<number>
     notIn?: Enumerable<number>
@@ -17414,37 +17991,7 @@ export namespace Prisma {
     lte?: number
     gt?: number
     gte?: number
-    not?: NestedIntWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedIntFilter
-    _min?: NestedIntFilter
-    _max?: NestedIntFilter
-  }
-
-  export type NestedFloatFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatFilter | number
-  }
-
-  export type NestedDateTimeWithAggregatesFilter = {
-    equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeWithAggregatesFilter | Date | string
-    _count?: NestedIntFilter
-    _min?: NestedDateTimeFilter
-    _max?: NestedDateTimeFilter
+    not?: NestedIntFilter | number
   }
 
   export type NestedStringWithAggregatesFilter = {
@@ -17462,6 +18009,20 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedStringFilter
     _max?: NestedStringFilter
+  }
+
+  export type NestedDateTimeWithAggregatesFilter = {
+    equals?: Date | string
+    in?: Enumerable<Date> | Enumerable<string>
+    notIn?: Enumerable<Date> | Enumerable<string>
+    lt?: Date | string
+    lte?: Date | string
+    gt?: Date | string
+    gte?: Date | string
+    not?: NestedDateTimeWithAggregatesFilter | Date | string
+    _count?: NestedIntFilter
+    _min?: NestedDateTimeFilter
+    _max?: NestedDateTimeFilter
   }
 
   export type NestedStringNullableWithAggregatesFilter = {
@@ -17498,6 +18059,33 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedBoolFilter
     _max?: NestedBoolFilter
+  }
+
+  export type NestedIntWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    _max?: NestedIntFilter
+  }
+
+  export type NestedFloatFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedFloatFilter | number
   }
 
   export type NestedFloatNullableFilter = {
@@ -17585,19 +18173,8 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<NestedJsonFilterBase>, 'path'>>
 
   export type NestedJsonFilterBase = {
-    equals?: JsonNullValueFilter | InputJsonValue
-    path?: Array<string>
-    string_contains?: string
-    string_starts_with?: string
-    string_ends_with?: string
-    array_contains?: InputJsonValue | null
-    array_starts_with?: InputJsonValue | null
-    array_ends_with?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: JsonNullValueFilter | InputJsonValue
+    equals?: InputJsonValue
+    not?: InputJsonValue
   }
   export type NestedJsonNullableFilter = 
     | PatchUndefined<
@@ -17607,19 +18184,8 @@ export namespace Prisma {
     | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase>, 'path'>>
 
   export type NestedJsonNullableFilterBase = {
-    equals?: JsonNullValueFilter | InputJsonValue
-    path?: Array<string>
-    string_contains?: string
-    string_starts_with?: string
-    string_ends_with?: string
-    array_contains?: InputJsonValue | null
-    array_starts_with?: InputJsonValue | null
-    array_ends_with?: InputJsonValue | null
-    lt?: InputJsonValue
-    lte?: InputJsonValue
-    gt?: InputJsonValue
-    gte?: InputJsonValue
-    not?: JsonNullValueFilter | InputJsonValue
+    equals?: InputJsonValue | null
+    not?: InputJsonValue | null
   }
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter = {
@@ -17722,6 +18288,7 @@ export namespace Prisma {
   }
 
   export type UserCreateWithoutPostsInput = {
+    id?: string
     email: string
     int: number
     optionalInt?: number | null
@@ -17729,8 +18296,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -17738,7 +18305,7 @@ export namespace Prisma {
   }
 
   export type UserUncheckedCreateWithoutPostsInput = {
-    id?: number
+    id?: string
     email: string
     int: number
     optionalInt?: number | null
@@ -17746,8 +18313,8 @@ export namespace Prisma {
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -17772,8 +18339,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -17781,7 +18348,6 @@ export namespace Prisma {
   }
 
   export type UserUncheckedUpdateWithoutPostsInput = {
-    id?: IntFieldUpdateOperationsInput | number
     email?: StringFieldUpdateOperationsInput | string
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -17789,8 +18355,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -17798,6 +18364,7 @@ export namespace Prisma {
   }
 
   export type PostCreateWithoutAuthorInput = {
+    id?: string
     createdAt?: Date | string
     title: string
     content?: string | null
@@ -17805,7 +18372,7 @@ export namespace Prisma {
   }
 
   export type PostUncheckedCreateWithoutAuthorInput = {
-    id?: number
+    id?: string
     createdAt?: Date | string
     title: string
     content?: string | null
@@ -17819,7 +18386,6 @@ export namespace Prisma {
 
   export type PostCreateManyAuthorInputEnvelope = {
     data: Enumerable<PostCreateManyAuthorInput>
-    skipDuplicates?: boolean
   }
 
   export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
@@ -17842,7 +18408,7 @@ export namespace Prisma {
     AND?: Enumerable<PostScalarWhereInput>
     OR?: Enumerable<PostScalarWhereInput>
     NOT?: Enumerable<PostScalarWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     createdAt?: DateTimeFilter | Date | string
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
@@ -17851,14 +18417,15 @@ export namespace Prisma {
   }
 
   export type NCreateWithoutMInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -17866,15 +18433,15 @@ export namespace Prisma {
   }
 
   export type NUncheckedCreateWithoutMInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -17906,7 +18473,7 @@ export namespace Prisma {
     AND?: Enumerable<NScalarWhereInput>
     OR?: Enumerable<NScalarWhereInput>
     NOT?: Enumerable<NScalarWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -17922,14 +18489,15 @@ export namespace Prisma {
   }
 
   export type MCreateWithoutNInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -17937,15 +18505,15 @@ export namespace Prisma {
   }
 
   export type MUncheckedCreateWithoutNInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -17977,7 +18545,7 @@ export namespace Prisma {
     AND?: Enumerable<MScalarWhereInput>
     OR?: Enumerable<MScalarWhereInput>
     NOT?: Enumerable<MScalarWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -17993,14 +18561,15 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateWithoutOneInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18008,15 +18577,15 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedCreateWithoutOneInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18030,7 +18599,6 @@ export namespace Prisma {
 
   export type ManyRequiredCreateManyOneInputEnvelope = {
     data: Enumerable<ManyRequiredCreateManyOneInput>
-    skipDuplicates?: boolean
   }
 
   export type ManyRequiredUpsertWithWhereUniqueWithoutOneInput = {
@@ -18053,7 +18621,7 @@ export namespace Prisma {
     AND?: Enumerable<ManyRequiredScalarWhereInput>
     OR?: Enumerable<ManyRequiredScalarWhereInput>
     NOT?: Enumerable<ManyRequiredScalarWhereInput>
-    id?: IntFilter | number
+    id?: StringFilter | string
     oneOptionalId?: IntNullableFilter | number | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -18070,14 +18638,15 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateWithoutManyInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18085,15 +18654,15 @@ export namespace Prisma {
   }
 
   export type OneOptionalUncheckedCreateWithoutManyInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18117,8 +18686,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18126,15 +18695,14 @@ export namespace Prisma {
   }
 
   export type OneOptionalUncheckedUpdateWithoutManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18142,14 +18710,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide2CreateWithoutOptiInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18157,15 +18726,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UncheckedCreateWithoutOptiInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18189,8 +18758,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18198,15 +18767,14 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UncheckedUpdateWithoutOptiInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18214,14 +18782,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide1CreateWithoutOptiInput = {
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18229,15 +18798,15 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedCreateWithoutOptiInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18261,8 +18830,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18270,15 +18839,14 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedUpdateWithoutOptiInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18286,7 +18854,7 @@ export namespace Prisma {
   }
 
   export type PostCreateManyAuthorInput = {
-    id?: number
+    id?: string
     createdAt?: Date | string
     title: string
     content?: string | null
@@ -18301,7 +18869,6 @@ export namespace Prisma {
   }
 
   export type PostUncheckedUpdateWithoutAuthorInput = {
-    id?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18309,7 +18876,6 @@ export namespace Prisma {
   }
 
   export type PostUncheckedUpdateManyWithoutPostsInput = {
-    id?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18323,8 +18889,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18332,15 +18898,14 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateWithoutMInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18348,15 +18913,14 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateManyWithoutNInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18370,8 +18934,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18379,15 +18943,14 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateWithoutNInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18395,15 +18958,14 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateManyWithoutMInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18411,15 +18973,15 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateManyOneInput = {
-    id?: number
+    id?: string
     int: number
     optionalInt?: number | null
     float: number
     optionalFloat?: number | null
     string: string
     optionalString?: string | null
-    json: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
     enum: ABeautifulEnum
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
@@ -18433,8 +18995,8 @@ export namespace Prisma {
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18442,15 +19004,14 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateWithoutOneInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
@@ -18458,15 +19019,14 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateManyWithoutManyInput = {
-    id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
     optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
     string?: StringFieldUpdateOperationsInput | string
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
-    json?: JsonNullValueInput | InputJsonValue
-    optionalJson?: NullableJsonNullValueInput | InputJsonValue
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
     enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
