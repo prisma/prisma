@@ -14,16 +14,25 @@ const packageJson = eval(`require('../package.json')`) // tslint:disable-line
 
 export class Migrate {
   public engine: MigrateEngine
-  private schemaPath: string
-  public migrationsDirectoryPath: string
+  private schemaPath?: string
+  public migrationsDirectoryPath?: string
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
-    this.schemaPath = this.getSchemaPath(schemaPath)
-    this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
-    this.engine = new MigrateEngine({
-      projectDir: path.dirname(this.schemaPath),
-      schemaPath: this.schemaPath,
-      enabledPreviewFeatures,
-    })
+    // schemaPath and migrationsDirectoryPath is optionnal for primitives
+    // like migrate diff and db execute
+    if (schemaPath) {
+      this.schemaPath = this.getSchemaPath(schemaPath)
+      this.migrationsDirectoryPath = path.join(path.dirname(this.schemaPath), 'migrations')
+      this.engine = new MigrateEngine({
+        projectDir: path.dirname(this.schemaPath),
+        schemaPath: this.schemaPath,
+        enabledPreviewFeatures,
+      })
+    } else {
+      this.engine = new MigrateEngine({
+        projectDir: process.cwd(),
+        enabledPreviewFeatures,
+      })
+    }
   }
 
   public stop(): void {
@@ -41,6 +50,8 @@ export class Migrate {
   }
 
   public getDatamodel(): string {
+    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+
     return fs.readFileSync(this.schemaPath, 'utf-8')
   }
 
@@ -57,6 +68,8 @@ export class Migrate {
   }: {
     optInToShadowDatabase: boolean
   }): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
     return this.engine.diagnoseMigrationHistory({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       optInToShadowDatabase,
@@ -64,18 +77,24 @@ export class Migrate {
   }
 
   public listMigrationDirectories(): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
     return this.engine.listMigrationDirectories({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
   }
 
   public devDiagnostic(): Promise<EngineResults.DevDiagnosticOutput> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
     return this.engine.devDiagnostic({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
   }
 
   public async markMigrationApplied({ migrationId }: { migrationId: string }): Promise<void> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
     return await this.engine.markMigrationApplied({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
       migrationName: migrationId,
@@ -89,12 +108,16 @@ export class Migrate {
   }
 
   public applyMigrations(): Promise<EngineResults.ApplyMigrationsOutput> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
     return this.engine.applyMigrations({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
     })
   }
 
   public evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
+    if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
+
     const datamodel = this.getDatamodel()
 
     return this.engine.evaluateDataLoss({
@@ -119,6 +142,8 @@ export class Migrate {
   }
 
   public async tryToRunGenerate(): Promise<void> {
+    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
+
     const message: string[] = []
 
     console.info() // empty line
