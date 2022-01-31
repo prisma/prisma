@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1643626263594,
+  "lastUpdate": 1643626900111,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -80166,6 +80166,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.08,
             "range": "±2.87%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 13,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6470d6c7fea8c752cc5f996182af585ca0d64500",
+          "message": "chore(deps): update engines to 3.9.0-54.9334eadcf42477a37659767696fa661638b56ac8 (#11473)\n\n* chore(deps): update engines to 3.9.0-54.9334eadcf42477a37659767696fa661638b56ac8\r\n\r\n* tweak tests for P1013 errors\r\n\r\n* make schemaPath optional for Migrate instance\r\n\r\n* fix handlePanic test\r\n\r\n* fix rpc tests\r\n\r\nCo-authored-by: Joël Galeran <galeran@prisma.io>",
+          "timestamp": "2022-01-31T11:56:11+01:00",
+          "tree_id": "1421184da494a5252bd0e81a178af137856c3277",
+          "url": "https://github.com/prisma/prisma/commit/6470d6c7fea8c752cc5f996182af585ca0d64500"
+        },
+        "date": 1643626895639,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±3.36%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.09,
+            "range": "±1.44%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
