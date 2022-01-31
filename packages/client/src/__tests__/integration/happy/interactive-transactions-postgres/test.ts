@@ -1,12 +1,16 @@
+import path from 'path'
 import { getTestClient } from '../../../../utils/getTestClient'
+import { tearDownPostgres } from '../../../../utils/setupPostgres'
+import { migrateDb } from '../../__helpers__/migrateDb'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 let PrismaClient, prisma
 
-describe('interactive transaction', () => {
+describe('interactive transactions', () => {
   /**
-   * Minimal example of a interactive transaction
+   * Minimal example of an interactive transaction
    */
   test('basic', async () => {
     const result = await prisma.$transaction(async (prisma) => {
@@ -40,31 +44,19 @@ describe('interactive transaction', () => {
       })
 
       await new Promise((res) => setTimeout(res, 6000))
-
-      return prisma.user.findMany()
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
+    )
 
-            Invalid \`prisma.user.findMany()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
-
-              41 
-              42 await new Promise((res) => setTimeout(res, 6000))
-              43 
-            → 44 return prisma.user.findMany(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-          `)
+    expect(await prisma.user.findMany()).toHaveLength(0)
   })
 
   /**
    * Transactions should fail if they time out on `timeout`
-   *
-   * TODO: macOS: this test is flaky on CI on macOS and often fails with:
-   *     Received promise resolved instead of rejected
-   *     Resolved to value: [{"email": "user_1@website.com", "id": "0d258eae-1c22-4af1-8c95-68a17e995c2e", "name": null}]
    */
-  testIf(process.platform !== 'darwin' || !process.env.CI)('timeout override', async () => {
+  test('timeout override', async () => {
     const result = prisma.$transaction(
       async (prisma) => {
         await prisma.user.create({
@@ -73,9 +65,7 @@ describe('interactive transaction', () => {
           },
         })
 
-        await new Promise((res) => setTimeout(res, 600))
-
-        return prisma.user.findMany()
+        await new Promise((res) => setTimeout(res, 6000))
       },
       {
         maxWait: 200,
@@ -83,17 +73,11 @@ describe('interactive transaction', () => {
       },
     )
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
+    )
 
-            Invalid \`prisma.user.findMany()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
-
-               75 
-               76 await new Promise((res) => setTimeout(res, 600))
-               77 
-            →  78 return prisma.user.findMany(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-          `)
+    expect(await prisma.user.findMany()).toHaveLength(0)
   })
 
   /**
@@ -118,12 +102,12 @@ describe('interactive transaction', () => {
     )
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              
-                          Invalid \`prisma.user.findMany()\` invocation:
-              
-              
-                            Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-                      `)
+                
+                            Invalid \`prisma.user.findMany()\` invocation:
+                
+                
+                              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
+                        `)
   })
 
   /**
@@ -149,9 +133,9 @@ describe('interactive transaction', () => {
 
   /**
    * A transaction might fail if it's called inside another transaction
-   * // TODO this does not behave the same for all dbs (sqlite)
+   * //! this does not behave the same for all dbs (sqlite)
    */
-  test.skip('nested create', async () => {
+  test('nested create', async () => {
     const result = prisma.$transaction(async (tx) => {
       await tx.user.create({
         data: {
@@ -159,33 +143,18 @@ describe('interactive transaction', () => {
         },
       })
 
-      await prisma.$transaction(
-        async (prisma) => {
-          await prisma.user.create({
-            data: {
-              email: 'user_2@website.com',
-            },
-          })
-        },
-        {
-          timeout: 1000,
-        },
-      )
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        })
+      })
 
       return tx.user.findMany()
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-                                                                                    Invalid \`prisma.user.findMany()\` invocation:
-
-
-                                                                                      Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.
-                                                                      `)
-
-    const users = await prisma.user.findMany()
-
-    expect(users.length).toBe(0)
+    await expect(result).resolves.toHaveLength(2)
   })
 
   /**
@@ -222,15 +191,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+                        Invalid \`prisma.user.create()\` invocation in
+                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-              213   },
-              214 })
-              215 
-            → 216 await prisma.user.create(
-              Unique constraint failed on the fields: (\`email\`)
-          `)
+                          182   },
+                          183 })
+                          184 
+                        → 185 await prisma.user.create(
+                          Unique constraint failed on the fields: (\`email\`)
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -256,15 +225,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+                        Invalid \`transactionBoundPrisma.user.create()\` invocation in
+                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-              247 })
-              248 
-              249 const result = prisma.$transaction(async () => {
-            → 250   await transactionBoundPrisma.user.create(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
-          `)
+                          216 })
+                          217 
+                          218 const result = prisma.$transaction(async () => {
+                        → 219   await transactionBoundPrisma.user.create(
+                          Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -295,8 +264,9 @@ describe('interactive transaction', () => {
 
   /**
    * A bad batch should rollback using the interactive transaction logic
+   * // TODO: skipped because output differs from binary to library
    */
-  test('batching rollback', async () => {
+  testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
     const result = prisma.$transaction([
       prisma.user.create({
         data: {
@@ -312,15 +282,15 @@ describe('interactive transaction', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+                        Invalid \`prisma.user.create()\` invocation in
+                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-              298  */
-              299 test('batching rollback', async () => {
-              300   const result = prisma.$transaction([
-            → 301     prisma.user.create(
-              Unique constraint failed on the fields: (\`email\`)
-          `)
+                          268  */
+                          269 testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
+                          270   const result = prisma.$transaction([
+                        → 271     prisma.user.create(
+                          Unique constraint failed on the fields: (\`email\`)
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -329,28 +299,30 @@ describe('interactive transaction', () => {
 
   /**
    * A bad batch should rollback using the interactive transaction logic
+   * // TODO: skipped because output differs from binary to library
    */
-  test('batching raw rollback', async () => {
+  testIf(getClientEngineType() === ClientEngineType.Library)('batching raw rollback', async () => {
     await prisma.user.create({
       data: {
+        id: '1',
         email: 'user_1@website.com',
       },
     })
 
     const result = prisma.$transaction([
-      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("2", "user_2@website.com")`,
-      prisma.$queryRaw`DELETE FROM User`,
-      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")`,
-      prisma.$executeRaw`INSERT INTO User (id, email) VALUES ("1", "user_1@website.com")`,
+      prisma.$executeRaw`INSERT INTO "public"."User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+      prisma.$queryRaw`DELETE FROM "public"."User"`,
+      prisma.$executeRaw`INSERT INTO "public"."User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+      prisma.$executeRaw`INSERT INTO "public"."User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
     ])
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                        Invalid \`prisma.executeRaw()\` invocation:
+                                    Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                                                          Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
-                                                            `)
+                                      Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
+                              `)
 
     const users = await prisma.user.findMany()
 
@@ -387,8 +359,9 @@ describe('interactive transaction', () => {
 
   /**
    * Middlewares should not prevent a rollback
+   * // TODO: skipped because output differs from binary to library
    */
-  test('middlewares batching rollback', async () => {
+  testIf(getClientEngineType() === ClientEngineType.Library)('middlewares batching rollback', async () => {
     prisma.$use(async (params, next) => {
       const result = await next(params)
 
@@ -411,12 +384,12 @@ describe('interactive transaction', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`prisma.user.create()\` invocation in
-            /client/src/__tests__/integration/happy/interactive-transactions/test.ts:0:0
+            /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-              396 })
-              397 
-              398 const result = prisma.$transaction([
-            → 399   prisma.user.create(
+              369 })
+              370 
+              371 const result = prisma.$transaction([
+            → 372   prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -445,9 +418,77 @@ describe('interactive transaction', () => {
 
     expect(result).toBe('result')
   })
+
+  /**
+   * Two concurrent transactions should work
+   */
+  test('concurrent', async () => {
+    await Promise.all([
+      prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+      ]),
+      prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        }),
+      ]),
+    ])
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(2)
+  })
+
+  /**
+   * Makes sure that the engine does not deadlock
+   * // TODO: skipped because it does not exit properly with binary
+   */
+  testIf(getClientEngineType() === ClientEngineType.Library)('high concurrency', async () => {
+    jest.setTimeout(20000)
+
+    await prisma.user.create({
+      data: {
+        email: 'x',
+        name: 'y',
+      },
+    })
+
+    for (let i = 0; i < 5; i++) {
+      await Promise.all([
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'd' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'e' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'f' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'g' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'h' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'i' }, where: { email: 'x' } }), { timeout: 25 }),
+        prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), { timeout: 25 }),
+      ]).catch(() => {}) // we don't care for errors, there will be
+    }
+  })
 })
 
 beforeAll(async () => {
+  if (!process.env.TEST_POSTGRES_URI) {
+    throw new Error('TEST_POSTGRES_URI must be provided for this test')
+  }
+
+  process.env.TEST_POSTGRES_URI += '-interactive-transactions-concurrent-postgres'
+
+  await tearDownPostgres(process.env.TEST_POSTGRES_URI)
+  await migrateDb({
+    connectionString: process.env.TEST_POSTGRES_URI,
+    schemaPath: path.join(__dirname, 'schema.prisma'),
+  })
+
   PrismaClient = await getTestClient()
 })
 
