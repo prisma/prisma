@@ -1126,6 +1126,10 @@ describe('mysql', () => {
 
   // Update env var because it's the one that is used in the schemas tested
   process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+  process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
+    'tests-migrate-dev',
+    'tests-migrate-dev-shadowdb',
+  )
 
   const setupParams: SetupParams = {
     connectionString,
