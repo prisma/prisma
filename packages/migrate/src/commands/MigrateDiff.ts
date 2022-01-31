@@ -16,7 +16,7 @@ export class MigrateDiff implements Command {
   private static help = format(`
 ${
   process.platform === 'win32' ? '' : chalk.bold('🔍 ')
-}Compares the database schema from two arbitrary sources, and displays the differences either as a human-readable summary (by default) or an executable script.
+}Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
 
 ${chalk.bold.yellow('WARNING')} ${chalk.bold(
     `${chalk.green(`prisma migrate diff`)} is currently in Preview (${link('https://pris.ly/d/preview')}).
