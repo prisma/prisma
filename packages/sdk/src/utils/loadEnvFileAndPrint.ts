@@ -8,5 +8,5 @@ import { getEnvPaths } from './getEnvPaths'
 export function loadEnvFileAndPrint(schemaPath?: string) {
   const envPaths = getEnvPaths(schemaPath)
   const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-  envData && envData.message && console.log(envData.message)
+  envData && envData.message && console.info(envData.message)
 }

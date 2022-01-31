@@ -30,7 +30,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
     throw new NoSchemaFoundError()
   }
 
-  console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+  console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
   return schemaPath
 }
