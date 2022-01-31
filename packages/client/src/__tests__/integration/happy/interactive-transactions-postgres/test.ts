@@ -445,11 +445,7 @@ describe('interactive transactions', () => {
     expect(users.length).toBe(2)
   })
 
-  /**
-   * Makes sure that the engine does not deadlock
-   * // TODO: skipped because it does not exit properly with binary
-   */
-  testIf(getClientEngineType() === ClientEngineType.Library)('high concurrency', async () => {
+  test('high concurrency', async () => {
     jest.setTimeout(20000)
 
     await prisma.user.create({
@@ -460,7 +456,7 @@ describe('interactive transactions', () => {
     })
 
     for (let i = 0; i < 5; i++) {
-      await Promise.all([
+      await Promise.allSettled([
         prisma.$transaction((tx) => tx.user.update({ data: { name: 'a' }, where: { email: 'x' } }), { timeout: 25 }),
         prisma.$transaction((tx) => tx.user.update({ data: { name: 'b' }, where: { email: 'x' } }), { timeout: 25 }),
         prisma.$transaction((tx) => tx.user.update({ data: { name: 'c' }, where: { email: 'x' } }), { timeout: 25 }),
