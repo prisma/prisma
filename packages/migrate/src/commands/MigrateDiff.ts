@@ -1,6 +1,6 @@
 import path from 'path'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getSchemaPath, link, getCommandWithExecutor } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
 import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
