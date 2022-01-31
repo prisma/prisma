@@ -714,7 +714,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $runCommandRaw(command: object) {
       if (config.activeProvider !== 'mongodb') {
-        throw new PrismaClientValidationError(`The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`)
+        throw new PrismaClientValidationError(
+          `The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`,
+        )
       }
 
       return createPrismaPromise((txId, inTx, otelCtx) => {
@@ -1060,9 +1062,9 @@ new PrismaClient({
         await this._engine.transaction('commit', info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', info)
+        await this._engine.transaction('rollback', info).catch(() => {})
 
-        throw e
+        throw e // silent rollback, throw original error
       }
 
       return result
