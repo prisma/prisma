@@ -106,7 +106,7 @@
     "lz-string": "1.4.4",
     "make-dir": "3.1.0",
     "mariadb": "2.5.5",
-    "mssql": "7.3.0",
+    "mssql": "8.0.1",
     "pg": "8.7.1",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
