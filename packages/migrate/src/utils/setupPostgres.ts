@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { createDatabase, uriToCredentials, credentialsToUri } from '@prisma/sdk'
+import { uriToCredentials, credentialsToUri } from '@prisma/sdk'
 import { Client } from 'pg'
 
 export type SetupParams = {
@@ -14,14 +14,12 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   const credentials = uriToCredentials(connectionString)
 
   let schema = `
-  SELECT 'CREATE DATABASE tests-migrate-shadowdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'tests-migrate-shadowdb');
+  SELECT 'CREATE DATABASE ${credentials.database}-shadowdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${credentials.database}-shadowdb');
   SELECT 'CREATE DATABASE ${credentials.database}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${credentials.database}');
   `
   if (dirname !== '') {
     schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
   }
-
-  await createDatabase(connectionString).catch((e) => console.error(e))
 
   const db = new Client({
     connectionString: connectionString,

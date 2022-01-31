@@ -1,6 +1,6 @@
 import fs from 'fs'
 import path from 'path'
-import { createDatabase, uriToCredentials } from '@prisma/sdk'
+import { uriToCredentials } from '@prisma/sdk'
 import mariadb from 'mariadb'
 
 export type SetupParams = {
@@ -14,14 +14,12 @@ export async function setupMysql(options: SetupParams): Promise<void> {
   const credentials = uriToCredentials(connectionString)
 
   let schema = `
-  CREATE DATABASE IF NOT EXISTS \`tests-migrate-shadowdb\`;
+  CREATE DATABASE IF NOT EXISTS \`${credentials.database}-shadowdb\`;
   CREATE DATABASE IF NOT EXISTS \`${credentials.database}\`;
   `
   if (dirname !== '') {
     schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
   }
-
-  await createDatabase(connectionString).catch((e) => console.error(e))
 
   const db = await mariadb.createConnection({
     host: credentials.host,
