@@ -51,6 +51,7 @@ import { MigrateReset } from './commands/MigrateReset'
 import { MigrateDeploy } from './commands/MigrateDeploy'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
+import { MigrateDiff } from './commands/MigrateDiff'
 import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
 import { DbPush } from './commands/DbPush'
@@ -74,6 +75,7 @@ async function main(): Promise<number> {
       resolve: MigrateResolve.new(),
       reset: MigrateReset.new(),
       deploy: MigrateDeploy.new(),
+      diff: MigrateDiff.new(),
     }),
     db: DbCommand.new({
       execute: DbExecute.new(),

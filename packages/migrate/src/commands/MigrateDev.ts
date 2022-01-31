@@ -19,7 +19,7 @@ import path from 'path'
 import { Migrate } from '../Migrate'
 import type { DbType } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
+import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
 import { NoSchemaFoundError, MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
@@ -94,11 +94,11 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
+      throw new ExperimentalFlagWithMigrateError()
     }
 
     if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+      throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])
