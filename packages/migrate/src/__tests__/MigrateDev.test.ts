@@ -897,28 +897,15 @@ describe('postgresql', () => {
 
   // Update env var because it's the one that is used in the schemas tested
   process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+  process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
+    'tests-migrate-dev',
+    'tests-migrate-dev-shadowdb',
+  )
 
   const setupParams: SetupParams = {
     connectionString,
     dirname: '',
   }
-
-  beforeAll(async () => {
-    await tearDownPostgres(setupParams).catch((e) => {
-      console.error(e)
-    })
-
-    // // Create shadowdb db
-    // const SetupParamsShadowDb: SetupParams = {
-    //   connectionString:
-    //     process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE ||
-    //     'postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb',
-    //   dirname: '',
-    // }
-    // await setupPostgres(SetupParamsShadowDb).catch((e) => {
-    //   console.error(e)
-    // })
-  })
 
   beforeEach(async () => {
     await setupPostgres(setupParams).catch((e) => {
