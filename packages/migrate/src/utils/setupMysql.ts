@@ -24,7 +24,7 @@ export async function setupMysql(options: SetupParams): Promise<void> {
   const db = await mariadb.createConnection({
     host: credentials.host,
     port: credentials.port,
-    database: credentials.database,
+    // database: credentials.database, // use the default db
     user: credentials.user,
     password: credentials.password,
     multipleStatements: true,

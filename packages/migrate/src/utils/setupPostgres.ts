@@ -13,19 +13,20 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   const { dirname } = options
   const credentials = uriToCredentials(connectionString)
 
-  let schema = `
-  SELECT 'CREATE DATABASE ${credentials.database}-shadowdb' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${credentials.database}-shadowdb');
-  SELECT 'CREATE DATABASE ${credentials.database}' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${credentials.database}');
-  `
+  let schema = ``
   if (dirname !== '') {
     schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
   }
 
   const db = new Client({
-    connectionString: connectionString,
+    connectionString: connectionString.replace(credentials.database!, 'postgres'),
   })
 
   await db.connect()
+  await db.query(`DROP DATABASE IF EXISTS "${credentials.database}-shadowdb";`)
+  await db.query(`CREATE DATABASE "${credentials.database}-shadowdb";`)
+  await db.query(`DROP DATABASE IF EXISTS "${credentials.database}";`)
+  await db.query(`CREATE DATABASE "${credentials.database}";`)
   await db.query(schema)
   await db.end()
 }
