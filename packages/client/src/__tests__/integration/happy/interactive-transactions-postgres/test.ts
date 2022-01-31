@@ -445,6 +445,9 @@ describe('interactive transactions', () => {
     expect(users.length).toBe(2)
   })
 
+  /**
+   * Makes sure that the engine does not deadlock
+   */
   test('high concurrency', async () => {
     jest.setTimeout(20000)
 
