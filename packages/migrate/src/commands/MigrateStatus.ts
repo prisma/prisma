@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
-import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
+import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
 import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
 import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
@@ -62,11 +62,11 @@ Check the status of your database migrations
     }
 
     if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
+      throw new ExperimentalFlagWithMigrateError()
     }
 
     if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+      throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])

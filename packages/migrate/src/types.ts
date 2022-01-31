@@ -1,3 +1,6 @@
+// See engine's JSON RPC types
+// https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
+
 interface UserFacingError {
   is_panic: boolean
   message: string
@@ -108,6 +111,53 @@ export namespace EngineArgs {
     // The input script.
     script: string
   }
+
+  type MigrateDiffTargetUrl = {
+    // The url to a live database. Its schema will be considered.
+    // This will cause the migration engine to connect to the database and read from it. It will not write.
+    tag: 'url'
+    url: string
+  }
+  type MigrateDiffTargetEmpty = {
+    // An empty schema.
+    tag: 'empty'
+  }
+  type MigrateDiffTargetSchemaDatamodel = {
+    // Path to the Prisma schema file to take the datasource URL from.
+    tag: 'schemaDatamodel'
+    schema: string
+  }
+  type MigrateDiffTargetSchemaDatasource = {
+    // The path to a Prisma schema.
+    // The datasource url will be considered, and the live database it points to introspected for its schema.
+    tag: 'schemaDatasource'
+    schema: string
+  }
+  type MigrateDiffTargetMigrations = {
+    // The path to a migrations directory of the shape expected by Prisma Migrate.
+    // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
+    tag: 'migrations'
+    path: string
+  }
+  export type MigrateDiffTarget =
+    | MigrateDiffTargetUrl
+    | MigrateDiffTargetEmpty
+    | MigrateDiffTargetSchemaDatamodel
+    | MigrateDiffTargetSchemaDatasource
+    | MigrateDiffTargetMigrations
+  export interface MigrateDiffInput {
+    // The source of the schema to consider as a starting point.
+    from: MigrateDiffTarget
+    // The source of the schema to consider as a destination, or the desired end-state.
+    to: MigrateDiffTarget
+    // By default, the response will contain a human-readable diff.
+    // If you want an executable script, pass the "script": true param.
+    script: boolean
+    // The URL to a live database to use as a shadow database. The schema and data on that database will be wiped during diffing.
+    // This is only necessary when one of from or to is referencing a migrations directory as a source for the schema.
+    shadowDatabaseUrl?: string
+  }
+
   export interface SchemaPush {
     schema: string
     force: boolean
@@ -160,6 +210,7 @@ export namespace EngineResults {
     unexecutable: string[]
   }
   export interface DbExecuteOutput {}
+  export interface MigrateDiffOutput {}
 }
 
 export interface FileMap {

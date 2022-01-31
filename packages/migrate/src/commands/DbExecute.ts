@@ -24,7 +24,7 @@ There may be bugs and it's not recommended to use it in production environments.
 This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
     `--schema`,
   )} and a script, using ${chalk.green(`--stdin`)} or ${chalk.green(`--file`)}.
-The input paramaters are mutually exclusive, only 1 of each (datasource & script) must be provided.
+The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
  
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
 
@@ -51,10 +51,10 @@ ${chalk.italic('Script input, only 1 must be provided:')}
 
 ${chalk.bold('Examples')}
  
-  Execute the content of a SQL script file on the datasource URL taken from the schema
+  Execute the content of a SQL script file to the datasource URL taken from the schema
   ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 
-  Execute the SQL script from stdin on the datasource URL specified via the \`DATABASE_URL\` environment variable
+  Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
