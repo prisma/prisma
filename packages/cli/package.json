@@ -67,9 +67,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac",
+    "@prisma/fetch-engine": "3.9.0-57.f4f8863693085a9568927e4ee461cbadac14a22c",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac",
+    "@prisma/get-platform": "3.9.0-57.f4f8863693085a9568927e4ee461cbadac14a22c",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.456.0",
@@ -84,7 +84,7 @@
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.20",
     "debug": "4.3.3",
-    "dotenv": "14.2.0",
+    "dotenv": "15.0.0",
     "esbuild": "0.13.14",
     "eslint": "8.6.0",
     "eslint-config-prettier": "8.3.0",
@@ -129,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "3.9.0-52.965af575d6fda329cab342f8bff0beffc151e1ac"
+    "@prisma/engines": "3.9.0-57.f4f8863693085a9568927e4ee461cbadac14a22c"
   },
   "lint-staged": {
     "*.ts": [

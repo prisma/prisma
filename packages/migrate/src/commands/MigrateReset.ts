@@ -4,7 +4,7 @@ import chalk from 'chalk'
 import path from 'path'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
-import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
+import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
 import { NoSchemaFoundError, MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
@@ -67,11 +67,11 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
+      throw new ExperimentalFlagWithMigrateError()
     }
 
     if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+      throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
     const schemaPath = await getSchemaPath(args['--schema'])

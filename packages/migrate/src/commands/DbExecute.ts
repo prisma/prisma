@@ -24,7 +24,7 @@ There may be bugs and it's not recommended to use it in production environments.
 This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
     `--schema`,
   )} and a script, using ${chalk.green(`--stdin`)} or ${chalk.green(`--file`)}.
-The input paramaters are mutually exclusive, only 1 of each (datasource & script) must be provided.
+The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
  
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
 
@@ -51,10 +51,10 @@ ${chalk.italic('Script input, only 1 must be provided:')}
 
 ${chalk.bold('Examples')}
  
-  Execute the content of a SQL script file on the datasource URL taken from the schema
+  Execute the content of a SQL script file to the datasource URL taken from the schema
   ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
 
-  Execute the SQL script from stdin on the datasource URL specified via the \`DATABASE_URL\` environment variable
+  Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
@@ -159,22 +159,7 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
       }
     }
 
-    // TODO remove after refactor of engine
-    // errors with the following if calling engine without a schema file
-    // [Error: Could not find a schema.prisma file that is required for this command.
-    // You can either provide it with --schema, set it as `prisma.schema` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location]
-    //
-    // here await getSchemaPath() will try to resolve a schema in default location(s),
-    // so it would not fail if --url is used when a prisma.schema file is around
-    /* eslint-disable-next-line @typescript-eslint/no-unsafe-argument */
-    const requiredSchemaBecauseLegacy: any =
-      datasourceType.tag === 'schema' ? datasourceType.schema : await getSchemaPath()
-    if (!requiredSchemaBecauseLegacy) {
-      console.error(
-        'A "./prisma/schema.prisma" file is required in the current working directory when using `--url`, for legacy reasons, this requirement will be removed later.',
-      )
-    }
-    const migrate = new Migrate(requiredSchemaBecauseLegacy)
+    const migrate = new Migrate()
 
     try {
       await migrate.engine.dbExecute({

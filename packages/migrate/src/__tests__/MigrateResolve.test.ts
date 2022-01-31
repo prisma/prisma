@@ -25,8 +25,8 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateResolve.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now in Preview.
-            Replace the --early-access-feature flag with --preview-feature.
+            Prisma Migrate was in Early Access and is now Generally Available.
+            Remove the --early-access-feature flag.
           `)
   })
   it('should fail if no --applied or --rolled-back', async () => {
@@ -67,11 +67,11 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--applied=does_not_exist'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-P3017
+            P3017
 
-The migration does_not_exist could not be found. Please make sure that the migration exists, and that you included the whole name of the directory. (example: "20201231000000_initial_migration")
+            The migration does_not_exist could not be found. Please make sure that the migration exists, and that you included the whole name of the directory. (example: "20201231000000_initial_migration")
 
-`)
+          `)
   })
 
   it('--applied should fail if migration is already applied', async () => {
