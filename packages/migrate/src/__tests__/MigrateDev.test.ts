@@ -1332,11 +1332,11 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
 
   // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace(
+  process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
     'tests-migrate',
     'tests-migrate-dev',
   )
-  process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE!.replace(
+  process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
     'tests-migrate-shadowdb',
     'tests-migrate-dev-shadowdb',
   )
