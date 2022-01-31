@@ -901,16 +901,16 @@ describe('postgresql', () => {
       console.error(e)
     })
 
-    // Create shadowdb db
-    const SetupParamsShadowDb: SetupParams = {
-      connectionString:
-        process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE ||
-        'postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb',
-      dirname: '',
-    }
-    await setupPostgres(SetupParamsShadowDb).catch((e) => {
-      console.error(e)
-    })
+    // // Create shadowdb db
+    // const SetupParamsShadowDb: SetupParams = {
+    //   connectionString:
+    //     process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE ||
+    //     'postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb',
+    //   dirname: '',
+    // }
+    // await setupPostgres(SetupParamsShadowDb).catch((e) => {
+    //   console.error(e)
+    // })
   })
 
   beforeEach(async () => {
