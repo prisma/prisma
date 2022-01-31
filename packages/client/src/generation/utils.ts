@@ -224,7 +224,7 @@ export function getReturnType({
   if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
 
   if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
-    return `Promise<JsonObject>`
+    return `PrismaPromise<JsonObject>`
   }
 
   const isList = actionName === DMMF.ModelAction.findMany
