@@ -38,7 +38,8 @@ export async function request(url: string, options: RequestOptions = {}): Promis
  */
 function buildHeaders(options: RequestOptions): RequestOptions['headers'] {
   return {
-    ...options.headers,
+    // this ensures headers will always be valid
+    ...JSON.parse(JSON.stringify(options.headers)),
     'Content-Type': 'application/json',
   }
 }
@@ -85,6 +86,7 @@ function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestRe
   return new Promise((resolve, reject) => {
     const https: typeof _https = eval(`require('https')`)
 
+    console.log(httpsOptions)
     // we execute the https request and build a fetch response out of it
     const request = https.request(url, httpsOptions, (response) => {
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
