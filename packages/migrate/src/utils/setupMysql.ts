@@ -13,15 +13,8 @@ export async function setupMysql(options: SetupParams): Promise<void> {
   const { dirname } = options
   const credentials = uriToCredentials(connectionString)
 
-  let schema = `
-  CREATE DATABASE IF NOT EXISTS \`${credentials.database}-shadowdb\`;
-  CREATE DATABASE IF NOT EXISTS \`${credentials.database}\`;
-  `
-  if (dirname !== '') {
-    schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
-  }
-
-  const db = await mariadb.createConnection({
+  // Connect to default db
+  const dbDefault = await mariadb.createConnection({
     host: credentials.host,
     port: credentials.port,
     // database: credentials.database, // use the default db
@@ -29,9 +22,24 @@ export async function setupMysql(options: SetupParams): Promise<void> {
     password: credentials.password,
     multipleStatements: true,
   })
+  await dbDefault.query(`
+CREATE DATABASE IF NOT EXISTS \`${credentials.database}-shadowdb\`;
+CREATE DATABASE IF NOT EXISTS \`${credentials.database}\`;
+`)
+  await dbDefault.end()
 
-  await db.query(schema)
-  await db.end()
+  if (dirname !== '') {
+    const db = await mariadb.createConnection({
+      host: credentials.host,
+      port: credentials.port,
+      database: credentials.database, // use final db
+      user: credentials.user,
+      password: credentials.password,
+      multipleStatements: true,
+    })
+    await db.query(fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8'))
+    await db.end()
+  }
 }
 
 export async function tearDownMysql(options: SetupParams) {
