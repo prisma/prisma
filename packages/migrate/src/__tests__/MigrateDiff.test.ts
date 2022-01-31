@@ -268,11 +268,8 @@ describe('migrate diff', () => {
         '--script',
       ])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
-              Reason: [/some/rust/path:0:0] rendering to a script is not supported on MongoDB
+              Rendering to a script is not supported on MongoDB.
 
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
 
             `)
     })
