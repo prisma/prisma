@@ -13,6 +13,33 @@ export class MigrateDiff implements Command {
     return new MigrateDiff()
   }
 
+  public static helpOptions = format(
+    `${chalk.bold('Usage')}
+
+  ${chalk.dim('$')} prisma migrate diff --preview-feature [options]
+
+${chalk.bold('Options')}
+
+                                       -h, --help  Display this help message
+
+${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
+                            --from-url / --to-url  A datasource URL
+                        --from-empty / --to-empty  Flag to assume from or to is an empty datamodel
+  --from-schema-datamodel / --to-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
+--from-schema-datasource / --to-schema-datasource  Path to a Prisma schema file, uses the datasource url for the diff
+              --from-migrations / --to-migrations  Path to the Prisma Migrate migrations directory
+
+${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
+                            --shadow-database-url  URL for the shadow database
+
+${chalk.italic('Output format:')}
+                                         --script  Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+
+${chalk.bold('Flag')}
+
+                                --preview-feature  Run Preview Prisma commands`,
+  )
+
   private static help = format(`
 ${
   process.platform === 'win32' ? '' : chalk.bold('🔍 ')
@@ -36,31 +63,7 @@ The default output is a human readable diff, it can be rendered as SQL using \`-
 
 See the documentation for more information ${link('https://pris.ly/d/migrate-diff')}
 
-${chalk.bold('Usage')}
-
-  ${chalk.dim('$')} prisma migrate diff --preview-feature [options]
-
-${chalk.bold('Options')}
-
-                                       -h, --help  Display this help message
-
-${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
-                            --from-url / --to-url  A datasource URL
-                        --from-empty / --to-empty  Flag to assume from or to is an empty datamodel
-  --from-schema-datamodel / --to-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
---from-schema-datasource / --to-schema-datasource  Path to a Prisma schema file, uses the datasource url for the diff
-              --from-migrations / --to-migrations  Path to the Prisma Migrate migrations directory
-
-${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
-                            --shadow-database-url  URL for the shadow database
-
-${chalk.italic('Output format:')}
-                                         --script  Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
-
-${chalk.bold('Flag')}
-
-                                --preview-feature  Run Preview Prisma commands
-
+${this.helpOptions}
 ${chalk.bold('Examples')}
  
   From database to database as summary
@@ -167,8 +170,7 @@ ${chalk.bold('Examples')}
       if (numberOfToParameterProvided !== 1) {
         errorMessages.push(`${numberOfToParameterProvided} \`--to-...\` parameter(s) provided. 1 must be provided.`)
       }
-      throw new Error(`\n${errorMessages.join('\n')}
-See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
+      return this.help(`${errorMessages.join('\n')}`)
     }
 
     let from: EngineArgs.MigrateDiffTarget
@@ -232,7 +234,7 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
       result = await migrate.engine.migrateDiff({
         from: from!,
         to: to!,
-        script: args['--script'] || false,
+        script: args['--script'] || false, // default is false
         shadowDatabaseUrl: args['--shadow-database-url'],
       })
     } finally {
@@ -247,7 +249,7 @@ See ${chalk.green(getCommandWithExecutor('prisma migrate diff -h'))}`)
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateDiff.help}`)
+      throw new HelpError(`\n${error}\n\n${MigrateDiff.helpOptions}`)
     }
     return MigrateDiff.help
   }
