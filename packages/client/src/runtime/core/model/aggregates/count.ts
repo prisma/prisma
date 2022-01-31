@@ -9,14 +9,16 @@ import { aggregate } from './aggregate'
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export async function count(client: Client, userArgs: object | undefined, modelAction: ModelAction) {
+export function count(client: Client, userArgs: object | undefined, modelAction: ModelAction) {
+  // count is an aggregate, we reuse them but hijack their unpacker
+
   if (typeof userArgs?.['select'] === 'object') {
-    const result = await aggregate(client, { _count: userArgs['select'] }, modelAction)
-
-    return (result as object)['_count'] // for selects, just return the relevant part
+    return aggregate(client, { _count: userArgs['select'] }, (p) =>
+      modelAction({ ...p, unpacker: (data) => p.unpacker?.(data)['_count'] }),
+    ) // for count selects, return the relevant part of the result
   } else {
-    const result = await aggregate(client, { _count: { _all: true } }, modelAction)
-
-    return (result as object)['_count']['_all'] // for a simple count, return numbers
+    return aggregate(client, { _count: { _all: true } }, (p) =>
+      modelAction({ ...p, unpacker: (data) => p.unpacker?.(data)['_count']['_all'] }),
+    ) // for simple counts, just return the result that is a number
   }
 }
