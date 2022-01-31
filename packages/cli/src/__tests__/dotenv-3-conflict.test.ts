@@ -7,7 +7,7 @@ it('should throw error', async () => {
   expect.assertions(1)
 
   await expect(
-    ctx.cli('version').catch((e) => {
+    ctx.cli('validate').catch((e) => {
       const message = e.message.split('\n').slice(1).join('\n')
       throw new Error(message)
     }),

@@ -1,7 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`appends when .env present 1`] = `
-Environment variables loaded from .env
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
@@ -47,7 +46,6 @@ https://pris.ly/d/getting-started
 `;
 
 exports[`warns when DATABASE_URL present in .env  1`] = `
-Environment variables loaded from .env
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
   You can now open it in your favorite editor.
