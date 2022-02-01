@@ -116,7 +116,7 @@ ${chalk.bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    loadEnvFile(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
     if (!schemaPath) return ''

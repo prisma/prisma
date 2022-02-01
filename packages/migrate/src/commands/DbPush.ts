@@ -79,7 +79,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       throw new DbPushForceFlagRenamedError()
     }
 
-    loadEnvFile(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

@@ -70,7 +70,7 @@ Check the status of your database migrations
       throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    loadEnvFile(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

@@ -68,7 +68,7 @@ ${chalk.bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    loadEnvFile(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

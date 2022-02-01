@@ -55,7 +55,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       await legacyTsNodeScriptWarning()
     }
 
-    loadEnvFile(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     // Print warning if user is using --schema
     if (args['--schema']) {
