@@ -1,10 +1,10 @@
-import { jestConsoleContext, jestContext, loadEnvFileAndPrint } from '@prisma/sdk'
+import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should read expanded env vars', async () => {
   ctx.fixture('dotenv-6-expand')
-  loadEnvFileAndPrint('./expand/schema.prisma')
+  loadEnvFile('./expand/schema.prisma')
 
   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
 

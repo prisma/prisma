@@ -260,6 +260,7 @@ COMMIT;`,
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
 
     const setupParams: SetupParams = {
       connectionString,
@@ -290,6 +291,18 @@ DROP SCHEMA "test-dbexecute";`
       const result = DbExecute.new().parse([
         '--preview-feature',
         '--schema=./prisma/schema.prisma',
+        '--file=./script.sql',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    it('should pass when using env var from .env file  with --file --schema', async () => {
+      ctx.fixture('schema-only-postgresql')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse([
+        '--preview-feature',
+        '--schema=./prisma/using-dotenv.prisma',
         '--file=./script.sql',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)

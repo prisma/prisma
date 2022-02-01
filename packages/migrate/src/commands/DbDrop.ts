@@ -1,5 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFileAndPrint } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import { arg, format, getSchemaDir, HelpError, isError, isCi, dropDatabase, link } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
@@ -68,7 +68,7 @@ ${chalk.bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'])
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

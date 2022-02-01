@@ -9,7 +9,7 @@ import {
   format,
   HelpError,
   canConnectToDatabase,
-  loadEnvFileAndPrint,
+  loadEnvFile,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -68,7 +68,7 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'])
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

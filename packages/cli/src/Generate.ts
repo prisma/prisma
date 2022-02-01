@@ -15,7 +15,7 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  loadEnvFileAndPrint,
+  loadEnvFile,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -116,7 +116,7 @@ ${chalk.bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'])
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
     if (!schemaPath) return ''

@@ -1,6 +1,6 @@
 import path from 'path'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, link } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
 import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
@@ -146,6 +146,8 @@ ${chalk.bold('Examples')}
     if (!args['--preview-feature']) {
       throw new MigrateDiffNeedsPreviewFeatureFlagError()
     }
+
+    loadEnvFile(args['--schema'], false)
 
     const numberOfFromParameterProvided =
       Number(Boolean(args['--from-empty'])) +

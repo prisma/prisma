@@ -1,5 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFileAndPrint } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import { arg, format, HelpError, isError, getCommandWithExecutor, link } from '@prisma/sdk'
 import chalk from 'chalk'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
@@ -78,7 +78,7 @@ ${chalk.bold('Examples')}
       throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'])
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

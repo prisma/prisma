@@ -1,5 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFileAndPrint } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import { arg, format, getConfig, getDMMF, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -51,7 +51,7 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'])
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
