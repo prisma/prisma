@@ -282,7 +282,6 @@ describe('migrate diff', () => {
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
 
     const setupParams: SetupParams = {
       connectionString,
@@ -326,6 +325,7 @@ describe('migrate diff', () => {
 
     it('should diff when using env var from .env file --from-schema-datasource --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-postgresql')
+      process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',

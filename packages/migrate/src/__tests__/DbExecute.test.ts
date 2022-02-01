@@ -260,7 +260,6 @@ COMMIT;`,
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
 
     const setupParams: SetupParams = {
       connectionString,
@@ -298,6 +297,7 @@ DROP SCHEMA "test-dbexecute";`
 
     it('should pass when using env var from .env file  with --file --schema', async () => {
       ctx.fixture('schema-only-postgresql')
+      process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
 
       fs.writeFileSync('script.sql', sqlScript)
       const result = DbExecute.new().parse([
