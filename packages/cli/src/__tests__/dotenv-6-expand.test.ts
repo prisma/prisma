@@ -4,7 +4,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should read expanded env vars', async () => {
   ctx.fixture('dotenv-6-expand')
-  loadEnvFile('./expand/schema.prisma')
+  loadEnvFile('./expand/schema.prisma', true)
 
   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
 
