@@ -1,6 +1,6 @@
 import path from 'path'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, link } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
 import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
@@ -179,6 +179,9 @@ ${chalk.bold('Examples')}
         tag: 'empty',
       }
     } else if (args['--from-schema-datasource']) {
+      // Load .env file that might be needed
+      loadEnvFile(args['--from-schema-datasource'], false)
+
       from = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--from-schema-datasource']),
@@ -206,6 +209,9 @@ ${chalk.bold('Examples')}
         tag: 'empty',
       }
     } else if (args['--to-schema-datasource']) {
+      // Load .env file that might be needed
+      loadEnvFile(args['--to-schema-datasource'], false)
+
       to = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--to-schema-datasource']),

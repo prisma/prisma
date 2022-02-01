@@ -1,10 +1,10 @@
-import { jestConsoleContext, jestContext, loadEnvFileAndPrint } from '@prisma/sdk'
+import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should not load root .env file', async () => {
   ctx.fixture('dotenv-5-only-root')
-  loadEnvFileAndPrint()
+  loadEnvFile(undefined, true)
 
   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
 

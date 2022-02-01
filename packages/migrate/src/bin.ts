@@ -9,34 +9,9 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
-import { HelpError, isError, tryLoadEnvs, arg, getEnvPaths } from '@prisma/sdk'
+import { HelpError, isError } from '@prisma/sdk'
 
 const commandArray = process.argv.slice(2)
-
-// Parse CLI arguments
-const args = arg(
-  commandArray,
-  {
-    '--schema': String,
-    '--telemetry-information': String,
-  },
-  false,
-  true,
-)
-
-//
-// Read .env file only if next to schema.prisma
-//
-// if the CLI is called without any command like `dev` we can ignore .env loading
-if (process.argv.length > 2) {
-  try {
-    const envPaths = getEnvPaths(args['--schema'])
-    const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && envData.message && console.log(envData.message)
-  } catch (e) {
-    console.log(e)
-  }
-}
 
 /**
  * Dependencies
@@ -56,7 +31,7 @@ import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
 import { DbPush } from './commands/DbPush'
 import { DbPull } from './commands/DbPull'
-import { DbDrop } from './commands/DbDrop'
+// import { DbDrop } from './commands/DbDrop'
 import { DbSeed } from './commands/DbSeed'
 import { handlePanic } from './utils/handlePanic'
 import { enginesVersion } from '@prisma/engines-version'

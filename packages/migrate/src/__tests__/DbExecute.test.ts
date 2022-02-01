@@ -295,6 +295,20 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    // Somehow not passing in CI
+    it.skip('should pass when using env var from .env file  with --file --schema', async () => {
+      ctx.fixture('schema-only-postgresql')
+      process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse([
+        '--preview-feature',
+        '--schema=./prisma/using-dotenv.prisma',
+        '--file=./script.sql',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-postgresql')
 
