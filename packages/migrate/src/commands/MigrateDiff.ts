@@ -147,8 +147,6 @@ ${chalk.bold('Examples')}
       throw new MigrateDiffNeedsPreviewFeatureFlagError()
     }
 
-    loadEnvFile(args['--schema'], false)
-
     const numberOfFromParameterProvided =
       Number(Boolean(args['--from-empty'])) +
       Number(Boolean(args['--from-schema-datasource'])) +
@@ -181,6 +179,9 @@ ${chalk.bold('Examples')}
         tag: 'empty',
       }
     } else if (args['--from-schema-datasource']) {
+      // Load .env file that might be needed
+      loadEnvFile(args['--from-schema-datasource'], false)
+
       from = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--from-schema-datasource']),
@@ -208,6 +209,9 @@ ${chalk.bold('Examples')}
         tag: 'empty',
       }
     } else if (args['--to-schema-datasource']) {
+      // Load .env file that might be needed
+      loadEnvFile(args['--to-schema-datasource'], false)
+
       to = {
         tag: 'schemaDatasource',
         schema: path.resolve(args['--to-schema-datasource']),
