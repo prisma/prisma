@@ -33,27 +33,16 @@ export async function setupMSSQL(options: SetupParams, databaseName: string): Pr
   const connection = await connectionPool.connect()
 
   try {
-    if (databaseName === 'tests-migrate') {
-      await connection.query(`
-CREATE DATABASE [tests-migrate-shadowdb]
-CREATE DATABASE [tests-migrate]
-    `)
-    } else {
-      await connection.query(`
+    await connection.query(`
+CREATE DATABASE [${databaseName}-shadowdb]
 CREATE DATABASE [${databaseName}]
-    `)
-    }
+`)
   } catch (e) {
     console.warn(e)
   }
 
   if (dirname !== '') {
-    let schema = ''
-    if (databaseName === 'tests-migrate') {
-      schema = 'USE [tests-migrate]\n'
-    } else {
-      schema = `USE [${databaseName}]\n`
-    }
+    let schema = `USE [${databaseName}]\n`
     schema += fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8')
     await connection.query(schema)
   }
@@ -61,21 +50,15 @@ CREATE DATABASE [${databaseName}]
   await connection.close()
 }
 
-export async function tearDownMSSQL(options: SetupParams, databaseName: 'tests-migrate' | string) {
+export async function tearDownMSSQL(options: SetupParams, databaseName: string) {
   const { connectionString } = options
   const config = getMSSQLConfig(connectionString)
   const connectionPool = new mssql.ConnectionPool(config)
   const connection = await connectionPool.connect()
 
-  if (databaseName === 'tests-migrate') {
-    await connection.query(`
-DROP DATABASE IF EXISTS "tests-migrate-shadowdb";
-DROP DATABASE IF EXISTS "tests-migrate";
-`)
-  } else {
-    await connection.query(`
+  await connection.query(`
+DROP DATABASE IF EXISTS "${databaseName}-shadowdb";
 DROP DATABASE IF EXISTS "${databaseName}";
 `)
-  }
   await connection.close()
 }

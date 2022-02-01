@@ -278,7 +278,7 @@ describe('migrate diff', () => {
   describe('postgresql', () => {
     const connectionString = (
       process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-migrate-diff')
+    ).replace('tests-migrate', 'tests-migrate-diff')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
@@ -347,7 +347,7 @@ describe('migrate diff', () => {
   describe('mysql', () => {
     const connectionString = (
       process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    ).replace('tests-migrate', 'tests-migrate-diff')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
@@ -417,7 +417,7 @@ describe('migrate diff', () => {
     const jdbcConnectionString = (
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
       'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    ).replace('tests-migrate', 'tests-migrate-diff')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
@@ -428,13 +428,13 @@ describe('migrate diff', () => {
     }
 
     beforeAll(async () => {
-      await setupMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+      await setupMSSQL(setupParams, 'tests-migrate-diff').catch((e) => {
         console.error(e)
       })
     })
 
     afterAll(async () => {
-      await tearDownMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+      await tearDownMSSQL(setupParams, 'tests-migrate-diff').catch((e) => {
         console.error(e)
       })
     })
