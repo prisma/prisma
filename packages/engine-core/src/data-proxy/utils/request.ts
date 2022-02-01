@@ -86,7 +86,6 @@ function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestRe
   return new Promise((resolve, reject) => {
     const https: typeof _https = eval(`require('https')`)
 
-    console.log(httpsOptions)
     // we execute the https request and build a fetch response out of it
     const request = https.request(url, httpsOptions, (response) => {
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
