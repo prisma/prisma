@@ -1,5 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFileAndPrint } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import { arg, format, HelpError, isError, getSchemaPath, logger } from '@prisma/sdk'
 import chalk from 'chalk'
 import {
@@ -55,7 +55,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       await legacyTsNodeScriptWarning()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     // Print warning if user is using --schema
     if (args['--schema']) {

@@ -1,7 +1,7 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/sdk'
-import { loadEnvFileAndPrint } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import {
   arg,
   BinaryType,
@@ -67,7 +67,7 @@ export class Version implements Command {
       return this.help()
     }
 
-    loadEnvFileAndPrint()
+    loadEnvFile(undefined, true)
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()

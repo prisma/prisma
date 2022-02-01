@@ -1,6 +1,6 @@
 import { enginesVersion } from '@prisma/engines'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, loadEnvFileAndPrint } from '@prisma/sdk'
+import { arg, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
 import { StudioServer } from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'
@@ -79,7 +79,7 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 

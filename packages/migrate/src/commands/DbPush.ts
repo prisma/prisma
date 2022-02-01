@@ -1,5 +1,5 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFileAndPrint } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import { arg, format, formatms, HelpError, isError, logger, isCi, getCommandWithExecutor } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
@@ -79,7 +79,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       throw new DbPushForceFlagRenamedError()
     }
 
-    loadEnvFileAndPrint(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
