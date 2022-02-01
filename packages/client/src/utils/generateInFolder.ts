@@ -74,11 +74,17 @@ export async function generateInFolder({
         overwrite: true,
       })
     } else {
-      await getPackedPackage(
-        '@prisma/client',
-        outputDir,
-        process.cwd().endsWith('output-directory') ? path.join(__dirname, '..', '..') : undefined,
-      )
+      try {
+        await getPackedPackage('@prisma/client', outputDir)
+      } catch (err) {
+        try {
+          // Fallback to packages/client/package.json
+          await getPackedPackage('@prisma/client', outputDir, path.join(__dirname, '..', '..'))
+        } catch {
+          // If fallback fails, throw the original error
+          throw err
+        }
+      }
     }
   }
 
