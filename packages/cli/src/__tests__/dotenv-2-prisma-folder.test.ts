@@ -4,7 +4,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should read .env file in prisma folder', async () => {
   ctx.fixture('dotenv-2-prisma-folder')
-  loadEnvFile()
+  loadEnvFile(undefined, true)
 
   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
 

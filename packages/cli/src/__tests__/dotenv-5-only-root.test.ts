@@ -4,7 +4,7 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should not load root .env file', async () => {
   ctx.fixture('dotenv-5-only-root')
-  loadEnvFile()
+  loadEnvFile(undefined, true)
 
   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
 
