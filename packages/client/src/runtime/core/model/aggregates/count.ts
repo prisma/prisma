@@ -15,7 +15,7 @@ export function count(client: Client, userArgs: UserArgs | undefined, modelActio
 
   const { select, ..._userArgs } = userArgs ?? {} // exclude select
   if (typeof userArgs?.['select'] === 'object') {
-    // the original select clause is transposed into the _count field
+    // we transpose the original select clause into _count field
     return aggregate(client, { ..._userArgs, _count: userArgs['select'] }, (p) =>
       modelAction({ ...p, unpacker: (data) => p.unpacker?.(data)['_count'] }),
     ) // for count selects, return the relevant part of the result

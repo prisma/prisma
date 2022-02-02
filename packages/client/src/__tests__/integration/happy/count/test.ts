@@ -65,12 +65,43 @@ describe('count', () => {
     `)
   })
 
-  test('select all', async () => {
+  test('select all true', async () => {
     const value = await prisma.user.count({
       select: true,
     })
 
     expect(value).toMatchInlineSnapshot(`10`)
+  })
+
+  // TODO: this should happen but we always make selects to become true
+  test.skip('select all false', async () => {
+    const value = prisma.user.count({
+      select: false,
+    })
+
+    // atm, succeeds with no error, value === 10 (like the test above)
+    await expect(value).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.user.count()\` invocation:
+
+            {
+              select: {
+                _count: {
+                  select: {
+            ?       _all?: true,
+            ?       id?: true,
+            ?       email?: true,
+            ?       age?: true,
+            ?       name?: true
+                  }
+                }
+              }
+            }
+
+
+            The \`select\` statement for type UserCountAggregateOutputType needs at least one truthy value.
+
+          `)
   })
 
   test('select mixed', async () => {
@@ -107,28 +138,28 @@ describe('count', () => {
     } catch (err) {
       expect(err.message).toMatchInlineSnapshot(`
 
-              Invalid \`prisma.user.count()\` invocation:
+                      Invalid \`prisma.user.count()\` invocation:
 
-              {
-                select: {
-                  _count: {
-                    select: {
-              ?       _all?: true,
-              ?       email?: true,
-              ?       age?: true,
-              ?       name?: true,
-                      posts: true,
-                      ~~~~~
-              ?       id?: true
-                    }
-                  }
-                }
-              }
+                      {
+                        select: {
+                          _count: {
+                            select: {
+                      ?       _all?: true,
+                      ?       email?: true,
+                      ?       age?: true,
+                      ?       name?: true,
+                              posts: true,
+                              ~~~~~
+                      ?       id?: true
+                            }
+                          }
+                        }
+                      }
 
 
-              Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
+                      Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
 
-            `)
+                  `)
     }
   })
 })
