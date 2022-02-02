@@ -25,7 +25,7 @@ export function desugarUserArgs(userArgs: UserArgs) {
 
       return aggregateArgs
     },
-    { select: {} } as UserArgs,
+    { select: {} } as UserArgs & { select: UserArgs },
   )
 }
 

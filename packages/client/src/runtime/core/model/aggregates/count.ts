@@ -11,12 +11,12 @@ import { aggregate } from './aggregate'
  * @returns
  */
 export function count(client: Client, userArgs: UserArgs | undefined, modelAction: ModelAction) {
-  // count is an aggregate, we reuse them but hijack their unpacker
-
   const { select, ..._userArgs } = userArgs ?? {} // exclude select
-  if (typeof userArgs?.['select'] === 'object') {
-    // we transpose the original select clause into _count field
-    return aggregate(client, { ..._userArgs, _count: userArgs['select'] }, (p) =>
+
+  // count is an aggregate, we reuse that but hijack its unpacker
+  if (typeof select === 'object') {
+    // we transpose the original select field into the _count field
+    return aggregate(client, { ..._userArgs, _count: select }, (p) =>
       modelAction({ ...p, unpacker: (data) => p.unpacker?.(data)['_count'] }),
     ) // for count selects, return the relevant part of the result
   } else {

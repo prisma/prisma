@@ -17,7 +17,7 @@ function desugarUserArgs(userArgs: UserArgs) {
   // we desugar the array into { [key]: boolean }
   if (Array.isArray(userArgs['by'])) {
     for (const key of userArgs['by']) {
-      if (_userArgs['select'] && typeof key === 'string') {
+      if (typeof key === 'string') {
         _userArgs['select'][key] = true
       }
     }
