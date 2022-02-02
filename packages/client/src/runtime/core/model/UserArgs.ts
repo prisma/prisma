@@ -5,4 +5,4 @@ export type UserArgs = {
   [K in string]: UserArgsProp | UserArgsProp[]
 }
 
-type UserArgsProp = UserArgs | string | number | boolean | bigint | object | null | undefined
+type UserArgsProp = UserArgs | string | number | boolean | bigint | null | undefined
