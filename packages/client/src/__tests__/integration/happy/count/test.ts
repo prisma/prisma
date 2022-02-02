@@ -67,41 +67,18 @@ describe('count', () => {
 
   test('select all true', async () => {
     const value = await prisma.user.count({
-      select: true,
+      select: true, // count with a selection
     })
 
     expect(value).toMatchInlineSnapshot(`10`)
   })
 
-  // TODO: this should happen but we always make selects to become true
-  test.skip('select all false', async () => {
-    const value = prisma.user.count({
-      select: false,
+  test('select all false', async () => {
+    const value = await prisma.user.count({
+      select: false, // count with no selection
     })
 
-    // atm, succeeds with no error, value === 10 (like the test above)
-    await expect(value).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-            Invalid \`prisma.user.count()\` invocation:
-
-            {
-              select: {
-                _count: {
-                  select: {
-            ?       _all?: true,
-            ?       id?: true,
-            ?       email?: true,
-            ?       age?: true,
-            ?       name?: true
-                  }
-                }
-              }
-            }
-
-
-            The \`select\` statement for type UserCountAggregateOutputType needs at least one truthy value.
-
-          `)
+    expect(value).toMatchInlineSnapshot(`10`)
   })
 
   test('select mixed', async () => {
