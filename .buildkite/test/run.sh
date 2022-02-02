@@ -30,6 +30,4 @@ npm -v
 
 pnpm run setup
 
-export DEBUG='prisma*'
-
 pnpm run test
