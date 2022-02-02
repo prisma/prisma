@@ -4,6 +4,7 @@ import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import type { DMMF } from '@prisma/generator-helper'
 import type { ModelAction } from './applyModel'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
+import type { UserArgs } from './UserArgs'
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
@@ -48,10 +49,14 @@ function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
  * // }
  * ```
  */
-function getNextUserArgs(callArgs: object | undefined, prevArgs: object | undefined, nextDataPath: string[]) {
+function getNextUserArgs(
+  callArgs: UserArgs | undefined,
+  prevArgs: UserArgs | undefined,
+  nextDataPath: string[],
+): UserArgs {
   if (prevArgs === undefined) return callArgs ?? {}
 
-  return deepSet(prevArgs, nextDataPath, callArgs || true) as object
+  return deepSet(prevArgs, nextDataPath, callArgs || true)
 }
 
 /**
@@ -77,7 +82,7 @@ export function applyFluent(
   modelAction: ModelAction,
   fluentPropName?: string,
   prevDataPath?: string[],
-  prevUserArgs?: object,
+  prevUserArgs?: UserArgs,
 ) {
   // we retrieve the model that is described from the DMMF
   const dmmfModel = client._dmmf.modelMap[dmmfModelName]
@@ -89,7 +94,7 @@ export function applyFluent(
   )
 
   // we return a regular model action but proxy its return
-  return (userArgs?: object) => {
+  return (userArgs?: UserArgs) => {
     // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
