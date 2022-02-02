@@ -30,4 +30,6 @@ npm -v
 
 pnpm run setup
 
+export DEBUG = '*'
+
 pnpm run test

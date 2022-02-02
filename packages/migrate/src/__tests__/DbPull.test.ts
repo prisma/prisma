@@ -338,7 +338,7 @@ describe('common/sqlite', () => {
   })
 })
 
-describe('postgresql', () => {
+describe.only('postgresql', () => {
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql'),
