@@ -193,14 +193,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                          // *** WARNING ***
-                                                                                                                                                                          // 
-                                                                                                                                                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                          // - Model "AwesomeNewPost"
-                                                                                                                                                                          // - Model "AwesomeProfile"
-                                                                                                                                                                          // - Model "AwesomeUser"
-                                                                                                                                                                          // 
-                                                                                                                `)
+                                                                                                                                                                                      // *** WARNING ***
+                                                                                                                                                                                      // 
+                                                                                                                                                                                      // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                      // - Model "AwesomeNewPost"
+                                                                                                                                                                                      // - Model "AwesomeProfile"
+                                                                                                                                                                                      // - Model "AwesomeUser"
+                                                                                                                                                                                      // 
+                                                                                                                        `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -377,6 +377,47 @@ describe('postgresql', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection should load .env file with --print', async () => {
+    ctx.fixture('schema-only-postgresql')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            P1001
+
+            Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+
+            Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
+
+          `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection should load .env file without --print', async () => {
+    ctx.fixture('schema-only-postgresql')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--schema=./prisma/using-dotenv.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            P1001
+
+            Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+
+            Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
+
+          `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/using-dotenv.prisma
+      Environment variables loaded from prisma/.env
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "fromdotenvdoesnotexist:5432"
+
+      Introspecting based on datasource defined in prisma/using-dotenv.prisma …
+
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
