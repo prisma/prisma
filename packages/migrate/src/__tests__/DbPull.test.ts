@@ -338,7 +338,7 @@ describe('common/sqlite', () => {
   })
 })
 
-describe.only('postgresql', () => {
+describe('postgresql', () => {
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql'),
@@ -382,16 +382,15 @@ describe.only('postgresql', () => {
 
   test('introspection should load .env file with --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            P1001
+    expect.assertions(5)
 
-            Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+    try {
+      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
+    } catch (e) {
+      expect(e.code).toEqual('P1001')
+      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+    }
 
-            Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
-
-          `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -399,16 +398,15 @@ describe.only('postgresql', () => {
 
   test('introspection should load .env file without --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--schema=./prisma/using-dotenv.prisma'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            P1001
+    expect.assertions(5)
 
-            Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+    try {
+      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'])
+    } catch (e) {
+      expect(e.code).toEqual('P1001')
+      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+    }
 
-            Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
-
-          `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/using-dotenv.prisma
