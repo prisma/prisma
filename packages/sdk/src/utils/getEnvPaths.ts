@@ -32,9 +32,6 @@ export function getEnvPaths(schemaPath?: string | null, opts: { cwd: string } = 
     './prisma/.env', // 3 - Check ./prisma directory for .env
     './.env', // 4 - Check cwd for .env
   ]
-  debug('opts.cwd', opts.cwd)
-  debug('schemaPath', schemaPath)
-  debug('schemaEnvPaths', schemaEnvPaths)
   const schemaEnvPath = schemaEnvPaths.find(exists)
   return { rootEnvPath, schemaEnvPath }
 }
