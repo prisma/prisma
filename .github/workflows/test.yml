@@ -410,7 +410,6 @@ jobs:
       - run: pnpm run test
         working-directory: packages/migrate
         env:
-          DEBUG: 'prisma*'
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
