@@ -122,7 +122,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 5.9.0
       '@typescript-eslint/parser': 5.9.0
       chalk: 4.1.2
-      checkpoint-client: 1.1.20
+      checkpoint-client: 1.1.21
       debug: 4.3.3
       dotenv: 16.0.0
       esbuild: 0.13.14
@@ -174,7 +174,7 @@ importers:
       '@typescript-eslint/eslint-plugin': 5.9.0_bd2fd93dbcc607ad2f21b784bccfe0c8
       '@typescript-eslint/parser': 5.9.0_eslint@8.6.0+typescript@4.5.4
       chalk: 4.1.2
-      checkpoint-client: 1.1.20
+      checkpoint-client: 1.1.21
       debug: 4.3.3
       dotenv: 16.0.0
       esbuild: 0.13.14
@@ -699,7 +699,7 @@ importers:
       archiver: 5.3.0
       arg: 5.0.1
       chalk: 4.1.2
-      checkpoint-client: 1.1.20
+      checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
       dotenv: 16.0.0
       esbuild: 0.13.14
@@ -750,7 +750,7 @@ importers:
       archiver: 5.3.0
       arg: 5.0.1
       chalk: 4.1.2
-      checkpoint-client: 1.1.20
+      checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
       dotenv: 16.0.0
       escape-string-regexp: 4.0.0
@@ -2957,6 +2957,20 @@ packages:
       ms: 2.1.3
       node-fetch: 2.6.1
       uuid: 8.3.2
+    dev: true
+
+  /checkpoint-client/1.1.21:
+    resolution: {integrity: sha512-bcrcnJncn6uGhj06IIsWvUBPyJWK1ZezDbLCJ//IQEYXkUobhGvOOBlHe9K5x0ZMkAZGinPB4T+lTUmFz/acWQ==}
+    dependencies:
+      ci-info: 3.3.0
+      env-paths: 2.2.1
+      fast-write-atomic: 0.2.1
+      make-dir: 3.1.0
+      ms: 2.1.3
+      node-fetch: 2.6.7
+      uuid: 8.3.2
+    transitivePeerDependencies:
+      - encoding
 
   /chokidar/3.5.2:
     resolution: {integrity: sha512-ekGhOnNVPgT77r4K/U3GDhu+FQ2S8TnK/s2KbIGXi0SZWuwkZ2QNyfWdZW+TVfn84DpEP7rLeCt2UI6bJ8GwbQ==}
@@ -2983,6 +2997,7 @@ packages:
 
   /ci-info/3.1.1:
     resolution: {integrity: sha512-kdRWLBIJwdsYJWYJFtAFFYxybguqeF91qpZaggjG5Nf8QKdizFG2hjqvaTXbxFIcYbSaD74KpAXv6BSm17DHEQ==}
+    dev: true
 
   /ci-info/3.3.0:
     resolution: {integrity: sha512-riT/3vI5YpVH6/qomlDnJow6TBee2PBKSEpx3O32EGPYbWGIRsIlGRms3Sm74wYE1JMo8RnO04Hb12+v1J5ICw==}
@@ -6399,6 +6414,7 @@ packages:
   /node-fetch/2.6.1:
     resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
     engines: {node: 4.x || >=6.0.0}
+    dev: true
 
   /node-fetch/2.6.7:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
