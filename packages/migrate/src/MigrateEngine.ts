@@ -148,10 +148,10 @@ export class MigrateEngine {
           delete this.listeners[result.id]
         }
       } else if (result.method) {
-          // This is a notification.
-          if (result.method === "print" && result.params?.content) {
-              process.stdout.write(result.params.content)
-          }
+        // This is a notification.
+        if (result.method === 'print' && result.params?.content) {
+          console.info(result.params.content)
+        }
       }
     }
   }
