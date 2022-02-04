@@ -14952,6 +14952,7 @@ export namespace Prisma {
   }
 
   export type MCreateInput = {
+    n?: NCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -14964,11 +14965,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    n?: NCreateNestedManyWithoutMInput
   }
 
   export type MUncheckedCreateInput = {
     id?: number
+    n?: NUncheckedCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -14984,6 +14985,7 @@ export namespace Prisma {
   }
 
   export type MUpdateInput = {
+    n?: NUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -14996,11 +14998,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    n?: NUpdateManyWithoutMInput
   }
 
   export type MUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    n?: NUncheckedUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15063,6 +15065,7 @@ export namespace Prisma {
   }
 
   export type NCreateInput = {
+    m?: MCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15075,11 +15078,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    m?: MCreateNestedManyWithoutNInput
   }
 
   export type NUncheckedCreateInput = {
     id?: number
+    m?: MUncheckedCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15095,6 +15098,7 @@ export namespace Prisma {
   }
 
   export type NUpdateInput = {
+    m?: MUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15107,11 +15111,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    m?: MUpdateManyWithoutNInput
   }
 
   export type NUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    m?: MUncheckedUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15174,6 +15178,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateInput = {
+    many?: ManyRequiredCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15186,11 +15191,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedCreateInput = {
     id?: number
+    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15203,10 +15208,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUpdateInput = {
+    many?: ManyRequiredUpdateManyWithoutOneInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15219,11 +15224,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    many?: ManyRequiredUpdateManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15236,7 +15241,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
   }
 
   export type OneOptionalCreateManyInput = {
@@ -15287,6 +15291,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateInput = {
+    one?: OneOptionalCreateNestedOneWithoutManyInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15299,7 +15304,6 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    one?: OneOptionalCreateNestedOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedCreateInput = {
@@ -15320,6 +15324,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUpdateInput = {
+    one?: OneOptionalUpdateOneWithoutManyInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15332,7 +15337,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    one?: OneOptionalUpdateOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedUpdateInput = {
@@ -15402,6 +15406,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1CreateInput = {
+    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15414,7 +15419,6 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedCreateInput = {
@@ -15435,6 +15439,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UpdateInput = {
+    opti?: OptionalSide2UpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15447,7 +15452,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide2UpdateOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedUpdateInput = {
@@ -15517,6 +15521,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2CreateInput = {
+    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15529,11 +15534,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedCreateInput = {
     id?: number
+    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15546,10 +15551,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UpdateInput = {
+    opti?: OptionalSide1UpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15562,11 +15567,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide1UpdateOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15579,7 +15584,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
   }
 
   export type OptionalSide2CreateManyInput = {
@@ -17193,7 +17197,26 @@ export namespace Prisma {
     connect?: Enumerable<NWhereUniqueInput>
   }
 
+  export type NUncheckedCreateNestedManyWithoutMInput = {
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
+    connect?: Enumerable<NWhereUniqueInput>
+  }
+
   export type NUpdateManyWithoutMInput = {
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
+    upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
+    set?: Enumerable<NWhereUniqueInput>
+    disconnect?: Enumerable<NWhereUniqueInput>
+    delete?: Enumerable<NWhereUniqueInput>
+    connect?: Enumerable<NWhereUniqueInput>
+    update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
+    updateMany?: Enumerable<NUpdateManyWithWhereWithoutMInput>
+    deleteMany?: Enumerable<NScalarWhereInput>
+  }
+
+  export type NUncheckedUpdateManyWithoutMInput = {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
@@ -17212,7 +17235,26 @@ export namespace Prisma {
     connect?: Enumerable<MWhereUniqueInput>
   }
 
+  export type MUncheckedCreateNestedManyWithoutNInput = {
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
+    connect?: Enumerable<MWhereUniqueInput>
+  }
+
   export type MUpdateManyWithoutNInput = {
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
+    upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
+    set?: Enumerable<MWhereUniqueInput>
+    disconnect?: Enumerable<MWhereUniqueInput>
+    delete?: Enumerable<MWhereUniqueInput>
+    connect?: Enumerable<MWhereUniqueInput>
+    update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
+    updateMany?: Enumerable<MUpdateManyWithWhereWithoutNInput>
+    deleteMany?: Enumerable<MScalarWhereInput>
+  }
+
+  export type MUncheckedUpdateManyWithoutNInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>

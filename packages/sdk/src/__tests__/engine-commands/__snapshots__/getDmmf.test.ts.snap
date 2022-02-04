@@ -12369,6 +12369,19 @@ Object {
               "inputTypes": Array [
                 Object {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "author",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -12388,19 +12401,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "published",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateNestedOneWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "author",
             },
           ],
           "name": "PostCreateInput",
@@ -12490,6 +12490,19 @@ Object {
               "inputTypes": Array [
                 Object {
                   "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateOneRequiredWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -12521,19 +12534,6 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "published",
-            },
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpdateOneRequiredWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
             },
           ],
           "name": "PostUpdateInput",
@@ -16053,48 +16053,6 @@ Object {
         },
         Object {
           "constraints": Object {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "String",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "StringFieldUpdateOperationsInput",
-        },
-        Object {
-          "constraints": Object {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": Array [
-            Object {
-              "inputTypes": Array [
-                Object {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Boolean",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "BoolFieldUpdateOperationsInput",
-        },
-        Object {
-          "constraints": Object {
             "maxNumFields": null,
             "minNumFields": null,
           },
@@ -16178,6 +16136,48 @@ Object {
             },
           ],
           "name": "UserUpdateOneRequiredWithoutPostsInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "StringFieldUpdateOperationsInput",
+        },
+        Object {
+          "constraints": Object {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": Array [
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "BoolFieldUpdateOperationsInput",
         },
         Object {
           "constraints": Object {

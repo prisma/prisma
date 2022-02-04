@@ -1108,6 +1108,19 @@ const dmmf: DMMF.Document = {
               inputTypes: [
                 {
                   isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserCreateNestedOneWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: true,
+              name: 'author',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
                   location: 'scalar',
                   type: 'String',
                 },
@@ -1127,19 +1140,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: 'published',
-            },
-            {
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'UserCreateNestedOneWithoutPostsInput',
-                },
-              ],
-              isNullable: false,
-              isRequired: true,
-              name: 'author',
             },
           ],
           name: 'PostCreateInput',
@@ -1211,6 +1211,19 @@ const dmmf: DMMF.Document = {
               inputTypes: [
                 {
                   isList: false,
+                  location: 'inputObjectTypes',
+                  namespace: 'prisma',
+                  type: 'UserUpdateOneRequiredWithoutPostsInput',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'author',
+            },
+            {
+              inputTypes: [
+                {
+                  isList: false,
                   location: 'scalar',
                   type: 'String',
                 },
@@ -1242,19 +1255,6 @@ const dmmf: DMMF.Document = {
               isNullable: false,
               isRequired: false,
               name: 'published',
-            },
-            {
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'inputObjectTypes',
-                  namespace: 'prisma',
-                  type: 'UserUpdateOneRequiredWithoutPostsInput',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'author',
             },
           ],
           name: 'PostUpdateInput',
@@ -3132,48 +3132,6 @@ const dmmf: DMMF.Document = {
         },
         {
           constraints: {
-            maxNumFields: 1,
-            minNumFields: 1,
-          },
-          fields: [
-            {
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'scalar',
-                  type: 'String',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'set',
-            },
-          ],
-          name: 'StringFieldUpdateOperationsInput',
-        },
-        {
-          constraints: {
-            maxNumFields: 1,
-            minNumFields: 1,
-          },
-          fields: [
-            {
-              inputTypes: [
-                {
-                  isList: false,
-                  location: 'scalar',
-                  type: 'Boolean',
-                },
-              ],
-              isNullable: false,
-              isRequired: false,
-              name: 'set',
-            },
-          ],
-          name: 'BoolFieldUpdateOperationsInput',
-        },
-        {
-          constraints: {
             maxNumFields: null,
             minNumFields: null,
           },
@@ -3257,6 +3215,48 @@ const dmmf: DMMF.Document = {
             },
           ],
           name: 'UserUpdateOneRequiredWithoutPostsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'String',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'set',
+            },
+          ],
+          name: 'StringFieldUpdateOperationsInput',
+        },
+        {
+          constraints: {
+            maxNumFields: 1,
+            minNumFields: 1,
+          },
+          fields: [
+            {
+              inputTypes: [
+                {
+                  isList: false,
+                  location: 'scalar',
+                  type: 'Boolean',
+                },
+              ],
+              isNullable: false,
+              isRequired: false,
+              name: 'set',
+            },
+          ],
+          name: 'BoolFieldUpdateOperationsInput',
         },
         {
           constraints: {
@@ -5840,7 +5840,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: '_count',
               outputType: {
                 isList: false,
