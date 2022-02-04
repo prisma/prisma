@@ -1,4 +1,4 @@
-import { DMMF } from '@prisma/generator-helper'
+import type { DMMF } from '@prisma/generator-helper'
 
 const dmmf: DMMF.Document = {
   datamodel: {
@@ -5840,7 +5840,7 @@ const dmmf: DMMF.Document = {
             },
             {
               args: [],
-              isNullable: true,
+              isNullable: false,
               name: '_count',
               outputType: {
                 isList: false,
