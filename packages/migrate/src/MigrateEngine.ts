@@ -271,10 +271,13 @@ export class MigrateEngine {
     if (process.env.FORCE_PANIC_MIGRATION_ENGINE) {
       request = this.getRPCPayload('debugPanic', undefined)
     }
+
     await this.init()
+
     if (this.child?.killed) {
       throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine already exited.`)
     }
+
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, (response, err) => {
         if (err) {
@@ -325,9 +328,11 @@ export class MigrateEngine {
           }
         }
       })
+
       if (this.child!.stdin!.destroyed) {
         throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine is destroyed.`)
       }
+
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')
       this.lastRequest = request

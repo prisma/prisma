@@ -122,13 +122,15 @@ ${chalk.bold('Examples')}
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
+      // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
+      await new Promise((resolve) => setTimeout(resolve, 0))
+      // Stop engine
       migrate.stop()
     }
 
     if (migrationIds.length === 0) {
       console.info(`${chalk.green('Database reset successful\n')}`)
     } else {
-      console.info() // empty line
       console.info(
         `${chalk.green('Database reset successful')}
 
