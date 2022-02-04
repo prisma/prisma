@@ -7,12 +7,13 @@ import { applyAggregates } from './applyAggregates'
 import { applyFluent } from './applyFluent'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
+import type { UserArgs } from './UserArgs'
 
 const EMPTY_OBJECT = {}
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
-) => (userArgs?: object) => PrismaPromise<unknown>
+) => (userArgs?: UserArgs) => PrismaPromise<unknown>
 
 /**
  * Dynamically creates a model interface via a proxy.
@@ -33,7 +34,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
-      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: object) => {
+      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
         return createPrismaPromise((txId, inTx, otelCtx) => {

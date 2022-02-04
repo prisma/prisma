@@ -1,5 +1,6 @@
 import type { Client } from '../../../getPrismaClient'
 import type { ModelAction } from '../applyModel'
+import type { UserArgs } from '../UserArgs'
 import { aggregateMap } from './utils/aggregateMap'
 
 /**
@@ -9,7 +10,7 @@ import { aggregateMap } from './utils/aggregateMap'
  * @param userArgs to transform
  * @returns
  */
-export function desugarUserArgs(userArgs: object) {
+export function desugarUserArgs(userArgs: UserArgs) {
   const _userArgs = desugarCountInUserArgs(userArgs)
   const userArgsEntries = Object.entries(_userArgs)
 
@@ -17,14 +18,14 @@ export function desugarUserArgs(userArgs: object) {
     (aggregateArgs, [key, value]) => {
       if (aggregateMap[key] !== undefined) {
         // if it's an aggregate, we re-wrap into select
-        aggregateArgs['select'][key] = { select: value }
+        aggregateArgs['select']![key] = { select: value }
       } else {
         aggregateArgs[key] = value // or leave it alone
       }
 
       return aggregateArgs
     },
-    { select: {} } as object,
+    { select: {} } as UserArgs & { select: UserArgs },
   )
 }
 
@@ -33,7 +34,7 @@ export function desugarUserArgs(userArgs: object) {
  * @param userArgs the user input
  * @returns
  */
-function desugarCountInUserArgs(userArgs: object) {
+function desugarCountInUserArgs(userArgs: UserArgs) {
   if (typeof userArgs['_count'] === 'boolean') {
     return { ...userArgs, _count: { _all: userArgs['_count'] } }
   }
@@ -47,7 +48,7 @@ function desugarCountInUserArgs(userArgs: object) {
  * @param userArgs the user input
  * @returns
  */
-export function createUnpacker(userArgs: object) {
+export function createUnpacker(userArgs: UserArgs) {
   return (data: object) => {
     if (typeof userArgs['_count'] === 'boolean') {
       data['_count'] = data['_count']['_all']
@@ -65,7 +66,7 @@ export function createUnpacker(userArgs: object) {
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export function aggregate(client: Client, userArgs: object | undefined, modelAction: ModelAction) {
+export function aggregate(client: Client, userArgs: UserArgs | undefined, modelAction: ModelAction) {
   const aggregateArgs = desugarUserArgs(userArgs ?? {})
   const aggregateUnpacker = createUnpacker(userArgs ?? {})
 

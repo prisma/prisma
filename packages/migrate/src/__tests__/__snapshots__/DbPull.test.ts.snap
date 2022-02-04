@@ -27,7 +27,7 @@ type UsersHobbiesObjects {
 }
 
 model users {
-  id      String         @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  id      String         @id @default(auto()) @map("_id") @my_db.ObjectId
   admin   Boolean
   email   String
   hobbies UsersHobbies[]
@@ -50,7 +50,7 @@ datasource my_db {
 }
 
 model users {
-  id      String  @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  id      String  @id @default(auto()) @map("_id") @my_db.ObjectId
   admin   Boolean
   email   String
   hobbies Json[]
@@ -79,7 +79,7 @@ type UsersHobbies {
 }
 
 model users {
-  id      String         @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  id      String         @id @default(auto()) @map("_id") @my_db.ObjectId
   admin   Boolean
   email   String
   hobbies UsersHobbies[]
@@ -102,7 +102,7 @@ datasource my_db {
 }
 
 model users {
-  id      String  @id @default(dbgenerated()) @map("_id") @my_db.ObjectId
+  id      String  @id @default(auto()) @map("_id") @my_db.ObjectId
   admin   Boolean
   email   String
   hobbies Json[]
