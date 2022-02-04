@@ -138,6 +138,7 @@ export class MigrateEngine {
     }
 
     if (result) {
+      // It's a response
       if (result.id) {
         if (!this.listeners[result.id]) {
           console.error(`Got result for unknown id ${result.id}`)
@@ -148,8 +149,8 @@ export class MigrateEngine {
         }
       } else if (result.method) {
           // This is a notification.
-          if (result.method === "print" && Boolean(result.params?.content)) {
-              process.stdout.write(result.params?.content)
+          if (result.method === "print" && result.params?.content) {
+              process.stdout.write(result.params.content)
           }
       }
     }
