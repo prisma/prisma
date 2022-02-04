@@ -160,12 +160,6 @@ model A {
   int      Int // @db.Integer
   sInt     Int // @db.SmallInt
   bInt     BigInt // @db.BigInt
-  // serial   Int    @default(autoincrement()) @db.Serial
-  // sSerial  Int    @default(autoincrement()) @db.SmallSerial
-  // bSerial  Int    @default(autoincrement()) @db.BigSerial
-  inc_int  Int    @default(autoincrement()) // @db.Integer
-  inc_sInt Int    @default(autoincrement()) // @db.SmallInt
-  inc_bInt BigInt @default(autoincrement()) // @db.BigInt
 }
 
 model B {
