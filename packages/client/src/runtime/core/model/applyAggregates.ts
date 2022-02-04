@@ -3,6 +3,7 @@ import { aggregate } from './aggregates/aggregate'
 import { count } from './aggregates/count'
 import { groupBy } from './aggregates/groupBy'
 import type { ModelAction } from './applyModel'
+import type { UserArgs } from './UserArgs'
 
 /**
  * Dynamically returns the appropriate aggregate action for a given `action`.
@@ -17,9 +18,9 @@ import type { ModelAction } from './applyModel'
  */
 export function applyAggregates(client: Client, action: Action, modelAction: ModelAction) {
   // we effectively take over the aggregate api to perform data changes
-  if (action === 'aggregate') return (userArgs?: object) => aggregate(client, userArgs, modelAction)
-  if (action === 'count') return (userArgs?: object) => count(client, userArgs, modelAction)
-  if (action === 'groupBy') return (userArgs?: object) => groupBy(client, userArgs, modelAction)
+  if (action === 'aggregate') return (userArgs?: UserArgs) => aggregate(client, userArgs, modelAction)
+  if (action === 'count') return (userArgs?: UserArgs) => count(client, userArgs, modelAction)
+  if (action === 'groupBy') return (userArgs?: UserArgs) => groupBy(client, userArgs, modelAction)
 
   return undefined
 }

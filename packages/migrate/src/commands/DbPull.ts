@@ -1,26 +1,26 @@
-import type { Command } from '@prisma/sdk'
+import type { Command, IntrospectionSchemaVersion, IntrospectionWarnings } from '@prisma/sdk'
 import {
+  arg,
+  drawBox,
   format,
   formatms,
-  HelpError,
-  getSchemaPath,
-  arg,
-  link,
-  drawBox,
-  getSchema,
-  getConfig,
   getCommandWithExecutor,
+  getConfig,
+  getSchema,
+  getSchemaPath,
+  HelpError,
+  IntrospectionEngine,
+  link,
+  loadEnvFile,
 } from '@prisma/sdk'
-import chalk from 'chalk'
-import path from 'path'
-import type { IntrospectionWarnings, IntrospectionSchemaVersion } from '@prisma/sdk'
-import { IntrospectionEngine } from '@prisma/sdk'
-import fs from 'fs'
 import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
-import { printDatasources } from '../utils/printDatasources'
-import { removeDatasource } from '../utils/removeDatasource'
+import chalk from 'chalk'
+import fs from 'fs'
+import path from 'path'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
+import { printDatasources } from '../utils/printDatasources'
+import { removeDatasource } from '../utils/removeDatasource'
 
 export class DbPull implements Command {
   public static new(): DbPull {
@@ -120,11 +120,17 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     // getSchemaPathAndPrint is not flexible enough for this use case
     let schemaPath = await getSchemaPath(args['--schema'])
 
-    // Do not print if --print is passed to only have the schema in stdout
+    // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
       console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
+      // Load and print where the .env was loaded (if loaded)
+      loadEnvFile(args['--schema'], true)
+
       await printDatasource(schemaPath)
+    } else {
+      // Load .env but don't print
+      loadEnvFile(args['--schema'], false)
     }
 
     if (!url && !schemaPath) {
