@@ -10,7 +10,7 @@ const del = promisify(rimraf)
 // 30s is really flaky (time out often) on Windows only
 const isWindowsCI = Boolean(process.env.CI) && ['win32'].includes(process.platform)
 if (isWindowsCI) {
-  jest.setTimeout(60_000)
+  jest.setTimeout(100_000)
 } else {
   jest.setTimeout(30_000)
 }
