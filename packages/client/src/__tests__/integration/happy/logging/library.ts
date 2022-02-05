@@ -42,7 +42,7 @@ test('basic event logging - library', async () => {
 
   await prisma.user.findMany()
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 
   replaceTimeValues(onInfo)
   replaceTimeValues(onQuery)
