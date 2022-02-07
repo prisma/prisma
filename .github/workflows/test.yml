@@ -83,6 +83,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+
       - uses: actions/setup-node@v2
         with:
           cache: 'pnpm'
@@ -126,6 +130,10 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
@@ -176,6 +184,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
@@ -237,6 +249,10 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
@@ -304,6 +320,10 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+
       - uses: actions/setup-node@v2
         with:
           cache: 'pnpm'
@@ -361,6 +381,10 @@ jobs:
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
@@ -428,6 +452,10 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+
       - uses: actions/setup-node@v2
         with:
           cache: 'pnpm'
@@ -470,6 +498,10 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
@@ -575,6 +607,10 @@ jobs:
 
       - name: Setup MySQL
         run: bash .github/workflows/setup-mysql.sh
+
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
