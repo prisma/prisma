@@ -1,95 +1,133 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('chaining', async () => {
-  const PrismaClient = await getTestClient()
-  const prisma = new PrismaClient()
+describe('chaining', () => {
+  test('lower-cased relations', async () => {
+    const PrismaClient = await getTestClient()
+    const prisma = new PrismaClient()
 
-  const a: any[] = []
-  a.push(
-    await prisma.user
-      .findUnique({
-        where: {
-          email: 'a@a.de',
-        },
-      })
-      .property(),
-  )
+    const a: any[] = []
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .property(),
+    )
 
-  a.push(
-    await prisma.user
-      .findUnique({
-        where: {
-          email: 'a@a.de',
-        },
-      })
-      .property()
-      .house(),
-  )
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .property()
+        .house(),
+    )
 
-  a.push(
-    await prisma.user
-      .findUnique({
-        where: {
-          email: 'a@a.de',
-        },
-      })
-      .property()
-      .house()
-      .Like(),
-  )
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .property()
+        .house()
+        .like(),
+    )
 
-  a.push(
-    await prisma.user
-      .findUnique({
-        where: {
-          email: 'a@a.de',
-        },
-      })
-      .property()
-      .house()
-      .Like()
-      .post(),
-  )
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post(),
+    )
 
-  a.push(
-    await prisma.user
-      .findUnique({
-        where: {
-          email: 'a@a.de',
-        },
-      })
-      .property()
-      .house()
-      .Like()
-      .post()
-      .author(),
-  )
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+        .author(),
+    )
 
-  a.push(
-    await prisma.user
-      .findUnique({
-        where: {
-          email: 'a@a.de',
-        },
-      })
-      .property()
-      .house()
-      .Like()
-      .post()
-      .author()
-      .property(),
-  )
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+        .author()
+        .property(),
+    )
 
-  await prisma.$disconnect()
+    await prisma.$disconnect()
 
-  expect(a).toMatchInlineSnapshot(`
-    Array [
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-    ]
-  `)
+    expect(a).toMatchInlineSnapshot(`
+      Array [
+        null,
+        null,
+        null,
+        null,
+        null,
+        null,
+      ]
+    `)
+  })
+
+  test('upper-cased relations', async () => {
+    const PrismaClient = await getTestClient()
+    const prisma = new PrismaClient()
+
+    const a: any[] = []
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .Banking(),
+    )
+
+    a.push(
+      await prisma.user
+        .findUnique({
+          where: {
+            email: 'a@a.de',
+          },
+        })
+        .Banking()
+        .user(),
+    )
+
+    await prisma.$disconnect()
+
+    expect(a).toMatchInlineSnapshot(`
+      Array [
+        null,
+        null,
+      ]
+    `)
+  })
 })
