@@ -247,10 +247,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {
       this.logEmitter.emit('query', {
-        timestamp: Date.now(),
+        timestamp: new Date(),
         query: event.query,
         params: event.params,
-        duration: event.duration_ms,
+        duration: Number(event.duration_ms),
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {
@@ -262,7 +262,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       )
       this.logEmitter.emit('error', this.loggerRustPanic)
     } else {
-      this.logEmitter.emit(event.level, event)
+      this.logEmitter.emit(event.level, {
+        timestamp: new Date(),
+        message: event.message,
+        target: event.module_path,
+      })
     }
   }
 
