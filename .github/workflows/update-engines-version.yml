@@ -3,23 +3,25 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to check and update the engines version"
+        description: 'Version to check and update the engines version'
         required: true
 
 jobs:
   update_engines:
-    name: "Check and update @prisma/engines@${{ github.event.inputs.version }}"
+    name: 'Check and update @prisma/engines@${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
       - name: Use Node.js
         uses: actions/setup-node@v2
+        with:
+          cache: 'pnpm'
 
       - uses: pnpm/action-setup@v2.0.1
         with:
           version: latest
-          
+
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
         run: |
@@ -29,7 +31,7 @@ jobs:
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/fetch-engine -u ${{ github.event.inputs.version }}
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/get-platform -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
-       
+
       - name: Update the engines dependencies
         run: |
           echo 'Updating @prisma/engines, @prisma/engines-version, @prisma/fetch-engine and @prisma/get-platform to ${{ github.event.inputs.version }} using pnpm'
@@ -40,13 +42,13 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.BOT_TOKEN }}
-          commit-message: "chore(deps): update engines to ${{ github.event.inputs.version }}"
-          committer: "Prismo <prismabots@gmail.com>"
-          author: "Prismo <prismabots@gmail.com>"
+          commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
+          committer: 'Prismo <prismabots@gmail.com>'
+          author: 'Prismo <prismabots@gmail.com>'
           branch: deps/engines-${{ github.event.inputs.version }}
           delete-branch: true
           labels: automerge
-          title: "chore(deps): update engines to ${{ github.event.inputs.version }}"
+          title: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           body: |
             This automatic PR updates the engines to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
             ## Packages:
@@ -60,8 +62,8 @@ jobs:
       - name: PR url
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-        
-      - name: Sleep for 5 seconds 
+
+      - name: Sleep for 5 seconds
         run: sleep 5s
         shell: bash
 

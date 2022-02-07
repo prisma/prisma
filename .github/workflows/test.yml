@@ -83,14 +83,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: '12'
 
       - run: bash .github/workflows/setup.sh
@@ -132,14 +131,13 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -187,14 +185,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -253,14 +250,13 @@ jobs:
       - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
         if: matrix.database != 'sqlite'
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -324,14 +320,13 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -387,14 +382,13 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -458,14 +452,13 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -506,14 +499,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Cache .pnpm-store # From https://pnpm.io/continuous-integration
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
@@ -616,14 +608,13 @@ jobs:
       - name: Setup MySQL
         run: bash .github/workflows/setup-mysql.sh
 
-      - name: Cache .pnpm-store
-        uses: actions/cache@v2
+      - uses: pnpm/action-setup@v2.0.1
         with:
-          path: ~/.pnpm-store
-          key: ${{ runner.os }}-node${{ matrix.node }}-${{ hashFiles('**/pnpm-lock.yaml') }}
+          version: latest
 
       - uses: actions/setup-node@v2
         with:
+          cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/setup.sh
