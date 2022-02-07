@@ -323,7 +323,7 @@ describe('migrate diff', () => {
       `)
     })
 
-    it('should diff when using env var from .env file --from-schema-datasource --to-schema-datamodel=./prisma/schema.prisma', async () => {
+    it('should use env var from .env file with --from-schema-datasource', async () => {
       ctx.fixture('schema-only-postgresql')
 
       const result = MigrateDiff.new().parse([
