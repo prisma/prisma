@@ -1,8 +1,12 @@
 import type * as esbuild from 'esbuild'
 import { unlink } from 'fs/promises'
 
+/**
+ * Removes the esm output files after cjs compile.
+ * @param build the esbuild build object
+ * @returns
+ */
 function removeIntermediaryEsmFiles(build: esbuild.PluginBuild) {
-  // remove the esm output directory after cjs compile
   const files = Object.values(build.initialOptions.entryPoints ?? {})
   const rms = files.map((file) => file.endsWith('.mjs') && unlink(file))
 
