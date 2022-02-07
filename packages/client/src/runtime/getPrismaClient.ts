@@ -272,9 +272,12 @@ const actionOperationMap = {
   aggregateRaw: 'query',
 }
 
+const TX_ID = Symbol.for('prisma.client.transaction.id')
+
 // TODO improve all these types, need a common place to share them between type
 // gen and this. This will be relevant relevant for type gen tech debt refactor
 export interface Client {
+  [TX_ID]?: string
   _dmmf: DMMFHelper
   _engine: Engine
   _fetcher: PrismaClientFetcher
@@ -1080,14 +1083,16 @@ new PrismaClient({
       requests: Array<PrismaPromise<unknown>>,
       options?: { maxWait: number; timeout: number },
     ) {
-      return this._transactionWithCallback(async (prisma) => {
-        const txRequests = requests.map((request) => {
-          // each request has already been called with `prisma.<call>`
-          // so we inject `transactionId` by intercepting that promise
-          request.then(undefined, undefined, prisma[TX_ID] as string)
+      return this._transactionWithCallback((prisma) => {
+        const _requests = requests.map((request) => {
+          return new Promise((resolve, reject) => {
+            // each request has already been called with `prisma.<call>`
+            // so we inject `transactionId` by intercepting that promise
+            request.then(resolve, reject, prisma[TX_ID]) // id via Proxy
+          })
         })
 
-        return Promise.all(txRequests) // gets `BatchLoader` results
+        return Promise.all(_requests) // get results from `BatchLoader`
       }, options)
     }
 
@@ -1102,7 +1107,7 @@ new PrismaClient({
       if (!this._hasPreviewFlag('tracing')) delete internalParams['otelCtx']
 
       try {
-        // we make sure that we don't leak extra properties to users
+        // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
           args: internalParams.args,
           dataPath: internalParams.dataPath,
@@ -1257,7 +1262,6 @@ new PrismaClient({
   return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
 }
 
-const TX_ID = Symbol.for('prisma.client.transaction.id')
 const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
 
 /**
