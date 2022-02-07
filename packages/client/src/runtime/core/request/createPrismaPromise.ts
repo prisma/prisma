@@ -12,13 +12,13 @@ import { context } from '@opentelemetry/api'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (transactionId?: number, runInTransaction?: boolean, otelCtx?: Context) => PrismaPromise<unknown>,
+  callback: (txId?: string, inTx?: boolean, otelCtx?: Context) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   const otelCtx = context.active() // get the context at time of creation
   // because otel isn't able to propagate context when inside of a promise
 
   // we handle exceptions that happen in the scope as `Promise` rejections
-  const _callback = (txId?: number, inTx?: boolean) => {
+  const _callback = (txId?: string, inTx?: boolean) => {
     try {
       return callback(txId, inTx, otelCtx)
     } catch (error) {
@@ -28,7 +28,7 @@ export function createPrismaPromise(
   }
 
   return {
-    then(onFulfilled, onRejected, txId?: number) {
+    then(onFulfilled, onRejected, txId?: string) {
       const promise = _callback(txId, false)
 
       return promise.then(onFulfilled, onRejected, txId)
@@ -39,7 +39,7 @@ export function createPrismaPromise(
     finally(onFinally) {
       return _callback().finally(onFinally)
     },
-    requestTransaction(txId: number) {
+    requestTransaction(txId: string) {
       const promise = _callback(txId, true)
 
       if (promise.requestTransaction) {

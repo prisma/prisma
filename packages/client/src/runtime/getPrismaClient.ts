@@ -38,6 +38,7 @@ import { createPrismaPromise } from './core/request/createPrismaPromise'
 import { applyModels } from './core/model/applyModels'
 import { getCallSite } from './core/utils/getCallSite'
 import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
+import type { PrismaPromise } from './core/request/PrismaPromise'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -156,7 +157,7 @@ export type InternalRequestParams = {
   callsite?: string // TODO what is this
   /** Headers metadata that will be passed to the Engine */
   headers?: Record<string, string> // TODO what is this
-  transactionId?: number // TODO what is this
+  transactionId?: string // TODO what is this
   unpacker?: Unpacker // TODO what is this
   otelCtx?: Context // an otel context
 } & QueryMiddlewareParams
@@ -559,7 +560,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Executes a raw query. Always returns a number
      */
     private $executeRawInternal(
-      txId: number | undefined,
+      txId: string | undefined,
       inTx: boolean | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
@@ -668,7 +669,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const request = (txId?: number, inTx?: boolean, otelCtx?: Context) => {
+      const request = (txId?: string, inTx?: boolean, otelCtx?: Context) => {
         try {
           const promise = this.$executeRawInternal(txId, inTx, otelCtx, query, ...values)
           ;(promise as any).isExecuteRaw = true
@@ -749,7 +750,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
-      txId: number | undefined,
+      txId: string | undefined,
       inTx: boolean | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
@@ -861,7 +862,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
-      const request = (txId?: number, inTx?: boolean, otelCtx?: Context) => {
+      const request = (txId?: string, inTx?: boolean, otelCtx?: Context) => {
         try {
           const promise = this.$queryRawInternal(txId, inTx, otelCtx, query, ...values)
           ;(promise as any).isQueryRaw = true
@@ -1076,21 +1077,17 @@ new PrismaClient({
      * @param options
      */
     private async _transactionWithRequests(
-      requests: Array<Promise<unknown>>,
+      requests: Array<PrismaPromise<unknown>>,
       options?: { maxWait: number; timeout: number },
     ) {
       return this._transactionWithCallback(async (prisma) => {
-        const transactionId: string = prisma[TX_ID] // some proxy magic
-
-        const _requests = requests.map((request) => {
-          return new Promise((resolve, reject) => {
-            // each request has already been called with `prisma.<call>`
-            // so we inject `transactionId` by intercepting that promise
-            ;(request as any).then(resolve, reject, transactionId)
-          })
+        const txRequests = requests.map((request) => {
+          // each request has already been called with `prisma.<call>`
+          // so we inject `transactionId` by intercepting that promise
+          request.then(undefined, undefined, prisma[TX_ID] as string)
         })
 
-        return Promise.all(_requests) // get results from `BatchLoader`
+        return Promise.all(txRequests) // gets `BatchLoader` results
       }, options)
     }
 
@@ -1105,7 +1102,7 @@ new PrismaClient({
       if (!this._hasPreviewFlag('tracing')) delete internalParams['otelCtx']
 
       try {
-        // make sure that we don't leak extra properties to users
+        // we make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
           args: internalParams.args,
           dataPath: internalParams.dataPath,

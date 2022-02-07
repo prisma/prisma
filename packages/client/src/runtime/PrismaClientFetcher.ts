@@ -30,7 +30,7 @@ export type RequestParams = {
   engineHook?: EngineMiddleware
   args: any
   headers?: Record<string, string>
-  transactionId?: number
+  transactionId?: string
   unpacker?: Unpacker
 }
 
@@ -41,7 +41,7 @@ export class PrismaClientFetcher {
   dataloader: DataLoader<{
     document: Document
     runInTransaction?: boolean
-    transactionId?: number
+    transactionId?: string
     headers?: Record<string, string>
   }>
 
