@@ -28,7 +28,7 @@ model Property {
 
 model House {
   id         String     @id @default(cuid())
-  like       Like       @relation(fields: [likeId], references: [id])
+  Like       Like       @relation(fields: [likeId], references: [id])
   properties Property[]
   likeId     String
 }
