@@ -6,21 +6,19 @@ import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
-
 if (isMacOrWindowsCI) {
   jest.setTimeout(60000)
 }
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const dbPull = new DbPull()
 
 describe('common/sqlite', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
-    const introspect = new DbPull()
-    await introspect.parse(['--print'])
+    await dbPull.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -28,8 +26,7 @@ describe('common/sqlite', () => {
 
   test('introspection --force', async () => {
     ctx.fixture('introspection/sqlite')
-    const introspect = new DbPull()
-    await introspect.parse(['--print', '--force'])
+    await dbPull.parse(['--print', '--force'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -41,8 +38,7 @@ describe('common/sqlite', () => {
   //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
   testIf(process.platform !== 'win32')('basic introspection with --url', async () => {
     ctx.fixture('introspection/sqlite')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'file:dev.db'])
+    const result = dbPull.parse(['--print', '--url', 'file:dev.db'])
     await expect(result).resolves.toBe('')
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -51,8 +47,7 @@ describe('common/sqlite', () => {
 
   test('basic introspection with invalid --url', async () => {
     ctx.fixture('introspection/sqlite')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'invalidstring'])
+    const result = dbPull.parse(['--print', '--url', 'invalidstring'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown database type invalidstring:`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -61,7 +56,7 @@ describe('common/sqlite', () => {
 
   it('should succeed when schema and db do match', async () => {
     ctx.fixture('introspect/prisma')
-    const result = DbPull.new().parse([])
+    const result = dbPull.parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(``)
@@ -84,7 +79,7 @@ describe('common/sqlite', () => {
   //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
   testIf(process.platform !== 'win32')('should succeed when schema and db do match using --url', async () => {
     ctx.fixture('introspect/prisma')
-    const result = DbPull.new().parse(['--url=file:./dev.db'])
+    const result = dbPull.parse(['--url=file:./dev.db'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'XXms')).toMatchInlineSnapshot(``)
@@ -102,8 +97,7 @@ describe('common/sqlite', () => {
   })
 
   test('basic introspection with invalid --url - empty host', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'])
+    const result = dbPull.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                       Error parsing connection string: empty host in database URL
 
@@ -115,7 +109,7 @@ describe('common/sqlite', () => {
 
   it('should succeed and keep changes to valid schema and output warnings', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse(['--schema=./prisma/reintrospection.prisma'])
+    const result = dbPull.parse(['--schema=./prisma/reintrospection.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'in XXms')).toMatchInlineSnapshot(``)
@@ -186,28 +180,28 @@ describe('common/sqlite', () => {
   it('should succeed and keep changes to valid schema and output warnings when using --print', async () => {
     ctx.fixture('introspect')
     const originalSchema = ctx.fs.read('prisma/reintrospection.prisma')
-    const result = DbPull.new().parse(['--print', '--schema=./prisma/reintrospection.prisma'])
+    const result = dbPull.parse(['--print', '--schema=./prisma/reintrospection.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'in XXms')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                      // *** WARNING ***
-                                                                                                                                                                                      // 
-                                                                                                                                                                                      // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                                      // - Model "AwesomeNewPost"
-                                                                                                                                                                                      // - Model "AwesomeProfile"
-                                                                                                                                                                                      // - Model "AwesomeUser"
-                                                                                                                                                                                      // 
-                                                                                                                        `)
+                                                                                                                                                                                            // *** WARNING ***
+                                                                                                                                                                                            // 
+                                                                                                                                                                                            // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                            // - Model "AwesomeNewPost"
+                                                                                                                                                                                            // - Model "AwesomeProfile"
+                                                                                                                                                                                            // - Model "AwesomeUser"
+                                                                                                                                                                                            // 
+                                                                                                                            `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
 
   it('should succeed when schema and db do not match', async () => {
     ctx.fixture('existing-db-histories-diverge')
-    const result = DbPull.new().parse([])
+    const result = dbPull.parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'in XXms')).toMatchInlineSnapshot(``)
@@ -226,7 +220,7 @@ describe('common/sqlite', () => {
 
   it('should fail when db is missing', async () => {
     ctx.fixture('schema-only-sqlite')
-    const result = DbPull.new().parse([])
+    const result = dbPull.parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
                                                 P4001 The introspected database was empty: 
@@ -255,7 +249,7 @@ describe('common/sqlite', () => {
   it('should fail when db is empty', async () => {
     ctx.fixture('schema-only-sqlite')
     ctx.fs.write('prisma/dev.db', '')
-    const result = DbPull.new().parse([])
+    const result = dbPull.parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
                                                 P4001 The introspected database was empty: 
@@ -282,7 +276,7 @@ describe('common/sqlite', () => {
   })
 
   it('should fail when Prisma schema is missing', async () => {
-    const result = DbPull.new().parse([])
+    const result = dbPull.parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                       Could not find a schema.prisma file that is required for this command.
                       You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
@@ -295,7 +289,7 @@ describe('common/sqlite', () => {
 
   it('should fail when schema is invalid', async () => {
     ctx.fixture('introspect')
-    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
+    const result = dbPull.parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             P1012 Introspection failed as your current Prisma schema file is invalid
 
@@ -317,8 +311,7 @@ describe('common/sqlite', () => {
 
   it('should succeed when schema is invalid and using --force', async () => {
     ctx.fixture('introspect')
-
-    const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma', '--force'])
+    const result = dbPull.parse(['--schema=./prisma/invalid.prisma', '--force'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'in XXms')).toMatchInlineSnapshot(``)
@@ -364,16 +357,14 @@ describe('postgresql', () => {
 
   test('basic introspection', async () => {
     ctx.fixture('introspection/postgresql')
-    const introspect = new DbPull()
-    await introspect.parse(['--print'])
+    await dbPull.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = dbPull.parse(['--print', '--url', setupParams.connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -382,15 +373,13 @@ describe('postgresql', () => {
 
   test('introspection should load .env file with --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    expect.assertions(5)
-
-    try {
-      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
-    } catch (e) {
-      expect(e.code).toEqual('P1001')
-      expect(e.message).toContain(`fromdotenvdoesnotexist`)
-    }
-
+    const result = dbPull.parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
+    await expect(result).rejects.toThrowError(
+      expect.objectContaining({
+        code: 'P1001',
+        message: expect.stringContaining('fromdotenvdoesnotexist'),
+      }),
+    )
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -398,15 +387,13 @@ describe('postgresql', () => {
 
   test('introspection should load .env file without --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    expect.assertions(5)
-
-    try {
-      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'])
-    } catch (e) {
-      expect(e.code).toEqual('P1001')
-      expect(e.message).toContain(`fromdotenvdoesnotexist`)
-    }
-
+    const result = dbPull.parse(['--schema=./prisma/using-dotenv.prisma'])
+    await expect(result).rejects.toThrowError(
+      expect.objectContaining({
+        code: 'P1001',
+        message: expect.stringContaining('fromdotenvdoesnotexist'),
+      }),
+    )
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/using-dotenv.prisma
@@ -446,8 +433,7 @@ describe('mysql', () => {
 
   test('basic introspection', async () => {
     ctx.fixture('introspection/mysql')
-    const introspect = new DbPull()
-    await introspect.parse(['--print'])
+    await dbPull.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -457,8 +443,7 @@ describe('mysql', () => {
   // string is different, either add steps to the database setup to create the
   // user and set password for MySQL, or sanitize the snapshot.
   testIf(!isMacOrWindowsCI)('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    const result = dbPull.parse(['--print', '--url', setupParams.connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -498,16 +483,14 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlserver')
-    const introspect = new DbPull()
-    await introspect.parse(['--print'])
+    await dbPull.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', JDBC_URI])
+    const result = dbPull.parse(['--print', '--url', JDBC_URI])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -524,8 +507,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    await introspect.parse(['--schema=./prisma/no-model.prisma'])
+    await dbPull.parse(['--schema=./prisma/no-model.prisma'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/no-model.prisma
@@ -542,8 +524,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('introspection --print', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    await introspect.parse(['--print'])
+    await dbPull.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -551,8 +532,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('introspection --print --composite-type-depth=0', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    await introspect.parse(['--print', '--composite-type-depth=0'])
+    await dbPull.parse(['--print', '--composite-type-depth=0'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -560,8 +540,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('introspection --print --composite-type-depth=1', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    await introspect.parse(['--print', '--composite-type-depth=1'])
+    await dbPull.parse(['--print', '--composite-type-depth=1'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -569,16 +548,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('introspection --print --composite-type-depth=-1', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    await introspect.parse(['--print', '--composite-type-depth=-1'])
+    await dbPull.parse(['--print', '--composite-type-depth=-1'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', MONGO_URI])
+    const result = dbPull.parse(['--print', '--url', MONGO_URI])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Preview feature not enabled: MongoDB introspection connector (experimental feature, needs to be enabled)
 
@@ -590,8 +567,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('introspection with --force', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    const result = introspect.parse(['--force'])
+    const result = dbPull.parse(['--force'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -609,10 +585,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
   test('re-introspection should error (not supported)', async () => {
     ctx.fixture('schema-only-mongodb')
-    const introspect = new DbPull()
-    await introspect.parse(['--schema=./prisma/no-model.prisma'])
+    await dbPull.parse(['--schema=./prisma/no-model.prisma'])
     // now re-introspection
-    const result = introspect.parse(['--schema=./prisma/no-model.prisma'])
+    const result = dbPull.parse(['--schema=./prisma/no-model.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
             You can explicitely ignore and override your current local schema file with prisma db pull --force
