@@ -35,7 +35,7 @@ test('chaining', async () => {
       })
       .property()
       .house()
-      .like(),
+      .Like(),
   )
 
   a.push(
@@ -47,7 +47,7 @@ test('chaining', async () => {
       })
       .property()
       .house()
-      .like()
+      .Like()
       .post(),
   )
 
@@ -60,7 +60,7 @@ test('chaining', async () => {
       })
       .property()
       .house()
-      .like()
+      .Like()
       .post()
       .author(),
   )
@@ -74,7 +74,7 @@ test('chaining', async () => {
       })
       .property()
       .house()
-      .like()
+      .Like()
       .post()
       .author()
       .property(),
