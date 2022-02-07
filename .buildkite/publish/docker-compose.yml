@@ -28,7 +28,10 @@ services:
       - TEST_MSSQL_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE=sqlserver://mssql:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       # MongoDB
-      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27017/tests?authSource=admin
+      - TEST_MONGO_URI=mongodb://root:prisma@mongo:27018/tests?authSource=admin
+      - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongo_migrate:27017/tests-migrate?authSource=admin
+      # CockroachDB
+      - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/
       # Other vars !\ If not defined, they cannot be accessed
       # TODO: do an env var cleanup?
       - NPM_TOKEN
@@ -43,7 +46,6 @@ services:
       - MIGRATE_COMMIT
       - PRISMA_CLIENT_JS_COMMIT
       - PRISMA2_COMMIT
-      - DEVELOPMENT_ENVIRONMENT_COMMIT
       - PATCH_BRANCH
       - DRY_RUN
       - CI
@@ -54,10 +56,13 @@ services:
       - postgres
       - postgres_isolated
       - mysql
+      - mysql_isolated
       - mariadb
       - mssql
       - mongo
-      - mongo-seed
+      - mongo_migrate
+      - mongo_migrate_seed
+      - cockroachdb
 
   postgres:
     image: postgres:10
@@ -66,8 +71,8 @@ services:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
-    volumes:
-      - postgres:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
 
   postgres_isolated:
     image: postgres:10
@@ -76,8 +81,15 @@ services:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
       - POSTGRES_PASSWORD=prisma
-    volumes:
-      - postgres_isolated:/var/lib/postgresql/data
+    ports:
+      - '5435:5432'
+
+  cockroachdb:
+    image: prismagraphql/build:cockroach-custom
+    restart: always
+    command: start-single-node --insecure
+    ports:
+      - '26257:26257'
 
   mysql:
     image: mysql:8.0
@@ -87,9 +99,8 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
-      - MYSQL_PASSWORD=prisma
-    volumes:
-      - mysql:/var/lib/mysql
+    ports:
+      - '3306:3306'
 
   mysql_isolated:
     image: mysql:8.0
@@ -100,8 +111,8 @@ services:
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma
-    volumes:
-      - mysql_isolated:/var/lib/mysql
+    ports:
+      - '3307:3306'
 
   mariadb:
     image: mariadb:10
@@ -111,8 +122,8 @@ services:
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma
-    volumes:
-      - mariadb:/var/lib/mysql
+    ports:
+      - '4306:3306'
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
@@ -120,30 +131,33 @@ services:
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Pr1sm4_Pr1sm4
-    volumes:
-      - mssql:/var/opt/mssql
+    ports:
+      - '1433:1433'
 
-  mongo:
+  mongo_migrate:
     image: mongo:4
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
-      MONGO_INITDB_DATABASE: tests
+      MONGO_INITDB_DATABASE: tests-migrate
     ports:
       - '27017:27017'
 
-  mongo-seed:
+  mongo_migrate_seed:
     build: ../../docker/mongo-seed
-    links:
-      - mongo
+    depends_on:
+      - mongo_migrate
 
-volumes:
-  postgres:
-  postgres_isolated:
-  mysql:
-  mysql_isolated:
-  mariadb:
-  mssql:
+  mongo:
+    build: ../../docker/mongo-replica
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: prisma
+      MONGO_REPLICA_HOST: mongo
+      MONGO_REPLICA_PORT: 27018
+    ports:
+      - '27018:27018'
+
 
 # TODO: investigate why isolated containers aren't used in the tests

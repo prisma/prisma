@@ -7,7 +7,7 @@ import prompt from 'prompts'
 import type execa from 'execa'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
-export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server'
+export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB'
 
 // TODO: extract functions in their own files?
 
@@ -41,13 +41,20 @@ export async function getDbInfo(schemaPath?: string): Promise<{
     const dbLocation = getDbLocation(credentials)
     const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
-    return {
+    const dbInfo = {
       name: activeDatasource.name,
       dbLocation,
       ...dbinfoFromCredentials,
       url,
       schema: credentials.schema,
     }
+
+    // For CockroachDB we cannot rely on the connection URL, only on the provider
+    if (activeDatasource.provider === 'cockroachdb') {
+      dbInfo.dbType = 'CockroachDB'
+    }
+
+    return dbInfo
   } catch (e) {
     return {
       name: activeDatasource.name,
@@ -123,8 +130,14 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
       // parse the url
       const credentials = uriToCredentials(activeDatasource.url.value)
       const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
+      let databaseProvider = dbType
+
       // not needed to check for sql server here since we returned already earlier if provider = sqlserver
       if (dbType && dbType !== 'SQL Server') {
+        // For CockroachDB we cannot rely on the connection URL, only on the provider
+        if (activeDatasource.provider === 'cockroachdb') {
+          databaseProvider = 'CockroachDB'
+        }
         return `${dbType} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
       } else {
         // SQL Server case, never reached?
@@ -235,6 +248,9 @@ export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
       break
     case 'sqlite':
       dbType = `SQLite`
+      break
+    case 'cockroachdb':
+      dbType = `CockroachDB`
       break
     // this is never reached as url parsing for sql server is not implemented
     case 'sqlserver':

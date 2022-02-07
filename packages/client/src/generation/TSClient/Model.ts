@@ -1,7 +1,7 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
-import type { DMMFClass } from '../../runtime/dmmf'
+import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
   getAggregateArgsName,
@@ -20,7 +20,7 @@ import {
   getMinAggregateName,
   getModelArgName,
   getSelectName,
-  getSelectReturnType,
+  getReturnType,
   getSumAggregateName,
   Projection,
 } from '../utils'
@@ -43,7 +43,7 @@ export class Model implements Generatable {
   protected mapping?: DMMF.ModelMapping
   constructor(
     protected readonly model: DMMF.Model,
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
     protected readonly collector?: ExportCollector,
   ) {
@@ -68,7 +68,9 @@ export class Model implements Generatable {
         throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
       }
       if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany') {
-        argsTypes.push(new MinimalArgsType(field.args, model, action as DMMF.ModelAction, this.collector))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
+      } else if (action === 'findRaw' || action === 'aggregateRaw') {
+        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
       } else if (action !== 'groupBy' && action !== 'aggregate') {
         argsTypes.push(new ArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
       }
@@ -322,7 +324,7 @@ ${this.argsTypes.map(TS).join('\n')}
 export class ModelDelegate implements Generatable {
   constructor(
     protected readonly outputType: OutputType,
-    protected readonly dmmf: DMMFClass,
+    protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
   ) {}
   public toTS(): string {
@@ -353,7 +355,7 @@ ${indent(
         `${getMethodJSDoc(actionName, mapping, model)}
 ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
-): ${getSelectReturnType({ name, actionName, projection: Projection.select })}`,
+): ${getReturnType({ name, actionName, projection: Projection.select })}`,
     )
     .join('\n\n'),
   TAB_SIZE,
@@ -466,7 +468,7 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getSelectReturnType({
+${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

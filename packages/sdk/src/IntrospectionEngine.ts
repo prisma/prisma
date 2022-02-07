@@ -221,6 +221,7 @@ export class IntrospectionEngine {
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
+  // TODO Dead Code?
   public listDatabases(schema: string): Promise<string[]> {
     this.lastUrl = schema
     return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
@@ -270,6 +271,11 @@ export class IntrospectionEngine {
 
           this.child = spawn(binaryPath, {
             env: process.env,
+            // If the process is spawned from another directory, all file paths would resolve relative to that instead of the prisma directory
+            // note that it isn't something engines specific but just a process spawning thing.
+            // Paths resolved in engines code include at least:
+            // sqlite database paths
+            // ssl certificate paths
             cwd: this.cwd,
             stdio: ['pipe', 'pipe', 'pipe'],
           })

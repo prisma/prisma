@@ -57,8 +57,9 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   console.log('publish order', publishOrder)
   if (buildOnly === false) {
     console.debug(`Installing dependencies`)
-
-    await run('.', `pnpm i --no-prefer-frozen-lockfile --reporter=silent`).catch(() => {})
+    await run('.', `pnpm i`).catch((e) => {
+      console.error(e)
+    })
   }
 
   console.debug(`Building packages`)
@@ -109,7 +110,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   // final install on top level
   await pRetry(
     async () => {
-      await run('.', 'pnpm i --no-prefer-frozen-lockfile')
+      await run('.', 'pnpm i')
     },
     {
       retries: 6,

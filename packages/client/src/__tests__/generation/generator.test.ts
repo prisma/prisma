@@ -7,7 +7,13 @@ import { promisify } from 'util'
 import { omit } from '../../omit'
 const del = promisify(rimraf)
 
-jest.setTimeout(30000)
+// 30s is really flaky (time out often) on Windows only
+const isWindowsCI = Boolean(process.env.CI) && ['win32'].includes(process.platform)
+if (isWindowsCI) {
+  jest.setTimeout(100_000)
+} else {
+  jest.setTimeout(30_000)
+}
 
 describe('generator', () => {
   test('minimal', async () => {
@@ -160,7 +166,7 @@ describe('generator', () => {
     } catch (e) {
       doesnNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message).split('generation/')[1]).toMatchInlineSnapshot(
+      expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
         `doesnotexist.prisma does not exist`,
       )
     }

@@ -326,4 +326,37 @@ const { count } = await ${ctx.method}({
       where: (singular, plural) => `Filter which ${plural} to delete`,
     },
   },
+  aggregateRaw: {
+    body: (ctx) =>
+      `Perform aggregation operations on a ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which aggregations you would like to apply.
+@example
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  pipeline: [
+    { $match: { status: "registered" } },
+    { $group: { _id: "$country", total: { $sum: 1 } } }
+  ]
+})`,
+    fields: {
+      pipeline: () =>
+        'An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.',
+      options: () =>
+        'Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.',
+    },
+  },
+  findRaw: {
+    body: (ctx) =>
+      `Find zero or more ${ctx.plural} that matches the filter.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
+@example
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  filter: { age: { $gt: 25 } } 
+})`,
+    fields: {
+      filter: () =>
+        'The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.',
+      options: () =>
+        'Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.',
+    },
+  },
 }

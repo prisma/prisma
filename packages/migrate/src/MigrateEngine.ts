@@ -12,7 +12,7 @@ const debugStdin = Debug('prisma:migrateEngine:stdin')
 
 export interface MigrateEngineOptions {
   projectDir: string
-  schemaPath: string
+  schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
 }
@@ -39,7 +39,7 @@ export class MigrateEngine {
   private projectDir: string
   private debug: boolean
   private child?: ChildProcess
-  private schemaPath: string
+  private schemaPath?: string
   private listeners: { [key: string]: (result: any, err?: any) => any } = {}
   /**  _All_ the logs from the engine process. */
   private messages: string[] = []
@@ -102,6 +102,12 @@ export class MigrateEngine {
   }
   public reset(): Promise<void> {
     return this.runCommand(this.getRPCPayload('reset', undefined))
+  }
+  public dbExecute(args: EngineArgs.DbExecuteInput): Promise<EngineResults.DbExecuteOutput> {
+    return this.runCommand(this.getRPCPayload('dbExecute', args))
+  }
+  public migrateDiff(args: EngineArgs.MigrateDiffInput): Promise<EngineResults.MigrateDiffOutput> {
+    return this.runCommand(this.getRPCPayload('diff', args))
   }
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
@@ -166,7 +172,12 @@ export class MigrateEngine {
         const { PWD, ...rest } = process.env
         const binaryPath = await resolveBinary(BinaryType.migrationEngine)
         debugRpc('starting migration engine with binary: ' + binaryPath)
-        const args = ['-d', this.schemaPath]
+        const args: string[] = []
+
+        if (this.schemaPath) {
+          args.push(...['-d', this.schemaPath])
+        }
+
         if (
           this.enabledPreviewFeatures &&
           Array.isArray(this.enabledPreviewFeatures) &&

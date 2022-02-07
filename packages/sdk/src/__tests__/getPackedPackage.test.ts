@@ -14,5 +14,5 @@ describe('getPackedPackage', () => {
     } finally {
       expect(fs.existsSync('/tmp/getPackedPackage-exploit')).toBe(false)
     }
-  })
+  }, 20000)
 })

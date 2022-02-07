@@ -5,7 +5,6 @@ dist
 build
 .DS_Store
 tmp/
-.env*
 pnpm-debug.log
 write-test
 *.tsbuildinfo

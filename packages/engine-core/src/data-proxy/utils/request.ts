@@ -38,7 +38,8 @@ export async function request(url: string, options: RequestOptions = {}): Promis
  */
 function buildHeaders(options: RequestOptions): RequestOptions['headers'] {
   return {
-    ...options.headers,
+    // this ensures headers will always be valid
+    ...JSON.parse(JSON.stringify(options.headers)),
     'Content-Type': 'application/json',
   }
 }
