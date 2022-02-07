@@ -1,5 +1,8 @@
 import type * as esbuild from 'esbuild'
-import { unlink } from 'fs/promises'
+import { promisify } from 'util'
+import fs from 'fs'
+
+const unlink = promisify(fs.unlink)
 
 /**
  * Removes the esm output files after cjs compile.
