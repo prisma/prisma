@@ -295,7 +295,7 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    it('should pass when using env var from .env file  with --file --schema', async () => {
+    it('should use env var from .env file', async () => {
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
