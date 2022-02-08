@@ -31,11 +31,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js
-        uses: actions/setup-node@v2
+      - uses: pnpm/action-setup@v2.0.1
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v2
         with:
           cache: 'pnpm'
-          node-version: '12'
+          node-version: '16'
 
       - run: bash .github/workflows/setup.sh
         env:
