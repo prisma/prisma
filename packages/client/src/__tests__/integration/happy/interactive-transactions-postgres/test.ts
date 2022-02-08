@@ -473,6 +473,38 @@ describe('interactive transactions', () => {
       ]).catch(() => {}) // we don't care for errors, there will be
     }
   })
+
+  /**
+   * Rollback should happen even with `then` calls
+   */
+  test('rollback with then calls', async () => {
+    await prisma
+      .$transaction(async (prisma) => {
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
+          .then()
+
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_2@website.com',
+            },
+          })
+          .then()
+          .then()
+
+        throw new Error('rollback')
+      })
+      .catch(() => {})
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
 })
 
 beforeAll(async () => {

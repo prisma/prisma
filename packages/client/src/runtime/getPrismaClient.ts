@@ -277,6 +277,7 @@ const TX_ID = Symbol.for('prisma.client.transaction.id')
 // TODO improve all these types, need a common place to share them between type
 // gen and this. This will be relevant relevant for type gen tech debt refactor
 export interface Client {
+  /** Only via tx proxy */
   [TX_ID]?: string
   _dmmf: DMMFHelper
   _engine: Engine
@@ -1088,7 +1089,7 @@ new PrismaClient({
           return new Promise((resolve, reject) => {
             // each request has already been called with `prisma.<call>`
             // so we inject `transactionId` by intercepting that promise
-            request.then(resolve, reject, prisma[TX_ID]) // id via Proxy
+            request.then(resolve, reject, prisma[TX_ID])
           })
         })
 
@@ -1267,10 +1268,10 @@ const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
 /**
  * Proxy that takes over client promises to pass `transactionId`
  * @param thing to be proxied
- * @param transactionId to be passed down to `_query`
+ * @param txId to be passed down to {@link RequestHandler}
  * @returns
  */
-function transactionProxy<T>(thing: T, transactionId: string): T {
+function transactionProxy<T>(thing: T, txId: string): T {
   // we only wrap within a proxy if it's possible: if it's an object
   if (typeof thing !== 'object') return thing
 
@@ -1279,25 +1280,21 @@ function transactionProxy<T>(thing: T, transactionId: string): T {
       // we don't want to allow any calls to our `forbidden` methods
       if (forbidden.includes(prop as string)) return undefined
 
-      // secret accessor to get the `transactionId` in a transaction
-      if (prop === TX_ID) return transactionId
+      if (prop === TX_ID) return txId // secret accessor to the txId
 
+      // we override and handle every function call within the proxy
       if (typeof target[prop] === 'function') {
-        // we override & handle every function call within the proxy
         return (...args: unknown[]) => {
-          if (prop === 'then') {
-            // this is our promise, we pass it an extra info argument
-            // this will call "our" `then` which will call `_request`
-            return target[prop](...args, transactionId)
-          }
+          // we hijack `then` calls to pass txId to prisma promises
+          if (prop === 'then') return target[prop](args[0], args[1], txId)
 
-          // if it's not the end promise, continue wrapping as it goes
-          return transactionProxy(target[prop](...args), transactionId)
+          // if it's not the end promise, result is also tx-proxied
+          return transactionProxy(target[prop](...args), txId)
         }
       }
 
-      // probably an object, not the end, continue wrapping as it goes
-      return transactionProxy(target[prop], transactionId)
+      // if it's an object prop, then we keep on making it proxied
+      return transactionProxy(target[prop], txId)
     },
   }) as any as T
 }
