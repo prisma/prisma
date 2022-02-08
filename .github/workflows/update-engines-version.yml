@@ -13,14 +13,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-        with:
-          cache: 'pnpm'
-
       - uses: pnpm/action-setup@v2.0.1
         with:
           version: latest
+
+      - uses: actions/setup-node@v2
+        with:
+          cache: 'pnpm'
+          node-version: '16'
 
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
