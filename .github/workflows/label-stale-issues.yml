@@ -1,7 +1,7 @@
-name: "Labels stale issues"
+name: 'Labels stale issues'
 on:
   schedule:
-    - cron: "0 0 * * *"
+    - cron: '0 0 * * *'
   workflow_dispatch:
 
 jobs:
@@ -11,11 +11,11 @@ jobs:
       - uses: pantharshit00/stale@v3.1
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
-          stale-issue-message: "DUMMY, FOR ENABLING"
+          stale-issue-message: 'DUMMY, FOR ENABLING'
           days-before-stale: 90
           days-before-close: -1
-          exempt-issue-labels: "kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question,kind/epic,kind/subtask"
-          stale-issue-label: "status/needs-action"
+          exempt-issue-labels: 'kind/discussion,kind/docs,kind/feature,kind/improvement,kind/question,kind/epic,kind/subtask'
+          stale-issue-label: 'status/needs-action'
           skip-stale-issue-message: true
           skip-stale-pr-message: true
           ascending: true

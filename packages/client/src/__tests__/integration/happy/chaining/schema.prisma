@@ -17,6 +17,7 @@ model User {
   likes      Like[]
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String
+  Banking    Banking?
 }
 
 model Property {
@@ -54,4 +55,12 @@ model Like {
 
   House House[]
   @@unique([userId, postId])
+}
+
+model Banking {
+  id     String @id @default(cuid())
+  userId String
+  user   User?  @relation(fields: [userId], references: [id])
+  iban   String
+  bic    String
 }
