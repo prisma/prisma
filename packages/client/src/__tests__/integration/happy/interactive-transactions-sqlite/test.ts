@@ -396,12 +396,13 @@ describe('interactive transactions', () => {
     expect(users.length).toBe(0)
   })
 
-  /**
-   * Minimal example of a interactive transaction & middleware
-   */
   test('middleware basic', async () => {
+    let runInTransaction = false
+
     prisma.$use(async (params, next) => {
       await next(params)
+
+      runInTransaction = params.runInTransaction
 
       return 'result'
     })
@@ -415,8 +416,8 @@ describe('interactive transactions', () => {
     })
 
     expect(result).toBe('result')
+    expect(runInTransaction).toBe(true)
   })
-
   /**
    * Two concurrent transactions should work
    */
