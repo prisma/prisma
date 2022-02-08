@@ -11,9 +11,10 @@ const unlink = promisify(fs.unlink)
  */
 function removeIntermediaryEsmFiles(build: esbuild.PluginBuild) {
   const files = Object.values(build.initialOptions.entryPoints ?? {})
-  const rms = files.map((file) => file.endsWith('.mjs') && unlink(file))
+  const filesToRemove = files.filter((file) => file.endsWith('.mjs'))
+  const fileRemovals = filesToRemove.map((file) => unlink(file))
 
-  return Promise.allSettled(rms)
+  return Promise.allSettled(fileRemovals)
 }
 
 /**
