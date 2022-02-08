@@ -16,7 +16,6 @@ query_engine-windows.dll.node
 dist/
 
 *.tsbuildinfo
-.env*
 .prisma
 .pnpm-store
 
@@ -28,8 +27,11 @@ coverage
 
 node_modules
 .pnpm-store/
-.env*
 yarn-error.log
 .DS_Store
 pnpm-debug.log
 .pnpm-debug.log
+
+.envrc
+
+esm

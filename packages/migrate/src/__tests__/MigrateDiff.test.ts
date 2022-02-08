@@ -111,19 +111,19 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                        [+] Added tables
-                                          - Post
-                                          - Profile
-                                          - User
-                                          - _Migration
+                                                        [+] Added tables
+                                                          - Post
+                                                          - Profile
+                                                          - User
+                                                          - _Migration
 
-                                        [*] Changed the \`Profile\` table
-                                          [+] Added unique index on columns (userId)
+                                                        [*] Changed the \`Profile\` table
+                                                          [+] Added unique index on columns (userId)
 
-                                        [*] Changed the \`User\` table
-                                          [+] Added unique index on columns (email)
+                                                        [*] Changed the \`User\` table
+                                                          [+] Added unique index on columns (email)
 
-                              `)
+                                          `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -144,10 +144,10 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                [+] Added tables
-                                                                                  - Blog
+                                                                                                [+] Added tables
+                                                                                                  - Blog
 
-                                                            `)
+                                                                        `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -180,10 +180,10 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                        [-] Removed tables
-                                                                                          - Blog
+                                                                                                        [-] Removed tables
+                                                                                                          - Blog
 
-                                                                  `)
+                                                                              `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -278,7 +278,7 @@ describe('migrate diff', () => {
   describe('postgresql', () => {
     const connectionString = (
       process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-migrate-diff')
+    ).replace('tests-migrate', 'tests-migrate-diff')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
@@ -323,6 +323,24 @@ describe('migrate diff', () => {
       `)
     })
 
+    it('should use env var from .env file with --from-schema-datasource', async () => {
+      ctx.fixture('schema-only-postgresql')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-schema-datasource=./prisma/using-dotenv.prisma',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+      ])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
+
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
+
+            `)
+    })
+
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
@@ -347,7 +365,7 @@ describe('migrate diff', () => {
   describe('mysql', () => {
     const connectionString = (
       process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    ).replace('tests-migrate', 'tests-migrate-diff')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
@@ -417,7 +435,7 @@ describe('migrate diff', () => {
     const jdbcConnectionString = (
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
       'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    ).replace('tests-migrate', 'tests-migrate-diff')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
@@ -428,13 +446,13 @@ describe('migrate diff', () => {
     }
 
     beforeAll(async () => {
-      await setupMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+      await setupMSSQL(setupParams, 'tests-migrate-diff').catch((e) => {
         console.error(e)
       })
     })
 
     afterAll(async () => {
-      await tearDownMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+      await tearDownMSSQL(setupParams, 'tests-migrate-diff').catch((e) => {
         console.error(e)
       })
     })

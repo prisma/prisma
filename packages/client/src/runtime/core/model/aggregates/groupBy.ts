@@ -1,5 +1,6 @@
 import type { Client } from '../../../getPrismaClient'
 import type { ModelAction } from '../applyModel'
+import type { UserArgs } from '../UserArgs'
 import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
 
 /**
@@ -10,13 +11,15 @@ import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
  * @param userArgs to transform
  * @returns
  */
-function desugarUserArgs(userArgs: object) {
+function desugarUserArgs(userArgs: UserArgs) {
   const _userArgs = desugarUserArgsAggregate(userArgs)
 
   // we desugar the array into { [key]: boolean }
-  if (Array.isArray(userArgs?.['by']) === true) {
-    for (const key of userArgs?.['by'] ?? []) {
-      _userArgs['select'][key] = true
+  if (Array.isArray(userArgs['by'])) {
+    for (const key of userArgs['by']) {
+      if (typeof key === 'string') {
+        _userArgs['select'][key] = true
+      }
     }
   }
 
@@ -29,7 +32,7 @@ function desugarUserArgs(userArgs: object) {
  * @param userArgs the user input
  * @returns
  */
-export function createUnpacker(userArgs: object) {
+export function createUnpacker(userArgs: UserArgs) {
   return (data: object[]) => {
     if (typeof userArgs['_count'] === 'boolean') {
       data.forEach((row) => {
@@ -48,7 +51,7 @@ export function createUnpacker(userArgs: object) {
  * @param modelAction a callback action that triggers request execution
  * @returns
  */
-export function groupBy(client: Client, userArgs: object | undefined, modelAction: ModelAction) {
+export function groupBy(client: Client, userArgs: UserArgs | undefined, modelAction: ModelAction) {
   const groupByArgs = desugarUserArgs(userArgs ?? {})
   const groupByUnpacker = createUnpacker(userArgs ?? {})
 

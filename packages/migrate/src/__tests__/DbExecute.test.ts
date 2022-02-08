@@ -295,6 +295,25 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    it('should use env var from .env file', async () => {
+      ctx.fixture('schema-only-postgresql')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse([
+        '--preview-feature',
+        '--schema=./prisma/using-dotenv.prisma',
+        '--file=./script.sql',
+      ])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
+
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
+
+            `)
+    })
+
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-postgresql')
 

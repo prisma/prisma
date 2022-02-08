@@ -1,13 +1,13 @@
 import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError, getCommandWithExecutor, link } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
+import { arg, format, HelpError, isError, getCommandWithExecutor, link } from '@prisma/sdk'
 import chalk from 'chalk'
-import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
-import { NoSchemaFoundError } from '../utils/errors'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {
     return new MigrateResolve()
@@ -78,13 +78,9 @@ ${chalk.bold('Examples')}
       throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 

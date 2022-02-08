@@ -729,7 +729,7 @@ describe('getGenerators', () => {
         You can define a model like this:
 
         model User {
-          id    String  @id @default(dbgenerated()) @map(\\"_id\\") @db.ObjectId
+          id    String  @id @default(auto()) @map(\\"_id\\") @db.ObjectId
           email String  @unique
           name  String?
         }

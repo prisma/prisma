@@ -179,6 +179,7 @@ describe('postgresql', () => {
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
     `)

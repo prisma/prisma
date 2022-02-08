@@ -9,7 +9,7 @@ datasource db {
 }
 
 model Post {
-  id        String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   title     String
   content   String?
@@ -19,7 +19,7 @@ model Post {
 }
 
 model User {
-  id              String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
   email           String          @unique
   int             Int
   optionalInt     Int?
@@ -37,7 +37,7 @@ model User {
 }
 
 model M {
-  id              String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
   n               N[]
   int             Int
   optionalInt     Int?
@@ -54,7 +54,7 @@ model M {
 }
 
 model N {
-  id              String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
   m               M[]
   int             Int
   optionalInt     Int?
@@ -71,7 +71,7 @@ model N {
 }
 
 model OneOptional {
-  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
   many            ManyRequired[]
   int             Int
   optionalInt     Int?
@@ -88,8 +88,8 @@ model OneOptional {
 }
 
 model ManyRequired {
-  id              String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  one             OneOptional? @relation(fields: [oneOptionalId], references: [id])
+  id  String       @id @default(auto()) @map("_id") @db.ObjectId
+  one OneOptional? @relation(fields: [oneOptionalId], references: [id])
 
   oneOptionalId   Int?
   int             Int
@@ -107,8 +107,8 @@ model ManyRequired {
 }
 
 model OptionalSide1 {
-  id              String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  opti            OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
+  id   String         @id @default(auto()) @map("_id") @db.ObjectId
+  opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
 
   optionalSide2Id Int?
   int             Int
@@ -126,7 +126,7 @@ model OptionalSide1 {
 }
 
 model OptionalSide2 {
-  id              String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id              String          @id @default(auto()) @map("_id") @db.ObjectId
   opti            OptionalSide1?
   int             Int
   optionalInt     Int?
@@ -152,32 +152,26 @@ enum ABeautifulEnum {
 /// model comment
 model A {
   /// field comment 1
-  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
   email String  @unique
   name  String?
 
   /// field comment 2
-  int      Int    // @db.Integer
-  sInt     Int    // @db.SmallInt
+  int      Int // @db.Integer
+  sInt     Int // @db.SmallInt
   bInt     BigInt // @db.BigInt
-  // serial   Int    @default(autoincrement()) @db.Serial
-  // sSerial  Int    @default(autoincrement()) @db.SmallSerial
-  // bSerial  Int    @default(autoincrement()) @db.BigSerial
-  inc_int  Int    @default(autoincrement()) // @db.Integer
-  inc_sInt Int    @default(autoincrement()) // @db.SmallInt
-  inc_bInt BigInt @default(autoincrement()) // @db.BigInt
 }
 
 model B {
-  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
-  float    Float   // @db.Real
-  dFloat   Float   // @db.DoublePrecision
+  id       String  @id @default(auto()) @map("_id") @db.ObjectId
+  float    Float // @db.Real
+  dFloat   Float // @db.DoublePrecision
   decFloat Decimal // @db.Decimal(2, 1)
   numFloat Decimal // @db.Decimal(10, 6)
 }
 
 model C {
-  id    String @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id    String @id @default(auto()) @map("_id") @db.ObjectId
   char  String // @db.Char(10)
   vChar String // @db.VarChar(11)
   text  String // @db.Text
@@ -187,16 +181,16 @@ model C {
 }
 
 model D {
-  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
   bool  Boolean // @db.Boolean
-  byteA Bytes   // @db.ByteA
-  xml   String  // @db.Xml
-  json  Json    // @db.Json
-  jsonb Json    // @db.JsonB
+  byteA Bytes // @db.ByteA
+  xml   String // @db.Xml
+  json  Json // @db.Json
+  jsonb Json // @db.JsonB
 }
 
 model E {
-  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id   String   @id @default(auto()) @map("_id") @db.ObjectId
   date DateTime @db.Date
   time DateTime // @db.Time(3)
   ts   DateTime // @db.Timestamp(3)

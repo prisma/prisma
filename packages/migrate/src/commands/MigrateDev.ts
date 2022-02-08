@@ -1,4 +1,5 @@
 import type { Command } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
 import {
   arg,
   format,
@@ -7,7 +8,6 @@ import {
   getSchemaPath,
   getCommandWithExecutor,
   isCi,
-  logger,
   getConfig,
   getDMMF,
 } from '@prisma/sdk'
@@ -15,12 +15,11 @@ import Debug from '@prisma/debug'
 import chalk from 'chalk'
 import prompt from 'prompts'
 import fs from 'fs'
-import path from 'path'
 import { Migrate } from '../Migrate'
 import type { DbType } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
 import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
-import { NoSchemaFoundError, MigrateDevEnvNonInteractiveError } from '../utils/errors'
+import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { printMigrationId } from '../utils/printMigrationId'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
@@ -29,6 +28,7 @@ import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
 import type { EngineResults } from '../types'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -101,13 +101,9 @@ ${chalk.bold('Examples')}
       throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 

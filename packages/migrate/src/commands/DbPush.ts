@@ -1,23 +1,14 @@
 import type { Command } from '@prisma/sdk'
-import {
-  arg,
-  format,
-  formatms,
-  HelpError,
-  isError,
-  getSchemaPath,
-  logger,
-  isCi,
-  getCommandWithExecutor,
-} from '@prisma/sdk'
-import path from 'path'
+import { loadEnvFile } from '@prisma/sdk'
+import { arg, format, formatms, HelpError, isError, logger, isCi, getCommandWithExecutor } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
-import { DbPushIgnoreWarningsWithFlagError, DbPushForceFlagRenamedError, NoSchemaFoundError } from '../utils/errors'
+import { DbPushIgnoreWarningsWithFlagError, DbPushForceFlagRenamedError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import type { EngineResults } from '../types'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 
 export class DbPush implements Command {
   public static new(): DbPush {
@@ -88,13 +79,9 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       throw new DbPushForceFlagRenamedError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 

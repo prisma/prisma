@@ -1,6 +1,6 @@
 import fs from 'fs'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getSchemaPath, link, getCommandWithExecutor } from '@prisma/sdk'
+import { arg, format, HelpError, isError, getSchemaPath, link, getCommandWithExecutor, loadEnvFile } from '@prisma/sdk'
 import path from 'path'
 import chalk from 'chalk'
 import { Migrate } from '../Migrate'
@@ -90,6 +90,8 @@ ${chalk.bold('Examples')}
     if (!args['--preview-feature']) {
       throw new DbExecuteNeedsPreviewFeatureFlagError()
     }
+
+    loadEnvFile(args['--schema'], false)
 
     // One of --stdin or --file is required
     if (args['--stdin'] && args['--file']) {

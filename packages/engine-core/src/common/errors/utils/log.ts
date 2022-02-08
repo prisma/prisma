@@ -119,7 +119,7 @@ export function convertLog(rustLog: RawRustLog): RustLog {
   return {
     ...rustLog,
     level,
-    timestamp: new Date(new Date().getFullYear() + ' ' + rustLog.timestamp),
+    timestamp: new Date(rustLog.timestamp),
   }
 }
 

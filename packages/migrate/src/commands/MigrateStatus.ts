@@ -1,15 +1,16 @@
 import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError, getCommandWithExecutor } from '@prisma/sdk'
+import { loadEnvFile } from '@prisma/sdk'
+import { arg, format, HelpError, isError, getCommandWithExecutor } from '@prisma/sdk'
 import chalk from 'chalk'
-import path from 'path'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
 import { Migrate } from '../Migrate'
 import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
-import { HowToBaselineError, NoSchemaFoundError } from '../utils/errors'
+import { HowToBaselineError } from '../utils/errors'
 import Debug from '@prisma/debug'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
 import type { EngineResults } from '../types'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 
 const debug = Debug('prisma:migrate:status')
 
@@ -69,13 +70,9 @@ Check the status of your database migrations
       throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 
