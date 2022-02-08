@@ -1764,7 +1764,7 @@ export namespace Prisma {
     _max: PostMaxAggregateOutputType | null
   }
 
-  type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<
+  type GetPostGroupByPayload<T extends PostGroupByArgs> = PrismaPromise<
     Array<
       PickArray<PostGroupByOutputType, T['by']> &
         {
@@ -2152,7 +2152,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, PostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, PostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -2793,7 +2793,7 @@ export namespace Prisma {
     _max: UserMaxAggregateOutputType | null
   }
 
-  type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<
+  type GetUserGroupByPayload<T extends UserGroupByArgs> = PrismaPromise<
     Array<
       PickArray<UserGroupByOutputType, T['by']> &
         {
@@ -3195,7 +3195,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -3829,7 +3829,7 @@ export namespace Prisma {
     _max: MMaxAggregateOutputType | null
   }
 
-  type GetMGroupByPayload<T extends MGroupByArgs> = Promise<
+  type GetMGroupByPayload<T extends MGroupByArgs> = PrismaPromise<
     Array<
       PickArray<MGroupByOutputType, T['by']> &
         {
@@ -4230,7 +4230,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, MGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, MGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -4864,7 +4864,7 @@ export namespace Prisma {
     _max: NMaxAggregateOutputType | null
   }
 
-  type GetNGroupByPayload<T extends NGroupByArgs> = Promise<
+  type GetNGroupByPayload<T extends NGroupByArgs> = PrismaPromise<
     Array<
       PickArray<NGroupByOutputType, T['by']> &
         {
@@ -5265,7 +5265,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, NGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, NGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -5899,7 +5899,7 @@ export namespace Prisma {
     _max: OneOptionalMaxAggregateOutputType | null
   }
 
-  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<
+  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = PrismaPromise<
     Array<
       PickArray<OneOptionalGroupByOutputType, T['by']> &
         {
@@ -6300,7 +6300,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, OneOptionalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, OneOptionalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -6945,7 +6945,7 @@ export namespace Prisma {
     _max: ManyRequiredMaxAggregateOutputType | null
   }
 
-  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<
+  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = PrismaPromise<
     Array<
       PickArray<ManyRequiredGroupByOutputType, T['by']> &
         {
@@ -7341,7 +7341,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, ManyRequiredGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, ManyRequiredGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -7986,7 +7986,7 @@ export namespace Prisma {
     _max: OptionalSide1MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<
+  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = PrismaPromise<
     Array<
       PickArray<OptionalSide1GroupByOutputType, T['by']> &
         {
@@ -8382,7 +8382,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, OptionalSide1GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, OptionalSide1GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -9016,7 +9016,7 @@ export namespace Prisma {
     _max: OptionalSide2MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<
+  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = PrismaPromise<
     Array<
       PickArray<OptionalSide2GroupByOutputType, T['by']> &
         {
@@ -9411,7 +9411,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, OptionalSide2GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, OptionalSide2GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -10000,7 +10000,7 @@ export namespace Prisma {
     _max: AMaxAggregateOutputType | null
   }
 
-  type GetAGroupByPayload<T extends AGroupByArgs> = Promise<
+  type GetAGroupByPayload<T extends AGroupByArgs> = PrismaPromise<
     Array<
       PickArray<AGroupByOutputType, T['by']> &
         {
@@ -10378,7 +10378,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, AGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, AGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -10923,7 +10923,7 @@ export namespace Prisma {
     _max: BMaxAggregateOutputType | null
   }
 
-  type GetBGroupByPayload<T extends BGroupByArgs> = Promise<
+  type GetBGroupByPayload<T extends BGroupByArgs> = PrismaPromise<
     Array<
       PickArray<BGroupByOutputType, T['by']> &
         {
@@ -11300,7 +11300,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, BGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, BGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -11813,7 +11813,7 @@ export namespace Prisma {
     _max: CMaxAggregateOutputType | null
   }
 
-  type GetCGroupByPayload<T extends CGroupByArgs> = Promise<
+  type GetCGroupByPayload<T extends CGroupByArgs> = PrismaPromise<
     Array<
       PickArray<CGroupByOutputType, T['by']> &
         {
@@ -12192,7 +12192,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, CGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, CGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -12690,7 +12690,7 @@ export namespace Prisma {
     _max: DMaxAggregateOutputType | null
   }
 
-  type GetDGroupByPayload<T extends DGroupByArgs> = Promise<
+  type GetDGroupByPayload<T extends DGroupByArgs> = PrismaPromise<
     Array<
       PickArray<DGroupByOutputType, T['by']> &
         {
@@ -13068,7 +13068,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, DGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, DGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -13560,7 +13560,7 @@ export namespace Prisma {
     _max: EMaxAggregateOutputType | null
   }
 
-  type GetEGroupByPayload<T extends EGroupByArgs> = Promise<
+  type GetEGroupByPayload<T extends EGroupByArgs> = PrismaPromise<
     Array<
       PickArray<EGroupByOutputType, T['by']> &
         {
@@ -13936,7 +13936,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, EGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, EGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
