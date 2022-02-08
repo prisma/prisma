@@ -1,16 +1,16 @@
-name: "CodeQL: Code Scanning"
+name: 'CodeQL: Code Scanning'
 
 on:
-#   push:
-#     branches: [ main ]
-#   pull_request:
-#     # The branches below must be a subset of the branches above
-#     branches: [ main ]
+  #   push:
+  #     branches: [ main ]
+  #   pull_request:
+  #     # The branches below must be a subset of the branches above
+  #     branches: [ main ]
   schedule:
-    # Runs at 14:43 UTC on Sun. 
+    # Runs at 14:43 UTC on Sun.
     - cron: '43 14 * * 0'
   workflow_dispatch:
-  
+
 jobs:
   analyze:
     name: Analyze
@@ -27,12 +27,12 @@ jobs:
       matrix:
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
         # Learn more about CodeQL language support at https://git.io/codeql-language-support
-        language: [ 'javascript' ]
+        language: ['javascript']
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-    
+
       # Initializes the CodeQL tools for scanning.
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v1
@@ -45,3 +45,19 @@ jobs:
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v1
+
+      - name: 'Set current job url in SLACK_FOOTER env var'
+        if: ${{ failure() }}
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+
+      - name: Slack Notification on Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_TITLE: 'CodeQL: Code Scanning failed :x:'
+          SLACK_COLOR: '#FF0000'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: feed-prisma-failures
+          SLACK_USERNAME: Prismo
+          SLACK_ICON_EMOJI: ':boom:'
+          SLACK_MSG_AUTHOR: prisma-bot
