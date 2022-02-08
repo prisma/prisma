@@ -13,7 +13,6 @@ import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { handle } from '../blaze/handle'
 import { replaceWithPlugin } from './plugins/replaceWithPlugin'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
-import { cleanupPlugin } from './plugins/cleanupPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
@@ -69,7 +68,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outdir: options.outfile ? undefined : getOutDir(options),
   // we only produce typescript types on the second run (cjs)
-  plugins: [replacePlugin, ...(options.plugins ?? []), tscPlugin, cleanupPlugin, onErrorPlugin],
+  plugins: [replacePlugin, ...(options.plugins ?? []), tscPlugin, onErrorPlugin],
 })
 
 // because we compile tree-shaken esm to cjs, we need to replace __require
@@ -223,7 +222,7 @@ function getOutDir(options: BuildOptions) {
 
 // get the esm output path from an original path
 function getEsmOutDir(options: BuildOptions) {
-  return `${getOutDir(options)}/esm`
+  return `esm/${getOutDir(options)}`
 }
 
 // get the esm output file from an original path
@@ -232,7 +231,7 @@ function getEsmOutFile(options: BuildOptions) {
     const dirname = getOutDir(options)
     const filename = path.basename(options.outfile)
 
-    return `${dirname}/esm/${filename}`
+    return `esm/${dirname}/${filename}`
   }
 
   return undefined

@@ -33,3 +33,5 @@ pnpm-debug.log
 .pnpm-debug.log
 
 .envrc
+
+esm
