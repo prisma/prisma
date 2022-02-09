@@ -122,20 +122,6 @@ describe('chaining', () => {
     `)
   })
 
-  test('repeated calls to then', async () => {
-    const createPromise = prisma.user.create({
-      data: {
-        email: 'email@email.em',
-      },
-    })
-
-    // repeated calls to then should not change the result
-    const createResult1 = await createPromise.then()
-    const createResult2 = await createPromise.then()
-
-    expect(createResult1).toStrictEqual(createResult2)
-  })
-
   beforeAll(async () => {
     const PrismaClient = await getTestClient()
     prisma = new PrismaClient()
