@@ -15,8 +15,8 @@ model User {
   age        Int?
   posts      Post[]
   likes      Like[]
-  property   Property @relation(fields: [propertyId], references: [id])
-  propertyId String
+  property   Property? @relation(fields: [propertyId], references: [id])
+  propertyId String?
   Banking    Banking?
 }
 
