@@ -1,10 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
+let prisma
 describe('chaining', () => {
   test('lower-cased relations', async () => {
-    const PrismaClient = await getTestClient()
-    const prisma = new PrismaClient()
-
     const a: any[] = []
     a.push(
       await prisma.user
@@ -81,8 +79,6 @@ describe('chaining', () => {
         .property(),
     )
 
-    await prisma.$disconnect()
-
     expect(a).toMatchInlineSnapshot(`
       Array [
         null,
@@ -96,9 +92,6 @@ describe('chaining', () => {
   })
 
   test('upper-cased relations', async () => {
-    const PrismaClient = await getTestClient()
-    const prisma = new PrismaClient()
-
     const a: any[] = []
     a.push(
       await prisma.user
@@ -121,13 +114,38 @@ describe('chaining', () => {
         .user(),
     )
 
-    await prisma.$disconnect()
-
     expect(a).toMatchInlineSnapshot(`
       Array [
         null,
         null,
       ]
     `)
+  })
+
+  test('repeated calls to then', async () => {
+    const createPromise = prisma.user.create({
+      data: {
+        email: 'email@email.em',
+      },
+    })
+
+    // repeated calls to then should not change the result
+    const createResult1 = await createPromise.then()
+    const createResult2 = await createPromise.then()
+
+    expect(createResult1).toStrictEqual(createResult2)
+  })
+
+  beforeAll(async () => {
+    const PrismaClient = await getTestClient()
+    prisma = new PrismaClient()
+  })
+
+  beforeEach(async () => {
+    await prisma.user.deleteMany()
+  })
+
+  afterAll(async () => {
+    await prisma.$disconnect()
   })
 })
