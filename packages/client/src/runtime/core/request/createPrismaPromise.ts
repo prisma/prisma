@@ -17,23 +17,21 @@ export function createPrismaPromise(
   const otelCtx = context.active() // get the context at time of creation
   // because otel isn't able to propagate context when inside of a promise
 
-  // we handle exceptions that happen in the scope as `Promise` rejections
+  let promise: PrismaPromise<unknown> | undefined
   const _callback = (txId?: number, inTx?: boolean) => {
     try {
-      return callback(txId, inTx, otelCtx)
+      // we allow the callback to be executed only one time
+      return (promise ??= callback(txId, inTx, otelCtx))
     } catch (error) {
+      // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
       return Promise.reject(error) as PrismaPromise<unknown>
     }
   }
 
-  let promise: PrismaPromise<unknown> | undefined
   return {
     then(onFulfilled, onRejected, txId?: number) {
-      // we return same the result for repeated `then` calls
-      promise ??= _callback(txId, false)
-
-      return promise.then(onFulfilled, onRejected, txId)
+      return _callback(txId, false).then(onFulfilled, onRejected, txId)
     },
     catch(onRejected) {
       return _callback().catch(onRejected)
