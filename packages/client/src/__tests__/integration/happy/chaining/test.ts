@@ -129,6 +129,7 @@ describe('chaining', () => {
       },
     })
 
+    // repeated calls to then should not change the result
     const createResult1 = await createPromise.then()
     const createResult2 = await createPromise.then()
 
