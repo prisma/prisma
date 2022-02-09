@@ -27,9 +27,11 @@ export function createPrismaPromise(
     }
   }
 
+  let promise: PrismaPromise<unknown> | undefined
   return {
     then(onFulfilled, onRejected, txId?: number) {
-      const promise = _callback(txId, false)
+      // we return same the result for repeated `then` calls
+      promise ??= _callback(txId, false)
 
       return promise.then(onFulfilled, onRejected, txId)
     },
