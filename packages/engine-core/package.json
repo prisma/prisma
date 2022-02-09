@@ -29,7 +29,7 @@
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-jest": "26.0.0",
     "eslint-plugin-prettier": "4.0.0",
-    "jest": "27.4.7",
+    "jest": "27.5.1",
     "lint-staged": "12.1.5",
     "prettier": "2.5.1",
     "ts-jest": "27.1.3",
