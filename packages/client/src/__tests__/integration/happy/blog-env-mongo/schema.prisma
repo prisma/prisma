@@ -1,0 +1,34 @@
+datasource db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["mongodb"]
+}
+
+model User {
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
+  email String  @unique
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  String?
+  author    User?     @relation(fields: [authorId], references: [id])
+  jsonData  Json?
+  coinflips Boolean[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}

@@ -164,6 +164,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
 function databaseTypeToProtocol(databaseType: ConnectorType): string {
   switch (databaseType) {
     case 'postgresql':
+    case 'cockroachdb':
       return 'postgresql:'
     case 'mysql':
       return 'mysql:'
@@ -173,6 +174,8 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
       return 'sqlite:'
     case 'sqlserver':
       return 'sqlserver:'
+    case 'jdbc:sqlserver':
+      return 'jdbc:sqlserver:'
   }
 }
 

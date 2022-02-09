@@ -1,15 +1,7 @@
-import fs from 'fs-jetpack'
-import path from 'path'
 import { MigrateStatus } from '../commands/MigrateStatus'
-import { consoleContext, Context } from './__helpers__/context'
-import { tearDownMysql } from '../utils/setupMysql'
-import {
-  SetupParams,
-  setupPostgres,
-  tearDownPostgres,
-} from '../utils/setupPostgres'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 process.env.GITHUB_ACTIONS = '1'
 
@@ -34,8 +26,8 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now in Preview.
-            Replace the --early-access-feature flag with --preview-feature.
+            Prisma Migrate was in Early Access and is now Generally Available.
+            Remove the --early-access-feature flag.
           `)
   })
 })
@@ -50,8 +42,7 @@ describe('sqlite', () => {
             P1003: SQLite database file doesn't exist
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
@@ -77,8 +68,7 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-resolve
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       1 migration found in prisma/migrations
@@ -107,8 +97,7 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-baseline
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       1 migration found in prisma/migrations
@@ -126,12 +115,9 @@ describe('sqlite', () => {
   it('existing-db-1-migration', async () => {
     ctx.fixture('existing-db-1-migration')
     const result = MigrateStatus.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Database schema is up to date!`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(`Database schema is up to date!`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       1 migration found in prisma/migrations
@@ -156,8 +142,7 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-baseline
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       1 migration found in prisma/migrations
@@ -180,8 +165,7 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-baseline
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       No migration found in prisma/migrations
@@ -199,8 +183,7 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-baseline
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       No migration found in prisma/migrations
@@ -220,8 +203,7 @@ describe('sqlite', () => {
             https://pris.ly/d/migrate-upgrade
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
@@ -232,12 +214,9 @@ describe('sqlite', () => {
   it('reset', async () => {
     ctx.fixture('reset')
     const result = MigrateStatus.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(
-      `Database schema is up to date!`,
-    )
+    await expect(result).resolves.toMatchInlineSnapshot(`Database schema is up to date!`)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       1 migration found in prisma/migrations
@@ -263,8 +242,7 @@ describe('sqlite', () => {
             20201231000000_dogage
           `)
 
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
       2 migrations found in prisma/migrations

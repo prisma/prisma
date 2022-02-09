@@ -15,6 +15,7 @@ module.exports = {
     '<rootDir>/src/__tests__/benchmarks/',
     '<rootDir>/src/__tests__/types/.*/test.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
+    '<rootDir>/src/__tests__/integration/happy/exhaustive-schema-mongo/generated-dmmf.ts',
     '<rootDir>/src/__tests__/integration/happy/output-directory/prismaClient/',
     '__helpers__/',
     'node_modules/',
@@ -25,7 +26,7 @@ module.exports = {
     '.bench.ts',
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  snapshotSerializers: ['./helpers/jestSnapshotSerializer'],
+  snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
   testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
 }

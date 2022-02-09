@@ -86,7 +86,6 @@ export class BinaryEngine extends Engine {
   private engineEndpoint?: string
   private lastErrorLog?: RustLog
   private lastRustError?: RustError
-  private useUds = false
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
   private stopPromise?: Promise<void>
@@ -132,13 +131,11 @@ export class BinaryEngine extends Engine {
     enableDebugLogs,
     allowTriggerPanic,
     dirname,
-    useUds,
     activeProvider,
   }: EngineConfig) {
     super()
 
     this.dirname = dirname
-    this.useUds = useUds ?? false // === undefined ? process.platform !== 'win32' : useUds
     this.env = env
     this.cwd = this.resolveCwd(cwd)
     this.enableDebugLogs = enableDebugLogs ?? false
@@ -541,11 +538,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
-        if (this.useUds) {
-          this.socketPath = `/tmp/prisma-${getRandomString()}.sock`
-          socketPaths.push(this.socketPath)
-        }
-
         debug({ cwd: this.cwd })
 
         const prismaPath = await this.getPrismaPath()
@@ -554,12 +546,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const flags = ['--enable-raw-queries', ...this.flags, ...additionalFlag]
 
-        if (this.useUds) {
-          flags.push('--unix-path', this.socketPath!)
-        } else {
-          this.port = await this.getFreePort()
-          flags.push('--port', String(this.port))
-        }
+        this.port = await this.getFreePort()
+        flags.push('--port', String(this.port))
 
         debug({ flags })
 
@@ -604,13 +592,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.target === 'query_engine::server' &&
               json.fields?.message?.startsWith('Started http server')
             ) {
-              if (this.useUds) {
-                this.connection.open('http://127.0.0.1', {
-                  socketPath: this.socketPath,
-                })
-              } else {
-                this.connection.open(`http://127.0.0.1:${this.port}`)
-              }
+              this.connection.open(`http://127.0.0.1:${this.port}`)
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
             }
@@ -977,29 +959,22 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
-    try {
-      if (action === 'start') {
-        const jsonOptions = JSON.stringify({
-          max_wait: arg?.maxWait ?? 2000, // default
-          timeout: arg?.timeout ?? 5000, // default
-        })
+    if (action === 'start') {
+      const jsonOptions = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
+      })
 
-        const result = await Connection.onHttpError(
-          this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
-          transactionHttpErrorHandler,
-        )
+      const result = await Connection.onHttpError(
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+        transactionHttpErrorHandler,
+      )
 
-        return result.data
-      } else if (action === 'commit') {
-        await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
-      } else if (action === 'rollback') {
-        await Connection.onHttpError(
-          this.connection.post(`/transaction/${arg.id}/rollback`),
-          transactionHttpErrorHandler,
-        )
-      }
-    } catch (e: any) {
-      this.setError(e)
+      return result.data
+    } else if (action === 'commit') {
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+    } else if (action === 'rollback') {
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), transactionHttpErrorHandler)
     }
 
     return undefined
@@ -1159,7 +1134,7 @@ function initHooks() {
 }
 
 /**
- * Decides how to handle error reponses for transactions
+ * Decides how to handle error responses for transactions
  * @param result
  */
 function transactionHttpErrorHandler<R>(result: Result<R>): never {
@@ -1178,8 +1153,8 @@ function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Incomi
     if (runtimeHeaderKey === 'transactionId') {
       httpHeaderKey = 'X-transaction-id'
     }
-    // if header key isn't changed, a copy happens
 
+    // if header key isn't changed, a copy happens
     acc[httpHeaderKey] = headers[runtimeHeaderKey]
 
     return acc

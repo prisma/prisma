@@ -134,7 +134,7 @@ For an overview, adding, running tests & guidelines see [TESTING.md](./TESTING.m
 
 Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./packages/migrate/src/__tests__/fixtures)
 
-## Additional Ressources
+## Additional Resources
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [TESTING.md](./TESTING.md)

@@ -1,6 +1,6 @@
 import indent from 'indent-string'
 import path from 'path'
-import type { DMMFClass } from '../runtime/dmmf'
+import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 
 export enum Projection {
@@ -133,10 +133,14 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
       return getAggregateArgsName(modelName)
     case DMMF.ModelAction.count:
       return `${modelName}CountArgs`
+    case DMMF.ModelAction.findRaw:
+      return `${modelName}FindRawArgs`
+    case DMMF.ModelAction.aggregateRaw:
+      return `${modelName}AggregateRawArgs`
   }
 }
 
-export function getDefaultArgName(dmmf: DMMFClass, modelName: string, action: DMMF.ModelAction): string {
+export function getDefaultArgName(dmmf: DMMFHelper, modelName: string, action: DMMF.ModelAction): string {
   const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
 
   const fieldName = mapping[action]
@@ -159,7 +163,7 @@ export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
  * @param fieldName
  * @param mapping
  */
-export function renderInitialClientArgs(
+export function renderInitialClientArgs( // TODO: dead code
   actionName: DMMF.ModelAction,
   fieldName: string,
   mapping: DMMF.ModelMapping,
@@ -207,7 +211,7 @@ interface SelectReturnTypeOptions {
  * @param name Model name
  * @param actionName action name
  */
-export function getSelectReturnType({
+export function getReturnType({
   name,
   actionName,
   renderPromise = true,
@@ -218,6 +222,10 @@ export function getSelectReturnType({
     return `Promise<number>`
   }
   if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
+
+  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+    return `PrismaPromise<JsonObject>`
+  }
 
   const isList = actionName === DMMF.ModelAction.findMany
 

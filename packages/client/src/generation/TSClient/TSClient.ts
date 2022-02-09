@@ -4,7 +4,7 @@ import { getEnvPaths, getClientEngineType } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
-import { DMMFClass } from '../../runtime/dmmf'
+import { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
@@ -44,11 +44,11 @@ export interface TSClientOptions {
 }
 
 export class TSClient implements Generatable {
-  protected readonly dmmf: DMMFClass
+  protected readonly dmmf: DMMFHelper
   protected readonly dmmfString: string
   constructor(protected readonly options: TSClientOptions) {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
-    this.dmmf = new DMMFClass(klona(options.document))
+    this.dmmf = new DMMFHelper(klona(options.document))
   }
 
   public async toJS(): Promise<string> {

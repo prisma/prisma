@@ -1,6 +1,6 @@
 import path from 'path'
 import { DbPull } from '../commands/DbPull'
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
@@ -14,7 +14,7 @@ if (isMacOrWindowsCI) {
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common/sqlite', () => {
   test('basic introspection', async () => {
@@ -193,14 +193,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                              // *** WARNING ***
-                                                                                                              // 
-                                                                                                              // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                              // - Model "AwesomeNewPost"
-                                                                                                              // - Model "AwesomeProfile"
-                                                                                                              // - Model "AwesomeUser"
-                                                                                                              // 
-                                                                        `)
+                                                                                                                                                                                      // *** WARNING ***
+                                                                                                                                                                                      // 
+                                                                                                                                                                                      // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                      // - Model "AwesomeNewPost"
+                                                                                                                                                                                      // - Model "AwesomeProfile"
+                                                                                                                                                                                      // - Model "AwesomeUser"
+                                                                                                                                                                                      // 
+                                                                                                                        `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -229,18 +229,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        P4001 The introspected database was empty: 
+                                                P4001 The introspected database was empty: 
 
-                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                        To fix this, you have two options:
+                                                To fix this, you have two options:
 
-                        - manually create a table in your database.
-                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                - manually create a table in your database.
+                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                        Then you can run prisma db pull again. 
+                                                Then you can run prisma db pull again. 
 
-                    `)
+                                        `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -258,18 +258,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        P4001 The introspected database was empty: 
+                                                P4001 The introspected database was empty: 
 
-                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                        To fix this, you have two options:
+                                                To fix this, you have two options:
 
-                        - manually create a table in your database.
-                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                - manually create a table in your database.
+                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                        Then you can run prisma db pull again. 
+                                                Then you can run prisma db pull again. 
 
-                    `)
+                                        `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -379,6 +379,45 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
+
+  test('introspection should load .env file with --print', async () => {
+    ctx.fixture('schema-only-postgresql')
+    expect.assertions(5)
+
+    try {
+      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
+    } catch (e) {
+      expect(e.code).toEqual('P1001')
+      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+    }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection should load .env file without --print', async () => {
+    ctx.fixture('schema-only-postgresql')
+    expect.assertions(5)
+
+    try {
+      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'])
+    } catch (e) {
+      expect(e.code).toEqual('P1001')
+      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+    }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/using-dotenv.prisma
+      Environment variables loaded from prisma/.env
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "fromdotenvdoesnotexist:5432"
+
+      Introspecting based on datasource defined in prisma/using-dotenv.prisma …
+
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
 
 describe('mysql', () => {
@@ -440,19 +479,19 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
 
   beforeAll(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupMSSQL(setupParams).catch((e) => {
+    await setupMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
 
   afterEach(async () => {
-    await tearDownMSSQL(setupParams).catch((e) => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
       console.error(e)
     })
   })
@@ -480,7 +519,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 // TODO: macOS: disabled on CI because it fails with timeout. Somehow jest.setTimeout
 // doesn't seem to work in this test case particularly.
 describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
-  const MONGO_URI = process.env.TEST_MONGO_URI || 'mongodb://root:prisma@localhost:27017/tests?authSource=admin'
+  const MONGO_URI =
+    process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')

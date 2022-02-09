@@ -1,5 +1,6 @@
 /* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import { enginesVersion } from '@prisma/engines'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import type { Command, Generator } from '@prisma/sdk'
 import {
   arg,
@@ -7,7 +8,6 @@ import {
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
-  getSchemaPath,
   HelpError,
   highlightTS,
   isError,
@@ -15,6 +15,7 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
+  loadEnvFile,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -115,27 +116,10 @@ ${chalk.bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    const schemaPath = await getSchemaPath(args['--schema'], { cwd })
-    if (!schemaPath) {
-      if (isPostinstall) {
-        logger.warn(`The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
-If you have a Prisma schema file in a custom path, you will need to run
-\`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
-If you do not have a Prisma schema file yet, you can ignore this message.`)
-        return ''
-      }
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    }
+    loadEnvFile(args['--schema'], true)
 
-    logger.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+    if (!schemaPath) return ''
 
     // TODO Extract logic from here
     let hasJsClient
