@@ -9,8 +9,6 @@ import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import type { UserArgs } from './UserArgs'
 
-const EMPTY_OBJECT = {}
-
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
 ) => (userArgs?: UserArgs) => PrismaPromise<unknown>
@@ -25,11 +23,13 @@ export function applyModel(client: Client, dmmfModelName: string) {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
   const ownKeys = getOwnKeys(client, dmmfModelName)
+  const baseObject = {} // <-- user mutations go in there
 
   // we construct a proxy that acts as the model interface
-  return new Proxy(EMPTY_OBJECT, {
-    get(_, prop: string): F.Return<ModelAction> | undefined {
+  return new Proxy(baseObject, {
+    get(target, prop: string): F.Return<ModelAction> | undefined {
       // only allow actions that are valid and available for this model
+      if (prop in target || typeof prop === 'symbol') return target[prop]
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
 
       // we return a function as the model action that we want to expose

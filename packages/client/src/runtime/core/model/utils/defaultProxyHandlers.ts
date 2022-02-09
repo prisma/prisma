@@ -7,7 +7,10 @@ const defaultPropertyDescriptor = {
 export function defaultProxyHandlers(ownKeys: string[]) {
   return {
     getOwnPropertyDescriptor: () => defaultPropertyDescriptor,
-    has: (_: never, prop: string) => ownKeys.includes(prop),
+    has: (target: never, prop: string) => ownKeys.includes(prop),
+    set: (target: never, prop: string | symbol, value: any) => {
+      return Reflect.set(target, prop, value)
+    },
     ownKeys: () => ownKeys,
   } as const
 }
