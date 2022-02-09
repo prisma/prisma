@@ -79,7 +79,7 @@ export async function generateInFolder({
       } catch (err) {
         try {
           // Fallback to packages/client/package.json
-          await getPackedPackage('@prisma/client', outputDir, path.join(__dirname, '..', '..'))
+          await getPackedPackage('@prisma/client', outputDir, `${__dirname}/../..`)
         } catch {
           // If fallback fails, throw the original error
           throw err
