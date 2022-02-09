@@ -1,8 +1,8 @@
 import fs from 'fs-jetpack'
 import { Format } from '../../Format'
-import { Context } from '../__helpers__/context'
+import { jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().assemble()
+const ctx = jestContext.new().assemble()
 
 it('format should add a trailing EOL', async () => {
   ctx.fixture('example-project/prisma')
@@ -18,7 +18,5 @@ it('format should add missing backrelation', async () => {
 
 it('format should throw if schema is broken', async () => {
   ctx.fixture('example-project/prisma')
-  await expect(
-    Format.new().parse(['--schema=broken.prisma']),
-  ).rejects.toThrowError()
+  await expect(Format.new().parse(['--schema=broken.prisma'])).rejects.toThrowError()
 })

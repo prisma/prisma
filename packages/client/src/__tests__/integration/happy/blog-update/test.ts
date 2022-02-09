@@ -1,7 +1,7 @@
 import fs from 'fs'
+import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { promisify } from 'util'
-import { getTestClient } from '../../../../utils/getTestClient'
 const copyFile = promisify(fs.copyFile)
 
 test('blog-update', async () => {
@@ -27,7 +27,7 @@ test('blog-update', async () => {
           published: true,
           title: 'mytitle',
           content: 'somecontent',
-          optionnal: 'optionnal',
+          optional: 'optional',
           lastReviewedAt: someDate,
           lastPublishedAt: someDate,
         })),
@@ -70,7 +70,7 @@ test('blog-update', async () => {
           content: true,
           title: true,
           published: true,
-          optionnal: true,
+          optional: true,
         },
       },
     },
@@ -96,7 +96,7 @@ test('blog-update', async () => {
         updateMany: {
           data: {
             content: null,
-            optionnal: {
+            optional: {
               set: null,
             },
             lastReviewedAt: null,
@@ -118,31 +118,31 @@ test('blog-update', async () => {
       posts: Array [
         Object {
           content: null,
-          optionnal: null,
+          optional: null,
           published: true,
           title: mytitle,
         },
         Object {
           content: null,
-          optionnal: null,
+          optional: null,
           published: true,
           title: mytitle,
         },
         Object {
           content: null,
-          optionnal: null,
+          optional: null,
           published: true,
           title: mytitle,
         },
         Object {
           content: null,
-          optionnal: null,
+          optional: null,
           published: true,
           title: mytitle,
         },
         Object {
           content: null,
-          optionnal: null,
+          optional: null,
           published: true,
           title: mytitle,
         },

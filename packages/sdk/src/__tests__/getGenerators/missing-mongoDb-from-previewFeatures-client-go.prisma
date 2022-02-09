@@ -1,6 +1,6 @@
 generator client {
-  provider        = "prisma-client-go"
-//   previewFeatures = ["mongoDb"]
+  provider = "prisma-client-go"
+  //   previewFeatures = ["mongoDb"]
 }
 
 datasource db {
@@ -9,9 +9,8 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
   createdAt DateTime @default(now())
   email     String   @unique
   name      String?
 }
-
