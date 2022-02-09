@@ -60,9 +60,16 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsCuidReintro
   | IntrospectionWarningsUuidReintro
   | IntrospectionWarningsUpdatedAtReintro
+  | IntrospectionWarningsWithoutColumns
+  | IntrospectionWarningsModelsWithIgnoreReintro
+  | IntrospectionWarningsFieldsWithIgnoreReintro
+  | IntrospectionWarningsCustomIndexNameReintro
+  | IntrospectionWarningsCustomPrimaryKeyNamesReintro
+  | IntrospectionWarningsRelationsReintro
   | IntrospectionWarningsMongoMultipleTypes
 
 type AffectedModel = { model: string }
+type AffectedModelAndIndex = { model: string; index_db_name: string }
 type AffectedModelAndField = { model: string; field: string }
 type AffectedModelAndFieldAndType = {
   model: string
@@ -84,6 +91,7 @@ interface IntrospectionWarning {
   message: string
   affected:
     | AffectedModel[]
+    | AffectedModelAndIndex[]
     | AffectedModelAndField[]
     | AffectedModelAndFieldAndType[]
     | AffectedModelOrCompositeTypeAndFieldAndType[]
@@ -147,6 +155,30 @@ interface IntrospectionWarningsUuidReintro extends IntrospectionWarning {
 interface IntrospectionWarningsUpdatedAtReintro extends IntrospectionWarning {
   code: 13
   affected: AffectedModelAndField[]
+}
+interface IntrospectionWarningsWithoutColumns extends IntrospectionWarning {
+  code: 14
+  affected: AffectedModel[]
+}
+interface IntrospectionWarningsModelsWithIgnoreReintro extends IntrospectionWarning {
+  code: 15
+  affected: AffectedModel[]
+}
+interface IntrospectionWarningsFieldsWithIgnoreReintro extends IntrospectionWarning {
+  code: 16
+  affected: AffectedModelAndField[]
+}
+interface IntrospectionWarningsCustomIndexNameReintro extends IntrospectionWarning {
+  code: 17
+  affected: AffectedModelAndIndex[]
+}
+interface IntrospectionWarningsCustomPrimaryKeyNamesReintro extends IntrospectionWarning {
+  code: 18
+  affected: AffectedModel[]
+}
+interface IntrospectionWarningsRelationsReintro extends IntrospectionWarning {
+  code: 19
+  affected: AffectedModel[]
 }
 
 // MongoDB starts at 101 see

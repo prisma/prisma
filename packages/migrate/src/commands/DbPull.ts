@@ -322,12 +322,16 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
             .join('\n')
         } else if (warning.code === 4) {
           message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
-        } else if ([5, 6, 8, 11, 12, 13].includes(warning.code)) {
+        } else if ([5, 6, 8, 11, 12, 13, 16].includes(warning.code)) {
           message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-        } else if (warning.code === 7) {
+        } else if ([7, 14, 15, 18, 19].includes(warning.code)) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
         } else if ([9, 10].includes(warning.code)) {
           message += warning.affected.map((it) => `- Enum "${it.enm}"`).join('\n')
+        } else if (warning.code === 17) {
+          message += warning.affected
+            .map((it) => `- Model "${it.model}", Index db name: "${it.index_db_name}"`)
+            .join('\n')
         } else if (warning.code === 101) {
           message += warning.affected
             .map((it) => {
