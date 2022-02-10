@@ -40,10 +40,15 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   return event.level === 'error' && event['message'] === 'PANIC'
 }
 
-const knownPlatforms: Platform[] = [...platforms, 'native']
-const engines: LibraryEngine[] = []
+type EngineStatus = {
+  active?: boolean
+  beforeExit?: (...args: unknown[]) => unknown
+}
 
+const knownPlatforms: Platform[] = [...platforms, 'native']
+const engineHandlers = new Map<symbol, EngineStatus>()
 export class LibraryEngine extends Engine {
+  private $id = Symbol('LibraryEngine')
   private engine?: QueryEngineInstance
   private libraryInstantiationPromise?: Promise<void>
   private libraryStartingPromise?: Promise<void>
@@ -89,17 +94,15 @@ export class LibraryEngine extends Engine {
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
     initHooks()
-    engines.push(this)
+    engineHandlers.set(this.$id, { active: false })
     this.checkForTooManyEngines()
   }
   private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.engine)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
-        )
-      }
+    const runningEngineCount = [...engineHandlers.values()].filter((e) => e.active).length
+    if (runningEngineCount === 10) {
+      console.warn(
+        `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
+      )
     }
   }
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
@@ -183,56 +186,62 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       this.libQueryEnginePath = await this.getLibQueryEnginePath()
     }
     debug(`loadEngine using ${this.libQueryEnginePath}`)
-    if (!this.engine) {
-      if (!this.QueryEngineConstructor) {
-        try {
-          // this require needs to be resolved at runtime, tell webpack to ignore it
-          this.library = eval('require')(this.libQueryEnginePath) as Library
-          this.QueryEngineConstructor = this.library.QueryEngine
-        } catch (e) {
-          if (fs.existsSync(this.libQueryEnginePath)) {
-            if (this.libQueryEnginePath.endsWith('.node')) {
-              throw new PrismaClientInitializationError(
-                `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt`,
-                this.config.clientVersion!,
-              )
-            } else {
-              throw new PrismaClientInitializationError(
-                `Expected an Node-API Library but received ${chalk.dim(this.libQueryEnginePath)}`,
-                this.config.clientVersion!,
-              )
-            }
-          } else {
-            throw new PrismaClientInitializationError(
-              `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, It does not exist`,
-              this.config.clientVersion!,
-            )
-          }
-        }
-      }
-      if (this.QueryEngineConstructor) {
-        try {
-          this.engine = new this.QueryEngineConstructor(
-            {
-              datamodel: this.datamodel,
-              env: process.env,
-              logQueries: this.config.logQueries ?? false,
-              ignoreEnvVarErrors: false,
-              datasourceOverrides: this.datasourceOverrides,
-              logLevel: this.logLevel,
-              configDir: this.config.cwd!,
-            },
-            (err, log) => this.logger(err, log),
+
+    if (this.engine) {
+      return // do nothing, as it is already loaded
+    }
+
+    if (!this.QueryEngineConstructor) {
+      try {
+        // this require needs to be resolved at runtime, tell webpack to ignore it
+        this.library = eval('require')(this.libQueryEnginePath) as Library
+      } catch (e) {
+        const doesLibraryPathExist = fs.existsSync(this.libQueryEnginePath)
+        const isNodeLibrary = this.libQueryEnginePath.endsWith('.node')
+
+        if (doesLibraryPathExist && isNodeLibrary) {
+          throw new PrismaClientInitializationError(
+            `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt`,
+            this.config.clientVersion!,
           )
-        } catch (_e) {
-          const e = _e as Error
-          const error = this.parseInitError(e.message)
-          if (typeof error === 'string') {
-            throw e
-          } else {
-            throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-          }
         }
+
+        if (doesLibraryPathExist && !isNodeLibrary) {
+          throw new PrismaClientInitializationError(
+            `Expected an Node-API Library but received ${chalk.dim(this.libQueryEnginePath)}`,
+            this.config.clientVersion!,
+          )
+        }
+
+        throw new PrismaClientInitializationError(
+          `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, It does not exist`,
+          this.config.clientVersion!,
+        )
+      }
+      this.QueryEngineConstructor = this.library.QueryEngine
+    }
+
+    try {
+      this.engine = new this.QueryEngineConstructor(
+        {
+          datamodel: this.datamodel,
+          env: process.env,
+          logQueries: this.config.logQueries ?? false,
+          ignoreEnvVarErrors: false,
+          datasourceOverrides: this.datasourceOverrides,
+          logLevel: this.logLevel,
+          configDir: this.config.cwd!,
+        },
+        (err, log) => this.logger(err, log),
+      )
+      engineHandlers.set(this.$id, { ...engineHandlers.get(this.$id), active: true })
+    } catch (_e) {
+      const e = _e as Error
+      const error = this.parseInitError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
       }
     }
   }
@@ -301,22 +310,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return str
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
+  on(event: EngineEventType, listener: (arg: any) => any): void {
     if (event === 'beforeExit') {
       this.beforeExitListener = listener
+      engineHandlers.set(this.$id, { ...engineHandlers.get(this.$id), beforeExit: listener })
     } else {
       this.logEmitter.on(event, listener)
-    }
-  }
-
-  async runBeforeExit() {
-    debug('runBeforeExit')
-    if (this.beforeExitListener) {
-      try {
-        await this.beforeExitListener()
-      } catch (e) {
-        console.error(e)
-      }
     }
   }
 
@@ -353,31 +352,32 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
+  private async shutDown() {
+    await new Promise((r) => setTimeout(r, 5))
+    debug('library stopping')
+    await this.engine?.disconnect()
+    this.libraryStarted = false
+    this.libraryStoppingPromise = undefined
+    debug('library stopped')
+  }
+
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
-    if (this.libraryStoppingPromise) {
-      debug('library is already stopping')
-      return this.libraryStoppingPromise
+
+    if (!this.libraryStarted) {
+      debug('library never started')
+      return
     }
 
-    if (this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
-        try {
-          await new Promise((r) => setTimeout(r, 5))
-          debug('library stopping')
-          await this.engine?.disconnect()
-          this.libraryStarted = false
-          this.libraryStoppingPromise = undefined
-          debug('library stopped')
-          resolve()
-        } catch (err) {
-          reject(err)
-        }
-      })
-      return this.libraryStoppingPromise
+    if (this.libraryStoppingPromise) {
+      debug('library is already stopping')
     }
+
+    // eslint-disable-next-line no-async-promise-executor
+    this.libraryStoppingPromise ??= this.shutDown()
+    engineHandlers.set(this.$id, { ...engineHandlers.get(this.$id), active: false })
+    return this.libraryStoppingPromise
   }
 
   getConfig(): Promise<ConfigMetaFormat> {
@@ -607,16 +607,18 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
   }
 }
 
-function hookProcess(handler: string, exit = false) {
-  process.once(handler as any, async () => {
-    debug(`hookProcess received: ${handler}`)
-    for (const engine of engines) {
-      await engine.runBeforeExit()
-    }
-    engines.splice(0, engines.length)
+function hookProcess(eventName: string, exit = false) {
+  process.once(eventName as Parameters<typeof process.once>[0], async () => {
+    debug(`hookProcess received: ${eventName}`)
+    await Promise.all(
+      [...engineHandlers].map(async ([id, e]) => {
+        await e.beforeExit?.()
+        engineHandlers.delete(id)
+      }),
+    )
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
-    if (exit && process.listenerCount(handler) === 0) {
+    if (exit && process.listenerCount(eventName) === 0) {
       process.exit()
     }
   })
