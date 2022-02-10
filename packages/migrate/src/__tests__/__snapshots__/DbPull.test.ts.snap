@@ -16,22 +16,28 @@ datasource my_db {
 }
 
 type UsersHobbies {
-  name    String
-  objects UsersHobbiesObjects[]
-  tags    String[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString2 Int?
+  objects         UsersHobbiesObjects[]
+  tags            String[]
 }
 
 type UsersHobbiesObjects {
-  name String
-  tags String[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString3 Int
+  tags            String[]
 }
 
 model users {
-  id      String         @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies UsersHobbies[]
-  name    String
+  id              String         @id @default(auto()) @map("_id") @my_db.ObjectId
+  admin           Boolean
+  email           String
+  hobbies         UsersHobbies[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString1 Int
 }
 
 
@@ -50,11 +56,13 @@ datasource my_db {
 }
 
 model users {
-  id      String  @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies Json[]
-  name    String
+  id              String  @id @default(auto()) @map("_id") @my_db.ObjectId
+  admin           Boolean
+  email           String
+  hobbies         Json[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString1 Int
 }
 
 
@@ -73,17 +81,21 @@ datasource my_db {
 }
 
 type UsersHobbies {
-  name    String
-  objects Json[]
-  tags    String[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString2 Int?
+  objects         Json[]
+  tags            String[]
 }
 
 model users {
-  id      String         @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies UsersHobbies[]
-  name    String
+  id              String         @id @default(auto()) @map("_id") @my_db.ObjectId
+  admin           Boolean
+  email           String
+  hobbies         UsersHobbies[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString1 Int
 }
 
 
@@ -102,11 +114,13 @@ datasource my_db {
 }
 
 model users {
-  id      String  @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies Json[]
-  name    String
+  id              String  @id @default(auto()) @map("_id") @my_db.ObjectId
+  admin           Boolean
+  email           String
+  hobbies         Json[]
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString1 Int
 }
 
 
