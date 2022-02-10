@@ -4,13 +4,14 @@ const defaultPropertyDescriptor = {
   writable: true,
 }
 
-export function defaultProxyHandlers(ownKeys: string[]) {
+export function defaultProxyHandlers(ownKeys: (string | symbol)[]) {
+  const _ownKeys = new Set(ownKeys)
   return {
     getOwnPropertyDescriptor: () => defaultPropertyDescriptor,
-    has: (target: never, prop: string) => ownKeys.includes(prop),
+    has: (target: never, prop: string | symbol) => _ownKeys.has(prop),
     set: (target: never, prop: string | symbol, value: any) => {
-      return Reflect.set(target, prop, value)
+      return _ownKeys.add(prop) && Reflect.set(target, prop, value)
     },
-    ownKeys: () => ownKeys,
+    ownKeys: () => [..._ownKeys],
   } as const
 }

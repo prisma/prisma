@@ -5,7 +5,18 @@ describe('modify-client', () => {
   test('override method', async () => {
     prisma.user.findMany = () => ['override']
     const users = await prisma.user.findMany()
+
     expect(users).toMatchInlineSnapshot(`
+      Array [
+        override,
+      ]
+    `)
+  })
+
+  test('override model', () => {
+    prisma.profile = ['override']
+
+    expect(prisma.profile).toMatchInlineSnapshot(`
       Array [
         override,
       ]
@@ -16,13 +27,49 @@ describe('modify-client', () => {
     class ExtendedClient extends PrismaClient {
       prop = 'a value'
     }
-
     const client = new ExtendedClient()
     const users = await client.user.findMany()
-    expect(users).toMatchInlineSnapshot(`Array []`)
-
     client.prop = 'another value'
+
+    expect(users).toMatchInlineSnapshot(`Array []`)
     expect(client.prop).toMatchInlineSnapshot(`another value`)
+
+    await client.$disconnect()
+  })
+
+  test('class extends keys', async () => {
+    class ExtendedClient extends PrismaClient {
+      prop = 'a value'
+    }
+    const client = new ExtendedClient()
+
+    expect(Object.keys(client).filter((k) => !k.startsWith('_'))).toMatchInlineSnapshot(`
+      Array [
+        user,
+        profile,
+        post,
+        prop,
+      ]
+    `)
+
+    await client.$disconnect()
+  })
+
+  test('class extends override', async () => {
+    class ExtendedClient extends PrismaClient {
+      $connect() {
+        return ['override']
+      }
+    }
+    const client = new ExtendedClient()
+
+    expect(client.$connect()).toMatchInlineSnapshot(`
+      Array [
+        override,
+      ]
+    `)
+
+    await client.$disconnect()
   })
 
   beforeAll(async () => {
