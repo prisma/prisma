@@ -611,10 +611,12 @@ function hookProcess(eventName: string, exit = false) {
   process.once(eventName as Parameters<typeof process.once>[0], async () => {
     debug(`hookProcess received: ${eventName}`)
     await Promise.all(
-      [...engineHandlers].map(async ([id, e]) => {
-        await e.beforeExit?.()
-        engineHandlers.delete(id)
-      }),
+      [...engineHandlers]
+        .filter(([, e]) => e.active)
+        .map(async ([id, e]) => {
+          await e.beforeExit?.()
+          engineHandlers.delete(id)
+        }),
     )
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
