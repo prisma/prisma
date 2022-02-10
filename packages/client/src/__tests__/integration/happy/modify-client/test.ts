@@ -42,6 +42,7 @@ describe('modify-client', () => {
       prop = 'a value'
     }
     const client = new ExtendedClient()
+    client.prop2 = 'another value'
 
     expect(Object.keys(client).filter((k) => !k.startsWith('_'))).toMatchInlineSnapshot(`
       Array [
@@ -49,6 +50,7 @@ describe('modify-client', () => {
         profile,
         post,
         prop,
+        prop2,
       ]
     `)
 
