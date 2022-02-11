@@ -1,6 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-
 exports[`studio with custom schema.prisma filename can respond to \`create\` queries 1`] = `
 Object {
   action: clientRequest,
