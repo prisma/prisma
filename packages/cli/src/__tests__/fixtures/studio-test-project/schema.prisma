@@ -14,7 +14,7 @@ model with_all_field_types {
   float    Float
   datetime DateTime
 
-  relation      relation_target?   @relation("waft_rt")
+  relation      relation_target?  @relation("waft_rt")
   relation_list relation_target[] @relation("waft_rt_list")
 }
 
@@ -23,7 +23,7 @@ model relation_target {
   name String
 
   // waft = With All Field Types
-  waft_id Int?
+  waft_id Int?                   @unique
   waft    with_all_field_types?  @relation("waft_rt", fields: [waft_id], references: [id])
-  wafts   with_all_field_types[] @relation("waft_rt_list", fields: [waft_id], references: [id])
+  wafts   with_all_field_types[] @relation("waft_rt_list")
 }
