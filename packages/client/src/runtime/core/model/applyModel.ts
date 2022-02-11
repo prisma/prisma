@@ -7,12 +7,11 @@ import { applyAggregates } from './applyAggregates'
 import { applyFluent } from './applyFluent'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
-
-const EMPTY_OBJECT = {}
+import type { UserArgs } from './UserArgs'
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
-) => (userArgs?: object) => PrismaPromise<unknown>
+) => (userArgs?: UserArgs) => PrismaPromise<unknown>
 
 /**
  * Dynamically creates a model interface via a proxy.
@@ -24,16 +23,18 @@ export function applyModel(client: Client, dmmfModelName: string) {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
   const ownKeys = getOwnKeys(client, dmmfModelName)
+  const baseObject = {} // <-- user mutations go in there
 
   // we construct a proxy that acts as the model interface
-  return new Proxy(EMPTY_OBJECT, {
-    get(_, prop: string): F.Return<ModelAction> | undefined {
+  return new Proxy(baseObject, {
+    get(target, prop: string): F.Return<ModelAction> | undefined {
       // only allow actions that are valid and available for this model
+      if (prop in target || typeof prop === 'symbol') return target[prop]
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
-      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: object) => {
+      const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
         return createPrismaPromise((txId, inTx, otelCtx) => {

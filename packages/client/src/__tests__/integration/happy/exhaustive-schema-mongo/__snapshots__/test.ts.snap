@@ -209,10 +209,7 @@ exports.Prisma.AScalarFieldEnum = makeEnum({
   name: 'name',
   int: 'int',
   sInt: 'sInt',
-  bInt: 'bInt',
-  inc_int: 'inc_int',
-  inc_sInt: 'inc_sInt',
-  inc_bInt: 'inc_bInt'
+  bInt: 'bInt'
 });
 
 exports.Prisma.BScalarFieldEnum = makeEnum({
@@ -485,9 +482,6 @@ export type A = {
   int: number
   sInt: number
   bInt: bigint
-  inc_int: number
-  inc_sInt: number
-  inc_bInt: bigint
 }
 
 /**
@@ -9823,18 +9817,12 @@ export namespace Prisma {
     int: number | null
     sInt: number | null
     bInt: number | null
-    inc_int: number | null
-    inc_sInt: number | null
-    inc_bInt: number | null
   }
 
   export type ASumAggregateOutputType = {
     int: number | null
     sInt: number | null
     bInt: bigint | null
-    inc_int: number | null
-    inc_sInt: number | null
-    inc_bInt: bigint | null
   }
 
   export type AMinAggregateOutputType = {
@@ -9844,9 +9832,6 @@ export namespace Prisma {
     int: number | null
     sInt: number | null
     bInt: bigint | null
-    inc_int: number | null
-    inc_sInt: number | null
-    inc_bInt: bigint | null
   }
 
   export type AMaxAggregateOutputType = {
@@ -9856,9 +9841,6 @@ export namespace Prisma {
     int: number | null
     sInt: number | null
     bInt: bigint | null
-    inc_int: number | null
-    inc_sInt: number | null
-    inc_bInt: bigint | null
   }
 
   export type ACountAggregateOutputType = {
@@ -9868,9 +9850,6 @@ export namespace Prisma {
     int: number
     sInt: number
     bInt: number
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: number
     _all: number
   }
 
@@ -9879,18 +9858,12 @@ export namespace Prisma {
     int?: true
     sInt?: true
     bInt?: true
-    inc_int?: true
-    inc_sInt?: true
-    inc_bInt?: true
   }
 
   export type ASumAggregateInputType = {
     int?: true
     sInt?: true
     bInt?: true
-    inc_int?: true
-    inc_sInt?: true
-    inc_bInt?: true
   }
 
   export type AMinAggregateInputType = {
@@ -9900,9 +9873,6 @@ export namespace Prisma {
     int?: true
     sInt?: true
     bInt?: true
-    inc_int?: true
-    inc_sInt?: true
-    inc_bInt?: true
   }
 
   export type AMaxAggregateInputType = {
@@ -9912,9 +9882,6 @@ export namespace Prisma {
     int?: true
     sInt?: true
     bInt?: true
-    inc_int?: true
-    inc_sInt?: true
-    inc_bInt?: true
   }
 
   export type ACountAggregateInputType = {
@@ -9924,9 +9891,6 @@ export namespace Prisma {
     int?: true
     sInt?: true
     bInt?: true
-    inc_int?: true
-    inc_sInt?: true
-    inc_bInt?: true
     _all?: true
   }
 
@@ -10029,9 +9993,6 @@ export namespace Prisma {
     int: number
     sInt: number
     bInt: bigint
-    inc_int: number
-    inc_sInt: number
-    inc_bInt: bigint
     _count: ACountAggregateOutputType | null
     _avg: AAvgAggregateOutputType | null
     _sum: ASumAggregateOutputType | null
@@ -10060,9 +10021,6 @@ export namespace Prisma {
     int?: boolean
     sInt?: boolean
     bInt?: boolean
-    inc_int?: boolean
-    inc_sInt?: boolean
-    inc_bInt?: boolean
   }
 
   export type AGetPayload<
@@ -14487,10 +14445,7 @@ export namespace Prisma {
     name: 'name',
     int: 'int',
     sInt: 'sInt',
-    bInt: 'bInt',
-    inc_int: 'inc_int',
-    inc_sInt: 'inc_sInt',
-    inc_bInt: 'inc_bInt'
+    bInt: 'bInt'
   };
 
   export type AScalarFieldEnum = (typeof AScalarFieldEnum)[keyof typeof AScalarFieldEnum]
@@ -15207,9 +15162,6 @@ export namespace Prisma {
     int?: IntFilter | number
     sInt?: IntFilter | number
     bInt?: BigIntFilter | bigint | number
-    inc_int?: IntFilter | number
-    inc_sInt?: IntFilter | number
-    inc_bInt?: BigIntFilter | bigint | number
   }
 
   export type AOrderByWithRelationInput = {
@@ -15219,9 +15171,6 @@ export namespace Prisma {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
   }
 
   export type AWhereUniqueInput = {
@@ -15236,9 +15185,6 @@ export namespace Prisma {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
     _count?: ACountOrderByAggregateInput
     _avg?: AAvgOrderByAggregateInput
     _max?: AMaxOrderByAggregateInput
@@ -15256,9 +15202,6 @@ export namespace Prisma {
     int?: IntWithAggregatesFilter | number
     sInt?: IntWithAggregatesFilter | number
     bInt?: BigIntWithAggregatesFilter | bigint | number
-    inc_int?: IntWithAggregatesFilter | number
-    inc_sInt?: IntWithAggregatesFilter | number
-    inc_bInt?: BigIntWithAggregatesFilter | bigint | number
   }
 
   export type BWhereInput = {
@@ -16311,9 +16254,6 @@ export namespace Prisma {
     int: number
     sInt: number
     bInt: bigint | number
-    inc_int?: number
-    inc_sInt?: number
-    inc_bInt?: bigint | number
   }
 
   export type AUncheckedCreateInput = {
@@ -16323,9 +16263,6 @@ export namespace Prisma {
     int: number
     sInt: number
     bInt: bigint | number
-    inc_int?: number
-    inc_sInt?: number
-    inc_bInt?: bigint | number
   }
 
   export type AUpdateInput = {
@@ -16334,9 +16271,6 @@ export namespace Prisma {
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
     bInt?: BigIntFieldUpdateOperationsInput | bigint | number
-    inc_int?: IntFieldUpdateOperationsInput | number
-    inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type AUncheckedUpdateInput = {
@@ -16345,9 +16279,6 @@ export namespace Prisma {
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
     bInt?: BigIntFieldUpdateOperationsInput | bigint | number
-    inc_int?: IntFieldUpdateOperationsInput | number
-    inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type ACreateManyInput = {
@@ -16365,9 +16296,6 @@ export namespace Prisma {
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
     bInt?: BigIntFieldUpdateOperationsInput | bigint | number
-    inc_int?: IntFieldUpdateOperationsInput | number
-    inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type AUncheckedUpdateManyInput = {
@@ -16376,9 +16304,6 @@ export namespace Prisma {
     int?: IntFieldUpdateOperationsInput | number
     sInt?: IntFieldUpdateOperationsInput | number
     bInt?: BigIntFieldUpdateOperationsInput | bigint | number
-    inc_int?: IntFieldUpdateOperationsInput | number
-    inc_sInt?: IntFieldUpdateOperationsInput | number
-    inc_bInt?: BigIntFieldUpdateOperationsInput | bigint | number
   }
 
   export type BCreateInput = {
@@ -17444,18 +17369,12 @@ export namespace Prisma {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
   }
 
   export type AAvgOrderByAggregateInput = {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
   }
 
   export type AMaxOrderByAggregateInput = {
@@ -17465,9 +17384,6 @@ export namespace Prisma {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
   }
 
   export type AMinOrderByAggregateInput = {
@@ -17477,18 +17393,12 @@ export namespace Prisma {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
   }
 
   export type ASumOrderByAggregateInput = {
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
-    inc_int?: SortOrder
-    inc_sInt?: SortOrder
-    inc_bInt?: SortOrder
   }
 
   export type BigIntWithAggregatesFilter = {

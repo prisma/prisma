@@ -193,14 +193,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                          // *** WARNING ***
-                                                                                                                                                                          // 
-                                                                                                                                                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                          // - Model "AwesomeNewPost"
-                                                                                                                                                                          // - Model "AwesomeProfile"
-                                                                                                                                                                          // - Model "AwesomeUser"
-                                                                                                                                                                          // 
-                                                                                                                `)
+                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                  // 
+                                                                                                                                                                                                  // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                  // - Model "AwesomeNewPost"
+                                                                                                                                                                                                  // - Model "AwesomeProfile"
+                                                                                                                                                                                                  // - Model "AwesomeUser"
+                                                                                                                                                                                                  // 
+                                                                                                                                `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -379,6 +379,45 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
+
+  test('introspection should load .env file with --print', async () => {
+    ctx.fixture('schema-only-postgresql')
+    expect.assertions(5)
+
+    try {
+      await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
+    } catch (e) {
+      expect(e.code).toEqual('P1001')
+      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+    }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection should load .env file without --print', async () => {
+    ctx.fixture('schema-only-postgresql')
+    expect.assertions(5)
+
+    try {
+      await DbPull.new().parse(['--schema=./prisma/using-dotenv.prisma'])
+    } catch (e) {
+      expect(e.code).toEqual('P1001')
+      expect(e.message).toContain(`fromdotenvdoesnotexist`)
+    }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/using-dotenv.prisma
+      Environment variables loaded from prisma/.env
+      Datasource "my_db": PostgreSQL database "mydb", schema "public" at "fromdotenvdoesnotexist:5432"
+
+      Introspecting based on datasource defined in prisma/using-dotenv.prisma …
+
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
 
 describe('mysql', () => {
@@ -496,6 +535,11 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXXms
             
+      *** WARNING ***
+
+      The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      - Model "users", field: "numberOrString1", chosen data type: "Int32"
+
       Run prisma generate to generate Prisma Client.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -507,7 +551,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     await introspect.parse(['--print'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+      // 
+    `)
   })
 
   test('introspection --print --composite-type-depth=0', async () => {
@@ -516,7 +567,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     await introspect.parse(['--print', '--composite-type-depth=0'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+      // 
+    `)
   })
 
   test('introspection --print --composite-type-depth=1', async () => {
@@ -525,7 +583,15 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     await introspect.parse(['--print', '--composite-type-depth=1'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+      // 
+    `)
   })
 
   test('introspection --print --composite-type-depth=-1', async () => {
@@ -534,7 +600,16 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     await introspect.parse(['--print', '--composite-type-depth=-1'])
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      // *** WARNING ***
+      // 
+      // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+      // 
+    `)
   })
 
   test('basic introspection --url', async () => {
@@ -563,6 +638,11 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       ✔ Introspected 1 model and wrote it into prisma/schema.prisma in XXXms
             
+      *** WARNING ***
+
+      The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      - Model "users", field: "numberOrString1", chosen data type: "Int32"
+
       Run prisma generate to generate Prisma Client.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -588,6 +668,11 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       ✔ Introspected 1 model and wrote it into prisma/no-model.prisma in XXXms
             
+      *** WARNING ***
+
+      The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      - Model "users", field: "numberOrString1", chosen data type: "Int32"
+
       Run prisma generate to generate Prisma Client.
       Prisma schema loaded from prisma/no-model.prisma
       Datasource "my_db"
