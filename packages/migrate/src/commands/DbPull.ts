@@ -215,10 +215,10 @@ Or run this command with the ${chalk.green(
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings) || ''
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2?')}
+      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2+?')}
       \nThe database you introspected could belong to a Prisma 1 project.
 
-Please run the following command to upgrade to Prisma 2.0:
+Please run the following command to upgrade to Prisma 2+:
 ${chalk.green('npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]')}
 
 Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
@@ -273,7 +273,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
             width: 74,
             str:
               prisma1UpgradeMessage +
-              '\nOnce you upgraded your database schema to Prisma 2.0, \ncontinue with the instructions below.\n',
+              '\nOnce you upgraded your database schema to Prisma 2+, \ncontinue with the instructions below.\n',
             horizontalPadding: 2,
           })
         : ''
