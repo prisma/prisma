@@ -12,15 +12,15 @@ import { context } from '@opentelemetry/api'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (txId?: string, inTx?: boolean, otelCtx?: Context) => PrismaPromise<unknown>,
+  callback: (txId?: string, inTx?: boolean, otelCtx?: Context, lock?: Promise<void>) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   const otelCtx = context.active() // get the context at time of creation
   // because otel isn't able to propagate context when inside of a promise
 
   // we handle exceptions that happen in the scope as `Promise` rejections
-  const _callback = (txId?: string, inTx?: boolean) => {
+  const _callback = (txId?: string, inTx?: boolean, lock?: Promise<void>) => {
     try {
-      return callback(txId, inTx, otelCtx)
+      return callback(txId, inTx, otelCtx, lock)
     } catch (error) {
       // and that is because exceptions are not always async
       return Promise.reject(error) as PrismaPromise<unknown>
@@ -39,8 +39,9 @@ export function createPrismaPromise(
     finally(onFinally) {
       return _callback().finally(onFinally)
     },
-    requestTransaction(txId: string) {
-      const promise = _callback(txId, true)
+    // @ts-ignore
+    requestTransaction(txId: string, lock: Promise<void>) {
+      const promise = _callback(txId, true, lock)
 
       if (promise.requestTransaction) {
         // requestTransaction support for nested promises

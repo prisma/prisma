@@ -160,6 +160,7 @@ export type InternalRequestParams = {
   transactionId?: string // TODO what is this
   unpacker?: Unpacker // TODO what is this
   otelCtx?: Context // an otel context
+  lock?: Promise<void>
 } & QueryMiddlewareParams
 
 // only used by the .use() hooks
@@ -976,10 +977,20 @@ new PrismaClient({
 
       const transactionId = this.___getTransactionId()
 
+      // an exotic promise that opens after x knocks
+      const getAutoUnlockCountingPromise = (knock: number) => {
+        let resolve: (v?: unknown) => void
+        const lock = new Promise((res) => void (resolve = res))
+
+        return { then: () => (--knock === 0 ? lock : resolve()) }
+      }
+
+      const lock = getAutoUnlockCountingPromise(promises.length)
+
       const requests = await Promise.all(
         promises.map((p) => {
           if (p.requestTransaction) {
-            return p.requestTransaction(transactionId)
+            return p.requestTransaction(transactionId, lock)
           } else {
           }
           return p
@@ -1087,8 +1098,6 @@ new PrismaClient({
       return this._transactionWithCallback((prisma) => {
         const _requests = requests.map((request) => {
           return new Promise((resolve, reject) => {
-            // each request has already been called with `prisma.<call>`
-            // so we inject `transactionId` by intercepting that promise
             request.then(resolve, reject, prisma[TX_ID])
           })
         })
@@ -1154,7 +1163,7 @@ new PrismaClient({
       }
     }
 
-    private _executeRequest({
+    private async _executeRequest({
       args,
       clientMethod,
       dataPath,
@@ -1166,6 +1175,7 @@ new PrismaClient({
       transactionId,
       otelCtx,
       unpacker,
+      lock,
     }: InternalRequestParams) {
       let rootField: string | undefined
       const operation = actionOperationMap[action]
@@ -1230,6 +1240,8 @@ new PrismaClient({
       }
 
       headers = applyTracingHeaders(headers, otelCtx)
+
+      await lock
 
       return this._fetcher.request({
         document,
