@@ -1,6 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`migrate diff sqlite should diff --from-empty --to-url=file:dev.db --script 2`] = `
+
+[+] Added tables
+  - Post
+  - Profile
+  - User
+  - _Migration
+
+[*] Changed the \`Profile\` table
+  [+] Added unique index on columns (userId)
+
+[*] Changed the \`User\` table
+  [+] Added unique index on columns (email)
 -- CreateTable
 CREATE TABLE "Post" (
     "authorId" INTEGER NOT NULL,
