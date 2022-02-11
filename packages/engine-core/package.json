@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.10.0-13.migration-engine-json-rpc-print-d0b4704320a9d5a5e3e86e2b8db562ac9137aab3",
+    "@prisma/engines": "3.10.0-22.a5a1e38928811b51d9b821e405ca1293025b046c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "3.10.0-10.da7335b70df3599a287b2825a6952438cb302d00",
     "chalk": "4.1.2",
