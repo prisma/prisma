@@ -1,6 +1,5 @@
 import type { Client } from '../../getPrismaClient'
 import { deepSet } from '../../utils/deep-set'
-import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import type { DMMF } from '@prisma/generator-helper'
 import type { ModelAction } from './applyModel'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
@@ -19,7 +18,7 @@ import type { UserArgs } from './UserArgs'
 function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
   if (fluentPropName === undefined || prevDataPath === undefined) return []
 
-  return [...prevDataPath, 'select', dmmfToJSModelName(fluentPropName)]
+  return [...prevDataPath, 'select', fluentPropName]
 }
 
 /**

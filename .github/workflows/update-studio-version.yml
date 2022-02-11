@@ -1,33 +1,34 @@
-
 name: Update Studio Version
 on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Version to check and update the studio version"
+        description: 'Version to check and update the studio version'
         required: true
 
 jobs:
   update_studio:
-    name: "Check and update @prisma/studio-server@${{ github.event.inputs.version }}"
+    name: 'Check and update @prisma/studio-server@${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js
-        uses: actions/setup-node@v2
-
-      - uses: pnpm/action-setup@v2.0.1
+      - uses: pnpm/action-setup@v2.1.0
         with:
           version: latest
-          
+
+      - uses: actions/setup-node@v2
+        with:
+          cache: 'pnpm'
+          node-version: '16'
+
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
         run: |
           echo 'Checking that package @prisma/studio-server have the published version @${{ github.event.inputs.version }}'
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/studio-server -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
-       
+
       - name: Update the studio dependencies
         run: |
           echo 'Updating @prisma/studio-server to ${{ github.event.inputs.version }} using pnpm'
@@ -38,13 +39,13 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           token: ${{ secrets.BOT_TOKEN }}
-          commit-message: "chore(deps): update studio to ${{ github.event.inputs.version }}"
-          committer: "Prismo <prismabots@gmail.com>"
-          author: "Prismo <prismabots@gmail.com>"
+          commit-message: 'chore(deps): update studio to ${{ github.event.inputs.version }}'
+          committer: 'Prismo <prismabots@gmail.com>'
+          author: 'Prismo <prismabots@gmail.com>'
           branch: deps/studio-${{ github.event.inputs.version }}
           delete-branch: true
           labels: automerge
-          title: "chore(deps): update studio to ${{ github.event.inputs.version }}"
+          title: 'chore(deps): update studio to ${{ github.event.inputs.version }}'
           body: |
             This automatic PR updates the studio to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
             ## Packages:
@@ -55,8 +56,8 @@ jobs:
       - name: PR url
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-        
-      - name: Sleep for 5 seconds 
+
+      - name: Sleep for 5 seconds
         run: sleep 5s
         shell: bash
 
@@ -66,3 +67,19 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
+
+      - name: 'Set current job url in SLACK_FOOTER env var'
+        if: ${{ failure() }}
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+
+      - name: Slack Notification on Failure
+        if: ${{ failure() }}
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_TITLE: 'Update Studio Version failed :x:'
+          SLACK_COLOR: '#FF0000'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: feed-prisma-failures
+          SLACK_USERNAME: Prismo
+          SLACK_ICON_EMOJI: ':boom:'
+          SLACK_MSG_AUTHOR: prisma-bot

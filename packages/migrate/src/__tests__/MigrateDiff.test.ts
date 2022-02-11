@@ -111,18 +111,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [+] Added tables
-          - Post
-          - Profile
-          - User
-          - _Migration
+                [+] Added tables
+                  - Post
+                  - Profile
+                  - User
+                  - _Migration
 
-        [*] Changed the \`Profile\` table
-          [+] Added unique index on columns (userId)
+                [*] Changed the \`Profile\` table
+                  [+] Added unique index on columns (userId)
 
-        [*] Changed the \`User\` table
-          [+] Added unique index on columns (email)
-      `)
+                [*] Changed the \`User\` table
+                  [+] Added unique index on columns (email)
+            `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -143,9 +143,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [+] Added tables
-          - Blog
-      `)
+                [+] Added tables
+                  - Blog
+            `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -177,9 +177,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [-] Removed tables
-          - Blog
-      `)
+                [-] Removed tables
+                  - Blog
+            `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -191,7 +191,12 @@ describe('migrate diff', () => {
         '--script',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- DropTable
+        PRAGMA foreign_keys=off;
+        DROP TABLE "Blog";
+        PRAGMA foreign_keys=on;
+      `)
     })
 
     it('should pass if no schema file around', async () => {
@@ -309,21 +314,20 @@ describe('migrate diff', () => {
       `)
     })
 
-    // Somehow not passing in CI
-    it.skip('should diff when using env var from .env file --from-schema-datasource --to-schema-datamodel=./prisma/schema.prisma', async () => {
+    it('should use env var from .env file with --from-schema-datasource', async () => {
       ctx.fixture('schema-only-postgresql')
-      process.env.TEST_POSTGRES_URI_MIGRATE_FOR_DOTENV_TEST = connectionString
 
       const result = MigrateDiff.new().parse([
         '--preview-feature',
         '--from-schema-datasource=./prisma/using-dotenv.prisma',
         '--to-schema-datamodel=./prisma/schema.prisma',
       ])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
 
-                [+] Added tables
-                  - Blog
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`5432\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`5432\`.
 
             `)
     })
@@ -478,7 +482,6 @@ describe('migrate diff', () => {
         THROW
 
         END CATCH
-
       `)
     })
 

@@ -212,66 +212,13 @@ Or run this command with the ${chalk.green(
       throw e
     }
 
-    function getWarningMessage(warnings: IntrospectionWarnings[]): string | undefined {
-      if (warnings.length > 0) {
-        let message = `\n*** WARNING ***\n`
-
-        for (const warning of warnings) {
-          message += `\n${warning.message}\n`
-
-          if (warning.code === 0) {
-            // affected === null
-          } else if (warning.code === 1) {
-            message += warning.affected.map((it) => `- "${it.model}"`).join('\n')
-          } else if (warning.code === 2) {
-            const modelsGrouped: {
-              [key: string]: string[]
-            } = warning.affected.reduce((acc, it) => {
-              if (!acc[it.model]) {
-                acc[it.model] = []
-              }
-              acc[it.model].push(it.field)
-              return acc
-            }, {})
-            message += Object.entries(modelsGrouped)
-              .map(([model, fields]) => `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`)
-              .join('\n')
-          } else if (warning.code === 3) {
-            message += warning.affected
-              .map((it) => `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`)
-              .join('\n')
-          } else if (warning.code === 4) {
-            message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
-          } else if ([5, 6, 8, 11, 12, 13].includes(warning.code)) {
-            message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-          } else if (warning.code === 7) {
-            message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
-          } else if ([9, 10].includes(warning.code)) {
-            message += warning.affected.map((it) => `- Enum "${it.enm}"`).join('\n')
-          } else if (warning.code === 101) {
-            message += warning.affected.name
-              .map((it) => `- Model "${it.model}", field: "${it.field}", chosen data type: "${it.tpe}"`)
-              .join('\n')
-          } else if (warning.affected) {
-            // Output unhandled warning
-            message += `Code ${warning.code}\n${JSON.stringify(warning.affected, null, 2)}`
-          }
-
-          message += `\n`
-        }
-        return message
-      }
-
-      return undefined
-    }
-
-    const introspectionWarningsMessage = getWarningMessage(introspectionWarnings) || ''
+    const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings) || ''
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2?')}
+      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2+?')}
       \nThe database you introspected could belong to a Prisma 1 project.
 
-Please run the following command to upgrade to Prisma 2.0:
+Please run the following command to upgrade to Prisma 2+:
 ${chalk.green('npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]')}
 
 Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
@@ -326,7 +273,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
             width: 74,
             str:
               prisma1UpgradeMessage +
-              '\nOnce you upgraded your database schema to Prisma 2.0, \ncontinue with the instructions below.\n',
+              '\nOnce you upgraded your database schema to Prisma 2+, \ncontinue with the instructions below.\n',
             horizontalPadding: 2,
           })
         : ''
@@ -343,6 +290,75 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
     engine.stop()
 
     return ''
+  }
+
+  private getWarningMessage(warnings: IntrospectionWarnings[]): string | undefined {
+    if (warnings.length > 0) {
+      let message = `\n*** WARNING ***\n`
+
+      for (const warning of warnings) {
+        message += `\n${warning.message}\n`
+
+        if (warning.code === 0) {
+          // affected === null
+        } else if (warning.code === 1) {
+          message += warning.affected.map((it) => `- "${it.model}"`).join('\n')
+        } else if (warning.code === 2) {
+          const modelsGrouped: {
+            [key: string]: string[]
+          } = warning.affected.reduce((acc, it) => {
+            if (!acc[it.model]) {
+              acc[it.model] = []
+            }
+            acc[it.model].push(it.field)
+            return acc
+          }, {})
+          message += Object.entries(modelsGrouped)
+            .map(([model, fields]) => `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`)
+            .join('\n')
+        } else if (warning.code === 3) {
+          message += warning.affected
+            .map((it) => `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`)
+            .join('\n')
+        } else if (warning.code === 4) {
+          message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
+        } else if ([5, 6, 8, 11, 12, 13, 16].includes(warning.code)) {
+          message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
+        } else if ([7, 14, 15, 18, 19].includes(warning.code)) {
+          message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
+        } else if ([9, 10].includes(warning.code)) {
+          message += warning.affected.map((it) => `- Enum "${it.enm}"`).join('\n')
+        } else if (warning.code === 17) {
+          message += warning.affected
+            .map((it) => `- Model "${it.model}", Index db name: "${it.index_db_name}"`)
+            .join('\n')
+        } else if (warning.code === 101) {
+          message += warning.affected
+            .map((it) => {
+              if (it.model) {
+                return `- Model "${it.model}", field: "${it.field}", chosen data type: "${it.tpe}"`
+              } else if (it.compositeType) {
+                return `- Type "${it.compositeType}", field: "${it.field}", chosen data type: "${it.tpe}"`
+              } else {
+                return `Code ${warning.code} - Properties model or compositeType don't exist in ${JSON.stringify(
+                  warning.affected,
+                  null,
+                  2,
+                )}`
+              }
+            })
+            .join('\n')
+        } else if (warning.affected) {
+          // Output unhandled warning
+          message += `Code ${warning.code}\n${JSON.stringify(warning.affected, null, 2)}`
+        }
+
+        message += `\n`
+      }
+      return message
+    }
+
+    return undefined
   }
 
   public help(error?: string): string | HelpError {
