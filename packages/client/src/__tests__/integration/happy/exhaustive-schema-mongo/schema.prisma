@@ -38,7 +38,8 @@ model User {
 
 model M {
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  n               N[]
+  n_ids           String[]        @db.ObjectId
+  n               N[]             @relation(fields: [n_ids], references: [id])
   int             Int
   optionalInt     Int?
   float           Float
@@ -55,7 +56,8 @@ model M {
 
 model N {
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
-  m               M[]
+  m_ids           String[]        @db.ObjectId
+  m               M[]             @relation(fields: [m_ids], references: [id])
   int             Int
   optionalInt     Int?
   float           Float
@@ -110,7 +112,7 @@ model OptionalSide1 {
   id   String         @id @default(auto()) @map("_id") @db.ObjectId
   opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
 
-  optionalSide2Id Int?
+  optionalSide2Id Int?            @unique
   int             Int
   optionalInt     Int?
   float           Float
@@ -157,9 +159,9 @@ model A {
   name  String?
 
   /// field comment 2
-  int      Int // @db.Integer
-  sInt     Int // @db.SmallInt
-  bInt     BigInt // @db.BigInt
+  int  Int // @db.Integer
+  sInt Int // @db.SmallInt
+  bInt BigInt // @db.BigInt
 }
 
 model B {
