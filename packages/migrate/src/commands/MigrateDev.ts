@@ -180,6 +180,7 @@ ${chalk.bold('Examples')}
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
+        console.info() // empty line
         console.info(
           `The following migration(s) have been applied:\n\n${chalk(
             printFilesFromMigrationIds('migrations', appliedMigrationNames, {
@@ -295,6 +296,7 @@ ${chalk.bold('Examples')}
         console.info(`Already in sync, no schema change or pending migration was found.`)
       }
     } else {
+      console.info() // empty line
       console.info(
         `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
           printFilesFromMigrationIds('migrations', migrationIds, {
