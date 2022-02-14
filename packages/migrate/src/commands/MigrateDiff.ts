@@ -247,7 +247,9 @@ ${chalk.bold('Examples')}
       // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
       // In Jest it manifests also as the following if we don't wait:
       // Cannot log after tests are done. Did you forget to wait for something async in your test?
-      await new Promise((resolve) => setTimeout(resolve, 0))
+      //
+      // we need to return the value in the response then we can remove this
+      await new Promise((resolve) => setTimeout(resolve, 50))
       // Stop engine
       migrate.stop()
     }
