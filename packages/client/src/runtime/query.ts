@@ -434,7 +434,6 @@ ${errorMessages}${missingArgsLegend}\n`
     const newPath: Array<string | number> = []
     let key: undefined | string | number
     let pointer = select
-    // tslint:disable-next-line:no-conditional-assignment
     while ((key = path.shift()) !== undefined) {
       if (!Array.isArray(pointer) && key === 0) {
         continue

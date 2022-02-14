@@ -192,7 +192,6 @@ export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'N
 
 let messageId = 1
 
-/* tslint:disable */
 export class IntrospectionEngine {
   private debug: boolean
   private cwd: string

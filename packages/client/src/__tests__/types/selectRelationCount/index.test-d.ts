@@ -1,8 +1,6 @@
 import { PrismaClient } from '.'
 import { expectError, expectType } from 'tsd'
 
-// tslint:disable
-
 const prisma = new PrismaClient({
   datasources: {
     db: {
