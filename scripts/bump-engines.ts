@@ -35,9 +35,8 @@ async function run(cwd: string, cmd: string): Promise<void> {
     })
   } catch (e) {
     throw new Error(
-      chalk.bold.red(
-        `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
-      ) + (e.stderr || e.stack || e.message),
+      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) +
+        (e.stderr || e.stack || e.message),
     )
   }
 }
