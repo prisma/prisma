@@ -1,6 +1,6 @@
 const path = require('path')
 const globalDirs = require('global-dirs')
-const { drawBox } = require('@prisma/sdk/dist/drawBox')
+const { drawBox } = require('@prisma/sdk/dist/utils/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
 
 const BOLD = '\u001b[1m'
@@ -10,15 +10,11 @@ const RESET = '\u001b[0m'
 // returns { pkgManager: 'yarn' | 'npm', pkgPath: string } | null
 function isPackageInstalledGlobally(name) {
   try {
-    const pkgPath = require.resolve(
-      path.join(globalDirs.yarn.packages, `${name}/package.json`),
-    )
+    const pkgPath = require.resolve(path.join(globalDirs.yarn.packages, `${name}/package.json`))
     return { pkgManager: 'yarn', pkgPath }
   } catch (_) {
     try {
-      const pkgPath = require.resolve(
-        path.join(globalDirs.npm.packages, `${name}/package.json`),
-      )
+      const pkgPath = require.resolve(path.join(globalDirs.npm.packages, `${name}/package.json`))
       return { pkgManager: 'npm', pkgPath }
     } catch (_) {
       //
@@ -114,14 +110,10 @@ export function main() {
 The package ${white('prisma2')} has been renamed to ${white('prisma')}.
 
 Please uninstall ${white('prisma2')} globally first.
-Then install ${white('prisma')} to continue using ${b('Prisma 2.0')}:
+Then install ${white('prisma')} to continue using ${b('Prisma 2+')}:
 
    # Uninstall old CLI
-   ${white(
-      installedGlobally.pkgManager === 'yarn'
-        ? 'yarn global remove prisma2'
-        : 'npm uninstall -g prisma2',
-    )}
+   ${white(installedGlobally.pkgManager === 'yarn' ? 'yarn global remove prisma2' : 'npm uninstall -g prisma2')}
 
    # Install new CLI
    ${white(`npm install prisma${isDev ? '@dev' : ''} --save-dev`)}
@@ -133,8 +125,6 @@ Learn more here: https://pris.ly/preview025
 `
   }
 
-  console.error(
-    drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }),
-  )
+  console.error(drawBox({ str: message, verticalPadding: 1, horizontalPadding: 3 }))
   process.exit(1)
 }

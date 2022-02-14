@@ -1,5 +1,4 @@
 // Taken from https://gist.github.com/LukeChannings/15c92cef5a016a8b21a0
-/* tslint:disable */
 
 // ensure the keys being passed is an array of key paths
 // example: 'a.b' becomes ['a', 'b'] unless it was already ['a', 'b']

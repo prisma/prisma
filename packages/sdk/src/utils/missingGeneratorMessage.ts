@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { highlightDatamodel } from '../highlight/highlight'
-import { link } from '../link'
+import { link } from './link'
 
 export const missingGeneratorMessage = `\n${chalk.blue(
   'info',
