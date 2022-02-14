@@ -34,7 +34,6 @@ export class EngineError extends Error {
 
 let messageId = 1
 
-/* tslint:disable */
 export class MigrateEngine {
   private projectDir: string
   private debug: boolean

@@ -6,7 +6,7 @@ import hasYarn from 'has-yarn'
 import path from 'path'
 import { resolvePkg } from './utils/resolve'
 import { logger } from '.'
-import { getCommandWithExecutor } from './getCommandWithExecutor'
+import { getCommandWithExecutor } from './utils/getCommandWithExecutor'
 const debug = Debug('prisma:generator')
 
 const realPath = fs.promises.realpath
