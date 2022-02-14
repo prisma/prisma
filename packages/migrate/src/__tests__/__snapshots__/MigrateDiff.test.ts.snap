@@ -47,5 +47,4 @@ CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User.email" ON "User"("email");
-
 `;
