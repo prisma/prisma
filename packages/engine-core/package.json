@@ -65,7 +65,8 @@
     "dist"
   ],
   "lint-staged": {
-    "*.ts": [
+    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{js,ts}": [
       "eslint",
       "prettier --write"
     ]
