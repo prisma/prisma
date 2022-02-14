@@ -236,7 +236,7 @@ function getOutDir(options: BuildOptions) {
 
 // get the esm output path from an original path
 function getEsmOutDir(options: BuildOptions) {
-  return `${getOutDir(options)}/esm`
+  return `esm/${getOutDir(options)}`
 }
 
 // get the esm output file from an original path
@@ -245,7 +245,7 @@ function getEsmOutFile(options: BuildOptions) {
     const dirname = getOutDir(options)
     const filename = path.basename(options.outfile)
 
-    return `${dirname}/esm/${filename}`
+    return `esm/${dirname}/${filename}`
   }
 
   return undefined

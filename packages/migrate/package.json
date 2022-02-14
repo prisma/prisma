@@ -2,7 +2,7 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "dist/esm/index.mjs",
+  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
@@ -20,7 +20,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.10.0-12.60b16207c02de858be08e861ddaf1739c77eb43e",
+    "@prisma/engines-version": "3.10.0-25.bbfe2ad95a483f6374e0f6fa70a2d00861a08703",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.4.0",
@@ -37,7 +37,7 @@
     "eslint-plugin-jest": "26.0.0",
     "eslint-plugin-prettier": "4.0.0",
     "fs-jetpack": "4.3.0",
-    "jest": "27.4.7",
+    "jest": "27.5.1",
     "lint-staged": "12.1.5",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.10.0-12.60b16207c02de858be08e861ddaf1739c77eb43e",
+    "@prisma/get-platform": "3.10.0-25.bbfe2ad95a483f6374e0f6fa70a2d00861a08703",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
