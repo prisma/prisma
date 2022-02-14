@@ -176,7 +176,7 @@ ${chalk.bold('Examples')}
       migrationIdsApplied.push(...appliedMigrationNames)
 
       // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      // await new Promise((resolve) => setTimeout(resolve, 50))
 
       // Inform user about applied migrations now
       if (appliedMigrationNames.length > 0) {
@@ -281,7 +281,7 @@ ${chalk.bold('Examples')}
       migrationIds = appliedMigrationNames
     } finally {
       // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
-      await new Promise((resolve) => setTimeout(resolve, 50))
+      // await new Promise((resolve) => setTimeout(resolve, 50))
       // Stop engine
       migrate.stop()
     }
