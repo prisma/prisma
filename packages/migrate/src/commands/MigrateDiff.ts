@@ -249,7 +249,7 @@ ${chalk.bold('Examples')}
       // Cannot log after tests are done. Did you forget to wait for something async in your test?
       //
       // we need to return the value in the response then we can remove this
-      // await new Promise((resolve) => setTimeout(resolve, 50))
+      await new Promise((resolve) => setTimeout(resolve, 50))
       // Stop engine
       migrate.stop()
     }
