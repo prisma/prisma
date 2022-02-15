@@ -78,7 +78,7 @@
     "@types/jest": "27.4.0",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.4",
-    "@types/node": "12.20.42",
+    "@types/node": "12.20.46",
     "@types/pg": "8.6.4",
     "@typescript-eslint/eslint-plugin": "5.9.0",
     "@typescript-eslint/parser": "5.9.0",
