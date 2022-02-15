@@ -20,7 +20,7 @@ const ignorePatterns = flatten(
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'jest'],
+  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import'],
   env: {
     node: true,
     es6: true,
@@ -86,6 +86,12 @@ module.exports = {
             additionalTestBlockFunctions: ['testIf', 'describeIf'],
           },
         ],
+        // https://github.com/lydell/eslint-plugin-simple-import-sort
+        'simple-import-sort/imports': 'error',
+        'simple-import-sort/exports': 'error',
+        'import/first': 'error',
+        'import/newline-after-import': 'error',
+        'import/no-duplicates': 'error',
       },
     },
   ],
