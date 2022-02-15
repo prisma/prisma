@@ -34,7 +34,34 @@ model User {
   boolean         Boolean
   optionalBoolean Boolean?
   posts           Post[]
+
+  // embedHolder   EmbedHolder @relation(fields: [embedHolderId], references: [id])
+  // embedHolderId String
 }
+
+// model EmbedHolder {
+//   id            String   @id @default(auto()) @map("_id") @db.ObjectId
+//   time          DateTime @default(now())
+//   text          String
+//   boolean       Boolean
+//   embeds        Embed[]
+//   embed         Embed
+//   optionalEmbed Embed?
+//   User          User[]
+// }
+
+// type Embed {
+//   text               String
+//   boolean            Boolean
+//   embedEmbeds        EmbedEmbed[]
+//   embedEmbed         EmbedEmbed
+//   optionalEmbedEmbed EmbedEmbed?
+// }
+
+// type EmbedEmbed {
+//   text    String
+//   boolean Boolean
+// }
 
 model M {
   id              String          @id @default(auto()) @map("_id") @db.ObjectId
@@ -110,7 +137,7 @@ model OptionalSide1 {
   id   String         @id @default(auto()) @map("_id") @db.ObjectId
   opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
 
-  optionalSide2Id Int?
+  optionalSide2Id Int?            @unique
   int             Int
   optionalInt     Int?
   float           Float
@@ -157,9 +184,9 @@ model A {
   name  String?
 
   /// field comment 2
-  int      Int // @db.Integer
-  sInt     Int // @db.SmallInt
-  bInt     BigInt // @db.BigInt
+  int  Int // @db.Integer
+  sInt Int // @db.SmallInt
+  bInt BigInt // @db.BigInt
 }
 
 model B {
