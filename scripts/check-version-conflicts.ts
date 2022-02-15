@@ -16,17 +16,13 @@ const tab = '  '
 
 async function main() {
   const packagePaths = await globby(
-    [
-      'migrate/package.json',
-      'prisma2/cli/**/package.json',
-      'prisma-client-js/packages/**/package.json',
-    ],
+    ['migrate/package.json', 'prisma2/cli/**/package.json', 'prisma-client-js/packages/**/package.json'],
     {
       ignore: ['**/node_modules/**', '**/examples/**'],
     },
   )
   const packages = await Promise.all(
-    packagePaths.map(async p => ({
+    packagePaths.map(async (p) => ({
       path: p,
       package: JSON.parse(await fs.readFile(p, 'utf-8')),
     })),
@@ -35,20 +31,22 @@ async function main() {
   const packageCache: { [key: string]: PackageUser[] } = {}
 
   for (const p of packages) {
-    const handler = dev => ([name, version]: any) => {
-      const v = version.replace('^', '')
-      if (packageCache[name]) {
-        if (packageCache[name].find(c => c.version !== v)) {
-          packageCache[name].push({
-            path: p.path,
-            version: v,
-            dev,
-          })
+    const handler =
+      (dev) =>
+      ([name, version]: any) => {
+        const v = version.replace('^', '')
+        if (packageCache[name]) {
+          if (packageCache[name].find((c) => c.version !== v)) {
+            packageCache[name].push({
+              path: p.path,
+              version: v,
+              dev,
+            })
+          }
+        } else {
+          packageCache[name] = [{ path: p.path, version: v, dev }]
         }
-      } else {
-        packageCache[name] = [{ path: p.path, version: v, dev }]
       }
-    }
     if (p.package.dependencies) {
       Object.entries(p.package.dependencies).forEach(handler(false))
     }
@@ -60,22 +58,17 @@ async function main() {
   Object.entries(packageCache).forEach(([key, value]) => {
     let out = '\n'
     if (value.length > 1) {
-      out +=
-        chalk.bold.red(`Version mismatch`) + ` for ${chalk.bold.blue(key)}\n`
-      value.forEach(v => {
-        out += `${tab}${chalk.underline(v.path).padEnd(60)}${v.version.padEnd(
-          20,
-        )} ${v.dev ? chalk.dim('dependency') : chalk.dim('devDependency')}\n`
+      out += chalk.bold.red(`Version mismatch`) + ` for ${chalk.bold.blue(key)}\n`
+      value.forEach((v) => {
+        out += `${tab}${chalk.underline(v.path).padEnd(60)}${v.version.padEnd(20)} ${
+          v.dev ? chalk.dim('dependency') : chalk.dim('devDependency')
+        }\n`
       })
       console.error(out)
     }
   })
 
-  console.log(
-    `Found mismatches for ${
-      Object.values(packageCache).filter(v => v.length > 1).length
-    } packages`,
-  )
+  console.log(`Found mismatches for ${Object.values(packageCache).filter((v) => v.length > 1).length} packages`)
 
   const argv = arg({
     ['--auto-fix']: Boolean,
@@ -94,20 +87,12 @@ async function main() {
         if (!packageName.startsWith('@types')) {
           return
         }
-        const latestVersion = await runResult(
-          '.',
-          `npm info ${packageName} version`,
-        )
-        console.log(
-          `\nSetting ${chalk.blue(`${packageName}@${latestVersion}`)}`,
-        )
+        const latestVersion = await runResult('.', `npm info ${packageName} version`)
+        console.log(`\nSetting ${chalk.blue(`${packageName}@${latestVersion}`)}`)
         await pMap(
           packageUsers,
-          async u => {
-            await run(
-              path.dirname(u.path),
-              `yarn add ${packageName}@${latestVersion}${u.dev ? ' -D' : ''}`,
-            )
+          async (u) => {
+            await run(path.dirname(u.path), `yarn add ${packageName}@${latestVersion}${u.dev ? ' -D' : ''}`)
           },
           { concurrency: 1 },
         )
@@ -128,9 +113,8 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
     return result.stdout
   } catch (e) {
     throw new Error(
-      chalk.bold.red(
-        `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
-      ) + (e.stderr || e.stack || e.message),
+      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) +
+        (e.stderr || e.stack || e.message),
     )
   }
 }
@@ -144,9 +128,8 @@ async function run(cwd: string, cmd: string): Promise<void> {
     })
   } catch (e) {
     throw new Error(
-      chalk.bold.red(
-        `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
-      ) + (e.stderr || e.stack || e.message),
+      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) +
+        (e.stderr || e.stack || e.message),
     )
   }
 }

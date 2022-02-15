@@ -57,7 +57,5 @@ async function runTsd(dir: string) {
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
-  return files
-    .map((file) => path.join(dir, file))
-    .filter((file) => fs.lstatSync(file).isDirectory())
+  return files.map((file) => path.join(dir, file)).filter((file) => fs.lstatSync(file).isDirectory())
 }

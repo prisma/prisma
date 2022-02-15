@@ -132,7 +132,8 @@
     "@prisma/engines": "3.10.0-28.39d709ea3ba1b9e60f6b10ac781f26aaaf01c9f6"
   },
   "lint-staged": {
-    "*.ts": [
+    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{js,ts}": [
       "eslint",
       "prettier --write"
     ]

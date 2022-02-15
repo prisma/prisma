@@ -27,18 +27,12 @@ async function main() {
   }
 
   if (packages.length === 0) {
-    console.log(
-      chalk.blueBright('Nothing to lint ') + chalk.bold.greenBright(`✔️`),
-    )
+    console.log(chalk.blueBright('Nothing to lint ') + chalk.bold.greenBright(`✔️`))
   }
 
-  const results = await pMap(
-    packages,
-    (pkg) => lintPackage(pkg, args['--staged']),
-    {
-      concurrency: args['--staged'] ? 1 : os.cpus().length,
-    },
-  )
+  const results = await pMap(packages, (pkg) => lintPackage(pkg, args['--staged']), {
+    concurrency: args['--staged'] ? 1 : os.cpus().length,
+  })
 
   if (results.some((r) => !r)) {
     process.exit(1)

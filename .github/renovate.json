@@ -19,11 +19,7 @@
       "automerge": "true",
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"],
-      "excludePackageNames": [
-        "@prisma/studio",
-        "@prisma/studio-server",
-        "checkpoint-client"
-      ],
+      "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
       "schedule": ["before 8am on Wednesday"]
     },
     {

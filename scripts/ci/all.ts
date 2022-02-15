@@ -19,9 +19,7 @@ async function run(cwd: string, cmd: string): Promise<void> {
     })
   } catch (e) {
     throw new Error(
-      chalk.red(
-        `Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`,
-      ) + (e.stderr || e.stack || e.message),
+      chalk.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) + (e.stderr || e.stack || e.message),
     )
   }
 }
@@ -29,32 +27,18 @@ async function run(cwd: string, cmd: string): Promise<void> {
 async function all() {
   const argv = process.argv.slice(2)
   if (argv.length === 0) {
-    throw new Error(
-      `Please provide a command like so: ts-node scripts/ci/all.ts git status`,
-    )
+    throw new Error(`Please provide a command like so: ts-node scripts/ci/all.ts git status`)
   }
 
   const command = argv.join(' ')
 
-  console.log(
-    chalk.cyanBright.bold(`prisma `.padEnd(10)) + chalk.bold(command) + '\n',
-  )
+  console.log(chalk.cyanBright.bold(`prisma `.padEnd(10)) + chalk.bold(command) + '\n')
   await run(`prisma`, command)
 
-  console.log(
-    '\n' +
-      chalk.cyanBright.bold(`migrate `.padEnd(10)) +
-      chalk.bold(command) +
-      '\n',
-  )
+  console.log('\n' + chalk.cyanBright.bold(`migrate `.padEnd(10)) + chalk.bold(command) + '\n')
   await run(`migrate`, command)
 
-  console.log(
-    '\n' +
-      chalk.cyanBright.bold(`prisma-client-js `.padEnd(10)) +
-      chalk.bold(command) +
-      '\n',
-  )
+  console.log('\n' + chalk.cyanBright.bold(`prisma-client-js `.padEnd(10)) + chalk.bold(command) + '\n')
   await run(`prisma-client-js`, command)
 }
 

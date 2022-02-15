@@ -3,9 +3,7 @@ import { MigrateDev } from '../commands/MigrateDev'
 
 it('no params should return help', async () => {
   const commandInstance = MigrateCommand.new({})
-  const spy = jest
-    .spyOn(commandInstance, 'help')
-    .mockImplementation(() => 'Help Me')
+  const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
   await commandInstance.parse([])
   expect(spy).toHaveBeenCalledTimes(1)
@@ -14,9 +12,7 @@ it('no params should return help', async () => {
 
 it('wrong flag', async () => {
   const commandInstance = MigrateCommand.new({})
-  const spy = jest
-    .spyOn(commandInstance, 'help')
-    .mockImplementation(() => 'Help Me')
+  const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
   await commandInstance.parse(['--something'])
   expect(spy).toHaveBeenCalledTimes(1)
@@ -25,9 +21,7 @@ it('wrong flag', async () => {
 
 it('help flag', async () => {
   const commandInstance = MigrateCommand.new({})
-  const spy = jest
-    .spyOn(commandInstance, 'help')
-    .mockImplementation(() => 'Help Me')
+  const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
   await commandInstance.parse(['--help'])
   expect(spy).toHaveBeenCalledTimes(1)
@@ -35,9 +29,7 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(
-    MigrateCommand.new({}).parse(['doesnotexist']),
-  ).resolves.toThrowError()
+  await expect(MigrateCommand.new({}).parse(['doesnotexist'])).resolves.toThrowError()
 })
 
 it('dev with --preview-feature flag', async () => {
@@ -53,32 +45,28 @@ it('dev with --preview-feature flag', async () => {
 
 describe('legacy', () => {
   it('experimental flag', async () => {
-    await expect(MigrateCommand.new({}).parse(['--experimental'])).rejects
-      .toMatchInlineSnapshot(`
+    await expect(MigrateCommand.new({}).parse(['--experimental'])).rejects.toMatchInlineSnapshot(`
             Prisma Migrate was Experimental and is now Generally Available.
             WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
           `)
   })
 
   it('up command', async () => {
-    await expect(MigrateCommand.new({}).parse(['up'])).rejects
-      .toMatchInlineSnapshot(`
+    await expect(MigrateCommand.new({}).parse(['up'])).rejects.toMatchInlineSnapshot(`
             The current command "up" doesn't exist in the new version of Prisma Migrate.
             Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
           `)
   })
 
   it('down command', async () => {
-    await expect(MigrateCommand.new({}).parse(['down'])).rejects
-      .toMatchInlineSnapshot(`
+    await expect(MigrateCommand.new({}).parse(['down'])).rejects.toMatchInlineSnapshot(`
             The current command "down" doesn't exist in the new version of Prisma Migrate.
             Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
           `)
   })
 
   it('save command', async () => {
-    await expect(MigrateCommand.new({}).parse(['save'])).rejects
-      .toMatchInlineSnapshot(`
+    await expect(MigrateCommand.new({}).parse(['save'])).rejects.toMatchInlineSnapshot(`
             The current command "save" doesn't exist in the new version of Prisma Migrate.
             Read more about how to upgrade: https://pris.ly/d/migrate-upgrade
           `)

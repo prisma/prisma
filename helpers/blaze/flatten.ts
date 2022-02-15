@@ -7,8 +7,7 @@ function wrap(item: unknown) {
 }
 
 // eslint-disable-next-line prettier/prettier
-type Flatten<L extends L.List, I = L[number]> =
-  (I extends L.List ? I[number] : I)[] & {}
+type Flatten<L extends L.List, I = L[number]> = (I extends L.List ? I[number] : I)[] & {}
 
 /**
  * Returns a new array with all sub-array elements concatenated.
