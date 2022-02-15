@@ -20,7 +20,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "27.4.0",
-    "@types/node": "12.20.42",
+    "@types/node": "12.20.46",
     "esbuild": "0.13.14",
     "jest": "27.5.1",
     "ts-jest": "27.1.3",
@@ -34,9 +34,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.10.0-28.39d709ea3ba1b9e60f6b10ac781f26aaaf01c9f6",
+    "@prisma/engines": "3.10.0-29.def56e9cae266f4a3754075c1c3f3e1248680897",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.10.0-28.39d709ea3ba1b9e60f6b10ac781f26aaaf01c9f6",
+    "@prisma/get-platform": "3.10.0-29.def56e9cae266f4a3754075c1c3f3e1248680897",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",

@@ -144,6 +144,7 @@ const dmmf: DMMF.Document = {
         uniqueIndexes: [],
       },
     ],
+    types: [],
   },
   mappings: {
     modelOperations: [
