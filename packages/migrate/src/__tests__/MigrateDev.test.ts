@@ -1,11 +1,13 @@
-import prompt from 'prompts'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs-jetpack'
 import path from 'path'
+import prompt from 'prompts'
+
 import { MigrateDev } from '../commands/MigrateDev'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)

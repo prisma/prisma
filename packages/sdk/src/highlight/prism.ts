@@ -1,4 +1,4 @@
-import { theme, identity } from './theme'
+import { identity, theme } from './theme'
 /** eslint-disable */
 
 /* **********************************************

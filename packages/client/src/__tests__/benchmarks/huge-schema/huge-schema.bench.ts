@@ -3,6 +3,7 @@
 import Benchmark from 'benchmark'
 import execa from 'execa'
 import path from 'path'
+
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
 

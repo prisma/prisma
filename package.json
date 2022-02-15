@@ -25,9 +25,9 @@
     "pull": "ts-node scripts/ci/publish.ts --pull",
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
     "precommit": "lint-staged",
-    "precommit-all": "pnpm run precommit && ts-node scripts/lint.ts --staged",
     "eslint": "eslint",
-    "lint": "ts-node scripts/lint.ts",
+    "lint": "eslint --fix --ext .ts .",
+    "format": "prettier --write .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "prepare": "is-ci || husky install"
   },

@@ -102,7 +102,6 @@
     "is-installed-globally": "0.4.0",
     "jest": "27.5.1",
     "line-replace": "2.0.1",
-    "lint-staged": "12.1.5",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.7",
@@ -122,23 +121,12 @@
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
-    "format": "prettier --write .",
-    "lint": "eslint --cache --fix --ext .ts .",
-    "lint-ci": "eslint --ext .ts .",
     "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
     "prepublishOnly": "pnpm run build",
-    "preinstall": "node scripts/preinstall-entry.js",
-    "precommit": "lint-staged"
+    "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
     "@prisma/engines": "3.10.0-28.39d709ea3ba1b9e60f6b10ac781f26aaaf01c9f6"
-  },
-  "lint-staged": {
-    "*.{md,yml,yaml,json}": "prettier --write",
-    "*.{js,ts}": [
-      "eslint",
-      "prettier --write"
-    ]
   },
   "sideEffects": false
 }

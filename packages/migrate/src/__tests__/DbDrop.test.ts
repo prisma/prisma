@@ -1,6 +1,7 @@
-import prompt from 'prompts'
-import { DbDrop } from '../commands/DbDrop'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import prompt from 'prompts'
+
+import { DbDrop } from '../commands/DbDrop'
 
 // TODO: Windows: snapshot tests fail on Windows because of emoji and different error messages.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

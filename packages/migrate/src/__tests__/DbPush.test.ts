@@ -1,8 +1,9 @@
-process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-
-import prompt from 'prompts'
-import { DbPush } from '../commands/DbPush'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import prompt from 'prompts'
+
+import { DbPush } from '../commands/DbPush'
+
+process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 // TODO: Windows: a lot of snapshot tests here fail on Windows because of emoji.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

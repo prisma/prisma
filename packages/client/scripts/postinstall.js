@@ -342,7 +342,7 @@ function parsePackageManagerName(userAgent) {
   // - https://pnpm.js.org/en/3.6/only-allow-pnpm
   // - https://github.com/cameronhunter/npm-config-user-agent-parser
   if (userAgent) {
-    const matchResult = userAgent.match(/^([^\/]+)\/.+/)
+    const matchResult = userAgent.match(/^([^/]+)\/.+/)
     if (matchResult) {
       packageManager = matchResult[1].trim()
     }

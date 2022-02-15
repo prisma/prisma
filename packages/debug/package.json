@@ -31,7 +31,6 @@
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-simple-import-sort": "7.0.0",
     "jest": "27.5.1",
-    "lint-staged": "12.1.5",
     "prettier": "2.5.1",
     "ts-jest": "27.1.3",
     "typescript": "4.5.4"
@@ -40,11 +39,7 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "prepublishOnly": "pnpm run build",
-    "format": "prettier --write .",
-    "lint": "eslint --cache --fix --ext .ts .",
-    "lint-ci": "eslint --ext .ts .",
-    "test": "jest",
-    "precommit": "lint-staged"
+    "test": "jest"
   },
   "files": [
     "README.md",
@@ -54,13 +49,6 @@
     "@types/debug": "4.1.7",
     "ms": "2.1.3",
     "strip-ansi": "6.0.1"
-  },
-  "lint-staged": {
-    "*.{md,yml,yaml,json}": "prettier --write",
-    "*.{js,ts}": [
-      "eslint",
-      "prettier --write"
-    ]
   },
   "sideEffects": true
 }

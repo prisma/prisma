@@ -1,5 +1,6 @@
-import { MigrateStatus } from '../commands/MigrateStatus'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+
+import { MigrateStatus } from '../commands/MigrateStatus'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
