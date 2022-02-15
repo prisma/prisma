@@ -192,15 +192,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        Invalid \`prisma.user.create()\` invocation in
-                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
+            Invalid \`prisma.user.create()\` invocation in
+            /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-                          182   },
-                          183 })
-                          184 
-                        → 185 await prisma.user.create(
-                          Unique constraint failed on the fields: (\`email\`)
-                    `)
+              183   },
+              184 })
+              185 
+            → 186 await prisma.user.create(
+              Unique constraint failed on the fields: (\`email\`)
+          `)
 
     const users = await prisma.user.findMany()
 
@@ -226,15 +226,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        Invalid \`transactionBoundPrisma.user.create()\` invocation in
-                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
+            Invalid \`transactionBoundPrisma.user.create()\` invocation in
+            /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-                          216 })
-                          217 
-                          218 const result = prisma.$transaction(async () => {
-                        → 219   await transactionBoundPrisma.user.create(
-                          Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
-                    `)
+              217 })
+              218 
+              219 const result = prisma.$transaction(async () => {
+            → 220   await transactionBoundPrisma.user.create(
+              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+          `)
 
     const users = await prisma.user.findMany()
 
@@ -283,15 +283,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        Invalid \`prisma.user.create()\` invocation in
-                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
+            Invalid \`prisma.user.create()\` invocation in
+            /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-                          268  */
-                          269 testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
-                          270   const result = prisma.$transaction([
-                        → 271     prisma.user.create(
-                          Unique constraint failed on the fields: (\`email\`)
-                    `)
+              269  */
+              270 testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
+              271   const result = prisma.$transaction([
+            → 272     prisma.user.create(
+              Unique constraint failed on the fields: (\`email\`)
+          `)
 
     const users = await prisma.user.findMany()
 
@@ -319,11 +319,11 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                    Invalid \`prisma.executeRaw()\` invocation:
+                                                Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                      Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
-                              `)
+                                                  Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
+                                        `)
 
     const users = await prisma.user.findMany()
 
@@ -387,10 +387,10 @@ describe('interactive transactions', () => {
             Invalid \`prisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-              369 })
-              370 
-              371 const result = prisma.$transaction([
-            → 372   prisma.user.create(
+              370 })
+              371 
+              372 const result = prisma.$transaction([
+            → 373   prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 

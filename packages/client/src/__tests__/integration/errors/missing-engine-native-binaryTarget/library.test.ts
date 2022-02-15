@@ -37,10 +37,10 @@ test('missing-engine-native-binaryTarget: library', async () => {
           Invalid \`prisma.user.findMany()\` invocation in
           /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/library.test.ts:0:0
 
-            30 })
-            31 
-            32 await expect(async () => {
-          → 33   await prisma.user.findMany(
+            31 })
+            32 
+            33 await expect(async () => {
+          → 34   await prisma.user.findMany(
             Query engine library for current platform "TEST_PLATFORM" could not be found.
           You incorrectly pinned it to TEST_PLATFORM
 
