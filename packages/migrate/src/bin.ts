@@ -1,6 +1,25 @@
 #!/usr/bin/env ts-node
 
-process.env.NODE_NO_WARNINGS = '1'
+import Debug from '@prisma/debug'
+import { enginesVersion } from '@prisma/engines-version'
+import { HelpError, isError } from '@prisma/sdk'
+import chalk from 'chalk'
+
+import { CLI } from './CLI'
+import { DbCommand } from './commands/DbCommand'
+import { DbExecute } from './commands/DbExecute'
+import { DbPull } from './commands/DbPull'
+import { DbPush } from './commands/DbPush'
+// import { DbDrop } from './commands/DbDrop'
+import { DbSeed } from './commands/DbSeed'
+import { MigrateCommand } from './commands/MigrateCommand'
+import { MigrateDeploy } from './commands/MigrateDeploy'
+import { MigrateDev } from './commands/MigrateDev'
+import { MigrateDiff } from './commands/MigrateDiff'
+import { MigrateReset } from './commands/MigrateReset'
+import { MigrateResolve } from './commands/MigrateResolve'
+import { MigrateStatus } from './commands/MigrateStatus'
+import { handlePanic } from './utils/handlePanic'
 
 process.on('uncaughtException', (e) => {
   console.log(e)
@@ -9,32 +28,7 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
-import { HelpError, isError } from '@prisma/sdk'
-
 const commandArray = process.argv.slice(2)
-
-/**
- * Dependencies
- */
-import chalk from 'chalk'
-import Debug from '@prisma/debug'
-
-import { CLI } from './CLI'
-import { MigrateCommand } from './commands/MigrateCommand'
-import { MigrateDev } from './commands/MigrateDev'
-import { MigrateReset } from './commands/MigrateReset'
-import { MigrateDeploy } from './commands/MigrateDeploy'
-import { MigrateResolve } from './commands/MigrateResolve'
-import { MigrateStatus } from './commands/MigrateStatus'
-import { MigrateDiff } from './commands/MigrateDiff'
-import { DbCommand } from './commands/DbCommand'
-import { DbExecute } from './commands/DbExecute'
-import { DbPush } from './commands/DbPush'
-import { DbPull } from './commands/DbPull'
-// import { DbDrop } from './commands/DbDrop'
-import { DbSeed } from './commands/DbSeed'
-import { handlePanic } from './utils/handlePanic'
-import { enginesVersion } from '@prisma/engines-version'
 
 const packageJson = eval(`require('../package.json')`)
 

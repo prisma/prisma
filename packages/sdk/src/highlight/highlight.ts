@@ -1,7 +1,7 @@
-import type { SyntaxDefinition } from './types'
-import { Prism, Token } from './prism'
 import { dml } from './languages/dml'
 import { sql } from './languages/sql'
+import { Prism, Token } from './prism'
+import type { SyntaxDefinition } from './types'
 
 export function highlightDatamodel(str: string): any {
   return highlight(str, dml)

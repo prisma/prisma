@@ -1,7 +1,8 @@
 import Debug from '@prisma/debug'
 import findUp from 'find-up'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
+
 import { getSchemaPathFromPackageJsonSync } from '../cli/getSchema'
 import { exists } from './tryLoadEnvs'
 

@@ -1,5 +1,5 @@
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 
 const datamodel = `generator client {
   provider = "prisma-client-js"

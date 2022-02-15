@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+
 import { highlightDatamodel } from '../../../highlight/highlight'
 import { link } from '../../../utils/link'
 

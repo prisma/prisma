@@ -1,4 +1,5 @@
 import { isError } from '@prisma/sdk'
+
 import type { Action } from '../getPrismaClient'
 
 export type RejectOnNotFound = boolean | ((error: Error) => Error) | undefined

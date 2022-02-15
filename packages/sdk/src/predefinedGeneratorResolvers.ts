@@ -4,9 +4,11 @@ import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
 import path from 'path'
-import { resolvePkg } from './utils/resolve'
+
 import { logger } from '.'
 import { getCommandWithExecutor } from './utils/getCommandWithExecutor'
+import { resolvePkg } from './utils/resolve'
+
 const debug = Debug('prisma:generator')
 
 const realPath = fs.promises.realpath

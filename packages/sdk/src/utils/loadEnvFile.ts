@@ -1,5 +1,5 @@
-import { tryLoadEnvs } from './tryLoadEnvs'
 import { getEnvPaths } from './getEnvPaths'
+import { tryLoadEnvs } from './tryLoadEnvs'
 
 /**
  * Read .env file only if next to schema.prisma

@@ -1,6 +1,4 @@
-import type { A } from 'ts-toolbelt'
-import type { L } from 'ts-toolbelt'
-import type { O } from 'ts-toolbelt'
+import type { A, L, O } from 'ts-toolbelt'
 
 export type LMapper<I, R> = (item: I, key: number) => R
 export type OMapper<I, R> = (item: I, key: string) => R

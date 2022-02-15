@@ -1,9 +1,11 @@
-import path from 'path'
-import { DbPull } from '../commands/DbPull'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import path from 'path'
+
+import { DbPull } from '../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
@@ -522,6 +524,8 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
@@ -612,6 +616,8 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     `)
   })
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', MONGO_URI])

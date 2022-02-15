@@ -1,6 +1,6 @@
-import { getSchemaPath, getSchema, getConfig, createDatabase } from '@prisma/sdk'
+import { createDatabase, getConfig, getSchema, getSchemaPath, jestConsoleContext, jestContext } from '@prisma/sdk'
+
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

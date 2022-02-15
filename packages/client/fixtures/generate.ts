@@ -1,8 +1,9 @@
-import fs from 'fs'
-import { generateInFolder } from '../src/utils/generateInFolder'
 import arg from 'arg'
 import chalk from 'chalk'
+import fs from 'fs'
 import path from 'path'
+
+import { generateInFolder } from '../src/utils/generateInFolder'
 
 async function main() {
   const args = arg({

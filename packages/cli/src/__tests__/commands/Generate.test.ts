@@ -1,7 +1,7 @@
+import { getClientEngineType, jestConsoleContext, jestContext } from '@prisma/sdk'
 import path from 'path'
-import { getClientEngineType } from '@prisma/sdk'
+
 import { Generate } from '../../Generate'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

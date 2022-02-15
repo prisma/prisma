@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { formatSchema } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
 

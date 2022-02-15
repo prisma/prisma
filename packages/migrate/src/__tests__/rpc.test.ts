@@ -1,8 +1,8 @@
-import { getSchemaPath } from '@prisma/sdk'
-import { Migrate } from '../Migrate'
-import path from 'path'
+import { getSchemaPath, jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs-jetpack'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import path from 'path'
+
+import { Migrate } from '../Migrate'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
