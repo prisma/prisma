@@ -19,16 +19,16 @@ export interface MigrateEngineOptions {
 
 /// A JSON-RPC request or response.
 export interface RpcRequestResponse {
-    id: number
-    jsonrpc: "2.0"
+  id: number
+  jsonrpc: '2.0'
 }
 
 interface RpcSuccessResponse<T> extends RpcRequestResponse {
-    result: T
+  result: T
 }
 
 interface RpcErrorResponse<T> extends RpcRequestResponse {
-    error: T
+  error: T
 }
 
 export type RpcResponse<T, E> = RpcSuccessResponse<T> | RpcErrorResponse<E>
@@ -171,9 +171,9 @@ export class MigrateEngine {
             // Send an empty response back as ACK.
             const response: RpcSuccessResponse<{}> = {
               id: result.id,
-              jsonrpc: "2.0",
+              jsonrpc: '2.0',
               result: {},
-            };
+            }
             this.child!.stdin!.write(JSON.stringify(response) + '\n')
           }
         }
@@ -263,6 +263,8 @@ export class MigrateEngine {
           debugStdin(err)
         })
 
+        // logs (info, error)
+        // error can be a panic
         byline(this.child.stderr).on('data', (msg) => {
           const data = String(msg)
           debugStderr(data)
