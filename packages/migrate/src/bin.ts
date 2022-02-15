@@ -36,7 +36,7 @@ import { DbSeed } from './commands/DbSeed'
 import { handlePanic } from './utils/handlePanic'
 import { enginesVersion } from '@prisma/engines-version'
 
-const packageJson = eval(`require('../package.json')`) // tslint:disable-line
+const packageJson = eval(`require('../package.json')`)
 
 /**
  * Main function

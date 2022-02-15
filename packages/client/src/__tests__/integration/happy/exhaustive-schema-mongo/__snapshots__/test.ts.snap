@@ -107,6 +107,7 @@ exports.Prisma.UserScalarFieldEnum = makeEnum({
 
 exports.Prisma.MScalarFieldEnum = makeEnum({
   id: 'id',
+  n_ids: 'n_ids',
   int: 'int',
   optionalInt: 'optionalInt',
   float: 'float',
@@ -123,6 +124,7 @@ exports.Prisma.MScalarFieldEnum = makeEnum({
 
 exports.Prisma.NScalarFieldEnum = makeEnum({
   id: 'id',
+  m_ids: 'm_ids',
   int: 'int',
   optionalInt: 'optionalInt',
   float: 'float',
@@ -349,6 +351,7 @@ export type User = {
  */
 export type M = {
   id: string
+  n_ids: string[]
   int: number
   optionalInt: number | null
   float: number
@@ -369,6 +372,7 @@ export type M = {
  */
 export type N = {
   id: string
+  m_ids: string[]
   int: number
   optionalInt: number | null
   float: number
@@ -3641,6 +3645,7 @@ export namespace Prisma {
 
   export type MCountAggregateOutputType = {
     id: number
+    n_ids: number
     int: number
     optionalInt: number
     float: number
@@ -3701,6 +3706,7 @@ export namespace Prisma {
 
   export type MCountAggregateInputType = {
     id?: true
+    n_ids?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -3810,6 +3816,7 @@ export namespace Prisma {
 
   export type MGroupByOutputType = {
     id: string
+    n_ids: string[]
     int: number
     optionalInt: number | null
     float: number
@@ -3845,6 +3852,7 @@ export namespace Prisma {
 
   export type MSelect = {
     id?: boolean
+    n_ids?: boolean
     n?: boolean | NFindManyArgs
     int?: boolean
     optionalInt?: boolean
@@ -4676,6 +4684,7 @@ export namespace Prisma {
 
   export type NCountAggregateOutputType = {
     id: number
+    m_ids: number
     int: number
     optionalInt: number
     float: number
@@ -4736,6 +4745,7 @@ export namespace Prisma {
 
   export type NCountAggregateInputType = {
     id?: true
+    m_ids?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -4845,6 +4855,7 @@ export namespace Prisma {
 
   export type NGroupByOutputType = {
     id: string
+    m_ids: string[]
     int: number
     optionalInt: number | null
     float: number
@@ -4880,6 +4891,7 @@ export namespace Prisma {
 
   export type NSelect = {
     id?: boolean
+    m_ids?: boolean
     m?: boolean | MFindManyArgs
     int?: boolean
     optionalInt?: boolean
@@ -14325,6 +14337,7 @@ export namespace Prisma {
 
   export const MScalarFieldEnum: {
     id: 'id',
+    n_ids: 'n_ids',
     int: 'int',
     optionalInt: 'optionalInt',
     float: 'float',
@@ -14344,6 +14357,7 @@ export namespace Prisma {
 
   export const NScalarFieldEnum: {
     id: 'id',
+    m_ids: 'm_ids',
     int: 'int',
     optionalInt: 'optionalInt',
     float: 'float',
@@ -14662,6 +14676,7 @@ export namespace Prisma {
     OR?: Enumerable<MWhereInput>
     NOT?: Enumerable<MWhereInput>
     id?: StringFilter | string
+    n_ids?: StringNullableListFilter
     n?: NListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14679,6 +14694,7 @@ export namespace Prisma {
 
   export type MOrderByWithRelationInput = {
     id?: SortOrder
+    n_ids?: SortOrder
     n?: NOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14700,6 +14716,7 @@ export namespace Prisma {
 
   export type MOrderByWithAggregationInput = {
     id?: SortOrder
+    n_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -14724,6 +14741,7 @@ export namespace Prisma {
     OR?: Enumerable<MScalarWhereWithAggregatesInput>
     NOT?: Enumerable<MScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
+    n_ids?: StringNullableListFilter
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -14743,6 +14761,7 @@ export namespace Prisma {
     OR?: Enumerable<NWhereInput>
     NOT?: Enumerable<NWhereInput>
     id?: StringFilter | string
+    m_ids?: StringNullableListFilter
     m?: MListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14760,6 +14779,7 @@ export namespace Prisma {
 
   export type NOrderByWithRelationInput = {
     id?: SortOrder
+    m_ids?: SortOrder
     m?: MOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14781,6 +14801,7 @@ export namespace Prisma {
 
   export type NOrderByWithAggregationInput = {
     id?: SortOrder
+    m_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -14805,6 +14826,7 @@ export namespace Prisma {
     OR?: Enumerable<NScalarWhereWithAggregatesInput>
     NOT?: Enumerable<NScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
+    m_ids?: StringNullableListFilter
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -15573,6 +15595,7 @@ export namespace Prisma {
 
   export type MCreateInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     n?: NCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
@@ -15590,6 +15613,7 @@ export namespace Prisma {
 
   export type MUncheckedCreateInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     n?: NUncheckedCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
@@ -15606,6 +15630,7 @@ export namespace Prisma {
   }
 
   export type MUpdateInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     n?: NUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15622,6 +15647,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     n?: NUncheckedUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15639,6 +15665,7 @@ export namespace Prisma {
 
   export type MCreateManyInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -15654,6 +15681,7 @@ export namespace Prisma {
   }
 
   export type MUpdateManyMutationInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15669,6 +15697,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateManyInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15685,6 +15714,7 @@ export namespace Prisma {
 
   export type NCreateInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     m?: MCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
@@ -15702,6 +15732,7 @@ export namespace Prisma {
 
   export type NUncheckedCreateInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     m?: MUncheckedCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
@@ -15718,6 +15749,7 @@ export namespace Prisma {
   }
 
   export type NUpdateInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     m?: MUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15734,6 +15766,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     m?: MUncheckedUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -15751,6 +15784,7 @@ export namespace Prisma {
 
   export type NCreateManyInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -15766,6 +15800,7 @@ export namespace Prisma {
   }
 
   export type NUpdateManyMutationInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15781,6 +15816,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateManyInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16948,6 +16984,14 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter
   }
 
+  export type StringNullableListFilter = {
+    equals?: Enumerable<string> | null
+    has?: string | null
+    hasEvery?: Enumerable<string>
+    hasSome?: Enumerable<string>
+    isEmpty?: boolean
+  }
+
   export type NListRelationFilter = {
     every?: NWhereInput
     some?: NWhereInput
@@ -16960,6 +17004,7 @@ export namespace Prisma {
 
   export type MCountOrderByAggregateInput = {
     id?: SortOrder
+    n_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -17028,6 +17073,7 @@ export namespace Prisma {
 
   export type NCountOrderByAggregateInput = {
     id?: SortOrder
+    m_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -17689,6 +17735,10 @@ export namespace Prisma {
     deleteMany?: Enumerable<PostScalarWhereInput>
   }
 
+  export type MCreaten_idsInput = {
+    set: Enumerable<string>
+  }
+
   export type NCreateNestedManyWithoutMInput = {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
@@ -17699,6 +17749,11 @@ export namespace Prisma {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     connect?: Enumerable<NWhereUniqueInput>
+  }
+
+  export type MUpdaten_idsInput = {
+    set?: Enumerable<string>
+    push?: string | Enumerable<string>
   }
 
   export type NUpdateManyWithoutMInput = {
@@ -17727,6 +17782,10 @@ export namespace Prisma {
     deleteMany?: Enumerable<NScalarWhereInput>
   }
 
+  export type NCreatem_idsInput = {
+    set: Enumerable<string>
+  }
+
   export type MCreateNestedManyWithoutNInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
@@ -17737,6 +17796,11 @@ export namespace Prisma {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     connect?: Enumerable<MWhereUniqueInput>
+  }
+
+  export type NUpdatem_idsInput = {
+    set?: Enumerable<string>
+    push?: string | Enumerable<string>
   }
 
   export type MUpdateManyWithoutNInput = {
@@ -18370,6 +18434,7 @@ export namespace Prisma {
 
   export type NCreateWithoutMInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18386,6 +18451,7 @@ export namespace Prisma {
 
   export type NUncheckedCreateWithoutMInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18426,6 +18492,7 @@ export namespace Prisma {
     OR?: Enumerable<NScalarWhereInput>
     NOT?: Enumerable<NScalarWhereInput>
     id?: StringFilter | string
+    m_ids?: StringNullableListFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -18442,6 +18509,7 @@ export namespace Prisma {
 
   export type MCreateWithoutNInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18458,6 +18526,7 @@ export namespace Prisma {
 
   export type MUncheckedCreateWithoutNInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18498,6 +18567,7 @@ export namespace Prisma {
     OR?: Enumerable<MScalarWhereInput>
     NOT?: Enumerable<MScalarWhereInput>
     id?: StringFilter | string
+    n_ids?: StringNullableListFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -18835,6 +18905,7 @@ export namespace Prisma {
   }
 
   export type NUpdateWithoutMInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18850,6 +18921,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateWithoutMInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18865,6 +18937,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateManyWithoutNInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18880,6 +18953,7 @@ export namespace Prisma {
   }
 
   export type MUpdateWithoutNInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18895,6 +18969,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateWithoutNInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18910,6 +18985,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateManyWithoutMInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number

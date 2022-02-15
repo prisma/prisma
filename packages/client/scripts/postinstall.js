@@ -42,7 +42,9 @@ function findPackageRoot(startPath, limit = 10) {
         if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
-      } catch {}
+      } catch {
+        // discard error
+      }
     }
     currentPath = path.join(currentPath, '../')
   }
@@ -77,20 +79,11 @@ async function main() {
   })
   try {
     if (localPath) {
-      await run('node', [
-        localPath,
-        'generate',
-        '--postinstall',
-        doubleQuote(getPostInstallTrigger()),
-      ])
+      await run('node', [localPath, 'generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
       return
     }
     if (installedGlobally) {
-      await run('prisma', [
-        'generate',
-        '--postinstall',
-        doubleQuote(getPostInstallTrigger()),
-      ])
+      await run('prisma', ['generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
       return
     }
   } catch (e) {
@@ -117,7 +110,7 @@ function getLocalPackagePath() {
       return require.resolve('prisma')
     }
   } catch (e) {
-    //
+    // discard error
   }
 
   try {
@@ -125,7 +118,9 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('@prisma/cli')
     }
-  } catch (e) {}
+  } catch (e) {
+    // discard error
+  }
 
   return null
 }
@@ -136,12 +131,8 @@ async function isInstalledGlobally() {
     if (result.stdout.includes('@prisma/client')) {
       return true
     } else {
-      console.error(`${c.yellow('warning')} You still have the ${c.bold(
-        'prisma',
-      )} cli (Prisma 1) installed globally.
-Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green(
-        'yarn global remove prisma',
-      )}.`)
+      console.error(`${c.yellow('warning')} You still have the ${c.bold('prisma')} cli (Prisma 1) installed globally.
+Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green('yarn global remove prisma')}.`)
     }
   } catch (e) {
     return false
@@ -154,9 +145,7 @@ if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
       if (e.stderr) {
         if (e.stderr.includes(`Can't find schema.prisma`)) {
           console.error(
-            `${c.yellow('warning')} @prisma/client needs a ${c.bold(
-              'schema.prisma',
-            )} to function, but couldn't find it.
+            `${c.yellow('warning')} @prisma/client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
         Please either create one manually or use ${c.bold('prisma init')}.
         Once you created it, run ${c.bold('prisma generate')}.
         To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
@@ -204,30 +193,18 @@ async function ensureEmptyDotPrisma() {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
     await makeDir(dotPrismaClientDir)
     const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultIndexBrowserJSPath = path.join(
-      dotPrismaClientDir,
-      'index-browser.js',
-    )
+    const defaultIndexBrowserJSPath = path.join(dotPrismaClientDir, 'index-browser.js')
     const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
 
     if (!fs.existsSync(defaultIndexJsPath)) {
-      await copyFile(
-        path.join(__dirname, 'default-index.js'),
-        defaultIndexJsPath,
-      )
+      await copyFile(path.join(__dirname, 'default-index.js'), defaultIndexJsPath)
     }
     if (!fs.existsSync(defaultIndexBrowserJSPath)) {
-      await copyFile(
-        path.join(__dirname, 'default-index-browser.js'),
-        defaultIndexBrowserJSPath,
-      )
+      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultIndexBrowserJSPath)
     }
 
     if (!fs.existsSync(defaultIndexDTSPath)) {
-      await copyFile(
-        path.join(__dirname, 'default-index.d.ts'),
-        defaultIndexDTSPath,
-      )
+      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultIndexDTSPath)
     }
   } catch (e) {
     console.error(e)
@@ -330,9 +307,7 @@ function getPostInstallTrigger() {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original = npm_config_arv_original_arr
-    .filter((arg) => arg !== '')
-    .join(' ')
+  const npm_config_arv_original = npm_config_arv_original_arr.filter((arg) => arg !== '').join(' ')
 
   const command =
     npm_config_arv_original === ''
@@ -374,6 +349,7 @@ function parsePackageManagerName(userAgent) {
   // - https://pnpm.js.org/en/3.6/only-allow-pnpm
   // - https://github.com/cameronhunter/npm-config-user-agent-parser
   if (userAgent) {
+    // eslint-disable-next-line no-useless-escape -- ???
     const matchResult = userAgent.match(/^([^\/]+)\/.+/)
     if (matchResult) {
       packageManager = matchResult[1].trim()

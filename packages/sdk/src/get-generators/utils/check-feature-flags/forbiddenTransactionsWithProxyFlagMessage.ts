@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 import { highlightDatamodel } from '../../../highlight/highlight'
-import { link } from '../../../link'
+import { link } from '../../../utils/link'
 
 export const forbiddenTransactionsWithProxyFlagMessage = `\nThe ${chalk.green('dataProxy')} and ${chalk.green(
   'interactiveTransactions',

@@ -47,9 +47,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.10.0-7.query-engine-composite-basic-api-7ca5579473d9d6005c0b7330a8b342eea7cc08cc",
+    "@prisma/engines": "3.10.0-30.query-engine-composite-basic-api-cff09fd0cc6a45a1998662924833b15a4d7061a8",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.10.0-7.query-engine-composite-basic-api-7ca5579473d9d6005c0b7330a8b342eea7cc08cc",
+    "@prisma/get-platform": "3.10.0-30.query-engine-composite-basic-api-cff09fd0cc6a45a1998662924833b15a4d7061a8",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
@@ -65,7 +65,8 @@
     "dist"
   ],
   "lint-staged": {
-    "*.ts": [
+    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{js,ts}": [
       "eslint",
       "prettier --write"
     ]

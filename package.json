@@ -24,7 +24,8 @@
     "status": "ts-node scripts/ci/publish.ts --status",
     "pull": "ts-node scripts/ci/publish.ts --pull",
     "preinstall": "node ./scripts/only-allow-pnpm.js pnpm",
-    "precommit-all": "ts-node scripts/lint.ts --staged",
+    "precommit": "lint-staged",
+    "precommit-all": "pnpm run precommit && ts-node scripts/lint.ts --staged",
     "eslint": "eslint",
     "lint": "ts-node scripts/lint.ts",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
@@ -60,6 +61,7 @@
     "graphviz-mit": "0.0.9",
     "husky": "7.0.4",
     "is-ci": "3.0.1",
+    "lint-staged": "^12.3.4",
     "node-fetch": "2.6.7",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
@@ -79,5 +81,12 @@
     "tty-browserify": "0.0.1",
     "typescript": "4.5.4",
     "util": "0.12.4"
+  },
+  "lint-staged": {
+    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{js,ts}": [
+      "eslint",
+      "prettier --write"
+    ]
   }
 }

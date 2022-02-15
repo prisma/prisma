@@ -8,14 +8,10 @@ it('should error when dependent generator is missing', async () => {
   expect.assertions(1)
 
   try {
-    await execa.node(
-      path.join(__dirname, '../../build/index.js'),
-      ['generate'],
-      {
-        cwd: path.join(__dirname, './fixtures/dependent-generator'),
-        stdio: 'pipe',
-      },
-    )
+    await execa.node(path.join(__dirname, '../../build/index.js'), ['generate'], {
+      cwd: path.join(__dirname, './fixtures/dependent-generator'),
+      stdio: 'pipe',
+    })
   } catch (e) {
     expect(e.stderr).toMatchSnapshot()
   }
