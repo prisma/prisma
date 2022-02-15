@@ -1,6 +1,5 @@
 #!/usr/bin/env ts-node
 
-// hides ExperimentalWarning: The fs.promises API is experimental
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import {
@@ -31,9 +30,6 @@ import {
   parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
-/**
- * Dependencies
- */
 import * as checkpoint from 'checkpoint-client'
 import path from 'path'
 
@@ -58,8 +54,6 @@ import { detectPrisma1 } from './utils/detectPrisma1'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
-
-process.env.NODE_NO_WARNINGS = '1'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')

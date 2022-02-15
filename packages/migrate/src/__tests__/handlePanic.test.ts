@@ -101,7 +101,6 @@ describe('handlePanic', () => {
   })
 
   it('no interactive mode in CI', async () => {
-    process.env.GITHUB_ACTIONS = 'maybe'
     try {
       await handlePanic(error, packageJsonVersion, engineVersion, command)
     } catch (error) {
@@ -193,7 +192,6 @@ describe('handlePanic', () => {
   })
 
   it('engine panic no interactive mode in CI', async () => {
-    process.env.GITHUB_ACTIONS = 'maybe'
     process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
 
     const files = {

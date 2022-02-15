@@ -3,9 +3,6 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { HelpError, isError } from '@prisma/sdk'
-/**
- * Dependencies
- */
 import chalk from 'chalk'
 
 import { CLI } from './CLI'
@@ -23,8 +20,6 @@ import { MigrateReset } from './commands/MigrateReset'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
 import { handlePanic } from './utils/handlePanic'
-
-process.env.NODE_NO_WARNINGS = '1'
 
 process.on('uncaughtException', (e) => {
   console.log(e)

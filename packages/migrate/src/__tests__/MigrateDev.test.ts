@@ -12,7 +12,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
+// Disable prompts
 process.env.GITHUB_ACTIONS = '1'
+// Disable generate
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 describe('common', () => {

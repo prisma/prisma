@@ -3,8 +3,6 @@ import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-process.env.GITHUB_ACTIONS = '1'
-
 describe('common', () => {
   it('should fail if no schema file', async () => {
     ctx.fixture('empty')

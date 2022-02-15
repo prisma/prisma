@@ -1,5 +1,3 @@
-process.env.GITHUB_ACTIONS = '1'
-
 import prompt from 'prompts'
 import { DbDrop } from '../commands/DbDrop'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
@@ -129,6 +127,8 @@ No such file or directory (os error 2)
 
   it('should ask for --force if not provided if CI', async () => {
     ctx.fixture('reset')
+    process.env.GITHUB_ACTIONS = '1'
+
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force --preview-feature`,

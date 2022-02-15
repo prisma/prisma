@@ -1,11 +1,13 @@
 import stripAnsi from 'strip-ansi'
 
-import Debug, { getLogs } from '..'
 import { removeISODate, sanitizeTestLogs } from '../util'
 
-process.env.DEBUG = 'my-namespace'
-
 describe('debug', () => {
+  process.env.DEBUG = 'my-namespace'
+  const DebugLib = require('../')
+  const Debug = DebugLib.Debug
+  const getLogs = DebugLib.getLogs
+
   test('env vars work as expected', () => {
     const debug = Debug('my-namespace')
     const logs: string[] = []

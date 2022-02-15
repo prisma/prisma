@@ -4,8 +4,6 @@ import path from 'path'
 import { handlePanic } from '../utils/handlePanic'
 
 async function main() {
-  // process.env.GITHUB_ACTIONS = 'maybe'
-
   const error = new RustPanic(
     'Some error message!\n'.repeat(23),
     '',

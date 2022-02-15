@@ -1,5 +1,3 @@
-process.env.GITHUB_ACTIONS = '1'
-
 import fs from 'fs-jetpack'
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
