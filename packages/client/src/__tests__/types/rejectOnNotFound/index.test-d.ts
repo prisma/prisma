@@ -1,4 +1,5 @@
 import { expectError } from 'tsd'
+
 import { PrismaClient } from '.'
 
 const p1 = new PrismaClient({

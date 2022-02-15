@@ -1,6 +1,7 @@
-import type { PrismaPromise } from './PrismaPromise'
 import type { Context } from '@opentelemetry/api'
 import { context } from '@opentelemetry/api'
+
+import type { PrismaPromise } from './PrismaPromise'
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which

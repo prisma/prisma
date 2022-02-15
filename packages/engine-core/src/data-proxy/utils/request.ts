@@ -1,7 +1,8 @@
-import type _https from 'https'
-import { getJSRuntimeName } from './getJSRuntimeName'
-import type { O } from 'ts-toolbelt'
 import type { IncomingMessage } from 'http'
+import type _https from 'https'
+import type { O } from 'ts-toolbelt'
+
+import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
 export type RequestOptions = O.Patch<

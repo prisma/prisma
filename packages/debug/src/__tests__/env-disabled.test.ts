@@ -1,10 +1,14 @@
-process.env.DEBUG = ''
-
-import Debug, { getLogs } from '..'
 import stripAnsi from 'strip-ansi'
+
+import { getLogs } from '..'
 import { sanitizeTestLogs } from '../util'
 
 describe('debug', () => {
+  process.env.DEBUG = ''
+  const DebugLib = require('../')
+  const Debug = DebugLib.Debug
+  const getLogs = DebugLib.getLogs
+
   test('* works as expected', () => {
     const debug = Debug('my-namespace')
     const logs: string[] = []

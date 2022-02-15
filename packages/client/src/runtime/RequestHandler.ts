@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
+
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -14,6 +15,7 @@ import { Args, unpack } from './query'
 import { printStack } from './utils/printStack'
 import type { RejectOnNotFound } from './utils/rejectOnNotFound'
 import { throwIfNotFound } from './utils/rejectOnNotFound'
+
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {

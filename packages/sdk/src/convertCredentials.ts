@@ -1,7 +1,8 @@
-import type { DatabaseCredentials } from './types'
-import * as NodeURL from 'url'
 import type { ConnectorType } from '@prisma/generator-helper'
 import path from 'path'
+import * as NodeURL from 'url'
+
+import type { DatabaseCredentials } from './types'
 
 // opposite of uriToCredentials
 // only used for internal tests

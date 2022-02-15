@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
+
 import { getDMMF } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
 

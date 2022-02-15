@@ -1,5 +1,6 @@
-import Debug, { getLogs } from '..'
 import stripAnsi from 'strip-ansi'
+
+import Debug, { getLogs } from '..'
 import { removeISODate, sanitizeTestLogs } from '../util'
 
 describe('debug', () => {

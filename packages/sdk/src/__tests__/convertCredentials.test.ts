@@ -1,4 +1,4 @@
-import { uriToCredentials, credentialsToUri } from '../convertCredentials'
+import { credentialsToUri, uriToCredentials } from '../convertCredentials'
 
 const uris = [
   'file:',

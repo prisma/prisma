@@ -1,6 +1,7 @@
-import path from 'path'
-import chalk from 'chalk'
 import { getSchemaPath, logger } from '@prisma/sdk'
+import chalk from 'chalk'
+import path from 'path'
+
 import { NoSchemaFoundError } from './errors'
 
 // TODO move NoSchemaFoundError to sdk and this too

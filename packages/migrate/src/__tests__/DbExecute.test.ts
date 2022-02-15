@@ -1,12 +1,15 @@
-import path from 'path'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs'
+import path from 'path'
+
+import { DbExecute } from '../commands/DbExecute'
+import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+
 const util = require('util')
 const exec = util.promisify(require('child_process').exec)
-import { DbExecute } from '../commands/DbExecute'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
-import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

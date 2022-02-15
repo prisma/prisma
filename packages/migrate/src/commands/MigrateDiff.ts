@@ -1,11 +1,12 @@
-import path from 'path'
+import Debug from '@prisma/debug'
 import type { Command } from '@prisma/sdk'
 import { arg, format, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
+import path from 'path'
+
 import { Migrate } from '../Migrate'
-import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
 import type { EngineArgs, EngineResults } from '../types'
-import Debug from '@prisma/debug'
+import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
 
 const debug = Debug('prisma:migrate:diff')
 export class MigrateDiff implements Command {

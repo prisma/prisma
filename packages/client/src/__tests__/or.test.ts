@@ -1,7 +1,8 @@
 import stripAnsi from 'strip-ansi'
+
 import { enums } from '../fixtures/enums'
-import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
 
 describe('at least one validation', () => {
   let dmmf
