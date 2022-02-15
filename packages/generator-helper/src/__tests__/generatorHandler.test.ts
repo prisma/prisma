@@ -11,6 +11,7 @@ const stubOptions: GeneratorOptions = {
     datamodel: {
       enums: [],
       models: [],
+      types: [],
     },
     mappings: {
       modelOperations: [],

@@ -39,6 +39,7 @@ export namespace DMMF {
   export interface Datamodel {
     models: Model[]
     enums: DatamodelEnum[]
+    types: Model[]
   }
 
   export interface uniqueIndex {
