@@ -54,7 +54,8 @@
     "strip-ansi": "6.0.1"
   },
   "lint-staged": {
-    "*.ts": [
+    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{js,ts}": [
       "eslint",
       "prettier --write"
     ]

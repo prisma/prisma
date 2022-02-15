@@ -29,7 +29,7 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./packages/*/tsconfig.eslint.json'],
+    project: ['./tsconfig.json', './packages/*/tsconfig.eslint.json'],
     // debugLevel: true,
   },
   ignorePatterns,
@@ -91,7 +91,7 @@ module.exports = {
   ],
   settings: {
     jest: {
-      version: 26,
+      version: 27,
     },
   },
 }

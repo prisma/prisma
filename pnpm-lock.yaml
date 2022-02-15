@@ -33,6 +33,7 @@ importers:
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
+      lint-staged: ^12.3.4
       node-fetch: 2.6.7
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -82,6 +83,7 @@ importers:
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
+      lint-staged: 12.3.4
       node-fetch: 2.6.7
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -1682,7 +1684,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -6024,6 +6025,28 @@ packages:
 
   /lint-staged/12.3.3:
     resolution: {integrity: sha512-OqcLsqcPOqzvsfkxjeBpZylgJ3SRG1RYqc9LxC6tkt6tNsq1bNVkAixBwX09f6CobcHswzqVOCBpFR1Fck0+ag==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    hasBin: true
+    dependencies:
+      cli-truncate: 3.1.0
+      colorette: 2.0.16
+      commander: 8.3.0
+      debug: 4.3.3_supports-color@9.2.1
+      execa: 5.1.1
+      lilconfig: 2.0.4
+      listr2: 4.0.1
+      micromatch: 4.0.4
+      normalize-path: 3.0.0
+      object-inspect: 1.12.0
+      string-argv: 0.3.1
+      supports-color: 9.2.1
+      yaml: 1.10.2
+    transitivePeerDependencies:
+      - enquirer
+    dev: true
+
+  /lint-staged/12.3.4:
+    resolution: {integrity: sha512-yv/iK4WwZ7/v0GtVkNb3R82pdL9M+ScpIbJLJNyCXkJ1FGaXvRCOg/SeL59SZtPpqZhE7BD6kPKFLIDUhDx2/w==}
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:

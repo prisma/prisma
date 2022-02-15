@@ -2,10 +2,7 @@ import type { L } from 'ts-toolbelt'
 
 const skip = Symbol('skip')
 
-function transduceSync<L extends L.List<I>, I, R>(
-  list: L & L.List<I>,
-  transformer: (item: I) => R | typeof skip,
-) {
+function transduceSync<L extends L.List<I>, I, R>(list: L & L.List<I>, transformer: (item: I) => R | typeof skip) {
   const transduced = [] as R[]
 
   for (let i = 0; i < list.length; ++i) {

@@ -42,28 +42,16 @@ pipe.async = pipeAsync
 // TODO: use the one from ts-toolbelt (broken atm since ts 4.1)
 export declare type PipeMultiSync = {
   <R0, P extends any[]>(...fns: [F.Function<P, R0>]): F.Function<P, R0>
-  <R0, R1, P extends any[]>(
-    ...fns: [F.Function<P, R0>, F.Function<[R0], R1>]
-  ): F.Function<P, R1>
-  <R0, R1, R2, P extends any[]>(
-    ...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>]
-  ): F.Function<P, R2>
+  <R0, R1, P extends any[]>(...fns: [F.Function<P, R0>, F.Function<[R0], R1>]): F.Function<P, R1>
+  <R0, R1, R2, P extends any[]>(...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>]): F.Function<
+    P,
+    R2
+  >
   <R0, R1, R2, R3, P extends any[]>(
-    ...fns: [
-      F.Function<P, R0>,
-      F.Function<[R0], R1>,
-      F.Function<[R1], R2>,
-      F.Function<[R2], R3>,
-    ]
+    ...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>, F.Function<[R2], R3>]
   ): F.Function<P, R3>
   <R0, R1, R2, R3, R4, P extends any[]>(
-    ...fns: [
-      F.Function<P, R0>,
-      F.Function<[R0], R1>,
-      F.Function<[R1], R2>,
-      F.Function<[R2], R3>,
-      F.Function<[R3], R4>,
-    ]
+    ...fns: [F.Function<P, R0>, F.Function<[R0], R1>, F.Function<[R1], R2>, F.Function<[R2], R3>, F.Function<[R3], R4>]
   ): F.Function<P, R4>
   <R0, R1, R2, R3, R4, R5, P extends any[]>(
     ...fns: [
@@ -129,22 +117,13 @@ export declare type PipeMultiSync = {
 
 export declare type PipeMultiAsync = {
   // eslint-disable-next-line prettier/prettier
-  <R0, P extends any[]>(
-    ...fns: [F.Function<P, R0> ]
-  ): F.Function<P, Promise<A.Await<R0>>>
+  <R0, P extends any[]>(...fns: [F.Function<P, R0>]): F.Function<P, Promise<A.Await<R0>>>
   <R0, R1, P extends any[]>(
     // eslint-disable-next-line prettier/prettier
-    ...fns: [
-      F.Function<P, R0> ,
-      F.Function<[A.Await<R0>], R1>,
-    ]
+    ...fns: [F.Function<P, R0>, F.Function<[A.Await<R0>], R1>]
   ): F.Function<P, Promise<A.Await<R1>>>
   <R0, R1, R2, P extends any[]>(
-    ...fns: [
-      F.Function<P, R0>,
-      F.Function<[A.Await<R0>], R1>,
-      F.Function<[A.Await<R1>], R2>,
-    ]
+    ...fns: [F.Function<P, R0>, F.Function<[A.Await<R0>], R1>, F.Function<[A.Await<R1>], R2>]
   ): F.Function<P, Promise<A.Await<R2>>>
   <R0, R1, R2, R3, P extends any[]>(
     ...fns: [
