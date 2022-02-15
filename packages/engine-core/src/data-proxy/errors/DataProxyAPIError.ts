@@ -1,6 +1,6 @@
+import type { RequestResponse } from '../utils/request'
 import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
-import type { RequestResponse } from '../utils/request'
 
 export interface DataProxyAPIErrorInfo extends DataProxyErrorInfo {
   response: RequestResponse

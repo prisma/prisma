@@ -1,5 +1,6 @@
-import { getGithubIssueUrl } from '../utils/getGithubIssueUrl'
 import stripAnsi from 'strip-ansi'
+
+import { getGithubIssueUrl } from '../utils/getGithubIssueUrl'
 
 describe('getErrorMessageWithLink', () => {
   test('basic serialization', () => {

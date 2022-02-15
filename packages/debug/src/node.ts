@@ -6,6 +6,8 @@
 import tty from 'tty'
 import util from 'util'
 
+import { setup } from './common'
+
 /**
  * This is the Node.js implementation of `debug()`.
  */
@@ -146,8 +148,6 @@ function init(debug) {
     debug.inspectOpts[keys[i]] = exports.inspectOpts[keys[i]]
   }
 }
-
-import { setup } from './common'
 const mod = setup(exports)
 module.exports = mod
 export default mod

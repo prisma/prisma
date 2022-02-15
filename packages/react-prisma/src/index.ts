@@ -1,7 +1,8 @@
 import type { Wakeable } from 'react'
 import { unstable_getCacheForType } from 'react'
+
 // @ts-ignore
-import { PrismaClient as PrismaClientConstructor, dmmf } from '.prisma/client'
+import { dmmf, PrismaClient as PrismaClientConstructor } from '.prisma/client'
 
 enum STATUS {
   Pending,

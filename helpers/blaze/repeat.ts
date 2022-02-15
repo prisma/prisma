@@ -1,5 +1,4 @@
-import type { L } from 'ts-toolbelt'
-import type { F } from 'ts-toolbelt'
+import type { F, L } from 'ts-toolbelt'
 
 /**
  * An accumulable function can be passed its output as input

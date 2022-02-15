@@ -1,6 +1,8 @@
+import Debug from '@prisma/debug'
+import { getProxyAgent } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
-import Debug from '@prisma/debug'
+import * as checkpoint from 'checkpoint-client'
 import fs from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'
@@ -8,12 +10,11 @@ import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
-import * as checkpoint from 'checkpoint-client'
-import { maskSchema, mapScalarValues } from './utils/maskSchema'
+
+import { IntrospectionEngine } from './IntrospectionEngine'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
-import { getProxyAgent } from '@prisma/fetch-engine'
-import { IntrospectionEngine } from './IntrospectionEngine'
+import { mapScalarValues, maskSchema } from './utils/maskSchema'
 
 const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs

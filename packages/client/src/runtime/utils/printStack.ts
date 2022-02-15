@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import * as stackTraceParser from 'stacktrace-parser'
+
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
 

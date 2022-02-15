@@ -2,6 +2,7 @@ import events from 'events'
 import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import path from 'path'
+
 import { EXIT_MESSAGE, READY_MESSAGE } from './__helpers__/constants'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)

@@ -1,7 +1,8 @@
-import fs from 'fs-jetpack'
-import execa from 'execa'
-import { DbSeed } from '../commands/DbSeed'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import execa from 'execa'
+import fs from 'fs-jetpack'
+
+import { DbSeed } from '../commands/DbSeed'
 
 // TODO: Windows: snapshot tests fail on Windows because of emoji.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

@@ -1,9 +1,10 @@
 import chalk from 'chalk'
+import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
-import type { DMMF } from '../dmmf-types'
-import Decimal from 'decimal.js'
+
 import type { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 
 export interface Dictionary<T> {
   [key: string]: T

@@ -1,5 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
+
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'

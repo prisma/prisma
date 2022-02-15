@@ -2,6 +2,7 @@ import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
+
 import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
@@ -47,7 +48,7 @@ describe('studio with default schema.prisma filename', () => {
     await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
-  afterAll(async () => {
+  afterAll(() => {
     studio.instance!.stop()
   })
 
@@ -230,7 +231,7 @@ describe('studio with custom schema.prisma filename', () => {
     await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
-  afterAll(async () => {
+  afterAll(() => {
     studio.instance!.stop()
   })
 

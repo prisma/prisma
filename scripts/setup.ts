@@ -1,10 +1,11 @@
-import execa from 'execa'
 import chalk from 'chalk'
-import path from 'path'
-import pRetry from 'p-retry'
-import pMap from 'p-map'
-import { getPackages, getPublishOrder, getPackageDependencies } from './ci/publish'
+import execa from 'execa'
 import fetch from 'node-fetch'
+import pMap from 'p-map'
+import pRetry from 'p-retry'
+import path from 'path'
+
+import { getPackageDependencies, getPackages, getPublishOrder } from './ci/publish'
 
 async function main() {
   // this is for when you want to use it locally

@@ -1,4 +1,5 @@
 import indent from 'indent-string'
+
 import type { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../runtime/utils/common'

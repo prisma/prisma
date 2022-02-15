@@ -1,5 +1,5 @@
-import type { GeneratorOptions, GeneratorManifest, JsonRPC, GeneratorConfig } from './types'
 import byline from './byline'
+import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 
 export interface Handler {
   onGenerate(options: GeneratorOptions): Promise<any>

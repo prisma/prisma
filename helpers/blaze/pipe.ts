@@ -1,5 +1,5 @@
-import type { F } from 'ts-toolbelt'
-import type { A } from 'ts-toolbelt'
+import type { A, F } from 'ts-toolbelt'
+
 import { skip } from './transduce'
 
 function pipeSync(fn: F.Function, ...fns: F.Function[]) {

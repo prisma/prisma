@@ -1,12 +1,13 @@
+import type { ConnectorType } from '@prisma/generator-helper'
 import type { Command } from '@prisma/sdk'
 import { arg, canConnectToDatabase, format, getCommandWithExecutor, HelpError, link, logger } from '@prisma/sdk'
 import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
-import type { ConnectorType } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { isError } from 'util'
+
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {

@@ -1,8 +1,9 @@
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
+
 import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

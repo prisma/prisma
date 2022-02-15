@@ -2,7 +2,7 @@ import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should read .env file in prisma folder', async () => {
+it('should read .env file in prisma folder', () => {
   ctx.fixture('dotenv-2-prisma-folder')
   loadEnvFile(undefined, true)
 

@@ -1,4 +1,5 @@
 import { getTestClient } from '../../../../utils/getTestClient'
+
 const cases = {
   constructor: {
     customError: () => new Error('Constructor Custom Error'),

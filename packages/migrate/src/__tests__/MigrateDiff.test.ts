@@ -1,8 +1,10 @@
-import { MigrateDiff } from '../commands/MigrateDiff'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+
+import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

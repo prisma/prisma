@@ -1,10 +1,11 @@
+import Debug from '@prisma/debug'
+import chalk from 'chalk'
 import type { ChildProcessByStdio } from 'child_process'
 import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
+
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
-import chalk from 'chalk'
-import Debug from '@prisma/debug'
 
 const debug = Debug('prisma:GeneratorProcess')
 

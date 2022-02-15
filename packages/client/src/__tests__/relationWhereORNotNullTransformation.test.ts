@@ -1,7 +1,9 @@
 import chalk from 'chalk'
+
 import { saleBuyers } from '../fixtures/saleBuyers'
-import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
+
 chalk.level = 0
 
 let dmmf
