@@ -1,8 +1,9 @@
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
+import path from 'path'
+
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
-import path from 'path'
 
 const external = ['_http_common']
 

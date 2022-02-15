@@ -1,7 +1,8 @@
-import { getDMMF } from '../generation/getDMMF'
 import fs from 'fs'
 import path from 'path'
 import sortKeys from 'sort-keys'
+
+import { getDMMF } from '../generation/getDMMF'
 
 const blog = `datasource db {
   provider = "postgres"

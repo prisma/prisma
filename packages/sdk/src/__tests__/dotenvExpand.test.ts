@@ -1,5 +1,6 @@
-import { dotenvExpand } from '../dotenvExpand'
 import path from 'path'
+
+import { dotenvExpand } from '../dotenvExpand'
 import { fixturesPath } from './__utils__/fixtures'
 
 describe('dotenvExpand', () => {

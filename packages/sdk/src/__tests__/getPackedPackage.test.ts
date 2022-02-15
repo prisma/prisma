@@ -1,6 +1,7 @@
-import { getPackedPackage } from './../getPackedPackage'
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
+
+import { getPackedPackage } from './../getPackedPackage'
 
 describe('getPackedPackage', () => {
   it('test argument vulnerability', async () => {

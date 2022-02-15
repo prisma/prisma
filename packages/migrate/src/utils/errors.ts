@@ -1,5 +1,5 @@
-import chalk from 'chalk'
 import { getCommandWithExecutor, link } from '@prisma/sdk'
+import chalk from 'chalk'
 
 export class NoSchemaFoundError extends Error {
   constructor() {

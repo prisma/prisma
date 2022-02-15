@@ -1,8 +1,9 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import path from 'path'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 

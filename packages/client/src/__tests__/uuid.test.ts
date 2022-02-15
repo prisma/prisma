@@ -1,5 +1,5 @@
-import { DMMFClass, makeDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
 
 const datamodel = `datasource my_db {
   provider = "postgres"

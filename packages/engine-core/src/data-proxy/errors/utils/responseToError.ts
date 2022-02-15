@@ -1,7 +1,7 @@
+import type { RequestResponse } from '../../utils/request'
 import { BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
 import { NotFoundError } from '../NotFoundError'
-import type { RequestResponse } from '../../utils/request'
 import { SchemaMissingError } from '../SchemaMissingError'
 import { ServerError } from '../ServerError'
 import { UnauthorizedError } from '../UnauthorizedError'

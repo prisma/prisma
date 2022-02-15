@@ -1,11 +1,11 @@
-import execa from 'execa'
-import path from 'path'
-import chalk from 'chalk'
-import os from 'os'
 import arg from 'arg'
+import chalk from 'chalk'
+import execa from 'execa'
 import globby from 'globby'
-import staged from 'staged-git-files'
+import os from 'os'
 import pMap from 'p-map'
+import path from 'path'
+import staged from 'staged-git-files'
 
 async function main() {
   const args = arg({

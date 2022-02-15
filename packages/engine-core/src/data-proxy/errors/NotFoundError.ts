@@ -1,6 +1,6 @@
+import type { RequestResponse } from '../utils/request'
 import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
-import type { RequestResponse } from '../utils/request'
 import { setRetryable } from './utils/setRetryable'
 
 export interface NotFoundErrorInfo extends DataProxyAPIErrorInfo {

@@ -1,5 +1,5 @@
 import type { Context, Span, Tracer } from '@opentelemetry/api'
-import { trace, context } from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 
 /**
  * Executes and traces a function inside of a child span.

@@ -1,4 +1,4 @@
-import type { GeneratorConfig, BinaryTargetsEnvValue } from '@prisma/generator-helper'
+import type { BinaryTargetsEnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
 export function printGeneratorConfig(config: GeneratorConfig): string {

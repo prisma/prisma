@@ -1,12 +1,12 @@
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
-
-const testIf = (condition: boolean) => (condition ? test : test.skip)
-
 // @ts-ignore trick to get typings at dev time
 import type { PrismaClient } from './node_modules/@prisma/client'
+
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 let prisma: PrismaClient
 const baseUri = process.env.TEST_POSTGRES_URI

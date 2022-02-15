@@ -1,13 +1,14 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getCommandWithExecutor, link } from '@prisma/sdk'
+import { arg, format, getCommandWithExecutor, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
-import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
+
 import { Migrate } from '../Migrate'
-import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { printDatasource } from '../utils/printDatasource'
+import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
+import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { printDatasource } from '../utils/printDatasource'
+
 export class MigrateResolve implements Command {
   public static new(): MigrateResolve {
     return new MigrateResolve()

@@ -1,5 +1,6 @@
-import { GeneratorProcess } from '../GeneratorProcess'
 import path from 'path'
+
+import { GeneratorProcess } from '../GeneratorProcess'
 import type { GeneratorOptions } from '../types'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)

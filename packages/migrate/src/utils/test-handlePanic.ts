@@ -1,6 +1,7 @@
-import { RustPanic, ErrorArea } from '@prisma/sdk'
-import { handlePanic } from '../utils/handlePanic'
+import { ErrorArea, RustPanic } from '@prisma/sdk'
 import path from 'path'
+
+import { handlePanic } from '../utils/handlePanic'
 
 async function main() {
   // process.env.GITHUB_ACTIONS = 'maybe'

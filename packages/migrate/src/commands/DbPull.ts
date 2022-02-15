@@ -17,6 +17,7 @@ import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import { printDatasources } from '../utils/printDatasources'

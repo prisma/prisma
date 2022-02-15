@@ -1,8 +1,9 @@
-process.env.DEBUG = ''
+import stripAnsi from 'strip-ansi'
 
 import Debug, { getLogs } from '..'
-import stripAnsi from 'strip-ansi'
 import { sanitizeTestLogs } from '../util'
+
+process.env.DEBUG = ''
 
 describe('debug', () => {
   test('* works as expected', () => {

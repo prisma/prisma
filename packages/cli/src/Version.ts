@@ -1,7 +1,6 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
 import {
   arg,
   BinaryType,
@@ -13,12 +12,15 @@ import {
   getVersion,
   HelpError,
   isError,
+  loadEnvFile,
   resolveBinary,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 interface BinaryInfo {

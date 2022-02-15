@@ -1,8 +1,9 @@
-process.env.DEBUG = 'my-namespace'
+import stripAnsi from 'strip-ansi'
 
 import Debug, { getLogs } from '..'
-import stripAnsi from 'strip-ansi'
 import { removeISODate, sanitizeTestLogs } from '../util'
+
+process.env.DEBUG = 'my-namespace'
 
 describe('debug', () => {
   test('env vars work as expected', () => {

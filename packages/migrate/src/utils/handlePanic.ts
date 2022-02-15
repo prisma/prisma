@@ -1,7 +1,8 @@
-import chalk from 'chalk'
 import type { RustPanic } from '@prisma/sdk'
-import { sendPanic, link, isCi } from '@prisma/sdk'
+import { isCi, link, sendPanic } from '@prisma/sdk'
+import chalk from 'chalk'
 import prompt from 'prompts'
+
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 
 export async function handlePanic(
