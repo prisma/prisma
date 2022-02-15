@@ -30,15 +30,18 @@ export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir:
  */
 function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
   // potential client location on serverless envs
-  const slsRelativeOutputDir = relativeOutdir.split(path.sep).slice(1).join(path.sep)
+  const jss = [JSON.stringify(relativeOutdir)]
+
+  const dirs = relativeOutdir.split(path.sep)
+  if (dirs.length > 1) {
+    const slsRelativeOutdir = dirs.slice(1).join(path.sep)
+    jss.push(JSON.stringify(slsRelativeOutdir))
+  }
 
   return `
 const { findSync } = require('${runtimePath}')
 
-const dirname = findSync(process.cwd(), [
-    ${JSON.stringify(relativeOutdir)},
-    ${JSON.stringify(slsRelativeOutputDir)},
-], ['d'], ['d'], 1)[0] || __dirname`
+const dirname = findSync(process.cwd(), [${jss.join(',')}], ['d'], ['d'], 1)[0] || __dirname`
 }
 
 /**
