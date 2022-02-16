@@ -58,7 +58,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   console.log('publish order', publishOrder)
   if (buildOnly === false) {
     console.debug(`Installing dependencies`)
-    await run('.', `pnpm i`).catch((e) => {
+    await run('.', `pnpm i --ignore-scripts`).catch((e) => {
       console.error(e)
     })
   }
@@ -79,9 +79,9 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
           runPromise.catch(console.error)
 
           // for sqlite3 native bindings, they need a rebuild after an update
-          if (['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)) {
-            await run(pkgDir, 'pnpm rebuild')
-          }
+          // if (['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)) {
+          //   await run(pkgDir, 'pnpm rebuild')
+          // }
         }
 
         await runPromise
@@ -93,20 +93,6 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   if (buildOnly) {
     return
   }
-
-  // TODO: same as the other retry?
-  // final install on top level
-  await pRetry(
-    async () => {
-      await run('.', 'pnpm i --ignore-scripts')
-    },
-    {
-      retries: 6,
-      onFailedAttempt: (e) => {
-        console.error(e)
-      },
-    },
-  )
 }
 
 // TODO: fix this
