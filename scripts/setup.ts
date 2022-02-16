@@ -94,24 +94,11 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     return
   }
 
-  // TODO: this can now be removed
-  // this should not be necessary, it's an pnpm bug
-  // it doesn't execute postinstall correctly
-  for (const batch of publishOrder) {
-    for (const pkgName of batch) {
-      const pkg = packages[pkgName]
-      if (pkg.packageJson.scripts.postinstall) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run postinstall')
-      }
-    }
-  }
-
   // TODO: same as the other retry?
   // final install on top level
   await pRetry(
     async () => {
-      await run('.', 'pnpm i')
+      await run('.', 'pnpm i --ignore-scripts')
     },
     {
       retries: 6,
