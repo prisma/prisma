@@ -20,7 +20,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.10.0-27.migration-engine-print-notifications-to-print-requests-090c931acf957a2e1939bb200850d62aab3d1607",
+    "@prisma/engines-version": "3.10.0-33.migration-engine-print-notifications-to-print-requests-9cd8337d54330aa77f7773ef654f35583c822806",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.4.0",
@@ -52,7 +52,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.10.0-27.migration-engine-print-notifications-to-print-requests-090c931acf957a2e1939bb200850d62aab3d1607",
+    "@prisma/get-platform": "3.10.0-33.migration-engine-print-notifications-to-print-requests-9cd8337d54330aa77f7773ef654f35583c822806",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",

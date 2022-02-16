@@ -67,10 +67,10 @@
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.10.0-27.migration-engine-print-notifications-to-print-requests-090c931acf957a2e1939bb200850d62aab3d1607",
-    "@prisma/fetch-engine": "3.10.0-27.migration-engine-print-notifications-to-print-requests-090c931acf957a2e1939bb200850d62aab3d1607",
+    "@prisma/engines": "3.10.0-33.migration-engine-print-notifications-to-print-requests-9cd8337d54330aa77f7773ef654f35583c822806",
+    "@prisma/fetch-engine": "3.10.0-33.migration-engine-print-notifications-to-print-requests-9cd8337d54330aa77f7773ef654f35583c822806",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.10.0-27.migration-engine-print-notifications-to-print-requests-090c931acf957a2e1939bb200850d62aab3d1607",
+    "@prisma/get-platform": "3.10.0-33.migration-engine-print-notifications-to-print-requests-9cd8337d54330aa77f7773ef654f35583c822806",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.10.0-27.migration-engine-print-notifications-to-print-requests-090c931acf957a2e1939bb200850d62aab3d1607"
+    "@prisma/engines-version": "3.10.0-33.migration-engine-print-notifications-to-print-requests-9cd8337d54330aa77f7773ef654f35583c822806"
   },
   "lint-staged": {
     "*.ts": [
