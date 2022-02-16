@@ -1,6 +1,8 @@
 import 'ts-node/register'
-import { printUpdateMessage } from '../utils/printUpdateMessage'
+
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+
+import { printUpdateMessage } from '../utils/printUpdateMessage'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

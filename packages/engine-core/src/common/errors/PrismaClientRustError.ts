@@ -1,5 +1,5 @@
-import { getBacktraceFromLog, getBacktraceFromRustError } from './utils/log'
 import type { PrismaClientRustErrorArgs } from './types/PrismaClientRustErrorArgs'
+import { getBacktraceFromLog, getBacktraceFromRustError } from './utils/log'
 
 /**
  * A generic Prisma Client Rust error.

@@ -1,5 +1,4 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
-
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 

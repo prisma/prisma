@@ -3,9 +3,11 @@ import { BinaryType } from '@prisma/fetch-engine'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
+
 import { ErrorArea, RustPanic } from './panic'
 import { resolveBinary } from './resolveBinary'
 import byline from './utils/byline'
+
 const debugCli = Debug('prisma:introspectionEngine:cli')
 const debugRpc = Debug('prisma:introspectionEngine:rpc')
 const debugStderr = Debug('prisma:introspectionEngine:stderr')
@@ -192,7 +194,6 @@ export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'N
 
 let messageId = 1
 
-/* tslint:disable */
 export class IntrospectionEngine {
   private debug: boolean
   private cwd: string

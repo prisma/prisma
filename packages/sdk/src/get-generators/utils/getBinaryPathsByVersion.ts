@@ -5,10 +5,11 @@ import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helpe
 import type { Platform } from '@prisma/get-platform'
 import makeDir from 'make-dir'
 import path from 'path'
+
+import { mapKeys } from '../../utils/mapKeys'
+import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
-import type { GetBinaryPathsByVersionInput } from '../getGenerators'
-import { mapKeys } from '../../utils/mapKeys'
 
 export async function getBinaryPathsByVersion({
   neededVersions,

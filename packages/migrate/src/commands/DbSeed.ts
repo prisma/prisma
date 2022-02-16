@@ -1,12 +1,12 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getSchemaPath, logger } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/sdk'
 import chalk from 'chalk'
+
 import {
-  getSeedCommandFromPackageJson,
   executeSeedCommand,
-  verifySeedConfigAndReturnMessage,
+  getSeedCommandFromPackageJson,
   legacyTsNodeScriptWarning,
+  verifySeedConfigAndReturnMessage,
 } from '../utils/seed'
 
 export class DbSeed implements Command {

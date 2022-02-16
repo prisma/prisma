@@ -1,0 +1,21 @@
+# common
+dist/
+esm/
+build/
+fixtures/
+byline.ts
+prism.ts
+charm.ts
+pnpm-lock.yaml
+
+# client
+packages/client/generator-build/
+packages/client/declaration/
+packages/client/runtime/
+packages/client/src/__tests__/types/
+
+# cli
+packages/cli/prisma-client/
+packages/cli/install/
+packages/cli/preinstall/
+packages/cli/**/tmp-*

@@ -1,6 +1,7 @@
 import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, logger, link, unknownCommand } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
+
 import { ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 
 export class MigrateCommand implements Command {

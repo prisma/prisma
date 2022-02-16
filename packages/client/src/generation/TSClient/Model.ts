@@ -1,6 +1,7 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
+
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
@@ -19,8 +20,8 @@ import {
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
-  getSelectName,
   getReturnType,
+  getSelectName,
   getSumAggregateName,
   Projection,
 } from '../utils'

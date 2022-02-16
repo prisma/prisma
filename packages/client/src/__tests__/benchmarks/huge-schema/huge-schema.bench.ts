@@ -3,6 +3,7 @@
 import Benchmark from 'benchmark'
 import execa from 'execa'
 import path from 'path'
+
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
 
@@ -55,12 +56,7 @@ suite
     })
     execa.sync(
       'zip',
-      [
-        '-r',
-        'dotPlusAtPrismaClientFolder.zip',
-        './node_modules/.prisma/client',
-        './node_modules/@prisma/client',
-      ],
+      ['-r', 'dotPlusAtPrismaClientFolder.zip', './node_modules/.prisma/client', './node_modules/@prisma/client'],
       {
         stdout: 'pipe',
         cwd: __dirname,
@@ -87,9 +83,9 @@ function getSize(targetPath: string): { size: string; unit: string } {
   const match = regex.exec(str)
   const pkgSize = { size: match[1], unit: match[3] }
   console.log(
-    `${targetPath.replace('./node_modules/', '').replace('./', '')} size x ${
-      pkgSize.size
-    } ${pkgSize.unit}B ±0.00% (1 runs sampled)`,
+    `${targetPath.replace('./node_modules/', '').replace('./', '')} size x ${pkgSize.size} ${
+      pkgSize.unit
+    }B ±0.00% (1 runs sampled)`,
   )
 
   return pkgSize

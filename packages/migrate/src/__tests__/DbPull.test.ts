@@ -1,9 +1,11 @@
-import path from 'path'
-import { DbPull } from '../commands/DbPull'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import path from 'path'
+
+import { DbPull } from '../commands/DbPull'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
@@ -229,18 +231,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                P4001 The introspected database was empty: 
+                                                            P4001 The introspected database was empty: 
 
-                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                                                To fix this, you have two options:
+                                                            To fix this, you have two options:
 
-                                                - manually create a table in your database.
-                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                            - manually create a table in your database.
+                                                            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                Then you can run prisma db pull again. 
+                                                            Then you can run prisma db pull again. 
 
-                                        `)
+                                                  `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -258,18 +260,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                P4001 The introspected database was empty: 
+                                                            P4001 The introspected database was empty: 
 
-                                                prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                                                To fix this, you have two options:
+                                                            To fix this, you have two options:
 
-                                                - manually create a table in your database.
-                                                - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                            - manually create a table in your database.
+                                                            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                Then you can run prisma db pull again. 
+                                                            Then you can run prisma db pull again. 
 
-                                        `)
+                                                  `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -522,6 +524,8 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
@@ -612,11 +616,13 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     `)
   })
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', MONGO_URI])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Preview feature not enabled: MongoDB introspection connector (experimental feature, needs to be enabled)
+            Preview feature not enabled: MongoDB Introspection connector is a Preview feature and needs the \`mongoDb\` Preview feature flag. See https://www.prisma.io/docs/concepts/database-connectors/mongodb
 
           `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()

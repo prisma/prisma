@@ -1,5 +1,6 @@
 import type { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
+
 import type { DMMF } from './dmmf-types'
 import { capitalize, lowerCase } from './utils/common'
 

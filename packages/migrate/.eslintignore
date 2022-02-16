@@ -1,8 +1,0 @@
-node_modules
-dist
-tmp
-fixtures_old
-src/utils/byline.ts
-src/utils/charm
-src/utils/charm.ts
-*.test.ts

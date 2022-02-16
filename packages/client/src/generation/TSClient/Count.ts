@@ -1,5 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
+
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
@@ -11,8 +12,8 @@ import {
   getGroupByArgsName,
   getGroupByPayloadName,
   getModelArgName,
-  getSelectName,
   getReturnType,
+  getSelectName,
   Projection,
 } from '../utils'
 import { ArgsType } from './Args'

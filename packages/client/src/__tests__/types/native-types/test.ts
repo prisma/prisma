@@ -1,9 +1,9 @@
-import { PrismaClient, Prisma } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 
 async function main() {
   const prisma = new PrismaClient()
 
-  const bint: bigint = BigInt(0)
+  const bint = BigInt(0)
 
   const a: null | {
     id: string

@@ -1,11 +1,13 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/sdk'
-import { BinaryType, ErrorArea, resolveBinary, RustPanic, MigrateEngineExitCode } from '@prisma/sdk'
+import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
+
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
 const debugStdin = Debug('prisma:migrateEngine:stdin')
@@ -27,7 +29,6 @@ export class EngineError extends Error {
 
 let messageId = 1
 
-/* tslint:disable */
 export class MigrateEngine {
   private projectDir: string
   private debug: boolean

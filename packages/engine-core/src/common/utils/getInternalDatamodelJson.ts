@@ -1,5 +1,6 @@
-import path from 'path'
 import { spawn } from 'child_process'
+import path from 'path'
+
 import byline from '../../tools/byline'
 
 export function getInternalDatamodelJson(

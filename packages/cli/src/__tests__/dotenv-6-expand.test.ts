@@ -2,7 +2,7 @@ import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should read expanded env vars', async () => {
+it('should read expanded env vars', () => {
   ctx.fixture('dotenv-6-expand')
   loadEnvFile('./expand/schema.prisma', true)
 
