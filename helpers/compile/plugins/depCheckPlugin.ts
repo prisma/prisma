@@ -17,6 +17,8 @@ const unusedIgnore = [
   'typescript',
   'ts-node',
   'ts-jest',
+  '@swc/core',
+  '@swc/jest',
   'jest',
 
   // these are missing 3rd party deps
