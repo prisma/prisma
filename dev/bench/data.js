@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645030118017,
+  "lastUpdate": 1645040332582,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -84126,6 +84126,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±1.93%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "13155277+tomhoule@users.noreply.github.com",
+            "name": "Tom Houlé",
+            "username": "tomhoule"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "cc5022f115f4843f4580a31f5bad2cf516a8e32f",
+          "message": "fix(migrate): Return responses to migration engine print requests (#11802)\n\nCo-authored-by: Joël Galeran <galeran@prisma.io>",
+          "timestamp": "2022-02-16T20:34:47+01:00",
+          "tree_id": "8a813443b96f6b5cab86a9c0bcc588c1e94364dd",
+          "url": "https://github.com/prisma/prisma/commit/cc5022f115f4843f4580a31f5bad2cf516a8e32f"
+        },
+        "date": 1645040328446,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.46,
+            "range": "±4.49%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±1.94%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
