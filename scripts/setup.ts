@@ -1,8 +1,6 @@
 import chalk from 'chalk'
 import execa from 'execa'
 import fetch from 'node-fetch'
-import pMap from 'p-map'
-import pRetry from 'p-retry'
 import path from 'path'
 
 import { getPackageDependencies, getPackages, getPublishOrder } from './ci/publish'
@@ -51,11 +49,6 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   // TODO: separate into utils shared between publish & setup
-  const rawPackages = await getPackages()
-  const packages = getPackageDependencies(rawPackages)
-  const publishOrder = getPublishOrder(packages)
-
-  console.log('publish order', publishOrder)
   if (buildOnly === false) {
     console.debug(`Installing dependencies`)
     await run('.', `pnpm i --ignore-scripts`).catch((e) => {
@@ -64,31 +57,12 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   console.debug(`Building packages`)
-
-  // TODO: replace with pnpm -r
-  for (const batch of publishOrder) {
-    await pMap(
-      batch,
-      async (pkgName) => {
-        const pkg = packages[pkgName]
-        const pkgDir = path.dirname(pkg.path)
-        const runPromise = run(pkgDir, 'pnpm run build')
-
-        // we want to build all in build-only to see all errors at once
-        if (buildOnly) {
-          runPromise.catch(console.error)
-
-          // for sqlite3 native bindings, they need a rebuild after an update
-          // if (['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)) {
-          //   await run(pkgDir, 'pnpm rebuild')
-          // }
-        }
-
-        await runPromise
-      },
-      { concurrency: 1 },
-    )
-  }
+  // Build all packages except CLI
+  await run('.', `pnpm -r build --filter=!prisma`)
+  // Install again so sdk is properly linked
+  await run('.', `pnpm i`)
+  // Build CLI
+  await run('.', `pnpm -r build --filter=prisma`)
 
   if (buildOnly) {
     return
