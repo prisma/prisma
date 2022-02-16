@@ -4,7 +4,7 @@ import { BinaryType, ErrorArea, resolveBinary, RustPanic, MigrateEngineExitCode 
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
-import type { EngineArgs, EngineResults } from './types'
+import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
@@ -15,27 +15,6 @@ export interface MigrateEngineOptions {
   schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
-}
-
-/// A JSON-RPC request or response.
-export interface RpcRequestResponse {
-  id: number
-  jsonrpc: '2.0'
-}
-
-interface RpcSuccessResponse<T> extends RpcRequestResponse {
-  result: T
-}
-
-interface RpcErrorResponse<T> extends RpcRequestResponse {
-  error: T
-}
-
-export type RpcResponse<T, E> = RpcSuccessResponse<T> | RpcErrorResponse<E>
-
-export interface RPCPayload extends RpcRequestResponse {
-  method: string
-  params: any
 }
 
 export class EngineError extends Error {

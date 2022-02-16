@@ -1,6 +1,29 @@
 // See engine's JSON RPC types
 // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
 
+// https://www.jsonrpc.org/specification
+// A JSON-RPC request or response.
+export interface RpcRequestResponse {
+  id: number
+  jsonrpc: '2.0'
+}
+
+// should this be result: T; error: never? (and same below)
+export interface RpcSuccessResponse<T> extends RpcRequestResponse {
+  result: T
+}
+
+interface RpcErrorResponse<T> extends RpcRequestResponse {
+  error: T
+}
+
+export type RpcResponse<T, E> = RpcSuccessResponse<T> | RpcErrorResponse<E>
+
+export interface RPCPayload extends RpcRequestResponse {
+  method: string
+  params: any
+}
+
 interface UserFacingError {
   is_panic: boolean
   message: string
