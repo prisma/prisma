@@ -1,7 +1,15 @@
 import type { ConnectorType } from '@prisma/generator-helper'
 import type { Command } from '@prisma/sdk'
-import { arg, canConnectToDatabase, format, getCommandWithExecutor, HelpError, link, logger } from '@prisma/sdk'
-import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
+import {
+  arg,
+  canConnectToDatabase,
+  format,
+  getCommandWithExecutor,
+  HelpError,
+  link,
+  logger,
+  protocolToConnectorType,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'

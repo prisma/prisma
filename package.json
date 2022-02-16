@@ -87,7 +87,7 @@
   "lint-staged": {
     "*.{md,yml,json}": "prettier --write",
     "*.{js,ts}": [
-      "eslint",
+      "eslint --fix",
       "prettier --write"
     ]
   }
