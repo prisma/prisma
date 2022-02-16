@@ -85,7 +85,7 @@
     "util": "0.12.4"
   },
   "lint-staged": {
-    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{md,yml,json}": "prettier --write",
     "*.{js,ts}": [
       "eslint",
       "prettier --write"
