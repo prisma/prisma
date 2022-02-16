@@ -63,11 +63,13 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
   return data
 }
 
-async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat> {
+async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
   let data: ConfigMetaFormat | undefined
+
   const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
+
   try {
     const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
     data = await NodeAPIQueryEngineLibrary.getConfig({
@@ -91,6 +93,7 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
     }
     throw new GetConfigError(message)
   }
+
   return data
 }
 
