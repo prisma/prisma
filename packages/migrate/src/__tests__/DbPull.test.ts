@@ -621,6 +621,31 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
             `)
   })
 
+  test('introspection --force --composite-type-depth=-1', async () => {
+    ctx.fixture('schema-only-mongodb')
+    const introspect = new DbPull()
+    await introspect.parse(['--force', '--composite-type-depth=-1'])
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+
+      Introspecting based on datasource defined in prisma/schema.prisma …
+
+      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+            
+      *** WARNING ***
+
+      The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      - Model "users", field: "numberOrString1", chosen data type: "Int32"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+
+      Run prisma generate to generate Prisma Client.
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
   test('introspection --print --composite-type-depth=-1', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()

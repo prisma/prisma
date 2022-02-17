@@ -4,6 +4,8 @@ exports[`MongoDB basic introspection --url 2`] = ``;
 
 exports[`MongoDB basic introspection 1`] = ``;
 
+exports[`MongoDB introspection --force --composite-type-depth=-1 1`] = ``;
+
 exports[`MongoDB introspection --force 1`] = ``;
 
 exports[`MongoDB introspection --print --composite-type-depth=-1 1`] = `
