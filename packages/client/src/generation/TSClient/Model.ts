@@ -53,13 +53,10 @@ export class Model implements Generatable {
   }
   protected get argsTypes(): Generatable[] {
     const { mapping, model } = this
-    if (!mapping) {
-      return []
-    }
 
     const argsTypes: Generatable[] = []
     for (const action in DMMF.ModelAction) {
-      const fieldName = mapping[action]
+      const fieldName = mapping?.[action]
       if (!fieldName) {
         continue
       }
@@ -67,6 +64,7 @@ export class Model implements Generatable {
       if (!field) {
         throw new Error(`Oops this must not happen. Could not find field ${fieldName} on either Query or Mutation`)
       }
+
       if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany') {
         argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
       } else if (action === 'findRaw' || action === 'aggregateRaw') {
@@ -284,7 +282,11 @@ ${indent(
   outputType.fields
     .filter((f) => f.outputType.location === 'outputObjectTypes')
     .map(
-      (f) => `${f.name}?: boolean` + (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
+      (f) =>
+        `${f.name}?: boolean` +
+        (f.outputType.location === 'outputObjectTypes'
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[model.name])}`
+          : ''),
     )
     .join('\n'),
   TAB_SIZE,
@@ -297,22 +299,26 @@ ${indent(
  * Model ${model.name}
  */
 
-${this.getAggregationTypes()}
+${this.dmmf.modelMap[model.name] ? this.getAggregationTypes() : ''}
 
-${this.getGroupByTypes()}
+${this.dmmf.modelMap[model.name] ? this.getGroupByTypes() : ''}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
     .map(
-      (f) => `${f.name}?: boolean` + (f.outputType.location === 'outputObjectTypes' ? ` | ${getFieldArgName(f)}` : ''),
+      (f) =>
+        `${f.name}?: boolean` +
+        (f.outputType.location === 'outputObjectTypes'
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[model.name])}`
+          : ''),
     )
     .join('\n'),
   TAB_SIZE,
 )}
 }
 ${includeType}
-${new PayloadType(this.outputType!).toTS()}
+${new PayloadType(this.outputType!, !this.dmmf.typeMap[model.name]).toTS()}
 
 ${new ModelDelegate(this.outputType!, this.dmmf, this.generator).toTS()}
 
@@ -329,29 +335,36 @@ export class ModelDelegate implements Generatable {
   ) {}
   public toTS(): string {
     const { fields, name } = this.outputType
-    const mapping = this.dmmf.mappingsMap[name]
-    if (!mapping) {
-      return ''
-    }
-    const model = this.dmmf.modelMap[name]
 
-    const actions = Object.entries(mapping).filter(
-      ([key, value]) => key !== 'model' && key !== 'plural' && key !== 'aggregate' && key !== 'groupBy' && value,
-    )
+    const mapping = this.dmmf.mappingsMap[name] ?? { model: name, plural: `${name}s` }
+    const model = this.dmmf.typeModelMap[name]
+
+    const mappingKeys = Object.keys(mapping)
+    const availableActions = mappingKeys.filter(
+      (key) => key !== 'model' && key !== 'plural' && mapping[key],
+    ) as DMMF.ModelAction[]
+    const filteredActions = availableActions.filter(
+      (key) => key !== 'aggregate' && key !== 'groupBy',
+    ) as DMMF.ModelAction[]
+
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     return `\
-type ${countArgsName} = Merge<
+${
+  availableActions.includes(DMMF.ModelAction.aggregate)
+    ? `type ${countArgsName} = Merge<
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 >
-
+`
+    : ''
+}
 export interface ${name}Delegate<GlobalRejectSettings> {
 ${indent(
-  actions
+  filteredActions
     .map(
-      ([actionName]: [any, any]): string =>
+      (actionName): string =>
         `${getMethodJSDoc(actionName, mapping, model)}
 ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
@@ -361,7 +374,9 @@ ${actionName}${getGenericMethod(name, actionName)}(
   TAB_SIZE,
 )}
 
-${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
+${
+  availableActions.includes(DMMF.ModelAction.aggregate)
+    ? `${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
   ): PrismaPromise<
@@ -371,13 +386,21 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
         : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
       : number
   >
-
-${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
+`
+    : ''
+}
+${
+  availableActions.includes(DMMF.ModelAction.aggregate)
+    ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
-      name,
-    )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
-
-${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
+        name,
+      )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
+`
+    : ''
+}
+${
+  availableActions.includes(DMMF.ModelAction.groupBy)
+    ? `${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
   groupBy<
     T extends ${groupByArgsName},
     HasSelectOrTake extends Or<
@@ -436,8 +459,10 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
-      name,
-    )}<T> : Promise<InputErrors>
+        name,
+      )}<T> : Promise<InputErrors>`
+    : ''
+}
 }
 
 /**
@@ -468,7 +493,10 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getReturnType({
+${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[model.name])} = {}>(args?: Subset<T, ${getFieldArgName(
+        f,
+        !this.dmmf.typeMap[model.name],
+      )}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

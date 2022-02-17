@@ -6,7 +6,7 @@ import { getModelArgName, getPayloadName, Projection, getArgName } from '../util
 import type { Generatable } from './Generatable'
 
 export class PayloadType implements Generatable {
-  constructor(protected readonly type: OutputType, protected readonly skipFindMany = false) {}
+  constructor(protected readonly type: OutputType, protected readonly findMany = true) {}
 
   public toTS(): string {
     const { type } = this
@@ -17,7 +17,7 @@ export class PayloadType implements Generatable {
     const include = this.renderRelations(Projection.include)
     const select = this.renderRelations(Projection.select)
 
-    const findManyArg = this.skipFindMany ? '' : ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}`
+    const findManyArg = this.findMany ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}` : ''
 
     return `\
 export type ${getPayloadName(name)}<

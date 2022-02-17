@@ -1,6 +1,6 @@
 import type { DMMF } from '@prisma/generator-helper'
 import type { Dictionary } from './utils/common'
-import { keyBy, keyBy2, ScalarTypeTable } from './utils/common'
+import { keyBy, ScalarTypeTable } from './utils/common'
 
 export class DMMFHelper implements DMMF.Document {
   public datamodel: DMMF.Datamodel
@@ -22,6 +22,8 @@ export class DMMFHelper implements DMMF.Document {
 
   public datamodelEnumMap: Dictionary<DMMF.DatamodelEnum>
   public modelMap: Dictionary<DMMF.Model>
+  public typeMap: Dictionary<DMMF.Model>
+  public typeModelMap: Dictionary<DMMF.Model>
   public mappingsMap: Dictionary<DMMF.ModelMapping>
   public rootFieldMap: Dictionary<DMMF.SchemaField>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
@@ -34,6 +36,8 @@ export class DMMFHelper implements DMMF.Document {
     this.queryType = this.getQueryType()
     this.mutationType = this.getMutationType()
     this.modelMap = this.getModelMap()
+    this.typeMap = this.getTypeMap()
+    this.typeModelMap = this.getTypeModelMap()
 
     this.outputTypes = this.getOutputTypes()
 
@@ -159,7 +163,13 @@ export class DMMFHelper implements DMMF.Document {
     }
   }
   protected getModelMap(): Dictionary<DMMF.Model> {
-    return keyBy(this.datamodel.models, 'name')
+    return { ...keyBy(this.datamodel.models, 'name') }
+  }
+  protected getTypeMap(): Dictionary<DMMF.Model> {
+    return { ...keyBy(this.datamodel.types, 'name') }
+  }
+  protected getTypeModelMap(): Dictionary<DMMF.Model> {
+    return { ...this.getTypeMap(), ...this.getModelMap() }
   }
   protected getMergedOutputTypeMap(): Dictionary<DMMF.OutputType> {
     return {
@@ -177,6 +187,6 @@ export class DMMFHelper implements DMMF.Document {
     return keyBy(this.mappings.modelOperations, 'model')
   }
   protected getRootFieldMap(): Dictionary<DMMF.SchemaField> {
-    return keyBy2(this.queryType.fields, this.mutationType.fields, 'name')
+    return { ...keyBy(this.queryType.fields, 'name'), ...keyBy(this.mutationType.fields, 'name') }
   }
 }

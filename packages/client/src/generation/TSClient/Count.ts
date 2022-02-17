@@ -62,7 +62,7 @@ ${indent(
 )}
 }
 
-${new PayloadType(outputType, true).toTS()}
+${new PayloadType(outputType, false).toTS()}
 
 ${/*new CountDelegate(outputType, this.dmmf, this.generator).toTS()*/ ''}
 
@@ -84,7 +84,7 @@ class CountDelegate implements Generatable {
     if (!mapping) {
       return ''
     }
-    const model = this.dmmf.modelMap[name]
+    const model = this.dmmf.typeModelMap[name]
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) => key !== 'model' && key !== 'plural' && key !== 'aggregate' && key !== 'groupBy' && value,

@@ -144,7 +144,7 @@ ${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
     const collector = new ExportCollector()
 
     const commonCode = commonCodeTS(this.options)
-    const models = Object.values(this.dmmf.modelMap).reduce((acc, model) => {
+    const models = Object.values(this.dmmf.typeModelMap).reduce((acc, model) => {
       if (this.dmmf.outputTypeMap[model.name]) {
         acc.push(new Model(model, this.dmmf, this.options.generator, collector))
       }
