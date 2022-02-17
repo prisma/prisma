@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`studio can respond to \`create\` queries 1`] = `
+exports[`studio with custom schema.prisma filename can respond to \`create\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,
@@ -30,7 +30,7 @@ Object {
 }
 `;
 
-exports[`studio can respond to \`delete\` queries 1`] = `
+exports[`studio with custom schema.prisma filename can respond to \`delete\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,
@@ -54,7 +54,7 @@ Object {
 }
 `;
 
-exports[`studio can respond to \`findMany\` queries 1`] = `
+exports[`studio with custom schema.prisma filename can respond to \`findMany\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,
@@ -93,7 +93,130 @@ Object {
 }
 `;
 
-exports[`studio can respond to \`update\` queries 1`] = `
+exports[`studio with custom schema.prisma filename can respond to \`update\` queries 1`] = `
+Object {
+  action: clientRequest,
+  channel: -prisma,
+  payload: Object {
+    data: Object {
+      datetime: 2025-08-03T00:00:00.000Z,
+      float: 100.5,
+      id: 1,
+      int: 100,
+      relation: Object {
+        id: 3,
+        name: Relation Target 003,
+        waft_id: 1,
+      },
+      relation_list: Array [
+        Object {
+          id: 3,
+          name: Relation Target 003,
+          waft_id: 1,
+        },
+      ],
+      string: Changed String,
+    },
+    error: null,
+  },
+  requestId: 3,
+}
+`;
+
+exports[`studio with default schema.prisma filename can respond to \`create\` queries 1`] = `
+Object {
+  action: clientRequest,
+  channel: -prisma,
+  payload: Object {
+    data: Object {
+      datetime: 2020-08-03T00:00:00.000Z,
+      float: 0,
+      id: 3,
+      int: 0,
+      relation: Object {
+        id: 3,
+        name: Relation Target 003,
+        waft_id: 3,
+      },
+      relation_list: Array [
+        Object {
+          id: 3,
+          name: Relation Target 003,
+          waft_id: 3,
+        },
+      ],
+      string: ,
+    },
+    error: null,
+  },
+  requestId: 2,
+}
+`;
+
+exports[`studio with default schema.prisma filename can respond to \`delete\` queries 1`] = `
+Object {
+  action: clientRequest,
+  channel: -prisma,
+  payload: Object {
+    data: Object {
+      datetime: 1970-01-01T00:00:00.000Z,
+      float: 0,
+      id: 2,
+      int: 0,
+      relation: Object {
+        id: 2,
+        name: Relation Target 002,
+        waft_id: 2,
+      },
+      relation_list: Array [],
+      string: Delete me,
+    },
+    error: null,
+  },
+  requestId: 4,
+}
+`;
+
+exports[`studio with default schema.prisma filename can respond to \`findMany\` queries 1`] = `
+Object {
+  action: clientRequest,
+  channel: -prisma,
+  payload: Object {
+    data: Array [
+      Object {
+        datetime: 2020-08-03T00:00:00.000Z,
+        float: 3.14,
+        id: 1,
+        int: 42,
+        relation: Object {
+          id: 1,
+          name: Relation Target 001,
+          waft_id: 1,
+        },
+        relation_list: Array [],
+        string: Some string,
+      },
+      Object {
+        datetime: 1970-01-01T00:00:00.000Z,
+        float: 0,
+        id: 2,
+        int: 0,
+        relation: Object {
+          id: 2,
+          name: Relation Target 002,
+          waft_id: 2,
+        },
+        relation_list: Array [],
+        string: Delete me,
+      },
+    ],
+    error: null,
+  },
+  requestId: 1,
+}
+`;
+
+exports[`studio with default schema.prisma filename can respond to \`update\` queries 1`] = `
 Object {
   action: clientRequest,
   channel: -prisma,

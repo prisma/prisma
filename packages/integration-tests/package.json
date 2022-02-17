@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "main": "dist/index.js",
-  "module": "dist/esm/index.mjs",
+  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
@@ -16,33 +16,24 @@
     "@prisma/sdk": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "@types/jest": "27.4.0",
-    "@types/mssql": "6.0.8",
-    "@types/node": "12.20.39",
-    "@types/pg": "8.6.3",
+    "@types/mssql": "7.1.5",
+    "@types/node": "12.20.46",
+    "@types/pg": "8.6.4",
     "@types/sqlite3": "3.1.8",
-    "@typescript-eslint/eslint-plugin": "5.9.0",
-    "@typescript-eslint/parser": "5.9.0",
     "decimal.js": "10.3.1",
     "esbuild": "0.13.14",
-    "eslint": "8.6.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.3.4",
-    "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fs-jetpack": "4.3.0",
-    "jest": "27.4.6",
-    "lint-staged": "12.1.5",
+    "jest": "27.5.1",
     "mariadb": "2.5.5",
-    "mssql": "7.3.0",
+    "mssql": "8.0.1",
     "pg": "8.7.1",
-    "prettier": "2.5.1",
     "replace-string": "3.1.0",
     "sqlite-async": "1.1.2",
     "string-hash": "1.1.3",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
-    "ts-jest": "27.1.2",
+    "ts-jest": "27.1.3",
     "ts-node": "10.4.0",
     "typescript": "4.5.4",
     "verror": "1.10.1"
@@ -50,7 +41,6 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "test:integration": "jest integration --maxConcurrency=8 --verbose",
     "test:sqlite": "jest integration.sqlite --maxConcurrency=8 --verbose",
     "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
@@ -58,22 +48,12 @@
     "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
     "test:mssql": "jest integration.mssql --maxConcurrency=8 --verbose",
     "prepublishOnly": "pnpm run build",
-    "format": "prettier --write .",
-    "lint": "eslint --cache --fix --ext .ts .",
-    "lint-ci": "eslint --ext .ts .",
     "jest": "jest",
-    "test": "jest --maxConcurrency=8 --verbose",
-    "precommit": "lint-staged"
+    "test": "jest --maxConcurrency=8 --verbose"
   },
   "files": [
     "README.md",
     "dist"
   ],
-  "lint-staged": {
-    "*.ts": [
-      "eslint",
-      "prettier --write"
-    ]
-  },
   "sideEffects": false
 }

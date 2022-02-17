@@ -1,64 +1,142 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('count', async () => {
-  const PrismaClient = await getTestClient()
-  const prisma = new PrismaClient()
-  const result = await prisma.user.count()
-  expect.assertions(4)
-  expect(result).toMatchInlineSnapshot(`10`)
+let PrismaClient, prisma
 
-  const result2 = await prisma.user.count({
-    select: true,
+describe('count', () => {
+  beforeAll(async () => {
+    PrismaClient = await getTestClient()
   })
-  expect(result2).toMatchInlineSnapshot(`10`)
 
-  const result3 = await prisma.user.count({
-    select: {
-      _all: true,
-      email: true,
-      age: true,
-      name: true,
-    },
+  beforeEach(() => {
+    prisma = new PrismaClient()
   })
-  expect(result3).toMatchInlineSnapshot(`
-    Object {
-      _all: 10,
-      age: 10,
-      email: 10,
-      name: 10,
-    }
-  `)
-  try {
-    await prisma.user.count({
+
+  afterEach(() => {
+    prisma.$disconnect()
+  })
+
+  test('simple', async () => {
+    const value = await prisma.user.count()
+
+    expect(value).toMatchInlineSnapshot(`10`)
+  })
+
+  test('where', async () => {
+    const value = await prisma.user.count({
+      where: {
+        age: 84,
+      },
+    })
+
+    expect(value).toMatchInlineSnapshot(`1`)
+  })
+
+  test('select where', async () => {
+    const value = await prisma.user.count({
+      select: true,
+      where: {
+        age: 84,
+      },
+    })
+
+    expect(value).toMatchInlineSnapshot(`1`)
+  })
+
+  test('select mixed where', async () => {
+    const value = await prisma.user.count({
       select: {
         _all: true,
         email: true,
         age: true,
         name: true,
-        posts: true,
+      },
+      where: {
+        age: 84,
       },
     })
-  } catch (err) {
-    expect(err.message).toMatchInlineSnapshot(`
 
-      Invalid \`prisma.user.aggregate()\` invocation:
-
-      {
-        _count: {
-      ?   _all?: true,
-      ?   email?: true,
-      ?   age?: true,
-      ?   name?: true,
-          posts: true,
-          ~~~~~
-      ?   id?: true
-        }
+    expect(value).toMatchInlineSnapshot(`
+      Object {
+        _all: 1,
+        age: 1,
+        email: 1,
+        name: 1,
       }
-
-
-      Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
-
     `)
-  }
-  await prisma.$disconnect()
+  })
+
+  test('select all true', async () => {
+    const value = await prisma.user.count({
+      select: true, // count with a selection
+    })
+
+    expect(value).toMatchInlineSnapshot(`10`)
+  })
+
+  test('select all false', async () => {
+    const value = await prisma.user.count({
+      select: false, // count with no selection
+    })
+
+    expect(value).toMatchInlineSnapshot(`10`)
+  })
+
+  test('select mixed', async () => {
+    const value = await prisma.user.count({
+      select: {
+        _all: true,
+        email: true,
+        age: true,
+        name: true,
+      },
+    })
+
+    expect(value).toMatchInlineSnapshot(`
+      Object {
+        _all: 10,
+        age: 10,
+        email: 10,
+        name: 10,
+      }
+    `)
+  })
+
+  test('bad prop', async () => {
+    try {
+      await prisma.user.count({
+        select: {
+          _all: true,
+          email: true,
+          age: true,
+          name: true,
+          posts: true,
+        },
+      })
+    } catch (err) {
+      expect(err.message).toMatchInlineSnapshot(`
+
+                      Invalid \`prisma.user.count()\` invocation:
+
+                      {
+                        select: {
+                          _count: {
+                            select: {
+                      ?       _all?: true,
+                      ?       email?: true,
+                      ?       age?: true,
+                      ?       name?: true,
+                              posts: true,
+                              ~~~~~
+                      ?       id?: true
+                            }
+                          }
+                        }
+                      }
+
+
+                      Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
+
+                  `)
+    }
+  })
 })

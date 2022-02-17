@@ -1,11 +1,12 @@
 import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, getSchemaDir, HelpError, isError, isCi, dropDatabase, link } from '@prisma/sdk'
-import path from 'path'
+import { arg, dropDatabase, format, getSchemaDir, HelpError, isCi, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
+
 import { getDbInfo } from '../utils/ensureDatabaseExists'
+import { DbNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
-import { NoSchemaFoundError, DbNeedsForceError } from '../utils/errors'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
@@ -67,13 +68,9 @@ ${chalk.bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 

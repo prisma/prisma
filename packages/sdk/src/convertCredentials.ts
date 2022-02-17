@@ -1,7 +1,8 @@
-import type { DatabaseCredentials } from './types'
-import * as NodeURL from 'url'
 import type { ConnectorType } from '@prisma/generator-helper'
 import path from 'path'
+import * as NodeURL from 'url'
+
+import type { DatabaseCredentials } from './types'
 
 // opposite of uriToCredentials
 // only used for internal tests
@@ -164,6 +165,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
 function databaseTypeToProtocol(databaseType: ConnectorType): string {
   switch (databaseType) {
     case 'postgresql':
+    case 'cockroachdb':
       return 'postgresql:'
     case 'mysql':
       return 'mysql:'
@@ -173,6 +175,8 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
       return 'sqlite:'
     case 'sqlserver':
       return 'sqlserver:'
+    case 'jdbc:sqlserver':
+      return 'jdbc:sqlserver:'
   }
 }
 

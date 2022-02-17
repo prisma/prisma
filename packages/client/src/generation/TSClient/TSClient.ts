@@ -1,14 +1,22 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getEnvPaths, getClientEngineType } from '@prisma/sdk'
+import { getClientEngineType, getEnvPaths } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
-import { DMMFClass } from '../../runtime/dmmf'
+
+import { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { buildDirname } from '../utils/buildDirname'
+import { buildDMMF } from '../utils/buildDMMF'
+import { buildInlineDatasource } from '../utils/buildInlineDatasources'
+import { buildInlineEnv } from '../utils/buildInlineEnv'
+import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
+import { buildRequirePath } from '../utils/buildRequirePath'
+import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
@@ -18,13 +26,6 @@ import { escapeJson, ExportCollector } from './helpers'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
-import { buildDirname } from '../utils/buildDirname'
-import { buildRequirePath } from '../utils/buildRequirePath'
-import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import { buildInlineSchema } from '../utils/buildInlineSchema'
-import { buildInlineEnv } from '../utils/buildInlineEnv'
-import { buildDMMF } from '../utils/buildDMMF'
-import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 
 export interface TSClientOptions {
   projectRoot: string
@@ -44,11 +45,11 @@ export interface TSClientOptions {
 }
 
 export class TSClient implements Generatable {
-  protected readonly dmmf: DMMFClass
+  protected readonly dmmf: DMMFHelper
   protected readonly dmmfString: string
   constructor(protected readonly options: TSClientOptions) {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
-    this.dmmf = new DMMFClass(klona(options.document))
+    this.dmmf = new DMMFHelper(klona(options.document))
   }
 
   public async toJS(): Promise<string> {

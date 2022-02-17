@@ -2,6 +2,7 @@ import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('missing-engine: binary', async () => {
@@ -41,10 +42,10 @@ test('missing-engine: binary', async () => {
           Invalid \`prisma.user.findMany()\` invocation in
           /client/src/__tests__/integration/errors/missing-engine/binary.test.ts:0:0
 
-            35 })
-            36 
-            37 await expect(async () => {
-          → 38   await prisma.user.findMany(
+            36 })
+            37 
+            38 await expect(async () => {
+          → 39   await prisma.user.findMany(
             Query engine binary for current platform "TEST_PLATFORM" could not be found.
           This probably happens, because you built Prisma Client on a different platform.
           (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")

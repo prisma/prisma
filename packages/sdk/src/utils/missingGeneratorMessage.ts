@@ -1,6 +1,7 @@
 import chalk from 'chalk'
+
 import { highlightDatamodel } from '../highlight/highlight'
-import { link } from '../link'
+import { link } from './link'
 
 export const missingGeneratorMessage = `\n${chalk.blue(
   'info',
@@ -37,7 +38,7 @@ You can define a model like this:
 
 ${chalk.bold(
   highlightDatamodel(`model User {
-  id    String  @id @default(dbgenerated()) @map("_id") @db.ObjectId
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId
   email String  @unique
   name  String?
 }`),

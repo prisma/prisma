@@ -4,7 +4,7 @@ import arg from 'arg'
 import topo from 'batching-toposort'
 import chalk from 'chalk'
 import execa from 'execa'
-import { promises as fs, existsSync } from 'fs'
+import { existsSync, promises as fs } from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'
 import pMap from 'p-map'
@@ -14,6 +14,7 @@ import path from 'path'
 import redis from 'redis'
 import semver from 'semver'
 import { promisify } from 'util'
+
 import { unique } from './unique'
 
 export type Commit = {

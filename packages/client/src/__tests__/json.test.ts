@@ -1,5 +1,6 @@
-import { getDMMF } from '../generation/getDMMF'
 import chalk from 'chalk'
+
+import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)

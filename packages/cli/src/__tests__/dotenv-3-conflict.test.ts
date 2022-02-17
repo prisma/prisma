@@ -1,13 +1,13 @@
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('should throw error', async () => {
   ctx.fixture('dotenv-3-conflict')
   expect.assertions(1)
 
   await expect(
-    ctx.cli('version').catch((e) => {
+    ctx.cli('validate').catch((e) => {
       const message = e.message.split('\n').slice(1).join('\n')
       throw new Error(message)
     }),

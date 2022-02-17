@@ -6,6 +6,7 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
+
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -108,21 +109,25 @@ export class LibraryEngine extends Engine {
   async transaction(action: any, arg?: any) {
     await this.start()
 
+    let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      const result = await this.engine?.startTransaction(jsonOptions, '{}')
-      return this.parseEngineResponse<Tx.Info>(result)
+      result = await this.engine?.startTransaction(jsonOptions, '{}')
     } else if (action === 'commit') {
-      await this.engine?.commitTransaction(arg.id, '{}')
+      result = await this.engine?.commitTransaction(arg.id, '{}')
     } else if (action === 'rollback') {
-      await this.engine?.rollbackTransaction(arg.id, '{}')
+      result = await this.engine?.rollbackTransaction(arg.id, '{}')
     }
 
-    return undefined
+    const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
+
+    if (response.error_code) throw response
+
+    return response as Tx.Info | undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -243,10 +248,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {
       this.logEmitter.emit('query', {
-        timestamp: Date.now(),
+        timestamp: new Date(),
         query: event.query,
         params: event.params,
-        duration: event.duration_ms,
+        duration: Number(event.duration_ms),
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {
@@ -258,7 +263,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       )
       this.logEmitter.emit('error', this.loggerRustPanic)
     } else {
-      this.logEmitter.emit(event.level, event)
+      this.logEmitter.emit(event.level, {
+        timestamp: new Date(),
+        message: event.message,
+        target: event.module_path,
+      })
     }
   }
 
@@ -393,8 +402,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
+    const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(request)
-    const headerStr = JSON.stringify(headers)
 
     try {
       await this.start()
@@ -441,11 +450,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    this.executingQueryPromise = this.engine!.query(
-      this.lastQuery,
-      JSON.stringify(headers), // TODO these aren't headers on the engine side
-      headers.transactionId,
-    )
+    this.executingQueryPromise = this.engine!.query(this.lastQuery, JSON.stringify(headers), headers.transactionId)
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 

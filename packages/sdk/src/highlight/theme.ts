@@ -1,5 +1,6 @@
-import type { Theme } from './types'
 import chalk from 'chalk'
+
+import type { Theme } from './types'
 
 // https://www.wnycstudios.org/story/211119-colors
 export const gamboge = chalk.rgb(228, 155, 15)

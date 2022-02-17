@@ -1,9 +1,10 @@
 import chalk from 'chalk'
+import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
+
+import type { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
-import Decimal from 'decimal.js'
-import type { DMMFClass } from '../dmmf'
 
 export interface Dictionary<T> {
   [key: string]: T
@@ -65,7 +66,7 @@ export const needNamespace = {
   Decimal: 'Decimal',
 }
 
-export function needsNamespace(fieldType: DMMF.Field['type'], dmmf: DMMFClass): boolean {
+export function needsNamespace(fieldType: DMMF.SchemaField['outputType']['type'], dmmf: DMMFHelper): boolean {
   if (typeof fieldType === 'string') {
     if (dmmf.datamodelEnumMap[fieldType]) {
       return false

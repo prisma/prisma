@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`migrate diff sqlite should diff --from-empty --to-url=file:dev.db --script 2`] = `
+-- CreateTable
+CREATE TABLE "Post" (
+    "authorId" INTEGER NOT NULL,
+    "content" TEXT,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "published" BOOLEAN NOT NULL DEFAULT false,
+    "title" TEXT NOT NULL,
+    FOREIGN KEY ("authorId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "Profile" (
+    "bio" TEXT,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "userId" INTEGER NOT NULL,
+    FOREIGN KEY ("userId") REFERENCES "User" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- CreateTable
+CREATE TABLE "User" (
+    "email" TEXT NOT NULL,
+    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT
+);
+
+-- CreateTable
+CREATE TABLE "_Migration" (
+    "revision" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "name" TEXT NOT NULL,
+    "datamodel" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "applied" INTEGER NOT NULL,
+    "rolled_back" INTEGER NOT NULL,
+    "datamodel_steps" TEXT NOT NULL,
+    "database_migration" TEXT NOT NULL,
+    "errors" TEXT NOT NULL,
+    "started_at" DATETIME NOT NULL,
+    "finished_at" DATETIME
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User.email" ON "User"("email");
+`;

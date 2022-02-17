@@ -1,5 +1,6 @@
-import { getGithubIssueUrl } from '../utils/getGithubIssueUrl'
 import stripAnsi from 'strip-ansi'
+
+import { getGithubIssueUrl } from '../utils/getGithubIssueUrl'
 
 describe('getErrorMessageWithLink', () => {
   test('basic serialization', () => {
@@ -8,8 +9,6 @@ describe('getErrorMessageWithLink', () => {
       body: 'This is a body',
     })
 
-    expect(stripAnsi(message)).toMatchInlineSnapshot(
-      `https://github.com/prisma/prisma/issues/new?body=This+is+a+body&title=This+is+a+title&template=bug_report.md`,
-    )
+    expect(stripAnsi(message)).toMatchInlineSnapshot(`TEST_GITHUB_LINK`)
   })
 })

@@ -2,7 +2,8 @@ import chalk from 'chalk'
 import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
-import type { /*dmmf, */ DMMFClass } from './dmmf'
+
+import type { /*dmmf, */ DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import type {
   ArgError,
@@ -434,7 +435,6 @@ ${errorMessages}${missingArgsLegend}\n`
     const newPath: Array<string | number> = []
     let key: undefined | string | number
     let pointer = select
-    // tslint:disable-next-line:no-conditional-assignment
     while ((key = path.shift()) !== undefined) {
       if (!Array.isArray(pointer) && key === 0) {
         continue
@@ -768,7 +768,7 @@ ${indent(value.toString(), 2)}
 export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[] | null
 
 export interface DocumentInput {
-  dmmf: DMMFClass
+  dmmf: DMMFHelper
   rootTypeName: 'query' | 'mutation'
   rootField: string
   select?: any
@@ -799,7 +799,7 @@ export function transformDocument(document: Document): Document {
 }
 
 export function selectionToFields(
-  dmmf: DMMFClass,
+  dmmf: DMMFHelper,
   selection: any,
   schemaField: DMMF.SchemaField,
   path: string[],
@@ -836,6 +836,7 @@ export function selectionToFields(
       field.outputType.location === 'scalar' &&
       field.name !== 'executeRaw' &&
       field.name !== 'queryRaw' &&
+      field.name !== 'runCommandRaw' &&
       outputType.name !== 'Query' &&
       !name.startsWith('aggregate') &&
       field.name !== 'count' // TODO: Find a cleaner solution

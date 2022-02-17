@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import * as stackTraceParser from 'stacktrace-parser'
+
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'
 
@@ -83,7 +84,8 @@ function parseStack({
       !t.file.includes('getPrismaClient') &&
       !t.file.startsWith('internal/') && // We don't want internal nodejs files
       !t.methodName.includes('new ') &&
-      !t.methodName.includes('_getCallsite') &&
+      !t.methodName.includes('getCallSite') &&
+      !t.methodName.includes('Proxy.') &&
       t.methodName.split('.').length < 4
     )
   })

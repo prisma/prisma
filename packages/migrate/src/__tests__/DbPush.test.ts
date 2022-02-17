@@ -1,14 +1,14 @@
-process.env.GITHUB_ACTIONS = '1'
-process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import prompt from 'prompts'
+
 import { DbPush } from '../commands/DbPush'
-import { consoleContext, Context } from './__helpers__/context'
+
+process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 // TODO: Windows: a lot of snapshot tests here fail on Windows because of emoji.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describeIf(process.platform !== 'win32')('push', () => {
   it('--preview-feature flag is not required anymore', async () => {
@@ -94,6 +94,8 @@ describeIf(process.platform !== 'win32')('push', () => {
 
   it('should ask for --accept-data-loss if not provided in CI', async () => {
     ctx.fixture('existing-db-warnings')
+    process.env.GITHUB_ACTIONS = '1'
+
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --accept-data-loss flag to ignore the data loss warnings like prisma db push --accept-data-loss`,
@@ -239,6 +241,8 @@ describeIf(process.platform !== 'win32')('push', () => {
 
   it('unexecutable - should ask for --force-reset in CI', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
+    process.env.GITHUB_ACTIONS = '1'
+
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 

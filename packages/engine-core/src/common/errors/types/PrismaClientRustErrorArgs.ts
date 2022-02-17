@@ -1,4 +1,4 @@
-import type { RustLog, RustError } from '../utils/log'
+import type { RustError, RustLog } from '../utils/log'
 
 export type PrismaClientRustErrorArgs = {
   clientVersion: string

@@ -10,9 +10,9 @@ import chalk from 'chalk'
 import fs from 'fs'
 import pMap from 'p-map'
 import path from 'path'
+
 import { getConfig, getDMMF } from '..'
 import { Generator } from '../Generator'
-import { pick } from '../pick'
 import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
 import { predefinedGeneratorResolvers } from '../predefinedGeneratorResolvers'
 import { resolveOutput } from '../resolveOutput'
@@ -21,11 +21,12 @@ import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
+import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
-import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
-import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
+import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
+import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
 
 const debug = Debug('prisma:getGenerators')
 
@@ -464,25 +465,25 @@ Possible binaryTargets: ${chalk.greenBright(knownBinaryTargets.join(', '))}`,
           )}.
 To fix it, use this generator config in your ${chalk.bold('schema.prisma')}:
 ${chalk.greenBright(
-      printGeneratorConfig({
-        ...generator,
-        binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
-      }),
-    )}
+  printGeneratorConfig({
+    ...generator,
+    binaryTargets: fixBinaryTargets(generator.binaryTargets, platform),
+  }),
+)}
 ${chalk.gray(
-      `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
+  `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
 Read more about deploying Prisma Client: ${chalk.underline(
-      'https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md',
-    )}`,
-    )}\n`)
+    'https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md',
+  )}`,
+)}\n`)
         } else {
           console.log(
             `${chalk.yellow('Warning')} The binaryTargets ${JSON.stringify(
               originalBinaryTargetsConfig,
             )} don't include your local platform ${platform}, which you can also point to with \`native\`.
 In case you want to fix this, you can provide ${chalk.greenBright(
-      `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
-    )} in the schema.prisma file.`,
+              `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
+            )} in the schema.prisma file.`,
           )
         }
       }

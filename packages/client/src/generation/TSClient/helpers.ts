@@ -1,4 +1,5 @@
 import pluralize from 'pluralize'
+
 import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getAggregateArgsName, getModelArgName, unique } from '../utils'
@@ -30,6 +31,9 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   if (actionName === 'aggregate') {
     return `<T extends ${getAggregateArgsName(name)}>`
   }
+  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+    return ''
+  }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     return `<T extends ${getModelArgName(
       name,
@@ -37,17 +41,21 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
     )},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
   }
   const modelArgName = getModelArgName(name, actionName)
+
   if (!modelArgName) {
     console.log({ name, actionName })
   }
   return `<T extends ${modelArgName}>`
 }
-export function getArgs(name: string, actionName: DMMF.ModelAction) {
+export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
   if (actionName === 'count') {
-    return `args?: Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'>`
+    return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include'>`
   }
   if (actionName === 'aggregate') {
-    return `args: Subset<T, ${getAggregateArgsName(name)}>`
+    return `args: Subset<T, ${getAggregateArgsName(modelName)}>`
+  }
+  if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
+    return `args?: ${getModelArgName(modelName, actionName)}`
   }
   return `args${
     actionName === DMMF.ModelAction.findMany ||
@@ -56,7 +64,7 @@ export function getArgs(name: string, actionName: DMMF.ModelAction) {
     actionName === DMMF.ModelAction.createMany
       ? '?'
       : ''
-  }: SelectSubset<T, ${getModelArgName(name, actionName)}>`
+  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}>`
 }
 export function wrapComment(str: string): string {
   return `/**\n${str

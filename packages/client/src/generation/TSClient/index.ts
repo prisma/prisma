@@ -1,6 +1,6 @@
 import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfilled in TypeScript
 
-export { MinimalArgsType, ArgsType } from './Args'
+export { ArgsType, MinimalArgsType } from './Args'
 export { Enum } from './Enum'
 export { JS, TS } from './Generatable'
 export { InputField, InputType } from './Input'

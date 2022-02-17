@@ -43,6 +43,7 @@ test('transaction', async () => {
       },
     }),
     db.user.findMany(),
+    db.user.count(),
     db.user.delete({ where: { email: 'test@hey.com' } }),
   ])
   expect(clean(result)).toMatchInlineSnapshot(`
@@ -71,6 +72,7 @@ test('transaction', async () => {
           name: null,
         },
       ],
+      2,
       Object {
         email: test@hey.com,
         id: REMOVED,

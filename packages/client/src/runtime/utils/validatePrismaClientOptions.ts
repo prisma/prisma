@@ -1,5 +1,6 @@
 import { isError } from '@prisma/sdk'
 import leven from 'js-levenshtein'
+
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 import { PrismaClientConstructorValidationError } from '../query'
 
@@ -121,7 +122,7 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     if (!value) {
       return
     }
-    const knownKeys = ['debug', 'hooks', 'useUds', 'engine', 'measurePerformance']
+    const knownKeys = ['debug', 'hooks', 'engine', 'measurePerformance']
     if (typeof value !== 'object') {
       throw new PrismaClientConstructorValidationError(
         `Invalid value ${JSON.stringify(value)} for "__internal" to PrismaClient constructor`,

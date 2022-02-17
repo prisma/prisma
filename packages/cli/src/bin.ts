@@ -1,25 +1,64 @@
 #!/usr/bin/env ts-node
 
-// hides ExperimentalWarning: The fs.promises API is experimental
-process.env.NODE_NO_WARNINGS = '1'
-
+import Debug from '@prisma/debug'
+import { enginesVersion } from '@prisma/engines'
+import {
+  DbCommand,
+  DbExecute,
+  DbPull,
+  DbPush,
+  // DbDrop,
+  DbSeed,
+  handlePanic,
+  MigrateCommand,
+  MigrateDeploy,
+  MigrateDev,
+  MigrateDiff,
+  MigrateReset,
+  MigrateResolve,
+  MigrateStatus,
+} from '@prisma/migrate'
 import {
   arg,
   getCLIPathHash,
+  getConfig,
   getProjectHash,
   getSchema,
-  getConfig,
-  tryLoadEnvs,
-  getEnvPaths,
+  HelpError,
+  isCurrentBinInstalledGlobally,
+  isError,
   parseEnvValue,
 } from '@prisma/sdk'
 import chalk from 'chalk'
+import * as checkpoint from 'checkpoint-client'
+import path from 'path'
+
+import { CLI } from './CLI'
+import { Dev } from './Dev'
+import { Doctor } from './Doctor'
+import { Format } from './Format'
+import { Generate } from './Generate'
+import { Init } from './Init'
+/*
+  When running bin.ts with ts-node with DEBUG="*"
+  This error shows and blocks the execution
+  Quick hack is to comment the Studio import and usage to use the CLI without building it...
+
+  prisma:cli Error: Cannot find module '@prisma/sdk'
+  prisma:cli Require stack:
+  prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
+*/
+import { Studio } from './Studio'
+import { Telemetry } from './Telemetry'
+import { detectPrisma1 } from './utils/detectPrisma1'
+import { printUpdateMessage } from './utils/printUpdateMessage'
+import { Validate } from './Validate'
+import { Version } from './Version'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
-const commandArray = process.argv.slice(2)
 
-import Debug from '@prisma/debug'
+const commandArray = process.argv.slice(2)
 
 process.removeAllListeners('warning')
 
@@ -53,56 +92,6 @@ const args = arg(
   true,
 )
 
-//
-// Read .env file only if next to schema.prisma
-//
-// if the CLI is called without any command like `prisma` we can ignore .env loading
-if (commandArray.length) {
-  try {
-    const envPaths = getEnvPaths(args['--schema'])
-    const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && envData.message && console.log(envData.message)
-  } catch (e) {
-    handleIndividualError(e)
-  }
-}
-
-/**
- * Dependencies
- */
-import * as checkpoint from 'checkpoint-client'
-import { isError, HelpError } from '@prisma/sdk'
-import {
-  MigrateCommand,
-  MigrateDev,
-  MigrateResolve,
-  MigrateStatus,
-  MigrateReset,
-  MigrateDeploy,
-  DbPush,
-  DbPull,
-  // DbDrop,
-  DbSeed,
-  DbCommand,
-  handlePanic,
-} from '@prisma/migrate'
-
-import { CLI } from './CLI'
-import { Init } from './Init'
-import { Dev } from './Dev'
-import { Version } from './Version'
-import { Generate } from './Generate'
-import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
-import { Validate } from './Validate'
-import { Format } from './Format'
-import { Doctor } from './Doctor'
-import { Studio } from './Studio'
-import { Telemetry } from './Telemetry'
-import { printUpdateMessage } from './utils/printUpdateMessage'
-import { enginesVersion } from '@prisma/engines'
-import path from 'path'
-import { detectPrisma1 } from './utils/detectPrisma1'
-
 // because chalk ...
 if (process.env.NO_COLOR) {
   chalk.level = 0
@@ -127,8 +116,10 @@ async function main(): Promise<number> {
         resolve: MigrateResolve.new(),
         reset: MigrateReset.new(),
         deploy: MigrateDeploy.new(),
+        diff: MigrateDiff.new(),
       }),
       db: DbCommand.new({
+        execute: DbExecute.new(),
         pull: DbPull.new(),
         push: DbPush.new(),
         // drop: DbDrop.new(),
@@ -138,7 +129,6 @@ async function main(): Promise<number> {
        * @deprecated since version 2.30.0, use `db pull` instead (renamed)
        */
       introspect: DbPull.new(),
-      dev: Dev.new(),
       studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
@@ -146,6 +136,8 @@ async function main(): Promise<number> {
       format: Format.new(),
       doctor: Doctor.new(),
       telemetry: Telemetry.new(),
+      // TODO remove Legacy
+      dev: Dev.new(),
     },
     [
       'version',
@@ -153,7 +145,6 @@ async function main(): Promise<number> {
       'migrate',
       'db',
       'introspect',
-      'dev',
       'studio',
       'generate',
       'validate',

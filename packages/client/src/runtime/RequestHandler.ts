@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
+
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -14,6 +15,7 @@ import { Args, unpack } from './query'
 import { printStack } from './utils/printStack'
 import type { RejectOnNotFound } from './utils/rejectOnNotFound'
 import { throwIfNotFound } from './utils/rejectOnNotFound'
+
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
@@ -52,10 +54,12 @@ export class RequestHandler {
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const queries = requests.map((r) => String(r.document))
-
-        return this.client._engine.requestBatch(queries, {
+        const headers = {
           transactionId: requests[0].transactionId,
-        })
+          traceparent: requests[0].headers?.traceparent,
+        }
+
+        return this.client._engine.requestBatch(queries, headers)
       },
       singleLoader: (request) => {
         const query = String(request.document)
