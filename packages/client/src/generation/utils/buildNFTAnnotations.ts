@@ -64,8 +64,7 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
  * @returns
  */
 function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
-  // TODO: is the "./" prefix necessary for the NFT annotation or can it be removed?
-  const relativeFilePath = path.join('.', relativeOutdir, fileName)
+  const relativeFilePath = path.join(relativeOutdir, fileName)
 
   return `
 path.join(__dirname, ${JSON.stringify(fileName)});
