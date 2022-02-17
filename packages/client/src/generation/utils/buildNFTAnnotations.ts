@@ -56,13 +56,6 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
 }
 
 /**
- * Replaces \ to /
- */
-export const fixPath = (path: string) => {
-  return path.replace(/\\/g, '/')
-}
-
-/**
  * Build tool annotations in order to make Vercel upload our files
  * The first annotation is general purpose, the second if for now-next.
  * @see https://github.com/vercel/vercel/tree/master/packages/now-next
@@ -71,9 +64,12 @@ export const fixPath = (path: string) => {
  * @returns
  */
 function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
+  // TODO: is the "./" prefix necessary for the NFT annotation or can it be removed?
+  const relativeFilePath = path.join('.', relativeOutdir, fileName)
+
   return `
-path.join(__dirname, '${fileName}');
-path.join(process.cwd(), './${fixPath(path.join(relativeOutdir, fileName))}')`
+path.join(__dirname, ${JSON.stringify(fileName)});
+path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
 }
 
 /**
