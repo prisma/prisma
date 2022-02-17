@@ -20,7 +20,7 @@ import path from 'path'
 
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
-import { printDatasources } from '../utils/printDatasources'
+import { ConnectorType, printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 
 export class DbPull implements Command {
@@ -57,7 +57,6 @@ Instead of saving the result to the filesystem, you can also print it to stdout
 
   private urlToDatasource(url: string): string {
     const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
-
     return printDatasources([
       {
         config: {},
@@ -141,16 +140,41 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     let schema: string | null = null
 
     // Makes sure we have a schema to pass to the engine
-    if (url && schemaPath) {
-      schema = this.urlToDatasource(url)
-      const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
-      schema += removeDatasource(rawSchema)
-    } else if (url) {
-      schema = this.urlToDatasource(url)
+    if (url) {
+      if (schemaPath) {
+        schema = this.urlToDatasource(url)
+        const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
+        schema += removeDatasource(rawSchema)
+      } else {
+        schema = this.urlToDatasource(url)
+      }
     } else if (schemaPath) {
       schema = fs.readFileSync(schemaPath, 'utf-8')
     } else {
       throw new Error('Could not find a `schema.prisma` file')
+    }
+
+    // Re-Introspection is not supported on MongoDB
+    if (schemaPath) {
+      const schema = await getSchema(args['--schema'])
+      const config = await getConfig({
+        datamodel: schema,
+        ignoreEnvVarErrors: true,
+      })
+
+      const modelRegex = /\s*model\s*(\w+)\s*{/
+      const modelMatch = modelRegex.exec(schema)
+      const isReintrospection = modelMatch
+
+      if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
+        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
+You can explicitely ignore and override your current local schema file with ${chalk.green(
+          getCommandWithExecutor('prisma db pull --force'),
+        )}
+Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
+          'https://github.com/prisma/prisma/issues/9585',
+        )} for more info.`)
+      }
     }
 
     const engine = new IntrospectionEngine({
@@ -240,28 +264,6 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
-      if (schemaPath) {
-        const schema = await getSchema(args['--schema'])
-        const config = await getConfig({
-          datamodel: schema,
-          ignoreEnvVarErrors: true,
-        })
-
-        const modelRegex = /\s*model\s*(\w+)\s*{/
-        const modelMatch = modelRegex.exec(schema)
-        const isReintrospection = modelMatch
-
-        if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
-          engine.stop()
-          throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
-You can explicitely ignore and override your current local schema file with ${chalk.green(
-            getCommandWithExecutor('prisma db pull --force'),
-          )}
-Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
-            'https://github.com/prisma/prisma/issues/9585',
-          )} for more info.`)
-        }
-      }
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 
