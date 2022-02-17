@@ -266,6 +266,19 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       fs.writeFileSync(schemaPath, introspectionSchema)
 
       const modelsCount = (introspectionSchema.match(/^model\s+/gm) || []).length
+      const modelsCountMessage = `${modelsCount} ${modelsCount > 1 ? 'models' : 'model'}`
+      const typesCount = (introspectionSchema.match(/^type\s+/gm) || []).length
+      const typesCountMessage = `${typesCount} ${typesCount > 1 ? 'embedded documents' : 'embedded document'}`
+      let modelsAndTypesMessage: string
+      if (typesCount > 0) {
+        modelsAndTypesMessage = `${modelsCountMessage} and ${typesCountMessage}`
+      } else {
+        modelsAndTypesMessage = `${modelsCountMessage}`
+      }
+      const modelsAndTypesCountMessage =
+        modelsCount + typesCount > 1
+          ? `${modelsAndTypesMessage} and wrote them`
+          : `${modelsAndTypesMessage} and wrote it`
 
       const prisma1UpgradeMessageBox = prisma1UpgradeMessage
         ? '\n\n' +
@@ -279,11 +292,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
           })
         : ''
 
-      log(`\n✔ Introspected ${modelsCount} ${
-        modelsCount > 1 ? 'models and wrote them' : 'model and wrote it'
-      } into ${chalk.underline(path.relative(process.cwd(), schemaPath))} in ${chalk.bold(
-        formatms(Date.now() - before),
-      )}${prisma1UpgradeMessageBox}
+      log(`\n✔ Introspected ${modelsAndTypesCountMessage} into ${chalk.underline(
+        path.relative(process.cwd(), schemaPath),
+      )} in ${chalk.bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
 ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
