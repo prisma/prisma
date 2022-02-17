@@ -67,10 +67,10 @@
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.10.0-30.query-engine-composite-basic-api-cff09fd0cc6a45a1998662924833b15a4d7061a8",
-    "@prisma/fetch-engine": "3.10.0-30.query-engine-composite-basic-api-cff09fd0cc6a45a1998662924833b15a4d7061a8",
+    "@prisma/engines": "3.10.0-37.composite-dmmf-fixes-579f952e86c0907d71347dfab3228570783c5fdd",
+    "@prisma/fetch-engine": "3.10.0-37.composite-dmmf-fixes-579f952e86c0907d71347dfab3228570783c5fdd",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.10.0-30.query-engine-composite-basic-api-cff09fd0cc6a45a1998662924833b15a4d7061a8",
+    "@prisma/get-platform": "3.10.0-37.composite-dmmf-fixes-579f952e86c0907d71347dfab3228570783c5fdd",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
@@ -133,7 +133,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.10.0-30.query-engine-composite-basic-api-cff09fd0cc6a45a1998662924833b15a4d7061a8"
+    "@prisma/engines-version": "3.10.0-37.composite-dmmf-fixes-579f952e86c0907d71347dfab3228570783c5fdd"
   },
   "lint-staged": {
     "*.{md,yml,yaml,json}": "prettier --write",
