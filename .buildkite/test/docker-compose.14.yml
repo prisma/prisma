@@ -135,7 +135,7 @@ services:
       - '27017:27017'
 
   mongodb_migrate_seed:
-    build: ../../docker/mongo-seed
+    build: ../../docker/mongodb_migrate_seed
     depends_on:
       - mongodb_migrate
 
