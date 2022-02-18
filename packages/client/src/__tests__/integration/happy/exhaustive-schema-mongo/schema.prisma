@@ -44,8 +44,8 @@ model EmbedHolder {
   time          DateTime @default(now())
   text          String
   boolean       Boolean
-  embeds        Embed[]
-  embed         Embed
+  embedList     Embed[]
+  requiredEmbed Embed
   optionalEmbed Embed?
   User          User[]
 }
@@ -53,8 +53,8 @@ model EmbedHolder {
 type Embed {
   text               String
   boolean            Boolean
-  embedEmbeds        EmbedEmbed[]
-  embedEmbed         EmbedEmbed
+  embedEmbedList     EmbedEmbed[]
+  requiredEmbedEmbed EmbedEmbed
   optionalEmbedEmbed EmbedEmbed?
 }
 

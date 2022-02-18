@@ -1691,14 +1691,14 @@ export namespace Prisma {
   export type EmbedSelect = {
     text?: boolean
     boolean?: boolean
-    embedEmbeds?: boolean | EmbedEmbedArgs
-    embedEmbed?: boolean | EmbedEmbedArgs
+    embedEmbedList?: boolean | EmbedEmbedArgs
+    requiredEmbedEmbed?: boolean | EmbedEmbedArgs
     optionalEmbedEmbed?: boolean | EmbedEmbedArgs
   }
 
   export type EmbedInclude = {
-    embedEmbeds?: boolean | EmbedEmbedArgs
-    embedEmbed?: boolean | EmbedEmbedArgs
+    embedEmbedList?: boolean | EmbedEmbedArgs
+    requiredEmbedEmbed?: boolean | EmbedEmbedArgs
     optionalEmbedEmbed?: boolean | EmbedEmbedArgs
   }
 
@@ -1713,9 +1713,9 @@ export namespace Prisma {
     ?'include' extends U
     ? Embed  & {
     [P in TrueKeys<S['include']>]: 
-          P extends 'embedEmbeds'
+          P extends 'embedEmbedList'
         ? Array < EmbedEmbedGetPayload<S['include'][P]>>  :
-        P extends 'embedEmbed'
+        P extends 'requiredEmbedEmbed'
         ? EmbedEmbedGetPayload<S['include'][P]> :
         P extends 'optionalEmbedEmbed'
         ? EmbedEmbedGetPayload<S['include'][P]> | null : never
@@ -1724,9 +1724,9 @@ export namespace Prisma {
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof Embed ?Embed [P]
   : 
-          P extends 'embedEmbeds'
+          P extends 'embedEmbedList'
         ? Array < EmbedEmbedGetPayload<S['select'][P]>>  :
-        P extends 'embedEmbed'
+        P extends 'requiredEmbedEmbed'
         ? EmbedEmbedGetPayload<S['select'][P]> :
         P extends 'optionalEmbedEmbed'
         ? EmbedEmbedGetPayload<S['select'][P]> | null : never
@@ -1767,9 +1767,9 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    embedEmbeds<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, PrismaPromise<Array<EmbedEmbed>>, PrismaPromise<Array<EmbedEmbedGetPayload<T>>>>;
+    embedEmbedList<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, PrismaPromise<Array<EmbedEmbed>>, PrismaPromise<Array<EmbedEmbedGetPayload<T>>>>;
 
-    embedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
+    requiredEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
 
     optionalEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
 
@@ -4107,8 +4107,8 @@ export namespace Prisma {
 
 
   export type EmbedHolderSelect = {
-    embeds?: boolean | EmbedArgs
-    embed?: boolean | EmbedArgs
+    embedList?: boolean | EmbedArgs
+    requiredEmbed?: boolean | EmbedArgs
     optionalEmbed?: boolean | EmbedArgs
     id?: boolean
     time?: boolean
@@ -4119,8 +4119,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderInclude = {
-    embeds?: boolean | EmbedArgs
-    embed?: boolean | EmbedArgs
+    embedList?: boolean | EmbedArgs
+    requiredEmbed?: boolean | EmbedArgs
     optionalEmbed?: boolean | EmbedArgs
     User?: boolean | UserFindManyArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
@@ -4137,9 +4137,9 @@ export namespace Prisma {
     ?'include' extends U
     ? EmbedHolder  & {
     [P in TrueKeys<S['include']>]: 
-          P extends 'embeds'
+          P extends 'embedList'
         ? Array < EmbedGetPayload<S['include'][P]>>  :
-        P extends 'embed'
+        P extends 'requiredEmbed'
         ? EmbedGetPayload<S['include'][P]> :
         P extends 'optionalEmbed'
         ? EmbedGetPayload<S['include'][P]> | null :
@@ -4152,9 +4152,9 @@ export namespace Prisma {
     ? {
     [P in TrueKeys<S['select']>]: P extends keyof EmbedHolder ?EmbedHolder [P]
   : 
-          P extends 'embeds'
+          P extends 'embedList'
         ? Array < EmbedGetPayload<S['select'][P]>>  :
-        P extends 'embed'
+        P extends 'requiredEmbed'
         ? EmbedGetPayload<S['select'][P]> :
         P extends 'optionalEmbed'
         ? EmbedGetPayload<S['select'][P]> | null :
@@ -4528,9 +4528,9 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    embeds<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, PrismaPromise<Array<Embed>>, PrismaPromise<Array<EmbedGetPayload<T>>>>;
+    embedList<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, PrismaPromise<Array<Embed>>, PrismaPromise<Array<EmbedGetPayload<T>>>>;
 
-    embed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
+    requiredEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
 
     optionalEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
 
@@ -16969,8 +16969,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateInput = {
-    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
@@ -16980,8 +16980,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedCreateInput = {
-    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
@@ -16991,8 +16991,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUpdateInput = {
-    embeds?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
@@ -17001,8 +17001,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedUpdateInput = {
-    embeds?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
@@ -17011,8 +17011,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateManyInput = {
-    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
@@ -17021,8 +17021,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUpdateManyMutationInput = {
-    embeds?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
@@ -17030,8 +17030,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedUpdateManyInput = {
-    embeds?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
@@ -19240,8 +19240,8 @@ export namespace Prisma {
   export type EmbedCreateInput = {
     text: string
     boolean: boolean
-    embedEmbeds?: Enumerable<EmbedEmbedCreateInput>
-    embedEmbed: EmbedEmbedCreateInput
+    embedEmbedList?: Enumerable<EmbedEmbedCreateInput>
+    requiredEmbedEmbed: EmbedEmbedCreateInput
     optionalEmbedEmbed?: EmbedEmbedCreateInput | null
   }
 
@@ -19981,8 +19981,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateWithoutUserInput = {
-    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
@@ -19991,8 +19991,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedCreateWithoutUserInput = {
-    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
@@ -20039,8 +20039,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUpdateWithoutUserInput = {
-    embeds?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
@@ -20048,8 +20048,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedUpdateWithoutUserInput = {
-    embeds?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    embed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
@@ -20109,8 +20109,8 @@ export namespace Prisma {
   export type EmbedUpdateInput = {
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
-    embedEmbeds?: XOR<EmbedEmbedListUpdateEnvelopeInput, Enumerable<EmbedEmbedCreateInput>>
-    embedEmbed?: XOR<EmbedEmbedUpdateEnvelopeInput, EmbedEmbedCreateInput>
+    embedEmbedList?: XOR<EmbedEmbedListUpdateEnvelopeInput, Enumerable<EmbedEmbedCreateInput>>
+    requiredEmbedEmbed?: XOR<EmbedEmbedUpdateEnvelopeInput, EmbedEmbedCreateInput>
     optionalEmbedEmbed?: XOR<EmbedEmbedNullableUpdateEnvelopeInput, EmbedEmbedCreateInput> | null
   }
 
