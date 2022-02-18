@@ -16969,7 +16969,7 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateInput = {
-    embeds?: XOR<EmbedCreateEnvelopeInput, Enumerable<EmbedCreateInput>> | null
+    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
@@ -16980,7 +16980,7 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedCreateInput = {
-    embeds?: XOR<EmbedCreateEnvelopeInput, Enumerable<EmbedCreateInput>> | null
+    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
@@ -17011,7 +17011,7 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateManyInput = {
-    embeds?: XOR<EmbedCreateEnvelopeInput, Enumerable<EmbedCreateInput>> | null
+    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
@@ -19233,16 +19233,20 @@ export namespace Prisma {
     deleteMany?: Enumerable<PostScalarWhereInput>
   }
 
-  export type EmbedCreateEnvelopeInput = {
-    set?: Enumerable<EmbedCreateInput> | null
+  export type EmbedListCreateEnvelopeInput = {
+    set?: Enumerable<EmbedCreateInput>
   }
 
   export type EmbedCreateInput = {
     text: string
     boolean: boolean
-    embedEmbeds?: Enumerable<EmbedEmbedCreateInput> | null
+    embedEmbeds?: Enumerable<EmbedEmbedCreateInput>
     embedEmbed: EmbedEmbedCreateInput
     optionalEmbedEmbed?: EmbedEmbedCreateInput | null
+  }
+
+  export type EmbedCreateEnvelopeInput = {
+    set?: EmbedCreateInput
   }
 
   export type UserCreateNestedManyWithoutEmbedHolderInput = {
@@ -19260,7 +19264,7 @@ export namespace Prisma {
   }
 
   export type EmbedListUpdateEnvelopeInput = {
-    set?: Enumerable<EmbedCreateInput> | null
+    set?: Enumerable<EmbedCreateInput>
     push?: Enumerable<EmbedCreateInput>
   }
 
@@ -19977,7 +19981,7 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateWithoutUserInput = {
-    embeds?: XOR<EmbedCreateEnvelopeInput, Enumerable<EmbedCreateInput>> | null
+    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
@@ -19987,7 +19991,7 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUncheckedCreateWithoutUserInput = {
-    embeds?: XOR<EmbedCreateEnvelopeInput, Enumerable<EmbedCreateInput>> | null
+    embeds?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     embed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
@@ -20642,7 +20646,7 @@ export namespace Prisma {
   }
 
   export type EmbedEmbedListUpdateEnvelopeInput = {
-    set?: Enumerable<EmbedEmbedCreateInput> | null
+    set?: Enumerable<EmbedEmbedCreateInput>
     push?: Enumerable<EmbedEmbedCreateInput>
   }
 
