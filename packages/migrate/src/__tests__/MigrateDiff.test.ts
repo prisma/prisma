@@ -179,9 +179,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                [-] Removed tables
-                  - Blog
-            `)
+        [-] Removed tables
+          - Blog
+      `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
