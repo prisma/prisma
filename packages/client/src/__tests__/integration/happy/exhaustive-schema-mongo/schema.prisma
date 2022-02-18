@@ -35,33 +35,33 @@ model User {
   optionalBoolean Boolean?
   posts           Post[]
 
-  // embedHolder   EmbedHolder @relation(fields: [embedHolderId], references: [id])
-  // embedHolderId String
+  embedHolder   EmbedHolder @relation(fields: [embedHolderId], references: [id])
+  embedHolderId String
 }
 
-// model EmbedHolder {
-//   id            String   @id @default(auto()) @map("_id") @db.ObjectId
-//   time          DateTime @default(now())
-//   text          String
-//   boolean       Boolean
-//   embeds        Embed[]
-//   embed         Embed
-//   optionalEmbed Embed?
-//   User          User[]
-// }
+model EmbedHolder {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  time          DateTime @default(now())
+  text          String
+  boolean       Boolean
+  embeds        Embed[]
+  embed         Embed
+  optionalEmbed Embed?
+  User          User[]
+}
 
-// type Embed {
-//   text               String
-//   boolean            Boolean
-//   embedEmbeds        EmbedEmbed[]
-//   embedEmbed         EmbedEmbed
-//   optionalEmbedEmbed EmbedEmbed?
-// }
+type Embed {
+  text               String
+  boolean            Boolean
+  embedEmbeds        EmbedEmbed[]
+  embedEmbed         EmbedEmbed
+  optionalEmbedEmbed EmbedEmbed?
+}
 
-// type EmbedEmbed {
-//   text    String
-//   boolean Boolean
-// }
+type EmbedEmbed {
+  text    String
+  boolean Boolean
+}
 
 model M {
   id              String          @id @default(auto()) @map("_id") @db.ObjectId

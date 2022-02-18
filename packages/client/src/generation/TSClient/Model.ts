@@ -281,13 +281,15 @@ ${indent(
 ${indent(
   outputType.fields
     .filter((f) => f.outputType.location === 'outputObjectTypes')
-    .map(
-      (f) =>
+    .map((f) => {
+      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
+      return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[model.name])}`
-          : ''),
-    )
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}`
+          : '')
+      )
+    })
     .join('\n'),
   TAB_SIZE,
 )}
@@ -306,13 +308,15 @@ ${this.dmmf.modelMap[model.name] ? this.getGroupByTypes() : ''}
 export type ${getSelectName(model.name)} = {
 ${indent(
   outputType.fields
-    .map(
-      (f) =>
+    .map((f) => {
+      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
+      return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[model.name])}`
-          : ''),
-    )
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}`
+          : '')
+      )
+    })
     .join('\n'),
   TAB_SIZE,
 )}
@@ -493,9 +497,9 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[model.name])} = {}>(args?: Subset<T, ${getFieldArgName(
+${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])} = {}>(args?: Subset<T, ${getFieldArgName(
         f,
-        !this.dmmf.typeMap[model.name],
+        !this.dmmf.typeMap[fieldTypeName],
       )}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
