@@ -48,6 +48,7 @@ export class IntrospectionError extends Error {
 // SQL https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
 // Mongo https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
 export type IntrospectionWarnings =
+  | IntrospectionWarningsUnhandled
   | IntrospectionWarningsInvalidReintro
   | IntrospectionWarningsMissingUnique
   | IntrospectionWarningsEmptyFieldName
@@ -69,6 +70,8 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsCustomPrimaryKeyNamesReintro
   | IntrospectionWarningsRelationsReintro
   | IntrospectionWarningsMongoMultipleTypes
+  | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
+  | IntrospectionWarningsMongoFieldsWithUnkownTypes
 
 type AffectedModel = { model: string }
 type AffectedModelAndIndex = { model: string; index_db_name: string }
@@ -78,11 +81,13 @@ type AffectedModelAndFieldAndType = {
   field: string
   tpe: string
 }
-type AffectedModelOrCompositeTypeAndFieldAndType = {
+type AffectedModelOrCompositeTypeAndField = {
   // Either compositeType or model is defined
   compositeType?: string
   model?: string
   field: string
+}
+type AffectedModelOrCompositeTypeAndFieldAndType = AffectedModelOrCompositeTypeAndField & {
   tpe: string
 }
 type AffectedEnum = { enm: string }
@@ -96,12 +101,17 @@ interface IntrospectionWarning {
     | AffectedModelAndIndex[]
     | AffectedModelAndField[]
     | AffectedModelAndFieldAndType[]
+    | AffectedModelOrCompositeTypeAndField[]
     | AffectedModelOrCompositeTypeAndFieldAndType[]
     | AffectedEnum[]
     | AffectedEnumAndValue[]
     | null
 }
 
+interface IntrospectionWarningsUnhandled extends IntrospectionWarning {
+  code: -1 // -1 doesn't exist, it's just for the types
+  affected: any
+}
 interface IntrospectionWarningsInvalidReintro extends IntrospectionWarning {
   code: 0
   affected: null
@@ -188,6 +198,14 @@ interface IntrospectionWarningsRelationsReintro extends IntrospectionWarning {
 interface IntrospectionWarningsMongoMultipleTypes extends IntrospectionWarning {
   code: 101
   affected: AffectedModelOrCompositeTypeAndFieldAndType[]
+}
+interface IntrospectionWarningsMongoFieldsPointingToAnEmptyType extends IntrospectionWarning {
+  code: 102
+  affected: AffectedModelOrCompositeTypeAndField[]
+}
+interface IntrospectionWarningsMongoFieldsWithUnkownTypes extends IntrospectionWarning {
+  code: 103
+  affected: AffectedModelOrCompositeTypeAndField[]
 }
 
 export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
