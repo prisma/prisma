@@ -280,7 +280,10 @@ ${indent(
       ? `\nexport type ${getIncludeName(model.name)} = {
 ${indent(
   outputType.fields
-    .filter((f) => f.outputType.location === 'outputObjectTypes')
+    .filter((f) => {
+      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
+      return f.outputType.location === 'outputObjectTypes' && !this.dmmf.typeMap[fieldTypeName]
+    })
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return (
@@ -301,9 +304,9 @@ ${indent(
  * Model ${model.name}
  */
 
-${this.dmmf.modelMap[model.name] ? this.getAggregationTypes() : ''}
+${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 
-${this.dmmf.modelMap[model.name] ? this.getGroupByTypes() : ''}
+${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
 export type ${getSelectName(model.name)} = {
 ${indent(
