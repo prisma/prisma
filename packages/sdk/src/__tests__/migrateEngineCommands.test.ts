@@ -166,7 +166,7 @@ describe('createDatabase', () => {
 
   test('invalid database type', async () => {
     await expect(createDatabase('invalid:somedburl')).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Unknown database type invalid:"`,
+      `"Unknown protocol invalid:"`,
     )
   })
 
