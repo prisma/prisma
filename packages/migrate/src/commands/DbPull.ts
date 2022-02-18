@@ -44,7 +44,7 @@ ${chalk.bold('Flags')}
 ${chalk.bold('Options')}
 
                 --schema   Custom path to your Prisma schema
-  --composite-type-depth   Specify the depth for introspecting composite types (e.g. MongoDB)
+  --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
 
 ${chalk.bold('Examples')}
