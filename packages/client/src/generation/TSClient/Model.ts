@@ -260,8 +260,8 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     return `${buildComment(docs)}export type ${model.name} = {
 ${indent(
   model.fields
-    .filter((f) => f.kind !== 'object' && f.kind !== 'unsupported')
-    .map((field) => new ModelOutputField(this.dmmf, field, true).toTS())
+    .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
+    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
     .join('\n'),
   TAB_SIZE,
 )}

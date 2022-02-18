@@ -327,6 +327,9 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
 export type Embed = {
   text: string
   boolean: boolean
+  embedEmbedList: EmbedEmbed[]
+  requiredEmbedEmbed: EmbedEmbed
+  optionalEmbedEmbed: EmbedEmbed | null
 }
 
 /**
@@ -378,6 +381,9 @@ export type User = {
  * 
  */
 export type EmbedHolder = {
+  embedList: Embed[]
+  requiredEmbed: Embed
+  optionalEmbed: Embed | null
   id: string
   time: Date
   text: string
@@ -1697,9 +1703,7 @@ export namespace Prisma {
   }
 
   export type EmbedInclude = {
-    embedEmbedList?: boolean | EmbedEmbedArgs
-    requiredEmbedEmbed?: boolean | EmbedEmbedArgs
-    optionalEmbedEmbed?: boolean | EmbedEmbedArgs
+
   }
 
   export type EmbedGetPayload<
@@ -4119,9 +4123,6 @@ export namespace Prisma {
   }
 
   export type EmbedHolderInclude = {
-    embedList?: boolean | EmbedArgs
-    requiredEmbed?: boolean | EmbedArgs
-    optionalEmbed?: boolean | EmbedArgs
     User?: boolean | UserFindManyArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   }
