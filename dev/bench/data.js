@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645201683011,
+  "lastUpdate": 1645203155941,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -85050,6 +85050,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "andy.john.richardson@gmail.com",
+            "name": "Andy Richardson",
+            "username": "andyrichardson"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "eeb3e6da39234aee8cf65ad8039de9007ee80366",
+          "message": "fix: Remove upcasting with default generic values on clients (#10157)\n\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-02-18T17:47:54+01:00",
+          "tree_id": "7a4ba10deb3ed6a832648fe01a3ad0c366c1ccd7",
+          "url": "https://github.com/prisma/prisma/commit/eeb3e6da39234aee8cf65ad8039de9007ee80366"
+        },
+        "date": 1645203151114,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.49,
+            "range": "±5.97%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.1,
+            "range": "±9.02%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
