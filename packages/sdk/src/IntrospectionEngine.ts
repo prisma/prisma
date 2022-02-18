@@ -241,7 +241,7 @@ export class IntrospectionEngine {
   public introspect(
     schema: string,
     force?: Boolean,
-    compositeTypeDepth?: number, // optional, only for mongodb
+    compositeTypeDepth = -1, // optional, only for mongodb
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]

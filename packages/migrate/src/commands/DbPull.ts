@@ -33,14 +33,19 @@ Pull the state from the database to the Prisma schema using introspection
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db pull [options]
+  ${chalk.dim('$')} prisma db pull [flags/options]
+
+${chalk.bold('Flags')}
+
+              -h, --help   Display this help message
+                 --force   Ignore current Prisma schema file
+                 --print   Print the introspected Prisma schema to stdout
 
 ${chalk.bold('Options')}
 
-  -h, --help   Display this help message
-    --schema   Custom path to your Prisma schema
-     --force   Ignore current Prisma schema file
-     --print   Print the introspected Prisma schema to stdout
+                --schema   Custom path to your Prisma schema
+  --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
+                           Number, default is -1 for infinite depth, 0 = off
 
 ${chalk.bold('Examples')}
 
@@ -52,6 +57,12 @@ Or specify a Prisma schema path
 
 Instead of saving the result to the filesystem, you can also print it to stdout
   ${chalk.dim('$')} prisma db pull --print
+
+Overwrite the current schema with the introspected schema instead of enriching it
+  ${chalk.dim('$')} prisma db pull --force
+
+Set composite types introspection depth to 2 levels
+  ${chalk.dim('$')} prisma db pull --composite-type-depth=2
 
 `)
 
