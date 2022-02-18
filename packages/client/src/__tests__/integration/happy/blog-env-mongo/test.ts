@@ -6,14 +6,12 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   let prisma: PrismaClient // Generated Client instance
-  let PrismaHelpers: any = null
   const requests: any[] = []
 
   beforeAll(async () => {
     await generateTestClient()
-    const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
+    const { PrismaClient } = require('./node_modules/@prisma/client')
 
-    PrismaHelpers = Prisma
     prisma = new PrismaClient({
       errorFormat: 'colorless',
       __internal: {
@@ -108,10 +106,12 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       data: {
         published: false,
         title: 'Some title',
+        ids: ['620e79238fb8973a4a738664', '620e792a4927392287834903'],
       },
     })
 
     expect(post).not.toBeUndefined()
+    expect(post.ids).toHaveLength(2)
   })
 
   test('can run delete queries', async () => {
@@ -154,23 +154,88 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
       data: {
         title: 'Updated title',
+        ids: ['620e79866f46aba24d751441'],
       },
       select: {
         authorId: true,
         content: true,
         published: true,
         title: true,
+        ids: true,
       },
     })
 
     expect(updatedPost).toMatchInlineSnapshot(`
-          Object {
-            authorId: null,
-            content: null,
-            published: false,
-            title: Updated title,
-          }
-      `)
+      Object {
+        authorId: null,
+        content: null,
+        ids: Array [
+          620e79866f46aba24d751441,
+        ],
+        published: false,
+        title: Updated title,
+      }
+    `)
+  })
+
+  test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+    const post = prisma.post.create({
+      data: {
+        id: 'something invalid 1111', // first
+        published: false,
+        title: 'Some title',
+        ids: ['something invalid 2222'], // second
+      },
+    })
+
+    // Message doesn't distinguish if one or more values failed / which one failed
+    // seems it errors on the first one
+    // https://github.com/prisma/prisma/issues/11885
+    await expect(post).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma.post.create()\` invocation in
+            /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
+
+              179 })
+              180 
+              181 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+            → 182   const post = prisma.post.create(
+              Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111".
+          `)
+  })
+
+  test('should throw Malformed ObjectID error for: _id', async () => {
+    const post = prisma.post.create({
+      data: {
+        published: false,
+        title: 'Some title',
+        ids: ['something invalid'],
+      },
+    })
+
+    await expect(post).rejects.toThrowError(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      expect.objectContaining({
+        message: expect.stringContaining('Malformed ObjectID'),
+      }),
+    )
+  })
+
+  test('should throw Malformed ObjectID error for: ids String[] @db.ObjectId', async () => {
+    const post = prisma.post.create({
+      data: {
+        id: 'something invalid',
+        published: false,
+        title: 'Some title',
+      },
+    })
+
+    await expect(post).rejects.toThrowError(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      expect.objectContaining({
+        message: expect.stringContaining('Malformed ObjectID'),
+      }),
+    )
   })
 
   describe('findRaw', () => {
