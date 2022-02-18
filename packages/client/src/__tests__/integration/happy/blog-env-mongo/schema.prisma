@@ -26,6 +26,7 @@ model Post {
   author    User?     @relation(fields: [authorId], references: [id])
   jsonData  Json?
   coinflips Boolean[]
+  ids       String[]  @db.ObjectId
 }
 
 enum Role {
