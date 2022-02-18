@@ -551,7 +551,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('introspection --force', async () => {
+  test('introspection --force (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     await introspect.parse(['--force'])
@@ -576,7 +576,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('introspection --print', async () => {
+  test('introspection --print (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     await introspect.parse(['--schema=./prisma/no-model.prisma', '--print'])
@@ -594,7 +594,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
             `)
   })
 
-  test('introspection --print --composite-type-depth=0', async () => {
+  test('introspection --print --composite-type-depth=0 (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     await introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'])
@@ -610,7 +610,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
                         `)
   })
 
-  test('introspection --print --composite-type-depth=1', async () => {
+  test('introspection --print --composite-type-depth=1 (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     await introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'])
@@ -627,7 +627,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
                         `)
   })
 
-  test('introspection --force --composite-type-depth=-1', async () => {
+  test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     await introspect.parse(['--force', '--composite-type-depth=-1'])
@@ -652,7 +652,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('introspection --print --composite-type-depth=-1', async () => {
+  test('introspection --print --composite-type-depth=-1 (no existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     await introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'])
@@ -710,7 +710,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('re-introspection should error (not supported)', async () => {
+  test('re-introspection should error (not supported) (existing models)', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
     const result = introspect.parse([])
