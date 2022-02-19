@@ -2,12 +2,12 @@ import { getTestClient } from '../../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-const id = '4aaaaaaaaaaaaaaaaaaaaaaa'
+const id = '9aaaaaaaaaaaaaaaaaaaaaaa'
 
 /**
- * Test create operations on optional composite fields
+ * Test createMany operations on optional composite fields
  */
-describe('create > optional', () => {
+describe('createMany > optional', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('..')
     prisma = new PrismaClient()
@@ -25,7 +25,7 @@ describe('create > optional', () => {
    * Simple set
    */
   test('set', async () => {
-    const comment = await prisma.commentOptionalProp.create({
+    const comment = await prisma.commentOptionalProp.createMany({
       data: {
         id,
         country: 'France',
@@ -43,17 +43,7 @@ describe('create > optional', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })
@@ -62,7 +52,7 @@ describe('create > optional', () => {
    * Set shorthand
    */
   test('set shorthand', async () => {
-    const comment = await prisma.commentOptionalProp.create({
+    const comment = await prisma.commentOptionalProp.createMany({
       data: {
         id,
         country: 'France',
@@ -78,17 +68,7 @@ describe('create > optional', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })
@@ -97,7 +77,7 @@ describe('create > optional', () => {
    * Set null
    */
   test('set null', async () => {
-    const comment = await prisma.commentOptionalProp.create({
+    const comment = await prisma.commentOptionalProp.createMany({
       data: {
         id,
         country: 'France',
@@ -109,9 +89,7 @@ describe('create > optional', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: null,
-        country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })
@@ -120,7 +98,7 @@ describe('create > optional', () => {
    * Set null shorthand
    */
   test('set null shorthand', async () => {
-    const comment = await prisma.commentOptionalProp.create({
+    const comment = await prisma.commentOptionalProp.createMany({
       data: {
         id,
         country: 'France',
@@ -130,9 +108,7 @@ describe('create > optional', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: null,
-        country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })
@@ -141,7 +117,7 @@ describe('create > optional', () => {
    * Set nested list
    */
   test('set nested list', async () => {
-    const comment = await prisma.commentOptionalProp.create({
+    const comment = await prisma.commentOptionalProp.createMany({
       data: {
         id,
         country: 'France',
@@ -159,21 +135,7 @@ describe('create > optional', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-            Object {
-              userId: 11,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })

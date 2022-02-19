@@ -1,15 +1,15 @@
-import { getTestClient } from '../../../../../utils/getTestClient'
+import { getTestClient } from '../../../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-const id = '4aaaaaaaaaaaaaaaaaaaaaaa'
+const id = '2bbbbbbbbbbbbbbbbbbbbbbb'
 
 /**
- * Test create operations on optional composite fields
+ * Test upsert create operations on optional composite fields
  */
-describe('create > optional', () => {
+describe('upsert > optional > create', () => {
   beforeAll(async () => {
-    PrismaClient = await getTestClient('..')
+    PrismaClient = await getTestClient('../../')
     prisma = new PrismaClient()
   })
 
@@ -25,8 +25,10 @@ describe('create > optional', () => {
    * Simple set
    */
   test('set', async () => {
-    const comment = await prisma.commentOptionalProp.create({
-      data: {
+    const comment = await prisma.commentOptionalProp.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         content: {
@@ -53,7 +55,7 @@ describe('create > optional', () => {
           ],
         },
         country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        id: 2bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })
@@ -62,8 +64,10 @@ describe('create > optional', () => {
    * Set shorthand
    */
   test('set shorthand', async () => {
-    const comment = await prisma.commentOptionalProp.create({
-      data: {
+    const comment = await prisma.commentOptionalProp.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         content: {
@@ -88,7 +92,7 @@ describe('create > optional', () => {
           ],
         },
         country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        id: 2bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })
@@ -97,8 +101,10 @@ describe('create > optional', () => {
    * Set null
    */
   test('set null', async () => {
-    const comment = await prisma.commentOptionalProp.create({
-      data: {
+    const comment = await prisma.commentOptionalProp.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         content: {
@@ -111,7 +117,7 @@ describe('create > optional', () => {
       Object {
         content: null,
         country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        id: 2bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })
@@ -120,8 +126,10 @@ describe('create > optional', () => {
    * Set null shorthand
    */
   test('set null shorthand', async () => {
-    const comment = await prisma.commentOptionalProp.create({
-      data: {
+    const comment = await prisma.commentOptionalProp.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         content: null,
@@ -132,7 +140,7 @@ describe('create > optional', () => {
       Object {
         content: null,
         country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        id: 2bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })
@@ -141,8 +149,10 @@ describe('create > optional', () => {
    * Set nested list
    */
   test('set nested list', async () => {
-    const comment = await prisma.commentOptionalProp.create({
-      data: {
+    const comment = await prisma.commentOptionalProp.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         content: {
@@ -173,7 +183,7 @@ describe('create > optional', () => {
           ],
         },
         country: France,
-        id: 4aaaaaaaaaaaaaaaaaaaaaaa,
+        id: 2bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })
