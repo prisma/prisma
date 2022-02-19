@@ -2,13 +2,13 @@ import { getTestClient } from '../../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-describe('create > optional', () => {
+describe.skip('create > optional', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('..')
+    prisma = new PrismaClient()
   })
 
   beforeEach(async () => {
-    prisma = new PrismaClient()
     await prisma.commentRequiredProp.deleteMany({})
   })
 
@@ -16,7 +16,7 @@ describe('create > optional', () => {
     await prisma.$disconnect()
   })
 
-  test('simple', async () => {
+  test.skip('simple', async () => {
     const value = await prisma.commentRequiredProp.count()
 
     expect(value).toMatchInlineSnapshot(`0`)

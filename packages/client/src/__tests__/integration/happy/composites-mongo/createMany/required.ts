@@ -2,12 +2,12 @@ import { getTestClient } from '../../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-const id = 'aaaaaaaaaaaaaaaaaaaaaaaa'
+const id = 'bbbbbbbbbbbbbbbbbbbbbbbb'
 
 /**
- * Test create operations on required composite fields
+ * Test createMany operations on required composite fields
  */
-describe('create > required', () => {
+describe('createMany > required', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('..')
     prisma = new PrismaClient()
@@ -25,7 +25,7 @@ describe('create > required', () => {
    * Simple set
    */
   test('set', async () => {
-    const comment = await prisma.commentRequiredProp.create({
+    const comment = await prisma.commentRequiredProp.createMany({
       data: {
         id,
         country: 'France',
@@ -43,17 +43,7 @@ describe('create > required', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: aaaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })
@@ -62,7 +52,7 @@ describe('create > required', () => {
    * Set shorthand
    */
   test('set shorthand', async () => {
-    const comment = await prisma.commentRequiredProp.create({
+    const comment = await prisma.commentRequiredProp.createMany({
       data: {
         id,
         country: 'France',
@@ -78,17 +68,7 @@ describe('create > required', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: aaaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })
@@ -97,7 +77,7 @@ describe('create > required', () => {
    * Set null
    */
   test('set null', async () => {
-    const comment = prisma.commentRequiredProp.create({
+    const comment = prisma.commentRequiredProp.createMany({
       data: {
         country: 'France',
         // @-ts-expect-error
@@ -109,7 +89,7 @@ describe('create > required', () => {
 
     await expect(comment).rejects.toThrowError(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for data.content.set must not be null'),
+        message: expect.stringContaining('Argument set for data.0.content.set must not be null'),
       }),
     )
   })
@@ -118,7 +98,7 @@ describe('create > required', () => {
    * Set null shorthand
    */
   test('set null shorthand', async () => {
-    const comment = prisma.commentRequiredProp.create({
+    const comment = prisma.commentRequiredProp.createMany({
       data: {
         country: 'France',
         // @-ts-expect-error
@@ -128,7 +108,7 @@ describe('create > required', () => {
 
     await expect(comment).rejects.toThrowError(
       expect.objectContaining({
-        message: expect.stringContaining('Got invalid value null on prisma.createOneCommentRequiredProp'),
+        message: expect.stringContaining('Got invalid value null on prisma.createManyCommentRequiredProp'),
       }),
     )
   })
@@ -137,7 +117,7 @@ describe('create > required', () => {
    * Set nested list
    */
   test('set nested list', async () => {
-    const comment = await prisma.commentRequiredProp.create({
+    const comment = await prisma.commentRequiredProp.createMany({
       data: {
         id,
         country: 'France',
@@ -155,21 +135,7 @@ describe('create > required', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-            Object {
-              userId: 11,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: aaaaaaaaaaaaaaaaaaaaaaaa,
+        count: 1,
       }
     `)
   })

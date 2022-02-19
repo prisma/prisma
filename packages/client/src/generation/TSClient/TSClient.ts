@@ -49,6 +49,8 @@ export class TSClient implements Generatable {
   constructor(protected readonly options: TSClientOptions) {
     this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFHelper(klona(options.document))
+
+    console.log(JSON.stringify(options.document, null, 2))
   }
 
   public async toJS(): Promise<string> {
