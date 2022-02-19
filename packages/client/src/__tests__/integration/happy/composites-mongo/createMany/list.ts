@@ -2,12 +2,12 @@ import { getTestClient } from '../../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-const id = '4bbbbbbbbbbbbbbbbbbbbbbb'
+const id = '5bbbbbbbbbbbbbbbbbbbbbbb'
 
 /**
- * Test create operations on list composite fields
+ * Test createMany operations on list composite fields
  */
-describe('create > list', () => {
+describe('createMany > list', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('..')
     prisma = new PrismaClient()
@@ -25,7 +25,7 @@ describe('create > list', () => {
    * Simple set
    */
   test('set', async () => {
-    const comment = await prisma.commentRequiredList.create({
+    const comment = await prisma.commentRequiredList.createMany({
       data: {
         id,
         country: 'France',
@@ -45,19 +45,7 @@ describe('create > list', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        contents: Array [
-          Object {
-            text: Hello World,
-            upvotes: Array [
-              Object {
-                userId: 10,
-                vote: true,
-              },
-            ],
-          },
-        ],
-        country: France,
-        id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        count: 1,
       }
     `)
   })
@@ -66,7 +54,7 @@ describe('create > list', () => {
    * Set shorthand
    */
   test('set shorthand', async () => {
-    const comment = await prisma.commentRequiredList.create({
+    const comment = await prisma.commentRequiredList.createMany({
       data: {
         id,
         country: 'France',
@@ -82,19 +70,7 @@ describe('create > list', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        contents: Array [
-          Object {
-            text: Hello World,
-            upvotes: Array [
-              Object {
-                userId: 10,
-                vote: true,
-              },
-            ],
-          },
-        ],
-        country: France,
-        id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        count: 1,
       }
     `)
   })
@@ -103,7 +79,7 @@ describe('create > list', () => {
    * Set null
    */
   test('set null', async () => {
-    const comment = prisma.commentRequiredList.create({
+    const comment = prisma.commentRequiredList.createMany({
       data: {
         country: 'France',
         // @-ts-expect-error
@@ -115,7 +91,7 @@ describe('create > list', () => {
 
     await expect(comment).rejects.toThrowError(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for data.contents.set must not be null'),
+        message: expect.stringContaining('Argument set for data.0.contents.set must not be null'),
       }),
     )
   })
@@ -124,7 +100,7 @@ describe('create > list', () => {
    * Set null shorthand
    */
   test('set null shorthand', async () => {
-    const comment = prisma.commentRequiredList.create({
+    const comment = prisma.commentRequiredList.createMany({
       data: {
         country: 'France',
         // @-ts-expect-error
@@ -134,7 +110,7 @@ describe('create > list', () => {
 
     await expect(comment).rejects.toThrowError(
       expect.objectContaining({
-        message: expect.stringContaining('Argument contents for data.contents must not be null'),
+        message: expect.stringContaining('Argument contents for data.0.contents must not be null'),
       }),
     )
   })
@@ -143,7 +119,7 @@ describe('create > list', () => {
    * Set nested list
    */
   test('set nested list', async () => {
-    const comment = await prisma.commentRequiredList.create({
+    const comment = await prisma.commentRequiredList.createMany({
       data: {
         id,
         country: 'France',
@@ -161,23 +137,7 @@ describe('create > list', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        contents: Array [
-          Object {
-            text: Hello World,
-            upvotes: Array [
-              Object {
-                userId: 10,
-                vote: true,
-              },
-              Object {
-                userId: 11,
-                vote: true,
-              },
-            ],
-          },
-        ],
-        country: France,
-        id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        count: 1,
       }
     `)
   })

@@ -1,15 +1,15 @@
-import { getTestClient } from '../../../../../utils/getTestClient'
+import { getTestClient } from '../../../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-const id = '4bbbbbbbbbbbbbbbbbbbbbbb'
+const id = '2ccccccccccccccccccccccc'
 
 /**
- * Test create operations on list composite fields
+ * Test upsert create operations on list composite fields
  */
-describe('create > list', () => {
+describe('upsert > list > create', () => {
   beforeAll(async () => {
-    PrismaClient = await getTestClient('..')
+    PrismaClient = await getTestClient('../../')
     prisma = new PrismaClient()
   })
 
@@ -25,8 +25,10 @@ describe('create > list', () => {
    * Simple set
    */
   test('set', async () => {
-    const comment = await prisma.commentRequiredList.create({
-      data: {
+    const comment = await prisma.commentRequiredList.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         contents: {
@@ -57,7 +59,7 @@ describe('create > list', () => {
           },
         ],
         country: France,
-        id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        id: 2ccccccccccccccccccccccc,
       }
     `)
   })
@@ -66,8 +68,10 @@ describe('create > list', () => {
    * Set shorthand
    */
   test('set shorthand', async () => {
-    const comment = await prisma.commentRequiredList.create({
-      data: {
+    const comment = await prisma.commentRequiredList.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         contents: {
@@ -94,7 +98,7 @@ describe('create > list', () => {
           },
         ],
         country: France,
-        id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        id: 2ccccccccccccccccccccccc,
       }
     `)
   })
@@ -103,8 +107,10 @@ describe('create > list', () => {
    * Set null
    */
   test('set null', async () => {
-    const comment = prisma.commentRequiredList.create({
-      data: {
+    const comment = prisma.commentRequiredList.upsert({
+      where: { id },
+      update: {},
+      create: {
         country: 'France',
         // @-ts-expect-error
         contents: {
@@ -115,7 +121,7 @@ describe('create > list', () => {
 
     await expect(comment).rejects.toThrowError(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for data.contents.set must not be null'),
+        message: expect.stringContaining('Argument set for create.contents.set must not be null'),
       }),
     )
   })
@@ -124,8 +130,10 @@ describe('create > list', () => {
    * Set null shorthand
    */
   test('set null shorthand', async () => {
-    const comment = prisma.commentRequiredList.create({
-      data: {
+    const comment = prisma.commentRequiredList.upsert({
+      where: { id },
+      update: {},
+      create: {
         country: 'France',
         // @-ts-expect-error
         contents: null,
@@ -134,7 +142,7 @@ describe('create > list', () => {
 
     await expect(comment).rejects.toThrowError(
       expect.objectContaining({
-        message: expect.stringContaining('Argument contents for data.contents must not be null'),
+        message: expect.stringContaining('Argument contents for create.contents must not be null'),
       }),
     )
   })
@@ -143,8 +151,10 @@ describe('create > list', () => {
    * Set nested list
    */
   test('set nested list', async () => {
-    const comment = await prisma.commentRequiredList.create({
-      data: {
+    const comment = await prisma.commentRequiredList.upsert({
+      where: { id },
+      update: {},
+      create: {
         id,
         country: 'France',
         contents: {
@@ -177,7 +187,7 @@ describe('create > list', () => {
           },
         ],
         country: France,
-        id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        id: 2ccccccccccccccccccccccc,
       }
     `)
   })
