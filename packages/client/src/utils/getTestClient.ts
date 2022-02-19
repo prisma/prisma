@@ -26,8 +26,8 @@ const readFile = promisify(fs.readFile)
  * Returns an in-memory client for testing
  */
 export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
-  const callSite = parse(new Error('').stack!)
-  const absSchemaDir = path.join(path.dirname(callSite[1].file!), schemaDir ?? '')
+  const callSite = path.dirname(require.main?.filename ?? '')
+  const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
   const schemaPath = await getRelativeSchemaPath(absSchemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
