@@ -16972,7 +16972,7 @@ export namespace Prisma {
   export type EmbedHolderCreateInput = {
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
@@ -16983,7 +16983,7 @@ export namespace Prisma {
   export type EmbedHolderUncheckedCreateInput = {
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
@@ -17014,7 +17014,7 @@ export namespace Prisma {
   export type EmbedHolderCreateManyInput = {
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
@@ -19250,6 +19250,10 @@ export namespace Prisma {
     set?: EmbedCreateInput
   }
 
+  export type EmbedNullableCreateEnvelopeInput = {
+    set?: EmbedCreateInput | null
+  }
+
   export type UserCreateNestedManyWithoutEmbedHolderInput = {
     create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
     connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
@@ -19984,7 +19988,7 @@ export namespace Prisma {
   export type EmbedHolderCreateWithoutUserInput = {
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
@@ -19994,7 +19998,7 @@ export namespace Prisma {
   export type EmbedHolderUncheckedCreateWithoutUserInput = {
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput> | null
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
