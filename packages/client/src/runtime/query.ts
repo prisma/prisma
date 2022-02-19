@@ -1187,9 +1187,10 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if (!arg.isRequired && value === null) {
+  if (value === null) {
     return true
   }
+
   return false
 }
 
