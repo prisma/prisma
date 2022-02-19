@@ -67,9 +67,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.10.0-41.query-engine-composite-basic-api-e46e9fad58f01ff6acdd3bbf8ada1ac04314e26a",
+    "@prisma/fetch-engine": "3.10.0-43.query-engine-composite-basic-api-75065d645357b98fe726b330e70235349f9f23f7",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.10.0-41.query-engine-composite-basic-api-e46e9fad58f01ff6acdd3bbf8ada1ac04314e26a",
+    "@prisma/get-platform": "3.10.0-43.query-engine-composite-basic-api-75065d645357b98fe726b330e70235349f9f23f7",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.458.0",
@@ -129,7 +129,7 @@
     "precommit": "lint-staged"
   },
   "dependencies": {
-    "@prisma/engines": "3.10.0-41.query-engine-composite-basic-api-e46e9fad58f01ff6acdd3bbf8ada1ac04314e26a"
+    "@prisma/engines": "3.10.0-43.query-engine-composite-basic-api-75065d645357b98fe726b330e70235349f9f23f7"
   },
   "lint-staged": {
     "*.{md,yml,yaml,json}": "prettier --write",
