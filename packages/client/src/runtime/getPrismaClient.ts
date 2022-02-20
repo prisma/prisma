@@ -987,7 +987,7 @@ new PrismaClient({
         const params: QueryMiddlewareParams = {
           args: internalParams.args,
           dataPath: internalParams.dataPath,
-          runInTransaction: internalParams.runInTransaction || !!internalParams.transactionId,
+          runInTransaction: internalParams.runInTransaction,
           action: internalParams.action,
           model: internalParams.model,
         }
