@@ -4,6 +4,7 @@ import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
+
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 

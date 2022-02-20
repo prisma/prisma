@@ -1,13 +1,14 @@
-import type { O, F } from 'ts-toolbelt'
+import type { F, O } from 'ts-toolbelt'
+
 import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
 import { getCallSite } from '../utils/getCallSite'
 import { applyAggregates } from './applyAggregates'
 import { applyFluent } from './applyFluent'
+import type { UserArgs } from './UserArgs'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
-import type { UserArgs } from './UserArgs'
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,

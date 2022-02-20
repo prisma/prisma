@@ -1,6 +1,6 @@
-import { prompt } from 'prompts'
 import { isCi } from '@prisma/sdk'
 import slugify from '@sindresorhus/slugify'
+import { prompt } from 'prompts'
 
 type getMigratioNameOutput = {
   name?: string

@@ -4,6 +4,8 @@ exports[`MongoDB basic introspection --url 2`] = ``;
 
 exports[`MongoDB basic introspection 1`] = ``;
 
+exports[`MongoDB introspection --force --composite-type-depth=-1 1`] = ``;
+
 exports[`MongoDB introspection --print --composite-type-depth=-1 1`] = `
 generator client {
   provider        = "prisma-client-js"
@@ -113,11 +115,26 @@ datasource my_db {
   url      = env("TEST_MONGO_URI_MIGRATE")
 }
 
+type UsersHobbies {
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString2 Int?
+  objects         UsersHobbiesObjects[]
+  tags            String[]
+}
+
+type UsersHobbiesObjects {
+  name            String
+  /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+  numberOrString3 Int
+  tags            String[]
+}
+
 model users {
-  id              String  @id @default(auto()) @map("_id") @my_db.ObjectId
+  id              String         @id @default(auto()) @map("_id") @my_db.ObjectId
   admin           Boolean
   email           String
-  hobbies         Json[]
+  hobbies         UsersHobbies[]
   name            String
   /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
   numberOrString1 Int

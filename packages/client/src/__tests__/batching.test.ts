@@ -1,8 +1,7 @@
-import { DMMFClass, makeDocument } from '../runtime'
-
-import { RequestHandler } from '../runtime/RequestHandler'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument } from '../runtime'
+import { RequestHandler } from '../runtime/RequestHandler'
 
 describe('batching', () => {
   test('basic batching', async () => {

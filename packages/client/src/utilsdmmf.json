@@ -2334,14 +2334,7 @@
     "enums": [
       {
         "name": "BlogOrderByInput",
-        "values": [
-          "id_ASC",
-          "id_DESC",
-          "name_ASC",
-          "name_DESC",
-          "viewCount_ASC",
-          "viewCount_DESC"
-        ]
+        "values": ["id_ASC", "id_DESC", "name_ASC", "name_DESC", "viewCount_ASC", "viewCount_DESC"]
       },
       {
         "name": "AuthorOrderByInput",

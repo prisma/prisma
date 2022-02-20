@@ -1,6 +1,6 @@
 name: Bug report
 description: Create a bug report to help us improve Prisma
-labels: "kind/bug"
+labels: 'kind/bug'
 body:
   - type: markdown
     attributes:
@@ -29,7 +29,7 @@ body:
   - type: textarea
     attributes:
       label: Expected behavior
-      description: A clear and concise description of what you expected to happen. 
+      description: A clear and concise description of what you expected to happen.
   - type: textarea
     attributes:
       label: Prisma information

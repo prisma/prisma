@@ -1,5 +1,6 @@
-import path from 'path'
 import fs from 'fs'
+import path from 'path'
+
 import { getDMMF } from '../../../../generation/getDMMF'
 import { compileFile } from '../../../../utils/compileFile'
 

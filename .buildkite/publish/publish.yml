@@ -1,5 +1,5 @@
 steps:
-  - label: ":llama: Publish"
+  - label: ':llama: Publish'
     timeout_in_minutes: 45
     plugins:
       - docker-compose#v3.9.0:

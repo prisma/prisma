@@ -1,11 +1,6 @@
 import type { L } from 'ts-toolbelt'
 
-export type Reducer<I, R> = (
-  acc: R,
-  item: I,
-  pos: number,
-  exit: (acc: R) => R,
-) => R
+export type Reducer<I, R> = (acc: R, item: I, pos: number, exit: (acc: R) => R) => R
 
 /**
  * Calls the specified callback function for all the elements in an array. The
@@ -18,11 +13,7 @@ export type Reducer<I, R> = (
  * @param acc initial value
  * @returns
  */
-const reduce = <L extends L.List<I>, I, R>(
-  list: L & L.List<I>,
-  reducer: Reducer<I, R>,
-  acc: R,
-) => {
+const reduce = <L extends L.List<I>, I, R>(list: L & L.List<I>, reducer: Reducer<I, R>, acc: R) => {
   let exited = false
 
   const exit = (acc: R) => {

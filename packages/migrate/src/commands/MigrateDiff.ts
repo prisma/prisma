@@ -1,11 +1,12 @@
-import path from 'path'
+import Debug from '@prisma/debug'
 import type { Command } from '@prisma/sdk'
 import { arg, format, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
+import path from 'path'
+
 import { Migrate } from '../Migrate'
-import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
 import type { EngineArgs, EngineResults } from '../types'
-import Debug from '@prisma/debug'
+import { MigrateDiffNeedsPreviewFeatureFlagError } from '../utils/errors'
 
 const debug = Debug('prisma:migrate:diff')
 export class MigrateDiff implements Command {
@@ -244,12 +245,6 @@ ${chalk.bold('Examples')}
         shadowDatabaseUrl: args['--shadow-database-url'],
       })
     } finally {
-      // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
-      // In Jest it manifests also as the following if we don't wait:
-      // Cannot log after tests are done. Did you forget to wait for something async in your test?
-      //
-      // we need to return the value in the response then we can remove this
-      await new Promise((resolve) => setTimeout(resolve, 50))
       // Stop engine
       migrate.stop()
     }

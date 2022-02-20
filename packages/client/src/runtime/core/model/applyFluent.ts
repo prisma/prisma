@@ -1,9 +1,10 @@
+import type { DMMF } from '@prisma/generator-helper'
+
 import type { Client } from '../../getPrismaClient'
 import { deepSet } from '../../utils/deep-set'
-import type { DMMF } from '@prisma/generator-helper'
 import type { ModelAction } from './applyModel'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import type { UserArgs } from './UserArgs'
+import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a

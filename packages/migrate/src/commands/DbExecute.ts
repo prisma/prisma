@@ -1,12 +1,13 @@
-import fs from 'fs'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getSchemaPath, link, getCommandWithExecutor, loadEnvFile } from '@prisma/sdk'
-import path from 'path'
+import { arg, format, getCommandWithExecutor, getSchemaPath, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
-import { Migrate } from '../Migrate'
-import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
-import type { EngineArgs } from '../types'
+import fs from 'fs'
 import getStdin from 'get-stdin'
+import path from 'path'
+
+import { Migrate } from '../Migrate'
+import type { EngineArgs } from '../types'
+import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
 
 export class DbExecute implements Command {
   public static new(): DbExecute {

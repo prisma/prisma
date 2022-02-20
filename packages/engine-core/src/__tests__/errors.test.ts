@@ -1,6 +1,7 @@
-import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
+
+import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 
 describe('getErrorMessageWithLink', () => {
   test('basic serialization', () => {

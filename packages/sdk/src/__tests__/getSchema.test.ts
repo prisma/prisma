@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { getSchemaPathInternal, getSchemaPathSyncInternal } from '../cli/getSchema'
 import { fixturesPath } from './__utils__/fixtures'
 

@@ -1,13 +1,14 @@
-import { ErrorArea, RustPanic, isCi } from '@prisma/sdk'
+import { ErrorArea, isCi, RustPanic } from '@prisma/sdk'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
 import { dirname, join, resolve } from 'path'
+import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import dedent from 'strip-indent'
-import prompt from 'prompts'
 import tempy from 'tempy'
 import { promisify } from 'util'
+
 import { Migrate } from '../Migrate'
 import { handlePanic } from '../utils/handlePanic'
 import CaptureStdout from './__helpers__/captureStdout'
@@ -29,6 +30,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const oldProcessCwd = process.cwd
 // create a temporary set of files
 async function writeFiles(
@@ -57,7 +59,7 @@ describe('handlePanic', () => {
     process.cwd = () => testRootDir
     await mkdir(testRootDir)
   })
-  afterEach(async () => {
+  afterEach(() => {
     process.cwd = oldProcessCwd
     // await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
   })
@@ -101,7 +103,6 @@ describe('handlePanic', () => {
   })
 
   it('no interactive mode in CI', async () => {
-    process.env.GITHUB_ACTIONS = 'maybe'
     try {
       await handlePanic(error, packageJsonVersion, engineVersion, command)
     } catch (error) {
@@ -193,7 +194,6 @@ describe('handlePanic', () => {
   })
 
   it('engine panic no interactive mode in CI', async () => {
-    process.env.GITHUB_ACTIONS = 'maybe'
     process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
 
     const files = {

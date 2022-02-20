@@ -34,7 +34,6 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath
   }
-  // tslint:disable-next-line
 
   const envVar = engineEnvVarMap[name]
 

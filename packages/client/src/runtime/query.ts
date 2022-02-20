@@ -2,6 +2,7 @@ import chalk from 'chalk'
 import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
+
 import type { /*dmmf, */ DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import type {
@@ -434,7 +435,6 @@ ${errorMessages}${missingArgsLegend}\n`
     const newPath: Array<string | number> = []
     let key: undefined | string | number
     let pointer = select
-    // tslint:disable-next-line:no-conditional-assignment
     while ((key = path.shift()) !== undefined) {
       if (!Array.isArray(pointer) && key === 0) {
         continue
