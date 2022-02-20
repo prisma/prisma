@@ -19,7 +19,6 @@ import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { Middlewares } from './MiddlewareHandler'
-import { PrismaClientFetcher } from './PrismaClientFetcher'
 import { makeDocument, transformDocument } from './query'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
@@ -38,6 +37,7 @@ import { createPrismaPromise } from './core/request/createPrismaPromise'
 import { applyModels } from './core/model/applyModels'
 import { getCallSite } from './core/utils/getCallSite'
 import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
+import { getLockCountPromise } from './core/transaction/utils/getLockCountPromise'
 import type { PrismaPromise } from './core/request/PrismaPromise'
 
 const debug = Debug('prisma:client')
@@ -157,10 +157,9 @@ export type InternalRequestParams = {
   callsite?: string // TODO what is this
   /** Headers metadata that will be passed to the Engine */
   headers?: Record<string, string> // TODO what is this
-  transactionId?: string // TODO what is this
+  transactionId?: string | PromiseLike<number>
   unpacker?: Unpacker // TODO what is this
   otelCtx?: Context // an otel context
-  lock?: Promise<void>
 } & QueryMiddlewareParams
 
 // only used by the .use() hooks
@@ -282,7 +281,7 @@ export interface Client {
   [TX_ID]?: string
   _dmmf: DMMFHelper
   _engine: Engine
-  _fetcher: PrismaClientFetcher
+  _fetcher: RequestHandler
   _connectionPromise?: Promise<any>
   _disconnectionPromise?: Promise<any>
   _engineConfig: EngineConfig
@@ -304,7 +303,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient implements Client {
     _dmmf: DMMFHelper
     _engine: Engine
-    _fetcher: PrismaClientFetcher
+    _fetcher: RequestHandler
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
@@ -433,11 +432,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        if (!this._hasPreviewFlag('interactiveTransactions')) {
-          this._fetcher = new PrismaClientFetcher(this, false, this._hooks)
-        } else {
-          this._fetcher = new RequestHandler(this, this._hooks) as any
-        }
+        this._fetcher = new RequestHandler(this, this._hooks) as any
 
         if (options.log) {
           for (const log of options.log) {
@@ -562,11 +557,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     }
 
     /**
-     * Executes a raw query. Always returns a number
+     * Executes a raw query and always returns a number
      */
     private $executeRawInternal(
-      txId: string | undefined,
-      inTx: boolean | undefined,
+      txId: string | PromiseLike<number> | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
@@ -661,31 +655,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         dataPath: [],
         action: 'executeRaw',
         callsite: getCallSite(this._errorFormat),
-        runInTransaction: inTx ?? false,
+        runInTransaction: !!txId,
         transactionId: txId,
         otelCtx: otelCtx,
       })
-    }
-
-    /**
-     * Executes a raw query and always returns a number
-     */
-    private $executeRawRequest(
-      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
-      ...values: sqlTemplateTag.RawValue[]
-    ) {
-      const request = (txId?: string, inTx?: boolean, otelCtx?: Context) => {
-        try {
-          const promise = this.$executeRawInternal(txId, inTx, otelCtx, query, ...values)
-          ;(promise as any).isExecuteRaw = true
-          return promise
-        } catch (e: any) {
-          e.clientVersion = this._clientVersion
-          throw e
-        }
-      }
-
-      return createPrismaPromise(request)
     }
 
     /**
@@ -697,9 +670,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @returns
      */
     $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise(() => {
+      return createPrismaPromise((txId, otelCtx) => {
         if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
-          return this.$executeRawRequest(query, ...values)
+          return this.$executeRawInternal(txId, otelCtx, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -709,6 +682,20 @@ const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE e
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
 `)
+      })
+    }
+
+    /**
+     * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
+     * @see https://github.com/prisma/prisma/issues/7142
+     *
+     * @param query
+     * @param values
+     * @returns
+     */
+    $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
+      return createPrismaPromise((txId, otelCtx) => {
+        return this.$executeRawInternal(txId, otelCtx, query, ...values)
       })
     }
 
@@ -725,14 +712,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         )
       }
 
-      return createPrismaPromise((txId, inTx, otelCtx) => {
+      return createPrismaPromise((txId, otelCtx) => {
         return this._request({
           args: { command: command },
           clientMethod: 'runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
           callsite: getCallSite(),
-          runInTransaction: inTx ?? false,
+          runInTransaction: !!txId,
           transactionId: txId,
           otelCtx: otelCtx,
         })
@@ -740,23 +727,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     /**
-     * Unsafe counterpart of `$executeRaw` that is susceptible to SQL injections
-     * @see https://github.com/prisma/prisma/issues/7142
-     *
-     * @param query
-     * @param values
-     * @returns
-     */
-    $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return this.$executeRawRequest(query, ...values)
-    }
-
-    /**
      * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
-      txId: string | undefined,
-      inTx: boolean | undefined,
+      txId: string | PromiseLike<number> | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
@@ -854,31 +828,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         dataPath: [],
         action: 'queryRaw',
         callsite: getCallSite(this._errorFormat),
-        runInTransaction: inTx ?? false,
+        runInTransaction: !!txId,
         transactionId: txId,
         otelCtx: otelCtx,
       })
-    }
-
-    /**
-     * Executes a raw query and returns selected data
-     */
-    private $queryRawRequest(
-      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
-      ...values: sqlTemplateTag.RawValue[]
-    ) {
-      const request = (txId?: string, inTx?: boolean, otelCtx?: Context) => {
-        try {
-          const promise = this.$queryRawInternal(txId, inTx, otelCtx, query, ...values)
-          ;(promise as any).isQueryRaw = true
-          return promise
-        } catch (e: any) {
-          e.clientVersion = this._clientVersion
-          throw e
-        }
-      }
-
-      return createPrismaPromise(request)
     }
 
     /**
@@ -890,9 +843,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise(() => {
+      return createPrismaPromise((txId, otelCtx) => {
         if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
-          return this.$queryRawRequest(query, ...values)
+          return this.$queryRawInternal(txId, otelCtx, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -914,7 +867,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return this.$queryRawRequest(query, ...values)
+      return createPrismaPromise((txId, otelCtx) => {
+        return this.$queryRawInternal(txId, otelCtx, query, ...values)
+      })
     }
 
     __internal_triggerPanic(fatal: boolean) {
@@ -948,112 +903,27 @@ new PrismaClient({
     }
 
     /**
-     * @deprecated
-     */
-    private ___getTransactionId() {
-      return this._transactionId++
-    }
-
-    /**
-     * @deprecated
-     */
-    private async $___transactionInternal(promises: Array<any>): Promise<any> {
-      for (const p of promises) {
-        if (!p) {
-          throw new Error(
-            `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
-          )
-        }
-        if (
-          (!p.requestTransaction || typeof p.requestTransaction !== 'function') &&
-          !p?.isQueryRaw &&
-          !p?.isExecuteRaw
-        ) {
-          throw new Error(
-            `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
-          )
-        }
-      }
-
-      const transactionId = this.___getTransactionId()
-
-      // an exotic promise that opens after x knocks
-      const getAutoUnlockCountingPromise = (knock: number) => {
-        let resolve: (v?: unknown) => void
-        const lock = new Promise((res) => void (resolve = res))
-
-        return { then: () => (--knock === 0 ? lock : resolve()) }
-      }
-
-      const lock = getAutoUnlockCountingPromise(promises.length)
-
-      const requests = await Promise.all(
-        promises.map((p) => {
-          if (p.requestTransaction) {
-            return p.requestTransaction(transactionId, lock)
-          } else {
-          }
-          return p
-        }),
-      )
-
-      return Promise.all(
-        requests.map((r) => {
-          if (Object.prototype.toString.call(r) === '[object Promise]') {
-            return r
-          }
-          if (r && typeof r === 'function') {
-            return r()
-          }
-          return r
-        }),
-      )
-    }
-
-    /**
-     * @deprecated
-     */
-    private async $___transaction(promises: Array<any>): Promise<any> {
-      try {
-        return this.$___transactionInternal(promises)
-      } catch (e: any) {
-        e.clientVersion = this._clientVersion
-        throw e
-      }
-    }
-
-    /**
-     * Execute queries within a transaction
-     * @param input a callback or a query list
-     * @param options to set timeouts
-     * @returns
-     */
-    $transaction(input: any, options?: any) {
-      // eslint-disable-next-line prettier/prettier
-      if (!this._hasPreviewFlag('interactiveTransactions')) {
-        return this.$___transaction(input)
-      }
-
-      try {
-        return this._transaction(input, options)
-      } catch (e: any) {
-        e.clientVersion = this._clientVersion
-        throw e
-      }
-    }
-
-    /**
-     * Decide upon which transaction logic to use
-     * @param input
+     * Execute a batch of requests in a transaction
+     * @param requests
      * @param options
-     * @returns
      */
-    private async _transaction(input: any, options?: any) {
-      if (typeof input === 'function') {
-        return this._transactionWithCallback(input, options)
-      }
+    private _transactionWithArray(promises: Array<PrismaPromise<any>>): Promise<any> {
+      const txId = getLockCountPromise(promises.length, () => this._transactionId++)
 
-      return this._transactionWithRequests(input, options)
+      const _requests = promises.map((request) => {
+        if (request?.[Symbol.toStringTag] !== 'PrismaPromise') {
+          throw new Error(
+            `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
+          )
+        }
+
+        // we re-wrap the promise to pass a txId
+        return new Promise((resolve, reject) => {
+          request.then(resolve, reject, txId)
+        })
+      })
+
+      return Promise.all(_requests)
     }
 
     /**
@@ -1080,6 +950,7 @@ new PrismaClient({
         // it went bad, then we rollback the transaction
         await this._engine.transaction('rollback', info).catch(() => {})
 
+        e.clientVersion = this._clientVersion
         throw e // silent rollback, throw original error
       }
 
@@ -1087,23 +958,22 @@ new PrismaClient({
     }
 
     /**
-     * Execute a batch of requests in a transaction
-     * @param requests
-     * @param options
+     * Execute queries within a transaction
+     * @param input a callback or a query list
+     * @param options to set timeouts (callback)
+     * @returns
      */
-    private async _transactionWithRequests(
-      requests: Array<PrismaPromise<unknown>>,
-      options?: { maxWait: number; timeout: number },
-    ) {
-      return this._transactionWithCallback((prisma) => {
-        const _requests = requests.map((request) => {
-          return new Promise((resolve, reject) => {
-            request.then(resolve, reject, prisma[TX_ID])
-          })
-        })
+    async $transaction(input: any, options?: any) {
+      // TODO: remove this once interactive tx became GA
+      if (!this._hasPreviewFlag('interactiveTransactions')) {
+        return this._transactionWithArray(input)
+      }
 
-        return Promise.all(_requests) // get results from `BatchLoader`
-      }, options)
+      if (typeof input === 'function') {
+        return this._transactionWithCallback(input, options)
+      }
+
+      return this._transactionWithArray(input)
     }
 
     /**
@@ -1139,11 +1009,6 @@ new PrismaClient({
           // before we send the execution request, we use the changed params
           const changedInternalParams = { ...internalParams, ...changedParams }
 
-          // TODO remove this once LRT is the default transaction mode
-          if (index > 0 && !this._hasPreviewFlag('interactiveTransactions')) {
-            delete changedInternalParams['transactionId']
-          }
-
           // no middleware? then we just proceed with request execution
           return this._executeRequest(changedInternalParams)
         }
@@ -1175,7 +1040,6 @@ new PrismaClient({
       transactionId,
       otelCtx,
       unpacker,
-      lock,
     }: InternalRequestParams) {
       let rootField: string | undefined
       const operation = actionOperationMap[action]
@@ -1241,8 +1105,6 @@ new PrismaClient({
 
       headers = applyTracingHeaders(headers, otelCtx)
 
-      await lock
-
       return this._fetcher.request({
         document,
         clientMethod,
@@ -1257,7 +1119,8 @@ new PrismaClient({
         engineHook: this._middlewares.engine.get(0),
         runInTransaction,
         headers,
-        transactionId,
+        /** @see {@link getLockCountPromise} */
+        transactionId: await transactionId,
         unpacker,
       })
     }

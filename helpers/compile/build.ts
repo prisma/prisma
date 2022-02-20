@@ -181,7 +181,7 @@ const watch = (options: BuildOptions[]) => (result?: esbuild.BuildResult | esbui
   if (process.env.WATCH !== 'true') return result
 
   // common chokidar options for the watchers
-  const config = { ignoreInitial: true, useFsEvents: true }
+  const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*'] }
 
   // prepare the incremental builds watcher
   const watched = getWatchedFiles(result)

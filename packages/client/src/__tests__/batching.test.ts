@@ -1,6 +1,6 @@
 import { DMMFClass, makeDocument } from '../runtime'
 
-import { PrismaClientFetcher } from '../runtime/PrismaClientFetcher'
+import { RequestHandler } from '../runtime/RequestHandler'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 
@@ -10,13 +10,15 @@ describe('batching', () => {
     const batches: any[] = []
     const requests: any[] = []
 
-    const fetcher = new PrismaClientFetcher({
+    const fetcher = new RequestHandler({
       $connect: () => Promise.resolve(),
       _engine: {
+        // @ts-expect-error
         requestBatch: (batch) => {
           batches.push(batch)
           return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
+        // @ts-expect-error
         request: (request) => {
           requests.push(request)
           return Promise.resolve({ data: { data: null }, elapsed: 0.3 })
@@ -123,13 +125,15 @@ describe('batching', () => {
     const batches: any[] = []
     const requests: any[] = []
 
-    const fetcher = new PrismaClientFetcher({
+    const fetcher = new RequestHandler({
       $connect: () => Promise.resolve(),
       _engine: {
+        // @ts-expect-error
         requestBatch: (batch) => {
           batches.push(batch)
           return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
+        // @ts-expect-error
         request: (request) => {
           requests.push(request)
           return Promise.resolve({ data: { data: null }, elapsed: 0.3 })
@@ -225,13 +229,15 @@ describe('batching', () => {
     const batches: any[] = []
     const requests: any[] = []
 
-    const fetcher = new PrismaClientFetcher({
+    const fetcher = new RequestHandler({
       $connect: () => Promise.resolve(),
       _engine: {
+        // @ts-expect-error
         requestBatch: (batch) => {
           batches.push(batch)
           return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
+        // @ts-expect-error
         request: (request) => {
           requests.push(request)
           return Promise.resolve({ data: { data: null }, elapsed: 0.3 })

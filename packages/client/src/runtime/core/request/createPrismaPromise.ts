@@ -12,16 +12,16 @@ import { context } from '@opentelemetry/api'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (txId?: string, inTx?: boolean, otelCtx?: Context, lock?: Promise<void>) => PrismaPromise<unknown>,
+  callback: (txId?: string | PromiseLike<number>, otelCtx?: Context) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   const otelCtx = context.active() // get the context at time of creation
   // because otel isn't able to propagate context when inside of a promise
 
   let promise: PrismaPromise<unknown> | undefined
-  const _callback = (txId?: string, inTx?: boolean, lock?: Promise<void>) => {
+  const _callback = (txId?: string | PromiseLike<number>) => {
     try {
       // we allow the callback to be executed only one time
-      return (promise ??= callback(txId, inTx, otelCtx, lock))
+      return (promise ??= callback(txId, otelCtx))
     } catch (error) {
       // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
@@ -30,25 +30,14 @@ export function createPrismaPromise(
   }
 
   return {
-    then(onFulfilled, onRejected, txId?: string) {
-      return _callback(txId, false).then(onFulfilled, onRejected, txId)
+    then(onFulfilled, onRejected, txId?: string | PromiseLike<number>) {
+      return _callback(txId).then(onFulfilled, onRejected, txId)
     },
     catch(onRejected) {
       return _callback().catch(onRejected)
     },
     finally(onFinally) {
       return _callback().finally(onFinally)
-    },
-    // @ts-ignore
-    requestTransaction(txId: string, lock: Promise<void>) {
-      const promise = _callback(txId, true, lock)
-
-      if (promise.requestTransaction) {
-        // requestTransaction support for nested promises
-        return promise.requestTransaction(txId)
-      }
-
-      return promise
     },
     [Symbol.toStringTag]: 'PrismaPromise',
   }
