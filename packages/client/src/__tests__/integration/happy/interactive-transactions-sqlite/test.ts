@@ -448,7 +448,7 @@ describe('interactive transactions', () => {
    * Rollback should happen even with `then` calls
    */
   test('rollback with then calls', async () => {
-    await prisma
+    const transaction = prisma
       .$transaction(async (prisma) => {
         await prisma.user
           .create({
@@ -470,6 +470,7 @@ describe('interactive transactions', () => {
         throw new Error('rollback')
       })
       .catch(() => {})
+      await expect(transaction).rejects.toThrowErrorMatchingInlineSnapshot(``)
 
     const users = await prisma.user.findMany()
 
