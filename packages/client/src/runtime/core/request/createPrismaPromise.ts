@@ -34,11 +34,11 @@ export function createPrismaPromise(
     then(onFulfilled, onRejected, txId?: string) {
       return _callback(txId).then(onFulfilled, onRejected, txId)
     },
-    catch(onRejected) {
-      return _callback().catch(onRejected)
+    catch(onRejected, txId?: string) {
+      return _callback(txId).catch(onRejected, txId)
     },
-    finally(onFinally) {
-      return _callback().finally(onFinally)
+    finally(onFinally, txId?: string) {
+      return _callback(txId).finally(onFinally, txId)
     },
     requestTransaction(txId: number, lock?: PromiseLike<void>) {
       const promise = _callback(txId, lock)

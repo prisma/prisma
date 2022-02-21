@@ -15,7 +15,7 @@ import { PrismaClientValidationError } from '.'
 import { applyModels } from './core/model/applyModels'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type { PrismaPromise } from './core/request/PrismaPromise'
-import { getLockCountPromise } from './core/transaction/utils/getLockCountPromise'
+import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { getCallSite } from './core/utils/getCallSite'
 import { DMMFHelper } from './dmmf'
 import { DMMF } from './dmmf-types'
@@ -1143,7 +1143,7 @@ new PrismaClient({
 const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
 
 /**
- * Proxy that takes over client promises to pass `transactionId`
+ * Proxy that takes over the client promises to pass `txId`
  * @param thing to be proxied
  * @param txId to be passed down to {@link RequestHandler}
  * @returns
@@ -1162,8 +1162,10 @@ function transactionProxy<T>(thing: T, txId: string): T {
       // we override and handle every function call within the proxy
       if (typeof target[prop] === 'function') {
         return (...args: unknown[]) => {
-          // we hijack `then` calls to pass txId to prisma promises
+          // we hijack promise calls to pass txId to prisma promises
           if (prop === 'then') return target[prop](args[0], args[1], txId)
+          if (prop === 'catch') return target[prop](args[0], txId)
+          if (prop === 'finally') return target[prop](args[0], txId)
 
           // if it's not the end promise, result is also tx-proxied
           return transactionProxy(target[prop](...args), txId)
