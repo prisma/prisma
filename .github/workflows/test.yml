@@ -735,3 +735,13 @@ jobs:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        if: '!cancelled()' # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        uses: Workshop64/buildpulse-action@master
+        with:
+          account: 17219288
+          repository: 192925833
+          path: .
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
