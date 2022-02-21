@@ -820,7 +820,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // In this case it should not and the line `Datasource "x"` not be printed
+  // In this case it should not error and the line `Datasource "x"` not be printed
   test('introspection --url - only generator defined', async () => {
     ctx.fixture('schema-only-mongodb/only-generator')
     const introspect = new DbPull()
