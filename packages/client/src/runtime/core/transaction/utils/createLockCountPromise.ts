@@ -1,5 +1,5 @@
 /**
- * Creates a an exotic promise that opens after x `await`s.
+ * Creates an exotic promise that opens after x `await`s.
  * @remarks
  * This is currently used for locking regular transactions.
  * This ensures that all queries are executed at once/batched.
