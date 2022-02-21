@@ -1,5 +1,7 @@
 import { getTestClient } from '../../../../../utils/getTestClient'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 let PrismaClient, prisma
 
 const id = '8aaaaaaaaaaaaaaaaaaaaaaa'
@@ -7,7 +9,7 @@ const id = '8aaaaaaaaaaaaaaaaaaaaaaa'
 /**
  * Test findMany operations on optional composite fields
  */
-describe('findMany > optional', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()

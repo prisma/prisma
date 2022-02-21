@@ -1,5 +1,7 @@
 import { getTestClient } from '../../../../../../utils/getTestClient'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 let PrismaClient, prisma
 
 const id = 'eeeeeeeeeeeeeeeeeeeeeeee'
@@ -7,7 +9,7 @@ const id = 'eeeeeeeeeeeeeeeeeeeeeeee'
 /**
  * Test upsert create operations on required composite fields
  */
-describe('upsert > required > create', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('upsert > required > create', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../../')
     prisma = new PrismaClient()

@@ -1,5 +1,7 @@
 import { getTestClient } from '../../../../../utils/getTestClient'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 let PrismaClient, prisma
 
 const id = '8bbbbbbbbbbbbbbbbbbbbbbb'
@@ -7,7 +9,7 @@ const id = '8bbbbbbbbbbbbbbbbbbbbbbb'
 /**
  * Test find operations on list composite fields
  */
-describe('find > list', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
