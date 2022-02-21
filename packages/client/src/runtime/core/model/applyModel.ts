@@ -38,11 +38,11 @@ export function applyModel(client: Client, dmmfModelName: string) {
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
-        return createPrismaPromise((txId, otelCtx) => {
+        return createPrismaPromise((txId, lock, otelCtx) => {
           const data = { args: userArgs, dataPath: [] } // data and its dataPath for nested results
           const action = { action: prop, model: dmmfModelName } // action name and its related model
           const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
-          const tx = { runInTransaction: !!txId, transactionId: txId } // transaction information
+          const tx = { runInTransaction: !!txId, transactionId: txId, lock } // transaction information
           const trace = { callsite: callSite, otelCtx: otelCtx } // stack trace and opentelemetry
           const params = { ...data, ...action, ...method, ...tx, ...trace }
 

@@ -153,9 +153,10 @@ export type InternalRequestParams = {
   callsite?: string // TODO what is this
   /** Headers metadata that will be passed to the Engine */
   headers?: Record<string, string> // TODO what is this
-  transactionId?: string | PromiseLike<number>
+  transactionId?: string | number
   unpacker?: Unpacker // TODO what is this
   otelCtx?: Context // an otel context
+  lock?: PromiseLike<void>
 } & QueryMiddlewareParams
 
 // only used by the .use() hooks
@@ -556,7 +557,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Executes a raw query and always returns a number
      */
     private $executeRawInternal(
-      txId: string | PromiseLike<number> | undefined,
+      txId: string | number | undefined,
+      lock: PromiseLike<void> | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
@@ -654,6 +656,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         runInTransaction: !!txId,
         transactionId: txId,
         otelCtx: otelCtx,
+        lock,
       })
     }
 
@@ -666,9 +669,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @returns
      */
     $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise((txId, otelCtx) => {
+      return createPrismaPromise((txId, lock, otelCtx) => {
         if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
-          return this.$executeRawInternal(txId, otelCtx, query, ...values)
+          return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -690,8 +693,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return createPrismaPromise((txId, otelCtx) => {
-        return this.$executeRawInternal(txId, otelCtx, query, ...values)
+      return createPrismaPromise((txId, lock, otelCtx) => {
+        return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
       })
     }
 
@@ -708,7 +711,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         )
       }
 
-      return createPrismaPromise((txId, otelCtx) => {
+      return createPrismaPromise((txId, lock, otelCtx) => {
         return this._request({
           args: { command: command },
           clientMethod: 'runCommandRaw',
@@ -718,6 +721,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           runInTransaction: !!txId,
           transactionId: txId,
           otelCtx: otelCtx,
+          lock,
         })
       })
     }
@@ -726,7 +730,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * Executes a raw query and returns selected data
      */
     private $queryRawInternal(
-      txId: string | PromiseLike<number> | undefined,
+      txId: string | number | undefined,
+      lock: PromiseLike<void> | undefined,
       otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
@@ -827,6 +832,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         runInTransaction: !!txId,
         transactionId: txId,
         otelCtx: otelCtx,
+        lock,
       })
     }
 
@@ -839,9 +845,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise((txId, otelCtx) => {
+      return createPrismaPromise((txId, lock, otelCtx) => {
         if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
-          return this.$queryRawInternal(txId, otelCtx, query, ...values)
+          return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -863,8 +869,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return createPrismaPromise((txId, otelCtx) => {
-        return this.$queryRawInternal(txId, otelCtx, query, ...values)
+      return createPrismaPromise((txId, lock, otelCtx) => {
+        return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
       })
     }
 
@@ -904,7 +910,8 @@ new PrismaClient({
      * @param options
      */
     private _transactionWithArray(promises: Array<PrismaPromise<any>>): Promise<any> {
-      const txId = getLockCountPromise(promises.length, () => this._transactionId++)
+      const txId = this._transactionId++
+      const lock = getLockCountPromise(promises.length)
 
       const _requests = promises.map((request) => {
         if (request?.[Symbol.toStringTag] !== 'PrismaPromise') {
@@ -913,10 +920,7 @@ new PrismaClient({
           )
         }
 
-        // we re-wrap the promise to pass a txId
-        return new Promise((resolve, reject) => {
-          request.then(resolve, reject, txId)
-        })
+        return request.requestTransaction?.(txId, lock)
       })
 
       return Promise.all(_requests)
@@ -1035,6 +1039,7 @@ new PrismaClient({
       headers,
       transactionId,
       otelCtx,
+      lock,
       unpacker,
     }: InternalRequestParams) {
       let rootField: string | undefined
@@ -1101,6 +1106,8 @@ new PrismaClient({
 
       headers = applyTracingHeaders(headers, otelCtx)
 
+      await lock /** @see {@link getLockCountPromise} */
+
       return this._fetcher.request({
         document,
         clientMethod,
@@ -1115,8 +1122,7 @@ new PrismaClient({
         engineHook: this._middlewares.engine.get(0),
         runInTransaction,
         headers,
-        /** @see {@link getLockCountPromise} */
-        transactionId: await transactionId,
+        transactionId,
         unpacker,
       })
     }

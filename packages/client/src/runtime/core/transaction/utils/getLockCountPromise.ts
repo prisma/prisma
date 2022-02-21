@@ -7,15 +7,15 @@
  * @param knock
  * @returns
  */
-export function getLockCountPromise<V>(knock: number, cb: () => V) {
-  let resolve: (v: V) => void
-  const lock = new Promise<V>((res) => (resolve = res))
+export function getLockCountPromise<V = void>(knock: number, cb: () => V | void = () => {}) {
+  let resolve: (v: V | void) => void
+  const lock = new Promise<V | void>((res) => (resolve = res))
 
   return {
     then(onFulfilled) {
       if (--knock === 0) resolve(cb())
 
-      return onFulfilled?.(lock as unknown as V)
+      return onFulfilled?.(lock as unknown as V | void)
     },
-  } as PromiseLike<V>
+  } as PromiseLike<V | void>
 }
