@@ -1,8 +1,10 @@
-import { MigrateDiff } from '../commands/MigrateDiff'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+
+import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -177,9 +179,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                [-] Removed tables
-                  - Blog
-            `)
+        [-] Removed tables
+          - Blog
+      `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')

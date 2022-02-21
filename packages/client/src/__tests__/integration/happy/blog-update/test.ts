@@ -1,7 +1,9 @@
 import fs from 'fs'
-import { getTestClient } from '../../../../utils/getTestClient'
 import path from 'path'
 import { promisify } from 'util'
+
+import { getTestClient } from '../../../../utils/getTestClient'
+
 const copyFile = promisify(fs.copyFile)
 
 test('blog-update', async () => {

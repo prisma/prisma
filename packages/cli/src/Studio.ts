@@ -1,4 +1,5 @@
 import { enginesVersion } from '@prisma/engines'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import type { Command } from '@prisma/sdk'
 import { arg, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
 import { StudioServer } from '@prisma/studio-server'
@@ -6,7 +7,6 @@ import chalk from 'chalk'
 import getPort from 'get-port'
 import open from 'open'
 import path from 'path'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 

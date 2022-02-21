@@ -1,9 +1,9 @@
-import type { OutputType } from './Output'
 import indent from 'indent-string'
-import { DMMF } from '../../runtime/dmmf-types'
 
-import { getModelArgName, getPayloadName, Projection, getArgName } from '../utils'
+import { DMMF } from '../../runtime/dmmf-types'
+import { getArgName, getModelArgName, getPayloadName, Projection } from '../utils'
 import type { Generatable } from './Generatable'
+import type { OutputType } from './Output'
 
 export class PayloadType implements Generatable {
   constructor(protected readonly type: OutputType, protected readonly findMany = true) {}

@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+
 import { OldMigrateDetectedError } from './errors'
 
 export function isOldMigrate(migrationDirPath: string): boolean {

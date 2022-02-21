@@ -1,18 +1,19 @@
 import { getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
+  getClientEngineType,
   getConfig,
   getEnvPaths,
   getRelativeSchemaPath,
   mapPreviewFeatures,
   parseEnvValue,
   printConfigWarnings,
-  getClientEngineType,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
+
 import { getDMMF } from '../generation/getDMMF'
 import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'

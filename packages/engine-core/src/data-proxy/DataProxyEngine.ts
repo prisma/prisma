@@ -1,19 +1,20 @@
 /// <reference lib="webworker" />
 // TODO: this is a problem because it propagates everywhere
 
-import { Engine } from '../common/Engine'
-import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
-import { request } from './utils/request'
 import EventEmitter from 'events'
-import { backOff } from './utils/backOff'
-import { getClientVersion } from './utils/getClientVersion'
-import { responseToError } from './errors/utils/responseToError'
+
+import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import { Engine } from '../common/Engine'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { DataProxyError } from './errors/DataProxyError'
+import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
 import { NotImplementedYetError } from './errors/NotImplementedYetError'
-import { ForcedRetryError } from './errors/ForcedRetryError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
-import { DataProxyError } from './errors/DataProxyError'
-import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { responseToError } from './errors/utils/responseToError'
+import { backOff } from './utils/backOff'
+import { getClientVersion } from './utils/getClientVersion'
+import { request } from './utils/request'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 // TODO this is an issue that we cannot share types from the client to other packages
 

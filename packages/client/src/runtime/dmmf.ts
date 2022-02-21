@@ -1,4 +1,5 @@
 import type { DMMF } from '@prisma/generator-helper'
+
 import type { Dictionary } from './utils/common'
 import { keyBy, ScalarTypeTable } from './utils/common'
 

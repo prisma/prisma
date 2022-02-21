@@ -1,23 +1,23 @@
+import type { DMMF } from '@prisma/generator-helper'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import type { Command } from '@prisma/sdk'
 import {
   arg,
-  getDMMF,
+  canConnectToDatabase,
+  format,
   getConfig,
+  getDMMF,
+  HelpError,
   IntrospectionEngine,
   keyBy,
-  pick,
-  format,
-  HelpError,
-  canConnectToDatabase,
   loadEnvFile,
+  pick,
 } from '@prisma/sdk'
 import chalk from 'chalk'
+import equal from 'fast-deep-equal'
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
-import type { DMMF } from '@prisma/generator-helper'
-import equal from 'fast-deep-equal'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 
 const readFile = promisify(fs.readFile)
 type IncorrectFieldTypes = Array<{

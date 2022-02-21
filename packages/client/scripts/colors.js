@@ -4,7 +4,7 @@ const isObject = (val) => val !== null && typeof val === 'object' && !Array.isAr
 
 // this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
 const ANSI_REGEX =
-  // eslint-disable-next-line no-control-regex
+  /* eslint-disable-next-line no-control-regex */
   /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g
 
 const create = () => {

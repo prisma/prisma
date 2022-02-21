@@ -1,12 +1,12 @@
-import type { BuildOptions } from '../../../helpers/compile/build'
-import { run } from '../../../helpers/compile/build'
-import { build } from '../../../helpers/compile/build'
-import { copySync } from 'fs-extra'
-import path from 'path'
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
-import { promisify } from 'util'
+import { copySync } from 'fs-extra'
 import lineReplace from 'line-replace'
+import path from 'path'
+import { promisify } from 'util'
+
+import type { BuildOptions } from '../../../helpers/compile/build'
+import { build, run } from '../../../helpers/compile/build'
 
 const copyFile = promisify(fs.copyFile)
 

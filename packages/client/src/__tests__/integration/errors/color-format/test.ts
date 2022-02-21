@@ -1,4 +1,5 @@
 import stripAnsi from 'strip-ansi'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('client colorless errorFormat argument', async () => {

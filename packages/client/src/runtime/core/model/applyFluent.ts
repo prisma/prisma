@@ -1,9 +1,11 @@
+import type { DMMF } from '@prisma/generator-helper'
+
 import type { Client } from '../../getPrismaClient'
 import { deepSet } from '../../utils/deep-set'
-import type { DMMF } from '@prisma/generator-helper'
+import { getCallSite } from '../utils/getCallSite'
 import type { ModelAction } from './applyModel'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import type { UserArgs } from './UserArgs'
+import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**
  * The fluent API makes that nested relations can be retrieved at once. It's a
@@ -94,10 +96,11 @@ export function applyFluent(
 
   // we return a regular model action but proxy its return
   return (userArgs?: UserArgs) => {
+    const callsite = getCallSite()
     // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
-    const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
+    const prismaPromise = modelAction({ dataPath: nextDataPath, callsite })(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
     // TODO: once it's done we can deprecate the use of dataPath
     const ownKeys = getOwnKeys(client, dmmfModelName)

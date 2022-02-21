@@ -1,13 +1,13 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
-import { arg, format, getSchemaDir, HelpError, isError, isCi, dropDatabase, link } from '@prisma/sdk'
+import { arg, dropDatabase, format, getSchemaDir, HelpError, isCi, isError, link, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
+
 import { getDbInfo } from '../utils/ensureDatabaseExists'
-import { PreviewFlagError } from '../utils/flagErrors'
 import { DbNeedsForceError } from '../utils/errors'
-import { printDatasource } from '../utils/printDatasource'
+import { PreviewFlagError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
   public static new(): DbDrop {

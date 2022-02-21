@@ -1,15 +1,15 @@
-import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
-import { arg, format, HelpError, isError } from '@prisma/sdk'
-import chalk from 'chalk'
-import { Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { printDatasource } from '../utils/printDatasource'
 import Debug from '@prisma/debug'
+import type { Command } from '@prisma/sdk'
+import { arg, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
+import chalk from 'chalk'
+
+import { Migrate } from '../Migrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { printDatasource } from '../utils/printDatasource'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
 
 const debug = Debug('prisma:migrate:deploy')
 
@@ -121,8 +121,6 @@ ${editedMigrationNames.join('\n')}`,
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
-      // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
-      await new Promise((resolve) => setTimeout(resolve, 50))
       // Stop engine
       migrate.stop()
     }

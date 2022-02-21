@@ -1,5 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
+
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
@@ -11,8 +12,8 @@ import {
   getGroupByArgsName,
   getGroupByPayloadName,
   getModelArgName,
-  getSelectName,
   getReturnType,
+  getSelectName,
   Projection,
 } from '../utils'
 import { ArgsType } from './Args'
@@ -219,7 +220,7 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f)} = {}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getReturnType({
+${f.name}<T extends ${getFieldArgName(f)}>(args?: Subset<T, ${getFieldArgName(f)}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

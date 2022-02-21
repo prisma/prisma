@@ -1,5 +1,6 @@
 import { uriToCredentials } from '@prisma/sdk'
 import mariadb from 'mariadb'
+
 import type { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {

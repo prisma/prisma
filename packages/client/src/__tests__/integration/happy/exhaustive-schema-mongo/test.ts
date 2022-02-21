@@ -1,6 +1,7 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
 import fs from 'fs'
 import path from 'path'
+
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('exhaustive-schema', async () => {
   await generateTestClient()

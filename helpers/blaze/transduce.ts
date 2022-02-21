@@ -79,4 +79,4 @@ const transduce = transduceSync as typeof transduceSync & {
 
 transduce.async = transduceAsync
 
-export { transduce, Filter, Mapper, skip }
+export { Filter, Mapper, skip, transduce }

@@ -1,6 +1,7 @@
 import type { L } from 'ts-toolbelt'
-import { reduce } from './reduce'
+
 import { concat } from './concat'
+import { reduce } from './reduce'
 
 function wrap(item: unknown) {
   return Array.isArray(item) ? item : [item]

@@ -42,9 +42,7 @@ function findPackageRoot(startPath, limit = 10) {
         if (pkg.name && !['@prisma/cli', 'prisma'].includes(pkg.name)) {
           return pkgPath.replace('package.json', '')
         }
-      } catch {
-        // discard error
-      }
+      } catch {} // eslint-disable-line no-empty
     }
     currentPath = path.join(currentPath, '../')
   }
@@ -63,7 +61,6 @@ async function main() {
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
 
   // this is needed, so that the Generate command does not fail in postinstall
-
   process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
 
   // this is needed, so we can find the correct schemas in yarn workspace projects
@@ -109,18 +106,14 @@ function getLocalPackagePath() {
     if (packagePath) {
       return require.resolve('prisma')
     }
-  } catch (e) {
-    // discard error
-  }
+  } catch (e) {} // eslint-disable-line no-empty
 
   try {
     const packagePath = require.resolve('@prisma/cli/package.json')
     if (packagePath) {
       return require.resolve('@prisma/cli')
     }
-  } catch (e) {
-    // discard error
-  }
+  } catch (e) {} // eslint-disable-line no-empty
 
   return null
 }
@@ -349,8 +342,7 @@ function parsePackageManagerName(userAgent) {
   // - https://pnpm.js.org/en/3.6/only-allow-pnpm
   // - https://github.com/cameronhunter/npm-config-user-agent-parser
   if (userAgent) {
-    // eslint-disable-next-line no-useless-escape -- ???
-    const matchResult = userAgent.match(/^([^\/]+)\/.+/)
+    const matchResult = userAgent.match(/^([^/]+)\/.+/)
     if (matchResult) {
       packageManager = matchResult[1].trim()
     }

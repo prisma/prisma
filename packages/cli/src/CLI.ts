@@ -1,9 +1,9 @@
-import chalk from 'chalk'
-import type { Command, Commands } from '@prisma/sdk'
-import { arg, isError, format, HelpError, unknownCommand, logger } from '@prisma/sdk'
-import { Version } from './Version'
-import { link } from '@prisma/sdk'
 import { ensureBinariesExist } from '@prisma/engines'
+import type { Command, Commands } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/sdk'
+import chalk from 'chalk'
+
+import { Version } from './Version'
 
 /**
  * CLI command

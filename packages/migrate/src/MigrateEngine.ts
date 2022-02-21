@@ -1,11 +1,13 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/sdk'
-import { BinaryType, ErrorArea, resolveBinary, RustPanic, MigrateEngineExitCode } from '@prisma/sdk'
+import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
-import type { EngineArgs, EngineResults } from './types'
+
+import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
 const debugStdin = Debug('prisma:migrateEngine:stdin')
@@ -15,13 +17,6 @@ export interface MigrateEngineOptions {
   schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
-}
-
-export interface RPCPayload {
-  id: number
-  jsonrpc: string
-  method: string
-  params: any
 }
 
 export class EngineError extends Error {
@@ -136,9 +131,10 @@ export class MigrateEngine {
       console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
     }
 
+    // See https://www.jsonrpc.org/specification for the expected shape of messages.
     if (result) {
       // It's a response
-      if (result.id) {
+      if (result.id && (result.result !== undefined || result.error !== undefined)) {
         if (!this.listeners[result.id]) {
           console.error(`Got result for unknown id ${result.id}`)
         }
@@ -147,9 +143,19 @@ export class MigrateEngine {
           delete this.listeners[result.id]
         }
       } else if (result.method) {
-        // This is a notification.
-        if (result.method === 'print' && result.params?.content) {
-          console.info(result.params.content)
+        // This is a request.
+        if (result.id !== undefined) {
+          if (result.method === 'print' && result.params?.content !== undefined) {
+            console.info(result.params.content)
+
+            // Send an empty response back as ACK.
+            const response: RpcSuccessResponse<{}> = {
+              id: result.id,
+              jsonrpc: '2.0',
+              result: {},
+            }
+            this.child!.stdin!.write(JSON.stringify(response) + '\n')
+          }
         }
       }
     }
@@ -237,6 +243,8 @@ export class MigrateEngine {
           debugStdin(err)
         })
 
+        // logs (info, error)
+        // error can be a panic
         byline(this.child.stderr).on('data', (msg) => {
           const data = String(msg)
           debugStderr(data)

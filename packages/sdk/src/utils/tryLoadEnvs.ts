@@ -1,9 +1,11 @@
-import chalk from 'chalk'
 import Debug from '@prisma/debug'
+import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
+
 import { dotenvExpand } from '../dotenvExpand'
+
 const debug = Debug('prisma:tryLoadEnv')
 
 type DotenvResult = dotenv.DotenvConfigOutput & {

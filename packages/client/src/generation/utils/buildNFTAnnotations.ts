@@ -2,6 +2,7 @@ import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType } from '@prisma/sdk'
 import path from 'path'
+
 import { map } from '../../../../../helpers/blaze/map'
 
 // NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
@@ -63,9 +64,11 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
  * @returns
  */
 function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
+  const relativeFilePath = path.join(relativeOutdir, fileName)
+
   return `
-path.join(__dirname, '${fileName}');
-path.join(process.cwd(), './${path.join(relativeOutdir, fileName)}')`
+path.join(__dirname, ${JSON.stringify(fileName)});
+path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
 }
 
 /**

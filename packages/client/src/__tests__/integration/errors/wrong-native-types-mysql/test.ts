@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
@@ -110,9 +111,17 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
         lText: true,
       },
     }),
-  ).rejects.toThrowErrorMatchingInlineSnapshot(
-    `The provided value for the column is too long for the column's type. Column: char`,
-  )
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+          Invalid \`prisma.c.create()\` invocation in
+          /client/src/__tests__/integration/errors/wrong-native-types-mysql/test.ts:0:0
+
+            100 }
+            101 
+            102 await expect(async () =>
+          → 103   prisma.c.create(
+            The provided value for the column is too long for the column's type. Column: char
+        `)
 
   await prisma.$disconnect()
 })

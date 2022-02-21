@@ -1,17 +1,17 @@
 import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError, isCi } from '@prisma/sdk'
+import { arg, format, getSchemaPath, HelpError, isCi, isError, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
+
 import { Migrate } from '../Migrate'
-import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
-import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { printDatasource } from '../utils/printDatasource'
-import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
+import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
+import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { printDatasource } from '../utils/printDatasource'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -122,8 +122,6 @@ ${chalk.bold('Examples')}
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
-      // We need to wait for the "notification(s)" sent by the engine via JSON-RPC to be printed to console.info
-      await new Promise((resolve) => setTimeout(resolve, 50))
       // Stop engine
       migrate.stop()
     }

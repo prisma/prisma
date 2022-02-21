@@ -12,18 +12,20 @@ import {
   highlightTS,
   isError,
   link,
+  loadEnvFile,
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  loadEnvFile,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
+
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
+
 const pkg = eval(`require('../package.json')`)
 
 /**

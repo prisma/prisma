@@ -1,4 +1,5 @@
 import { serializeRawParameters } from '../runtime/utils/serializeRawParameters'
+
 function serializeHelper(data: any) {
   return JSON.parse(serializeRawParameters(data))
 }

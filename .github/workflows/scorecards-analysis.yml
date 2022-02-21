@@ -1,10 +1,9 @@
 name: Scorecards supply-chain security
 on:
-  # Only the default branch is supported.
+  # when a branch protection rule has been edited, created or deleted
   branch_protection_rule:
-  schedule:
-    - cron: '21 21 * * 2'
   push:
+    # Only the default branch is supported.
     branches: [main]
 
 # Declare default permissions as read only.
@@ -27,7 +26,7 @@ jobs:
           persist-credentials: false
 
       - name: 'Run analysis'
-        uses: ossf/scorecard-action@v1.0.3
+        uses: ossf/scorecard-action@v1.0.4
         with:
           results_file: results.sarif
           results_format: sarif

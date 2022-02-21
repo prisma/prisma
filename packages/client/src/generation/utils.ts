@@ -1,5 +1,6 @@
 import indent from 'indent-string'
 import path from 'path'
+
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 

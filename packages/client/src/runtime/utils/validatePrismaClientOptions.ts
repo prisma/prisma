@@ -1,5 +1,6 @@
 import { isError } from '@prisma/sdk'
 import leven from 'js-levenshtein'
+
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 import { PrismaClientConstructorValidationError } from '../query'
 
