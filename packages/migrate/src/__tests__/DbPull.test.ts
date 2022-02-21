@@ -194,14 +194,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                    // *** WARNING ***
-                                                                                                                                                                                                                                                                    // 
-                                                                                                                                                                                                                                                                    // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                                                                                                                    // - Model "AwesomeNewPost"
-                                                                                                                                                                                                                                                                    // - Model "AwesomeProfile"
-                                                                                                                                                                                                                                                                    // - Model "AwesomeUser"
-                                                                                                                                                                                                                                                                    // 
-                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                          // *** WARNING ***
+                                                                                                                                                                                                                                                                          // 
+                                                                                                                                                                                                                                                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                                                                                          // - Model "AwesomeNewPost"
+                                                                                                                                                                                                                                                                          // - Model "AwesomeProfile"
+                                                                                                                                                                                                                                                                          // - Model "AwesomeUser"
+                                                                                                                                                                                                                                                                          // 
+                                                                                                                                                                                `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -582,18 +582,56 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["mongoDb"]
+      }
+
+      datasource my_db {
+        provider = "mongodb"
+        url      = env("TEST_MONGO_URI_MIGRATE")
+      }
+
+      type UsersHobbies {
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString2 Int?
+        objects         UsersHobbiesObjects[]
+        tags            String[]
+      }
+
+      type UsersHobbiesObjects {
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString3 Int
+        tags            String[]
+      }
+
+      model users {
+        id              String         @id @default(auto()) @map("_id") @my_db.ObjectId
+        admin           Boolean
+        email           String
+        hobbies         UsersHobbies[]
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString1 Int
+      }
+
+
+      // introspectionSchemaVersion: NonPrisma,
+    `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            // *** WARNING ***
-            // 
-            // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-            // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
-            // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
-            // 
-        `)
+                  // *** WARNING ***
+                  // 
+                  // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                  // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                  // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+                  // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+                  // 
+            `)
   })
 
   test('introspection --print --composite-type-depth=0 (no existing models)', async () => {
@@ -601,16 +639,39 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=0'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["mongoDb"]
+      }
+
+      datasource my_db {
+        provider = "mongodb"
+        url      = env("TEST_MONGO_URI_MIGRATE")
+      }
+
+      model users {
+        id              String  @id @default(auto()) @map("_id") @my_db.ObjectId
+        admin           Boolean
+        email           String
+        hobbies         Json[]
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString1 Int
+      }
+
+
+      // introspectionSchemaVersion: NonPrisma,
+    `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            // *** WARNING ***
-            // 
-            // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-            // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-            // 
-        `)
+                  // *** WARNING ***
+                  // 
+                  // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                  // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                  // 
+            `)
   })
 
   test('introspection --print --composite-type-depth=1 (no existing models)', async () => {
@@ -618,17 +679,48 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=1'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["mongoDb"]
+      }
+
+      datasource my_db {
+        provider = "mongodb"
+        url      = env("TEST_MONGO_URI_MIGRATE")
+      }
+
+      type UsersHobbies {
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString2 Int?
+        objects         Json[]
+        tags            String[]
+      }
+
+      model users {
+        id              String         @id @default(auto()) @map("_id") @my_db.ObjectId
+        admin           Boolean
+        email           String
+        hobbies         UsersHobbies[]
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString1 Int
+      }
+
+
+      // introspectionSchemaVersion: NonPrisma,
+    `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-                                                                        // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
-                                                                        // 
-                                                `)
+                                                                              // *** WARNING ***
+                                                                              // 
+                                                                              // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                                                                              // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                                                                              // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+                                                                              // 
+                                                    `)
   })
 
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
@@ -662,18 +754,56 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--schema=./prisma/no-model.prisma', '--print', '--composite-type-depth=-1'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      generator client {
+        provider        = "prisma-client-js"
+        previewFeatures = ["mongoDb"]
+      }
+
+      datasource my_db {
+        provider = "mongodb"
+        url      = env("TEST_MONGO_URI_MIGRATE")
+      }
+
+      type UsersHobbies {
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString2 Int?
+        objects         UsersHobbiesObjects[]
+        tags            String[]
+      }
+
+      type UsersHobbiesObjects {
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString3 Int
+        tags            String[]
+      }
+
+      model users {
+        id              String         @id @default(auto()) @map("_id") @my_db.ObjectId
+        admin           Boolean
+        email           String
+        hobbies         UsersHobbies[]
+        name            String
+        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        numberOrString1 Int
+      }
+
+
+      // introspectionSchemaVersion: NonPrisma,
+    `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-                                                                        // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
-                                                                        // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
-                                                                        // 
-                                                `)
+                                                                              // *** WARNING ***
+                                                                              // 
+                                                                              // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                                                                              // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                                                                              // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+                                                                              // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+                                                                              // 
+                                                    `)
   })
 
   // describeIf is making eslint not happy about the names
