@@ -14,6 +14,9 @@ export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
 ) => (userArgs?: UserArgs) => PrismaPromise<unknown>
 
+const fluentProps = ['findUnique', 'findFirst', 'create', 'update', 'upsert', 'delete'] as const
+const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
+
 /**
  * Dynamically creates a model interface via a proxy.
  * @param client to trigger the request execution
@@ -51,12 +54,12 @@ export function applyModel(client: Client, dmmfModelName: string) {
       }
 
       // we give the control over action for building the fluent api
-      if (prop === 'findUnique' || prop === 'findFirst') {
+      if (fluentProps.includes(prop as typeof fluentProps[number])) {
         return applyFluent(client, dmmfModelName, action)
       }
 
       // we handle the edge case of aggregates that need extra steps
-      if (prop === 'aggregate' || prop === 'count' || prop === 'groupBy') {
+      if (aggregateProps.includes(prop as typeof aggregateProps[number])) {
         return applyAggregates(client, prop, action)
       }
 
