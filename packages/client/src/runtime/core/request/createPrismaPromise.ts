@@ -44,8 +44,8 @@ export function createPrismaPromise(
       const promise = _callback(txId, lock)
 
       if (promise.requestTransaction) {
-        // requestTransaction support for nested promises
-        return promise.requestTransaction(txId)
+        // we want to have support for nested promises
+        return promise.requestTransaction(txId, lock)
       }
 
       return promise

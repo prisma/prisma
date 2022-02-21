@@ -58,6 +58,20 @@ describe('prismaPromise', () => {
     expect(createResult1).toStrictEqual(createResult2)
   })
 
+  test('repeated calls to .requestTransaction', async () => {
+    const createPromise = prisma.user.create({
+      data: {
+        email: 'email@email.em',
+      },
+    })
+
+    // repeated calls to then & co should not change the result
+    const createResult1 = await createPromise.requestTransaction(1)
+    const createResult2 = await createPromise.requestTransaction(1)
+
+    expect(createResult1).toStrictEqual(createResult2)
+  })
+
   beforeAll(async () => {
     const PrismaClient = await getTestClient()
     prisma = new PrismaClient()
