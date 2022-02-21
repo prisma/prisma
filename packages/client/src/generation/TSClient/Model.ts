@@ -53,7 +53,7 @@ export class Model implements Generatable {
     this.mapping = dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
   protected get argsTypes(): Generatable[] {
-    const { mapping, model } = this
+    const { mapping } = this
 
     const argsTypes: Generatable[] = []
     for (const action in DMMF.ModelAction) {
@@ -345,7 +345,7 @@ export class ModelDelegate implements Generatable {
     const { fields, name } = this.outputType
 
     const mapping = this.dmmf.mappingsMap[name] ?? { model: name, plural: `${name}s` }
-    const model = this.dmmf.typeModelMap[name]
+    const modelOrType = this.dmmf.typeAndModelMap[name]
 
     const mappingKeys = Object.keys(mapping)
     const availableActions = mappingKeys.filter(
@@ -373,7 +373,7 @@ ${indent(
   filteredActions
     .map(
       (actionName): string =>
-        `${getMethodJSDoc(actionName, mapping, model)}
+        `${getMethodJSDoc(actionName, mapping, modelOrType)}
 ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
 ): ${getReturnType({ name, actionName, projection: Projection.select })}`,
@@ -384,7 +384,7 @@ ${actionName}${getGenericMethod(name, actionName)}(
 
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
+    ? `${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, modelOrType), TAB_SIZE)}
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
   ): PrismaPromise<
@@ -399,7 +399,7 @@ ${
 }
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
+    ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
         name,
       )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
@@ -408,7 +408,7 @@ ${
 }
 ${
   availableActions.includes(DMMF.ModelAction.groupBy)
-    ? `${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
+    ? `${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, modelOrType), TAB_SIZE)}
   groupBy<
     T extends ${groupByArgsName},
     HasSelectOrTake extends Or<

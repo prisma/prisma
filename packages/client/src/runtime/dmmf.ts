@@ -24,7 +24,7 @@ export class DMMFHelper implements DMMF.Document {
   public datamodelEnumMap: Dictionary<DMMF.DatamodelEnum>
   public modelMap: Dictionary<DMMF.Model>
   public typeMap: Dictionary<DMMF.Model>
-  public typeModelMap: Dictionary<DMMF.Model>
+  public typeAndModelMap: Dictionary<DMMF.Model>
   public mappingsMap: Dictionary<DMMF.ModelMapping>
   public rootFieldMap: Dictionary<DMMF.SchemaField>
   constructor({ datamodel, schema, mappings }: DMMF.Document) {
@@ -38,7 +38,7 @@ export class DMMFHelper implements DMMF.Document {
     this.mutationType = this.getMutationType()
     this.modelMap = this.getModelMap()
     this.typeMap = this.getTypeMap()
-    this.typeModelMap = this.getTypeModelMap()
+    this.typeAndModelMap = this.getTypeModelMap()
 
     this.outputTypes = this.getOutputTypes()
 

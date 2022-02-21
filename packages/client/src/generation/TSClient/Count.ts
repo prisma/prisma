@@ -85,7 +85,7 @@ class CountDelegate implements Generatable {
     if (!mapping) {
       return ''
     }
-    const model = this.dmmf.typeModelMap[name]
+    const modelOrType = this.dmmf.typeAndModelMap[name]
 
     const actions = Object.entries(mapping).filter(
       ([key, value]) => key !== 'model' && key !== 'plural' && key !== 'aggregate' && key !== 'groupBy' && value,
@@ -104,7 +104,7 @@ ${indent(
   actions
     .map(
       ([actionName]: [any, any]): string =>
-        `${getMethodJSDoc(actionName, mapping, model)}
+        `${getMethodJSDoc(actionName, mapping, modelOrType)}
 ${actionName}${getGenericMethod(name, actionName)}(
   ${getArgs(name, actionName)}
 ): ${getReturnType({ name, actionName, projection: Projection.select })}`,
@@ -113,7 +113,7 @@ ${actionName}${getGenericMethod(name, actionName)}(
   TAB_SIZE,
 )}
 
-${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
+${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, modelOrType), TAB_SIZE)}
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
   ): PrismaPromise<
@@ -124,12 +124,12 @@ ${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, model), TAB_SIZE)}
       : number
   >
 
-${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, model), TAB_SIZE)}
+${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
       name,
     )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
 
-${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, model), TAB_SIZE)}
+${indent(getMethodJSDoc(DMMF.ModelAction.groupBy, mapping, modelOrType), TAB_SIZE)}
   groupBy<
     T extends ${groupByArgsName},
     HasSelectOrTake extends Or<
