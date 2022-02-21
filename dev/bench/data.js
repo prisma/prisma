@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645445310621,
+  "lastUpdate": 1645446044526,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -85314,6 +85314,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±2.62%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "2cf3e974b404bf5e139b8001628c14507b2ab049",
+          "message": "fix(db pull): check if mongodb reintrospection and error early (#11880)\n\n* fix(db pull): check if mongodb reintrospection and error early\r\n\r\nCloses https://github.com/prisma/prisma/issues/11185\r\n\r\n* snapshots and cleaner mongodb reintrospection error test\r\n\r\n* Apply suggestions from code review\r\n\r\nCo-authored-by: Jan Piotrowski <piotrowski+github@gmail.com>\r\n\r\n* check resolve/rejects for all tests and update snapshots\r\n\r\n* use toMatchInlineSnapshot for mongo tests\r\n\r\nCo-authored-by: Jan Piotrowski <piotrowski+github@gmail.com>",
+          "timestamp": "2022-02-21T13:15:54+01:00",
+          "tree_id": "4acea3a15c67a78253176db0cce135907bf14c11",
+          "url": "https://github.com/prisma/prisma/commit/2cf3e974b404bf5e139b8001628c14507b2ab049"
+        },
+        "date": 1645446039523,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±4.92%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.1,
+            "range": "±4.12%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
