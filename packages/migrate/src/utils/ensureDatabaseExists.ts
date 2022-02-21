@@ -10,9 +10,9 @@ export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'Cockroa
 // TODO: extract functions in their own files?
 
 export async function getDbInfo(schemaPath?: string): Promise<{
-  name: string // from datasource name
-  url: string // from getConfig
   schemaWord: 'database' // legacy? could be removed?
+  name?: string // from datasource name
+  url?: string // from getConfig
   dbLocation?: string // host without credentials
   dbType?: DbType // pretty name
   dbName?: string // database name
@@ -20,7 +20,19 @@ export async function getDbInfo(schemaPath?: string): Promise<{
 }> {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel })
-  const activeDatasource = config.datasources[0]
+  const activeDatasource = config.datasources?.[0]
+
+  if (!activeDatasource) {
+    return {
+      name: undefined,
+      schemaWord: 'database',
+      dbType: undefined,
+      dbName: undefined,
+      dbLocation: undefined,
+      url: undefined,
+    }
+  }
+
   const url = activeDatasource.url.value
 
   if (activeDatasource.provider === 'sqlserver') {
