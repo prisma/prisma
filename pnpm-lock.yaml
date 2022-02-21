@@ -229,7 +229,7 @@ importers:
       is-obj: 2.0.0
       is-regexp: 2.1.0
       jest: 27.5.1
-      jest-junit: ^13.0.0
+      jest-junit: 13.0.0
       js-levenshtein: 1.1.6
       klona: 2.0.5
       lz-string: 1.4.4
@@ -5509,7 +5509,7 @@ packages:
       pretty-format: 27.5.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.4.0_821f076c424ed09f3232bb5c565ae7fa
+      ts-node: 10.4.0_b575a4ed8d8a14db25cb9540c04f64f6
     transitivePeerDependencies:
       - bufferutil
       - canvas
