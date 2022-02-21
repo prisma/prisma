@@ -64,9 +64,11 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
  * @returns
  */
 function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
+  const relativeFilePath = path.join(relativeOutdir, fileName)
+
   return `
-path.join(__dirname, '${fileName}');
-path.join(process.cwd(), './${path.join(relativeOutdir, fileName)}')`
+path.join(__dirname, ${JSON.stringify(fileName)});
+path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
 }
 
 /**
