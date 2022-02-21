@@ -1056,10 +1056,10 @@ function getDefaultSelection(dmmf: DMMFHelper, outputType: DMMF.OutputType) {
 
   for (const f of outputType.fields) {
     if (dmmf.typeMap[(f.outputType.type as DMMF.OutputType).name] !== undefined) {
-      acc[f.name] = true
+      acc[f.name] = true // by default, we load composite fields
     }
     if (f.outputType.location === 'scalar' || f.outputType.location === 'enumTypes') {
-      acc[f.name] = true
+      acc[f.name] = true // by default, we load all scalar fields
     }
   }
 
