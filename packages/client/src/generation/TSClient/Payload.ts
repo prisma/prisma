@@ -45,20 +45,22 @@ export type ${getPayloadName(name)}<
     }
     const selectPrefix =
       projection === Projection.select
-        ? `P extends keyof ${type.name} ?${type.name} [P]
-: `
+        ? `
+      P extends keyof ${type.name} ? ${type.name}[P] :
+     `
         : ''
+
     return `{
-  [P in TrueKeys<S['${projection}']>]: ${selectPrefix}
-  ${indent(
-    relations
-      .map(
-        (f) => `P extends '${f.name}'
+  [P in TrueKeys<S['${projection}']>]:
+${indent(
+  relations
+    .map(
+      (f) => `P extends '${f.name}'
 ? ${this.wrapType(f, `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]>`)} :`,
-      )
-      .join('\n'),
-    6,
-  )} never
+    )
+    .join('\n'),
+  6,
+)} ${selectPrefix} never
 } `
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
