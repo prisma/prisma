@@ -43,20 +43,18 @@ export type ${getPayloadName(name)}<
     if (relations.length === 0 && projection === Projection.include) {
       return ''
     }
-    const selectPrefix =
-      projection === Projection.select
-        ? `
-      P extends keyof ${type.name} ? ${type.name}[P] :
-     `
-        : ''
+    const selectPrefix = projection === Projection.select ? ` P extends keyof ${type.name} ? ${type.name}[P] :` : ''
 
     return `{
   [P in TrueKeys<S['${projection}']>]:
 ${indent(
   relations
     .map(
-      (f) => `P extends '${f.name}'
-? ${this.wrapType(f, `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]>`)} :`,
+      (f) =>
+        `P extends '${f.name}' ? ${this.wrapType(
+          f,
+          `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]>`,
+        )} :`,
     )
     .join('\n'),
   6,

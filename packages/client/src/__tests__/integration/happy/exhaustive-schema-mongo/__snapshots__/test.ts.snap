@@ -1458,9 +1458,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof UserCountOutputType ? UserCountOutputType[P] :
-        never
+    P extends keyof UserCountOutputType ? UserCountOutputType[P] : never
   } 
     : UserCountOutputType
   : UserCountOutputType
@@ -1509,9 +1507,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof EmbedHolderCountOutputType ? EmbedHolderCountOutputType[P] :
-        never
+    P extends keyof EmbedHolderCountOutputType ? EmbedHolderCountOutputType[P] : never
   } 
     : EmbedHolderCountOutputType
   : EmbedHolderCountOutputType
@@ -1560,9 +1556,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof MCountOutputType ? MCountOutputType[P] :
-        never
+    P extends keyof MCountOutputType ? MCountOutputType[P] : never
   } 
     : MCountOutputType
   : MCountOutputType
@@ -1611,9 +1605,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof NCountOutputType ? NCountOutputType[P] :
-        never
+    P extends keyof NCountOutputType ? NCountOutputType[P] : never
   } 
     : NCountOutputType
   : NCountOutputType
@@ -1662,9 +1654,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof OneOptionalCountOutputType ? OneOptionalCountOutputType[P] :
-        never
+    P extends keyof OneOptionalCountOutputType ? OneOptionalCountOutputType[P] : never
   } 
     : OneOptionalCountOutputType
   : OneOptionalCountOutputType
@@ -1722,24 +1712,16 @@ export namespace Prisma {
     ?'include' extends U
     ? Embed  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'embedEmbedList'
-        ? Array < EmbedEmbedGetPayload<S['include'][P]>>  :
-        P extends 'requiredEmbedEmbed'
-        ? EmbedEmbedGetPayload<S['include'][P]> :
-        P extends 'optionalEmbedEmbed'
-        ? EmbedEmbedGetPayload<S['include'][P]> | null :  never
+        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['include'][P]>>  :
+        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['include'][P]> :
+        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'embedEmbedList'
-        ? Array < EmbedEmbedGetPayload<S['select'][P]>>  :
-        P extends 'requiredEmbedEmbed'
-        ? EmbedEmbedGetPayload<S['select'][P]> :
-        P extends 'optionalEmbedEmbed'
-        ? EmbedEmbedGetPayload<S['select'][P]> | null : 
-        P extends keyof Embed ? Embed[P] :
-        never
+        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['select'][P]>>  :
+        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> :
+        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> | null :  P extends keyof Embed ? Embed[P] : never
   } 
     : Embed
   : Embed
@@ -1852,9 +1834,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof EmbedEmbed ? EmbedEmbed[P] :
-        never
+    P extends keyof EmbedEmbed ? EmbedEmbed[P] : never
   } 
     : EmbedEmbed
   : EmbedEmbed
@@ -2162,16 +2142,12 @@ export namespace Prisma {
     ?'include' extends U
     ? Post  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'author'
-        ? UserGetPayload<S['include'][P]> :  never
+        P extends 'author' ? UserGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'author'
-        ? UserGetPayload<S['select'][P]> : 
-        P extends keyof Post ? Post[P] :
-        never
+        P extends 'author' ? UserGetPayload<S['select'][P]> :  P extends keyof Post ? Post[P] : never
   } 
     : Post
   : Post
@@ -3212,24 +3188,16 @@ export namespace Prisma {
     ?'include' extends U
     ? User  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'posts'
-        ? Array < PostGetPayload<S['include'][P]>>  :
-        P extends 'embedHolder'
-        ? EmbedHolderGetPayload<S['include'][P]> :
-        P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'posts' ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<S['include'][P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'posts'
-        ? Array < PostGetPayload<S['select'][P]>>  :
-        P extends 'embedHolder'
-        ? EmbedHolderGetPayload<S['select'][P]> :
-        P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['select'][P]> : 
-        P extends keyof User ? User[P] :
-        never
+        P extends 'posts' ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<S['select'][P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof User ? User[P] : never
   } 
     : User
   : User
@@ -4147,32 +4115,20 @@ export namespace Prisma {
     ?'include' extends U
     ? EmbedHolder  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'embedList'
-        ? Array < EmbedGetPayload<S['include'][P]>>  :
-        P extends 'requiredEmbed'
-        ? EmbedGetPayload<S['include'][P]> :
-        P extends 'optionalEmbed'
-        ? EmbedGetPayload<S['include'][P]> | null :
-        P extends 'User'
-        ? Array < UserGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? EmbedHolderCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'embedList' ? Array < EmbedGetPayload<S['include'][P]>>  :
+        P extends 'requiredEmbed' ? EmbedGetPayload<S['include'][P]> :
+        P extends 'optionalEmbed' ? EmbedGetPayload<S['include'][P]> | null :
+        P extends 'User' ? Array < UserGetPayload<S['include'][P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'embedList'
-        ? Array < EmbedGetPayload<S['select'][P]>>  :
-        P extends 'requiredEmbed'
-        ? EmbedGetPayload<S['select'][P]> :
-        P extends 'optionalEmbed'
-        ? EmbedGetPayload<S['select'][P]> | null :
-        P extends 'User'
-        ? Array < UserGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? EmbedHolderCountOutputTypeGetPayload<S['select'][P]> : 
-        P extends keyof EmbedHolder ? EmbedHolder[P] :
-        never
+        P extends 'embedList' ? Array < EmbedGetPayload<S['select'][P]>>  :
+        P extends 'requiredEmbed' ? EmbedGetPayload<S['select'][P]> :
+        P extends 'optionalEmbed' ? EmbedGetPayload<S['select'][P]> | null :
+        P extends 'User' ? Array < UserGetPayload<S['select'][P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
   } 
     : EmbedHolder
   : EmbedHolder
@@ -5205,20 +5161,14 @@ export namespace Prisma {
     ?'include' extends U
     ? M  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'n'
-        ? Array < NGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? MCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'n' ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'n'
-        ? Array < NGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? MCountOutputTypeGetPayload<S['select'][P]> : 
-        P extends keyof M ? M[P] :
-        never
+        P extends 'n' ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof M ? M[P] : never
   } 
     : M
   : M
@@ -6245,20 +6195,14 @@ export namespace Prisma {
     ?'include' extends U
     ? N  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'm'
-        ? Array < MGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? NCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'm' ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'm'
-        ? Array < MGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? NCountOutputTypeGetPayload<S['select'][P]> : 
-        P extends keyof N ? N[P] :
-        never
+        P extends 'm' ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof N ? N[P] : never
   } 
     : N
   : N
@@ -7281,20 +7225,14 @@ export namespace Prisma {
     ?'include' extends U
     ? OneOptional  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> : 
-        P extends keyof OneOptional ? OneOptional[P] :
-        never
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof OneOptional ? OneOptional[P] : never
   } 
     : OneOptional
   : OneOptional
@@ -8327,16 +8265,12 @@ export namespace Prisma {
     ?'include' extends U
     ? ManyRequired  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'one'
-        ? OneOptionalGetPayload<S['include'][P]> | null :  never
+        P extends 'one' ? OneOptionalGetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'one'
-        ? OneOptionalGetPayload<S['select'][P]> | null : 
-        P extends keyof ManyRequired ? ManyRequired[P] :
-        never
+        P extends 'one' ? OneOptionalGetPayload<S['select'][P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
   } 
     : ManyRequired
   : ManyRequired
@@ -9369,16 +9303,12 @@ export namespace Prisma {
     ?'include' extends U
     ? OptionalSide1  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'opti'
-        ? OptionalSide2GetPayload<S['include'][P]> | null :  never
+        P extends 'opti' ? OptionalSide2GetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'opti'
-        ? OptionalSide2GetPayload<S['select'][P]> | null : 
-        P extends keyof OptionalSide1 ? OptionalSide1[P] :
-        never
+        P extends 'opti' ? OptionalSide2GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
   } 
     : OptionalSide1
   : OptionalSide1
@@ -10399,16 +10329,12 @@ export namespace Prisma {
     ?'include' extends U
     ? OptionalSide2  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'opti'
-        ? OptionalSide1GetPayload<S['include'][P]> | null :  never
+        P extends 'opti' ? OptionalSide1GetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'opti'
-        ? OptionalSide1GetPayload<S['select'][P]> | null : 
-        P extends keyof OptionalSide2 ? OptionalSide2[P] :
-        never
+        P extends 'opti' ? OptionalSide1GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
   } 
     : OptionalSide2
   : OptionalSide2
@@ -11374,9 +11300,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof A ? A[P] :
-        never
+    P extends keyof A ? A[P] : never
   } 
     : A
   : A
@@ -12297,9 +12221,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof B ? B[P] :
-        never
+    P extends keyof B ? B[P] : never
   } 
     : B
   : B
@@ -13190,9 +13112,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof C ? C[P] :
-        never
+    P extends keyof C ? C[P] : never
   } 
     : C
   : C
@@ -14067,9 +13987,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof D ? D[P] :
-        never
+    P extends keyof D ? D[P] : never
   } 
     : D
   : D
@@ -14936,9 +14854,7 @@ export namespace Prisma {
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
- 
-        P extends keyof E ? E[P] :
-        never
+    P extends keyof E ? E[P] : never
   } 
     : E
   : E
