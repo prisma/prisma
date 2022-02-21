@@ -122,6 +122,71 @@ describe('chaining', () => {
     `)
   })
 
+  test('findFirst', async () => {
+    const posts = await prisma.user
+      .findFirst({
+        where: {
+          email: 'email@email.io',
+        },
+      })
+      .posts()
+
+    expect(posts).toMatchInlineSnapshot(`Array []`)
+  })
+
+  test('create', async () => {
+    const posts = await prisma.user
+      .create({
+        data: {
+          email: 'email2@email.io',
+        },
+      })
+      .posts()
+
+    expect(posts).toMatchInlineSnapshot(`Array []`)
+  })
+
+  test('update', async () => {
+    const posts = await prisma.user
+      .update({
+        where: {
+          email: 'email@email.io',
+        },
+        data: {},
+      })
+      .posts()
+
+    expect(posts).toMatchInlineSnapshot(`Array []`)
+  })
+
+  test('upsert', async () => {
+    const posts = await prisma.user
+      .upsert({
+        where: {
+          email: 'email@email.io',
+        },
+        create: {
+          email: 'email@email.io',
+        },
+        update: {},
+      })
+      .posts()
+
+    expect(posts).toMatchInlineSnapshot(`Array []`)
+  })
+
+  test('delete', async () => {
+    const posts = await prisma.user
+      .delete({
+        where: {
+          email: 'email@email.io',
+        },
+      })
+      .posts()
+
+    expect(posts).toMatchInlineSnapshot(`Array []`)
+  })
+
   beforeAll(async () => {
     const PrismaClient = await getTestClient()
     prisma = new PrismaClient()
@@ -129,6 +194,11 @@ describe('chaining', () => {
 
   beforeEach(async () => {
     await prisma.user.deleteMany()
+    const user = await prisma.user.create({
+      data: {
+        email: 'email@email.io',
+      },
+    })
   })
 
   afterAll(async () => {
