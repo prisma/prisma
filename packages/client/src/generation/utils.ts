@@ -89,12 +89,12 @@ export function getDefaultName(modelName: string): string {
   return `${modelName}Default`
 }
 
-export function getFieldArgName(field: DMMF.SchemaField): string {
-  return getArgName((field.outputType.type as DMMF.OutputType).name, field.outputType.isList)
+export function getFieldArgName(field: DMMF.SchemaField, findMany = true): string {
+  return getArgName((field.outputType.type as DMMF.OutputType).name, findMany && field.outputType.isList)
 }
 
-export function getArgName(name: string, isList: boolean): string {
-  if (!isList) {
+export function getArgName(name: string, findMany: boolean): string {
+  if (!findMany) {
     return `${name}Args`
   }
 
