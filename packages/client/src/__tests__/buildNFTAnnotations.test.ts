@@ -2,11 +2,18 @@ import { ClientEngineType } from '@prisma/sdk'
 
 import { buildNFTAnnotations } from '../generation/utils/buildNFTAnnotations'
 
+function normalizePaths(snapshot: string): string {
+  if (process.platform === 'win32') {
+    return snapshot.replace(/\\\\/g, '/')
+  }
+  return snapshot
+}
+
 describe('library', () => {
   it('generates annotations for a schema and a single engine', () => {
     const annotations = buildNFTAnnotations(ClientEngineType.Library, ['debian-openssl-1.1.x'], 'out')
 
-    expect(annotations).toMatchInlineSnapshot(`
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
@@ -22,7 +29,7 @@ describe('library', () => {
       'out',
     )
 
-    expect(annotations).toMatchInlineSnapshot(`
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
@@ -42,7 +49,7 @@ describe('binary', () => {
   it('generates annotations for a schema and a single engine', () => {
     const annotations = buildNFTAnnotations(ClientEngineType.Binary, ['debian-openssl-1.1.x'], 'out')
 
-    expect(annotations).toMatchInlineSnapshot(`
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "query-engine-TEST_PLATFORM");
       path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
@@ -58,7 +65,7 @@ describe('binary', () => {
       'out',
     )
 
-    expect(annotations).toMatchInlineSnapshot(`
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "query-engine-TEST_PLATFORM");
       path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
@@ -84,7 +91,7 @@ describe('dataproxy', () => {
 
     // TODO: when using .toMatchInlineSnapshot(), this fails after updating snapshots.
     // Probably an issue with the snapshot serializer?
-    expect(annotations).toBe(`
+    expect(normalizePaths(annotations)).toBe(`
 
 `)
   })
@@ -103,7 +110,7 @@ describe('special cases', () => {
 
     delete process.env.NETLIFY
 
-    expect(annotations).toMatchInlineSnapshot(`
+    expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
