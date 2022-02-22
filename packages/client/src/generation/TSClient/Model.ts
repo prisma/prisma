@@ -125,7 +125,7 @@ ${indent(
 
 ${new OutputType(this.dmmf, groupByType).toTS()}
 
-type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Promise<
+type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = PrismaPromise<
   Array<
     PickArray<${groupByType.name}, T['by']> &
       {
@@ -468,7 +468,7 @@ ${
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
         name,
-      )}<T> : Promise<InputErrors>`
+      )}<T> : PrismaPromise<InputErrors>`
     : ''
 }
 }
