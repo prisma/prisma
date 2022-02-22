@@ -557,14 +557,14 @@ jobs:
           name: generator-helper-${{ matrix.os }}
 
   #
-  # Run all tests on macOS and Windows.
+  # Run (almost) all tests on macOS and Windows.
   #
   # Unlike the other jobs, this job doesn't use Docker (and thus skips some
   # tests that require dependencies not easily installable without Docker).
   #
-  # It also runs the tests for different packages sequentially to prevent the
-  # combinatorial explosion of the number of parallel jobs, to minimize the
-  # number of times we need to install MySQL using the package manager
+  # It also runs most tests for different packages sequentially (except client,
+  # see below) to prevent the combinatorial explosion of the number of parallel jobs,
+  # to minimize the number of times we need to install MySQL using the package manager
   # (PostgreSQL and MongoDB are provided by GitHub Actions out of the box), and
   # minimize the time spent waiting for a free runner.
   #
@@ -577,7 +577,6 @@ jobs:
       ${{
         contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') ||
-        contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-')
       }}
@@ -638,23 +637,6 @@ jobs:
           files: ./packages/sdk/src/__tests__/coverage/clover.xml
           flags: sdk,${{ matrix.os }},${{ matrix.queryEngine }}
           name: sdk-${{ matrix.os }}-${{ matrix.queryEngine }}
-
-      - name: Test packages/client
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
-
-      - uses: codecov/codecov-action@v2
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        with:
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/migrate
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
@@ -745,3 +727,84 @@ jobs:
           curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
           chmod +x ./buildpulse-test-reporter
           ./buildpulse-test-reporter submit packages --account-id 17219288 --repository-id 192925833
+
+  #
+  # Run Client tests on macOS and Windows. (Rasoning see above)
+  #
+  no-docker-client:
+    timeout-minutes: 40
+    runs-on: ${{ matrix.os }}
+    needs: detect_jobs_to_run
+
+    if: |
+      ${{
+        contains(needs.detect_jobs_to_run.outputs.jobs, '-client-')
+      }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-11, windows-latest]
+        node: [16]
+        queryEngine: ['library', 'binary']
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Prerequisites
+        shell: bash
+        run: |
+          echo "TEST_SKIP_MSSQL=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
+          echo "TEST_MONGO_URI_MIGRATE=mongodb://localhost:27017/tests-migrate" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Setup PostgreSQL
+        run: bash .github/workflows/setup-postgres.sh
+
+      - name: Setup MySQL
+        run: bash .github/workflows/setup-mysql.sh
+
+      - uses: pnpm/action-setup@v2.1.0
+        with:
+          version: latest
+
+      - uses: actions/setup-node@v2
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Test packages/client
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        run: pnpm run test-notypes
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          NODE_OPTIONS: '--max-old-space-size=8096'
+
+      - uses: codecov/codecov-action@v2
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        with:
+          files: ./packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+      - name: Upload test results to BuildPulse for flaky test detection
+        if: ${{ runner.os == 'macos-11' && !cancelled() }} # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        env:
+          BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+        run: |
+          curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
+          chmod +x ./buildpulse-test-reporter
+          ./buildpulse-test-reporter submit packages/client --account-id 17219288 --repository-id 192925833
