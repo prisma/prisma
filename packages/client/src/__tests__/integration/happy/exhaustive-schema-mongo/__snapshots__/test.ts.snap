@@ -4073,7 +4073,7 @@ export namespace Prisma {
     _max: EmbedHolderMaxAggregateOutputType | null
   }
 
-  type GetEmbedHolderGroupByPayload<T extends EmbedHolderGroupByArgs> = Promise<
+  type GetEmbedHolderGroupByPayload<T extends EmbedHolderGroupByArgs> = PrismaPromise<
     Array<
       PickArray<EmbedHolderGroupByOutputType, T['by']> &
         {
@@ -4469,7 +4469,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, EmbedHolderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmbedHolderGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, EmbedHolderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmbedHolderGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
