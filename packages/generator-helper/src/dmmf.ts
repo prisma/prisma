@@ -75,8 +75,8 @@ export namespace DMMF {
     isUnique: boolean
     isId: boolean
     isReadOnly: boolean
-    isGenerated: boolean
-    isUpdatedAt: boolean
+    isGenerated?: boolean // does not exist on 'type' but does on 'model'
+    isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
     /**
      * Describes the data type in the same the way is is defined in the Prisma schema:
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName

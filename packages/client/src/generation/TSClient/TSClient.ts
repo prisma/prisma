@@ -145,9 +145,9 @@ ${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
     const collector = new ExportCollector()
 
     const commonCode = commonCodeTS(this.options)
-    const models = Object.values(this.dmmf.modelMap).reduce((acc, model) => {
-      if (this.dmmf.outputTypeMap[model.name]) {
-        acc.push(new Model(model, this.dmmf, this.options.generator, collector))
+    const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
+      if (this.dmmf.outputTypeMap[modelOrType.name]) {
+        acc.push(new Model(modelOrType, this.dmmf, this.options.generator, collector))
       }
       return acc
     }, [] as Model[])
@@ -169,7 +169,7 @@ ${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
 
 ${commonCode.tsWithoutNamespace()}
 
-${models.map((m) => m.toTSWithoutNamespace()).join('\n')}
+${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${
   modelEnums && modelEnums.length > 0
     ? `
@@ -212,7 +212,7 @@ ${countTypes.map((t) => t.toTS()).join('\n')}
 /**
  * Models
  */
-${models.map((model) => model.toTS()).join('\n')}
+${modelAndTypes.map((model) => model.toTS()).join('\n')}
 
 /**
  * Enums
