@@ -588,6 +588,9 @@ jobs:
         node: [16]
         queryEngine: ['library', 'binary']
 
+    env:
+      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/{title}'
+
     steps:
       - uses: actions/checkout@v2
 
@@ -747,6 +750,9 @@ jobs:
         os: [macos-11, windows-latest]
         node: [16]
         queryEngine: ['library', 'binary']
+
+    env:
+      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/{title}'
 
     steps:
       - uses: actions/checkout@v2
