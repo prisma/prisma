@@ -34,6 +34,7 @@ importers:
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
+      jest-junit: 13.0.0
       lint-staged: 12.3.4
       node-fetch: 2.6.7
       p-map: 4.0.0
@@ -86,6 +87,7 @@ importers:
       graphviz-mit: 0.0.9
       husky: 7.0.4
       is-ci: 3.0.1
+      jest-junit: 13.0.0
       lint-staged: 12.3.4
       node-fetch: 2.6.7
       p-map: 4.0.0
@@ -314,6 +316,7 @@ importers:
       '@types/node': 12.20.46
       esbuild: 0.13.14
       jest: 27.5.1
+      jest-junit: 13.0.0
       ms: 2.1.3
       strip-ansi: 6.0.1
       ts-jest: 27.1.3
@@ -327,6 +330,7 @@ importers:
       '@types/node': 12.20.46
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       ts-jest: 27.1.3_077cd5ab94a1d592346e236574e4009d
       typescript: 4.5.4
 
@@ -344,6 +348,7 @@ importers:
       get-stream: 6.0.1
       indent-string: 4.0.0
       jest: 27.5.1
+      jest-junit: 13.0.0
       new-github-issue-url: 0.2.1
       p-retry: 4.6.1
       strip-ansi: 6.0.1
@@ -370,6 +375,7 @@ importers:
       '@types/node': 12.20.46
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       ts-jest: 27.1.3_077cd5ab94a1d592346e236574e4009d
       typescript: 4.5.4
 
@@ -383,6 +389,7 @@ importers:
       cross-spawn: 7.0.3
       esbuild: 0.13.14
       jest: 27.5.1
+      jest-junit: 13.0.0
       ts-jest: 27.1.3
       ts-node: 10.4.0
       typescript: 4.5.4
@@ -396,6 +403,7 @@ importers:
       '@types/node': 12.20.46
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       ts-jest: 27.1.3_077cd5ab94a1d592346e236574e4009d
       ts-node: 10.4.0_821f076c424ed09f3232bb5c565ae7fa
       typescript: 4.5.4
@@ -414,6 +422,7 @@ importers:
       execa: 5.1.1
       fs-jetpack: 4.3.0
       jest: 27.5.1
+      jest-junit: 13.0.0
       mariadb: 2.5.5
       mssql: 8.0.1
       pg: 8.7.1
@@ -439,6 +448,7 @@ importers:
       execa: 5.1.1
       fs-jetpack: 4.3.0
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       mariadb: 2.5.5
       mssql: 8.0.1
       pg: 8.7.1
@@ -473,6 +483,7 @@ importers:
       has-yarn: 2.1.0
       indent-string: 4.0.0
       jest: 27.5.1
+      jest-junit: 13.0.0
       log-update: 4.0.0
       make-dir: 3.1.0
       mariadb: 2.5.6
@@ -519,6 +530,7 @@ importers:
       esbuild: 0.13.14
       fs-jetpack: 4.3.0
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       make-dir: 3.1.0
       mock-stdin: 1.0.0
       tempy: 1.0.1
@@ -532,6 +544,7 @@ importers:
       '@types/node': 16.11.25
       esbuild: 0.14.21
       jest: 27.5.1
+      jest-junit: 13.0.0
       react: 17.0.2
       ts-jest: 27.1.3
       typescript: 4.5.5
@@ -541,6 +554,7 @@ importers:
       '@types/node': 16.11.25
       esbuild: 0.14.21
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       react: 17.0.2
       ts-jest: 27.1.3_68259b5d5aad24b4b77e2a9725bd2263
       typescript: 4.5.5
@@ -575,6 +589,7 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.1
       jest: 27.5.1
+      jest-junit: 13.0.0
       make-dir: 3.1.0
       node-fetch: 2.6.7
       p-map: 4.0.0
@@ -642,6 +657,7 @@ importers:
       '@types/tar': 6.1.1
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
+      jest-junit: 13.0.0
       ts-jest: 27.1.3_077cd5ab94a1d592346e236574e4009d
       ts-node: 10.4.0_821f076c424ed09f3232bb5c565ae7fa
       typescript: 4.5.4
@@ -1615,7 +1631,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
