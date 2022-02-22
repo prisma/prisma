@@ -1033,7 +1033,11 @@ export namespace Prisma {
    * XOR is needed to have a real mutually exclusive union type
    * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
    */
-  type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
+  type XOR<T, U> =
+    T extends object ?
+    U extends object ?
+      (Without<T, U> & U) | (Without<U, T> & T)
+    : U : T
 
 
   /**
@@ -1444,9 +1448,8 @@ export namespace Prisma {
     ? UserCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof UserCountOutputType ?UserCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof UserCountOutputType ? UserCountOutputType[P] : never
   } 
     : UserCountOutputType
   : UserCountOutputType
@@ -1494,9 +1497,8 @@ export namespace Prisma {
     ? MCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof MCountOutputType ?MCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof MCountOutputType ? MCountOutputType[P] : never
   } 
     : MCountOutputType
   : MCountOutputType
@@ -1544,9 +1546,8 @@ export namespace Prisma {
     ? NCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof NCountOutputType ?NCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof NCountOutputType ? NCountOutputType[P] : never
   } 
     : NCountOutputType
   : NCountOutputType
@@ -1594,9 +1595,8 @@ export namespace Prisma {
     ? OneOptionalCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OneOptionalCountOutputType ?OneOptionalCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof OneOptionalCountOutputType ? OneOptionalCountOutputType[P] : never
   } 
     : OneOptionalCountOutputType
   : OneOptionalCountOutputType
@@ -1857,16 +1857,13 @@ export namespace Prisma {
     : S extends PostArgs | PostFindManyArgs
     ?'include' extends U
     ? Post  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'author'
-        ? UserGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'author' ? UserGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof Post ?Post [P]
-  : 
-          P extends 'author'
-        ? UserGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'author' ? UserGetPayload<S['select'][P]> :  P extends keyof Post ? Post[P] : never
   } 
     : Post
   : Post
@@ -2840,20 +2837,15 @@ export namespace Prisma {
     : S extends UserArgs | UserFindManyArgs
     ?'include' extends U
     ? User  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'posts'
-        ? Array < PostGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof User ?User [P]
-  : 
-          P extends 'posts'
-        ? Array < PostGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof User ? User[P] : never
   } 
     : User
   : User
@@ -3819,20 +3811,15 @@ export namespace Prisma {
     : S extends MArgs | MFindManyArgs
     ?'include' extends U
     ? M  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'n'
-        ? Array < NGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? MCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'n' ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof M ?M [P]
-  : 
-          P extends 'n'
-        ? Array < NGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? MCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'n' ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof M ? M[P] : never
   } 
     : M
   : M
@@ -4798,20 +4785,15 @@ export namespace Prisma {
     : S extends NArgs | NFindManyArgs
     ?'include' extends U
     ? N  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'm'
-        ? Array < MGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? NCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'm' ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof N ?N [P]
-  : 
-          P extends 'm'
-        ? Array < MGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? NCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'm' ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof N ? N[P] : never
   } 
     : N
   : N
@@ -5777,20 +5759,15 @@ export namespace Prisma {
     : S extends OneOptionalArgs | OneOptionalFindManyArgs
     ?'include' extends U
     ? OneOptional  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OneOptional ?OneOptional [P]
-  : 
-          P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof OneOptional ? OneOptional[P] : never
   } 
     : OneOptional
   : OneOptional
@@ -6766,16 +6743,13 @@ export namespace Prisma {
     : S extends ManyRequiredArgs | ManyRequiredFindManyArgs
     ?'include' extends U
     ? ManyRequired  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'one'
-        ? OneOptionalGetPayload<S['include'][P]> | null : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof ManyRequired ?ManyRequired [P]
-  : 
-          P extends 'one'
-        ? OneOptionalGetPayload<S['select'][P]> | null : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['select'][P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
   } 
     : ManyRequired
   : ManyRequired
@@ -7751,16 +7725,13 @@ export namespace Prisma {
     : S extends OptionalSide1Args | OptionalSide1FindManyArgs
     ?'include' extends U
     ? OptionalSide1  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'opti'
-        ? OptionalSide2GetPayload<S['include'][P]> | null : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OptionalSide1 ?OptionalSide1 [P]
-  : 
-          P extends 'opti'
-        ? OptionalSide2GetPayload<S['select'][P]> | null : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
   } 
     : OptionalSide1
   : OptionalSide1
@@ -8724,16 +8695,13 @@ export namespace Prisma {
     : S extends OptionalSide2Args | OptionalSide2FindManyArgs
     ?'include' extends U
     ? OptionalSide2  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'opti'
-        ? OptionalSide1GetPayload<S['include'][P]> | null : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OptionalSide2 ?OptionalSide2 [P]
-  : 
-          P extends 'opti'
-        ? OptionalSide1GetPayload<S['select'][P]> | null : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
   } 
     : OptionalSide2
   : OptionalSide2
@@ -9674,9 +9642,8 @@ export namespace Prisma {
     ? A 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof A ?A [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof A ? A[P] : never
   } 
     : A
   : A
@@ -10536,9 +10503,8 @@ export namespace Prisma {
     ? B 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof B ?B [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof B ? B[P] : never
   } 
     : B
   : B
@@ -11368,9 +11334,8 @@ export namespace Prisma {
     ? C 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof C ?C [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof C ? C[P] : never
   } 
     : C
   : C
@@ -12184,9 +12149,8 @@ export namespace Prisma {
     ? D 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof D ?D [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof D ? D[P] : never
   } 
     : D
   : D
@@ -12992,9 +12956,8 @@ export namespace Prisma {
     ? E 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof E ?E [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof E ? E[P] : never
   } 
     : E
   : E
@@ -14952,6 +14915,7 @@ export namespace Prisma {
   }
 
   export type MCreateInput = {
+    n?: NCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -14964,11 +14928,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    n?: NCreateNestedManyWithoutMInput
   }
 
   export type MUncheckedCreateInput = {
     id?: number
+    n?: NUncheckedCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -14984,6 +14948,7 @@ export namespace Prisma {
   }
 
   export type MUpdateInput = {
+    n?: NUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -14996,11 +14961,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    n?: NUpdateManyWithoutMInput
   }
 
   export type MUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    n?: NUncheckedUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15063,6 +15028,7 @@ export namespace Prisma {
   }
 
   export type NCreateInput = {
+    m?: MCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15075,11 +15041,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    m?: MCreateNestedManyWithoutNInput
   }
 
   export type NUncheckedCreateInput = {
     id?: number
+    m?: MUncheckedCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15095,6 +15061,7 @@ export namespace Prisma {
   }
 
   export type NUpdateInput = {
+    m?: MUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15107,11 +15074,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    m?: MUpdateManyWithoutNInput
   }
 
   export type NUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    m?: MUncheckedUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15174,6 +15141,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateInput = {
+    many?: ManyRequiredCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15186,11 +15154,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedCreateInput = {
     id?: number
+    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15203,10 +15171,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUpdateInput = {
+    many?: ManyRequiredUpdateManyWithoutOneInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15219,11 +15187,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    many?: ManyRequiredUpdateManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15236,7 +15204,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
   }
 
   export type OneOptionalCreateManyInput = {
@@ -15287,6 +15254,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateInput = {
+    one?: OneOptionalCreateNestedOneWithoutManyInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15299,7 +15267,6 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    one?: OneOptionalCreateNestedOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedCreateInput = {
@@ -15320,6 +15287,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUpdateInput = {
+    one?: OneOptionalUpdateOneWithoutManyInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15332,7 +15300,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    one?: OneOptionalUpdateOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedUpdateInput = {
@@ -15402,6 +15369,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1CreateInput = {
+    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15414,7 +15382,6 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedCreateInput = {
@@ -15435,6 +15402,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UpdateInput = {
+    opti?: OptionalSide2UpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15447,7 +15415,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide2UpdateOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedUpdateInput = {
@@ -15517,6 +15484,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2CreateInput = {
+    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15529,11 +15497,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedCreateInput = {
     id?: number
+    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15546,10 +15514,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UpdateInput = {
+    opti?: OptionalSide1UpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15562,11 +15530,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide1UpdateOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
+    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15579,7 +15547,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
   }
 
   export type OptionalSide2CreateManyInput = {
@@ -17193,7 +17160,26 @@ export namespace Prisma {
     connect?: Enumerable<NWhereUniqueInput>
   }
 
+  export type NUncheckedCreateNestedManyWithoutMInput = {
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
+    connect?: Enumerable<NWhereUniqueInput>
+  }
+
   export type NUpdateManyWithoutMInput = {
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
+    upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
+    set?: Enumerable<NWhereUniqueInput>
+    disconnect?: Enumerable<NWhereUniqueInput>
+    delete?: Enumerable<NWhereUniqueInput>
+    connect?: Enumerable<NWhereUniqueInput>
+    update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
+    updateMany?: Enumerable<NUpdateManyWithWhereWithoutMInput>
+    deleteMany?: Enumerable<NScalarWhereInput>
+  }
+
+  export type NUncheckedUpdateManyWithoutMInput = {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
@@ -17212,7 +17198,26 @@ export namespace Prisma {
     connect?: Enumerable<MWhereUniqueInput>
   }
 
+  export type MUncheckedCreateNestedManyWithoutNInput = {
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
+    connect?: Enumerable<MWhereUniqueInput>
+  }
+
   export type MUpdateManyWithoutNInput = {
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
+    upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
+    set?: Enumerable<MWhereUniqueInput>
+    disconnect?: Enumerable<MWhereUniqueInput>
+    delete?: Enumerable<MWhereUniqueInput>
+    connect?: Enumerable<MWhereUniqueInput>
+    update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
+    updateMany?: Enumerable<MUpdateManyWithWhereWithoutNInput>
+    deleteMany?: Enumerable<MScalarWhereInput>
+  }
+
+  export type MUncheckedUpdateManyWithoutNInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
