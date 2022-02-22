@@ -722,7 +722,7 @@ jobs:
           name: generator-helper-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
-        if: ${{ runner.os == 'macos-11' }} && !cancelled() # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: ${{ !cancelled() }} # Run this step even when the tests fail. Skip if the workflow is cancelled.
         env:
           BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
@@ -806,7 +806,7 @@ jobs:
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Upload test results to BuildPulse for flaky test detection
-        if: ${{ runner.os == 'macos-11' }} && !cancelled() # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: ${{ !cancelled() }} # Run this step even when the tests fail. Skip if the workflow is cancelled.
         env:
           BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
