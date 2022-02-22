@@ -722,7 +722,9 @@ jobs:
           name: generator-helper-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
-        if: ${{ !cancelled() }} # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        # Only run this step for branches where where we have access to secrets.
+        # Run this step even when the tests fail. Skip if the workflow is cancelled.
+        if: startsWith(github.repository, 'prisma/') && !cancelled()
         env:
           BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
