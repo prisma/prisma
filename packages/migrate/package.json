@@ -20,7 +20,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.11.0-2.c549d63a33078062a5e6bc2336f000946f8de389",
+    "@prisma/engines-version": "3.11.0-3.query-engine-mongodb-rebased-order-by-52f8e2270614cce6dd03680a6baa8a6139bc04e0",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@types/jest": "27.4.0",
@@ -43,7 +43,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.11.0-2.c549d63a33078062a5e6bc2336f000946f8de389",
+    "@prisma/get-platform": "3.11.0-3.query-engine-mongodb-rebased-order-by-52f8e2270614cce6dd03680a6baa8a6139bc04e0",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
