@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1645637979733,
+  "lastUpdate": 1645642606973,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -86040,6 +86040,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±2.94%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 43,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "86324825+codesee-architecture-diagrams[bot]@users.noreply.github.com",
+            "name": "codesee-architecture-diagrams[bot]",
+            "username": "codesee-architecture-diagrams[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5ece32bca4d34df2cf4da59a1decde7a0a1aba0c",
+          "message": "feat(codesee): Add CodeSee architecture diagram workflow to repository (#12002)\n\nCo-authored-by: codesee-architecture-diagrams[bot] <86324825+codesee-architecture-diagrams[bot]@users.noreply.github.com>",
+          "timestamp": "2022-02-23T19:52:14+01:00",
+          "tree_id": "8337a18515445aece9a074955768a702d075c397",
+          "url": "https://github.com/prisma/prisma/commit/5ece32bca4d34df2cf4da59a1decde7a0a1aba0c"
+        },
+        "date": 1645642601892,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.4,
+            "range": "±5.41%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.1,
+            "range": "±3.45%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
