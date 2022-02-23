@@ -2,7 +2,7 @@ import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should not load root .env file', async () => {
+it('should not load root .env file', () => {
   ctx.fixture('dotenv-5-only-root')
   loadEnvFile(undefined, true)
 

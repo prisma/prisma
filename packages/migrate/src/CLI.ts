@@ -1,6 +1,6 @@
-import chalk from 'chalk'
 import type { Command, Commands } from '@prisma/sdk'
-import { arg, isError, format, HelpError, unknownCommand, logger } from '@prisma/sdk'
+import { arg, format, HelpError, isError, logger, unknownCommand } from '@prisma/sdk'
+import chalk from 'chalk'
 
 /**
  * CLI command

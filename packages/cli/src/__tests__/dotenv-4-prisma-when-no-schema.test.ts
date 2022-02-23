@@ -2,7 +2,7 @@ import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should read .env file in prisma folder when there is no schema', async () => {
+it('should read .env file in prisma folder when there is no schema', () => {
   ctx.fixture('dotenv-4-prisma-no-schema')
   loadEnvFile(undefined, true)
 

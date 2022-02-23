@@ -1,16 +1,17 @@
-import { getGeneratorSuccessMessage, getSchemaPathSync, getGenerators } from '@prisma/sdk'
-import chalk from 'chalk'
 import Debug from '@prisma/debug'
+import { enginesVersion } from '@prisma/engines-version'
+import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/sdk'
+import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
+
 import { MigrateEngine } from './MigrateEngine'
-import type { EngineResults, EngineArgs } from './types'
-import { enginesVersion } from '@prisma/engines-version'
+import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
 const debug = Debug('prisma:migrate')
-const packageJson = eval(`require('../package.json')`) // tslint:disable-line
+const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: MigrateEngine

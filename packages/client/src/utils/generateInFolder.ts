@@ -1,16 +1,25 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
-import { extractPreviewFeatures, getConfig, getDMMF, getPackedPackage, mapPreviewFeatures } from '@prisma/sdk'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import {
+  ClientEngineType,
+  extractPreviewFeatures,
+  getClientEngineType,
+  getConfig,
+  getDMMF,
+  getPackedPackage,
+  mapPreviewFeatures,
+} from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
 import { performance } from 'perf_hooks'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
+
 import { generateClient } from '../generation/generateClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
+
 const debug = Debug('prisma:generateInFolder')
 const del = promisify(rimraf)
 

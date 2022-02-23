@@ -1,19 +1,21 @@
-import type { O, F } from 'ts-toolbelt'
+import type { F, O } from 'ts-toolbelt'
+
 import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
 import { getCallSite } from '../utils/getCallSite'
 import { applyAggregates } from './applyAggregates'
 import { applyFluent } from './applyFluent'
+import type { UserArgs } from './UserArgs'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
-import type { UserArgs } from './UserArgs'
-
-const EMPTY_OBJECT = {}
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
 ) => (userArgs?: UserArgs) => PrismaPromise<unknown>
+
+const fluentProps = ['findUnique', 'findFirst', 'create', 'update', 'upsert', 'delete'] as const
+const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 
 /**
  * Dynamically creates a model interface via a proxy.
@@ -25,11 +27,13 @@ export function applyModel(client: Client, dmmfModelName: string) {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
   const ownKeys = getOwnKeys(client, dmmfModelName)
+  const baseObject = {} // <-- user mutations go in there
 
   // we construct a proxy that acts as the model interface
-  return new Proxy(EMPTY_OBJECT, {
-    get(_, prop: string): F.Return<ModelAction> | undefined {
+  return new Proxy(baseObject, {
+    get(target, prop: string): F.Return<ModelAction> | undefined {
       // only allow actions that are valid and available for this model
+      if (prop in target || typeof prop === 'symbol') return target[prop]
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
 
       // we return a function as the model action that we want to expose
@@ -37,11 +41,11 @@ export function applyModel(client: Client, dmmfModelName: string) {
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
-        return createPrismaPromise((txId, inTx, otelCtx) => {
+        return createPrismaPromise((txId, lock, otelCtx) => {
           const data = { args: userArgs, dataPath: [] } // data and its dataPath for nested results
           const action = { action: prop, model: dmmfModelName } // action name and its related model
           const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
-          const tx = { runInTransaction: !!inTx, transactionId: txId } // transaction information
+          const tx = { runInTransaction: !!txId, transactionId: txId, lock } // transaction information
           const trace = { callsite: callSite, otelCtx: otelCtx } // stack trace and opentelemetry
           const params = { ...data, ...action, ...method, ...tx, ...trace }
 
@@ -50,12 +54,12 @@ export function applyModel(client: Client, dmmfModelName: string) {
       }
 
       // we give the control over action for building the fluent api
-      if (prop === 'findUnique' || prop === 'findFirst') {
+      if (fluentProps.includes(prop as typeof fluentProps[number])) {
         return applyFluent(client, dmmfModelName, action)
       }
 
       // we handle the edge case of aggregates that need extra steps
-      if (prop === 'aggregate' || prop === 'count' || prop === 'groupBy') {
+      if (aggregateProps.includes(prop as typeof aggregateProps[number])) {
         return applyAggregates(client, prop, action)
       }
 

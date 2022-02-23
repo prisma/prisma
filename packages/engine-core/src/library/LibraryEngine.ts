@@ -6,6 +6,7 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
+
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -147,7 +148,7 @@ export class LibraryEngine extends Engine {
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
         `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_LIBRARY')} ${chalk.redBright.bold(
-          this.platform,
+          platform,
         )}. Possible binaryTargets: ${chalk.greenBright(
           knownPlatforms.join(', '),
         )} or a path to the query engine library.

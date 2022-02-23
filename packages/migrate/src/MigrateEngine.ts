@@ -1,11 +1,13 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/sdk'
-import { BinaryType, ErrorArea, resolveBinary, RustPanic, MigrateEngineExitCode } from '@prisma/sdk'
+import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
-import type { EngineArgs, EngineResults } from './types'
+
+import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
 const debugStdin = Debug('prisma:migrateEngine:stdin')
@@ -15,13 +17,6 @@ export interface MigrateEngineOptions {
   schemaPath?: string
   debug?: boolean
   enabledPreviewFeatures?: string[]
-}
-
-export interface RPCPayload {
-  id: number
-  jsonrpc: string
-  method: string
-  params: any
 }
 
 export class EngineError extends Error {
@@ -34,7 +29,6 @@ export class EngineError extends Error {
 
 let messageId = 1
 
-/* tslint:disable */
 export class MigrateEngine {
   private projectDir: string
   private debug: boolean
@@ -136,8 +130,11 @@ export class MigrateEngine {
     } catch (e) {
       console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
     }
+
+    // See https://www.jsonrpc.org/specification for the expected shape of messages.
     if (result) {
-      if (result.id) {
+      // It's a response
+      if (result.id && (result.result !== undefined || result.error !== undefined)) {
         if (!this.listeners[result.id]) {
           console.error(`Got result for unknown id ${result.id}`)
         }
@@ -145,14 +142,20 @@ export class MigrateEngine {
           this.listeners[result.id](result)
           delete this.listeners[result.id]
         }
-      } else {
-        // If the error happens before the JSON-RPC sever starts, the error doesn't have an id
-        if (result.is_panic) {
-          throw new Error(`Response: ${result.message}`)
-        } else if (result.message) {
-          console.error(chalk.red(`Response: ${result.message}`))
-        } else {
-          console.error(chalk.red(`Response: ${JSON.stringify(result)}`))
+      } else if (result.method) {
+        // This is a request.
+        if (result.id !== undefined) {
+          if (result.method === 'print' && result.params?.content !== undefined) {
+            console.info(result.params.content)
+
+            // Send an empty response back as ACK.
+            const response: RpcSuccessResponse<{}> = {
+              id: result.id,
+              jsonrpc: '2.0',
+              result: {},
+            }
+            this.child!.stdin!.write(JSON.stringify(response) + '\n')
+          }
         }
       }
     }
@@ -240,16 +243,14 @@ export class MigrateEngine {
           debugStdin(err)
         })
 
+        // logs (info, error)
+        // error can be a panic
         byline(this.child.stderr).on('data', (msg) => {
           const data = String(msg)
           debugStderr(data)
 
           try {
             const json: MigrateEngineLogLine = JSON.parse(data)
-
-            if (json.fields?.migrate_action === 'log') {
-              console.info(json.fields.message)
-            }
 
             this.messages.push(json.fields.message)
 
@@ -277,10 +278,13 @@ export class MigrateEngine {
     if (process.env.FORCE_PANIC_MIGRATION_ENGINE) {
       request = this.getRPCPayload('debugPanic', undefined)
     }
+
     await this.init()
+
     if (this.child?.killed) {
       throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine already exited.`)
     }
+
     return new Promise((resolve, reject) => {
       this.registerCallback(request.id, (response, err) => {
         if (err) {
@@ -331,9 +335,11 @@ export class MigrateEngine {
           }
         }
       })
+
       if (this.child!.stdin!.destroyed) {
         throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine is destroyed.`)
       }
+
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
       this.child!.stdin!.write(JSON.stringify(request) + '\n')
       this.lastRequest = request

@@ -184,10 +184,7 @@ const allUsers = await prisma.user.findMany({
 // Run inside `async` function
 const filteredPosts = await prisma.post.findMany({
   where: {
-    OR: [
-      { title: { contains: 'prisma' } },
-      { content: { contains: 'prisma' } },
-    ],
+    OR: [{ title: { contains: 'prisma' } }, { content: { contains: 'prisma' } }],
   },
 })
 ```

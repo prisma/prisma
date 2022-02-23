@@ -1,7 +1,7 @@
 import { handlePanic } from '@prisma/migrate'
-import path from 'path'
-import fs from 'fs'
 import { IntrospectionEngine } from '@prisma/sdk'
+import fs from 'fs'
+import path from 'path'
 
 async function main() {
   const packageJsonVersion = '0.0.0'

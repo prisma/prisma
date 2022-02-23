@@ -1,12 +1,14 @@
+import { getPackedPackage } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
-import { generateInFolder } from '../../utils/generateInFolder'
 import rimraf from 'rimraf'
-import { promisify } from 'util'
-import { getPackedPackage } from '@prisma/sdk'
-import { compileFile } from '../../utils/compileFile'
 import tsd from 'tsd'
 import formatter from 'tsd/dist/lib/formatter'
+import { promisify } from 'util'
+
+import { compileFile } from '../../utils/compileFile'
+import { generateInFolder } from '../../utils/generateInFolder'
+
 const del = promisify(rimraf)
 
 jest.setTimeout(300_000)
@@ -57,7 +59,5 @@ async function runTsd(dir: string) {
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
-  return files
-    .map((file) => path.join(dir, file))
-    .filter((file) => fs.lstatSync(file).isDirectory())
+  return files.map((file) => path.join(dir, file)).filter((file) => fs.lstatSync(file).isDirectory())
 }

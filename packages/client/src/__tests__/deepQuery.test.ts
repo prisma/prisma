@@ -1,7 +1,9 @@
 import chalk from 'chalk'
+
 import { recommender } from '../fixtures/recommender'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+
 chalk.level = 0
 
 let dmmf

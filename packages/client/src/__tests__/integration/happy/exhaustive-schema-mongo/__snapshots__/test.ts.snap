@@ -102,11 +102,20 @@ exports.Prisma.UserScalarFieldEnum = makeEnum({
   enum: 'enum',
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
-  optionalBoolean: 'optionalBoolean'
+  optionalBoolean: 'optionalBoolean',
+  embedHolderId: 'embedHolderId'
+});
+
+exports.Prisma.EmbedHolderScalarFieldEnum = makeEnum({
+  id: 'id',
+  time: 'time',
+  text: 'text',
+  boolean: 'boolean'
 });
 
 exports.Prisma.MScalarFieldEnum = makeEnum({
   id: 'id',
+  n_ids: 'n_ids',
   int: 'int',
   optionalInt: 'optionalInt',
   float: 'float',
@@ -123,6 +132,7 @@ exports.Prisma.MScalarFieldEnum = makeEnum({
 
 exports.Prisma.NScalarFieldEnum = makeEnum({
   id: 'id',
+  m_ids: 'm_ids',
   int: 'int',
   optionalInt: 'optionalInt',
   float: 'float',
@@ -264,6 +274,7 @@ exports.ABeautifulEnum = makeEnum({
 exports.Prisma.ModelName = makeEnum({
   Post: 'Post',
   User: 'User',
+  EmbedHolder: 'EmbedHolder',
   M: 'M',
   N: 'N',
   OneOptional: 'OneOptional',
@@ -310,6 +321,27 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
 
 
 /**
+ * Model Embed
+ * 
+ */
+export type Embed = {
+  text: string
+  boolean: boolean
+  embedEmbedList: EmbedEmbed[]
+  requiredEmbedEmbed: EmbedEmbed
+  optionalEmbedEmbed: EmbedEmbed | null
+}
+
+/**
+ * Model EmbedEmbed
+ * 
+ */
+export type EmbedEmbed = {
+  text: string
+  boolean: boolean
+}
+
+/**
  * Model Post
  * 
  */
@@ -341,6 +373,21 @@ export type User = {
   optionalEnum: ABeautifulEnum | null
   boolean: boolean
   optionalBoolean: boolean | null
+  embedHolderId: string
+}
+
+/**
+ * Model EmbedHolder
+ * 
+ */
+export type EmbedHolder = {
+  embedList: Embed[]
+  requiredEmbed: Embed
+  optionalEmbed: Embed | null
+  id: string
+  time: Date
+  text: string
+  boolean: boolean
 }
 
 /**
@@ -349,6 +396,7 @@ export type User = {
  */
 export type M = {
   id: string
+  n_ids: string[]
   int: number
   optionalInt: number | null
   float: number
@@ -369,6 +417,7 @@ export type M = {
  */
 export type N = {
   id: string
+  m_ids: string[]
   int: number
   optionalInt: number | null
   float: number
@@ -682,6 +731,16 @@ export class PrismaClient<
   get user(): Prisma.UserDelegate<GlobalReject>;
 
   /**
+   * \`prisma.embedHolder\`: Exposes CRUD operations for the **EmbedHolder** model.
+    * Example usage:
+    * \`\`\`ts
+    * // Fetch zero or more EmbedHolders
+    * const embedHolders = await prisma.embedHolder.findMany()
+    * \`\`\`
+    */
+  get embedHolder(): Prisma.EmbedHolderDelegate<GlobalReject>;
+
+  /**
    * \`prisma.m\`: Exposes CRUD operations for the **M** model.
     * Example usage:
     * \`\`\`ts
@@ -982,7 +1041,11 @@ export namespace Prisma {
    * XOR is needed to have a real mutually exclusive union type
    * https://stackoverflow.com/questions/42123407/does-typescript-support-mutually-exclusive-types
    */
-  type XOR<T, U> = (T | U) extends object ? (Without<T, U> & U) | (Without<U, T> & T) : T | U;
+  type XOR<T, U> =
+    T extends object ?
+    U extends object ?
+      (Without<T, U> & U) | (Without<U, T> & T)
+    : U : T
 
 
   /**
@@ -1202,6 +1265,7 @@ export namespace Prisma {
   export const ModelName: {
     Post: 'Post',
     User: 'User',
+    EmbedHolder: 'EmbedHolder',
     M: 'M',
     N: 'N',
     OneOptional: 'OneOptional',
@@ -1393,9 +1457,8 @@ export namespace Prisma {
     ? UserCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof UserCountOutputType ?UserCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof UserCountOutputType ? UserCountOutputType[P] : never
   } 
     : UserCountOutputType
   : UserCountOutputType
@@ -1414,6 +1477,55 @@ export namespace Prisma {
      * 
     **/
     select?: UserCountOutputTypeSelect | null
+  }
+
+
+
+  /**
+   * Count Type EmbedHolderCountOutputType
+   */
+
+
+  export type EmbedHolderCountOutputType = {
+    User: number
+  }
+
+  export type EmbedHolderCountOutputTypeSelect = {
+    User?: boolean
+  }
+
+  export type EmbedHolderCountOutputTypeGetPayload<
+    S extends boolean | null | undefined | EmbedHolderCountOutputTypeArgs,
+    U = keyof S
+      > = S extends true
+        ? EmbedHolderCountOutputType
+    : S extends undefined
+    ? never
+    : S extends EmbedHolderCountOutputTypeArgs
+    ?'include' extends U
+    ? EmbedHolderCountOutputType 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]:
+    P extends keyof EmbedHolderCountOutputType ? EmbedHolderCountOutputType[P] : never
+  } 
+    : EmbedHolderCountOutputType
+  : EmbedHolderCountOutputType
+
+
+
+
+  // Custom InputTypes
+
+  /**
+   * EmbedHolderCountOutputType without action
+   */
+  export type EmbedHolderCountOutputTypeArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolderCountOutputType
+     * 
+    **/
+    select?: EmbedHolderCountOutputTypeSelect | null
   }
 
 
@@ -1443,9 +1555,8 @@ export namespace Prisma {
     ? MCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof MCountOutputType ?MCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof MCountOutputType ? MCountOutputType[P] : never
   } 
     : MCountOutputType
   : MCountOutputType
@@ -1493,9 +1604,8 @@ export namespace Prisma {
     ? NCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof NCountOutputType ?NCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof NCountOutputType ? NCountOutputType[P] : never
   } 
     : NCountOutputType
   : NCountOutputType
@@ -1543,9 +1653,8 @@ export namespace Prisma {
     ? OneOptionalCountOutputType 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OneOptionalCountOutputType ?OneOptionalCountOutputType [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof OneOptionalCountOutputType ? OneOptionalCountOutputType[P] : never
   } 
     : OneOptionalCountOutputType
   : OneOptionalCountOutputType
@@ -1571,6 +1680,236 @@ export namespace Prisma {
   /**
    * Models
    */
+
+  /**
+   * Model Embed
+   */
+
+
+
+
+
+  export type EmbedSelect = {
+    text?: boolean
+    boolean?: boolean
+    embedEmbedList?: boolean | EmbedEmbedArgs
+    requiredEmbedEmbed?: boolean | EmbedEmbedArgs
+    optionalEmbedEmbed?: boolean | EmbedEmbedArgs
+  }
+
+  export type EmbedInclude = {
+
+  }
+
+  export type EmbedGetPayload<
+    S extends boolean | null | undefined | EmbedArgs,
+    U = keyof S
+      > = S extends true
+        ? Embed
+    : S extends undefined
+    ? never
+    : S extends EmbedArgs
+    ?'include' extends U
+    ? Embed  & {
+    [P in TrueKeys<S['include']>]:
+        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['include'][P]>>  :
+        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['include'][P]> :
+        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['include'][P]> | null :  never
+  } 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]:
+        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['select'][P]>>  :
+        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> :
+        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> | null :  P extends keyof Embed ? Embed[P] : never
+  } 
+    : Embed
+  : Embed
+
+
+
+  export interface EmbedDelegate<GlobalRejectSettings> {
+
+
+
+
+
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Embed.
+   * Why is this prefixed with \`Prisma__\`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export class Prisma__EmbedClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
+    private readonly _dmmf;
+    private readonly _fetcher;
+    private readonly _queryType;
+    private readonly _rootField;
+    private readonly _clientMethod;
+    private readonly _args;
+    private readonly _dataPath;
+    private readonly _errorFormat;
+    private readonly _measurePerformance?;
+    private _isList;
+    private _callsite;
+    private _requestPromise?;
+    constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+    readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+    embedEmbedList<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, PrismaPromise<Array<EmbedEmbed>>, PrismaPromise<Array<EmbedEmbedGetPayload<T>>>>;
+
+    requiredEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
+
+    optionalEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
+
+    private get _document();
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+  }
+
+  // Custom InputTypes
+
+  /**
+   * Embed without action
+   */
+  export type EmbedArgs = {
+    /**
+     * Select specific fields to fetch from the Embed
+     * 
+    **/
+    select?: EmbedSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedInclude | null
+  }
+
+
+
+  /**
+   * Model EmbedEmbed
+   */
+
+
+
+
+
+  export type EmbedEmbedSelect = {
+    text?: boolean
+    boolean?: boolean
+  }
+
+  export type EmbedEmbedGetPayload<
+    S extends boolean | null | undefined | EmbedEmbedArgs,
+    U = keyof S
+      > = S extends true
+        ? EmbedEmbed
+    : S extends undefined
+    ? never
+    : S extends EmbedEmbedArgs
+    ?'include' extends U
+    ? EmbedEmbed 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]:
+    P extends keyof EmbedEmbed ? EmbedEmbed[P] : never
+  } 
+    : EmbedEmbed
+  : EmbedEmbed
+
+
+
+  export interface EmbedEmbedDelegate<GlobalRejectSettings> {
+
+
+
+
+
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmbedEmbed.
+   * Why is this prefixed with \`Prisma__\`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export class Prisma__EmbedEmbedClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
+    private readonly _dmmf;
+    private readonly _fetcher;
+    private readonly _queryType;
+    private readonly _rootField;
+    private readonly _clientMethod;
+    private readonly _args;
+    private readonly _dataPath;
+    private readonly _errorFormat;
+    private readonly _measurePerformance?;
+    private _isList;
+    private _callsite;
+    private _requestPromise?;
+    constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+    readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+
+    private get _document();
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+  }
+
+  // Custom InputTypes
+
+  /**
+   * EmbedEmbed without action
+   */
+  export type EmbedEmbedArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedEmbed
+     * 
+    **/
+    select?: EmbedEmbedSelect | null
+  }
+
+
 
   /**
    * Model Post
@@ -1764,7 +2103,7 @@ export namespace Prisma {
     _max: PostMaxAggregateOutputType | null
   }
 
-  type GetPostGroupByPayload<T extends PostGroupByArgs> = Promise<
+  type GetPostGroupByPayload<T extends PostGroupByArgs> = PrismaPromise<
     Array<
       PickArray<PostGroupByOutputType, T['by']> &
         {
@@ -1802,16 +2141,13 @@ export namespace Prisma {
     : S extends PostArgs | PostFindManyArgs
     ?'include' extends U
     ? Post  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'author'
-        ? UserGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'author' ? UserGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof Post ?Post [P]
-  : 
-          P extends 'author'
-        ? UserGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'author' ? UserGetPayload<S['select'][P]> :  P extends keyof Post ? Post[P] : never
   } 
     : Post
   : Post
@@ -2152,7 +2488,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, PostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, PostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -2581,6 +2917,7 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
+    embedHolderId: string | null
   }
 
   export type UserMaxAggregateOutputType = {
@@ -2596,6 +2933,7 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
+    embedHolderId: string | null
   }
 
   export type UserCountAggregateOutputType = {
@@ -2613,6 +2951,7 @@ export namespace Prisma {
     optionalEnum: number
     boolean: number
     optionalBoolean: number
+    embedHolderId: number
     _all: number
   }
 
@@ -2644,6 +2983,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
+    embedHolderId?: true
   }
 
   export type UserMaxAggregateInputType = {
@@ -2659,6 +2999,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
+    embedHolderId?: true
   }
 
   export type UserCountAggregateInputType = {
@@ -2676,6 +3017,7 @@ export namespace Prisma {
     optionalEnum?: true
     boolean?: true
     optionalBoolean?: true
+    embedHolderId?: true
     _all?: true
   }
 
@@ -2786,6 +3128,7 @@ export namespace Prisma {
     optionalEnum: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
+    embedHolderId: string
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
     _sum: UserSumAggregateOutputType | null
@@ -2793,7 +3136,7 @@ export namespace Prisma {
     _max: UserMaxAggregateOutputType | null
   }
 
-  type GetUserGroupByPayload<T extends UserGroupByArgs> = Promise<
+  type GetUserGroupByPayload<T extends UserGroupByArgs> = PrismaPromise<
     Array<
       PickArray<UserGroupByOutputType, T['by']> &
         {
@@ -2823,11 +3166,14 @@ export namespace Prisma {
     boolean?: boolean
     optionalBoolean?: boolean
     posts?: boolean | PostFindManyArgs
+    embedHolder?: boolean | EmbedHolderArgs
+    embedHolderId?: boolean
     _count?: boolean | UserCountOutputTypeArgs
   }
 
   export type UserInclude = {
     posts?: boolean | PostFindManyArgs
+    embedHolder?: boolean | EmbedHolderArgs
     _count?: boolean | UserCountOutputTypeArgs
   }
 
@@ -2841,20 +3187,17 @@ export namespace Prisma {
     : S extends UserArgs | UserFindManyArgs
     ?'include' extends U
     ? User  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'posts'
-        ? Array < PostGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<S['include'][P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof User ?User [P]
-  : 
-          P extends 'posts'
-        ? Array < PostGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? UserCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<S['select'][P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof User ? User[P] : never
   } 
     : User
   : User
@@ -3195,7 +3538,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -3222,6 +3565,8 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
     posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, PrismaPromise<Array<Post>>, PrismaPromise<Array<PostGetPayload<T>>>>;
+
+    embedHolder<T extends EmbedHolderArgs = {}>(args?: Subset<T, EmbedHolderArgs>): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null >, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null >>;
 
     private get _document();
     /**
@@ -3585,6 +3930,941 @@ export namespace Prisma {
 
 
   /**
+   * Model EmbedHolder
+   */
+
+
+  export type AggregateEmbedHolder = {
+    _count: EmbedHolderCountAggregateOutputType | null
+    _min: EmbedHolderMinAggregateOutputType | null
+    _max: EmbedHolderMaxAggregateOutputType | null
+  }
+
+  export type EmbedHolderMinAggregateOutputType = {
+    id: string | null
+    time: Date | null
+    text: string | null
+    boolean: boolean | null
+  }
+
+  export type EmbedHolderMaxAggregateOutputType = {
+    id: string | null
+    time: Date | null
+    text: string | null
+    boolean: boolean | null
+  }
+
+  export type EmbedHolderCountAggregateOutputType = {
+    id: number
+    time: number
+    text: number
+    boolean: number
+    _all: number
+  }
+
+
+  export type EmbedHolderMinAggregateInputType = {
+    id?: true
+    time?: true
+    text?: true
+    boolean?: true
+  }
+
+  export type EmbedHolderMaxAggregateInputType = {
+    id?: true
+    time?: true
+    text?: true
+    boolean?: true
+  }
+
+  export type EmbedHolderCountAggregateInputType = {
+    id?: true
+    time?: true
+    text?: true
+    boolean?: true
+    _all?: true
+  }
+
+  export type EmbedHolderAggregateArgs = {
+    /**
+     * Filter which EmbedHolder to aggregate.
+     * 
+    **/
+    where?: EmbedHolderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmbedHolders to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<EmbedHolderOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     * 
+    **/
+    cursor?: EmbedHolderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` EmbedHolders from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` EmbedHolders.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned EmbedHolders
+    **/
+    _count?: true | EmbedHolderCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: EmbedHolderMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: EmbedHolderMaxAggregateInputType
+  }
+
+  export type GetEmbedHolderAggregateType<T extends EmbedHolderAggregateArgs> = {
+        [P in keyof T & keyof AggregateEmbedHolder]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateEmbedHolder[P]>
+      : GetScalarType<T[P], AggregateEmbedHolder[P]>
+  }
+
+
+
+
+  export type EmbedHolderGroupByArgs = {
+    where?: EmbedHolderWhereInput
+    orderBy?: Enumerable<EmbedHolderOrderByWithAggregationInput>
+    by: Array<EmbedHolderScalarFieldEnum>
+    having?: EmbedHolderScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: EmbedHolderCountAggregateInputType | true
+    _min?: EmbedHolderMinAggregateInputType
+    _max?: EmbedHolderMaxAggregateInputType
+  }
+
+
+  export type EmbedHolderGroupByOutputType = {
+    id: string
+    time: Date
+    text: string
+    boolean: boolean
+    _count: EmbedHolderCountAggregateOutputType | null
+    _min: EmbedHolderMinAggregateOutputType | null
+    _max: EmbedHolderMaxAggregateOutputType | null
+  }
+
+  type GetEmbedHolderGroupByPayload<T extends EmbedHolderGroupByArgs> = PrismaPromise<
+    Array<
+      PickArray<EmbedHolderGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof EmbedHolderGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], EmbedHolderGroupByOutputType[P]>
+            : GetScalarType<T[P], EmbedHolderGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type EmbedHolderSelect = {
+    embedList?: boolean | EmbedArgs
+    requiredEmbed?: boolean | EmbedArgs
+    optionalEmbed?: boolean | EmbedArgs
+    id?: boolean
+    time?: boolean
+    text?: boolean
+    boolean?: boolean
+    User?: boolean | UserFindManyArgs
+    _count?: boolean | EmbedHolderCountOutputTypeArgs
+  }
+
+  export type EmbedHolderInclude = {
+    User?: boolean | UserFindManyArgs
+    _count?: boolean | EmbedHolderCountOutputTypeArgs
+  }
+
+  export type EmbedHolderGetPayload<
+    S extends boolean | null | undefined | EmbedHolderArgs,
+    U = keyof S
+      > = S extends true
+        ? EmbedHolder
+    : S extends undefined
+    ? never
+    : S extends EmbedHolderArgs | EmbedHolderFindManyArgs
+    ?'include' extends U
+    ? EmbedHolder  & {
+    [P in TrueKeys<S['include']>]:
+        P extends 'embedList' ? Array < EmbedGetPayload<S['include'][P]>>  :
+        P extends 'requiredEmbed' ? EmbedGetPayload<S['include'][P]> :
+        P extends 'optionalEmbed' ? EmbedGetPayload<S['include'][P]> | null :
+        P extends 'User' ? Array < UserGetPayload<S['include'][P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['include'][P]> :  never
+  } 
+    : 'select' extends U
+    ? {
+    [P in TrueKeys<S['select']>]:
+        P extends 'embedList' ? Array < EmbedGetPayload<S['select'][P]>>  :
+        P extends 'requiredEmbed' ? EmbedGetPayload<S['select'][P]> :
+        P extends 'optionalEmbed' ? EmbedGetPayload<S['select'][P]> | null :
+        P extends 'User' ? Array < UserGetPayload<S['select'][P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
+  } 
+    : EmbedHolder
+  : EmbedHolder
+
+
+  type EmbedHolderCountArgs = Merge<
+    Omit<EmbedHolderFindManyArgs, 'select' | 'include'> & {
+      select?: EmbedHolderCountAggregateInputType | true
+    }
+  >
+
+  export interface EmbedHolderDelegate<GlobalRejectSettings> {
+    /**
+     * Find zero or one EmbedHolder that matches the filter.
+     * @param {EmbedHolderFindUniqueArgs} args - Arguments to find a EmbedHolder
+     * @example
+     * // Get one EmbedHolder
+     * const embedHolder = await prisma.embedHolder.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUnique<T extends EmbedHolderFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+      args: SelectSubset<T, EmbedHolderFindUniqueArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>> : CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null >, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null >>
+
+    /**
+     * Find the first EmbedHolder that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderFindFirstArgs} args - Arguments to find a EmbedHolder
+     * @example
+     * // Get one EmbedHolder
+     * const embedHolder = await prisma.embedHolder.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirst<T extends EmbedHolderFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+      args?: SelectSubset<T, EmbedHolderFindFirstArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>> : CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null >, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null >>
+
+    /**
+     * Find zero or more EmbedHolders that matches the filter.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderFindManyArgs=} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all EmbedHolders
+     * const embedHolders = await prisma.embedHolder.findMany()
+     * 
+     * // Get first 10 EmbedHolders
+     * const embedHolders = await prisma.embedHolder.findMany({ take: 10 })
+     * 
+     * // Only select the \`id\`
+     * const embedHolderWithIdOnly = await prisma.embedHolder.findMany({ select: { id: true } })
+     * 
+    **/
+    findMany<T extends EmbedHolderFindManyArgs>(
+      args?: SelectSubset<T, EmbedHolderFindManyArgs>
+    ): CheckSelect<T, PrismaPromise<Array<EmbedHolder>>, PrismaPromise<Array<EmbedHolderGetPayload<T>>>>
+
+    /**
+     * Create a EmbedHolder.
+     * @param {EmbedHolderCreateArgs} args - Arguments to create a EmbedHolder.
+     * @example
+     * // Create one EmbedHolder
+     * const EmbedHolder = await prisma.embedHolder.create({
+     *   data: {
+     *     // ... data to create a EmbedHolder
+     *   }
+     * })
+     * 
+    **/
+    create<T extends EmbedHolderCreateArgs>(
+      args: SelectSubset<T, EmbedHolderCreateArgs>
+    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+
+    /**
+     * Create many EmbedHolders.
+     *     @param {EmbedHolderCreateManyArgs} args - Arguments to create many EmbedHolders.
+     *     @example
+     *     // Create many EmbedHolders
+     *     const embedHolder = await prisma.embedHolder.createMany({
+     *       data: {
+     *         // ... provide data here
+     *       }
+     *     })
+     *     
+    **/
+    createMany<T extends EmbedHolderCreateManyArgs>(
+      args?: SelectSubset<T, EmbedHolderCreateManyArgs>
+    ): PrismaPromise<BatchPayload>
+
+    /**
+     * Delete a EmbedHolder.
+     * @param {EmbedHolderDeleteArgs} args - Arguments to delete one EmbedHolder.
+     * @example
+     * // Delete one EmbedHolder
+     * const EmbedHolder = await prisma.embedHolder.delete({
+     *   where: {
+     *     // ... filter to delete one EmbedHolder
+     *   }
+     * })
+     * 
+    **/
+    delete<T extends EmbedHolderDeleteArgs>(
+      args: SelectSubset<T, EmbedHolderDeleteArgs>
+    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+
+    /**
+     * Update one EmbedHolder.
+     * @param {EmbedHolderUpdateArgs} args - Arguments to update one EmbedHolder.
+     * @example
+     * // Update one EmbedHolder
+     * const embedHolder = await prisma.embedHolder.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+    **/
+    update<T extends EmbedHolderUpdateArgs>(
+      args: SelectSubset<T, EmbedHolderUpdateArgs>
+    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+
+    /**
+     * Delete zero or more EmbedHolders.
+     * @param {EmbedHolderDeleteManyArgs} args - Arguments to filter EmbedHolders to delete.
+     * @example
+     * // Delete a few EmbedHolders
+     * const { count } = await prisma.embedHolder.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+    **/
+    deleteMany<T extends EmbedHolderDeleteManyArgs>(
+      args?: SelectSubset<T, EmbedHolderDeleteManyArgs>
+    ): PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more EmbedHolders.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many EmbedHolders
+     * const embedHolder = await prisma.embedHolder.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+    **/
+    updateMany<T extends EmbedHolderUpdateManyArgs>(
+      args: SelectSubset<T, EmbedHolderUpdateManyArgs>
+    ): PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one EmbedHolder.
+     * @param {EmbedHolderUpsertArgs} args - Arguments to update or create a EmbedHolder.
+     * @example
+     * // Update or create a EmbedHolder
+     * const embedHolder = await prisma.embedHolder.upsert({
+     *   create: {
+     *     // ... data to create a EmbedHolder
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the EmbedHolder we want to update
+     *   }
+     * })
+    **/
+    upsert<T extends EmbedHolderUpsertArgs>(
+      args: SelectSubset<T, EmbedHolderUpsertArgs>
+    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+
+    /**
+     * Find zero or more EmbedHolders that matches the filter.
+     * @param {EmbedHolderFindRawArgs} args - Select which filters you would like to apply.
+     * @example
+     * const embedHolder = await prisma.embedHolder.findRaw({
+     *   filter: { age: { $gt: 25 } } 
+     * })
+    **/
+    findRaw(
+      args?: EmbedHolderFindRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Perform aggregation operations on a EmbedHolder.
+     * @param {EmbedHolderAggregateRawArgs} args - Select which aggregations you would like to apply.
+     * @example
+     * const embedHolder = await prisma.embedHolder.aggregateRaw({
+     *   pipeline: [
+     *     { $match: { status: "registered" } },
+     *     { $group: { _id: "$country", total: { $sum: 1 } } }
+     *   ]
+     * })
+    **/
+    aggregateRaw(
+      args?: EmbedHolderAggregateRawArgs
+    ): PrismaPromise<JsonObject>
+
+    /**
+     * Count the number of EmbedHolders.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderCountArgs} args - Arguments to filter EmbedHolders to count.
+     * @example
+     * // Count the number of EmbedHolders
+     * const count = await prisma.embedHolder.count({
+     *   where: {
+     *     // ... the filter for the EmbedHolders we want to count
+     *   }
+     * })
+    **/
+    count<T extends EmbedHolderCountArgs>(
+      args?: Subset<T, EmbedHolderCountArgs>,
+    ): PrismaPromise<
+      T extends _Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], EmbedHolderCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a EmbedHolder.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends EmbedHolderAggregateArgs>(args: Subset<T, EmbedHolderAggregateArgs>): PrismaPromise<GetEmbedHolderAggregateType<T>>
+
+    /**
+     * Group by EmbedHolder.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends EmbedHolderGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: EmbedHolderGroupByArgs['orderBy'] }
+        : { orderBy?: EmbedHolderGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends TupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? \`Error: "by" must not be empty.\`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? \`Error: Field "\${P}" used in "having" needs to be provided in "by".\`
+            : [
+                Error,
+                'Field ',
+                P,
+                \` in "having" needs to be provided in "by"\`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, EmbedHolderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmbedHolderGroupByPayload<T> : PrismaPromise<InputErrors>
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for EmbedHolder.
+   * Why is this prefixed with \`Prisma__\`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export class Prisma__EmbedHolderClient<T> implements PrismaPromise<T> {
+    [prisma]: true;
+    private readonly _dmmf;
+    private readonly _fetcher;
+    private readonly _queryType;
+    private readonly _rootField;
+    private readonly _clientMethod;
+    private readonly _args;
+    private readonly _dataPath;
+    private readonly _errorFormat;
+    private readonly _measurePerformance?;
+    private _isList;
+    private _callsite;
+    private _requestPromise?;
+    constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+    readonly [Symbol.toStringTag]: 'PrismaClientPromise';
+
+    embedList<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, PrismaPromise<Array<Embed>>, PrismaPromise<Array<EmbedGetPayload<T>>>>;
+
+    requiredEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
+
+    optionalEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
+
+    User<T extends UserFindManyArgs = {}>(args?: Subset<T, UserFindManyArgs>): CheckSelect<T, PrismaPromise<Array<User>>, PrismaPromise<Array<UserGetPayload<T>>>>;
+
+    private get _document();
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): Promise<TResult1 | TResult2>;
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): Promise<T | TResult>;
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): Promise<T>;
+  }
+
+  // Custom InputTypes
+
+  /**
+   * EmbedHolder findUnique
+   */
+  export type EmbedHolderFindUniqueArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * Throw an Error if a EmbedHolder can't be found
+     * 
+    **/
+    rejectOnNotFound?: RejectOnNotFound
+    /**
+     * Filter, which EmbedHolder to fetch.
+     * 
+    **/
+    where: EmbedHolderWhereUniqueInput
+  }
+
+
+  /**
+   * EmbedHolder findFirst
+   */
+  export type EmbedHolderFindFirstArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * Throw an Error if a EmbedHolder can't be found
+     * 
+    **/
+    rejectOnNotFound?: RejectOnNotFound
+    /**
+     * Filter, which EmbedHolder to fetch.
+     * 
+    **/
+    where?: EmbedHolderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmbedHolders to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<EmbedHolderOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmbedHolders.
+     * 
+    **/
+    cursor?: EmbedHolderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` EmbedHolders from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` EmbedHolders.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmbedHolders.
+     * 
+    **/
+    distinct?: Enumerable<EmbedHolderScalarFieldEnum>
+  }
+
+
+  /**
+   * EmbedHolder findMany
+   */
+  export type EmbedHolderFindManyArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * Filter, which EmbedHolders to fetch.
+     * 
+    **/
+    where?: EmbedHolderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmbedHolders to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<EmbedHolderOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing EmbedHolders.
+     * 
+    **/
+    cursor?: EmbedHolderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` EmbedHolders from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` EmbedHolders.
+     * 
+    **/
+    skip?: number
+    distinct?: Enumerable<EmbedHolderScalarFieldEnum>
+  }
+
+
+  /**
+   * EmbedHolder create
+   */
+  export type EmbedHolderCreateArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * The data needed to create a EmbedHolder.
+     * 
+    **/
+    data: XOR<EmbedHolderCreateInput, EmbedHolderUncheckedCreateInput>
+  }
+
+
+  /**
+   * EmbedHolder createMany
+   */
+  export type EmbedHolderCreateManyArgs = {
+    /**
+     * The data used to create many EmbedHolders.
+     * 
+    **/
+    data: Enumerable<EmbedHolderCreateManyInput>
+  }
+
+
+  /**
+   * EmbedHolder update
+   */
+  export type EmbedHolderUpdateArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * The data needed to update a EmbedHolder.
+     * 
+    **/
+    data: XOR<EmbedHolderUpdateInput, EmbedHolderUncheckedUpdateInput>
+    /**
+     * Choose, which EmbedHolder to update.
+     * 
+    **/
+    where: EmbedHolderWhereUniqueInput
+  }
+
+
+  /**
+   * EmbedHolder updateMany
+   */
+  export type EmbedHolderUpdateManyArgs = {
+    /**
+     * The data used to update EmbedHolders.
+     * 
+    **/
+    data: XOR<EmbedHolderUpdateManyMutationInput, EmbedHolderUncheckedUpdateManyInput>
+    /**
+     * Filter which EmbedHolders to update
+     * 
+    **/
+    where?: EmbedHolderWhereInput
+  }
+
+
+  /**
+   * EmbedHolder upsert
+   */
+  export type EmbedHolderUpsertArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * The filter to search for the EmbedHolder to update in case it exists.
+     * 
+    **/
+    where: EmbedHolderWhereUniqueInput
+    /**
+     * In case the EmbedHolder found by the \`where\` argument doesn't exist, create a new EmbedHolder with this data.
+     * 
+    **/
+    create: XOR<EmbedHolderCreateInput, EmbedHolderUncheckedCreateInput>
+    /**
+     * In case the EmbedHolder was found with the provided \`where\` argument, update it with this data.
+     * 
+    **/
+    update: XOR<EmbedHolderUpdateInput, EmbedHolderUncheckedUpdateInput>
+  }
+
+
+  /**
+   * EmbedHolder delete
+   */
+  export type EmbedHolderDeleteArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * Filter which EmbedHolder to delete.
+     * 
+    **/
+    where: EmbedHolderWhereUniqueInput
+  }
+
+
+  /**
+   * EmbedHolder deleteMany
+   */
+  export type EmbedHolderDeleteManyArgs = {
+    /**
+     * Filter which EmbedHolders to delete
+     * 
+    **/
+    where?: EmbedHolderWhereInput
+  }
+
+
+  /**
+   * EmbedHolder findRaw
+   */
+  export type EmbedHolderFindRawArgs = {
+    /**
+     * The query predicate filter. If unspecified, then all documents in the collection will match the predicate. \${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.
+     * 
+    **/
+    filter?: InputJsonValue
+    /**
+     * Additional options to pass to the \`find\` command \${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * EmbedHolder aggregateRaw
+   */
+  export type EmbedHolderAggregateRawArgs = {
+    /**
+     * An array of aggregation stages to process and transform the document stream via the aggregation pipeline. \${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.
+     * 
+    **/
+    pipeline?: Array<InputJsonValue>
+    /**
+     * Additional options to pass to the \`aggregate\` command \${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.
+     * 
+    **/
+    options?: InputJsonValue
+  }
+
+
+  /**
+   * EmbedHolder without action
+   */
+  export type EmbedHolderArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+  }
+
+
+
+  /**
    * Model M
    */
 
@@ -3641,6 +4921,7 @@ export namespace Prisma {
 
   export type MCountAggregateOutputType = {
     id: number
+    n_ids: number
     int: number
     optionalInt: number
     float: number
@@ -3701,6 +4982,7 @@ export namespace Prisma {
 
   export type MCountAggregateInputType = {
     id?: true
+    n_ids?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -3810,6 +5092,7 @@ export namespace Prisma {
 
   export type MGroupByOutputType = {
     id: string
+    n_ids: string[]
     int: number
     optionalInt: number | null
     float: number
@@ -3829,7 +5112,7 @@ export namespace Prisma {
     _max: MMaxAggregateOutputType | null
   }
 
-  type GetMGroupByPayload<T extends MGroupByArgs> = Promise<
+  type GetMGroupByPayload<T extends MGroupByArgs> = PrismaPromise<
     Array<
       PickArray<MGroupByOutputType, T['by']> &
         {
@@ -3845,6 +5128,7 @@ export namespace Prisma {
 
   export type MSelect = {
     id?: boolean
+    n_ids?: boolean
     n?: boolean | NFindManyArgs
     int?: boolean
     optionalInt?: boolean
@@ -3876,20 +5160,15 @@ export namespace Prisma {
     : S extends MArgs | MFindManyArgs
     ?'include' extends U
     ? M  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'n'
-        ? Array < NGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? MCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'n' ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof M ?M [P]
-  : 
-          P extends 'n'
-        ? Array < NGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? MCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'n' ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof M ? M[P] : never
   } 
     : M
   : M
@@ -4230,7 +5509,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, MGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, MGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -4676,6 +5955,7 @@ export namespace Prisma {
 
   export type NCountAggregateOutputType = {
     id: number
+    m_ids: number
     int: number
     optionalInt: number
     float: number
@@ -4736,6 +6016,7 @@ export namespace Prisma {
 
   export type NCountAggregateInputType = {
     id?: true
+    m_ids?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -4845,6 +6126,7 @@ export namespace Prisma {
 
   export type NGroupByOutputType = {
     id: string
+    m_ids: string[]
     int: number
     optionalInt: number | null
     float: number
@@ -4864,7 +6146,7 @@ export namespace Prisma {
     _max: NMaxAggregateOutputType | null
   }
 
-  type GetNGroupByPayload<T extends NGroupByArgs> = Promise<
+  type GetNGroupByPayload<T extends NGroupByArgs> = PrismaPromise<
     Array<
       PickArray<NGroupByOutputType, T['by']> &
         {
@@ -4880,6 +6162,7 @@ export namespace Prisma {
 
   export type NSelect = {
     id?: boolean
+    m_ids?: boolean
     m?: boolean | MFindManyArgs
     int?: boolean
     optionalInt?: boolean
@@ -4911,20 +6194,15 @@ export namespace Prisma {
     : S extends NArgs | NFindManyArgs
     ?'include' extends U
     ? N  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'm'
-        ? Array < MGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? NCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'm' ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof N ?N [P]
-  : 
-          P extends 'm'
-        ? Array < MGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? NCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'm' ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof N ? N[P] : never
   } 
     : N
   : N
@@ -5265,7 +6543,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, NGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, NGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -5899,7 +7177,7 @@ export namespace Prisma {
     _max: OneOptionalMaxAggregateOutputType | null
   }
 
-  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Promise<
+  type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = PrismaPromise<
     Array<
       PickArray<OneOptionalGroupByOutputType, T['by']> &
         {
@@ -5946,20 +7224,15 @@ export namespace Prisma {
     : S extends OneOptionalArgs | OneOptionalFindManyArgs
     ?'include' extends U
     ? OneOptional  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
-        P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OneOptional ?OneOptional [P]
-  : 
-          P extends 'many'
-        ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
-        P extends '_count'
-        ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof OneOptional ? OneOptional[P] : never
   } 
     : OneOptional
   : OneOptional
@@ -6300,7 +7573,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, OneOptionalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, OneOptionalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -6945,7 +8218,7 @@ export namespace Prisma {
     _max: ManyRequiredMaxAggregateOutputType | null
   }
 
-  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Promise<
+  type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = PrismaPromise<
     Array<
       PickArray<ManyRequiredGroupByOutputType, T['by']> &
         {
@@ -6991,16 +8264,13 @@ export namespace Prisma {
     : S extends ManyRequiredArgs | ManyRequiredFindManyArgs
     ?'include' extends U
     ? ManyRequired  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'one'
-        ? OneOptionalGetPayload<S['include'][P]> | null : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof ManyRequired ?ManyRequired [P]
-  : 
-          P extends 'one'
-        ? OneOptionalGetPayload<S['select'][P]> | null : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['select'][P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
   } 
     : ManyRequired
   : ManyRequired
@@ -7341,7 +8611,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, ManyRequiredGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, ManyRequiredGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -7986,7 +9256,7 @@ export namespace Prisma {
     _max: OptionalSide1MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Promise<
+  type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = PrismaPromise<
     Array<
       PickArray<OptionalSide1GroupByOutputType, T['by']> &
         {
@@ -8032,16 +9302,13 @@ export namespace Prisma {
     : S extends OptionalSide1Args | OptionalSide1FindManyArgs
     ?'include' extends U
     ? OptionalSide1  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'opti'
-        ? OptionalSide2GetPayload<S['include'][P]> | null : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OptionalSide1 ?OptionalSide1 [P]
-  : 
-          P extends 'opti'
-        ? OptionalSide2GetPayload<S['select'][P]> | null : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
   } 
     : OptionalSide1
   : OptionalSide1
@@ -8382,7 +9649,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, OptionalSide1GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, OptionalSide1GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -9016,7 +10283,7 @@ export namespace Prisma {
     _max: OptionalSide2MaxAggregateOutputType | null
   }
 
-  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Promise<
+  type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = PrismaPromise<
     Array<
       PickArray<OptionalSide2GroupByOutputType, T['by']> &
         {
@@ -9061,16 +10328,13 @@ export namespace Prisma {
     : S extends OptionalSide2Args | OptionalSide2FindManyArgs
     ?'include' extends U
     ? OptionalSide2  & {
-    [P in TrueKeys<S['include']>]: 
-          P extends 'opti'
-        ? OptionalSide1GetPayload<S['include'][P]> | null : never
+    [P in TrueKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['include'][P]> | null :  never
   } 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof OptionalSide2 ?OptionalSide2 [P]
-  : 
-          P extends 'opti'
-        ? OptionalSide1GetPayload<S['select'][P]> | null : never
+    [P in TrueKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
   } 
     : OptionalSide2
   : OptionalSide2
@@ -9411,7 +10675,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, OptionalSide2GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, OptionalSide2GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -10000,7 +11264,7 @@ export namespace Prisma {
     _max: AMaxAggregateOutputType | null
   }
 
-  type GetAGroupByPayload<T extends AGroupByArgs> = Promise<
+  type GetAGroupByPayload<T extends AGroupByArgs> = PrismaPromise<
     Array<
       PickArray<AGroupByOutputType, T['by']> &
         {
@@ -10035,9 +11299,8 @@ export namespace Prisma {
     ? A 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof A ?A [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof A ? A[P] : never
   } 
     : A
   : A
@@ -10378,7 +11641,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, AGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, AGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -10923,7 +12186,7 @@ export namespace Prisma {
     _max: BMaxAggregateOutputType | null
   }
 
-  type GetBGroupByPayload<T extends BGroupByArgs> = Promise<
+  type GetBGroupByPayload<T extends BGroupByArgs> = PrismaPromise<
     Array<
       PickArray<BGroupByOutputType, T['by']> &
         {
@@ -10957,9 +12220,8 @@ export namespace Prisma {
     ? B 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof B ?B [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof B ? B[P] : never
   } 
     : B
   : B
@@ -11300,7 +12562,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, BGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, BGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -11813,7 +13075,7 @@ export namespace Prisma {
     _max: CMaxAggregateOutputType | null
   }
 
-  type GetCGroupByPayload<T extends CGroupByArgs> = Promise<
+  type GetCGroupByPayload<T extends CGroupByArgs> = PrismaPromise<
     Array<
       PickArray<CGroupByOutputType, T['by']> &
         {
@@ -11849,9 +13111,8 @@ export namespace Prisma {
     ? C 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof C ?C [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof C ? C[P] : never
   } 
     : C
   : C
@@ -12192,7 +13453,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, CGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, CGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -12690,7 +13951,7 @@ export namespace Prisma {
     _max: DMaxAggregateOutputType | null
   }
 
-  type GetDGroupByPayload<T extends DGroupByArgs> = Promise<
+  type GetDGroupByPayload<T extends DGroupByArgs> = PrismaPromise<
     Array<
       PickArray<DGroupByOutputType, T['by']> &
         {
@@ -12725,9 +13986,8 @@ export namespace Prisma {
     ? D 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof D ?D [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof D ? D[P] : never
   } 
     : D
   : D
@@ -13068,7 +14328,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, DGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, DGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -13560,7 +14820,7 @@ export namespace Prisma {
     _max: EMaxAggregateOutputType | null
   }
 
-  type GetEGroupByPayload<T extends EGroupByArgs> = Promise<
+  type GetEGroupByPayload<T extends EGroupByArgs> = PrismaPromise<
     Array<
       PickArray<EGroupByOutputType, T['by']> &
         {
@@ -13593,9 +14853,8 @@ export namespace Prisma {
     ? E 
     : 'select' extends U
     ? {
-    [P in TrueKeys<S['select']>]: P extends keyof E ?E [P]
-  : 
-     never
+    [P in TrueKeys<S['select']>]:
+    P extends keyof E ? E[P] : never
   } 
     : E
   : E
@@ -13936,7 +15195,7 @@ export namespace Prisma {
             ? never
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
-    >(args: SubsetIntersection<T, EGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : Promise<InputErrors>
+    >(args: SubsetIntersection<T, EGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : PrismaPromise<InputErrors>
   }
 
   /**
@@ -14317,14 +15576,26 @@ export namespace Prisma {
     enum: 'enum',
     optionalEnum: 'optionalEnum',
     boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
+    optionalBoolean: 'optionalBoolean',
+    embedHolderId: 'embedHolderId'
   };
 
   export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
 
 
+  export const EmbedHolderScalarFieldEnum: {
+    id: 'id',
+    time: 'time',
+    text: 'text',
+    boolean: 'boolean'
+  };
+
+  export type EmbedHolderScalarFieldEnum = (typeof EmbedHolderScalarFieldEnum)[keyof typeof EmbedHolderScalarFieldEnum]
+
+
   export const MScalarFieldEnum: {
     id: 'id',
+    n_ids: 'n_ids',
     int: 'int',
     optionalInt: 'optionalInt',
     float: 'float',
@@ -14344,6 +15615,7 @@ export namespace Prisma {
 
   export const NScalarFieldEnum: {
     id: 'id',
+    m_ids: 'm_ids',
     int: 'int',
     optionalInt: 'optionalInt',
     float: 'float',
@@ -14590,6 +15862,8 @@ export namespace Prisma {
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
     posts?: PostListRelationFilter
+    embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
+    embedHolderId?: StringFilter | string
   }
 
   export type UserOrderByWithRelationInput = {
@@ -14608,6 +15882,8 @@ export namespace Prisma {
     boolean?: SortOrder
     optionalBoolean?: SortOrder
     posts?: PostOrderByRelationAggregateInput
+    embedHolder?: EmbedHolderOrderByWithRelationInput
+    embedHolderId?: SortOrder
   }
 
   export type UserWhereUniqueInput = {
@@ -14630,6 +15906,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    embedHolderId?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -14655,6 +15932,50 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    embedHolderId?: StringWithAggregatesFilter | string
+  }
+
+  export type EmbedHolderWhereInput = {
+    AND?: Enumerable<EmbedHolderWhereInput>
+    OR?: Enumerable<EmbedHolderWhereInput>
+    NOT?: Enumerable<EmbedHolderWhereInput>
+    id?: StringFilter | string
+    time?: DateTimeFilter | Date | string
+    text?: StringFilter | string
+    boolean?: BoolFilter | boolean
+    User?: UserListRelationFilter
+  }
+
+  export type EmbedHolderOrderByWithRelationInput = {
+    id?: SortOrder
+    time?: SortOrder
+    text?: SortOrder
+    boolean?: SortOrder
+    User?: UserOrderByRelationAggregateInput
+  }
+
+  export type EmbedHolderWhereUniqueInput = {
+    id?: string
+  }
+
+  export type EmbedHolderOrderByWithAggregationInput = {
+    id?: SortOrder
+    time?: SortOrder
+    text?: SortOrder
+    boolean?: SortOrder
+    _count?: EmbedHolderCountOrderByAggregateInput
+    _max?: EmbedHolderMaxOrderByAggregateInput
+    _min?: EmbedHolderMinOrderByAggregateInput
+  }
+
+  export type EmbedHolderScalarWhereWithAggregatesInput = {
+    AND?: Enumerable<EmbedHolderScalarWhereWithAggregatesInput>
+    OR?: Enumerable<EmbedHolderScalarWhereWithAggregatesInput>
+    NOT?: Enumerable<EmbedHolderScalarWhereWithAggregatesInput>
+    id?: StringWithAggregatesFilter | string
+    time?: DateTimeWithAggregatesFilter | Date | string
+    text?: StringWithAggregatesFilter | string
+    boolean?: BoolWithAggregatesFilter | boolean
   }
 
   export type MWhereInput = {
@@ -14662,6 +15983,7 @@ export namespace Prisma {
     OR?: Enumerable<MWhereInput>
     NOT?: Enumerable<MWhereInput>
     id?: StringFilter | string
+    n_ids?: StringNullableListFilter
     n?: NListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14679,6 +16001,7 @@ export namespace Prisma {
 
   export type MOrderByWithRelationInput = {
     id?: SortOrder
+    n_ids?: SortOrder
     n?: NOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14700,6 +16023,7 @@ export namespace Prisma {
 
   export type MOrderByWithAggregationInput = {
     id?: SortOrder
+    n_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -14724,6 +16048,7 @@ export namespace Prisma {
     OR?: Enumerable<MScalarWhereWithAggregatesInput>
     NOT?: Enumerable<MScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
+    n_ids?: StringNullableListFilter
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -14743,6 +16068,7 @@ export namespace Prisma {
     OR?: Enumerable<NWhereInput>
     NOT?: Enumerable<NWhereInput>
     id?: StringFilter | string
+    m_ids?: StringNullableListFilter
     m?: MListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -14760,6 +16086,7 @@ export namespace Prisma {
 
   export type NOrderByWithRelationInput = {
     id?: SortOrder
+    m_ids?: SortOrder
     m?: MOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
@@ -14781,6 +16108,7 @@ export namespace Prisma {
 
   export type NOrderByWithAggregationInput = {
     id?: SortOrder
+    m_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -14805,6 +16133,7 @@ export namespace Prisma {
     OR?: Enumerable<NScalarWhereWithAggregatesInput>
     NOT?: Enumerable<NScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
+    m_ids?: StringNullableListFilter
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -15468,6 +16797,7 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: boolean | null
     posts?: PostCreateNestedManyWithoutAuthorInput
+    embedHolder: EmbedHolderCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -15486,6 +16816,7 @@ export namespace Prisma {
     boolean: boolean
     optionalBoolean?: boolean | null
     posts?: PostUncheckedCreateNestedManyWithoutAuthorInput
+    embedHolderId: string
   }
 
   export type UserUpdateInput = {
@@ -15503,6 +16834,7 @@ export namespace Prisma {
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     posts?: PostUpdateManyWithoutAuthorInput
+    embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -15520,6 +16852,7 @@ export namespace Prisma {
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     posts?: PostUncheckedUpdateManyWithoutAuthorInput
+    embedHolderId?: StringFieldUpdateOperationsInput | string
   }
 
   export type UserCreateManyInput = {
@@ -15537,6 +16870,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    embedHolderId: string
   }
 
   export type UserUpdateManyMutationInput = {
@@ -15569,10 +16903,83 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    embedHolderId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type EmbedHolderCreateInput = {
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    id?: string
+    time?: Date | string
+    text: string
+    boolean: boolean
+    User?: UserCreateNestedManyWithoutEmbedHolderInput
+  }
+
+  export type EmbedHolderUncheckedCreateInput = {
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    id?: string
+    time?: Date | string
+    text: string
+    boolean: boolean
+    User?: UserUncheckedCreateNestedManyWithoutEmbedHolderInput
+  }
+
+  export type EmbedHolderUpdateInput = {
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    time?: DateTimeFieldUpdateOperationsInput | Date | string
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    User?: UserUpdateManyWithoutEmbedHolderInput
+  }
+
+  export type EmbedHolderUncheckedUpdateInput = {
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    time?: DateTimeFieldUpdateOperationsInput | Date | string
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    User?: UserUncheckedUpdateManyWithoutEmbedHolderInput
+  }
+
+  export type EmbedHolderCreateManyInput = {
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    id?: string
+    time?: Date | string
+    text: string
+    boolean: boolean
+  }
+
+  export type EmbedHolderUpdateManyMutationInput = {
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    time?: DateTimeFieldUpdateOperationsInput | Date | string
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type EmbedHolderUncheckedUpdateManyInput = {
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    time?: DateTimeFieldUpdateOperationsInput | Date | string
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
   }
 
   export type MCreateInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
+    n?: NCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15585,11 +16992,12 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    n?: NCreateNestedManyWithoutMInput
   }
 
   export type MUncheckedCreateInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
+    n?: NUncheckedCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15605,6 +17013,8 @@ export namespace Prisma {
   }
 
   export type MUpdateInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
+    n?: NUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15617,10 +17027,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    n?: NUpdateManyWithoutMInput
   }
 
   export type MUncheckedUpdateInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
+    n?: NUncheckedUpdateManyWithoutMInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15637,6 +17048,7 @@ export namespace Prisma {
 
   export type MCreateManyInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -15652,6 +17064,7 @@ export namespace Prisma {
   }
 
   export type MUpdateManyMutationInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15667,6 +17080,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateManyInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15683,6 +17097,8 @@ export namespace Prisma {
 
   export type NCreateInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
+    m?: MCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15695,11 +17111,12 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    m?: MCreateNestedManyWithoutNInput
   }
 
   export type NUncheckedCreateInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
+    m?: MUncheckedCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15715,6 +17132,8 @@ export namespace Prisma {
   }
 
   export type NUpdateInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
+    m?: MUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15727,10 +17146,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    m?: MUpdateManyWithoutNInput
   }
 
   export type NUncheckedUpdateInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
+    m?: MUncheckedUpdateManyWithoutNInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15747,6 +17167,7 @@ export namespace Prisma {
 
   export type NCreateManyInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -15762,6 +17183,7 @@ export namespace Prisma {
   }
 
   export type NUpdateManyMutationInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15777,6 +17199,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateManyInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15793,6 +17216,7 @@ export namespace Prisma {
 
   export type OneOptionalCreateInput = {
     id?: string
+    many?: ManyRequiredCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15805,11 +17229,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedCreateInput = {
     id?: string
+    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15822,10 +17246,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUpdateInput = {
+    many?: ManyRequiredUpdateManyWithoutOneInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15838,10 +17262,10 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    many?: ManyRequiredUpdateManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedUpdateInput = {
+    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15854,7 +17278,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
   }
 
   export type OneOptionalCreateManyInput = {
@@ -15905,6 +17328,7 @@ export namespace Prisma {
 
   export type ManyRequiredCreateInput = {
     id?: string
+    one?: OneOptionalCreateNestedOneWithoutManyInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15917,7 +17341,6 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    one?: OneOptionalCreateNestedOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedCreateInput = {
@@ -15938,6 +17361,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUpdateInput = {
+    one?: OneOptionalUpdateOneWithoutManyInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -15950,7 +17374,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    one?: OneOptionalUpdateOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedUpdateInput = {
@@ -16019,6 +17442,7 @@ export namespace Prisma {
 
   export type OptionalSide1CreateInput = {
     id?: string
+    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16031,7 +17455,6 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedCreateInput = {
@@ -16052,6 +17475,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UpdateInput = {
+    opti?: OptionalSide2UpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16064,7 +17488,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide2UpdateOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedUpdateInput = {
@@ -16133,6 +17556,7 @@ export namespace Prisma {
 
   export type OptionalSide2CreateInput = {
     id?: string
+    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16145,11 +17569,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedCreateInput = {
     id?: string
+    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16162,10 +17586,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
-    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UpdateInput = {
+    opti?: OptionalSide1UpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16178,10 +17602,10 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide1UpdateOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedUpdateInput = {
+    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16194,7 +17618,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
   }
 
   export type OptionalSide2CreateManyInput = {
@@ -16775,6 +18198,11 @@ export namespace Prisma {
     none?: PostWhereInput
   }
 
+  export type EmbedHolderRelationFilter = {
+    is?: EmbedHolderWhereInput
+    isNot?: EmbedHolderWhereInput
+  }
+
   export type PostOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -16794,6 +18222,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    embedHolderId?: SortOrder
   }
 
   export type UserAvgOrderByAggregateInput = {
@@ -16816,6 +18245,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    embedHolderId?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
@@ -16831,6 +18261,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    embedHolderId?: SortOrder
   }
 
   export type UserSumOrderByAggregateInput = {
@@ -16944,6 +18375,45 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter
   }
 
+  export type UserListRelationFilter = {
+    every?: UserWhereInput
+    some?: UserWhereInput
+    none?: UserWhereInput
+  }
+
+  export type UserOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EmbedHolderCountOrderByAggregateInput = {
+    id?: SortOrder
+    time?: SortOrder
+    text?: SortOrder
+    boolean?: SortOrder
+  }
+
+  export type EmbedHolderMaxOrderByAggregateInput = {
+    id?: SortOrder
+    time?: SortOrder
+    text?: SortOrder
+    boolean?: SortOrder
+  }
+
+  export type EmbedHolderMinOrderByAggregateInput = {
+    id?: SortOrder
+    time?: SortOrder
+    text?: SortOrder
+    boolean?: SortOrder
+  }
+
+  export type StringNullableListFilter = {
+    equals?: Enumerable<string> | null
+    has?: string | null
+    hasEvery?: Enumerable<string>
+    hasSome?: Enumerable<string>
+    isEmpty?: boolean
+  }
+
   export type NListRelationFilter = {
     every?: NWhereInput
     some?: NWhereInput
@@ -16956,6 +18426,7 @@ export namespace Prisma {
 
   export type MCountOrderByAggregateInput = {
     id?: SortOrder
+    n_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -17024,6 +18495,7 @@ export namespace Prisma {
 
   export type NCountOrderByAggregateInput = {
     id?: SortOrder
+    m_ids?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -17614,6 +19086,12 @@ export namespace Prisma {
     connect?: Enumerable<PostWhereUniqueInput>
   }
 
+  export type EmbedHolderCreateNestedOneWithoutUserInput = {
+    create?: XOR<EmbedHolderCreateWithoutUserInput, EmbedHolderUncheckedCreateWithoutUserInput>
+    connectOrCreate?: EmbedHolderCreateOrConnectWithoutUserInput
+    connect?: EmbedHolderWhereUniqueInput
+  }
+
   export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
@@ -17671,6 +19149,14 @@ export namespace Prisma {
     deleteMany?: Enumerable<PostScalarWhereInput>
   }
 
+  export type EmbedHolderUpdateOneRequiredWithoutUserInput = {
+    create?: XOR<EmbedHolderCreateWithoutUserInput, EmbedHolderUncheckedCreateWithoutUserInput>
+    connectOrCreate?: EmbedHolderCreateOrConnectWithoutUserInput
+    upsert?: EmbedHolderUpsertWithoutUserInput
+    connect?: EmbedHolderWhereUniqueInput
+    update?: XOR<EmbedHolderUpdateWithoutUserInput, EmbedHolderUncheckedUpdateWithoutUserInput>
+  }
+
   export type PostUncheckedUpdateManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
@@ -17685,10 +19171,103 @@ export namespace Prisma {
     deleteMany?: Enumerable<PostScalarWhereInput>
   }
 
+  export type EmbedListCreateEnvelopeInput = {
+    set?: Enumerable<EmbedCreateInput>
+  }
+
+  export type EmbedCreateInput = {
+    text: string
+    boolean: boolean
+    embedEmbedList?: Enumerable<EmbedEmbedCreateInput>
+    requiredEmbedEmbed: EmbedEmbedCreateInput
+    optionalEmbedEmbed?: EmbedEmbedCreateInput | null
+  }
+
+  export type EmbedCreateEnvelopeInput = {
+    set?: EmbedCreateInput
+  }
+
+  export type EmbedNullableCreateEnvelopeInput = {
+    set?: EmbedCreateInput | null
+  }
+
+  export type UserCreateNestedManyWithoutEmbedHolderInput = {
+    create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
+    connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
+    createMany?: UserCreateManyEmbedHolderInputEnvelope
+    connect?: Enumerable<UserWhereUniqueInput>
+  }
+
+  export type UserUncheckedCreateNestedManyWithoutEmbedHolderInput = {
+    create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
+    connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
+    createMany?: UserCreateManyEmbedHolderInputEnvelope
+    connect?: Enumerable<UserWhereUniqueInput>
+  }
+
+  export type EmbedListUpdateEnvelopeInput = {
+    set?: Enumerable<EmbedCreateInput>
+    push?: Enumerable<EmbedCreateInput>
+  }
+
+  export type EmbedUpdateEnvelopeInput = {
+    set?: EmbedCreateInput
+    update?: EmbedUpdateInput
+  }
+
+  export type EmbedNullableUpdateEnvelopeInput = {
+    set?: EmbedCreateInput | null
+    unset?: boolean
+    upsert?: EmbedUpsertInput
+  }
+
+  export type UserUpdateManyWithoutEmbedHolderInput = {
+    create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
+    connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
+    upsert?: Enumerable<UserUpsertWithWhereUniqueWithoutEmbedHolderInput>
+    createMany?: UserCreateManyEmbedHolderInputEnvelope
+    set?: Enumerable<UserWhereUniqueInput>
+    disconnect?: Enumerable<UserWhereUniqueInput>
+    delete?: Enumerable<UserWhereUniqueInput>
+    connect?: Enumerable<UserWhereUniqueInput>
+    update?: Enumerable<UserUpdateWithWhereUniqueWithoutEmbedHolderInput>
+    updateMany?: Enumerable<UserUpdateManyWithWhereWithoutEmbedHolderInput>
+    deleteMany?: Enumerable<UserScalarWhereInput>
+  }
+
+  export type UserUncheckedUpdateManyWithoutEmbedHolderInput = {
+    create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
+    connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
+    upsert?: Enumerable<UserUpsertWithWhereUniqueWithoutEmbedHolderInput>
+    createMany?: UserCreateManyEmbedHolderInputEnvelope
+    set?: Enumerable<UserWhereUniqueInput>
+    disconnect?: Enumerable<UserWhereUniqueInput>
+    delete?: Enumerable<UserWhereUniqueInput>
+    connect?: Enumerable<UserWhereUniqueInput>
+    update?: Enumerable<UserUpdateWithWhereUniqueWithoutEmbedHolderInput>
+    updateMany?: Enumerable<UserUpdateManyWithWhereWithoutEmbedHolderInput>
+    deleteMany?: Enumerable<UserScalarWhereInput>
+  }
+
+  export type MCreaten_idsInput = {
+    set: Enumerable<string>
+  }
+
   export type NCreateNestedManyWithoutMInput = {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     connect?: Enumerable<NWhereUniqueInput>
+  }
+
+  export type NUncheckedCreateNestedManyWithoutMInput = {
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
+    connect?: Enumerable<NWhereUniqueInput>
+  }
+
+  export type MUpdaten_idsInput = {
+    set?: Enumerable<string>
+    push?: string | Enumerable<string>
   }
 
   export type NUpdateManyWithoutMInput = {
@@ -17704,13 +19283,54 @@ export namespace Prisma {
     deleteMany?: Enumerable<NScalarWhereInput>
   }
 
+  export type NUncheckedUpdateManyWithoutMInput = {
+    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
+    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
+    upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
+    set?: Enumerable<NWhereUniqueInput>
+    disconnect?: Enumerable<NWhereUniqueInput>
+    delete?: Enumerable<NWhereUniqueInput>
+    connect?: Enumerable<NWhereUniqueInput>
+    update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
+    updateMany?: Enumerable<NUpdateManyWithWhereWithoutMInput>
+    deleteMany?: Enumerable<NScalarWhereInput>
+  }
+
+  export type NCreatem_idsInput = {
+    set: Enumerable<string>
+  }
+
   export type MCreateNestedManyWithoutNInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     connect?: Enumerable<MWhereUniqueInput>
   }
 
+  export type MUncheckedCreateNestedManyWithoutNInput = {
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
+    connect?: Enumerable<MWhereUniqueInput>
+  }
+
+  export type NUpdatem_idsInput = {
+    set?: Enumerable<string>
+    push?: string | Enumerable<string>
+  }
+
   export type MUpdateManyWithoutNInput = {
+    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
+    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
+    upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
+    set?: Enumerable<MWhereUniqueInput>
+    disconnect?: Enumerable<MWhereUniqueInput>
+    delete?: Enumerable<MWhereUniqueInput>
+    connect?: Enumerable<MWhereUniqueInput>
+    update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
+    updateMany?: Enumerable<MUpdateManyWithWhereWithoutNInput>
+    deleteMany?: Enumerable<MScalarWhereInput>
+  }
+
+  export type MUncheckedUpdateManyWithoutNInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
@@ -18212,6 +19832,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    embedHolder: EmbedHolderCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutPostsInput = {
@@ -18229,6 +19850,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    embedHolderId: string
   }
 
   export type UserCreateOrConnectWithoutPostsInput = {
@@ -18255,6 +19877,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserInput
   }
 
   export type UserUncheckedUpdateWithoutPostsInput = {
@@ -18271,6 +19894,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    embedHolderId?: StringFieldUpdateOperationsInput | string
   }
 
   export type PostCreateWithoutAuthorInput = {
@@ -18296,6 +19920,31 @@ export namespace Prisma {
 
   export type PostCreateManyAuthorInputEnvelope = {
     data: Enumerable<PostCreateManyAuthorInput>
+  }
+
+  export type EmbedHolderCreateWithoutUserInput = {
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    id?: string
+    time?: Date | string
+    text: string
+    boolean: boolean
+  }
+
+  export type EmbedHolderUncheckedCreateWithoutUserInput = {
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    id?: string
+    time?: Date | string
+    text: string
+    boolean: boolean
+  }
+
+  export type EmbedHolderCreateOrConnectWithoutUserInput = {
+    where: EmbedHolderWhereUniqueInput
+    create: XOR<EmbedHolderCreateWithoutUserInput, EmbedHolderUncheckedCreateWithoutUserInput>
   }
 
   export type PostUpsertWithWhereUniqueWithoutAuthorInput = {
@@ -18326,8 +19975,132 @@ export namespace Prisma {
     authorId?: IntFilter | number
   }
 
+  export type EmbedHolderUpsertWithoutUserInput = {
+    update: XOR<EmbedHolderUpdateWithoutUserInput, EmbedHolderUncheckedUpdateWithoutUserInput>
+    create: XOR<EmbedHolderCreateWithoutUserInput, EmbedHolderUncheckedCreateWithoutUserInput>
+  }
+
+  export type EmbedHolderUpdateWithoutUserInput = {
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    time?: DateTimeFieldUpdateOperationsInput | Date | string
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type EmbedHolderUncheckedUpdateWithoutUserInput = {
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    time?: DateTimeFieldUpdateOperationsInput | Date | string
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type EmbedEmbedCreateInput = {
+    text: string
+    boolean: boolean
+  }
+
+  export type UserCreateWithoutEmbedHolderInput = {
+    id?: string
+    email: string
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+    posts?: PostCreateNestedManyWithoutAuthorInput
+  }
+
+  export type UserUncheckedCreateWithoutEmbedHolderInput = {
+    id?: string
+    email: string
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+    posts?: PostUncheckedCreateNestedManyWithoutAuthorInput
+  }
+
+  export type UserCreateOrConnectWithoutEmbedHolderInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutEmbedHolderInput, UserUncheckedCreateWithoutEmbedHolderInput>
+  }
+
+  export type UserCreateManyEmbedHolderInputEnvelope = {
+    data: Enumerable<UserCreateManyEmbedHolderInput>
+  }
+
+  export type EmbedUpdateInput = {
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedEmbedList?: XOR<EmbedEmbedListUpdateEnvelopeInput, Enumerable<EmbedEmbedCreateInput>>
+    requiredEmbedEmbed?: XOR<EmbedEmbedUpdateEnvelopeInput, EmbedEmbedCreateInput>
+    optionalEmbedEmbed?: XOR<EmbedEmbedNullableUpdateEnvelopeInput, EmbedEmbedCreateInput> | null
+  }
+
+  export type EmbedUpsertInput = {
+    set: EmbedCreateInput | null
+    update: EmbedUpdateInput
+  }
+
+  export type UserUpsertWithWhereUniqueWithoutEmbedHolderInput = {
+    where: UserWhereUniqueInput
+    update: XOR<UserUpdateWithoutEmbedHolderInput, UserUncheckedUpdateWithoutEmbedHolderInput>
+    create: XOR<UserCreateWithoutEmbedHolderInput, UserUncheckedCreateWithoutEmbedHolderInput>
+  }
+
+  export type UserUpdateWithWhereUniqueWithoutEmbedHolderInput = {
+    where: UserWhereUniqueInput
+    data: XOR<UserUpdateWithoutEmbedHolderInput, UserUncheckedUpdateWithoutEmbedHolderInput>
+  }
+
+  export type UserUpdateManyWithWhereWithoutEmbedHolderInput = {
+    where: UserScalarWhereInput
+    data: XOR<UserUpdateManyMutationInput, UserUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type UserScalarWhereInput = {
+    AND?: Enumerable<UserScalarWhereInput>
+    OR?: Enumerable<UserScalarWhereInput>
+    NOT?: Enumerable<UserScalarWhereInput>
+    id?: StringFilter | string
+    email?: StringFilter | string
+    int?: IntFilter | number
+    optionalInt?: IntNullableFilter | number | null
+    float?: FloatFilter | number
+    optionalFloat?: FloatNullableFilter | number | null
+    string?: StringFilter | string
+    optionalString?: StringNullableFilter | string | null
+    json?: JsonFilter
+    optionalJson?: JsonNullableFilter
+    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+    boolean?: BoolFilter | boolean
+    optionalBoolean?: BoolNullableFilter | boolean | null
+    embedHolderId?: StringFilter | string
+  }
+
   export type NCreateWithoutMInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18344,6 +20117,7 @@ export namespace Prisma {
 
   export type NUncheckedCreateWithoutMInput = {
     id?: string
+    m_ids?: NCreatem_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18384,6 +20158,7 @@ export namespace Prisma {
     OR?: Enumerable<NScalarWhereInput>
     NOT?: Enumerable<NScalarWhereInput>
     id?: StringFilter | string
+    m_ids?: StringNullableListFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -18400,6 +20175,7 @@ export namespace Prisma {
 
   export type MCreateWithoutNInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18416,6 +20192,7 @@ export namespace Prisma {
 
   export type MUncheckedCreateWithoutNInput = {
     id?: string
+    n_ids?: MCreaten_idsInput | Enumerable<string>
     int: number
     optionalInt?: number | null
     float: number
@@ -18456,6 +20233,7 @@ export namespace Prisma {
     OR?: Enumerable<MScalarWhereInput>
     NOT?: Enumerable<MScalarWhereInput>
     id?: StringFilter | string
+    n_ids?: StringNullableListFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -18792,7 +20570,91 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
   }
 
+  export type UserCreateManyEmbedHolderInput = {
+    id?: string
+    email: string
+    int: number
+    optionalInt?: number | null
+    float: number
+    optionalFloat?: number | null
+    string: string
+    optionalString?: string | null
+    json: InputJsonValue
+    optionalJson?: InputJsonValue | null
+    enum: ABeautifulEnum
+    optionalEnum?: ABeautifulEnum | null
+    boolean: boolean
+    optionalBoolean?: boolean | null
+  }
+
+  export type EmbedEmbedListUpdateEnvelopeInput = {
+    set?: Enumerable<EmbedEmbedCreateInput>
+    push?: Enumerable<EmbedEmbedCreateInput>
+  }
+
+  export type EmbedEmbedUpdateEnvelopeInput = {
+    set?: EmbedEmbedCreateInput
+    update?: EmbedEmbedUpdateInput
+  }
+
+  export type EmbedEmbedNullableUpdateEnvelopeInput = {
+    set?: EmbedEmbedCreateInput | null
+    unset?: boolean
+    upsert?: EmbedEmbedUpsertInput
+  }
+
+  export type UserUpdateWithoutEmbedHolderInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    int?: IntFieldUpdateOperationsInput | number
+    optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
+    float?: FloatFieldUpdateOperationsInput | number
+    optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
+    string?: StringFieldUpdateOperationsInput | string
+    optionalString?: NullableStringFieldUpdateOperationsInput | string | null
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    posts?: PostUpdateManyWithoutAuthorInput
+  }
+
+  export type UserUncheckedUpdateWithoutEmbedHolderInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    int?: IntFieldUpdateOperationsInput | number
+    optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
+    float?: FloatFieldUpdateOperationsInput | number
+    optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
+    string?: StringFieldUpdateOperationsInput | string
+    optionalString?: NullableStringFieldUpdateOperationsInput | string | null
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    posts?: PostUncheckedUpdateManyWithoutAuthorInput
+  }
+
+  export type UserUncheckedUpdateManyWithoutUserInput = {
+    email?: StringFieldUpdateOperationsInput | string
+    int?: IntFieldUpdateOperationsInput | number
+    optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
+    float?: FloatFieldUpdateOperationsInput | number
+    optionalFloat?: NullableFloatFieldUpdateOperationsInput | number | null
+    string?: StringFieldUpdateOperationsInput | string
+    optionalString?: NullableStringFieldUpdateOperationsInput | string | null
+    json?: InputJsonValue | InputJsonValue
+    optionalJson?: InputJsonValue | InputJsonValue | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+  }
+
   export type NUpdateWithoutMInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18808,6 +20670,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateWithoutMInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18823,6 +20686,7 @@ export namespace Prisma {
   }
 
   export type NUncheckedUpdateManyWithoutNInput = {
+    m_ids?: NUpdatem_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18838,6 +20702,7 @@ export namespace Prisma {
   }
 
   export type MUpdateWithoutNInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18853,6 +20718,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateWithoutNInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18868,6 +20734,7 @@ export namespace Prisma {
   }
 
   export type MUncheckedUpdateManyWithoutMInput = {
+    n_ids?: MUpdaten_idsInput | Enumerable<string>
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18941,6 +20808,16 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+  }
+
+  export type EmbedEmbedUpdateInput = {
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type EmbedEmbedUpsertInput = {
+    set: EmbedEmbedCreateInput | null
+    update: EmbedEmbedUpdateInput
   }
 
 

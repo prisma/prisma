@@ -1,12 +1,12 @@
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import prompt from 'prompts'
+
+import { MigrateReset } from '../commands/MigrateReset'
+
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
-process.env.GITHUB_ACTIONS = '1'
 
 // TODO: Windows: some snapshot tests fail on Windows because of emoji.
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-
-import prompt from 'prompts'
-import { MigrateReset } from '../commands/MigrateReset'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

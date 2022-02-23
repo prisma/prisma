@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
+
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -14,6 +15,7 @@ import { Args, unpack } from './query'
 import { printStack } from './utils/printStack'
 import type { RejectOnNotFound } from './utils/rejectOnNotFound'
 import { throwIfNotFound } from './utils/rejectOnNotFound'
+
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
@@ -30,15 +32,28 @@ export type RequestParams = {
   engineHook?: EngineMiddleware
   args: any
   headers?: Record<string, string>
-  transactionId?: string
+  transactionId?: string | number
   unpacker?: Unpacker
 }
 
 export type Request = {
   document: Document
   runInTransaction?: boolean
-  transactionId?: string
+  transactionId?: string | number
   headers?: Record<string, string>
+}
+
+function getRequestInfo(requests: Request[]) {
+  const txId = requests[0].transactionId
+  const inTx = requests[0].runInTransaction
+  const headers = requests[0].headers
+
+  // if the tx has a number for an id, then it's a regular batch tx
+  const _inTx = typeof txId === 'number' && inTx ? true : undefined
+  // if the tx has a string for id, it's an interactive transaction
+  const _txId = typeof txId === 'string' && inTx ? txId : undefined
+
+  return { inTx: _inTx, headers: { transactionId: _txId, ...headers } }
 }
 
 export class RequestHandler {
@@ -51,21 +66,16 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
+        const info = getRequestInfo(requests)
         const queries = requests.map((r) => String(r.document))
-        const headers = {
-          transactionId: requests[0].transactionId,
-          traceparent: requests[0].headers?.traceparent,
-        }
 
-        return this.client._engine.requestBatch(queries, headers)
+        return this.client._engine.requestBatch(queries, info.headers, info.inTx)
       },
       singleLoader: (request) => {
+        const info = getRequestInfo([request])
         const query = String(request.document)
 
-        return this.client._engine.request(query, {
-          transactionId: request.transactionId,
-          ...request.headers,
-        })
+        return this.client._engine.request(query, info.headers)
       },
       batchBy: (request) => {
         if (request.transactionId) {

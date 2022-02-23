@@ -1,122 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`MongoDB basic introspection --url 2`] = ``;
-
-exports[`MongoDB basic introspection 1`] = ``;
-
-exports[`MongoDB introspection --print --composite-type-depth=-1 1`] = `
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
-}
-
-datasource my_db {
-  provider = "mongodb"
-  url      = env("TEST_MONGO_URI_MIGRATE")
-}
-
-type UsersHobbies {
-  name    String
-  objects UsersHobbiesObjects[]
-  tags    String[]
-}
-
-type UsersHobbiesObjects {
-  name String
-  tags String[]
-}
-
-model users {
-  id      String         @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies UsersHobbies[]
-  name    String
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`MongoDB introspection --print --composite-type-depth=0 1`] = `
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
-}
-
-datasource my_db {
-  provider = "mongodb"
-  url      = env("TEST_MONGO_URI_MIGRATE")
-}
-
-model users {
-  id      String  @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies Json[]
-  name    String
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`MongoDB introspection --print --composite-type-depth=1 1`] = `
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
-}
-
-datasource my_db {
-  provider = "mongodb"
-  url      = env("TEST_MONGO_URI_MIGRATE")
-}
-
-type UsersHobbies {
-  name    String
-  objects Json[]
-  tags    String[]
-}
-
-model users {
-  id      String         @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies UsersHobbies[]
-  name    String
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`MongoDB introspection --print 1`] = `
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
-}
-
-datasource my_db {
-  provider = "mongodb"
-  url      = env("TEST_MONGO_URI_MIGRATE")
-}
-
-model users {
-  id      String  @id @default(auto()) @map("_id") @my_db.ObjectId
-  admin   Boolean
-  email   String
-  hobbies Json[]
-  name    String
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`MongoDB introspection with --force 2`] = ``;
-
-exports[`MongoDB re-introspection should error (not supported) 2`] = ``;
-
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
@@ -134,7 +17,7 @@ model jobs {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`SQL Server basic introspection 1`] = `
+exports[`SQL Server basic introspection 2`] = `
 datasource db {
   provider = "sqlserver"
   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
@@ -151,7 +34,7 @@ model jobs {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`common/sqlite basic introspection 1`] = `
+exports[`common/sqlite basic introspection 2`] = `
 generator client {
   provider = "prisma-client-js"
 }
@@ -233,7 +116,7 @@ exports[`common/sqlite basic introspection with invalid --url - empty host 2`] =
 
 exports[`common/sqlite basic introspection with invalid --url 2`] = ``;
 
-exports[`common/sqlite introspection --force 1`] = `
+exports[`common/sqlite introspection --force 2`] = `
 generator client {
   provider = "prisma-client-js"
 }
@@ -399,7 +282,7 @@ model your_url {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`mysql basic introspection 1`] = `
+exports[`mysql basic introspection 2`] = `
 datasource db {
   provider = "mysql"
   url      = env("TEST_MYSQL_URI")
@@ -477,7 +360,7 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql basic introspection 1`] = `
+exports[`postgresql basic introspection 2`] = `
 datasource db {
   provider = "postgresql"
   url      = env("TEST_POSTGRES_URI_MIGRATE")

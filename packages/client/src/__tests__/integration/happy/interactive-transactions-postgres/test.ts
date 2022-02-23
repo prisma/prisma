@@ -1,8 +1,9 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import path from 'path'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
@@ -191,15 +192,15 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        Invalid \`prisma.user.create()\` invocation in
-                        /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
+                                    Invalid \`prisma.user.create()\` invocation in
+                                    /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-                          182   },
-                          183 })
-                          184 
-                        → 185 await prisma.user.create(
-                          Unique constraint failed on the fields: (\`email\`)
-                    `)
+                                      183   },
+                                      184 })
+                                      185 
+                                    → 186 await prisma.user.create(
+                                      Unique constraint failed on the fields: (\`email\`)
+                              `)
 
     const users = await prisma.user.findMany()
 
@@ -228,10 +229,10 @@ describe('interactive transactions', () => {
                         Invalid \`transactionBoundPrisma.user.create()\` invocation in
                         /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-                          216 })
-                          217 
-                          218 const result = prisma.$transaction(async () => {
-                        → 219   await transactionBoundPrisma.user.create(
+                          217 })
+                          218 
+                          219 const result = prisma.$transaction(async () => {
+                        → 220   await transactionBoundPrisma.user.create(
                           Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
                     `)
 
@@ -285,10 +286,10 @@ describe('interactive transactions', () => {
                         Invalid \`prisma.user.create()\` invocation in
                         /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-                          268  */
-                          269 testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
-                          270   const result = prisma.$transaction([
-                        → 271     prisma.user.create(
+                          269  */
+                          270 testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
+                          271   const result = prisma.$transaction([
+                        → 272     prisma.user.create(
                           Unique constraint failed on the fields: (\`email\`)
                     `)
 
@@ -318,11 +319,11 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                    Invalid \`prisma.executeRaw()\` invocation:
+                        Invalid \`prisma.executeRaw()\` invocation:
 
 
-                                      Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
-                              `)
+                          Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
+                    `)
 
     const users = await prisma.user.findMany()
 
@@ -386,10 +387,10 @@ describe('interactive transactions', () => {
             Invalid \`prisma.user.create()\` invocation in
             /client/src/__tests__/integration/happy/interactive-transactions-postgres/test.ts:0:0
 
-              369 })
-              370 
-              371 const result = prisma.$transaction([
-            → 372   prisma.user.create(
+              370 })
+              371 
+              372 const result = prisma.$transaction([
+            → 373   prisma.user.create(
               Unique constraint failed on the fields: (\`email\`)
           `)
 
@@ -402,8 +403,12 @@ describe('interactive transactions', () => {
    * Minimal example of a interactive transaction & middleware
    */
   test('middleware basic', async () => {
+    let runInTransaction = false
+
     prisma.$use(async (params, next) => {
       await next(params)
+
+      runInTransaction = params.runInTransaction
 
       return 'result'
     })
@@ -417,6 +422,7 @@ describe('interactive transactions', () => {
     })
 
     expect(result).toBe('result')
+    expect(runInTransaction).toBe(true)
   })
 
   /**
@@ -472,6 +478,102 @@ describe('interactive transactions', () => {
         prisma.$transaction((tx) => tx.user.update({ data: { name: 'j' }, where: { email: 'x' } }), { timeout: 25 }),
       ]).catch(() => {}) // we don't care for errors, there will be
     }
+  })
+
+  /**
+   * Rollback should happen even with `then` calls
+   */
+  test('rollback with then calls', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user
+        .create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+        .then()
+
+      await prisma.user
+        .create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        })
+        .then()
+        .then()
+
+      throw new Error('rollback')
+    })
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
+   * Rollback should happen even with `catch` calls
+   */
+  test('rollback with catch calls', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user
+        .create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+        .catch()
+      await prisma.user
+        .create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        })
+        .catch()
+        .then()
+
+      throw new Error('rollback')
+    })
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
+   * Rollback should happen even with `finally` calls
+   */
+  test('rollback with finally calls', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user
+        .create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+        .finally()
+
+      await prisma.user
+        .create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        })
+        .then()
+        .catch()
+        .finally()
+
+      throw new Error('rollback')
+    })
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
   })
 })
 

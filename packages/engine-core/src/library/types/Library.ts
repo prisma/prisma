@@ -1,4 +1,4 @@
-import type { GetConfigOptions, ConfigMetaFormat, QueryEngineConfig } from '../../common/types/QueryEngine'
+import type { ConfigMetaFormat, GetConfigOptions, QueryEngineConfig } from '../../common/types/QueryEngine'
 
 export type ConnectArgs = {
   enableRawQueries: boolean

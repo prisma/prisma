@@ -1,5 +1,6 @@
-import { Doctor } from '../../Doctor'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+
+import { Doctor } from '../../Doctor'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

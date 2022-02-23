@@ -1,18 +1,19 @@
-import execa from 'execa'
+import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
-import { flatten } from '../blaze/flatten'
-import { pipe } from '../blaze/pipe'
-import { map } from '../blaze/map'
-import { transduce } from '../blaze/transduce'
+import execa from 'execa'
 import glob from 'globby'
 import path from 'path'
-import { watch as createWatcher } from 'chokidar'
-import { tscPlugin } from './plugins/tscPlugin'
-import { onErrorPlugin } from './plugins/onErrorPlugin'
-import { fixImportsPlugin } from './plugins/fixImportsPlugin'
+
+import { flatten } from '../blaze/flatten'
 import { handle } from '../blaze/handle'
-import { replaceWithPlugin } from './plugins/replaceWithPlugin'
+import { map } from '../blaze/map'
+import { pipe } from '../blaze/pipe'
+import { transduce } from '../blaze/transduce'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
+import { fixImportsPlugin } from './plugins/fixImportsPlugin'
+import { onErrorPlugin } from './plugins/onErrorPlugin'
+import { replaceWithPlugin } from './plugins/replaceWithPlugin'
+import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
@@ -169,7 +170,7 @@ export async function build(options: BuildOptions[]) {
 
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch),
+    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch(options)),
   )
 }
 
@@ -177,39 +178,53 @@ export async function build(options: BuildOptions[]) {
  * Executes the build and rebuilds what is necessary
  * @param builds
  */
-function watch(build: esbuild.BuildResult | esbuild.BuildIncremental | undefined) {
-  if (process.env.WATCH !== 'true') return build
+const watch = (options: BuildOptions[]) => (result?: esbuild.BuildResult | esbuild.BuildIncremental) => {
+  if (process.env.WATCH !== 'true') return result
+
+  // common chokidar options for the watchers
+  const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*'] }
 
   // prepare the incremental builds watcher
-  const watched = getWatchedFiles(build)
-  const watcher = createWatcher(watched, {
-    ignoreInitial: true,
-    useFsEvents: true,
-  })
+  const watched = getWatchedFiles(result)
+  const changeWatcher = createWatcher(watched, config)
 
-  watcher.once('all', async () => {
+  // watcher for restarting a full rebuild
+  const restartWatcher = createWatcher(['./src/**/*'], config)
+
+  // triggers quick rebuild on file change
+  changeWatcher.on('change', async () => {
     const timeBefore = Date.now()
 
     // we handle possible rebuild exceptions
-    const result = await handle.async(() => {
-      return build?.rebuild?.()
+    const rebuildResult = await handle.async(() => {
+      return result?.rebuild?.()
     })
 
-    if (result instanceof Error) {
-      console.error(result.message)
-      watch(build) // re-watch original build
-    } else {
-      watch(result) // watch incremented build
+    if (rebuildResult instanceof Error) {
+      console.error(rebuildResult.message)
     }
 
-    const timeAfter = Date.now()
-    console.log(`${timeAfter - timeBefore}ms`)
+    console.log(`${Date.now() - timeBefore}ms`)
+  })
+
+  // triggers a full rebuild on added file
+  restartWatcher.once('add', async () => {
+    void changeWatcher.close() // stop all
+
+    // only one watcher will do this task
+    if (watchLock === false) {
+      watchLock = true
+      await build(options)
+    }
   })
 
   return undefined
 }
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+// so that only one watcher restarts a full build
+let watchLock = false
 
 // get a default directory if needed (no outfile)
 function getOutDir(options: BuildOptions) {

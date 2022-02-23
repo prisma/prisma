@@ -67,9 +67,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.10.0-17.7398b85f0804cfe90b7b748135c00639fe19aafe",
+    "@prisma/fetch-engine": "3.11.0-1.7c7222e7c8f4addb5bc06e7b2b8a83656df134f6",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.10.0-17.7398b85f0804cfe90b7b748135c00639fe19aafe",
+    "@prisma/get-platform": "3.11.0-1.7c7222e7c8f4addb5bc06e7b2b8a83656df134f6",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.458.0",
@@ -79,18 +79,11 @@
     "@types/jest": "27.4.0",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.2.2",
-    "@typescript-eslint/eslint-plugin": "5.9.0",
-    "@typescript-eslint/parser": "5.9.0",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
     "debug": "4.3.3",
     "dotenv": "16.0.0",
     "esbuild": "0.13.14",
-    "eslint": "8.6.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "26.0.0",
-    "eslint-plugin-prettier": "4.0.0",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
     "fs-extra": "10.0.0",
@@ -100,13 +93,11 @@
     "is-installed-globally": "0.4.0",
     "jest": "27.5.1",
     "line-replace": "2.0.1",
-    "lint-staged": "12.1.5",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.7",
     "open": "7.4.2",
     "pkg-up": "3.1.0",
-    "prettier": "2.5.1",
     "replace-string": "3.1.0",
     "resolve-pkg": "2.0.0",
     "rimraf": "3.0.2",
@@ -120,22 +111,12 @@
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
-    "format": "prettier --write .",
-    "lint": "eslint --cache --fix --ext .ts .",
-    "lint-ci": "eslint --ext .ts .",
     "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
     "prepublishOnly": "pnpm run build",
-    "preinstall": "node scripts/preinstall-entry.js",
-    "precommit": "lint-staged"
+    "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.10.0-17.7398b85f0804cfe90b7b748135c00639fe19aafe"
-  },
-  "lint-staged": {
-    "*.ts": [
-      "eslint",
-      "prettier --write"
-    ]
+    "@prisma/engines": "3.11.0-1.7c7222e7c8f4addb5bc06e7b2b8a83656df134f6"
   },
   "sideEffects": false
 }

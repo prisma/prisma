@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { DbPull } from '../commands/DbPull'
 
 describe('introspection panic', () => {
@@ -10,9 +11,7 @@ describe('introspection panic', () => {
     try {
       await introspect.parse(['--print'])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `[/some/rust/path:0:0] This is the debugPanic artificial panic`,
-      )
+      expect(e).toMatchInlineSnapshot(`[/some/rust/path:0:0] This is the debugPanic artificial panic`)
     }
   })
 })

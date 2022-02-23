@@ -1,8 +1,10 @@
-import { MigrateDiff } from '../commands/MigrateDiff'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+
+import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { setupMysql, tearDownMysql } from '../utils/setupMysql'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -111,19 +113,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                        [+] Added tables
-                                                          - Post
-                                                          - Profile
-                                                          - User
-                                                          - _Migration
+        [+] Added tables
+          - Post
+          - Profile
+          - User
+          - _Migration
 
-                                                        [*] Changed the \`Profile\` table
-                                                          [+] Added unique index on columns (userId)
+        [*] Changed the \`Profile\` table
+          [+] Added unique index on columns (userId)
 
-                                                        [*] Changed the \`User\` table
-                                                          [+] Added unique index on columns (email)
-
-                                          `)
+        [*] Changed the \`User\` table
+          [+] Added unique index on columns (email)
+      `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -144,10 +145,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                [+] Added tables
-                                                                                                  - Blog
-
-                                                                        `)
+        [+] Added tables
+          - Blog
+      `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -165,7 +165,6 @@ describe('migrate diff', () => {
             "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
             "viewCount20" INTEGER NOT NULL
         );
-
       `)
     })
 
@@ -180,10 +179,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                        [-] Removed tables
-                                                                                                          - Blog
-
-                                                                              `)
+        [-] Removed tables
+          - Blog
+      `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -200,7 +198,6 @@ describe('migrate diff', () => {
         PRAGMA foreign_keys=off;
         DROP TABLE "Blog";
         PRAGMA foreign_keys=on;
-
       `)
     })
 
@@ -240,10 +237,7 @@ describe('migrate diff', () => {
         '--to-schema-datamodel=./prisma/schema.prisma',
       ])
       await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        [+] Collection \`User\`
-
-      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`[+] Collection \`User\``)
     })
 
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
@@ -319,7 +313,6 @@ describe('migrate diff', () => {
 
             CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
         );
-
       `)
     })
 
@@ -406,7 +399,6 @@ describe('migrate diff', () => {
 
             PRIMARY KEY (\`id\`)
         ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-
       `)
     })
 
@@ -492,7 +484,6 @@ describe('migrate diff', () => {
         THROW
 
         END CATCH
-
       `)
     })
 

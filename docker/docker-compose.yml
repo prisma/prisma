@@ -73,7 +73,7 @@ services:
     ports:
       - '1433:1433'
 
-  mongo_migrate:
+  mongodb_migrate:
     image: mongo:4
     restart: always
     environment:
@@ -83,13 +83,14 @@ services:
     ports:
       - '27017:27017'
 
-  mongo_migrate_seed:
-    build: ./mongo-seed
+  mongodb_migrate_seed:
+    build: ./mongodb_migrate_seed
     depends_on:
-      - mongo_migrate
+      - mongodb_migrate
 
+  # Replica Set (required for Prisma Client)
   mongo:
-    build: ./mongo-replica
+    build: ./mongodb_replica
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma
@@ -97,4 +98,3 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
-

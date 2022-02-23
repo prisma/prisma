@@ -1,34 +1,35 @@
+import Debug from '@prisma/debug'
 import type { Command } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk'
 import {
   arg,
   format,
-  HelpError,
-  isError,
-  getSchemaPath,
   getCommandWithExecutor,
-  isCi,
   getConfig,
   getDMMF,
+  getSchemaPath,
+  HelpError,
+  isCi,
+  isError,
+  loadEnvFile,
 } from '@prisma/sdk'
-import Debug from '@prisma/debug'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import fs from 'fs'
+import prompt from 'prompts'
+
 import { Migrate } from '../Migrate'
+import type { EngineResults } from '../types'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import type { DbType } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagWithMigrateError, EarlyAccessFeatureFlagWithMigrateError } from '../utils/flagErrors'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { printMigrationId } from '../utils/printMigrationId'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
-import { getMigrationName } from '../utils/promptForMigrationName'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { printDatasource } from '../utils/printDatasource'
-import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
-import type { EngineResults } from '../types'
+import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
+import { printDatasource } from '../utils/printDatasource'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
+import { printMigrationId } from '../utils/printMigrationId'
+import { getMigrationName } from '../utils/promptForMigrationName'
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -277,6 +278,7 @@ ${chalk.bold('Examples')}
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
+      // Stop engine
       migrate.stop()
     }
 
