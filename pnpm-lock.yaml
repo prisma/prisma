@@ -124,7 +124,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.0
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.2.2
+      '@types/ws': 8.2.3
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.3
@@ -167,7 +167,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.0
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.2.2
+      '@types/ws': 8.2.3
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.3
@@ -1821,7 +1821,6 @@ packages:
 
   /@types/node/17.0.18:
     resolution: {integrity: sha512-eKj4f/BsN/qcculZiRSujogjvp5O/k4lOW5m35NopjZM/QwLOR075a8pJW5hD+Rtdm2DaCVPENS6KtSQnUD6BA==}
-    dev: false
 
   /@types/node/17.0.8:
     resolution: {integrity: sha512-YofkM6fGv4gDJq78g4j0mMuGMkZVxZDgtU0JRdx6FgiJDG+0fY0GKVolOV8WqVmEhLCXkQRjwDdKyPxJp/uucg==}
@@ -1904,10 +1903,10 @@ packages:
     dependencies:
       '@types/node': 17.0.8
 
-  /@types/ws/8.2.2:
-    resolution: {integrity: sha512-NOn5eIcgWLOo6qW8AcuLZ7G8PycXu0xTxxkS6Q18VWFxgPUSOwV0pBj2a/4viNZVu25i7RIB7GttdkAIUUXOOg==}
+  /@types/ws/8.2.3:
+    resolution: {integrity: sha512-ahRJZquUYCdOZf/rCsWg88S0/+cb9wazUBHv6HZEe3XdYaBe2zr/slM8J28X07Hn88Pnm4ezo7N8/ofnOgrPVQ==}
     dependencies:
-      '@types/node': 17.0.8
+      '@types/node': 17.0.18
     dev: true
 
   /@types/yargs-parser/20.2.1:
