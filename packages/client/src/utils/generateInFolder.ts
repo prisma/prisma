@@ -102,9 +102,9 @@ export async function generateInFolder({
   let runtimeDir
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '../../runtime'))
+      runtimeDir = path.relative(outputDir, path.posix.join(__dirname, '../../runtime'))
     } else {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '../runtime'))
+      runtimeDir = path.relative(outputDir, path.posix.join(__dirname, '../runtime'))
     }
   } else if (useBuiltRuntime) {
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
