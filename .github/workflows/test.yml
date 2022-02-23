@@ -723,8 +723,9 @@ jobs:
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
+        # Only run this step on macOS for now.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && !cancelled()
+        if: startsWith(github.repository, 'prisma/') && runner.os == 'macOS' && !cancelled()
         env:
           BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
