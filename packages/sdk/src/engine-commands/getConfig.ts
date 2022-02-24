@@ -20,9 +20,9 @@ const unlink = promisify(fs.unlink)
 const MAX_BUFFER = 1_000_000_000
 
 export interface ConfigMetaFormat {
-  datasources: DataSource[]
-  generators: GeneratorConfig[]
-  warnings: string[]
+  datasources: DataSource[] | []
+  generators: GeneratorConfig[] | []
+  warnings: string[] | []
 }
 
 export type GetConfigOptions = {
