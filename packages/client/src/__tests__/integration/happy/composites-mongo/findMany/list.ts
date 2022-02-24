@@ -41,7 +41,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
   /**
    * Simple find
    */
-  test('find', async () => {
+  test('simple', async () => {
     const comment = await prisma.commentRequiredList.findMany({
       where: { id },
     })
@@ -68,9 +68,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
   })
 
   /**
-   * Find select
+   * Select
    */
-  test('find select', async () => {
+  test('select', async () => {
     const comment = await prisma.commentRequiredList.findMany({
       where: { id },
       select: {
@@ -90,6 +90,156 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               text: Hello World,
             },
           ],
+        },
+      ]
+    `)
+  })
+
+  /**
+   * Order by
+   */
+  test('orderBy', async () => {
+    const comment = await prisma.commentRequiredList.findMany({
+      orderBy: {
+        contents: {
+          _count: 'asc',
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+                Object {
+                  userId: 11,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 5bbbbbbbbbbbbbbbbbbbbbbb,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+                Object {
+                  userId: 11,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 4bbbbbbbbbbbbbbbbbbbbbbb,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 3ccccccccccccccccccccccc,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 1ccccccccccccccccccccccc,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+                Object {
+                  userId: 11,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 2ccccccccccccccccccccccc,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 8bbbbbbbbbbbbbbbbbbbbbbb,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 0ccccccccccccccccccccccc,
+        },
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
     `)

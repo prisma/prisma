@@ -41,7 +41,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
   /**
    * Simple find
    */
-  test('find', async () => {
+  test('simple', async () => {
     const comment = await prisma.commentRequiredProp.findMany({
       where: { id },
     })
@@ -66,9 +66,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
   })
 
   /**
-   * Find select
+   * Select
    */
-  test('find select', async () => {
+  test('select', async () => {
     const comment = await prisma.commentRequiredProp.findMany({
       where: { id },
       select: {
@@ -86,6 +86,40 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
           content: Object {
             text: Hello World,
           },
+        },
+      ]
+    `)
+  })
+
+  /**
+   * Order by
+   */
+  test('orderBy', async () => {
+    const comment = await prisma.commentRequiredProp.findMany({
+      where: { id },
+      orderBy: {
+        content: {
+          upvotes: {
+            _count: 'desc',
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `)
