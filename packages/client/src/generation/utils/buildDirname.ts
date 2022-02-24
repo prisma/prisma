@@ -24,20 +24,20 @@ export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir:
  * feature is especially useful for Next.js/Webpack users since the client gets
  * moved and copied out of its original spot. It all fails, it falls-back to
  * `__dirname`, which is never available on bundles.
- * @param relativeOutdir
+ * @param defaultRelativeOutdir
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
+function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
   // potential client location on serverless envs
-  const slsRelativeOutputDir = relativeOutdir.split(path.sep).slice(1).join(path.sep)
+  const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
 
   return `
 const { findSync } = require('${runtimePath}')
 
 const dirname = findSync(process.cwd(), [
-    ${JSON.stringify(relativeOutdir)},
-    ${JSON.stringify(slsRelativeOutputDir)},
+    ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
+    ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
 ], ['d'], ['d'], 1)[0] || __dirname`
 }
 
