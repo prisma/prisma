@@ -100,6 +100,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
    */
   test('orderBy', async () => {
     const comment = await prisma.commentRequiredList.findMany({
+      where: { id },
       orderBy: {
         contents: {
           _count: 'asc',
@@ -109,123 +110,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-                Object {
-                  userId: 11,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 5bbbbbbbbbbbbbbbbbbbbbbb,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-                Object {
-                  userId: 11,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 4bbbbbbbbbbbbbbbbbbbbbbb,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 3ccccccccccccccccccccccc,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 1ccccccccccccccccccccccc,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-                Object {
-                  userId: 11,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 2ccccccccccccccccccccccc,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 8bbbbbbbbbbbbbbbbbbbbbbb,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: France,
-          id: 0ccccccccccccccccccccccc,
-        },
         Object {
           contents: Array [
             Object {

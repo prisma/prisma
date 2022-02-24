@@ -96,6 +96,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
    */
   test('orderBy', async () => {
     const comment = await prisma.commentRequiredList.findFirst({
+      where: { id },
       orderBy: {
         contents: {
           _count: 'asc',
@@ -113,15 +114,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
                 userId: 10,
                 vote: true,
               },
-              Object {
-                userId: 11,
-                vote: true,
-              },
             ],
           },
         ],
         country: France,
-        id: 5bbbbbbbbbbbbbbbbbbbbbbb,
+        id: 8bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })
