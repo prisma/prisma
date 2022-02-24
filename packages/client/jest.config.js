@@ -28,4 +28,16 @@ module.exports = {
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
   testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        addFileAttribute: 'true',
+        ancestorSeparator: ' › ',
+        classNameTemplate: '{classname}',
+        titleTemplate: '{title}',
+      },
+    ],
+  ],
 }
