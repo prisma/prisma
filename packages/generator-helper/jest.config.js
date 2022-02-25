@@ -8,4 +8,16 @@ module.exports = {
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
+  reporters: [
+    'default',
+    [
+      'jest-junit',
+      {
+        addFileAttribute: 'true',
+        ancestorSeparator: ' › ',
+        classNameTemplate: '{classname}',
+        titleTemplate: '{title}',
+      },
+    ],
+  ],
 }

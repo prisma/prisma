@@ -1006,7 +1006,7 @@ export function selectionToFields(
       }
     }
     // either use select or default selection, but not both at the same time
-    const defaultSelection = isRelation ? getDefaultSelection(field.outputType.type as DMMF.OutputType) : null
+    const defaultSelection = isRelation ? getDefaultSelection(dmmf, field.outputType.type as DMMF.OutputType) : null
 
     let select = defaultSelection
     if (value) {
@@ -1051,12 +1051,15 @@ function byToSelect(by: string[]): Record<string, true> {
   return obj
 }
 
-function getDefaultSelection(outputType: DMMF.OutputType) {
+function getDefaultSelection(dmmf: DMMFHelper, outputType: DMMF.OutputType) {
   const acc = Object.create(null)
 
   for (const f of outputType.fields) {
+    if (dmmf.typeMap[(f.outputType.type as DMMF.OutputType).name] !== undefined) {
+      acc[f.name] = true // by default, we load composite fields
+    }
     if (f.outputType.location === 'scalar' || f.outputType.location === 'enumTypes') {
-      acc[f.name] = true
+      acc[f.name] = true // by default, we load all scalar fields
     }
   }
 
@@ -1185,9 +1188,10 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if (!arg.isRequired && value === null) {
+  if (value === null) {
     return true
   }
+
   return false
 }
 

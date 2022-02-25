@@ -20,25 +20,6 @@ export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (colle
   return acc
 }
 
-export const keyBy2: <T>(collection1: T[], collection2: T[], prop: string) => Dictionary<T> = (
-  collection1,
-  collection2,
-  prop,
-) => {
-  const acc = {}
-
-  for (const obj of collection1) {
-    const key = obj[prop]
-    acc[key] = obj
-  }
-
-  for (const obj of collection2) {
-    const key = obj[prop]
-    acc[key] = obj
-  }
-  return acc
-}
-
 export const ScalarTypeTable = {
   String: true,
   Int: true,

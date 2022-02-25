@@ -20,7 +20,7 @@ import path from 'path'
 
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
-import { printDatasources } from '../utils/printDatasources'
+import { ConnectorType, printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 
 export class DbPull implements Command {
@@ -33,14 +33,19 @@ Pull the state from the database to the Prisma schema using introspection
 
 ${chalk.bold('Usage')}
 
-  ${chalk.dim('$')} prisma db pull [options]
+  ${chalk.dim('$')} prisma db pull [flags/options]
+
+${chalk.bold('Flags')}
+
+              -h, --help   Display this help message
+                 --force   Ignore current Prisma schema file
+                 --print   Print the introspected Prisma schema to stdout
 
 ${chalk.bold('Options')}
 
-  -h, --help   Display this help message
-    --schema   Custom path to your Prisma schema
-     --force   Ignore current Prisma schema file
-     --print   Print the introspected Prisma schema to stdout
+                --schema   Custom path to your Prisma schema
+  --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
+                           Number, default is -1 for infinite depth, 0 = off
 
 ${chalk.bold('Examples')}
 
@@ -53,11 +58,16 @@ Or specify a Prisma schema path
 Instead of saving the result to the filesystem, you can also print it to stdout
   ${chalk.dim('$')} prisma db pull --print
 
+Overwrite the current schema with the introspected schema instead of enriching it
+  ${chalk.dim('$')} prisma db pull --force
+
+Set composite types introspection depth to 2 levels
+  ${chalk.dim('$')} prisma db pull --composite-type-depth=2
+
 `)
 
   private urlToDatasource(url: string): string {
     const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
-
     return printDatasources([
       {
         config: {},
@@ -141,16 +151,41 @@ Instead of saving the result to the filesystem, you can also print it to stdout
     let schema: string | null = null
 
     // Makes sure we have a schema to pass to the engine
-    if (url && schemaPath) {
-      schema = this.urlToDatasource(url)
-      const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
-      schema += removeDatasource(rawSchema)
-    } else if (url) {
-      schema = this.urlToDatasource(url)
+    if (url) {
+      if (schemaPath) {
+        schema = this.urlToDatasource(url)
+        const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
+        schema += removeDatasource(rawSchema)
+      } else {
+        schema = this.urlToDatasource(url)
+      }
     } else if (schemaPath) {
       schema = fs.readFileSync(schemaPath, 'utf-8')
     } else {
       throw new Error('Could not find a `schema.prisma` file')
+    }
+
+    // Re-Introspection is not supported on MongoDB
+    if (schemaPath) {
+      const schema = await getSchema(args['--schema'])
+      const config = await getConfig({
+        datamodel: schema,
+        ignoreEnvVarErrors: true,
+      })
+
+      const modelRegex = /\s*model\s*(\w+)\s*{/
+      const modelMatch = modelRegex.exec(schema)
+      const isReintrospection = modelMatch
+
+      if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
+        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
+You can explicitely ignore and override your current local schema file with ${chalk.green(
+          getCommandWithExecutor('prisma db pull --force'),
+        )}
+Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
+          'https://github.com/prisma/prisma/issues/9585',
+        )} for more info.`)
+      }
     }
 
     const engine = new IntrospectionEngine({
@@ -240,28 +275,6 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
       }
     } else {
-      if (schemaPath) {
-        const schema = await getSchema(args['--schema'])
-        const config = await getConfig({
-          datamodel: schema,
-          ignoreEnvVarErrors: true,
-        })
-
-        const modelRegex = /\s*model\s*(\w+)\s*{/
-        const modelMatch = modelRegex.exec(schema)
-        const isReintrospection = modelMatch
-
-        if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
-          engine.stop()
-          throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
-You can explicitely ignore and override your current local schema file with ${chalk.green(
-            getCommandWithExecutor('prisma db pull --force'),
-          )}
-Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
-            'https://github.com/prisma/prisma/issues/9585',
-          )} for more info.`)
-        }
-      }
       schemaPath = schemaPath || 'schema.prisma'
       fs.writeFileSync(schemaPath, introspectionSchema)
 
@@ -334,11 +347,25 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
             .join('\n')
         } else if (warning.code === 4) {
           message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
-        } else if ([5, 6, 8, 11, 12, 13, 16].includes(warning.code)) {
+        } else if (
+          warning.code === 5 ||
+          warning.code === 6 ||
+          warning.code === 8 ||
+          warning.code === 11 ||
+          warning.code === 12 ||
+          warning.code === 13 ||
+          warning.code === 16
+        ) {
           message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-        } else if ([7, 14, 15, 18, 19].includes(warning.code)) {
+        } else if (
+          warning.code === 7 ||
+          warning.code === 14 ||
+          warning.code === 15 ||
+          warning.code === 18 ||
+          warning.code === 19
+        ) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
-        } else if ([9, 10].includes(warning.code)) {
+        } else if (warning.code === 9 || warning.code === 10) {
           message += warning.affected.map((it) => `- Enum "${it.enm}"`).join('\n')
         } else if (warning.code === 17) {
           message += warning.affected
@@ -351,6 +378,22 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
                 return `- Model "${it.model}", field: "${it.field}", chosen data type: "${it.tpe}"`
               } else if (it.compositeType) {
                 return `- Type "${it.compositeType}", field: "${it.field}", chosen data type: "${it.tpe}"`
+              } else {
+                return `Code ${warning.code} - Properties model or compositeType don't exist in ${JSON.stringify(
+                  warning.affected,
+                  null,
+                  2,
+                )}`
+              }
+            })
+            .join('\n')
+        } else if (warning.code === 102 || warning.code === 103) {
+          message += warning.affected
+            .map((it) => {
+              if (it.model) {
+                return `- Model "${it.model}", field: "${it.field}"`
+              } else if (it.compositeType) {
+                return `- Type "${it.compositeType}", field: "${it.field}"`
               } else {
                 return `Code ${warning.code} - Properties model or compositeType don't exist in ${JSON.stringify(
                   warning.affected,

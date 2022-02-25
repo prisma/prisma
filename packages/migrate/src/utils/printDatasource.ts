@@ -25,7 +25,9 @@ export async function printDatasource(schemaPath: string): Promise<void> {
         ),
       )
     }
-  } else {
+  } else if (dbInfo.name) {
     console.info(chalk.dim(`Datasource "${dbInfo.name}"`))
+  } else {
+    // Nothing
   }
 }
