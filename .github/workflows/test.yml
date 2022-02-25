@@ -588,9 +588,6 @@ jobs:
         node: [16]
         queryEngine: ['library', 'binary']
 
-    env:
-      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}'
-
     steps:
       - uses: actions/checkout@v2
 
@@ -633,6 +630,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/sdk'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
@@ -649,6 +647,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/migrate'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
@@ -665,6 +664,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/cli'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
@@ -681,6 +681,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/debug'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -697,6 +698,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/engine-core'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -713,6 +715,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/generator-helper'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -737,7 +740,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
+          name: ${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_${{ github.job }}_junit.xml
           path: packages/*/junit.xml
 
   #
@@ -759,9 +762,6 @@ jobs:
         os: [macos-11, windows-latest]
         node: [16]
         queryEngine: ['library', 'binary']
-
-    env:
-      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}'
 
     steps:
       - uses: actions/checkout@v2
@@ -806,6 +806,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/client'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -830,6 +831,6 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
+          name: ${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_${{ github.job }}_junit.xml
           path: packages/*/junit.xml
 
