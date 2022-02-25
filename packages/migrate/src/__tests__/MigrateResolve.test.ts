@@ -1,7 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 import { MigrateResolve } from '../commands/MigrateResolve'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

@@ -12,8 +12,8 @@ import {
   IntrospectionEngine,
   link,
   loadEnvFile,
+  protocolToConnectorType,
 } from '@prisma/sdk'
-import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'

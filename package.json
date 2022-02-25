@@ -73,6 +73,7 @@
     "prettier": "2.5.1",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
+    "regenerator-runtime": "^0.13.9",
     "resolve": "1.21.0",
     "safe-buffer": "5.2.1",
     "semver": "7.3.5",
@@ -86,9 +87,9 @@
     "util": "0.12.4"
   },
   "lint-staged": {
-    "*.{md,yml,yaml,json}": "prettier --write",
+    "*.{md,yml,json}": "prettier --write",
     "*.{js,ts}": [
-      "eslint",
+      "eslint --fix",
       "prettier --write"
     ]
   }
