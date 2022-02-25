@@ -39,6 +39,14 @@ import { Doctor } from './Doctor'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
+/*
+  When running bin.ts with ts-node with DEBUG="*"
+  This error shows and blocks the execution
+  Quick hack is to comment the Studio import and usage to use the CLI without building it...
+  prisma:cli Error: Cannot find module '@prisma/sdk'
+  prisma:cli Require stack:
+  prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
+*/
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
 import { detectPrisma1 } from './utils/detectPrisma1'
