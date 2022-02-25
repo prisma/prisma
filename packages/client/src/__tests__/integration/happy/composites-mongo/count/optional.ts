@@ -4,20 +4,20 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 let PrismaClient, prisma
 
-const id = '5ccccccccccccccccccccccc'
+const id = '8ccccccccccccccccccccccc'
 
 /**
- * Test aggregate operations on required composite fields
+ * Test count operations on optional composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('count > optional', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
   })
 
   beforeEach(async () => {
-    await prisma.commentRequiredProp.deleteMany({ where: { id } })
-    await prisma.commentRequiredProp.create({
+    await prisma.commentOptionalProp.deleteMany({ where: { id } })
+    await prisma.commentOptionalProp.create({
       data: {
         id,
         country: 'France',
@@ -39,10 +39,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
   })
 
   /**
-   * Simple aggregate
+   * Simple count
    */
-  test('aggregate', async () => {
-    const comment = await prisma.commentRequiredProp.aggregate({
+  test('count', async () => {
+    const comment = await prisma.commentOptionalProp.count({
       where: { id },
       orderBy: {
         content: {
@@ -51,13 +51,8 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
           },
         },
       },
-      _count: true,
     })
 
-    expect(comment).toMatchInlineSnapshot(`
-      Object {
-        _count: 1,
-      }
-    `)
+    expect(comment).toMatchInlineSnapshot(`1`)
   })
 })

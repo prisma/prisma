@@ -4,12 +4,12 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 let PrismaClient, prisma
 
-const id = '5ccccccccccccccccccccccc'
+const id = '9ccccccccccccccccccccccc'
 
 /**
- * Test aggregate operations on required composite fields
+ * Test count operations on required composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('count > required', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
@@ -39,10 +39,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
   })
 
   /**
-   * Simple aggregate
+   * Simple count
    */
-  test('aggregate', async () => {
-    const comment = await prisma.commentRequiredProp.aggregate({
+  test('count', async () => {
+    const comment = await prisma.commentRequiredProp.count({
       where: { id },
       orderBy: {
         content: {
@@ -54,10 +54,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
       _count: true,
     })
 
-    expect(comment).toMatchInlineSnapshot(`
-      Object {
-        _count: 1,
-      }
-    `)
+    expect(comment).toMatchInlineSnapshot(`1`)
   })
 })

@@ -7,9 +7,9 @@ let PrismaClient, prisma
 const id = '4ccccccccccccccccccccccc'
 
 /**
- * Test find operations on optional composite fields
+ * Test aggregate operations on optional composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > optional', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
@@ -42,7 +42,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
    * Simple aggregate
    */
   test('aggregate', async () => {
-    const comment = await prisma.commentRequiredProp.aggregate({
+    const comment = await prisma.commentOptionalProp.aggregate({
       where: { id },
       orderBy: {
         content: {
@@ -56,7 +56,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        _count: 0,
+        _count: 1,
       }
     `)
   })

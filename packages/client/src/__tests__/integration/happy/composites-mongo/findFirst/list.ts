@@ -7,9 +7,9 @@ let PrismaClient, prisma
 const id = '8bbbbbbbbbbbbbbbbbbbbbbb'
 
 /**
- * Test find operations on list composite fields
+ * Test findFirst operations on list composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > list', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
