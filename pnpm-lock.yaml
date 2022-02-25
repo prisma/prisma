@@ -45,7 +45,7 @@ importers:
       prettier: 2.5.1
       redis: 3.1.2
       redis-lock: 0.1.4
-      regenerator-runtime: ^0.13.9
+      regenerator-runtime: 0.13.9
       resolve: 1.21.0
       safe-buffer: 5.2.1
       semver: 7.3.5
@@ -1567,6 +1567,7 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
