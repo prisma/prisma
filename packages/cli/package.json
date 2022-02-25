@@ -119,10 +119,5 @@
   "dependencies": {
     "@prisma/engines": "3.10.0-38.2152ca32a51c274e568364108d713778c3f53969"
   },
-  "dependenciesMeta": {
-    "@prisma/sdk": {
-      "injected": true
-    }
-  },
   "sideEffects": false
 }
