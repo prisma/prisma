@@ -734,12 +734,6 @@ jobs:
           chmod +x ./buildpulse-test-reporter
           ./buildpulse-test-reporter submit packages --account-id 17219288 --repository-id 192925833
 
-      - uses: actions/upload-artifact@v2
-        if: !cancelled()
-        with:
-          name: junit.xml
-          path: packages/*/junit.xml
-
   #
   # Run Client tests on macOS and Windows. (Rasoning see above)
   #
@@ -826,9 +820,15 @@ jobs:
           curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
           chmod +x ./buildpulse-test-reporter
           ./buildpulse-test-reporter submit packages/client --account-id 17219288 --repository-id 192925833
-          
+
+  #
+  # Upload created test artifacts
+  #
+  upload-artifacts:
+    runs-on: ubuntu-latest
+    needs: [no-docker-client, no-docker]
+    steps:    
       - uses: actions/upload-artifact@v2
-        if: !cancelled()
         with:
           name: junit.xml
           path: packages/*/junit.xml
