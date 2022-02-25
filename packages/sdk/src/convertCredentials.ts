@@ -162,7 +162,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
 }
 
 // do we need a function for that?
-function databaseTypeToProtocol(databaseType: ConnectorType): string {
+function databaseTypeToProtocol(databaseType: ConnectorType) {
   switch (databaseType) {
     case 'postgresql':
     case 'cockroachdb':
@@ -178,6 +178,8 @@ function databaseTypeToProtocol(databaseType: ConnectorType): string {
     case 'jdbc:sqlserver':
       return 'jdbc:sqlserver:'
   }
+
+  throw new Error(`Unknown databaseType ${databaseType}`)
 }
 
 export function protocolToConnectorType(protocol: string): ConnectorType {
@@ -198,5 +200,5 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
       return 'sqlserver'
   }
 
-  throw new Error(`Unknown database type ${protocol}`)
+  throw new Error(`Unknown protocol ${protocol}`)
 }
