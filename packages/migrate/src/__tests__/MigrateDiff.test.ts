@@ -274,9 +274,6 @@ describe('migrate diff', () => {
       process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
     ).replace('tests-migrate', 'tests-migrate-diff')
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-
     const setupParams: SetupParams = {
       connectionString,
       dirname: '',
@@ -360,9 +357,6 @@ describe('migrate diff', () => {
       process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
     ).replace('tests-migrate', 'tests-migrate-diff')
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
-
     const setupParams: SetupParams = {
       connectionString,
       dirname: '',
@@ -428,9 +422,6 @@ describe('migrate diff', () => {
       process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
       'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
     ).replace('tests-migrate', 'tests-migrate-diff')
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
 
     const setupParams: SetupParams = {
       connectionString: process.env.TEST_MSSQL_URI!,

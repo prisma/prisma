@@ -27,7 +27,7 @@ export type {
 } from './cli/types'
 export { arg, format, isError } from './cli/utils'
 export { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } from './client/getClientEngineType'
-export { credentialsToUri, uriToCredentials } from './convertCredentials'
+export { credentialsToUri, protocolToConnectorType, uriToCredentials } from './convertCredentials'
 export * from './engine-commands'
 export { Generator } from './Generator'
 export type { ProviderAliases } from './get-generators/getGenerators'

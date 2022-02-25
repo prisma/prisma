@@ -13,11 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - uses: pnpm/action-setup@v2.2.0
+      - uses: pnpm/action-setup@v2.2.1
         with:
           version: latest
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: '16'
@@ -30,12 +30,17 @@ jobs:
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/fetch-engine -u ${{ github.event.inputs.version }}
           pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/get-platform -u ${{ github.event.inputs.version }}
-          echo 'Awesome - proceeding to make the PR'
+          echo 'Awesome - proceeding to update the dependencies'
 
       - name: Update the engines dependencies
-        run: |
-          echo 'Updating @prisma/engines, @prisma/engines-version, @prisma/fetch-engine and @prisma/get-platform to ${{ github.event.inputs.version }} using pnpm'
-          pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version  }} @prisma/fetch-engine@${{ github.event.inputs.version  }} @prisma/get-platform@${{ github.event.inputs.version  }}
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 7
+          max_attempts: 3
+          command: |
+            echo 'Updating @prisma/engines, @prisma/engines-version, @prisma/fetch-engine and @prisma/get-platform to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version }} @prisma/fetch-engine@${{ github.event.inputs.version }} @prisma/get-platform@${{ github.event.inputs.version }}
+            echo 'Awesome - proceeding to make the PR'
 
       - name: Create Pull Request
         id: cpr

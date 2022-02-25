@@ -75,6 +75,11 @@ ${chalk.bold('Examples')}
     await printDatasource(schemaPath)
 
     const dbInfo = await getDbInfo(schemaPath)
+    if (!dbInfo.url) {
+      // TODO better error
+      throw new Error('Connection url is undefined.')
+    }
+
     const schemaDir = (await getSchemaDir(schemaPath))!
 
     console.info() // empty line

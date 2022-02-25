@@ -57,7 +57,7 @@ describe('common/sqlite', () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'invalidstring'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown database type invalidstring:`)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol invalidstring:`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -107,9 +107,9 @@ describe('common/sqlite', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'postgresql://root:prisma@/prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-                      Error parsing connection string: empty host in database URL
+            Error parsing connection string: empty host in database URL
 
-                  `)
+          `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -194,14 +194,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                          // *** WARNING ***
-                                                                                                                                                                                                                                                                          // 
-                                                                                                                                                                                                                                                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                                                                                                                          // - Model "AwesomeNewPost"
-                                                                                                                                                                                                                                                                          // - Model "AwesomeProfile"
-                                                                                                                                                                                                                                                                          // - Model "AwesomeUser"
-                                                                                                                                                                                                                                                                          // 
-                                                                                                                                                                                `)
+                                                                                                                                                                                                                                                                                      // *** WARNING ***
+                                                                                                                                                                                                                                                                                      // 
+                                                                                                                                                                                                                                                                                      // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                                                                                                      // - Model "AwesomeNewPost"
+                                                                                                                                                                                                                                                                                      // - Model "AwesomeProfile"
+                                                                                                                                                                                                                                                                                      // - Model "AwesomeUser"
+                                                                                                                                                                                                                                                                                      // 
+                                                                                                                                                                                        `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -229,18 +229,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                                    P4001 The introspected database was empty: 
+                                                                                                            P4001 The introspected database was empty: 
 
-                                                                                    prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                                                                            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                                                                                    To fix this, you have two options:
+                                                                                                            To fix this, you have two options:
 
-                                                                                    - manually create a table in your database.
-                                                                                    - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                                                                            - manually create a table in your database.
+                                                                                                            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                                                    Then you can run prisma db pull again. 
+                                                                                                            Then you can run prisma db pull again. 
 
-                                                                      `)
+                                                                                          `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -257,18 +257,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                                    P4001 The introspected database was empty: 
+                                                                                                            P4001 The introspected database was empty: 
 
-                                                                                    prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                                                                                            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                                                                                    To fix this, you have two options:
+                                                                                                            To fix this, you have two options:
 
-                                                                                    - manually create a table in your database.
-                                                                                    - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                                                                                            - manually create a table in your database.
+                                                                                                            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                                                                                    Then you can run prisma db pull again. 
+                                                                                                            Then you can run prisma db pull again. 
 
-                                                                      `)
+                                                                                          `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -624,14 +624,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                  // *** WARNING ***
-                  // 
-                  // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-                  // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-                  // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
-                  // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
-                  // 
-            `)
+                              // *** WARNING ***
+                              // 
+                              // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                              // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                              // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+                              // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+                              // 
+                    `)
   })
 
   test('introspection --print --composite-type-depth=0 (no existing models)', async () => {
@@ -666,12 +666,12 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                  // *** WARNING ***
-                  // 
-                  // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-                  // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-                  // 
-            `)
+                              // *** WARNING ***
+                              // 
+                              // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                              // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                              // 
+                    `)
   })
 
   test('introspection --print --composite-type-depth=1 (no existing models)', async () => {
@@ -714,13 +714,13 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                              // *** WARNING ***
-                                                                              // 
-                                                                              // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-                                                                              // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-                                                                              // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
-                                                                              // 
-                                                    `)
+                                                                                          // *** WARNING ***
+                                                                                          // 
+                                                                                          // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                                                                                          // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                                                                                          // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+                                                                                          // 
+                                                            `)
   })
 
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
@@ -796,14 +796,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                              // *** WARNING ***
-                                                                              // 
-                                                                              // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
-                                                                              // - Model "users", field: "numberOrString1", chosen data type: "Int32"
-                                                                              // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
-                                                                              // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
-                                                                              // 
-                                                    `)
+                                                                                          // *** WARNING ***
+                                                                                          // 
+                                                                                          // The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+                                                                                          // - Model "users", field: "numberOrString1", chosen data type: "Int32"
+                                                                                          // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+                                                                                          // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+                                                                                          // 
+                                                            `)
   })
 
   // describeIf is making eslint not happy about the names
@@ -817,6 +817,33 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
           `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  // In this case it should not error and the line `Datasource "x"` not be printed
+  test('introspection --url - only generator defined', async () => {
+    ctx.fixture('schema-only-mongodb/only-generator')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--url', MONGO_URI])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).not.toContain(`Datasource `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from schema.prisma
+
+      Introspecting …
+
+      ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
+            
+      *** WARNING ***
+
+      The following fields had data stored in multiple types. The most common type was chosen. If loading data with a type that does not match the one in the data model, the client will crash. Please see the issue: https://github.com/prisma/prisma/issues/9654
+      - Model "users", field: "numberOrString1", chosen data type: "Int32"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Int32"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Int32"
+
+      Run prisma generate to generate Prisma Client.
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
