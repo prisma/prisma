@@ -589,7 +589,7 @@ jobs:
         queryEngine: ['library', 'binary']
 
     env:
-      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/{title}'
+      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}'
 
     steps:
       - uses: actions/checkout@v2
@@ -737,7 +737,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ github.job }}_junit.xml
+          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit.xml
 
   #
@@ -761,7 +761,7 @@ jobs:
         queryEngine: ['library', 'binary']
 
     env:
-      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/{title}'
+      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}'
 
     steps:
       - uses: actions/checkout@v2
@@ -830,6 +830,6 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ github.job }}_junit.xml
+          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit.xml
 
