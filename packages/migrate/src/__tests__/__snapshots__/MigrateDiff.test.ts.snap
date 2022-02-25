@@ -43,8 +43,8 @@ CREATE TABLE "_Migration" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId");
+CREATE UNIQUE INDEX "Profile.userId" ON "Profile"("userId" ASC);
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User.email" ON "User"("email");
+CREATE UNIQUE INDEX "User.email" ON "User"("email" ASC);
 `;
