@@ -17,7 +17,7 @@ jobs:
         with:
           version: latest
 
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: '16'
