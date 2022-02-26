@@ -723,16 +723,16 @@ jobs:
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
-        # Only run this step on macOS for now.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && runner.os == 'macOS' && !cancelled()
-        env:
-          BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-        run: |
-          curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
-          chmod +x ./buildpulse-test-reporter
-          ./buildpulse-test-reporter submit packages --account-id 17219288 --repository-id 192925833
+        if: startsWith(github.repository, 'prisma/') && && !cancelled()
+        uses: Workshop64/buildpulse-action@cross-platform
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
 
   #
   # Run Client tests on macOS and Windows. (Rasoning see above)
@@ -810,13 +810,12 @@ jobs:
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
-        # Only run this step on macOS for now.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && runner.os == 'macOS' && !cancelled()
-        env:
-          BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-        run: |
-          curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
-          chmod +x ./buildpulse-test-reporter
-          ./buildpulse-test-reporter submit packages/client --account-id 17219288 --repository-id 192925833
+        if: startsWith(github.repository, 'prisma/') && !cancelled()
+        uses: Workshop64/buildpulse-action@cross-platform
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/client
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
