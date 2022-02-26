@@ -84,6 +84,8 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     // in this case, we are in a "pkg" context with a virtual fs
     // to make this work, we need to copy the binary to /tmp and execute it from there
     // TODO Why is this needed? What happens if you do not do it?
+    // TODO Probably to be able to make the file executable?
+    // TODO Go and Python Client (which use pkg) actually provide the binaries _outside_ of the CLI via env vars - so never and up here
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
