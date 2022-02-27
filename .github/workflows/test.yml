@@ -44,6 +44,7 @@ on:
       - 'graphs/**'
 
 env:
+  HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
 
 jobs:
@@ -724,7 +725,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
         uses: Workshop64/buildpulse-action@cross-platform
         with:
           account: 17219288
@@ -732,7 +733,6 @@ jobs:
           path: packages
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-
 
   #
   # Run Client tests on macOS and Windows. (Rasoning see above)
@@ -811,7 +811,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
         uses: Workshop64/buildpulse-action@cross-platform
         with:
           account: 17219288
