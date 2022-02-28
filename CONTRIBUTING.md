@@ -115,13 +115,13 @@ You can use this to link locally modified and developed `@prisma` packages.
   1. Populate `index.ts`
   1. `pnpx prisma generate && pnpx ts-node index.ts`
 
-#### Developing and working in the fixture folder
-
-1. `cd packages/client`
-1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-1. `cd fixtures/blog`
-1. `npx prisma db push --skip-generate` will create the database structure
-1. `ts-node main`
+  #### Developing and working in the fixture folder
+  
+  1. `cd packages/client`
+  1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
+  1. `cd fixtures/blog`
+  1. `npx prisma db push --skip-generate` will create the database structure
+  1. `ts-node main`
 </details>
 
 ### Tests
