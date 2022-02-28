@@ -1,10 +1,13 @@
 import { getTestClient } from '../../../../../utils/getTestClient'
+import { commentRequiredListDataA } from '../utils/build-data/commentRequiredListDataA'
+import { commentRequiredListDataB } from '../utils/build-data/commentRequiredListDataB'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 let PrismaClient, prisma
 
-const id = '9bbbbbbbbbbbbbbbbbbbbbbb'
+const id1 = '9bbbbbbbbbbbbbbbbbbbbbbb'
+const id2 = '0ddddddddddddddddddddddd'
 
 /**
  * Test findMany operations on list composite fields
@@ -16,21 +19,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentRequiredList.deleteMany({ where: { id } })
-    await prisma.commentRequiredList.create({
-      data: {
-        id,
-        country: 'France',
-        contents: {
-          set: {
-            text: 'Hello World',
-            upvotes: {
-              vote: true,
-              userId: '10',
-            },
-          },
-        },
-      },
+    await prisma.commentRequiredList.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
+    await prisma.commentRequiredList.createMany({
+      data: [commentRequiredListDataA(id1), commentRequiredListDataB(id2)],
     })
   })
 
@@ -43,7 +34,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
    */
   test('simple', async () => {
     const comment = await prisma.commentRequiredList.findMany({
-      where: { id },
+      where: { id: id1 },
     })
 
     expect(comment).toMatchInlineSnapshot(`
@@ -72,7 +63,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
    */
   test('select', async () => {
     const comment = await prisma.commentRequiredList.findMany({
-      where: { id },
+      where: { id: id1 },
       select: {
         contents: {
           select: {
@@ -100,16 +91,40 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
    */
   test('orderBy', async () => {
     const comment = await prisma.commentRequiredList.findMany({
-      where: { id },
+      where: { OR: [{ id: id1 }, { id: id2 }] },
       orderBy: {
         contents: {
-          _count: 'asc',
+          _count: 'desc',
         },
       },
     })
 
     expect(comment).toMatchInlineSnapshot(`
       Array [
+        Object {
+          contents: Array [
+            Object {
+              text: Goodbye World,
+              upvotes: Array [
+                Object {
+                  userId: 11,
+                  vote: false,
+                },
+              ],
+            },
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: France,
+          id: 0ddddddddddddddddddddddd,
+        },
         Object {
           contents: Array [
             Object {
