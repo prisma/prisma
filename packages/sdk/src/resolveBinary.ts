@@ -31,7 +31,7 @@ export const engineEnvVarMap = {
 }
 export { BinaryType }
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
-  // if file exists at propostedPath (and does not start with /snapshot (= pkg), use that one
+  // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath
   }
