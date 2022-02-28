@@ -237,7 +237,7 @@ export class DataProxyEngine extends Engine {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove it from your schema', {
+      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the `dataProxy` from the `previewFeatures` from your schema', {
         clientVersion: this.clientVersion,
       })
     }
