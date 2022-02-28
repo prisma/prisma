@@ -59,8 +59,7 @@ pnpm i
 pnpm run setup
 ```
 
-Note for Windows:
-Use the latest version of [Git Bash](https://gitforwindows.org/)
+> 💡 For Windows users: use the latest version of [Git Bash](https://gitforwindows.org/).
 
 ## Building packages when you make changes
 
@@ -68,24 +67,58 @@ In the root directory:
 
 - `pnpm run setup` will install and build all the packages
 - `pnpm -r run build` (-r for recursive) will build all the packages
-- `pnpm -r run dev` (-r for recursive) will build all the packages without running `tsc` (Fastest)
+- `pnpm -r run dev` (-r for recursive) will build all the packages without running `tsc`
+- `pnpm run watch` will build any package that has been modified without running `tsc` (Fastest)
 
 In a package directory, like `packages/client`:
 
 - `pnpm run build` will build the package
 - `pnpm run dev` will build the package without running `tsc` (Fastest)
 
-Note: Our builder is ESbuild
+> 💡 Our builder is ESbuild
 
 ## Prisma Client
 
 ### First contribution
+
+Create a reproduction folder for developing, trying a new feature, or a fix.
+We suggest that you create a `repros` folder outside of the `prisma` folder.
+
+#### Setting a development folder
+
+1. Copy `cp -r repros ../repros && cd ../repros/basic-sqlite`
+1. Initialize `pnpm install && pnpx prisma db push --skip-generate`
+1. Develop `pnpx prisma generate && pnpx ts-node index.ts`
+
+> 💡 This works best with using `pnpm run watch` running in the background.
+
+<details>
+  <summary><b>Alternatives</b></summary>
+  
+  #### Long version
+  1. `cd ..`
+  1. `mkdir -p repros/my-repro`
+  1. `pnpm init -y`
+  1. `tsc --init`
+  1. `pnpm add ../../prisma/packages/client`
+  1. `pnpm add -D ../../prisma/packages/cli`
+  1. `pnpm add -D @types/node`
+  1. `pnpm add -D typescript ts-node`
+  1. `touch index.ts`
+  1. `pnpx prisma init`
+  1. populate your `schema.prisma`
+  1. `pnpx prisma db push --skip-generate`
+  1. populate your `index.ts`
+  1. `pnpx prisma generate && pnpx ts-node index.ts`
+
+#### Old version
 
 1. `cd packages/client`
 1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
 1. `cd fixtures/blog`
 1. `npx prisma db push --skip-generate` will create the database structure
 1. `ts-node main`
+</details>
 
 ### Tests
 
