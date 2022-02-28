@@ -82,15 +82,18 @@ In a package directory, like `packages/client`:
 ### First contribution
 
 Create a reproduction folder for developing, trying a new feature, or a fix.
-We suggest that you create a `repros` folder outside of the `prisma` folder.
 
 #### Setting a development folder
+
+We suggest that you create a `repros` folder outside of the `prisma` folder.  
+You can use this to link locally modified and developed `@prisma` packages.
 
 1. Copy `cp -r repros ../repros && cd ../repros/basic-sqlite`
 1. Initialize `pnpm install && pnpx prisma db push --skip-generate`
 1. Develop `pnpx prisma generate && pnpx ts-node index.ts`
 
-> 💡 This works best with using `pnpm run watch` running in the background.
+> 💡 This works best when running `pnpm run watch` in the background.  
+> 💡 In any successful setup `pnpx prisma -v` should show version `0.0.0`.
 
 <details>
   <summary><b>Alternatives</b></summary>
