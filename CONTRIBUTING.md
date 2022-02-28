@@ -92,7 +92,8 @@ You can use this to link locally modified and developed `@prisma` packages.
 1. Initialize `pnpm install && pnpx prisma db push --skip-generate`
 1. Develop `pnpx prisma generate && pnpx ts-node index.ts`
 
-> 💡 This works best when running `pnpm run watch` in the background.  
+> 💡 This works best when running `pnpm run watch` in the background.
+
 > 💡 In any successful setup `pnpx prisma -v` should show version `0.0.0`.
 
 <details>
