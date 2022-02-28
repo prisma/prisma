@@ -83,7 +83,7 @@ In a package directory, like `packages/client`:
 
 Create a reproduction folder for developing, trying a new feature, or a fix.
 
-#### Setting a development folder
+#### Setting up a locally-linked development folder
 
 We suggest that you create a `repros` folder outside of the `prisma` folder.  
 You can use this to link locally modified and developed `@prisma` packages.
@@ -98,23 +98,23 @@ You can use this to link locally modified and developed `@prisma` packages.
 <details>
   <summary><b>Alternatives</b></summary>
   
-  #### Long version
+  #### Detailed steps for a locally-linked dev folder
   1. `cd ..`
   1. `mkdir -p repros/my-repro`
   1. `pnpm init -y`
   1. `tsc --init`
   1. `pnpm add ../../prisma/packages/client`
   1. `pnpm add -D ../../prisma/packages/cli`
-  1. `pnpm add -D @types/node`
   1. `pnpm add -D typescript ts-node`
+  1. `pnpm add -D @types/node`
   1. `touch index.ts`
   1. `pnpx prisma init`
-  1. populate your `schema.prisma`
+  1. Populate `schema.prisma`
   1. `pnpx prisma db push --skip-generate`
-  1. populate your `index.ts`
+  1. Populate `index.ts`
   1. `pnpx prisma generate && pnpx ts-node index.ts`
 
-#### Old version
+#### Developing and working in the fixture folder
 
 1. `cd packages/client`
 1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
