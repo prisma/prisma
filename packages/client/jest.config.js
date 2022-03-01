@@ -17,7 +17,6 @@ module.exports = {
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema-mongo/generated-dmmf.ts',
     '__helpers__/',
-    'utils/',
     'node_modules/',
     'index.ts',
     'index.d.ts',
