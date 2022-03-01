@@ -73,7 +73,11 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
 
   // Still here? Could not find the engine, so error out.
   throw new Error(
-    `Could not find ${name} binary. Searched in ${prismaPath}, ${prismaPath2}, ${prismaPath3}, ${prismaPath4}`,
+    `Could not find ${name} binary. Searched in:
+- ${prismaPath}
+- ${prismaPath2}
+- ${prismaPath3}
+- ${prismaPath4}`,
   )
 }
 
