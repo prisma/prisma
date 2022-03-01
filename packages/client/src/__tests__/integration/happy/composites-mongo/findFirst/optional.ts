@@ -7,9 +7,9 @@ let PrismaClient, prisma
 const id = '7aaaaaaaaaaaaaaaaaaaaaaa'
 
 /**
- * Test find operations on optional composite fields
+ * Test findFirst operations on optional composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > optional', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
@@ -41,7 +41,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
   /**
    * Simple find
    */
-  test('find', async () => {
+  test('simple', async () => {
     const comment = await prisma.commentOptionalProp.findFirst({
       where: { id },
     })
@@ -64,9 +64,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
   })
 
   /**
-   * Find select
+   * Select
    */
-  test('find select', async () => {
+  test('select', async () => {
     const comment = await prisma.commentOptionalProp.findFirst({
       where: { id },
       select: {
@@ -83,6 +83,38 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > optional', () => {
         content: Object {
           text: Hello World,
         },
+      }
+    `)
+  })
+
+  /**
+   * Order by
+   */
+  test('orderBy', async () => {
+    const comment = await prisma.commentOptionalProp.findFirst({
+      where: { id },
+      orderBy: {
+        content: {
+          upvotes: {
+            _count: 'desc',
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        content: Object {
+          text: Hello World,
+          upvotes: Array [
+            Object {
+              userId: 10,
+              vote: true,
+            },
+          ],
+        },
+        country: France,
+        id: 7aaaaaaaaaaaaaaaaaaaaaaa,
       }
     `)
   })

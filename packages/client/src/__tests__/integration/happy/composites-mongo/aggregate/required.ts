@@ -4,12 +4,12 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 let PrismaClient, prisma
 
-const id = '2aaaaaaaaaaaaaaaaaaaaaaa'
+const id = '5ccccccccccccccccccccccc'
 
 /**
- * Test find operations on required composite fields
+ * Test aggregate operations on required composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('find > required', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > required', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
@@ -39,50 +39,24 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > required', () => {
   })
 
   /**
-   * Simple find
+   * Simple aggregate
    */
-  test('find', async () => {
-    const comment = await prisma.commentRequiredProp.findFirst({
+  test('aggregate', async () => {
+    const comment = await prisma.commentRequiredProp.aggregate({
       where: { id },
-    })
-
-    expect(comment).toMatchInlineSnapshot(`
-      Object {
-        content: Object {
-          text: Hello World,
-          upvotes: Array [
-            Object {
-              userId: 10,
-              vote: true,
-            },
-          ],
-        },
-        country: France,
-        id: 2aaaaaaaaaaaaaaaaaaaaaaa,
-      }
-    `)
-  })
-
-  /**
-   * Find select
-   */
-  test('find select', async () => {
-    const comment = await prisma.commentRequiredProp.findFirst({
-      where: { id },
-      select: {
+      orderBy: {
         content: {
-          select: {
-            text: true,
+          upvotes: {
+            _count: 'desc',
           },
         },
       },
+      _count: true,
     })
 
     expect(comment).toMatchInlineSnapshot(`
       Object {
-        content: Object {
-          text: Hello World,
-        },
+        _count: 1,
       }
     `)
   })
