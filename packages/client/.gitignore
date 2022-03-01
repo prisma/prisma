@@ -5,4 +5,5 @@
 
 pnpm-lock.yaml
 *.tsbuildinfo
+junit.xml
 .DS_Store

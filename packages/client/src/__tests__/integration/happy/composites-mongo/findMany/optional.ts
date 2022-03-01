@@ -1,10 +1,13 @@
 import { getTestClient } from '../../../../../utils/getTestClient'
+import { commentOptionalPropDataA } from '../__helpers__/build-data/commentOptionalPropDataA'
+import { commentOptionalPropDataB } from '../__helpers__/build-data/commentOptionalPropDataB'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 let PrismaClient, prisma
 
-const id = '8aaaaaaaaaaaaaaaaaaaaaaa'
+const id1 = '8aaaaaaaaaaaaaaaaaaaaaaa'
+const id2 = '1ddddddddddddddddddddddd'
 
 /**
  * Test findMany operations on optional composite fields
@@ -16,21 +19,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentOptionalProp.deleteMany({ where: { id } })
-    await prisma.commentOptionalProp.create({
-      data: {
-        id,
-        country: 'France',
-        content: {
-          set: {
-            text: 'Hello World',
-            upvotes: {
-              vote: true,
-              userId: '10',
-            },
-          },
-        },
-      },
+    await prisma.commentOptionalProp.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
+    await prisma.commentOptionalProp.createMany({
+      data: [commentOptionalPropDataA(id1), commentOptionalPropDataB(id2)],
     })
   })
 
@@ -41,9 +32,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
   /**
    * Simple find
    */
-  test('find', async () => {
+  test('simple', async () => {
     const comment = await prisma.commentOptionalProp.findMany({
-      where: { id },
+      where: { id: id1 },
     })
 
     expect(comment).toMatchInlineSnapshot(`
@@ -66,11 +57,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
   })
 
   /**
-   * Find select
+   * Select
    */
-  test('find select', async () => {
+  test('select', async () => {
     const comment = await prisma.commentOptionalProp.findMany({
-      where: { id },
+      where: { id: id1 },
       select: {
         content: {
           select: {
@@ -86,6 +77,57 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
           content: Object {
             text: Hello World,
           },
+        },
+      ]
+    `)
+  })
+
+  /**
+   * Order by
+   */
+  test('orderBy', async () => {
+    const comment = await prisma.commentOptionalProp.findMany({
+      where: { OR: [{ id: id1 }, { id: id2 }] },
+      orderBy: {
+        content: {
+          upvotes: {
+            _count: 'desc',
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Goodbye World,
+            upvotes: Array [
+              Object {
+                userId: 11,
+                vote: false,
+              },
+              Object {
+                userId: 12,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 1ddddddddddddddddddddddd,
+        },
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `)
