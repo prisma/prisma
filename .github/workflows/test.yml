@@ -584,7 +584,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11, windows-latest]
+        os: [macos-latest, windows-latest]
         node: [16]
         queryEngine: ['library', 'binary']
 
@@ -744,7 +744,7 @@ jobs:
           path: packages/*/junit.xml
 
   #
-  # Run Client tests on macOS and Windows. (Rasoning see above)
+  # Run Client tests on macOS and Windows. (Reasoning see above)
   #
   no-docker-client:
     timeout-minutes: 40
@@ -759,7 +759,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11, windows-latest]
+        os: [macos-latest, windows-latest]
         node: [16]
         queryEngine: ['library', 'binary']
 
@@ -833,4 +833,3 @@ jobs:
         with:
           name: ${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_${{ github.job }}_junit.xml
           path: packages/*/junit.xml
-
