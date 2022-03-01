@@ -1,6 +1,6 @@
 import { getTestClient } from '../../../../../utils/getTestClient'
-import { commentOptionalPropDataA } from '../__helpers___/build-data/commentOptionalPropDataA'
-import { commentOptionalPropDataB } from '../__helpers___/build-data/commentOptionalPropDataB'
+import { commentOptionalPropDataA } from '../__helpers__/build-data/commentOptionalPropDataA'
+import { commentOptionalPropDataB } from '../__helpers__/build-data/commentOptionalPropDataB'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
