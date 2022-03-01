@@ -28,7 +28,7 @@
     "fs-jetpack": "4.3.0",
     "jest": "27.5.1",
     "jest-junit": "13.0.0",
-    "mariadb": "2.5.5",
+    "mariadb": "3.0.0",
     "mssql": "8.0.1",
     "pg": "8.7.1",
     "replace-string": "3.1.0",
