@@ -130,7 +130,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.0
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.2.3
+      '@types/ws': 8.5.2
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.3
@@ -175,7 +175,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.0
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.2.3
+      '@types/ws': 8.5.2
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.3
@@ -2090,8 +2090,8 @@ packages:
     dependencies:
       '@types/node': 17.0.8
 
-  /@types/ws/8.2.3:
-    resolution: {integrity: sha512-ahRJZquUYCdOZf/rCsWg88S0/+cb9wazUBHv6HZEe3XdYaBe2zr/slM8J28X07Hn88Pnm4ezo7N8/ofnOgrPVQ==}
+  /@types/ws/8.5.2:
+    resolution: {integrity: sha512-VXI82ykONr5tacHEojnErTQk+KQSoYbW1NB6iz6wUwrNd+BqfkfggQNoNdCqhJSzbNumShPERbM+Pc5zpfhlbw==}
     dependencies:
       '@types/node': 17.0.18
     dev: true
