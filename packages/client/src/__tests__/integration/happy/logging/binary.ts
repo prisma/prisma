@@ -59,7 +59,7 @@ test('basic event logging - binary', async () => {
       ],
       Array [
         Object {
-          message: Started http server on http://127.0.0.1:00000,
+          message: Started query engine http server on http://127.0.0.1:00000,
           target: query_engine::server,
           timestamp: 1970-01-01T00:00:00.000Z,
         },
