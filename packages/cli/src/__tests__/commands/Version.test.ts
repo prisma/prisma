@@ -53,7 +53,7 @@ describe('version', () => {
         delete process[envVar]
       }
     },
-    20000,
+    50000,
   )
 
   // Binary Tests
@@ -96,7 +96,7 @@ describe('version', () => {
         delete process[envVar]
       }
     },
-    20000,
+    50000,
   )
 })
 
