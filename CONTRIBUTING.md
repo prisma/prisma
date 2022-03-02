@@ -100,20 +100,23 @@ You can use this to link locally modified and developed `@prisma` packages.
   <summary><b>Alternatives</b></summary>
   
   #### Detailed steps for a locally-linked dev folder
-  1. `cd ..`
-  1. `mkdir -p repros/my-repro`
-  1. `pnpm init -y`
-  1. `tsc --init`
-  1. `pnpm add ../../prisma/packages/client`
-  1. `pnpm add -D ../../prisma/packages/cli`
-  1. `pnpm add -D typescript ts-node`
-  1. `pnpm add -D @types/node`
-  1. `touch index.ts`
-  1. `pnpx prisma init`
-  1. Populate `schema.prisma`
-  1. `pnpx prisma db push --skip-generate`
-  1. Populate `index.ts`
-  1. `pnpx prisma generate && pnpx ts-node index.ts`
+```sh
+cd ..
+mkdir -p repros/my-repro
+cd repros/my-repro
+pnpm init -y
+pnpm add ../../prisma/packages/client
+pnpm add -D ../../prisma/packages/cli
+pnpm add -D typescript ts-node
+pnpm add -D @types/node
+tsc --init
+touch index.ts
+pnpx prisma init
+# Populate schema.prisma
+pnpx prisma db push --skip-generate
+# Populate index.ts
+pnpx prisma generate && pnpx ts-node index.ts
+```
 
   #### Developing and working in the fixture folder
   
