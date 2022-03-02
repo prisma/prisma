@@ -98,7 +98,10 @@ describe('dataproxy', () => {
 })
 
 describe('special cases', () => {
-  // TODO: document the reason behind this logic.
+  /**
+   * The build image (Debian) is different from the runtime image (RHEL) on Netlify,
+   * so the build-time targets are replaced with what will actually be required at run time.
+   */
   it('replaces platforms with ["rhel-openssl-1.0.x"] on Netlify', () => {
     process.env.NETLIFY = 'true'
 
