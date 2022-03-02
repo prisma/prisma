@@ -8,6 +8,13 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
+if (process.env.CI) {
+  // to avoid timeouts on macOS and Windows
+  jest.setTimeout(100_000)
+} else {
+  jest.setTimeout(10_000)
+}
+
 let prisma: PrismaClient
 const baseUri = process.env.TEST_POSTGRES_URI
 describe('full-text-search (postgres)', () => {
