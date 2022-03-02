@@ -631,7 +631,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/sdk'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/sdk/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
@@ -648,7 +648,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/migrate'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/migrate/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
@@ -665,7 +665,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/cli'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/cli/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
@@ -682,7 +682,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/debug'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/debug/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -699,7 +699,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/engine-core'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engine-core/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -716,7 +716,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/generator-helper'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/generator-helper/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -740,7 +740,7 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_${{ github.job }}_junit.xml
+          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit.xml
 
   #
@@ -806,7 +806,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ github.job }}/client'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -830,5 +830,5 @@ jobs:
       - uses: actions/upload-artifact@v2
         if: always()
         with:
-          name: ${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_${{ github.job }}_junit.xml
+          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit.xml
