@@ -241,7 +241,7 @@ importers:
       klona: 2.0.5
       lz-string: 1.4.4
       make-dir: 3.1.0
-      mariadb: 2.5.5
+      mariadb: 3.0.0
       mssql: 8.0.1
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -296,7 +296,7 @@ importers:
       klona: 2.0.5
       lz-string: 1.4.4
       make-dir: 3.1.0
-      mariadb: 2.5.5
+      mariadb: 3.0.0
       mssql: 8.0.1
       pg: 8.7.1
       pkg-up: 3.1.0
@@ -434,7 +434,7 @@ importers:
       fs-jetpack: 4.3.0
       jest: 27.5.1
       jest-junit: 13.0.0
-      mariadb: 2.5.5
+      mariadb: 3.0.0
       mssql: 8.0.1
       pg: 8.7.1
       replace-string: 3.1.0
@@ -461,7 +461,7 @@ importers:
       fs-jetpack: 4.3.0
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.0.0
-      mariadb: 2.5.5
+      mariadb: 3.0.0
       mssql: 8.0.1
       pg: 8.7.1
       replace-string: 3.1.0
@@ -499,7 +499,7 @@ importers:
       jest-junit: 13.0.0
       log-update: 4.0.0
       make-dir: 3.1.0
-      mariadb: 2.5.6
+      mariadb: 3.0.0
       mock-stdin: 1.0.0
       mssql: 8.0.2
       new-github-issue-url: 0.2.1
@@ -521,7 +521,7 @@ importers:
       has-yarn: 2.1.0
       indent-string: 4.0.0
       log-update: 4.0.0
-      mariadb: 2.5.6
+      mariadb: 3.0.0
       mssql: 8.0.2
       new-github-issue-url: 0.2.1
       open: 7.4.2
@@ -678,6 +678,10 @@ importers:
       typescript: 4.5.4
 
 packages:
+
+  /@alloc/quick-lru/5.2.0:
+    resolution: {integrity: sha512-UrcABB+4bUrFABwbluTIBErXwvbsU/V7TZWfmbgJfbkwiBuziS9gxdODUyuiecfdGQ85jglMW6juS3+z5TsKLw==}
+    engines: {node: '>=10'}
 
   /@azure/abort-controller/1.0.4:
     resolution: {integrity: sha512-lNUmDRVGpanCsiUN3NWxFTdwmdFI53xwhkTFfHDGTYk46ca7Ind3nanJc+U6Zj9Tv+9nTCWRBscWEW1DyKOpTw==}
@@ -3220,7 +3224,6 @@ packages:
   /denque/2.0.1:
     resolution: {integrity: sha512-tfiWc6BQLXNLpNiR5iGd0Ocu3P3VpxfzFiqubLgMfhfOw9WyvgJBd46CClNn9k3qfbjvT//0cf7AlYRX/OslMQ==}
     engines: {node: '>=0.10'}
-    dev: false
 
   /depd/1.1.2:
     resolution: {integrity: sha1-m81S4UwJd2PnSbJ0xDRu0uVgtak=}
@@ -5972,14 +5975,6 @@ packages:
       slice-ansi: 4.0.0
       wrap-ansi: 6.2.0
 
-  /long/4.0.0:
-    resolution: {integrity: sha512-XsP+KhQif4bjX1kbuSiySJFNAehNxgLb6hPRGJ9QsUr8ajHkuXGdrHmFUTUUXhDwVX2R5bY4JNZEwbUiMhV+MA==}
-    dev: true
-
-  /long/5.2.0:
-    resolution: {integrity: sha512-9RTUNjK60eJbx3uz+TEGF7fUr29ZDxR5QzXcyDpeSfeH28S9ycINflOgOlppit5U+4kNTe83KQnMEerw7GmE8w==}
-    dev: false
-
   /loose-envify/1.4.0:
     resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
     hasBin: true
@@ -6024,31 +6019,17 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /mariadb/2.5.5:
-    resolution: {integrity: sha512-6dklvcKWuuaV1JjAwnE2ezR+jTt7JrZHftgeHHBmjB0wgfaUpdxol1DPWclwMcCrsO9yoM0FuCOiCcCgXc//9Q==}
-    engines: {node: '>= 10.13'}
+  /mariadb/3.0.0:
+    resolution: {integrity: sha512-1uIqD6AWLP5ojMY67XP4+4uRLe9L92HD1ZGU8fidi8cGdYIC+Ghx1JliAtf7lc/tGjOh6J400f/1M4BXVtZFvA==}
+    engines: {node: '>= 12'}
     dependencies:
-      '@types/geojson': 7946.0.8
-      '@types/node': 14.18.12
-      denque: 1.5.1
-      iconv-lite: 0.6.3
-      long: 4.0.0
-      moment-timezone: 0.5.34
-      please-upgrade-node: 3.2.0
-    dev: true
-
-  /mariadb/2.5.6:
-    resolution: {integrity: sha512-zBx7loYY5GzLl8Y6AKxGXfY9DUYIIdGrmEORPOK9FEu0pg5ZLBKCGJuucHwKADxTBxKY7eM4rxndqxRcnMZKIw==}
-    engines: {node: '>= 10.13'}
-    dependencies:
+      '@alloc/quick-lru': 5.2.0
       '@types/geojson': 7946.0.8
       '@types/node': 17.0.18
       denque: 2.0.1
       iconv-lite: 0.6.3
-      long: 5.2.0
       moment-timezone: 0.5.34
       please-upgrade-node: 3.2.0
-    dev: false
 
   /media-typer/0.3.0:
     resolution: {integrity: sha1-hxDXrwqmJvj/+hzgAWhUUmMlV0g=}
