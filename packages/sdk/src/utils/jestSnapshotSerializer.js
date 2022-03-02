@@ -18,7 +18,10 @@ function normalizePrismaPaths(str) {
 
 function normalizeLogs(str) {
   return str
-    .replace(/Started http server on http:\/\/127\.0\.0\.1:\d{1,5}/g, 'Started http server on http://127.0.0.1:00000')
+    .replace(
+      /Started query engine http server on http:\/\/127\.0\.0\.1:\d{1,5}/g,
+      'Started query engine http server on http://127.0.0.1:00000',
+    )
     .replace(/Starting a postgresql pool with \d+ connections./g, 'Starting a postgresql pool with XX connections.')
 }
 
