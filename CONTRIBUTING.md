@@ -120,11 +120,13 @@ pnpx prisma generate && pnpx ts-node index.ts
 
   #### Developing and working in the fixture folder
   
-  1. `cd packages/client`
-  1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-  1. `cd fixtures/blog`
-  1. `npx prisma db push --skip-generate` will create the database structure
-  1. `ts-node main`
+```sh
+cd packages/client
+ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+cd fixtures/blog
+npx prisma db push --skip-generate # will create the database structure
+ts-node main
+```
 </details>
 
 ### Tests
