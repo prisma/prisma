@@ -17,24 +17,24 @@ ${chalk.dim('$')} prisma migrate diff --preview-feature [options]
 
 ${chalk.bold('Options')}
 
-                                     -h, --help  Display this help message
+-h, --help                                         Display this help message
 
 ${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
-                          --from-url / --to-url  A datasource URL
-                      --from-empty / --to-empty  Flag to assume from or to is an empty datamodel
---from-schema-datamodel / --to-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
+--from-url / --to-url                              A datasource URL
+--from-empty / --to-empty                          Flag to assume from or to is an empty datamodel
+--from-schema-datamodel / --to-schema-datamodel    Path to a Prisma schema file, uses the datamodel for the diff
 --from-schema-datasource / --to-schema-datasource  Path to a Prisma schema file, uses the datasource url for the diff
-            --from-migrations / --to-migrations  Path to the Prisma Migrate migrations directory
+--from-migrations / --to-migrations                Path to the Prisma Migrate migrations directory
 
 ${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
-                          --shadow-database-url  URL for the shadow database
+--shadow-database-url                              URL for the shadow database
 
 ${chalk.italic('Output format:')}
-                                       --script  Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+--script                                           Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
 
 ${chalk.bold('Flag')}
 
-                              --preview-feature  Run Preview Prisma commands`,
+--preview-feature                                  Run Preview Prisma commands`,
 )
 
 export class MigrateDiff implements Command {
