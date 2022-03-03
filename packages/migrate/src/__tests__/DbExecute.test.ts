@@ -141,7 +141,7 @@ DROP TABLE 'test-dbexecute';`
 
               `)
       },
-      15_000,
+      20_000,
     )
 
     it('should pass with --file --schema', async () => {
