@@ -86,7 +86,7 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 #### Setting up a locally-linked development folder
 
 We suggest that you create a `repros` folder outside of the `prisma` folder.  
-You can use this to link locally modified and developed `@prisma` packages.
+You can use this to link locally modified and developed Prisma packages.
 
 1. Copy `cp -r repros ../repros && cd ../repros/basic-sqlite`
 1. Initialize `pnpm install && pnpx prisma db push --skip-generate`
@@ -100,28 +100,33 @@ You can use this to link locally modified and developed `@prisma` packages.
   <summary><b>Alternatives</b></summary>
   
   #### Detailed steps for a locally-linked dev folder
-  1. `cd ..`
-  1. `mkdir -p repros/my-repro`
-  1. `pnpm init -y`
-  1. `tsc --init`
-  1. `pnpm add ../../prisma/packages/client`
-  1. `pnpm add -D ../../prisma/packages/cli`
-  1. `pnpm add -D typescript ts-node`
-  1. `pnpm add -D @types/node`
-  1. `touch index.ts`
-  1. `pnpx prisma init`
-  1. Populate `schema.prisma`
-  1. `pnpx prisma db push --skip-generate`
-  1. Populate `index.ts`
-  1. `pnpx prisma generate && pnpx ts-node index.ts`
+```sh
+cd ..
+mkdir -p repros/my-repro
+cd repros/my-repro
+pnpm init -y
+pnpm add ../../prisma/packages/client
+pnpm add -D ../../prisma/packages/cli
+pnpm add -D typescript ts-node
+pnpm add -D @types/node
+tsc --init
+touch index.ts
+pnpx prisma init
+# Populate schema.prisma
+pnpx prisma db push --skip-generate
+# Populate index.ts
+pnpx prisma generate && pnpx ts-node index.ts
+```
 
-#### Developing and working in the fixture folder
-
-1. `cd packages/client`
-1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-1. `cd fixtures/blog`
-1. `npx prisma db push --skip-generate` will create the database structure
-1. `ts-node main`
+  #### Developing and working in the fixture folder
+  
+```sh
+cd packages/client
+ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+cd fixtures/blog
+npx prisma db push --skip-generate # will create the database structure
+ts-node main
+```
 </details>
 
 ### Tests
