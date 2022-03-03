@@ -230,16 +230,16 @@ describe('full-text-search (postgres)', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Invalid \`.findMany()\` invocation in
-      /client/src/__tests__/integration/happy/full-text-search-postgres/test.ts:0:0
+            Invalid \`.findMany()\` invocation in
+            /client/src/__tests__/integration/happy/full-text-search-postgres/test.ts:0:0
 
-        208  */
-        209 testIf(process.platform !== 'win32')('bad operator', async () => {
-        210   const result = prisma.user
-      → 211     .findMany(
-        Error occurred during query execution:
-      ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState("42601"), message: "syntax error in tsquery: \\"0 1\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }) })
-    `)
+              215  */
+              216 testIf(process.platform !== 'win32')('bad operator', async () => {
+              217   const result = prisma.user
+            → 218     .findMany(
+              Error occurred during query execution:
+            ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState("42601"), message: "syntax error in tsquery: \\"0 1\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }) })
+          `)
   })
 
   test('order by relevance on a single field', async () => {
