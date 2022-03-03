@@ -86,7 +86,7 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 #### Setting up a locally-linked development folder
 
 We suggest that you create a `repros` folder outside of the `prisma` folder.  
-You can use this to link locally modified and developed `@prisma` packages.
+You can use this to link locally modified and developed Prisma packages.
 
 1. Copy `cp -r repros ../repros && cd ../repros/basic-sqlite`
 1. Initialize `pnpm install && pnpx prisma db push --skip-generate`
