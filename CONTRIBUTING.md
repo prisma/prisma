@@ -6,24 +6,6 @@ To get you started on a good foot, we've created an easy overview of the most im
 
 We also encourage you to join our sprawling [community](https://www.prisma.io/community) online, where you can discuss ideas, ask questions and get inspiration for what to build next.
 
-## Table of Contents
-
-- Contributing Code
-  - General Prerequisites
-  - General Setup
-  - Prisma Client
-    - Initial Setup
-    - Building and Running Prisma Client
-    - Tests
-  - Prisma Migrate
-    - Initial Setup
-    - Building and Running Prisma Migrate
-    - Tests
-- Additional Resources
-- Conventions
-  - Git Commit Messages
-- Legal
-
 ## Contributing Code
 
 Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines)
@@ -67,8 +49,8 @@ In the root directory:
 
 - `pnpm run setup` will install and build all the packages
 - `pnpm -r run build` (-r for recursive) will build all the packages
-- `pnpm -r run dev` (-r for recursive) will build all the packages without running `tsc`
-- `pnpm run watch` will build any package that has been modified without running `tsc` (Fastest)
+- `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`
+- `pnpm run watch` will build any package that has been modified, without running `tsc` (Fastest)
 
 In a package directory, like `packages/client`:
 
@@ -85,12 +67,13 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 
 #### Setting up a locally-linked development folder
 
-We suggest that you create a `repros` folder outside of the `prisma` folder.  
-You can use this to link locally modified and developed Prisma packages.
+Set up a local project that will be linked to the local packages.
 
-1. Copy `cp -r repros ../repros && cd ../repros/basic-sqlite`
-1. Initialize `pnpm install && pnpx prisma db push --skip-generate`
-1. Develop `pnpx prisma generate && pnpx ts-node index.ts`
+```sh
+cd reproductions && cp -r basic-sqlite my-repro && cd my-repro # Copy repro
+pnpm install && pnpx prisma db push --skip-generate # Init project
+pnpx prisma generate && pnpx ts-node index.ts # Try it out
+```
 
 > 💡 This works best when running `pnpm run watch` in the background.
 
@@ -100,33 +83,36 @@ You can use this to link locally modified and developed Prisma packages.
   <summary><b>Alternatives</b></summary>
   
   #### Detailed steps for a locally-linked dev folder
-```sh
-cd ..
-mkdir -p repros/my-repro
-cd repros/my-repro
-pnpm init -y
-pnpm add ../../prisma/packages/client
-pnpm add -D ../../prisma/packages/cli
-pnpm add -D typescript ts-node
-pnpm add -D @types/node
-tsc --init
-touch index.ts
-pnpx prisma init
-# Populate schema.prisma
-pnpx prisma db push --skip-generate
-# Populate index.ts
-pnpx prisma generate && pnpx ts-node index.ts
-```
+  ```sh
+  cd reproductions
+  cp -r basic-sqlite my-repro
+  cd my-repro
+  pnpm init -y
+  pnpm add ../../prisma/packages/client
+  pnpm add -D ../../prisma/packages/cli
+  pnpm add -D typescript ts-node
+  pnpm add -D @types/node
+  tsc --init
+  touch index.ts
+  pnpx prisma init
+  # > Manually populate the schema.prisma
+  # > Manually add 👇 to the generator block
+  # > output = "../node_modules/.prisma/client"
+  pnpx prisma db push --skip-generate
+  # > Manually populate the index.ts
+  pnpx prisma generate && pnpx ts-node index.ts # Try it out
+  ```
 
-  #### Developing and working in the fixture folder
-  
+#### Developing and working in the fixture folder
+
 ```sh
 cd packages/client
 ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
 cd fixtures/blog
-npx prisma db push --skip-generate # will create the database structure
-ts-node main
+npx prisma db push --skip-generate
+ts-node main.ts # Try it out
 ```
+
 </details>
 
 ### Tests
@@ -143,8 +129,10 @@ The integration tests consisting of mini projects are located in [`src/client/sr
 
 Run the tests:
 
-1. `cd packages/client`
-2. `pnpm run test integration`
+```sh
+cd packages/client
+pnpm run test integration
+```
 
 ##### Creating a new folder-based integration test
 
@@ -159,8 +147,10 @@ The integration tests consisting of mini project are located in [`packages/integ
 
 Run the tests:
 
-1. `cd packages/integration-tests`
-2. `pnpm run test`
+```sh
+cd packages/integration-tests
+pnpm run test
+```
 
 ## Prisma Migrate
 
@@ -169,6 +159,8 @@ Run the tests:
 1. `cd packages/migrate/fixtures/blog` it's a minimal project that can be used to try things out
 1. Then modify some code
 1. `../../src/bin.ts dev` for running `prisma migrate dev`
+
+> 💡 You can also test your changes in a reproduction project via the [CLI](#developing-prisma-cli).
 
 ### Tests
 
@@ -185,10 +177,33 @@ Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./pa
 
 ## Prisma CLI
 
-### Developing `prisma` CLI
+### First contribution
 
-1. `cd packages/cli`
-1. `../src/bin.ts generate` to run `prisma generate`
+Create a reproduction folder for developing, trying a new feature, or a fix.
+
+#### Setting up a locally-linked development folder
+
+Set up a local project that will be linked to the local packages.
+
+```sh
+cd reproductions && cp -r basic-sqlite my-repro && cd my-repro # Copy repro
+pnpm install # Init project
+pnpx prisma generate # Try it out
+```
+
+> 💡 This works best when running `pnpm run watch` in the background.
+
+> 💡 In any successful setup `pnpx prisma -v` should show version `0.0.0`.
+
+<details>
+  <summary><b>Alternatives</b></summary>
+
+```sh
+cd packages/cli
+../src/bin.ts generate # Try it out
+```
+
+</details>
 
 ## Conventions
 
