@@ -35,3 +35,4 @@ pnpm-debug.log
 .envrc
 
 esm
+reproductions/*
