@@ -59,7 +59,7 @@ In a package directory, like `packages/client`:
 - `pnpm run build` will build the package
 - `pnpm run dev` will build the package without running `tsc` (Fastest)
 
-> 💡 Our builder is ESbuild
+> 💡 Our builder is built on top of esbuild
 
 ## Prisma Client
 
