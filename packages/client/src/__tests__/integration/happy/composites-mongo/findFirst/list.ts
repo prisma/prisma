@@ -7,9 +7,9 @@ let PrismaClient, prisma
 const id = '8bbbbbbbbbbbbbbbbbbbbbbb'
 
 /**
- * Test find operations on list composite fields
+ * Test findFirst operations on list composite fields
  */
-describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > list', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient('../')
     prisma = new PrismaClient()
@@ -41,7 +41,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
   /**
    * Simple find
    */
-  test('find', async () => {
+  test('simple', async () => {
     const comment = await prisma.commentRequiredList.findFirst({
       where: { id },
     })
@@ -66,9 +66,9 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
   })
 
   /**
-   * Find select
+   * Select
    */
-  test('find select', async () => {
+  test('select', async () => {
     const comment = await prisma.commentRequiredList.findFirst({
       where: { id },
       select: {
@@ -87,6 +87,38 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('find > list', () => {
             text: Hello World,
           },
         ],
+      }
+    `)
+  })
+
+  /**
+   * Order by
+   */
+  test('orderBy', async () => {
+    const comment = await prisma.commentRequiredList.findFirst({
+      where: { id },
+      orderBy: {
+        contents: {
+          _count: 'asc',
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        contents: Array [
+          Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: France,
+        id: 8bbbbbbbbbbbbbbbbbbbbbbb,
       }
     `)
   })

@@ -591,7 +591,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               this.engineStartDeferred &&
               json.level === 'INFO' &&
               json.target === 'query_engine::server' &&
-              json.fields?.message?.startsWith('Started http server')
+              json.fields?.message?.startsWith('Started query engine http server')
             ) {
               this.connection.open(`http://127.0.0.1:${this.port}`)
               this.engineStartDeferred.resolve()

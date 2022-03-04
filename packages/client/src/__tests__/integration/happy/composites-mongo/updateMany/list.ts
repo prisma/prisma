@@ -191,7 +191,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('updateMany > list', () => {
   /**
    * Simple deleteMany
    */
-  test('deleteMany', async () => {})
+  test.skip('deleteMany', async () => {})
 
   /**
    * Simple unset

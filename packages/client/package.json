@@ -63,15 +63,15 @@
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.11.0-11.5b3bbd566d0f91cb9f74187bfdb7c490a6a4e825",
-    "@prisma/fetch-engine": "3.11.0-11.5b3bbd566d0f91cb9f74187bfdb7c490a6a4e825",
+    "@prisma/engines": "3.11.0-24.6d0d1f6ebabd0497065a8d8e13be1d4dbc2d7c05",
+    "@prisma/fetch-engine": "3.11.0-24.6d0d1f6ebabd0497065a8d8e13be1d4dbc2d7c05",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.11.0-11.5b3bbd566d0f91cb9f74187bfdb7c490a6a4e825",
+    "@prisma/get-platform": "3.11.0-24.6d0d1f6ebabd0497065a8d8e13be1d4dbc2d7c05",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "27.4.0",
+    "@types/jest": "27.4.1",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.5",
     "@types/node": "12.20.46",
@@ -94,7 +94,7 @@
     "klona": "2.0.5",
     "lz-string": "1.4.4",
     "make-dir": "3.1.0",
-    "mariadb": "2.5.5",
+    "mariadb": "3.0.0",
     "mssql": "8.0.1",
     "pg": "8.7.1",
     "pkg-up": "3.1.0",
@@ -121,7 +121,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.11.0-11.5b3bbd566d0f91cb9f74187bfdb7c490a6a4e825"
+    "@prisma/engines-version": "3.11.0-24.6d0d1f6ebabd0497065a8d8e13be1d4dbc2d7c05"
   },
   "sideEffects": false
 }

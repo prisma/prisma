@@ -1299,7 +1299,7 @@ export namespace Prisma {
     ? IsReject<LocalRejectSettings>
     : GlobalRejectSettings extends RejectPerOperation
     ? Action extends keyof GlobalRejectSettings
-      ? GlobalRejectSettings[Action] extends boolean
+      ? GlobalRejectSettings[Action] extends RejectOnNotFound
         ? IsReject<GlobalRejectSettings[Action]>
         : GlobalRejectSettings[Action] extends RejectPerModel
         ? Model extends keyof GlobalRejectSettings[Action]
@@ -15947,6 +15947,9 @@ export namespace Prisma {
   }
 
   export type EmbedHolderOrderByWithRelationInput = {
+    embedList?: EmbedOrderByCompositeAggregateInput
+    requiredEmbed?: EmbedOrderByInput
+    optionalEmbed?: EmbedOrderByInput
     id?: SortOrder
     time?: SortOrder
     text?: SortOrder
@@ -18381,6 +18384,18 @@ export namespace Prisma {
     none?: UserWhereInput
   }
 
+  export type EmbedOrderByCompositeAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EmbedOrderByInput = {
+    text?: SortOrder
+    boolean?: SortOrder
+    embedEmbedList?: EmbedEmbedOrderByCompositeAggregateInput
+    requiredEmbedEmbed?: EmbedEmbedOrderByInput
+    optionalEmbedEmbed?: EmbedEmbedOrderByInput
+  }
+
   export type UserOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -19744,6 +19759,15 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedBoolNullableFilter
     _max?: NestedBoolNullableFilter
+  }
+
+  export type EmbedEmbedOrderByCompositeAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type EmbedEmbedOrderByInput = {
+    text?: SortOrder
+    boolean?: SortOrder
   }
 
   export type NestedBigIntFilter = {

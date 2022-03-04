@@ -44,6 +44,7 @@ on:
       - 'graphs/**'
 
 env:
+  HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
 
 jobs:
@@ -54,7 +55,7 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
     steps:
       - id: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - id: files
         uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
@@ -81,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.1
         with:
@@ -105,7 +106,7 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 25
+    timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -119,7 +120,7 @@ jobs:
         node: [12, 16]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set CLI Engine Type
         run: |
@@ -183,7 +184,7 @@ jobs:
         node: [12]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.1
         with:
@@ -237,7 +238,7 @@ jobs:
         node: [12]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set CLI Engine Type
         run: |
@@ -308,7 +309,7 @@ jobs:
         node: [12, 16]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
@@ -370,7 +371,7 @@ jobs:
         node: [12, 16]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed
 
@@ -442,7 +443,7 @@ jobs:
         node: [12, 16]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Set CLI Engine Type
         run: |
@@ -497,7 +498,7 @@ jobs:
         node: [12, 16]
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.1
         with:
@@ -584,15 +585,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11, windows-latest]
+        os: [macos-latest, windows-latest]
         node: [16]
         queryEngine: ['library', 'binary']
 
-    env:
-      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/{title}'
-
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Prerequisites
         shell: bash
@@ -627,12 +625,13 @@ jobs:
 
       - name: Test packages/sdk
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
-        run: pnpm run test
+        run: pnpm run test -- --testTimeout=30000
         working-directory: packages/sdk
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/sdk/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
@@ -643,12 +642,13 @@ jobs:
 
       - name: Test packages/migrate
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
-        run: pnpm run test
+        run: pnpm run test -- --testTimeout=30000
         working-directory: packages/migrate
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/migrate/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
@@ -659,12 +659,13 @@ jobs:
 
       - name: Test packages/cli
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
-        run: pnpm run test
+        run: pnpm run test -- --testTimeout=30000
         working-directory: packages/cli
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/cli/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
@@ -681,6 +682,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/debug/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -697,6 +699,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engine-core/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -713,6 +716,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/generator-helper/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
@@ -723,19 +727,24 @@ jobs:
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
-        # Only run this step on macOS for now.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && runner.os == 'macOS' && !cancelled()
-        env:
-          BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-        run: |
-          curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
-          chmod +x ./buildpulse-test-reporter
-          ./buildpulse-test-reporter submit packages --account-id 17219288 --repository-id 192925833
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        uses: Workshop64/buildpulse-action@main
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
+          path: packages/*/junit.xml
 
   #
-  # Run Client tests on macOS and Windows. (Rasoning see above)
+  # Run Client tests on macOS and Windows. (Reasoning see above)
   #
   no-docker-client:
     timeout-minutes: 40
@@ -750,15 +759,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-11, windows-latest]
+        os: [macos-latest, windows-latest]
         node: [16]
         queryEngine: ['library', 'binary']
 
-    env:
-      JEST_JUNIT_SUITE_NAME: '${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/{title}'
-
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Prerequisites
         shell: bash
@@ -793,13 +799,14 @@ jobs:
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes
+        run: pnpm run test-notypes -- --testTimeout=30000
         working-directory: packages/client
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v2
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -810,13 +817,18 @@ jobs:
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
-        # Only run this step on macOS for now.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: startsWith(github.repository, 'prisma/') && runner.os == 'macOS' && !cancelled()
-        env:
-          BUILDPULSE_ACCESS_KEY_ID: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          BUILDPULSE_SECRET_ACCESS_KEY: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-        run: |
-          curl -fsSL https://get.buildpulse.io/test-reporter-darwin-amd64 > ./buildpulse-test-reporter
-          chmod +x ./buildpulse-test-reporter
-          ./buildpulse-test-reporter submit packages/client --account-id 17219288 --repository-id 192925833
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        uses: Workshop64/buildpulse-action@main
+        with:
+          account: 17219288
+          repository: 192925833
+          path: packages/client
+          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
+          path: packages/*/junit.xml
