@@ -36,3 +36,4 @@ pnpm-debug.log
 
 esm
 reproductions/*
+!reproductions/basic-sqlite
