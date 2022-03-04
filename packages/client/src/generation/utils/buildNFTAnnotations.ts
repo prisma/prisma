@@ -51,7 +51,6 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
   }
 
   if (engineType === ClientEngineType.Binary) {
-    // TODO: is this correct on Windows?
     return `query-engine-${platform}`
   }
 
