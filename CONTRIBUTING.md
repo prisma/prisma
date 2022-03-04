@@ -13,7 +13,9 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 ## General Prerequisites
 
 1. Install Node.js `>=12.6` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
-   - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
+
+- Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
+
 1. Install [`pnpm`](https://pnpm.js.org/) (for installing npm dependencies, using pnpm workspaces)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing databases for our tests)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node.js scripts written in TypeScript)
