@@ -101,9 +101,25 @@ describe('migrate diff', () => {
     it('should diff --from-url=file:doesnotexists.db --to-empty ', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:doesnotexists.db'])
+      const result = MigrateDiff.new().parse(['--preview-feature', '--from-url=file:doesnotexists.db', '--to-empty'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
+    })
+    it('should fail if path does not exist', async () => {
+      ctx.fixture('schema-only-sqlite')
+
+      const result = MigrateDiff.new().parse([
+        '--preview-feature',
+        '--from-url=file:./something/doesnotexists.db',
+        '--to-empty',
+      ])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              unable to open database file: ./something/doesnotexists.db
+
+
+            `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('should diff --from-empty --to-url=file:dev.db', async () => {
@@ -113,18 +129,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [+] Added tables
-          - Post
-          - Profile
-          - User
-          - _Migration
+                                                                                [+] Added tables
+                                                                                  - Post
+                                                                                  - Profile
+                                                                                  - User
+                                                                                  - _Migration
 
-        [*] Changed the \`Profile\` table
-          [+] Added unique index on columns (userId)
+                                                                                [*] Changed the \`Profile\` table
+                                                                                  [+] Added unique index on columns (userId)
 
-        [*] Changed the \`User\` table
-          [+] Added unique index on columns (email)
-      `)
+                                                                                [*] Changed the \`User\` table
+                                                                                  [+] Added unique index on columns (email)
+                                                            `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -145,9 +161,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [+] Added tables
-          - Blog
-      `)
+                                                                                [+] Added tables
+                                                                                  - Blog
+                                                            `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -179,9 +195,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-        [-] Removed tables
-          - Blog
-      `)
+                                                                                [-] Removed tables
+                                                                                  - Blog
+                                                            `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -207,6 +223,75 @@ describe('migrate diff', () => {
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-url=file:dev.db', '--to-url=file:dev.db'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
+    })
+
+    describe('--exit-code', () => {
+      it('should exit with code 2 when diff is not empty without --script', async () => {
+        ctx.fixture('schema-only-sqlite')
+
+        const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+
+        const result = MigrateDiff.new().parse([
+          '--preview-feature',
+          '--from-schema-datamodel=./prisma/schema.prisma',
+          '--to-empty',
+          '--exit-code',
+        ])
+
+        await expect(result).resolves.toMatchInlineSnapshot(``)
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+        expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                              [-] Removed tables
+                                - Blog
+                        `)
+
+        expect(mockExit).toHaveBeenCalledTimes(1)
+        expect(mockExit).toHaveBeenCalledWith(2)
+        mockExit.mockRestore()
+      })
+
+      it('should exit with code 2 when diff is not empty with --script', async () => {
+        ctx.fixture('schema-only-sqlite')
+
+        const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+
+        const result = MigrateDiff.new().parse([
+          '--preview-feature',
+          '--from-schema-datamodel=./prisma/schema.prisma',
+          '--to-empty',
+          '--script',
+          '--exit-code',
+        ])
+
+        await expect(result).resolves.toMatchInlineSnapshot(``)
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+        expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+          -- DropTable
+          PRAGMA foreign_keys=off;
+          DROP TABLE "Blog";
+          PRAGMA foreign_keys=on;
+        `)
+
+        expect(mockExit).toHaveBeenCalledTimes(1)
+        expect(mockExit).toHaveBeenCalledWith(2)
+        mockExit.mockRestore()
+      })
+
+      it('should exit with code 0 when diff is empty with --script', async () => {
+        ctx.fixture('empty')
+
+        const result = MigrateDiff.new().parse([
+          '--preview-feature',
+          '--from-empty',
+          '--to-url=file:doesnotexists.db',
+          '--script',
+          '--exit-code',
+        ])
+
+        await expect(result).resolves.toMatchInlineSnapshot(``)
+        expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`-- This is an empty migration.`)
+      })
     })
   })
 
