@@ -1,0 +1,13 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["FEATURE"]
+}
+
+datasource db {
+  provider = "PROVIDER"
+  url      = env("DATABASE_URL_PROVIDER")
+}
+
+model User {
+  id ID
+}
