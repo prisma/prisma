@@ -32,7 +32,7 @@ ${chalk.italic('Shadow database (only required if using --from-migrations or --t
 ${chalk.italic('Output format:')}
 --script                                           Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
 
-${chalk.bold('Flag')}
+${chalk.bold('Flags')}
 
 --preview-feature                                  Run Preview Prisma commands
 --exit-code                                        Change the exit code behaviour when diff is not empty (Empty: 0, Error: 1, Non empty: 2)`,
