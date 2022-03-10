@@ -32,9 +32,10 @@ ${chalk.italic('Shadow database (only required if using --from-migrations or --t
 ${chalk.italic('Output format:')}
 --script                                           Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
 
-${chalk.bold('Flag')}
+${chalk.bold('Flags')}
 
---preview-feature                                  Run Preview Prisma commands`,
+--preview-feature                                  Run Preview Prisma commands
+--exit-code                                        Change the exit code behaviour when diff is not empty (Empty: 0, Error: 1, Non empty: 2)`,
 )
 
 export class MigrateDiff implements Command {
@@ -70,15 +71,13 @@ ${chalk.bold('Examples')}
  
   From database to database as summary
     e.g. compare two live databases
-  ${chalk.dim('$')} prisma migrate diff \\
-    --preview-feature \\
+  ${chalk.dim('$')} prisma migrate diff --preview-feature \\
     --from-url "$DATABASE_URL" \\
     --to-url "postgresql://login:password@localhost:5432/db2"
   
   From a live database to a Prisma datamodel
     e.g. roll forward after a migration failed in the middle
-  ${chalk.dim('$')} prisma migrate diff \\
-    --preview-feature \\
+  ${chalk.dim('$')} prisma migrate diff --preview-feature \\
     --shadow-database-url "$SHADOW_DB" \\
     --from-url "$PROD_DB" \\
     --to-schema-datamodel=next_datamodel.prisma \\
@@ -86,8 +85,7 @@ ${chalk.bold('Examples')}
   
   From a live database to a datamodel 
     e.g. roll backward after a migration failed in the middle
-  ${chalk.dim('$')} prisma migrate diff \\
-    --preview-feature \\
+  ${chalk.dim('$')} prisma migrate diff --preview-feature \\
     --shadow-database-url "$SHADOW_DB" \\
     --from-url "$PROD_DB" \\
     --to-schema-datamodel=previous_datamodel.prisma \\
@@ -95,19 +93,23 @@ ${chalk.bold('Examples')}
   
   From a Prisma Migrate \`migrations\` directory to another database
     e.g. generate a migration for a hotfix already applied on production
-  ${chalk.dim('$')} prisma migrate diff \\
-    --preview-feature \\
+  ${chalk.dim('$')} prisma migrate diff --preview-feature \\
     --shadow-database-url "$SHADOW_DB" \\
     --from-migrations ./migrations \\
     --to-url "$PROD_DB" \\
     --script
 
   Execute the --script output with \`prisma db execute\` using bash pipe \`|\`
-  ${chalk.dim('$')} prisma migrate diff \\
-    --preview-feature \\
+  ${chalk.dim('$')} prisma migrate diff --preview-feature \\
     --from-[...] \\
-    --to-[...]  \\
+    --to-[...] \\
     --script | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
+
+  Detect if both sources are in sync, it will exit with exit code 2 if changes are detected
+  ${chalk.dim('$')} prisma migrate diff --preview-feature \\
+    --exit-code \\
+    --from-[...] \\
+    --to-[...]
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -131,6 +133,7 @@ ${chalk.bold('Examples')}
         // Others
         '--shadow-database-url': String,
         '--script': Boolean,
+        '--exit-code': Boolean,
         '--preview-feature': Boolean,
         '--telemetry-information': String,
       },
@@ -244,6 +247,7 @@ ${chalk.bold('Examples')}
         to: to!,
         script: args['--script'] || false, // default is false
         shadowDatabaseUrl: args['--shadow-database-url'],
+        exitCode: args['--exit-code'],
       })
     } finally {
       // Stop engine
@@ -251,6 +255,10 @@ ${chalk.bold('Examples')}
     }
 
     debug(result)
+
+    if (args['--exit-code'] && result.exitCode) {
+      process.exit(result.exitCode)
+    }
 
     // Return nothing
     return ``

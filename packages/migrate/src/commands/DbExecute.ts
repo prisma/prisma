@@ -9,6 +9,28 @@ import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
 import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
 
+const helpOptions = format(
+  `${chalk.bold('Usage')}
+
+${chalk.dim('$')} prisma db execute --preview-feature [options]
+
+${chalk.bold('Options')}
+
+-h, --help            Display this help message
+
+${chalk.italic('Datasource input, only 1 must be provided:')}
+--url                 URL of the datasource to run the command on
+--schema              Path to your Prisma schema file to take the datasource URL from
+
+${chalk.italic('Script input, only 1 must be provided:')}
+--file                Path to a file. The content will be sent as the script to be executed
+
+${chalk.bold('Flags')}
+
+--preview-feature    Run Preview Prisma commands
+--stdin              Use the terminal standard input as the script to be executed`,
+)
+
 export class DbExecute implements Command {
   public static new(): DbExecute {
     return new DbExecute()
@@ -34,34 +56,28 @@ The whole script will be sent as a single command to the database.
 
 ${chalk.italic(`This command is currently not supported on MongoDB.`)}
 
-${chalk.bold('Usage')}
-
-  ${chalk.dim('$')} prisma db execute --preview-feature [options]
-
-${chalk.bold('Options')}
-
--h, --help   Display this help message
-
-${chalk.italic('Datasource input, only 1 must be provided:')}
-     --url   URL of the datasource to run the command on
-  --schema   Path to your Prisma schema file to take the datasource URL from
-
-${chalk.italic('Script input, only 1 must be provided:')}
-   --stdin   Use the terminal standard input as the script to be executed
-    --file   Path to a file. The content will be sent as the script to be executed
-
+${helpOptions}
 ${chalk.bold('Examples')}
  
   Execute the content of a SQL script file to the datasource URL taken from the schema
-  ${chalk.dim('$')} prisma db execute --preview-feature --file ./script.sql --schema schema.prisma
+  ${chalk.dim('$')} prisma db execute 
+    --preview-feature \\
+    --file ./script.sql \\
+    --schema schema.prisma
 
   Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
-  ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="$DATABASE_URL"
+  ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
+    prisma db execute \\
+    --preview-feature \\
+    --stdin \\
+    --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
-  ${chalk.dim(
-    '$',
-  )} echo 'TRUNCATE TABLE dev;' | prisma db execute --preview-feature --stdin --url="mysql://root:root@localhost/mydb"
+  ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
+    prisma db execute \\
+    --preview-feature \\
+    --stdin \\
+    --url="mysql://root:root@localhost/mydb"
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -178,7 +194,7 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbExecute.help}`)
+      throw new HelpError(`\n${error}\n\n${helpOptions}`)
     }
     return DbExecute.help
   }

@@ -179,6 +179,9 @@ export namespace EngineArgs {
     // The URL to a live database to use as a shadow database. The schema and data on that database will be wiped during diffing.
     // This is only necessary when one of from or to is referencing a migrations directory as a source for the schema.
     shadowDatabaseUrl?: string
+    // Change the exit code behaviour when diff is not empty
+    // Empty: 0, Error: 1, Non empty: 2
+    exitCode?: boolean
   }
 
   export interface SchemaPush {
@@ -233,7 +236,20 @@ export namespace EngineResults {
     unexecutable: string[]
   }
   export interface DbExecuteOutput {}
-  export interface MigrateDiffOutput {}
+
+  export enum MigrateDiffExitCode {
+    // 0 = success
+    // if --exit-code is passed
+    // 0 = success with empty diff (no changes)
+    SUCCESS = 0,
+    // 1 = Error
+    ERROR = 1,
+    // 2 = Succeeded with non-empty diff (changes present)
+    SUCCESS_NONEMPTY = 2,
+  }
+  export interface MigrateDiffOutput {
+    exitCode: MigrateDiffExitCode
+  }
 }
 
 export interface FileMap {
