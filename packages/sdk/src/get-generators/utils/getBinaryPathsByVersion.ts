@@ -11,6 +11,7 @@ import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
 
+// Download engines
 export async function getBinaryPathsByVersion({
   neededVersions,
   platform,
@@ -32,6 +33,7 @@ export async function getBinaryPathsByVersion({
       neededVersion.binaryTargets = [{ fromEnvVar: null, value: platform }]
     }
 
+    // Netlify hack
     if (process.env.NETLIFY && !neededVersion.binaryTargets.find((object) => object.value === 'rhel-openssl-1.0.x')) {
       neededVersion.binaryTargets.push({
         fromEnvVar: null,

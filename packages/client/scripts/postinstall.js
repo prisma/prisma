@@ -54,6 +54,8 @@ async function main() {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
     // in the postinstall hook
   }
+
+  // create default client that is empty
   await ensureEmptyDotPrisma()
 
   const localPath = getLocalPackagePath()
@@ -74,6 +76,8 @@ async function main() {
     init_cwd: process.env.INIT_CWD,
     PRISMA_GENERATE_IN_POSTINSTALL: process.env.PRISMA_GENERATE_IN_POSTINSTALL,
   })
+
+  // TODO another postinstall generate?
   try {
     if (localPath) {
       await run('node', [localPath, 'generate', '--postinstall', doubleQuote(getPostInstallTrigger())])
@@ -108,6 +112,7 @@ function getLocalPackagePath() {
     }
   } catch (e) {} // eslint-disable-line no-empty
 
+  // TODO remove, prisma CLI pkg is now `prisma`
   try {
     const packagePath = require.resolve('@prisma/cli/package.json')
     if (packagePath) {

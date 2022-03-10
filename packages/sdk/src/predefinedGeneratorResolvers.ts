@@ -54,6 +54,7 @@ async function findPrismaClientDir(baseDir: string) {
 }
 
 export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
+  // TODO remove
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(
@@ -76,6 +77,8 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
     checkYarnVersion()
     await checkTypeScriptVersion()
 
+    // @prisma/client is missing?
+    // we install it for the user
     if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
       // TODO: should this be relative to `baseDir` rather than `process.cwd()`?
       if (
@@ -121,6 +124,7 @@ export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
       }
 
       if (!prismaCliDir) {
+        // add CLI to dev dependencies
         await installPackage(baseDir, `prisma@${version ?? 'latest'}`, 'dev')
       }
 
@@ -143,9 +147,7 @@ Please try to install it by hand with ${chalk.bold.greenBright(
           'prisma',
         )} packages in your project`,
       )
-    }
-
-    if (!prismaClientDir) {
+    } else if (!prismaClientDir) {
       throw new Error(
         `Could not resolve @prisma/client.
 Please try to install it with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
@@ -156,6 +158,7 @@ Please try to install it with ${chalk.bold.greenBright('npm install @prisma/clie
 
     return {
       outputPath: prismaClientDir,
+      // path the to executable
       generatorPath: path.resolve(prismaClientDir, 'generator-build/index.js'),
       isNode: true,
     }

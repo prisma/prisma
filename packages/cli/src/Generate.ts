@@ -108,6 +108,7 @@ ${chalk.bold('Examples')}
     if (isPostinstall && isPostinstall !== 'true') {
       cwd = isPostinstall
     }
+
     if (isError(args)) {
       return this.help(args.message)
     }
@@ -121,6 +122,8 @@ ${chalk.bold('Examples')}
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+    // In case of postinstall we printed a warning and can stop here
+    // An error is thrown if not posinstall
     if (!schemaPath) return ''
 
     // TODO Extract logic from here
@@ -128,6 +131,7 @@ ${chalk.bold('Examples')}
     let generators: Generator[] | undefined
     let clientGeneratorVersion: string | null = null
     try {
+      // init generators and download engines
       generators = await getGenerators({
         schemaPath,
         printDownloadProgress: !watchMode,
@@ -174,6 +178,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       try {
         const clientVersionBeforeGenerate = getCurrentClientVersion()
 
+        // If Prisma Client < 2.12 print breaking message
         if (clientVersionBeforeGenerate && typeof clientVersionBeforeGenerate === 'string') {
           const [major, minor] = clientVersionBeforeGenerate.split('.')
 
@@ -186,6 +191,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
+    // TODO what is this? it doesn't really help
     if (isPostinstall && printBreakingChangesMessage && logger.should.warn) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
@@ -242,6 +248,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         return message
       }
     } else {
+      // We are in watch mode
       logUpdate(watchingText + '\n' + this.logText)
 
       fs.watch(schemaPath, async (eventType) => {

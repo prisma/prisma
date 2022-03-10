@@ -32,13 +32,16 @@ export class GeneratorProcess {
     resolve: (result: any) => void
     reject: (error: Error) => void
   }
+
   constructor(private executablePath: string, private isNode?: boolean) {}
+
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
     }
     return this.initPromise
   }
+
   initSingleton(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {

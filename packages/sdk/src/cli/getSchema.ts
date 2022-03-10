@@ -182,6 +182,7 @@ function resolveYarnSchemaSync(cwd: string): string | null {
       }
 
       // Iterate over the workspaces
+      // Find the first schema.prisma in one workspace and returns
       for (const workspace of workspaces) {
         const workspacePath = path.join(workspaceRootDir, workspace.location)
         const workspaceSchemaPath =
@@ -291,8 +292,10 @@ export function getSchemaPathSyncInternal(
     return customSchemaPath
   }
 
-  // 2. Try the package.json `prisma.schema` custom path
+  // 2. Try the package.json `prisma: { schema: 'path' }` custom path
   // 3. Try the conventional `./schema.prisma` or `./prisma/schema.prisma` paths
+  // TODO investigate why we need support for Yarn workspaces
+  // note that the code was written for yarn != 2 and now yarn 3 is out and was not tested
   // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
   const schemaPath =
     getSchemaPathFromPackageJsonSync(opts.cwd) ?? getRelativeSchemaPathSync(opts.cwd) ?? resolveYarnSchemaSync(opts.cwd)

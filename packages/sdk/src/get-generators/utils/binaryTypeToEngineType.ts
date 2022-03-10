@@ -9,9 +9,11 @@ export function binaryTypeToEngineType(binaryType: string): EngineType {
   if (binaryType === BinaryType.migrationEngine) {
     return 'migrationEngine'
   }
+
   if (binaryType === BinaryType.libqueryEngine) {
     return 'libqueryEngine'
   }
+
   if (binaryType === BinaryType.queryEngine) {
     return 'queryEngine'
   }

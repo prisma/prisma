@@ -3,6 +3,10 @@ import { forbiddenTransactionsWithProxyFlagMessage } from './forbiddenTransactio
 import { mongoFeatureFlagMissingMessage } from './mongoFeatureFlagMissingMessage'
 import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage'
 
+/*
+  Check if previewFeature flag is set or error
+*/
+// TODO rename
 export function checkFeatureFlags(config: ConfigMetaFormat) {
   checkMongoFeatureFlag(config)
   checkProxyFeatureFlag(config)
