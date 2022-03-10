@@ -35,7 +35,7 @@ ${chalk.italic('Output format:')}
 ${chalk.bold('Flags')}
 
 --preview-feature                                  Run Preview Prisma commands
---exit-code                                        Change the exit code behaviour when diff is not empty (Empty: 0, Error: 1, Non empty: 2)`,
+--exit-code                                        Change the exit code behavior to signal if diff is empty or not (Empty: 0, Error: 1, Not empty: 2)`,
 )
 
 export class MigrateDiff implements Command {
