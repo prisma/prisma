@@ -1337,7 +1337,12 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  jest.setTimeout(20000)
+  if (process.env.CI) {
+    // to avoid timeouts on macOS
+    jest.setTimeout(80_000)
+  } else {
+    jest.setTimeout(20_000)
+  }
 
   const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
 
