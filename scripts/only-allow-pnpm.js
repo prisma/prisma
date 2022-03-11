@@ -44,7 +44,7 @@ if (usedPM && usedPM.name !== wantedPM) {
         `Use "pnpm install" for installation in this project.
 
 If you don't have pnpm, install it via "npm i -g pnpm".
-For more details, go to https://pnpm.js.org/\n`,
+For more details, go to https://pnpm.io/\n`,
       )
       break
     case 'yarn':
