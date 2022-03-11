@@ -70,6 +70,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 
 // we define the config for cli
 const cliBuildConfig: BuildOptions = {
+  name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   external: ['@prisma/engines', '_http_common'],
@@ -79,6 +80,7 @@ const cliBuildConfig: BuildOptions = {
 
 // we define the config for preinstall
 const preinstallBuildConfig: BuildOptions = {
+  name: 'preinstall',
   entryPoints: ['scripts/preinstall.js'],
   outfile: 'preinstall/index',
   bundle: true,
@@ -86,6 +88,7 @@ const preinstallBuildConfig: BuildOptions = {
 
 // we define the config for install
 const installBuildConfig: BuildOptions = {
+  name: 'install',
   entryPoints: ['scripts/install.js'],
   outfile: 'install/index',
   bundle: true,

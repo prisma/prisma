@@ -17,12 +17,12 @@ function selectList<L extends L.List, I>(object: L & L.List<I>, pred: LPred<I>):
   return selected
 }
 
-function selectObject<O extends O.Object, I>(object: O, pred: LPred<I>): O.Optional<O> {
+function selectObject<O extends O.Object, I>(object: O, pred: OPred<I>): O.Optional<O> {
   const selected = {} as any
 
   const keys = Object.keys(object)
   for (let i = 0; i < keys.length; ++i) {
-    if (pred(object[i], i)) {
+    if (pred(object[i], keys[i])) {
       selected[keys[i]] = object[keys[i]]
     }
   }

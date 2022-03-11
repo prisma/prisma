@@ -9,6 +9,7 @@ const external = ['_http_common']
 
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
+  name: 'generator',
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
@@ -17,6 +18,7 @@ const generatorBuildConfig: BuildOptions = {
 
 // we define the config for runtime
 const runtimeBuildConfig: BuildOptions = {
+  name: 'runtime',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/index',
   bundle: true,
@@ -30,6 +32,7 @@ const runtimeBuildConfig: BuildOptions = {
 
 // we define the config for browser
 const browserBuildConfig: BuildOptions = {
+  name: 'browser',
   entryPoints: ['src/runtime/index-browser.ts'],
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
@@ -39,6 +42,7 @@ const browserBuildConfig: BuildOptions = {
 
 // we define the config for proxy
 const proxyBuildConfig: BuildOptions = {
+  name: 'proxy',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/proxy',
   bundle: true,
