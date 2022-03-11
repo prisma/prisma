@@ -36,9 +36,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.11.0-36.db97651ed34c2e77678c266ab6a465e6b2e6c9dd",
+    "@prisma/engines": "3.11.0-32.query-engine-mongodb-filters-6be2c1324e61a9c2ce32ea08bd362d8d6b070dca",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.11.0-36.db97651ed34c2e77678c266ab6a465e6b2e6c9dd",
+    "@prisma/get-platform": "3.11.0-32.query-engine-mongodb-filters-6be2c1324e61a9c2ce32ea08bd362d8d6b070dca",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",

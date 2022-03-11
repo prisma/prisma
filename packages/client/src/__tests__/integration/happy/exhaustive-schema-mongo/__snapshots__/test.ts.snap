@@ -15939,6 +15939,9 @@ export namespace Prisma {
     AND?: Enumerable<EmbedHolderWhereInput>
     OR?: Enumerable<EmbedHolderWhereInput>
     NOT?: Enumerable<EmbedHolderWhereInput>
+    embedList?: XOR<EmbedCompositeListFilter, Enumerable<EmbedObjectEqualityInput>>
+    requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
+    optionalEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput> | null
     id?: StringFilter | string
     time?: DateTimeFilter | Date | string
     text?: StringFilter | string
@@ -18378,6 +18381,28 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter
   }
 
+  export type EmbedCompositeListFilter = {
+    equals?: Enumerable<EmbedObjectEqualityInput>
+    every?: EmbedWhereInput
+    some?: EmbedWhereInput
+    none?: EmbedWhereInput
+    isEmpty?: boolean
+  }
+
+  export type EmbedObjectEqualityInput = {
+    text: string
+    boolean: boolean
+    embedEmbedList?: Enumerable<EmbedEmbedObjectEqualityInput>
+    requiredEmbedEmbed: EmbedEmbedObjectEqualityInput
+    optionalEmbedEmbed?: EmbedEmbedObjectEqualityInput | null
+  }
+
+  export type EmbedCompositeFilter = {
+    equals?: EmbedObjectEqualityInput
+    is?: EmbedWhereInput
+    isNot?: EmbedWhereInput
+  }
+
   export type UserListRelationFilter = {
     every?: UserWhereInput
     some?: UserWhereInput
@@ -19761,6 +19786,22 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter
   }
 
+  export type EmbedWhereInput = {
+    AND?: Enumerable<EmbedWhereInput>
+    OR?: Enumerable<EmbedWhereInput>
+    NOT?: Enumerable<EmbedWhereInput>
+    text?: StringFilter | string
+    boolean?: BoolFilter | boolean
+    embedEmbedList?: XOR<EmbedEmbedCompositeListFilter, Enumerable<EmbedEmbedObjectEqualityInput>>
+    requiredEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput>
+    optionalEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput> | null
+  }
+
+  export type EmbedEmbedObjectEqualityInput = {
+    text: string
+    boolean: boolean
+  }
+
   export type EmbedEmbedOrderByCompositeAggregateInput = {
     _count?: SortOrder
   }
@@ -20565,6 +20606,20 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
+  export type EmbedEmbedCompositeListFilter = {
+    equals?: Enumerable<EmbedEmbedObjectEqualityInput>
+    every?: EmbedEmbedWhereInput
+    some?: EmbedEmbedWhereInput
+    none?: EmbedEmbedWhereInput
+    isEmpty?: boolean
+  }
+
+  export type EmbedEmbedCompositeFilter = {
+    equals?: EmbedEmbedObjectEqualityInput
+    is?: EmbedEmbedWhereInput
+    isNot?: EmbedEmbedWhereInput
+  }
+
   export type PostCreateManyAuthorInput = {
     id?: string
     createdAt?: Date | string
@@ -20832,6 +20887,14 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+  }
+
+  export type EmbedEmbedWhereInput = {
+    AND?: Enumerable<EmbedEmbedWhereInput>
+    OR?: Enumerable<EmbedEmbedWhereInput>
+    NOT?: Enumerable<EmbedEmbedWhereInput>
+    text?: StringFilter | string
+    boolean?: BoolFilter | boolean
   }
 
   export type EmbedEmbedUpdateInput = {
