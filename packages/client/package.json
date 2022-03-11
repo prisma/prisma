@@ -86,6 +86,7 @@
     "esbuild": "0.13.14",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
+    "fs-extra": "10.0.0",
     "fs-monkey": "1.0.3",
     "get-own-enumerable-property-symbols": "3.0.2",
     "indent-string": "4.0.0",

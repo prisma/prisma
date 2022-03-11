@@ -1,6 +1,6 @@
 module.exports = {
   testMatch: ['<rootDir>/**/*.ts'],
-  testPathIgnorePatterns: ['node_modules', '_utils/'],
+  testPathIgnorePatterns: ['node_modules', '_utils/', '_matrix.ts', '.generated'],
   transform: {
     '^.+\\.(t|j)sx?$': '@swc/jest',
     // '^.+\\.(t|j)sx?$': ['@swc/jest', {}],
@@ -18,7 +18,7 @@ module.exports = {
     ],
   ],
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
-  setupFilesAfterEnv: ['./_utils/setup.ts'],
+  setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
   testTimeout: 10000,
   collectCoverage: process.env.CI ? true : false,
 }
