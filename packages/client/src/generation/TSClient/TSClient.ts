@@ -37,7 +37,7 @@ export interface TSClientOptions {
   browser?: boolean
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
-  platforms?: Platform[]
+  platforms?: Platform[] // TODO: consider making it non-nullable
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaDir: string
   outputDir: string
