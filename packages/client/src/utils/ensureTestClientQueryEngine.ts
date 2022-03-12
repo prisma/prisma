@@ -6,7 +6,7 @@ import { ClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 /**
- * Ensures the correct Query Engine (`node-api`/`binary`) is present. This is required as
+ * Ensures the correct Query Engine (library/binary) is present. This is required as
  * normally the downloading of the required engine is done in `getGenerators`. As the test
  * clients bypass this we need to ensure the correct engine is present.
  * @param clientEngineType

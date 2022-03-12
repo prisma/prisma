@@ -13,7 +13,7 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  resolveBinary as resolveEngine,
+  resolveEngine,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'

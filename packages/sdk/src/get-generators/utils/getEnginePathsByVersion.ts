@@ -1,5 +1,5 @@
 import { enginesVersion } from '@prisma/engines'
-import type { BinaryDownloadConfiguration as EngineDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
+import type { EngineDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { EnginePaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
