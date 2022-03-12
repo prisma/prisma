@@ -7,7 +7,7 @@ import makeDir from 'make-dir'
 import path from 'path'
 
 import { mapKeys } from '../../utils/mapKeys'
-import type { GetBinaryPathsByVersionInput as GetEnginePathsByVersionInput } from '../getGenerators'
+import type { GetEnginePathsByVersionInput as GetEnginePathsByVersionInput } from '../getGenerators'
 import { engineTypeToEngineName } from './engineTypeToEngineName'
 import { engineNameToEngineType } from './engineNameToEngineType'
 

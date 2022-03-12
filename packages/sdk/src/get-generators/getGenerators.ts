@@ -362,7 +362,7 @@ type NeededVersions = {
   }
 }
 
-export type GetBinaryPathsByVersionInput = {
+export type GetEnginePathsByVersionInput = {
   neededVersions: NeededVersions
   platform: Platform
   version?: string
@@ -375,7 +375,7 @@ export type GetBinaryPathsByVersionInput = {
  * Shortcut for getGenerators, if there is only one generator defined. Useful for testing.
  * @param schemaPath path to schema.prisma
  * @param aliases Aliases like `photonjs` -> `node_modules/photonjs/gen.js`
- * @param version Version of the binary, commit hash of https://github.com/prisma/prisma-engine/commits/master
+ * @param version Version of the engine, commit hash of https://github.com/prisma/prisma-engine/commits/master
  * @param printDownloadProgress `boolean` to print download progress or not
  */
 export async function getGenerator(options: GetGeneratorOptions): Promise<Generator> {
