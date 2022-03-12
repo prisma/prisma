@@ -320,7 +320,7 @@ generator gen {
         // pick only the engines that we need for this generator
         const generatorBinaryPaths = pick(binaryPaths, generator.manifest.requiresEngines)
         debug({ generatorBinaryPaths })
-        generator.setBinaryPaths(generatorBinaryPaths)
+        generator.setEnginePaths(generatorBinaryPaths)
 
         // in case cli engine version !== client engine version
         // we need to re-generate the dmmf and pass it in to the generator

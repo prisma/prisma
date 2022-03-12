@@ -1,5 +1,5 @@
-import { BinaryType } from '@prisma/fetch-engine'
-import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import { BinaryType as EngineType } from '@prisma/fetch-engine'
+import type { BinaryPaths as EnginePaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/sdk'
 import { ClientEngineType, getClientEngineType, getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
@@ -42,7 +42,7 @@ export interface GenerateClientOptions {
   generator?: GeneratorConfig
   dmmf: DMMF.Document
   datasources: DataSource[]
-  binaryPaths: BinaryPaths
+  enginePaths: EnginePaths
   testMode?: boolean
   copyRuntime?: boolean
   engineVersion: string
@@ -61,7 +61,7 @@ export async function buildClient({
   schemaDir = process.cwd(),
   runtimeDir = '@prisma/client/runtime',
   runtimeName = 'index',
-  binaryPaths,
+  enginePaths,
   outputDir,
   generator,
   dmmf,
@@ -82,8 +82,8 @@ export async function buildClient({
     generator,
     platforms:
       clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine!) as Platform[])
-        : (Object.keys(binaryPaths.queryEngine!) as Platform[]),
+        ? (Object.keys(enginePaths.libqueryEngine!) as Platform[])
+        : (Object.keys(enginePaths.queryEngine!) as Platform[]),
     schemaDir,
     outputDir,
     clientVersion,
@@ -139,7 +139,7 @@ export async function generateClient({
   generator,
   dmmf,
   datasources,
-  binaryPaths,
+  enginePaths,
   testMode,
   copyRuntime,
   clientVersion,
@@ -171,7 +171,7 @@ export async function generateClient({
     generator,
     dmmf,
     datasources,
-    binaryPaths,
+    enginePaths,
     clientVersion,
     engineVersion,
     projectRoot,
@@ -228,13 +228,13 @@ export async function generateClient({
     }
   }
   const enginePath =
-    clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
+    clientEngineType === ClientEngineType.Library ? enginePaths.libqueryEngine : enginePaths.queryEngine
 
   if (!enginePath) {
     throw new Error(
       `Prisma Client needs \`${
         clientEngineType === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
-      }\` in the \`binaryPaths\` object.`,
+      }\` in the \`enginePaths\` object.`,
     )
   }
   if (transpile) {
@@ -265,12 +265,12 @@ export async function generateClient({
         await copyFile(filePath, target)
         continue
       }
-      const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
+      const engineName =
+        clientEngineType === ClientEngineType.Binary ? EngineType.queryEngine : EngineType.libqueryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
-        getVersion(filePath, binaryName).catch(() => null),
-        getVersion(target, binaryName).catch(() => null),
+        getVersion(filePath, engineName).catch(() => null),
+        getVersion(target, engineName).catch(() => null),
       ])
 
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {

@@ -121,7 +121,7 @@ export interface PrismaClientOptions {
     hooks?: Hooks
     engine?: {
       cwd?: string
-      binaryPath?: string
+      enginePath?: string
       endpoint?: string
       allowTriggerPanic?: boolean
     }
@@ -391,7 +391,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
           datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
-          prismaPath: engineConfig.binaryPath ?? undefined,
+          prismaPath: engineConfig.enginePath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
           generator: config.generator,

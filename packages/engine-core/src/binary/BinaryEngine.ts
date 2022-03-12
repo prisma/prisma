@@ -47,7 +47,7 @@ const logger = (...args) => {
 }
 
 /**
- * Node.js based wrapper to run the Prisma binary
+ * Node.js based wrapper to run the Prisma engine binary
  */
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
@@ -113,7 +113,7 @@ export class BinaryEngine extends Engine {
   private activeProvider?: string
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
-   * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
+   * As soon as the Prisma engine binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
   constructor({
     cwd,

@@ -585,7 +585,7 @@ describe('getGenerators', () => {
       },
     })
 
-    const options = generators.map((g) => g.options?.binaryPaths)
+    const options = generators.map((g) => g.options?.enginePaths)
 
     const platform = await getPlatform()
 

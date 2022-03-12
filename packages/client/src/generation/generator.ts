@@ -41,7 +41,7 @@ if (process.argv[1] === __filename) {
       return generateClient({
         datamodel: options.datamodel,
         datamodelPath: options.schemaPath,
-        binaryPaths: options.binaryPaths!,
+        enginePaths: options.enginePaths!,
         datasources: options.datasources,
         outputDir,
         copyRuntime: Boolean(options.generator.config.copyRuntime),

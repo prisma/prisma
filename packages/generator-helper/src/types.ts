@@ -87,7 +87,7 @@ export type GeneratorOptions = {
   datamodel: string
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
-  binaryPaths?: BinaryPaths
+  enginePaths?: BinaryPaths
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
