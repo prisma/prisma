@@ -1,4 +1,4 @@
-import { ensureBinariesExist as ensureEnginesExist } from '@prisma/engines'
+import { ensureEnginesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/sdk'
 import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
