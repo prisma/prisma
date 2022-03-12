@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import type { NodeAPILibraryTypes } from '@prisma/engine-core'
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { getCliQueryEngineType } from '@prisma/engines'
+import { EngineType } from '@prisma/fetch-engine'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -10,7 +10,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
-import { resolveBinary } from '../resolveEngine'
+import { resolveEngine } from '../resolveEngine'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getConfig')
@@ -40,9 +40,9 @@ export class GetConfigError extends Error {
 }
 // TODO add error handling functions
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
-  const cliEngineBinaryType = getCliQueryEngineBinaryType()
+  const cliEngineType = getCliQueryEngineType()
   let data: ConfigMetaFormat | undefined
-  if (cliEngineBinaryType === BinaryType.libqueryEngine) {
+  if (cliEngineType === EngineType.libqueryEngine) {
     data = await getConfigNodeAPI(options)
   } else {
     data = await getConfigBinary(options)
@@ -66,7 +66,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
 async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
   let data: ConfigMetaFormat | undefined
 
-  const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
+  const queryEnginePath = await resolveEngine(EngineType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
 
@@ -102,7 +102,7 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
 async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
   let data: ConfigMetaFormat | undefined
 
-  const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
+  const queryEnginePath = await resolveEngine(EngineType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {

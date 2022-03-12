@@ -49,7 +49,7 @@ export type GetGeneratorOptions = {
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
-  binaryPathsOverride?: BinaryPathsOverride
+  enginePathsOverride?: BinaryPathsOverride
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -67,7 +67,7 @@ export async function getGenerators({
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
   skipDownload,
-  binaryPathsOverride,
+  enginePathsOverride: binaryPathsOverride,
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)

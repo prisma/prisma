@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
-import { BinaryType } from '@prisma/fetch-engine'
+import { EngineType } from '@prisma/fetch-engine'
 import execa from 'execa'
 import fs from 'fs'
 
-import { resolveBinary } from '../resolveEngine'
+import { resolveEngine } from '../resolveEngine'
 
 const debug = Debug('prisma:formatSchema')
 
@@ -19,7 +19,7 @@ export async function formatSchema({ schemaPath, schema }: { schemaPath?: string
     throw new Error(`Parameter schema or schemaPath must be passed.`)
   }
 
-  const prismaFmtPath = await resolveBinary(BinaryType.prismaFmt)
+  const prismaFmtPath = await resolveEngine(EngineType.prismaFmt)
   const showColors = !process.env.NO_COLOR && process.stdout.isTTY
 
   const options = {

@@ -106,7 +106,7 @@ describe('getConfig', () => {
     expect(config).toMatchSnapshot()
   })
   test('with engineType="binary"', async () => {
-    const binaryConfig = await getConfig({
+    const configForBinary = await getConfig({
       datamodel: `
       datasource db {
         provider = "sqlite"
@@ -124,7 +124,7 @@ describe('getConfig', () => {
       }`,
     })
 
-    expect(binaryConfig).toMatchInlineSnapshot(`
+    expect(configForBinary).toMatchInlineSnapshot(`
 Object {
   "datasources": Array [
     Object {
@@ -157,7 +157,7 @@ Object {
 `)
   })
   test('with engineType="library"', async () => {
-    const libraryConfig = await getConfig({
+    const configForLibrary = await getConfig({
       datamodel: `
       datasource db {
         provider = "sqlite"
@@ -175,7 +175,7 @@ Object {
       }`,
     })
 
-    expect(libraryConfig).toMatchInlineSnapshot(`
+    expect(configForLibrary).toMatchInlineSnapshot(`
 Object {
   "datasources": Array [
     Object {

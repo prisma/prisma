@@ -1,11 +1,11 @@
 import Debug from '@prisma/debug'
-import { BinaryType } from '@prisma/fetch-engine'
+import { EngineType } from '@prisma/fetch-engine'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 
 import { ErrorArea, RustPanic } from './panic'
-import { resolveBinary } from './resolveEngine'
+import { resolveEngine } from './resolveEngine'
 import byline from './utils/byline'
 
 const debugCli = Debug('prisma:introspectionEngine:cli')
@@ -14,7 +14,7 @@ const debugStderr = Debug('prisma:introspectionEngine:stderr')
 const debugStdin = Debug('prisma:introspectionEngine:stdin')
 
 export interface IntrospectionEngineOptions {
-  binaryPath?: string
+  enginePath?: string
   debug?: boolean
   cwd?: string
 }
@@ -316,10 +316,10 @@ export class IntrospectionEngine {
       // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
-          const binaryPath = await resolveBinary(BinaryType.introspectionEngine)
-          debugRpc('starting introspection engine with binary: ' + binaryPath)
+          const enginePath = await resolveEngine(EngineType.introspectionEngine)
+          debugRpc('starting introspection engine with file: ' + enginePath)
 
-          this.child = spawn(binaryPath, {
+          this.child = spawn(enginePath, {
             env: process.env,
             // If the process is spawned from another directory, all file paths would resolve relative to that instead of the prisma directory
             // note that it isn't something engines specific but just a process spawning thing.

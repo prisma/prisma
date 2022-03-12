@@ -1,11 +1,11 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { getCliQueryEngineType } from '@prisma/engines'
+import { EngineType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { getGenerators } from '../../get-generators/getGenerators'
-import { resolveBinary } from '../../resolveBinary'
+import { resolveEngine } from '../../resolveEngine'
 import { jestConsoleContext, jestContext } from '../../utils/jestContext'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
@@ -572,15 +572,15 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
+    const migrationEngine = await resolveEngine(EngineType.migrationEngine)
 
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
-    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
+    const queryEngineType = getCliQueryEngineType()
+    const queryEnginePath = await resolveEngine(queryEngineType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       providerAliases: aliases,
-      binaryPathsOverride: {
+      enginePathsOverride: {
         queryEngine: queryEnginePath,
       },
     })

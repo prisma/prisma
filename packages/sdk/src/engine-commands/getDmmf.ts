@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import type { NodeAPILibraryTypes } from '@prisma/engine-core'
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { getCliQueryEngineType } from '@prisma/engines'
+import { EngineType } from '@prisma/fetch-engine'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -11,7 +11,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
-import { resolveBinary } from '../resolveEngine'
+import { resolveEngine } from '../resolveEngine'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getDMMF')
@@ -37,9 +37,9 @@ export type GetDMMFOptions = {
 // TODO add error handling functions
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
-  const cliEngineBinaryType = getCliQueryEngineBinaryType()
+  const cliEngineType = getCliQueryEngineType()
   let dmmf: DMMF.Document | undefined
-  if (cliEngineBinaryType === BinaryType.libqueryEngine) {
+  if (cliEngineType === EngineType.libqueryEngine) {
     dmmf = await getDmmfNodeAPI(options)
   } else {
     dmmf = await getDmmfBinary(options)
@@ -48,7 +48,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
-  const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
+  const queryEnginePath = await resolveEngine(EngineType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
 
   debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
@@ -67,7 +67,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
-  const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
+  const queryEnginePath = await resolveEngine(EngineType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {

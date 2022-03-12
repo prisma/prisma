@@ -1,4 +1,4 @@
-import { BinaryType } from '@prisma/fetch-engine'
+import { EngineType } from '@prisma/fetch-engine'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
@@ -6,7 +6,7 @@ import { promisify } from 'util'
 
 import { getSchemaDir } from './cli/getSchema'
 import { protocolToConnectorType } from './convertCredentials'
-import { resolveBinary } from './resolveEngine'
+import { resolveEngine } from './resolveEngine'
 
 const exists = promisify(fs.exists)
 
@@ -200,7 +200,7 @@ export async function execaCommand({
   migrationEnginePath?: string
   engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
+  migrationEnginePath = migrationEnginePath || (await resolveEngine(EngineType.migrationEngine))
 
   try {
     return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {

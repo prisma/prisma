@@ -69,7 +69,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
-      binaryVersion: engineVersion,
+      engineVersion,
       command: getCommand(),
       jsStackTrace: stripAnsi(error.stack || error.message),
       rustStackTrace: error.rustStack,
@@ -165,7 +165,7 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
 export interface CreateErrorReportInput {
   area: ErrorArea
-  binaryVersion: string
+  engineVersion: string
   cliVersion: string
   command: string
   jsStackTrace: string
