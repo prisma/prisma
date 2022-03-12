@@ -6,6 +6,8 @@ datasource db {
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native"]
+  // TODO Most of these binaryTagets=native should be removed from the schemas as this is also the default behavior
+  // unless explicitly testing this behavior of course
 }
 
 model User {
