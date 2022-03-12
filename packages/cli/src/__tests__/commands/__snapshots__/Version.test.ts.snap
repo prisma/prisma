@@ -7,7 +7,7 @@ Current platform        : placeholder
 Query Engine (Node-API) : placeholder
 Migration Engine        : placeholder
 Introspection Engine    : placeholder
-Format Binary           : placeholder
+Format Engine           : placeholder
 Default Engines Hash    : placeholder
 Studio                  : placeholder
 `;
@@ -19,7 +19,7 @@ Current platform      : placeholder
 Query Engine (Binary) : placeholder
 Migration Engine      : placeholder
 Introspection Engine  : placeholder
-Format Binary         : placeholder
+Format Engine         : placeholder
 Default Engines Hash  : placeholder
 Studio                : placeholder
 `;
@@ -31,7 +31,7 @@ Current platform        : placeholder
 Query Engine (Node-API) : placeholder
 Migration Engine        : placeholder
 Introspection Engine    : placeholder
-Format Binary           : placeholder
+Format Engine           : placeholder
 Default Engines Hash    : placeholder
 Studio                  : placeholder
 `;
@@ -43,7 +43,7 @@ Current platform      : placeholder
 Query Engine (Binary) : placeholder
 Migration Engine      : placeholder
 Introspection Engine  : placeholder
-Format Binary         : placeholder
+Format Engine         : placeholder
 Default Engines Hash  : placeholder
 Studio                : placeholder
 `;
