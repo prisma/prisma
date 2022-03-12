@@ -15,14 +15,14 @@ test('restart', async () => {
   })
   await db.user.findMany()
 
-  // kill the binary child process
+  // kill the engine child process
   db._engine.child.kill()
   await new Promise((r) => setTimeout(r, 1000))
 
   const result = await db.user.findMany()
   expect(result.length).toBeGreaterThan(0)
 
-  // kill the binary child process again, to make sure it also comes back when engine is killed multiple times
+  // kill the engine child process again, to make sure it also comes back when engine is killed multiple times
   for (let i = 0; i < 7; i++) {
     db._engine.child.kill()
     await new Promise((r) => setTimeout(r, 200))
