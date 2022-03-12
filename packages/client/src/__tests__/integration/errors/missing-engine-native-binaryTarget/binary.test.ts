@@ -46,7 +46,7 @@ test('missing-engine-native-binaryTarget: binary', async () => {
             37 
             38 await expect(async () => {
           → 39   await prisma.user.findMany(
-            Query engine for current platform "TEST_PLATFORM" could not be found.
+            Query engine binary for current platform "TEST_PLATFORM" could not be found.
           This probably happens, because you built Prisma Client on a different platform.
           (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
 
