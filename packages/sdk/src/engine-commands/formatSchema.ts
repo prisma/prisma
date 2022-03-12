@@ -3,7 +3,7 @@ import { BinaryType } from '@prisma/fetch-engine'
 import execa from 'execa'
 import fs from 'fs'
 
-import { resolveBinary } from '../resolveBinary'
+import { resolveBinary } from '../resolveEngine'
 
 const debug = Debug('prisma:formatSchema')
 

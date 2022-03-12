@@ -11,7 +11,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
-import { resolveBinary } from '../resolveBinary'
+import { resolveBinary } from '../resolveEngine'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getDMMF')

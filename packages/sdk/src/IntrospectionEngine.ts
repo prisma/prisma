@@ -5,7 +5,7 @@ import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 
 import { ErrorArea, RustPanic } from './panic'
-import { resolveBinary } from './resolveBinary'
+import { resolveBinary } from './resolveEngine'
 import byline from './utils/byline'
 
 const debugCli = Debug('prisma:introspectionEngine:cli')

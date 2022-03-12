@@ -5,7 +5,7 @@ import { BinaryType } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
 
-import { resolveBinary } from '../resolveBinary'
+import { resolveBinary } from '../resolveEngine'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getVersion')

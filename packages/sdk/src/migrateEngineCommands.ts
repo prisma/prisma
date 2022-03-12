@@ -6,7 +6,7 @@ import { promisify } from 'util'
 
 import { getSchemaDir } from './cli/getSchema'
 import { protocolToConnectorType } from './convertCredentials'
-import { resolveBinary } from './resolveBinary'
+import { resolveBinary } from './resolveEngine'
 
 const exists = promisify(fs.exists)
 
