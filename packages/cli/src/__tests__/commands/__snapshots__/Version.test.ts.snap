@@ -24,7 +24,7 @@ Default Engines Hash  : placeholder
 Studio                : placeholder
 `;
 
-exports[`version version with custom binaries (Node-API) 1`] = `
+exports[`version version with custom engines (Node-API) 1`] = `
 prisma                  : placeholder
 @prisma/client          : placeholder
 Current platform        : placeholder
@@ -36,7 +36,7 @@ Default Engines Hash    : placeholder
 Studio                  : placeholder
 `;
 
-exports[`version version with custom binaries 1`] = `
+exports[`version version with custom engines 1`] = `
 prisma                : placeholder
 @prisma/client        : placeholder
 Current platform      : placeholder

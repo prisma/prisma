@@ -19,12 +19,12 @@ describe('version', () => {
   })
 
   testIf(useNodeAPI)(
-    'version with custom binaries (Node-API)',
+    'version with custom engines (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
       const enginesPaths = await download({
-        binaries: {
+        engines: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'prisma-fmt': enginesDir,
@@ -64,12 +64,12 @@ describe('version', () => {
   })
 
   testIf(!useNodeAPI)(
-    'version with custom binaries',
+    'version with custom engines',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
       const enginePaths = await download({
-        binaries: {
+        engines: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'prisma-fmt': enginesDir,

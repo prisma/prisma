@@ -52,7 +52,7 @@ export type GetGeneratorOptions = {
   enginePathsOverride?: EnginePathsOverride
 }
 /**
- * Makes sure that all generators have the binaries they deserve and returns a
+ * Makes sure that all generators have the executables they deserve and returns a
  * `Generator` class per generator defined in the schema.prisma file.
  * In other words, this is basically a generator factory function.
  * @param schemaPath Path to schema.prisma
@@ -89,7 +89,7 @@ export async function getGenerators({
     // for pkg we need to make an exception
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
-        binaries: {
+        engines: {
           [cliQueryEngineType]: potentialPath,
         },
         binaryTargets: [platform],

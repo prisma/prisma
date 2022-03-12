@@ -85,7 +85,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
 
   const dir = eval('__dirname')
   if (dir.startsWith('/snapshot/')) {
-    const targetDir = path.join(tempDir, 'prisma-binaries')
+    const targetDir = path.join(tempDir, 'prisma-engines')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
     const data = await readFile(file)

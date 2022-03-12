@@ -47,7 +47,7 @@ export async function getEnginePathsByVersion({
       await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
-    const binariesConfig: EngineDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
+    const enginesConfig: EngineDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
       // only download the engine, of not already covered by the `enginePathsOverride`
       if (!enginePathsOverride?.[curr]) {
         acc[engineNameToEngineType(curr)] = binaryTargetBaseDir
@@ -55,14 +55,14 @@ export async function getEnginePathsByVersion({
       return acc
     }, Object.create(null))
 
-    if (Object.values(binariesConfig).length > 0) {
+    if (Object.values(enginesConfig).length > 0) {
       // Convert BinaryTargetsEnvValue[] to Platform[]
       const platforms: Platform[] = neededVersion.binaryTargets.map(
         (binaryTarget: BinaryTargetsEnvValue) => binaryTarget.value as Platform,
       )
 
       const downloadParams: DownloadOptions = {
-        binaries: binariesConfig,
+        engines: enginesConfig,
         binaryTargets: platforms,
         showProgress: typeof printDownloadProgress === 'boolean' ? printDownloadProgress : true,
         version: currentVersion && currentVersion !== 'latest' ? currentVersion : enginesVersion,

@@ -9,8 +9,8 @@ import { Version } from './Version'
  * CLI command
  */
 export class CLI implements Command {
-  static new(cmds: Commands, ensureBinaries: string[]): CLI {
-    return new CLI(cmds, ensureBinaries)
+  static new(cmds: Commands, ensureEngines: string[]): CLI {
+    return new CLI(cmds, ensureEngines)
   }
   private constructor(private readonly cmds: Commands, private readonly ensureEngines: string[]) {}
 
