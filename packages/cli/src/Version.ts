@@ -1,9 +1,9 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { getCliQueryEngineBinaryType as getCliQueryEngineType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/sdk'
 import {
   arg,
-  BinaryType,
+  BinaryType as EngineType,
   engineEnvVarMap,
   format,
   getConfig,
@@ -13,7 +13,7 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  resolveBinary,
+  resolveBinary as resolveEngine,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -23,7 +23,7 @@ import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
-interface BinaryInfo {
+interface EngineInfo {
   path: string
   version: string
   fromEnvVar?: string
@@ -72,12 +72,12 @@ export class Version implements Command {
     loadEnvFile(undefined, true)
 
     const platform = await getPlatform()
-    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-    const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
-    const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
+    const cliQueryEngineType = getCliQueryEngineType()
+    const introspectionEngine = await this.resolveEngine(EngineType.introspectionEngine)
+    const migrationEngine = await this.resolveEngine(EngineType.migrationEngine)
     // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
-    const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
+    const queryEngine = await this.resolveEngine(cliQueryEngineType)
+    const fmtEngine = await this.resolveEngine(EngineType.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -86,12 +86,12 @@ export class Version implements Command {
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       [
-        `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
-        this.printBinaryInfo(queryEngine),
+        `Query Engine${cliQueryEngineType === EngineType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
+        this.printEngineInfo(queryEngine),
       ],
-      ['Migration Engine', this.printBinaryInfo(migrationEngine)],
-      ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
-      ['Format Binary', this.printBinaryInfo(fmtBinary)],
+      ['Migration Engine', this.printEngineInfo(migrationEngine)],
+      ['Introspection Engine', this.printEngineInfo(introspectionEngine)],
+      ['Format Engine', this.printEngineInfo(fmtEngine)],
       ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
@@ -126,22 +126,22 @@ export class Version implements Command {
     return []
   }
 
-  private printBinaryInfo({ path: absolutePath, version, fromEnvVar }: BinaryInfo): string {
+  private printEngineInfo({ path: absolutePath, version, fromEnvVar }: EngineInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
     return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   }
 
-  private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
-    const envVar = engineEnvVarMap[binaryName]
+  private async resolveEngine(engineName: EngineType): Promise<EngineInfo> {
+    const envVar = engineEnvVarMap[engineName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv, binaryName)
+      const version = await getVersion(pathFromEnv, engineName)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const binaryPath = await resolveBinary(binaryName)
-    const version = await getVersion(binaryPath, binaryName)
-    return { path: binaryPath, version }
+    const enginePath = await resolveEngine(engineName)
+    const version = await getVersion(enginePath, engineName)
+    return { path: enginePath, version }
   }
 
   private printTable(rows: string[][], json = false): string {
