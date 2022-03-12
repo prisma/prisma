@@ -1,4 +1,4 @@
-import { ensureBinariesExist } from '@prisma/engines'
+import { ensureBinariesExist as ensureEnginesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/sdk'
 import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
@@ -12,7 +12,7 @@ export class CLI implements Command {
   static new(cmds: Commands, ensureBinaries: string[]): CLI {
     return new CLI(cmds, ensureBinaries)
   }
-  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
+  private constructor(private readonly cmds: Commands, private readonly ensureEngines: string[]) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -32,7 +32,7 @@ export class CLI implements Command {
     }
 
     if (args['--version']) {
-      await ensureBinariesExist()
+      await ensureEnginesExist()
       return Version.new().parse(argv)
     }
 
@@ -62,9 +62,9 @@ export class CLI implements Command {
 
     const cmd = this.cmds[cmdName]
     if (cmd) {
-      // if we have that subcommand, let's ensure that the binary is there in case the command needs it
-      if (this.ensureBinaries.includes(cmdName)) {
-        await ensureBinariesExist()
+      // if we have that subcommand, let's ensure that the engine is there in case the command needs it
+      if (this.ensureEngines.includes(cmdName)) {
+        await ensureEnginesExist()
       }
 
       let argsForCmd: string[]
