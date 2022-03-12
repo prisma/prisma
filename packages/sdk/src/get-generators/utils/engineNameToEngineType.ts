@@ -5,11 +5,9 @@ export function engineNameToEngineType(engineName: EngineName): EngineType {
   if (engineName === 'introspectionEngine') {
     return EngineType.introspectionEngine
   }
-
   if (engineName === 'migrationEngine') {
     return EngineType.migrationEngine
   }
-
   if (engineName === 'queryEngine') {
     return EngineType.queryEngine
   }
