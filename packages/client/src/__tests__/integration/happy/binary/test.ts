@@ -10,14 +10,14 @@ test('binary', async () => {
   await generateTestClient()
 
   const platform = await getPlatform()
-  let binaryPath =
+  let enginePath =
     getClientEngineType() === ClientEngineType.Library
       ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
       : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
 
   if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
-    binaryPath += '.exe'
+    enginePath += '.exe'
   }
 
-  expect(fs.existsSync(binaryPath)).toBe(true)
+  expect(fs.existsSync(enginePath)).toBe(true)
 })

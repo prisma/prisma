@@ -7,13 +7,13 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-// Tests that no error is being thrown when the binary is manually set to chmod 644 because Client fixes that itself
+// Tests that no error is being thrown when the engine is manually set to chmod 644 because Client fixes that itself
 testIf(process.platform !== 'win32')('chmod', async () => {
   await generateTestClient()
   const platform = await getPlatform()
   if (getClientEngineType() !== ClientEngineType.Library) {
-    const binaryPath = path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
-    fs.chmodSync(binaryPath, '644')
+    const enginePath = path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
+    fs.chmodSync(enginePath, '644')
   }
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
