@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { fixBinaryTargets, getOriginalBinaryTargetsValue, printGeneratorConfig } from '@prisma/engine-core'
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
@@ -23,16 +23,16 @@ import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missin
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
-import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
+import { engineTypeToEngineName } from './utils/engineTypeToEngineName'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
-import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
+import { getEnginePathsByVersion } from './utils/getEnginePathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
 
 const debug = Debug('prisma:getGenerators')
 
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
-type BinaryPathsOverride = {
+type EnginePathsOverride = {
   [P in EngineType]?: string
 }
 
@@ -49,7 +49,7 @@ export type GetGeneratorOptions = {
   baseDir?: string // useful in tests to resolve the base dir from which `output` is resolved
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
-  enginePathsOverride?: BinaryPathsOverride
+  enginePathsOverride?: EnginePathsOverride
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -67,7 +67,7 @@ export async function getGenerators({
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
   skipDownload,
-  enginePathsOverride: binaryPathsOverride,
+  enginePathsOverride,
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
@@ -78,10 +78,10 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  const queryEngineBinaryType = getCliQueryEngineBinaryType()
+  const queryEngineType = getCliQueryEngineType()
 
-  const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
-  let prismaPath: string | undefined = binaryPathsOverride?.[queryEngineType]
+  const queryEngineName = engineTypeToEngineName(queryEngineType)
+  let prismaPath: string | undefined = enginePathsOverride?.[queryEngineName]
 
   // overwrite query engine if the version is provided
   if (version && !prismaPath) {
@@ -90,7 +90,7 @@ export async function getGenerators({
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
         binaries: {
-          [queryEngineBinaryType]: potentialPath,
+          [queryEngineType]: potentialPath,
         },
         binaryTargets: [platform],
         showProgress: false,
@@ -98,8 +98,9 @@ export async function getGenerators({
         skipDownload,
       }
 
-      const binaryPathsWithEngineType = await download(downloadParams)
-      prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![platform]
+      const enginePathsWithEngineType = await download(downloadParams)
+      prismaPath = enginePathsWithEngineType[queryEngineType]![platform]
+      // TODO rename prismaPath to queryEnginePath
     }
   }
 
@@ -243,7 +244,7 @@ generator gen {
       }
     }
 
-    // 3. Download all binaries and binary targets needed
+    // 3. Download all engines needed
     const neededVersions = Object.create(null)
     for (const g of generators) {
       if (
@@ -305,36 +306,36 @@ generator gen {
       }
     }
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
-    const binaryPathsByVersion = await getBinaryPathsByVersion({
+    const enginePathsByVersion = await getEnginePathsByVersion({
       neededVersions,
       platform,
       version,
       printDownloadProgress,
       skipDownload,
-      binaryPathsOverride,
+      enginePathsOverride,
     })
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
         const engineVersion = getEngineVersionForGenerator(generator.manifest, version)
-        const binaryPaths = binaryPathsByVersion[engineVersion]
+        const enginePaths = enginePathsByVersion[engineVersion]
         // pick only the engines that we need for this generator
-        const generatorBinaryPaths = pick(binaryPaths, generator.manifest.requiresEngines)
-        debug({ generatorBinaryPaths })
-        generator.setEnginePaths(generatorBinaryPaths)
+        const generatorEnginePaths = pick(enginePaths, generator.manifest.requiresEngines)
+        debug({ generatorEnginePaths: generatorEnginePaths })
+        generator.setEnginePaths(generatorEnginePaths)
 
         // in case cli engine version !== client engine version
         // we need to re-generate the dmmf and pass it in to the generator
         if (
           engineVersion !== version &&
           generator.options &&
-          generator.manifest.requiresEngines.includes(queryEngineType) &&
-          generatorBinaryPaths[queryEngineType] &&
-          generatorBinaryPaths[queryEngineType]?.[platform]
+          generator.manifest.requiresEngines.includes(queryEngineName) &&
+          generatorEnginePaths[queryEngineName] &&
+          generatorEnginePaths[queryEngineName]?.[platform]
         ) {
           const customDmmf = await getDMMF({
             datamodel,
             datamodelPath: schemaPath,
-            prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
+            prismaPath: generatorEnginePaths[queryEngineName]?.[platform],
             previewFeatures,
           })
           const options = { ...generator.options, dmmf: customDmmf }
@@ -367,7 +368,7 @@ export type GetBinaryPathsByVersionInput = {
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
-  binaryPathsOverride?: BinaryPathsOverride
+  enginePathsOverride?: EnginePathsOverride
 }
 
 /**
