@@ -13,7 +13,7 @@ const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
 const debug = Debug('prisma:resolveEngine')
 
-async function getEngineName(name: EngineType): Promise<string> {
+async function getEngineFileName(name: EngineType): Promise<string> {
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
 
@@ -47,34 +47,34 @@ export async function resolveEngine(name: EngineType, proposedPath?: string): Pr
 
   const dir = eval('__dirname')
 
-  const engineName = await getEngineName(name)
+  const engineFileName = await getEngineFileName(name)
 
-  let prismaPath = path.join(getEnginesPath(), engineName)
+  let prismaPath = path.join(getEnginesPath(), engineFileName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
   // for pkg
-  prismaPath = path.join(__dirname, '..', engineName)
+  prismaPath = path.join(__dirname, '..', engineFileName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
 
-  prismaPath = path.join(__dirname, '../..', engineName)
+  prismaPath = path.join(__dirname, '../..', engineFileName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
 
   // needed to come from @prisma/client/generator-build to @prisma/client/runtime
-  prismaPath = path.join(__dirname, '../runtime', engineName)
+  prismaPath = path.join(__dirname, '../runtime', engineFileName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
 
   throw new Error(
-    `Could not find ${name} engine. Searched in ${path.join(dir, '..', engineName)} and ${path.join(
+    `Could not find ${name} engine. Searched in ${path.join(dir, '..', engineFileName)} and ${path.join(
       dir,
       '../..',
-      engineName,
+      engineFileName,
     )}`,
   )
 }
