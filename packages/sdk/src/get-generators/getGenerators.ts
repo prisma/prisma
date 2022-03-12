@@ -78,9 +78,9 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  const queryEngineType = getCliQueryEngineType()
+  const cliQueryEngineType = getCliQueryEngineType()
 
-  const queryEngineName = engineTypeToEngineName(queryEngineType)
+  const queryEngineName = engineTypeToEngineName(cliQueryEngineType)
   let prismaPath: string | undefined = enginePathsOverride?.[queryEngineName]
 
   // overwrite query engine if the version is provided
@@ -90,7 +90,7 @@ export async function getGenerators({
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
         binaries: {
-          [queryEngineType]: potentialPath,
+          [cliQueryEngineType]: potentialPath,
         },
         binaryTargets: [platform],
         showProgress: false,
@@ -99,7 +99,7 @@ export async function getGenerators({
       }
 
       const enginePathsWithEngineType = await download(downloadParams)
-      prismaPath = enginePathsWithEngineType[queryEngineType]![platform]
+      prismaPath = enginePathsWithEngineType[cliQueryEngineType]![platform]
       // TODO rename prismaPath to queryEnginePath
     }
   }

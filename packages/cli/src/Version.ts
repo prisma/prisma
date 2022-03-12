@@ -131,16 +131,16 @@ export class Version implements Command {
     return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   }
 
-  private async resolveEngine(engineName: EngineType): Promise<EngineInfo> {
-    const envVar = engineEnvVarMap[engineName]
+  private async resolveEngine(engineType: EngineType): Promise<EngineInfo> {
+    const envVar = engineEnvVarMap[engineType]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv, engineName)
+      const version = await getVersion(pathFromEnv, engineType)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const enginePath = await resolveEngine(engineName)
-    const version = await getVersion(enginePath, engineName)
+    const enginePath = await resolveEngine(engineType)
+    const version = await getVersion(enginePath, engineType)
     return { path: enginePath, version }
   }
 

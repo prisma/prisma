@@ -37,9 +37,9 @@ export type GetDMMFOptions = {
 // TODO add error handling functions
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
-  const cliEngineType = getCliQueryEngineType()
+  const cliQueryEngineType = getCliQueryEngineType()
   let dmmf: DMMF.Document | undefined
-  if (cliEngineType === EngineType.libqueryEngine) {
+  if (cliQueryEngineType === EngineType.libqueryEngine) {
     dmmf = await getDmmfNodeAPI(options)
   } else {
     dmmf = await getDmmfBinary(options)

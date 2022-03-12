@@ -12,12 +12,13 @@ const debug = Debug('prisma:getVersion')
 
 const MAX_BUFFER = 1_000_000_000
 
-export async function getVersion(enginePath?: string, engineName?: EngineType): Promise<string> {
-  if (!engineName) {
-    engineName = getCliQueryEngineType()
+export async function getVersion(enginePath?: string, engineType?: EngineType): Promise<string> {
+  if (!engineType) {
+    const cliQueryEngineType = getCliQueryEngineType()
+    engineType = cliQueryEngineType
   }
-  enginePath = await resolveEngine(engineName, enginePath)
-  if (engineName === EngineType.libqueryEngine) {
+  enginePath = await resolveEngine(engineType, enginePath)
+  if (engineType === EngineType.libqueryEngine) {
     await isNodeAPISupported()
 
     const QE = load<NodeAPILibraryTypes.Library>(enginePath)

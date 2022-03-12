@@ -574,8 +574,8 @@ describe('getGenerators', () => {
 
     const migrationEngine = await resolveEngine(EngineType.migrationEngine)
 
-    const queryEngineType = getCliQueryEngineType()
-    const queryEnginePath = await resolveEngine(queryEngineType)
+    const cliQueryEngineType = getCliQueryEngineType()
+    const queryEnginePath = await resolveEngine(cliQueryEngineType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),

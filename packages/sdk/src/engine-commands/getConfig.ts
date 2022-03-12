@@ -40,9 +40,9 @@ export class GetConfigError extends Error {
 }
 // TODO add error handling functions
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
-  const cliEngineType = getCliQueryEngineType()
+  const cliQueryEngineType = getCliQueryEngineType()
   let data: ConfigMetaFormat | undefined
-  if (cliEngineType === EngineType.libqueryEngine) {
+  if (cliQueryEngineType === EngineType.libqueryEngine) {
     data = await getConfigNodeAPI(options)
   } else {
     data = await getConfigBinary(options)

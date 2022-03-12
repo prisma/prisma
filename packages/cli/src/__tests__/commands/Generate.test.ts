@@ -131,6 +131,7 @@ describe('--schema from parent directory', () => {
   })
 })
 
+// TODO extract into snapshot serializer
 function replaceEngineType(result: string | Error) {
   if (result instanceof Error) {
     return result
