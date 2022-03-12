@@ -1,9 +1,9 @@
-import { getCliQueryEngineBinaryType as getCliQueryEngineType } from '@prisma/engines'
+import { getCliQueryEngineType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/sdk'
 import {
   arg,
-  BinaryType as EngineType,
+  EngineType,
   engineEnvVarMap,
   format,
   getConfig,

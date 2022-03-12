@@ -1,4 +1,4 @@
-import type { BinaryPaths as EnginePaths, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator-helper'
+import type { EnginePaths, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator-helper'
 import { GeneratorProcess } from '@prisma/generator-helper'
 
 import { parseEnvValue } from './utils/parseEnvValue'

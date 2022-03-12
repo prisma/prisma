@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/sdk'
-import { BinaryType as EngineType, ErrorArea, MigrateEngineExitCode, resolveBinary as resolveEngine, RustPanic } from '@prisma/sdk'
+import { EngineType, ErrorArea, MigrateEngineExitCode, resolveBinary as resolveEngine, RustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'

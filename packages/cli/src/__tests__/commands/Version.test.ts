@@ -1,5 +1,5 @@
-import { getCliQueryEngineBinaryType as getCliQueryEngineType } from '@prisma/engines'
-import { BinaryType as EngineType, download } from '@prisma/fetch-engine'
+import { getCliQueryEngineType } from '@prisma/engines'
+import { EngineType, download } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/sdk'
 import makeDir from 'make-dir'

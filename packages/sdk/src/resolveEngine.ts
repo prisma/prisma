@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryType as EngineType } from '@prisma/fetch-engine'
+import { EngineType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import makeDir from 'make-dir'

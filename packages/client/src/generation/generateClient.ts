@@ -1,5 +1,5 @@
-import { BinaryType as EngineType } from '@prisma/fetch-engine'
-import type { BinaryPaths as EnginePaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import { EngineType } from '@prisma/fetch-engine'
+import type { EnginePaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/sdk'
 import { ClientEngineType, getClientEngineType, getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
