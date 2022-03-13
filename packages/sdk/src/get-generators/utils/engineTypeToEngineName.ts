@@ -1,6 +1,7 @@
 import { EngineType } from '@prisma/fetch-engine'
 import type { EngineName } from '@prisma/generator-helper'
 
+// libquery-engine => libqueryEngine
 export function engineTypeToEngineName(engineType: string): EngineName {
   if (engineType === EngineType.libqueryEngine) {
     return 'libqueryEngine'

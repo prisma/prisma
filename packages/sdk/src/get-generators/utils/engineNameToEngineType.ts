@@ -1,6 +1,7 @@
 import { EngineType } from '@prisma/fetch-engine'
 import type { EngineName } from '@prisma/generator-helper'
 
+// introspectionEngine => introspection-engine
 export function engineNameToEngineType(engineName: EngineName): EngineType {
   if (engineName === 'introspectionEngine') {
     return EngineType.introspectionEngine

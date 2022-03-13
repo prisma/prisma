@@ -67,7 +67,7 @@ export async function getGenerators({
   baseDir = path.dirname(schemaPath),
   overrideGenerators,
   skipDownload,
-  enginePathsOverride,
+  enginePathsOverride, // e.g. `{ queryEngine: queryEnginePath, }`
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
@@ -78,7 +78,7 @@ export async function getGenerators({
   }
   const platform = await getPlatform()
 
-  const cliQueryEngineType = getCliQueryEngineType()
+  const cliQueryEngineType = getCliQueryEngineType() //
 
   const queryEngineName = engineTypeToEngineName(cliQueryEngineType)
   let prismaPath: string | undefined = enginePathsOverride?.[queryEngineName]
