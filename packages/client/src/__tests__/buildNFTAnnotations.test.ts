@@ -15,8 +15,8 @@ describe('library', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       path.join(__dirname, "schema.prisma");
       path.join(process.cwd(), "out/schema.prisma")
     `)
@@ -31,11 +31,11 @@ describe('library', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
-      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
       path.join(__dirname, "query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
@@ -115,8 +115,8 @@ describe('special cases', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       path.join(__dirname, "schema.prisma");
       path.join(process.cwd(), "out/schema.prisma")
     `)

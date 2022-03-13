@@ -58,7 +58,7 @@ function removePlatforms(str) {
 function normalizeNodeApiLibFilePath(str) {
   return str.replace(
     /((lib)?query_engine-TEST_PLATFORM.)(.*)(.node)/g,
-    'libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node',
+    '(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node',
   )
 }
 
