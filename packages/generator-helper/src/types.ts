@@ -90,7 +90,8 @@ export type GeneratorOptions = {
   enginePaths?: EnginePaths
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+// TODO How does this relate to EngineType?
+export type EngineName = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
 
 export type GeneratorManifest = {
   prettyName?: string
@@ -100,7 +101,7 @@ export type GeneratorManifest = {
     fields?: string[]
   }
   requiresGenerators?: string[]
-  requiresEngines?: EngineType[]
+  requiresEngines?: EngineName[]
   version?: string
   requiresEngineVersion?: string
 }
