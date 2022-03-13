@@ -123,9 +123,7 @@ function cleanSnapshot(str: string): string {
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
   
   // sanitize windows specific engine names
-  str = str.replace(/TEST\_PLATFORM\.exe/g, 'TEST_PLATFORM')
+  str = str.replace(/\.exe/g, '')
 
-  str = str.replace(/Current platform/g, 'FOO')
-  
   return str
 }
