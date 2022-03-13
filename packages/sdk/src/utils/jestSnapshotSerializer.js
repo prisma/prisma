@@ -63,7 +63,7 @@ function normalizeNodeApiLibFilePath(str) {
 }
 
 function normalizeEngineFilePath(str) {
-  return str.replace(/query-engine-TEST_PLATFORM\.exe/, 'query-engine-TEST_PLATFORM')
+  return str.replace(/TEST_PLATFORM\.exe/, 'TEST_PLATFORM')
 }
 
 function normalizeMigrateTimestamps(str) {
@@ -127,8 +127,8 @@ module.exports = {
       // From Client package
       normalizeGithubLinks,
       removePlatforms,
-      normalizeNodeApiLibFilePath,
-      normalizeEngineFilePath,
+      normalizeNodeApiLibFilePath, // also CLI package
+      normalizeEngineFilePath, // also CLI package
       normalizeTsClientStackTrace,
       trimErrorPaths,
       normalizePrismaPaths,
