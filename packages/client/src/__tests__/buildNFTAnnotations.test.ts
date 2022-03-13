@@ -37,8 +37,8 @@ describe('library', () => {
       path.join(__dirname, "(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
       path.join(process.cwd(), "out/(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
-      path.join(__dirname, "query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/(lib)query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       path.join(__dirname, "schema.prisma");
       path.join(process.cwd(), "out/schema.prisma")
     `)
