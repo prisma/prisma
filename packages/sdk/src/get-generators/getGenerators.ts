@@ -52,7 +52,7 @@ export type GetGeneratorOptions = {
   enginePathsOverride?: EnginePathsOverride
 }
 /**
- * Makes sure that all generators have the executables they deserve and returns a
+ * Makes sure that all generators have the engines they deserve and returns a
  * `Generator` class per generator defined in the schema.prisma file.
  * In other words, this is basically a generator factory function.
  * @param schemaPath Path to schema.prisma
