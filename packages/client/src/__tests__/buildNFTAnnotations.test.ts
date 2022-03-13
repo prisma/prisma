@@ -16,7 +16,7 @@ describe('library', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       path.join(__dirname, "schema.prisma");
       path.join(process.cwd(), "out/schema.prisma")
     `)
@@ -32,13 +32,13 @@ describe('library', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
-      path.join(__dirname, "libquery_engine-TEST_PLATFORM.dylib.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.dylib.node")
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
-      path.join(__dirname, "query_engine-TEST_PLATFORM.dll.node");
-      path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.dll.node")
+      path.join(__dirname, "query_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       path.join(__dirname, "schema.prisma");
       path.join(process.cwd(), "out/schema.prisma")
     `)
@@ -116,7 +116,7 @@ describe('special cases', () => {
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
       path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
       path.join(__dirname, "schema.prisma");
       path.join(process.cwd(), "out/schema.prisma")
     `)
