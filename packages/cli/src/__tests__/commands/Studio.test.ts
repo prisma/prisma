@@ -19,7 +19,7 @@ async function sendRequest(message: any): Promise<any> {
 
 let studio: Studio
 
-describe('studio with default schema.prisma filename', () => {
+describe.skip('studio with default schema.prisma filename', () => {
   jest.setTimeout(20000)
 
   beforeAll(async () => {
@@ -202,7 +202,7 @@ describe('studio with default schema.prisma filename', () => {
   })
 })
 
-describe('studio with custom schema.prisma filename', () => {
+describe.skip('studio with custom schema.prisma filename', () => {
   jest.setTimeout(20000)
 
   beforeAll(async () => {
