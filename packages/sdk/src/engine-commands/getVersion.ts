@@ -13,6 +13,7 @@ const debug = Debug('prisma:getVersion')
 const MAX_BUFFER = 1_000_000_000
 
 export async function getVersion(enginePath?: string, engineType?: EngineType): Promise<string> {
+  // TODO Why this fallback? (Maybe just try to remove it to see what happens)
   if (!engineType) {
     const cliQueryEngineType = getCliQueryEngineType()
     engineType = cliQueryEngineType
