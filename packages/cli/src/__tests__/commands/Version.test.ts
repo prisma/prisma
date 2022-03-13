@@ -122,9 +122,10 @@ function cleanSnapshot(str: string): string {
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   // replace engine version hash
-  str = str.replace(/staticVersion/g, 'STATICENGINEVERSION')
-  const search = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'g')
-  str = str.replace(search, 'DYNAMICENGINEVERSION')
+  const search1 = new RegExp(staticVersion, 'g')
+  str = str.replace(search1, 'STATICENGINEVERSION')
+  const search2 = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'g')
+  str = str.replace(search2, 'DYNAMICENGINEVERSION')
 
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
