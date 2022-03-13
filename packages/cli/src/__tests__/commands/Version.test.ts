@@ -124,5 +124,7 @@ function cleanSnapshot(str: string): string {
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
 
+  str = str.replace(/TEST_PLATFORM/g, 'FOO')
+
   return str
 }
