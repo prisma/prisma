@@ -13,13 +13,13 @@ const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
 describe('version', () => {
   // Basic (with up to date version)
 
-  testIf(useNodeAPI)('basic version (Node-API)', async () => {
+  testIf(useNodeAPI)('basic (Node-API)', async () => {
     // Separate from binary tests so it has its own snapshots
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  testIf(!useNodeAPI)('basic version (binary)', async () => {
+  testIf(!useNodeAPI)('basic (binary)', async () => {
     // Separate from library tests so it has its own snapshots
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
@@ -28,7 +28,7 @@ describe('version', () => {
   /// Custom Engines (with explicit version)
 
   testIf(useNodeAPI)(
-    'version with custom engines (Node-API)',
+    'with custom engines (Node-API)',
     async () => {
       // Separate from binary tests as it removes the binary query-engine manually from the map
       const enginesDir = path.join(__dirname, 'version-test-engines')
@@ -67,7 +67,7 @@ describe('version', () => {
   )
 
   testIf(!useNodeAPI)(
-    'version with custom engines (binary)',
+    'with custom engines (binary)',
     async () => {
       // Separate from binary tests as it removes the library query-engine manually from the map
       const enginesDir = path.join(__dirname, 'version-test-engines')
