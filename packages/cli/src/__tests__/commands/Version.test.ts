@@ -103,9 +103,7 @@ describe('version', () => {
 })
 
 function cleanSnapshot(str: string): string {
-  // sanitize windows specific engine names
-  str = str.replace(/TEST_PLATFORM\.exe/g, 'TEST_PLATFORM')
-
+  
   // sanitize engine path
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   // +                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -114,17 +112,18 @@ function cleanSnapshot(str: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
-
+  
   // replace engine version hash
   const search1 = new RegExp(version, 'g')
   str = str.replace(search1, 'STATICENGINEVERSION')
   const search2 = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'g')
   str = str.replace(search2, 'DYNAMICENGINEVERSION')
-
+  
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
-
-  str = str.replace(/TEST_PLATFORM/g, 'FOO')
+  
+  // sanitize windows specific engine names
+  str = str.replace(/TEST\_PLATFORM\.exe/g, 'TEST_PLATFORM')
 
   return str
 }
