@@ -11,7 +11,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
-import { resolveEngine } from '../resolveEngine'
+import { resolveEnginePath } from '../resolveEnginePath'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getDMMF')
@@ -48,7 +48,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
-  const queryEnginePath = await resolveEngine(EngineType.libqueryEngine, options.prismaPath)
+  const queryEnginePath = await resolveEnginePath(EngineType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
 
   debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
@@ -67,7 +67,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
-  const queryEnginePath = await resolveEngine(EngineType.queryEngine, options.prismaPath)
+  const queryEnginePath = await resolveEnginePath(EngineType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {

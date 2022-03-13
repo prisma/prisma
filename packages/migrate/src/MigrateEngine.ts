@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/sdk'
-import { EngineType, ErrorArea, MigrateEngineExitCode, resolveEngine, RustPanic } from '@prisma/sdk'
+import { EngineType, ErrorArea, MigrateEngineExitCode, resolveEnginePath, RustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
@@ -173,7 +173,7 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
-        const enginePath = await resolveEngine(EngineType.migrationEngine)
+        const enginePath = await resolveEnginePath(EngineType.migrationEngine)
         debugRpc('starting migration engine with file: ' + enginePath)
         const args: string[] = []
 

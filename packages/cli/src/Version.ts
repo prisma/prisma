@@ -13,7 +13,7 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  resolveEngine,
+  resolveEnginePath,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -139,7 +139,7 @@ export class Version implements Command {
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const enginePath = await resolveEngine(engineType) // TODO Rename to resolveEnginePath
+    const enginePath = await resolveEnginePath(engineType)
     const version = await getVersion(enginePath, engineType)
     return { version, path: enginePath }
   }

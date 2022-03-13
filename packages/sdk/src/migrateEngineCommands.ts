@@ -6,7 +6,7 @@ import { promisify } from 'util'
 
 import { getSchemaDir } from './cli/getSchema'
 import { protocolToConnectorType } from './convertCredentials'
-import { resolveEngine } from './resolveEngine'
+import { resolveEnginePath } from './resolveEnginePath'
 
 const exists = promisify(fs.exists)
 
@@ -200,7 +200,7 @@ export async function execaCommand({
   migrationEnginePath?: string
   engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath = migrationEnginePath || (await resolveEngine(EngineType.migrationEngine))
+  migrationEnginePath = migrationEnginePath || (await resolveEnginePath(EngineType.migrationEngine))
 
   try {
     return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {

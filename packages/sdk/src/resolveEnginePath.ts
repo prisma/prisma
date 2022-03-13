@@ -11,7 +11,7 @@ import { promisify } from 'util'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-const debug = Debug('prisma:resolveEngine')
+const debug = Debug('prisma:resolveEnginePath')
 
 async function getEngineFileName(name: EngineType): Promise<string> {
   const platform = await getPlatform()
@@ -30,7 +30,7 @@ export const engineEnvVarMap = {
   [EngineType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 export { EngineType }
-export async function resolveEngine(name: EngineType, proposedPath?: string): Promise<string> {
+export async function resolveEnginePath(name: EngineType, proposedPath?: string): Promise<string> {
   // special handling for pkg = /snapshot/
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath

@@ -5,7 +5,7 @@ import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 
 import { ErrorArea, RustPanic } from './panic'
-import { resolveEngine } from './resolveEngine'
+import { resolveEnginePath } from './resolveEnginePath'
 import byline from './utils/byline'
 
 const debugCli = Debug('prisma:introspectionEngine:cli')
@@ -316,7 +316,7 @@ export class IntrospectionEngine {
       // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
-          const enginePath = await resolveEngine(EngineType.introspectionEngine)
+          const enginePath = await resolveEnginePath(EngineType.introspectionEngine)
           debugRpc('starting introspection engine with file: ' + enginePath)
 
           this.child = spawn(enginePath, {
