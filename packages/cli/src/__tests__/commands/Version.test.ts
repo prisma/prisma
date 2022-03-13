@@ -107,7 +107,7 @@ function cleanSnapshot(str: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   // =>
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
-  str.replace(/at (.*)\/node_modules\/@prisma\/engines/g, 'at sanitized_path/node_modules/@prisma/engines')
+  str = str.replace(/at (.*)\/node_modules\/@prisma\/engines/g, 'at sanitized_path/node_modules/@prisma/engines')
 
   return str
 }
