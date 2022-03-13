@@ -71,17 +71,16 @@ export class Version implements Command {
 
     loadEnvFile(undefined, true)
 
+    const prismaClientVersion = await getInstalledPrismaClientVersion()
     const platform = await getPlatform()
+
     const cliQueryEngineType = getCliQueryEngineType()
-    const introspectionEngine = await this.getEngineInfo(EngineType.introspectionEngine)
-    const migrationEngine = await this.getEngineInfo(EngineType.migrationEngine)
-    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
     const queryEngine = await this.getEngineInfo(cliQueryEngineType)
+    const migrationEngine = await this.getEngineInfo(EngineType.migrationEngine)
+    const introspectionEngine = await this.getEngineInfo(EngineType.introspectionEngine)
     const fmtEngine = await this.getEngineInfo(EngineType.prismaFmt)
 
-    const prismaClientVersion = await getInstalledPrismaClientVersion()
-
-    const rows = [
+    const versionInfoRows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
@@ -92,18 +91,18 @@ export class Version implements Command {
       ['Migration Engine', this.constructEngineInfoString(migrationEngine)],
       ['Introspection Engine', this.constructEngineInfoString(introspectionEngine)],
       ['Format Engine', this.constructEngineInfoString(fmtEngine)],
-      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
+      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
     ]
 
     const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
 
     if (featureFlags && featureFlags.length > 0) {
-      rows.push(['Preview Features', featureFlags.join(', ')])
+      versionInfoRows.push(['Preview Features', featureFlags.join(', ')])
     }
 
-    return this.printTable(rows, args['--json'])
+    return this.printTable(versionInfoRows, args['--json'])
   }
 
   private async getFeatureFlags(schemaPath: string | null): Promise<string[]> {
