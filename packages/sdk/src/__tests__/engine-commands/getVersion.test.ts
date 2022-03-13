@@ -1,9 +1,9 @@
-import { enginesVersion, getCliQueryEngineyType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineType } from '@prisma/engines'
 
 import { EngineType, getVersion } from '../..'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNodeAPI = getCliQueryEngineyType() === EngineType.libqueryEngine
+const useNodeAPI = getCliQueryEngineType() === EngineType.libqueryEngine
 
 describe('getVersion', () => {
   test('Introspection Engine', async () => {
