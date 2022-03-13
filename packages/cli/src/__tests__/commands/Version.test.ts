@@ -1,5 +1,5 @@
 import { getCliQueryEngineType } from '@prisma/engines'
-import { EngineType, download } from '@prisma/fetch-engine'
+import { download, EngineType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/sdk'
 import makeDir from 'make-dir'
@@ -101,5 +101,6 @@ describe('version', () => {
 })
 
 function cleanSnapshot(str: string): string {
-  return str.replace(/:(.*)/g, ': placeholder')
+  return str
+  //return str.replace(/:(.*)/g, ': placeholder')
 }
