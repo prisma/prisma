@@ -25,7 +25,7 @@ describe('version', () => {
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  /// Custom Engines (with explicit version)
+  // Custom Engines (with explicit version)
 
   testIf(useNodeAPI)(
     'with custom engines (Node-API)',

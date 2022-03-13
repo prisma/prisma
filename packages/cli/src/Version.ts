@@ -91,8 +91,8 @@ export class Version implements Command {
       ['Migration Engine', this.constructEngineInfoString(migrationEngine)],
       ['Introspection Engine', this.constructEngineInfoString(introspectionEngine)],
       ['Format Engine', this.constructEngineInfoString(fmtEngine)],
-      ['Studio', packageJson.devDependencies['@prisma/studio-server']],
       ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
+      ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
     const schemaPath = await getSchemaPath()
