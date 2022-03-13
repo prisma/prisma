@@ -3,8 +3,8 @@ import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/sdk'
 import {
   arg,
-  EngineType,
   engineEnvVarMap,
+  EngineType,
   format,
   getConfig,
   getSchema,
@@ -73,11 +73,11 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineType = getCliQueryEngineType()
-    const introspectionEngine = await this.resolveEngine(EngineType.introspectionEngine)
-    const migrationEngine = await this.resolveEngine(EngineType.migrationEngine)
+    const introspectionEngine = await this.getEngineInfo(EngineType.introspectionEngine)
+    const migrationEngine = await this.getEngineInfo(EngineType.migrationEngine)
     // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(cliQueryEngineType)
-    const fmtEngine = await this.resolveEngine(EngineType.prismaFmt)
+    const queryEngine = await this.getEngineInfo(cliQueryEngineType)
+    const fmtEngine = await this.getEngineInfo(EngineType.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -131,7 +131,7 @@ export class Version implements Command {
     return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   }
 
-  private async resolveEngine(engineType: EngineType): Promise<EngineInfo> {
+  private async getEngineInfo(engineType: EngineType): Promise<EngineInfo> {
     const envVar = engineEnvVarMap[engineType]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
@@ -139,9 +139,9 @@ export class Version implements Command {
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const enginePath = await resolveEngine(engineType)
+    const enginePath = await resolveEngine(engineType) // TODO Rename to resolveEnginePath
     const version = await getVersion(enginePath, engineType)
-    return { path: enginePath, version }
+    return { version, path: enginePath }
   }
 
   private printTable(rows: string[][], json = false): string {
