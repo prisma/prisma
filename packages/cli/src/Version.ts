@@ -87,11 +87,11 @@ export class Version implements Command {
       ['Current platform', platform],
       [
         `Query Engine${cliQueryEngineType === EngineType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
-        this.printEngineInfo(queryEngine),
+        this.constructEngineInfoString(queryEngine),
       ],
-      ['Migration Engine', this.printEngineInfo(migrationEngine)],
-      ['Introspection Engine', this.printEngineInfo(introspectionEngine)],
-      ['Format Engine', this.printEngineInfo(fmtEngine)],
+      ['Migration Engine', this.constructEngineInfoString(migrationEngine)],
+      ['Introspection Engine', this.constructEngineInfoString(introspectionEngine)],
+      ['Format Engine', this.constructEngineInfoString(fmtEngine)],
       ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
@@ -126,7 +126,7 @@ export class Version implements Command {
     return []
   }
 
-  private printEngineInfo({ path: absolutePath, version, fromEnvVar }: EngineInfo): string {
+  private constructEngineInfoString({ path: absolutePath, version, fromEnvVar }: EngineInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
     return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   }
