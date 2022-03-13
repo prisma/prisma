@@ -125,5 +125,7 @@ function cleanSnapshot(str: string): string {
   // sanitize windows specific engine names
   str = str.replace(/TEST\_PLATFORM\.exe/g, 'TEST_PLATFORM')
 
+  str = str.replace(/Current platform/g, 'FOO')
+  
   return str
 }
