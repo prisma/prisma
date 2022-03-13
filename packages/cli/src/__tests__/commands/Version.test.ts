@@ -5,10 +5,12 @@ import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/sdk'
 import makeDir from 'make-dir'
 import path from 'path'
 
+const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineType() === EngineType.libqueryEngine
-const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
+const staticVersion = '5a2e5869b69a983e279380ec68596b71beae9eff'
 
 describe('version', () => {
   // Basic (with up to date version)
@@ -25,7 +27,7 @@ describe('version', () => {
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
-  // Custom Engines (with explicit version)
+  // Custom Engines (with static, explicit version)
 
   testIf(useNodeAPI)(
     'with custom engines (Node-API)',
@@ -40,7 +42,7 @@ describe('version', () => {
           'prisma-fmt': enginesDir,
           'libquery-engine': enginesDir,
         },
-        version,
+        version: staticVersion,
         failSilent: false,
       })
       // This Omits binary query-engine from the map
@@ -79,7 +81,7 @@ describe('version', () => {
           'prisma-fmt': enginesDir,
           'query-engine': enginesDir,
         },
-        version,
+        version: staticVersion,
         failSilent: false,
       })
       // This Omits library query-engine from the map
@@ -118,6 +120,13 @@ function cleanSnapshot(str: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
+
+  // replace engine version hash
+  str = str.replace(staticVersion, 'STATICENGINEVERSION')
+  str = str.replace(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'DYNAMICENGINEVERSION')
+
+  // replace studio version
+  str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
 
   return str
 }
