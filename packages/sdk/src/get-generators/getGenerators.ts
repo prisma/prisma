@@ -3,7 +3,7 @@ import { fixBinaryTargets, getOriginalBinaryTargetsValue, printGeneratorConfig }
 import { enginesVersion, getCliQueryEngineType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
-import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
+import type { BinaryTargetsEnvValue, EngineName, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -23,8 +23,8 @@ import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missin
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
-import { engineTypeToEngineName } from './utils/engineTypeToEngineName'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
+import { engineTypeToEngineName } from './utils/engineTypeToEngineName'
 import { getEnginePathsByVersion } from './utils/getEnginePathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
 
@@ -33,7 +33,7 @@ const debug = Debug('prisma:getGenerators')
 export type ProviderAliases = { [alias: string]: GeneratorPaths }
 
 type EnginePathsOverride = {
-  [P in EngineType]?: string
+  [P in EngineName]?: string
 }
 
 // From https://github.com/prisma/prisma/blob/eb4563aea6fb6e593ae48106a74f716ce3dc6752/packages/cli/src/Generate.ts#L167-L172
@@ -357,7 +357,7 @@ generator gen {
 
 type NeededVersions = {
   [key: string]: {
-    engines: EngineType[]
+    engines: EngineName[]
     binaryTargets: BinaryTargetsEnvValue[]
   }
 }
