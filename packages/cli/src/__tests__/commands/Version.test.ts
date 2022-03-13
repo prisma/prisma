@@ -11,16 +11,26 @@ const useNodeAPI = getCliQueryEngineType() === EngineType.libqueryEngine
 const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
 
 describe('version', () => {
-  // Node-API Tests
+  // Basic (with up to date version)
 
   testIf(useNodeAPI)('basic version (Node-API)', async () => {
+    // Separate from binary tests so it has its own snapshots
     const data = await ctx.cli('--version')
     expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
   })
 
+  testIf(!useNodeAPI)('basic version (binary)', async () => {
+    // Separate from library tests so it has its own snapshots
+    const data = await ctx.cli('--version')
+    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+  })
+
+  /// Custom Engines (with explicit version)
+
   testIf(useNodeAPI)(
     'version with custom engines (Node-API)',
     async () => {
+      // Separate from binary tests as it removes the binary query-engine manually from the map
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
       const enginesPaths = await download({
@@ -33,7 +43,7 @@ describe('version', () => {
         version,
         failSilent: false,
       })
-      // This Omits query-engine from the map
+      // This Omits binary query-engine from the map
       const { ['query-engine']: qe, ...envVarMap } = engineEnvVarMap
 
       const platform = await getPlatform()
@@ -56,16 +66,10 @@ describe('version', () => {
     50000,
   )
 
-  // Binary Tests
-
-  testIf(!useNodeAPI)('basic version', async () => {
-    const data = await ctx.cli('--version')
-    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
-  })
-
   testIf(!useNodeAPI)(
-    'version with custom engines',
+    'version with custom engines (binary)',
     async () => {
+      // Separate from binary tests as it removes the library query-engine manually from the map
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
       const enginePaths = await download({
@@ -78,9 +82,11 @@ describe('version', () => {
         version,
         failSilent: false,
       })
+      // This Omits library query-engine from the map
+      const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
 
       const platform = await getPlatform()
-      const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
+
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
         process.env[envVar] = enginePaths[engine][platform]
@@ -100,15 +106,18 @@ describe('version', () => {
   )
 })
 
+// TODO Extract to snapshot serializer instead of manually calling
 function cleanSnapshot(str: string): string {
   //return str.replace(/:(.*)/g, ': placeholder')
 
   // sanitize engine path
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
+  // +                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // Query Engine (Node-API) : libquery-engine 5a2e5869b69a983e279380ec68596b71beae9eff (at ../../cli/src/__tests__/commands/version-test-engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node, resolved by PRISMA_QUERY_ENGINE_LIBRARY)
-  // =>
+  // =>                                                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
-  str = str.replace(/at (.*engines)\//g, 'at sanitized_path/')
+  //                                                                                    ^^^^^^^^^^^^^^^^^^^
+  str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   return str
 }
