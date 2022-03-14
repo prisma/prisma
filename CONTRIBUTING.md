@@ -94,8 +94,8 @@ pnpx prisma generate && pnpx ts-node index.ts
   mkdir my-repro
   cd my-repro
   pnpm init -y
-  pnpm add ../../prisma/packages/client
-  pnpm add -D ../../prisma/packages/cli
+  pnpm add ../../packages/client
+  pnpm add -D ../../packages/cli
   pnpm add -D typescript ts-node
   pnpm add -D @types/node
   touch index.ts
