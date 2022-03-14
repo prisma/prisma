@@ -5,7 +5,6 @@ import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/sdk'
 import makeDir from 'make-dir'
 import path from 'path'
 
-
 const packageJson = require('../../../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -104,7 +103,6 @@ describe('version', () => {
 })
 
 function cleanSnapshot(str: string): string {
-  
   // sanitize engine path
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   // +                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -113,16 +111,16 @@ function cleanSnapshot(str: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
-  
+
   // replace engine version hash
   const search1 = new RegExp(version, 'g')
   str = str.replace(search1, 'STATICENGINEVERSION')
   const search2 = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'g')
   str = str.replace(search2, 'DYNAMICENGINEVERSION')
-  
+
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
-  
+
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
 
