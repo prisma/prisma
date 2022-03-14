@@ -3,6 +3,13 @@ import path from 'path'
 
 import { getPackedPackage } from './../getPackedPackage'
 
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+if (isMacOrWindowsCI) {
+  jest.setTimeout(60_000)
+} else {
+  jest.setTimeout(20_000)
+}
+
 describe('getPackedPackage', () => {
   it('test argument vulnerability', async () => {
     const outputDir = '/tmp/some-prisma-target-folder'
@@ -15,5 +22,5 @@ describe('getPackedPackage', () => {
     } finally {
       expect(fs.existsSync('/tmp/getPackedPackage-exploit')).toBe(false)
     }
-  }, 20000)
+  })
 })
