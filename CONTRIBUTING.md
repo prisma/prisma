@@ -77,7 +77,7 @@ cd reproductions && pnpm install
 cp -r basic-sqlite my-repro && cd my-repro
 # Ensure that the db and the schema are synced
 pnpx prisma db push --skip-generate
-# Do some code changes in the Prisma Client source code, re-generate the client, then try it out
+# Do some code changes, always re-generate the client, then try it out
 pnpx prisma generate && pnpx ts-node index.ts
 ```
 
