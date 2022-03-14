@@ -72,6 +72,20 @@ describe('prismaPromise', () => {
     expect(createResult1).toStrictEqual(createResult2)
   })
 
+  test('fluent promises should have promise properties', async () => {
+    const findUniquePromise = prisma.user.findUnique({
+      where: {
+        email: 'email@email.em',
+      },
+    })
+
+    expect('then' in findUniquePromise).toBe(true)
+    expect('finally' in findUniquePromise).toBe(true)
+    expect('catch' in findUniquePromise).toBe(true)
+
+    await findUniquePromise.finally()
+  })
+
   beforeAll(async () => {
     const PrismaClient = await getTestClient()
     prisma = new PrismaClient()
