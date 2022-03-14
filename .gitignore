@@ -37,3 +37,4 @@ pnpm-debug.log
 esm
 reproductions/*
 !reproductions/basic-sqlite
+!reproductions/pnpm-workspace.yaml

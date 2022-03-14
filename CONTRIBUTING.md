@@ -72,14 +72,18 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 Set up a local project that will be linked to the local packages.
 
 ```sh
-cd reproductions && cp -r basic-sqlite my-repro && cd my-repro # Copy repro
-pnpm install && pnpx prisma db push --skip-generate # Init project
-pnpx prisma generate && pnpx ts-node index.ts # Try it out
+cd reproductions && pnpm install
+# Copy a template from the reproduction folder
+cp -r basic-sqlite my-repro && cd my-repro
+# Ensure that the db and the schema are synced
+pnpx prisma db push --skip-generate
+# Do some code changes, compile, then try it out
+pnpx prisma generate && pnpx ts-node index.ts
 ```
 
-> 💡 This works best when running `pnpm run watch` in the background.
+> 💡 This works best when compiling with `pnpm run watch` in the background.
 
-> 💡 In any successful setup `pnpx prisma -v` should show version `0.0.0`.
+> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
 
 <details>
   <summary><b>Alternatives</b></summary>
@@ -87,21 +91,21 @@ pnpx prisma generate && pnpx ts-node index.ts # Try it out
   #### Detailed steps for a locally-linked dev folder
   ```sh
   cd reproductions
-  cp -r basic-sqlite my-repro
+  mkdir my-repro
   cd my-repro
   pnpm init -y
   pnpm add ../../prisma/packages/client
   pnpm add -D ../../prisma/packages/cli
   pnpm add -D typescript ts-node
   pnpm add -D @types/node
-  tsc --init
   touch index.ts
+  pnpx tsc --init
   pnpx prisma init
   # > Manually populate the schema.prisma
   # > Manually add 👇 to the generator block
-  # > output = "../node_modules/.prisma/client"
-  pnpx prisma db push --skip-generate
+  #   output = "../node_modules/.prisma/client"
   # > Manually populate the index.ts
+  pnpx prisma db push --skip-generate
   pnpx prisma generate && pnpx ts-node index.ts # Try it out
   ```
 
@@ -188,14 +192,16 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 Set up a local project that will be linked to the local packages.
 
 ```sh
-cd reproductions && cp -r basic-sqlite my-repro && cd my-repro # Copy repro
-pnpm install # Init project
-pnpx prisma generate # Try it out
+cd reproductions && pnpm install
+# Copy a template from the reproduction folder
+cp -r basic-sqlite my-repro && cd my-repro
+# Do some code changes, compile, then try it out
+pnpx prisma generate
 ```
 
-> 💡 This works best when running `pnpm run watch` in the background.
+> 💡 This works best when compiling with `pnpm run watch` in the background.
 
-> 💡 In any successful setup `pnpx prisma -v` should show version `0.0.0`.
+> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
 
 <details>
   <summary><b>Alternatives</b></summary>
