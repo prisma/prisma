@@ -140,11 +140,27 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
     const comment = await prisma.commentOptionalProp.findMany({
       where: {
         OR: [{ id: id1 }, { id: id2 }],
-        content: { equals: { text: 'Hello World' } },
+        content: { equals: commentOptionalPropDataA(id1).content.set },
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(`Array []`)
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+        },
+      ]
+    `)
   })
 
   /**
@@ -154,11 +170,27 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
     const comment = await prisma.commentOptionalProp.findMany({
       where: {
         OR: [{ id: id1 }, { id: id2 }],
-        content: { text: 'Hello World' },
+        content: commentOptionalPropDataA(id1).content.set,
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(`Array []`)
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
+        },
+      ]
+    `)
   })
 
   /**
