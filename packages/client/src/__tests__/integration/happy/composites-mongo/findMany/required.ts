@@ -132,4 +132,141 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
       ]
     `)
   })
+
+  /**
+   * Filter equals
+   */
+  test('filter equals', async () => {
+    const comment = await prisma.commentRequiredProp.findMany({
+      where: {
+        OR: [{ id: id1 }, { id: id2 }],
+        content: commentRequiredPropDataA(id1).content.set,
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 3aaaaaaaaaaaaaaaaaaaaaaa,
+        },
+      ]
+    `)
+  })
+
+  /**
+   * Filter equals shorthand
+   */
+  test('filter equals shorthand', async () => {
+    const comment = await prisma.commentRequiredProp.findMany({
+      where: {
+        OR: [{ id: id1 }, { id: id2 }],
+        content: commentRequiredPropDataA(id1).content.set,
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 3aaaaaaaaaaaaaaaaaaaaaaa,
+        },
+      ]
+    `)
+  })
+
+  /**
+   * Filter is
+   */
+  test('filter is', async () => {
+    const comment = await prisma.commentRequiredProp.findMany({
+      where: {
+        OR: [{ id: id1 }, { id: id2 }],
+        content: { is: { OR: [{ text: 'Hello World' }, { text: 'Goodbye World' }] } },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Goodbye World,
+            upvotes: Array [
+              Object {
+                userId: 11,
+                vote: false,
+              },
+              Object {
+                userId: 12,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 2ddddddddddddddddddddddd,
+        },
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 3aaaaaaaaaaaaaaaaaaaaaaa,
+        },
+      ]
+    `)
+  })
+
+  /**
+   * Filter isNot
+   */
+  test('filter isNot', async () => {
+    const comment = await prisma.commentRequiredProp.findMany({
+      where: {
+        OR: [{ id: id1 }, { id: id2 }],
+        content: { isNot: { text: 'Goodbye World' } },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          content: Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          country: France,
+          id: 3aaaaaaaaaaaaaaaaaaaaaaa,
+        },
+      ]
+    `)
+  })
 })
