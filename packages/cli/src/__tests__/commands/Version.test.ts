@@ -115,7 +115,7 @@ function cleanSnapshot(str: string): string {
   // replace engine version hash
   const search1 = new RegExp(version, 'g')
   str = str.replace(search1, 'STATICENGINEVERSION')
-  const search2 = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'g')
+  const search2 = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop().split('-').pop(), 'g')
   str = str.replace(search2, 'DYNAMICENGINEVERSION')
 
   // replace studio version
