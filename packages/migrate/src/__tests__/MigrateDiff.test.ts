@@ -225,7 +225,7 @@ describe('migrate diff', () => {
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
     })
 
-    describe.skip('--exit-code', () => {
+    describe('--exit-code', () => {
       it('should exit with code 2 when diff is not empty without --script', async () => {
         ctx.fixture('schema-only-sqlite')
 
