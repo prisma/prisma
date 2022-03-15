@@ -47,7 +47,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, `x.x.x.${version}`)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -90,7 +90,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, `x.x.x.${version}`)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -102,7 +102,7 @@ describe('version', () => {
   )
 })
 
-function cleanSnapshot(str: string): string {
+function cleanSnapshot(str: string, versionOverride?: string): string {
   // sanitize engine path
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at ../../home/runner/work/prisma/prisma/node_modules/.pnpm/@prisma+engines@3.11.0-41.e996df5d66a2314d1da15d31047f9777fc2fbdd9/node_modules/@prisma/engines/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   // +                                                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -113,13 +113,15 @@ function cleanSnapshot(str: string): string {
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   // replace engine version hash
-  const search1 = new RegExp(version, 'g')
-  str = str.replace(search1, 'STATICENGINEVERSION')
-  const search2 = new RegExp(packageJson.dependencies['@prisma/engines'].split('.').pop(), 'g')
-  str = str.replace(search2, 'DYNAMICENGINEVERSION')
+  const currentEngineVersion = versionOverride ?? packageJson.dependencies['@prisma/engines']
+  const currentEngineCommit = currentEngineVersion.split('.').pop().split('-').pop()
+  const defaultEngineVersion = packageJson.dependencies['@prisma/engines']
+  const defaultEngineHash = defaultEngineVersion.split('.').pop()
+  str = str.replace(new RegExp(currentEngineCommit, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp(defaultEngineHash, 'g'), 'ENGINE_VERSION')
 
   // replace studio version
-  str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIOVERSION')
+  str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')
 
   // sanitize windows specific engine names
   str = str.replace(/\.exe/g, '')
