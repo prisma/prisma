@@ -11,6 +11,7 @@ import { setupClientDatabase, setupClientFolder, setupClientSchema } from './set
 import type { TestSuiteMeta } from './setupClientTest'
 
 export async function getInMemoryClient(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+  const testSuitePath = getTestSuitePrismaPath(suiteMeta, suiteConfig)
   const previewFeatures = getPreviewFeaturesFromTestConfig(suiteConfig)
   const schema = await applyTestConfigToSchema(suiteMeta, suiteConfig)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
@@ -22,14 +23,14 @@ export async function getInMemoryClient(suiteMeta: TestSuiteMeta, suiteConfig: T
   await setupClientDatabase(suiteMeta, suiteConfig)
 
   return getPrismaClient({
-    dirname: getTestSuitePrismaPath(suiteMeta, suiteConfig),
+    dirname: testSuitePath,
     schemaString: schema,
     document: dmmf,
     generator: generator,
     activeProvider: suiteConfig['#PROVIDER'],
     datasourceNames: config.datasources.map((d) => d.name),
     relativeEnvPaths: {},
-    relativePath: '',
+    relativePath: '.',
   }) as any
 }
 
