@@ -17,6 +17,7 @@ module.exports = {
       },
     ],
   ],
+  testSequencer: './_utils/setupTestSequencer.js',
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
   setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
   testTimeout: 10000,
