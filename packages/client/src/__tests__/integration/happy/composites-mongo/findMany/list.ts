@@ -181,6 +181,38 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
   })
 
   /**
+   * Filter equals shorthand
+   */
+  test('filter equals shorthand', async () => {
+    const comment = await prisma.commentRequiredList.findMany({
+      where: {
+        OR: [{ id: id1 }, { id: id2 }],
+        contents: commentRequiredListDataA(id1).contents.set,
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            contents: Array [
+              Object {
+                text: Hello World,
+                upvotes: Array [
+                  Object {
+                    userId: 10,
+                    vote: true,
+                  },
+                ],
+              },
+            ],
+            country: France,
+            id: 9bbbbbbbbbbbbbbbbbbbbbbb,
+          },
+        ]
+      `)
+  })
+
+  /**
    * Filter every
    */
   test('filter every', async () => {
