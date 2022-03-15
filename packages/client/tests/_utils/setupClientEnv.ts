@@ -2,27 +2,28 @@ import crypto from 'crypto'
 import fs from 'fs-extra'
 import path from 'path'
 
+import { handle } from '../../../../helpers/blaze/handle'
 import { DbPush } from '../../../migrate/src/commands/DbPush'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import type { TestSuiteMeta } from './setupClientTest'
 
-export async function setupClientFolder(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function setupClientFolder(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
-  await fs.rm(suiteFolder, { recursive: true }).catch(() => {})
-  await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
-  await fs.copy(path.join(suiteMeta.testDir, 'tests.ts'), path.join(suiteFolder, 'tests.ts'))
+  handle(() => fs.removeSync(suiteFolder))
+  fs.copySync(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
+  fs.copySync(path.join(suiteMeta.testDir, 'tests.ts'), path.join(suiteFolder, 'tests.ts'))
 
-  const testsContents = await fs.readFile(path.join(suiteFolder, 'tests.ts'))
+  const testsContents = fs.readFileSync(path.join(suiteFolder, 'tests.ts'))
   const newTestsContents = testsContents.toString().replace('../../', '../../../../')
-  await fs.writeFile(path.join(suiteFolder, 'tests.ts'), newTestsContents)
+  fs.writeFileSync(path.join(suiteFolder, 'tests.ts'), newTestsContents)
 }
 
-export async function setupClientSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig, schema: string) {
+export function setupClientSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig, schema: string) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
-  await fs.writeFile(schemaPath, schema)
+  fs.writeFileSync(schemaPath, schema)
 }
 
 export async function setupClientDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {

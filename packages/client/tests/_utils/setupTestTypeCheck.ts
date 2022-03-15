@@ -1,6 +1,6 @@
 import ts from 'typescript'
 
-function setupTestTypeCheck(fileNames: string[]): void {
+export function setupTestTypeCheck(fileNames: string[]): void {
   const compilerOptions = ts.convertCompilerOptionsFromJson(
     require('../../../../tsconfig.build.json').compilerOptions,
     '.',
@@ -19,8 +19,4 @@ function setupTestTypeCheck(fileNames: string[]): void {
       console.log(ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n'))
     }
   })
-}
-
-if (require.main === module) {
-  setupTestTypeCheck(process.argv.slice(2))
 }

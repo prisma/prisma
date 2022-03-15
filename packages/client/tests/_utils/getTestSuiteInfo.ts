@@ -1,5 +1,7 @@
+import fs from 'fs-extra'
 import path from 'path'
 
+import { keys } from '../../../../helpers/blaze/keys'
 import { map } from '../../../../helpers/blaze/map'
 import { matrix } from '../../../../helpers/blaze/matrix'
 import { merge } from '../../../../helpers/blaze/merge'
@@ -24,7 +26,7 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
   return name
 }
 
-export function getPreviewFeaturesFromTestConfig(suiteConfig: TestSuiteConfig) {
+export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
   // eslint-disable-next-line prettier/prettier
   return [...(suiteConfig['#FEATURES']?.split(', ') ?? []), ...(suiteConfig['#EXTRA_FEATURES']?.split(', ') ?? [])]
 }
@@ -62,4 +64,15 @@ export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
     getTestSuiteConfigs(suiteMeta),
     (suiteConfig) => [getTestSuiteFullName(suiteMeta, suiteConfig), suiteConfig] as const,
   )
+}
+
+export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+  const schemaPath = path.join(suiteMeta.prismaPath, 'schema.prisma')
+  let schema = fs.readFileSync(schemaPath, 'utf-8')
+
+  for (const key of keys(suiteConfig)) {
+    schema = schema.replaceAll(key, suiteConfig[key])
+  }
+
+  return schema
 }
