@@ -16,12 +16,12 @@ exports[`version basic version 1`] = `
 prisma                : 0.0.0
 @prisma/client        : 0.0.0
 Current platform      : TEST_PLATFORM
-Query Engine (Binary) : query-engine DYNAMICENGINEVERSION (at sanitized_path/query-engine-TEST_PLATFORM)
-Migration Engine      : migration-engine-cli DYNAMICENGINEVERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
-Introspection Engine  : introspection-core DYNAMICENGINEVERSION (at sanitized_path/introspection-engine-TEST_PLATFORM)
-Format Binary         : prisma-fmt DYNAMICENGINEVERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM)
-Default Engines Hash  : DYNAMICENGINEVERSION
-Studio                : STUDIOVERSION
+Query Engine (Binary) : query-engine ENGINE_COMMIT (at sanitized_path/query-engine-TEST_PLATFORM)
+Migration Engine      : migration-engine-cli ENGINE_COMMIT (at sanitized_path/migration-engine-TEST_PLATFORM)
+Introspection Engine  : introspection-core ENGINE_COMMIT (at sanitized_path/introspection-engine-TEST_PLATFORM)
+Format Binary         : prisma-fmt ENGINE_COMMIT (at sanitized_path/prisma-fmt-TEST_PLATFORM)
+Default Engines Hash  : ENGINE_HASH
+Studio                : STUDIO_VERSION
 `;
 
 exports[`version version with custom binaries (Node-API) 1`] = `
@@ -40,10 +40,10 @@ exports[`version version with custom binaries 1`] = `
 prisma                : 0.0.0
 @prisma/client        : 0.0.0
 Current platform      : TEST_PLATFORM
-Query Engine (Binary) : query-engine STATICENGINEVERSION (at sanitized_path/query-engine-TEST_PLATFORM, resolved by PRISMA_QUERY_ENGINE_BINARY)
-Migration Engine      : migration-engine-cli STATICENGINEVERSION (at sanitized_path/migration-engine-TEST_PLATFORM, resolved by PRISMA_MIGRATION_ENGINE_BINARY)
-Introspection Engine  : introspection-core STATICENGINEVERSION (at sanitized_path/introspection-engine-TEST_PLATFORM, resolved by PRISMA_INTROSPECTION_ENGINE_BINARY)
-Format Binary         : prisma-fmt STATICENGINEVERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM, resolved by PRISMA_FMT_BINARY)
-Default Engines Hash  : DYNAMICENGINEVERSION
-Studio                : STUDIOVERSION
+Query Engine (Binary) : query-engine ENGINE_COMMIT (at sanitized_path/query-engine-TEST_PLATFORM, resolved by PRISMA_QUERY_ENGINE_BINARY)
+Migration Engine      : migration-engine-cli ENGINE_COMMIT (at sanitized_path/migration-engine-TEST_PLATFORM, resolved by PRISMA_MIGRATION_ENGINE_BINARY)
+Introspection Engine  : introspection-core ENGINE_COMMIT (at sanitized_path/introspection-engine-TEST_PLATFORM, resolved by PRISMA_INTROSPECTION_ENGINE_BINARY)
+Format Binary         : prisma-fmt ENGINE_COMMIT (at sanitized_path/prisma-fmt-TEST_PLATFORM, resolved by PRISMA_FMT_BINARY)
+Default Engines Hash  : ENGINE_HASH
+Studio                : STUDIO_VERSION
 `;
