@@ -1,10 +1,7 @@
 module.exports = {
-  testMatch: ['<rootDir>/**/*.ts'],
-  testPathIgnorePatterns: ['node_modules', '_utils/', '_matrix.ts', '.generated'],
-  transform: {
-    '^.+\\.(t|j)sx?$': '@swc/jest',
-    // '^.+\\.(t|j)sx?$': ['@swc/jest', {}],
-  },
+  testMatch: ['<rootDir>/**/*.ts', '!(<rootDir>/**/*.d.ts)'],
+  testPathIgnorePatterns: ['node_modules/', '_utils/', '_matrix.ts', '.generated'],
+  transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
   reporters: [
     'default',
     [

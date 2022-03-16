@@ -66,9 +66,9 @@ export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
   )
 }
 
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const schemaPath = path.join(suiteMeta.prismaPath, 'schema.prisma')
-  let schema = fs.readFileSync(schemaPath, 'utf-8')
+  let schema = await fs.readFile(schemaPath, 'utf-8')
 
   for (const key of keys(suiteConfig)) {
     schema = schema.replaceAll(key, suiteConfig[key])

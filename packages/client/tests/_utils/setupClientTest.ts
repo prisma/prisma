@@ -5,7 +5,7 @@ import { C } from 'ts-toolbelt'
 import { getInMemoryClient } from './getInMemoryClient'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteTable } from './getTestSuiteInfo'
-import { setupClientDbURI } from './setupClientEnv'
+import { setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
@@ -17,15 +17,15 @@ function setupClientTest<C extends C.Class>(
     suiteConfig: TestSuiteConfig,
   ) => void,
 ) {
-  const suiteMeta = getTestSuiteMeta()
-  const suiteTable = getTestSuiteTable(suiteMeta)
   const originalEnv = process.env
+  const testSuiteMeta = getTestSuiteMeta()
+  const testSuiteTable = getTestSuiteTable(testSuiteMeta)
 
-  describe.each(suiteTable)('%s', (_, suiteConfig) => {
-    beforeAll(() => (process.env = { ...setupClientDbURI(suiteConfig), ...originalEnv }))
+  describe.each(testSuiteTable)('%s', (_, suiteConfig) => {
+    beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
     afterAll(() => (process.env = originalEnv))
 
-    tests(undefined as never, newPrismaClient(suiteMeta, suiteConfig), suiteMeta, suiteConfig)
+    tests(undefined as never, newPrismaClient(testSuiteMeta, suiteConfig), testSuiteMeta, suiteConfig)
   })
 }
 

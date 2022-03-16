@@ -205,6 +205,7 @@ importers:
 
   packages/client:
     specifiers:
+      '@jest/test-sequencer': 27.5.1
       '@microsoft/api-extractor': 7.19.3
       '@opentelemetry/api': 1.0.3
       '@prisma/debug': workspace:*
@@ -264,6 +265,7 @@ importers:
     dependencies:
       '@prisma/engines-version': 3.11.0-24.6d0d1f6ebabd0497065a8d8e13be1d4dbc2d7c05
     devDependencies:
+      '@jest/test-sequencer': 27.5.1
       '@microsoft/api-extractor': 7.19.3
       '@opentelemetry/api': 1.0.3
       '@prisma/debug': link:../debug
@@ -1616,7 +1618,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -5204,7 +5205,7 @@ packages:
       pretty-format: 27.5.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.4.0_4c74cb9939824570a0a43d7cc18720b2
+      ts-node: 10.4.0_b575a4ed8d8a14db25cb9540c04f64f6
     transitivePeerDependencies:
       - bufferutil
       - canvas
