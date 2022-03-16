@@ -92,10 +92,6 @@ ${chalk.bold('Examples')}
       throw e
     }
 
-    const diagnoseResult = await migrate.diagnoseMigrationHistory({
-      optInToShadowDatabase: false,
-    })
-    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
 
@@ -105,14 +101,6 @@ ${chalk.bold('Examples')}
       console.info(`${migrations.length} migration${migrations.length > 1 ? 's' : ''} found in prisma/migrations`)
     } else {
       console.info(`No migration found in prisma/migrations`)
-    }
-
-    const editedMigrationNames = diagnoseResult.editedMigrationNames
-    if (editedMigrationNames.length > 0) {
-      console.info(
-        `${chalk.yellow('WARNING The following migrations have been modified since they were applied:')}
-${editedMigrationNames.join('\n')}`,
-      )
     }
 
     let migrationIds: string[]
