@@ -618,7 +618,7 @@ importers:
       strip-indent: 3.0.0
       tar: 6.1.11
       temp-dir: 2.0.0
-      temp-write: 4.0.0
+      temp-write: ^5.0.0
       tempy: 1.0.1
       terminal-link: 2.1.1
       tmp: 0.2.1
@@ -659,7 +659,7 @@ importers:
       strip-indent: 3.0.0
       tar: 6.1.11
       temp-dir: 2.0.0
-      temp-write: 4.0.0
+      temp-write: 5.0.0
       tempy: 1.0.1
       terminal-link: 2.1.1
       tmp: 0.2.1
@@ -5181,7 +5181,7 @@ packages:
       pretty-format: 27.5.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.4.0_b575a4ed8d8a14db25cb9540c04f64f6
+      ts-node: 10.4.0_82274b92ec7bae91027ffd577a5efb53
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -7693,24 +7693,18 @@ packages:
       - encoding
       - supports-color
 
-  /temp-dir/1.0.0:
-    resolution: {integrity: sha1-CnwOom06Oa+n4OvqnB/AvE2qAR0=}
-    engines: {node: '>=4'}
-    dev: false
-
   /temp-dir/2.0.0:
     resolution: {integrity: sha512-aoBAniQmmwtcKp/7BzsH8Cxzv8OL736p7v1ihGb5e9DJ9kTwGWHrQrVB5+lfVDzfGrdRzXch+ig7LHaY1JTOrg==}
     engines: {node: '>=8'}
 
-  /temp-write/4.0.0:
-    resolution: {integrity: sha512-HIeWmj77uOOHb0QX7siN3OtwV3CTntquin6TNVg6SHOqCP3hYKmox90eeFOGaY1MqJ9WYDDjkyZrW6qS5AWpbw==}
-    engines: {node: '>=8'}
+  /temp-write/5.0.0:
+    resolution: {integrity: sha512-cJhnzBW7DjNox7VcZDXeNlQSkIh3mX/h+M0n0Fh+zgT7YAHwI9c+OngKx4MCiQCVx9iXxV104xYlJgDBCCtawA==}
+    engines: {node: '>=12'}
     dependencies:
       graceful-fs: 4.2.9
       is-stream: 2.0.1
-      make-dir: 3.1.0
-      temp-dir: 1.0.0
-      uuid: 3.4.0
+      temp-dir: 2.0.0
+      uuid: 8.3.2
     dev: false
 
   /temp/0.4.0:
@@ -8184,6 +8178,8 @@ packages:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
     deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
+    dev: true
+    optional: true
 
   /uuid/8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
