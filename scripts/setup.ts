@@ -3,8 +3,6 @@ import execa from 'execa'
 import fetch from 'node-fetch'
 import path from 'path'
 
-import { getPackageDependencies, getPackages, getPublishOrder } from './ci/publish'
-
 async function main() {
   // this is for when you want to use it locally
   const buildOnly = process.argv[2] === '--build' // can we remove this?
@@ -26,7 +24,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 
   if (process.env.RELEASE_PROMOTE_DEV) {
     // this is a way to get the commit hash of that specific version
-    const versions = await getPrismaCommitFromPackageJsonViaUnpkg(process.env.RELEASE_PROMOTE_DEV)
+    const versions = await getPrismaCommitFromPackageJsonViaNpmRegistry(process.env.RELEASE_PROMOTE_DEV)
 
     await run(`.`, `git stash`) // TODO: can we remove this?
     await run(`.`, `git checkout ${versions.prisma}`, true) // TODO: disable the dry run here
@@ -149,14 +147,14 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getPrismaCommitFromPackageJsonViaUnpkg(npmVersion: string): Promise<{ prisma: string }> {
-  return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
+async function getPrismaCommitFromPackageJsonViaNpmRegistry(npmVersion: string): Promise<{ prisma: string }> {
+  return fetch(`https://registry.npmjs.org/prisma`, {
     headers: {
       accept: 'application/json',
     },
   })
     .then((res) => res.json())
     .then((pkg) => {
-      return pkg.prisma.prismaCommit
+      return pkg.versions[npmVersion].prisma.prismaCommit
     })
 }
