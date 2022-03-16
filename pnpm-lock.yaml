@@ -130,7 +130,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.1
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.5.2
+      '@types/ws': 8.5.3
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.3
@@ -175,7 +175,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.4.1
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.5.2
+      '@types/ws': 8.5.3
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.3
@@ -1571,6 +1571,7 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -2094,8 +2095,8 @@ packages:
     dependencies:
       '@types/node': 17.0.18
 
-  /@types/ws/8.5.2:
-    resolution: {integrity: sha512-VXI82ykONr5tacHEojnErTQk+KQSoYbW1NB6iz6wUwrNd+BqfkfggQNoNdCqhJSzbNumShPERbM+Pc5zpfhlbw==}
+  /@types/ws/8.5.3:
+    resolution: {integrity: sha512-6YOoWjruKj1uLf3INHH7D3qTXwFfEsg1kf3c0uDdSBJwfa/llkwIjrAGV7j7mVgGNbzTQ3HiHKKDXl6bJPD97w==}
     dependencies:
       '@types/node': 17.0.18
     dev: true
