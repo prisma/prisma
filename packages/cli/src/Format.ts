@@ -2,7 +2,6 @@ import type { Command } from '@prisma/sdk'
 import { arg, format, formatms, formatSchema, getDMMF, getSchemaPath, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
 
 /**
@@ -76,7 +75,7 @@ Or specify a Prisma schema path
       datamodel: output,
     })
 
-    output = output.trimEnd() + os.EOL
+    output = output.trimEnd() + '\n'
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
