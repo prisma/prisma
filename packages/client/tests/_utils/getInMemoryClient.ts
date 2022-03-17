@@ -1,7 +1,7 @@
 import { getConfig, parseEnvValue } from '@prisma/sdk'
 
 import { getDMMF } from '../../src/generation/getDMMF'
-import { getPrismaClient } from '../../src/runtime'
+import { getPrismaClient } from '../../src/runtime/getPrismaClient'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuitePreviewFeatures, getTestSuitePrismaPath, getTestSuiteSchema } from './getTestSuiteInfo'
 import type { TestSuiteMeta } from './setupClientTest'
