@@ -33,12 +33,14 @@ function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
   const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
 
   return `
-const { findSync } = require('${runtimePath}')
+const { findPrismaRootSync } = require('${runtimePath}')
 
-const dirname = findSync(process.cwd(), [
+const dirname = findPrismaRootSync(process.cwd(), {
+  matches: [
     ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
     ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
-], ['d'], ['d'], 1)[0] || __dirname`
+  ]
+}) || __dirname`
 }
 
 /**

@@ -44,6 +44,22 @@ function isMatched(string: string, regexs: (RegExp | string)[]) {
 }
 
 /**
+ * Find the root directory of the generated prisma client
+ * @param root to start from
+ * @param match to match against
+ */
+export function findPrismaRootSync(root: string, { matches }: { matches: string[] }): string | void {
+  const realRoot = realpathSync(root)
+  const prismaRoots = matches.map((match) => path.resolve(realRoot, match, 'schema.prisma'))
+
+  for (const prismaRoot of prismaRoots) {
+    if (fs.existsSync(prismaRoot)) {
+      return path.dirname(prismaRoot)
+    }
+  }
+}
+
+/**
  * Find paths that match a set of regexes
  * @param root to start from
  * @param match to match against

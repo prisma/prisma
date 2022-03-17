@@ -5,7 +5,7 @@ export { DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
-export { findSync } from './utils/find'
+export { findPrismaRootSync, findSync } from './utils/find'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export {
   Engine,
