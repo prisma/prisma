@@ -329,3 +329,12 @@ export function unique<T>(arr: T[]): T[] {
 
   return result
 }
+
+/**
+ *
+ * @param paths - list of paths in posix or win32 format to join and then
+ *     replace all backslash separators with a forward slash
+ */
+export function makePosixImportPath(...paths: string[]): string {
+  return path.join(...paths.map((segment) => segment.replace(/\\$/, ''))).replace(/\\/g, path.posix.sep)
+}

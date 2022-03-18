@@ -1,5 +1,4 @@
-import path from 'path'
-
+import { makePosixImportPath } from '../utils'
 import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
@@ -9,7 +8,7 @@ export const commonCodeJS = ({
   clientVersion,
   engineVersion,
 }: TSClientOptions): string => {
-  const runtimePath = path.join(runtimeDir, runtimeName)
+  const runtimePath = makePosixImportPath(runtimeDir, runtimeName)
 
   return `
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -86,7 +85,7 @@ In case this error is unexpected for you, please report it in https://github.com
 }
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${path.join(runtimeDir, runtimeName)}';
+  tsWithoutNamespace: () => `import * as runtime from '${makePosixImportPath(runtimeDir, runtimeName)}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
