@@ -23,7 +23,8 @@ export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir:
  * a build step for platforms like Vercel or Netlify. On top of that, the
  * feature is especially useful for Next.js/Webpack users since the client gets
  * moved and copied out of its original spot. It all fails, it falls-back to
- * `__dirname`, which is never available on bundles.
+ * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
+ * nothing has been found around `__dirname`.
  * @param defaultRelativeOutdir
  * @param runtimePath
  * @returns
@@ -35,14 +36,22 @@ function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
   return `
 const { findSync } = require('${runtimePath}')
 
-// use findSync when __dirname is either not available or not useful
-const useFindSync = typeof __dirname === 'undefined' || __dirname === '/'
+const hasDirname = typeof __dirname !== 'undefined' && __dirname !== '/'
 
-const dirname = useFindSync ? findSync(process.cwd(), [
+// will work in most cases, ie. if the client has not been bundled
+const regularDirname = hasDirname ? path.dirname(findSync(__dirname, [
+    ${JSON.stringify('schema.prisma')},
+], ['f'], ['d'], 1)[0] || '') : undefined
+
+// if the client has been bundled, we need to look for the folder
+const foundDirname = findSync(process.cwd(), [
     ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
     ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
-], ['d'], ['d'], 1)[0] : __dirname`
+], ['d'], ['d'], 1)[0]
+
+const dirname = regularDirname || foundDirname || __dirname`
 }
+// TODO: 👆 all this complexity could fade away if we embed the schema
 
 /**
  * Builds a simple `dirname` for when it is not important to have one.
