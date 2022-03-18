@@ -1,3 +1,5 @@
+import path from 'path'
+
 import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
@@ -6,14 +8,17 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-}: TSClientOptions): string => `
+}: TSClientOptions): string => {
+  const runtimePath = path.join(runtimeDir, runtimeName)
+
+  return `
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
   browser
     ? `
 const {
   Decimal
-} = require('${runtimeDir}/${runtimeName}')
+} = require('${runtimePath}')
 `
     : `
 const {
@@ -29,7 +34,7 @@ const {
   join,
   raw,
   Decimal
-} = require('${runtimeDir}/${runtimeName}')
+} = require('${runtimePath}')
 `
 }
 
@@ -69,6 +74,7 @@ Prisma.DbNull = 'DbNull'
 Prisma.JsonNull = 'JsonNull'
 Prisma.AnyNull = 'AnyNull'
 `
+}
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
@@ -80,7 +86,7 @@ In case this error is unexpected for you, please report it in https://github.com
 }
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+  tsWithoutNamespace: () => `import * as runtime from '${path.join(runtimeDir, runtimeName)}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
