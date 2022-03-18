@@ -194,14 +194,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                            // *** WARNING ***
-                                                                                                                                                                                                                                                                                            // 
-                                                                                                                                                                                                                                                                                            // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                                                                                                                                            // - Model "AwesomeNewPost"
-                                                                                                                                                                                                                                                                                            // - Model "AwesomeProfile"
-                                                                                                                                                                                                                                                                                            // - Model "AwesomeUser"
-                                                                                                                                                                                                                                                                                            // 
-                                                                                                                                                                                            `)
+                                                                                                                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                                                                                                                  // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                                                                                                                  // - Model "AwesomeNewPost"
+                                                                                                                                                                                                                                                                                                  // - Model "AwesomeProfile"
+                                                                                                                                                                                                                                                                                                  // - Model "AwesomeUser"
+                                                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -542,9 +542,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Document"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      - Model "users", field: "numberOrString1", chosen data type: "Json"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
     `)
@@ -568,9 +568,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Document"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      - Model "users", field: "numberOrString1", chosen data type: "Json"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
     `)
@@ -627,9 +627,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Document"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      // - Model "users", field: "numberOrString1", chosen data type: "Json"
+      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
       // 
     `)
   })
@@ -669,7 +669,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Document"
+      // - Model "users", field: "numberOrString1", chosen data type: "Json"
       // 
     `)
   })
@@ -717,8 +717,8 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Document"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
+      // - Model "users", field: "numberOrString1", chosen data type: "Json"
+      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
       // 
     `)
   })
@@ -740,9 +740,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Document"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      - Model "users", field: "numberOrString1", chosen data type: "Json"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
     `)
@@ -799,9 +799,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Document"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      // - Model "users", field: "numberOrString1", chosen data type: "Json"
+      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
       // 
     `)
   })
@@ -838,9 +838,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Document"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      - Model "users", field: "numberOrString1", chosen data type: "Json"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
     `)
@@ -864,9 +864,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Document"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Document"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Document"
+      - Model "users", field: "numberOrString1", chosen data type: "Json"
+      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
     `)
