@@ -35,10 +35,13 @@ function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
   return `
 const { findSync } = require('${runtimePath}')
 
-const dirname = findSync(process.cwd(), [
+// use findSync when __dirname is either not available or not useful
+const useFindSync = typeof __dirname === 'undefined' || __dirname === '/'
+
+const dirname = useFindSync ? findSync(process.cwd(), [
     ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
     ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
-], ['d'], ['d'], 1)[0] || __dirname`
+], ['d'], ['d'], 1)[0] : __dirname`
 }
 
 /**
