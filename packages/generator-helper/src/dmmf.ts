@@ -70,11 +70,14 @@ export namespace DMMF {
   export interface Field {
     kind: FieldKind
     name: string
-    isRequired: boolean
-    isList: boolean
-    isUnique: boolean
-    isId: boolean
-    isReadOnly: boolean
+
+    // bool values treated as 'false' if not present
+    isRequired?: boolean
+    isList?: boolean
+    isUnique?: boolean
+    isId?: boolean
+    isReadOnly?: boolean
+
     isGenerated?: boolean // does not exist on 'type' but does on 'model'
     isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
     /**
@@ -83,7 +86,7 @@ export namespace DMMF {
      */
     type: string
     dbNames?: string[] | null
-    hasDefaultValue: boolean
+    hasDefaultValue?: boolean
     default?: FieldDefault | string | boolean | number
     relationFromFields?: string[]
     relationToFields?: any[]
