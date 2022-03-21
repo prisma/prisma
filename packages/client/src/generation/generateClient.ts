@@ -351,6 +351,10 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
       // Reserved Prisma keywords
       'PrismaClient',
       'Prisma',
+      'Datasource',
+      'Middleware',
+      'LogLevel',
+      'Generator',
       // JavaScript keywords
       'break',
       'case',
