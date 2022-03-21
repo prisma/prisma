@@ -67,9 +67,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.12.0-6.3f4e645b4b21517662fa7940520ce0b50303cb11",
+    "@prisma/fetch-engine": "3.12.0-9.de0f7fc155ba9616c743350ecf1ae615b27a1e02",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.12.0-6.3f4e645b4b21517662fa7940520ce0b50303cb11",
+    "@prisma/get-platform": "3.12.0-9.de0f7fc155ba9616c743350ecf1ae615b27a1e02",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.458.0",
@@ -118,7 +118,7 @@
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.12.0-6.3f4e645b4b21517662fa7940520ce0b50303cb11"
+    "@prisma/engines": "3.12.0-9.de0f7fc155ba9616c743350ecf1ae615b27a1e02"
   },
   "sideEffects": false
 }
