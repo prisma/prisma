@@ -387,7 +387,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
               }
             })
             .join('\n')
-        } else if (warning.code === 102 || warning.code === 103) {
+        } else if (warning.code === 102 || warning.code === 103 || warning.code === 104) {
           message += warning.affected
             .map((it) => {
               if (it.model) {
