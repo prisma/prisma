@@ -194,14 +194,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                  // *** WARNING ***
-                                                                                                                                                                                                                                                                                                  // 
-                                                                                                                                                                                                                                                                                                  // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                                                                                                                                                                                                                                                                                  // - Model "AwesomeNewPost"
-                                                                                                                                                                                                                                                                                                  // - Model "AwesomeProfile"
-                                                                                                                                                                                                                                                                                                  // - Model "AwesomeUser"
-                                                                                                                                                                                                                                                                                                  // 
-                                                                                                                                                                                                `)
+                                                                                                                                                                                                                                                                                                        // *** WARNING ***
+                                                                                                                                                                                                                                                                                                        // 
+                                                                                                                                                                                                                                                                                                        // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                                                                                                                        // - Model "AwesomeNewPost"
+                                                                                                                                                                                                                                                                                                        // - Model "AwesomeProfile"
+                                                                                                                                                                                                                                                                                                        // - Model "AwesomeUser"
+                                                                                                                                                                                                                                                                                                        // 
+                                                                                                                                                                                                    `)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toStrictEqual(originalSchema)
   })
@@ -595,7 +595,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       type UsersHobbies {
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString2 Json?
         objects         UsersHobbiesObjects[]
         tags            String[]
@@ -603,7 +603,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       type UsersHobbiesObjects {
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString3 Json
         tags            String[]
       }
@@ -614,7 +614,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
         email           String
         hobbies         UsersHobbies[]
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString1 Json
       }
 
@@ -624,14 +624,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-      // 
-    `)
+            // *** WARNING ***
+            // 
+            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+            // - Model "users", field: "numberOrString1", chosen data type: "Json"
+            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+            // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+            // 
+        `)
   })
 
   test('introspection --print --composite-type-depth=0 (no existing models)', async () => {
@@ -656,7 +656,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
         email           String
         hobbies         Json[]
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString1 Json
       }
 
@@ -666,12 +666,12 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // 
-    `)
+            // *** WARNING ***
+            // 
+            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+            // - Model "users", field: "numberOrString1", chosen data type: "Json"
+            // 
+        `)
   })
 
   test('introspection --print --composite-type-depth=1 (no existing models)', async () => {
@@ -692,7 +692,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       type UsersHobbies {
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString2 Json?
         objects         Json[]
         tags            String[]
@@ -704,7 +704,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
         email           String
         hobbies         UsersHobbies[]
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString1 Json
       }
 
@@ -714,13 +714,13 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // 
-    `)
+            // *** WARNING ***
+            // 
+            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+            // - Model "users", field: "numberOrString1", chosen data type: "Json"
+            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+            // 
+        `)
   })
 
   test('introspection --force --composite-type-depth=-1 (existing models)', async () => {
@@ -767,7 +767,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       type UsersHobbies {
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString2 Json?
         objects         UsersHobbiesObjects[]
         tags            String[]
@@ -775,7 +775,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
 
       type UsersHobbiesObjects {
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString3 Json
         tags            String[]
       }
@@ -786,7 +786,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
         email           String
         hobbies         UsersHobbies[]
         name            String
-        /// Multiple data types found: String: 50%, Int32: 50% out of 2 sampled entries
+        /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
         numberOrString1 Json
       }
 
@@ -796,14 +796,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-      // 
-    `)
+            // *** WARNING ***
+            // 
+            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+            // - Model "users", field: "numberOrString1", chosen data type: "Json"
+            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+            // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+            // 
+        `)
   })
 
   // describeIf is making eslint not happy about the names
