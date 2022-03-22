@@ -75,8 +75,6 @@ Or specify a Prisma schema path
       datamodel: output,
     })
 
-    output = output.trimEnd() + '\n'
-
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
 
