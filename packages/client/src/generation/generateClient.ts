@@ -104,6 +104,7 @@ export async function buildClient({
   }
 }
 
+// TODO: explore why we have a special case for excluding pnpm
 async function getDotPrismaDir(outputDir: string): Promise<string> {
   if (outputDir.endsWith('node_modules/@prisma/client')) {
     return path.join(outputDir, '../../.prisma/client')
