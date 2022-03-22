@@ -36,3 +36,6 @@ pnpm-debug.log
 
 esm
 .gitpod.yml
+reproductions/*
+!reproductions/basic-sqlite
+!reproductions/pnpm-workspace.yaml

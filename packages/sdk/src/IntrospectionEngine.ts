@@ -72,6 +72,7 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsMongoMultipleTypes
   | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
   | IntrospectionWarningsMongoFieldsWithUnkownTypes
+  | IntrospectionWarningsMongoFieldsWithEmptyNames
 
 type AffectedModel = { model: string }
 type AffectedModelAndIndex = { model: string; index_db_name: string }
@@ -205,6 +206,10 @@ interface IntrospectionWarningsMongoFieldsPointingToAnEmptyType extends Introspe
 }
 interface IntrospectionWarningsMongoFieldsWithUnkownTypes extends IntrospectionWarning {
   code: 103
+  affected: AffectedModelOrCompositeTypeAndField[]
+}
+interface IntrospectionWarningsMongoFieldsWithEmptyNames extends IntrospectionWarning {
+  code: 104
   affected: AffectedModelOrCompositeTypeAndField[]
 }
 

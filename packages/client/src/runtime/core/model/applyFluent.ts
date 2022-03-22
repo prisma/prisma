@@ -119,7 +119,7 @@ export function applyFluent(
         // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      ...defaultProxyHandlers(ownKeys),
+      ...defaultProxyHandlers([...ownKeys, ...Object.getOwnPropertyNames(prismaPromise)]),
     })
   }
 }

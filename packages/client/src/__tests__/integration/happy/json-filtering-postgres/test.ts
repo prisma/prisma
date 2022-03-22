@@ -9,6 +9,12 @@ import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 let prisma: PrismaClient
 let PrismaUtil: typeof Prisma
 const baseUri = process.env.TEST_POSTGRES_URI
+
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+if (isMacOrWindowsCI) {
+  jest.setTimeout(100_000)
+}
+
 describe('json-filtering(postgres)', () => {
   beforeAll(async () => {
     process.env.TEST_POSTGRES_URI += '-json-filtering'
