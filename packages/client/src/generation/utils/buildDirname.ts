@@ -35,20 +35,16 @@ function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
 
   return `
 const { findSync } = require('${runtimePath}')
+const fs = require('fs')
 
-// some frameworks or bundlers disallow or totally remove __dirname
+// some frameworks or bundlers replace or totally remove __dirname
 const hasDirname = typeof __dirname !== 'undefined' && __dirname !== '/'
 
 // will work in most cases, ie. if the client has not been bundled
-const regularFilename = hasDirname ? findSync(__dirname, [
-    ${JSON.stringify('schema.prisma')},
-], ['f'], ['d'], 1)[0]) : undefined
+const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.prisma')) && __dirname
 
-// here we just ditch the filename as we just want the directory
-const regularDirname = regularFilename ? path.dirname(regularFilename) : undefined
-
-// if the client has been bundled, we need to look for the folder
-const foundDirname = findSync(process.cwd(), [
+// if the client has been bundled, we need to look for the folders
+const foundDirname = !regularDirname && findSync(process.cwd(), [
     ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
     ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
 ], ['d'], ['d'], 1)[0]
