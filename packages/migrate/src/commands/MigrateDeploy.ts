@@ -1,15 +1,15 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError } from '@prisma/sdk'
-import chalk from 'chalk'
-import path from 'path'
-import { Migrate } from '../Migrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
-import { NoSchemaFoundError } from '../utils/errors'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { printDatasource } from '../utils/printDatasource'
 import Debug from '@prisma/debug'
+import type { Command } from '@prisma/sdk'
+import { arg, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
+import chalk from 'chalk'
+
+import { Migrate } from '../Migrate'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
+import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { printDatasource } from '../utils/printDatasource'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
 
 const debug = Debug('prisma:migrate:deploy')
 
@@ -63,20 +63,16 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
+      throw new ExperimentalFlagWithMigrateError()
     }
 
     if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+      throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 
@@ -96,10 +92,6 @@ ${chalk.bold('Examples')}
       throw e
     }
 
-    const diagnoseResult = await migrate.diagnoseMigrationHistory({
-      optInToShadowDatabase: false,
-    })
-    debug({ diagnoseResult: JSON.stringify(diagnoseResult, null, 2) })
     const listMigrationDirectoriesResult = await migrate.listMigrationDirectories()
     debug({ listMigrationDirectoriesResult })
 
@@ -111,20 +103,13 @@ ${chalk.bold('Examples')}
       console.info(`No migration found in prisma/migrations`)
     }
 
-    const editedMigrationNames = diagnoseResult.editedMigrationNames
-    if (editedMigrationNames.length > 0) {
-      console.info(
-        `${chalk.yellow('WARNING The following migrations have been modified since they were applied:')}
-${editedMigrationNames.join('\n')}`,
-      )
-    }
-
     let migrationIds: string[]
     try {
       console.info() // empty line
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
+      // Stop engine
       migrate.stop()
     }
 

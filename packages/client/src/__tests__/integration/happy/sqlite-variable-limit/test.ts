@@ -1,8 +1,9 @@
 // const pMap = require('p-map')
+import { getTestClient } from '../../../../utils/getTestClient'
+
 const zlib = require('zlib')
 const fs = require('fs')
 const path = require('path')
-import { getTestClient } from '../../../../utils/getTestClient'
 
 jest.setTimeout(50000)
 

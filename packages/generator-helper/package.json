@@ -2,7 +2,7 @@
   "name": "@prisma/generator-helper",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "dist/esm/index.mjs",
+  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -28,29 +28,17 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
-    "prepublishOnly": "pnpm run build && pnpm run test",
-    "format": "prettier --write .",
-    "lint": "eslint --cache --fix --ext .ts .",
-    "lint-ci": "eslint --ext .ts .",
-    "test": "jest",
-    "precommit": "lint-staged"
+    "prepublishOnly": "pnpm run build",
+    "test": "jest"
   },
   "devDependencies": {
-    "@types/jest": "27.4.0",
-    "@types/node": "12.20.39",
-    "@typescript-eslint/eslint-plugin": "5.9.0",
-    "@typescript-eslint/parser": "5.9.0",
+    "@swc/core": "1.2.141",
+    "@swc/jest": "0.2.17",
+    "@types/jest": "27.4.1",
+    "@types/node": "12.20.47",
     "esbuild": "0.13.14",
-    "eslint": "8.6.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.3.4",
-    "eslint-plugin-prettier": "4.0.0",
-    "jest": "27.4.6",
-    "lint-staged": "12.1.5",
-    "prettier": "2.5.1",
-    "ts-jest": "27.1.2",
+    "jest": "27.5.1",
+    "jest-junit": "13.0.0",
     "ts-node": "10.4.0",
     "typescript": "4.5.4"
   },
@@ -58,11 +46,5 @@
     "README.md",
     "dist"
   ],
-  "lint-staged": {
-    "*.ts": [
-      "eslint",
-      "prettier --write"
-    ]
-  },
   "sideEffects": false
 }

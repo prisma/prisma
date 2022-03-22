@@ -1,18 +1,19 @@
 import { getPlatform } from '@prisma/get-platform'
 import {
   extractPreviewFeatures,
+  getClientEngineType,
   getConfig,
   getEnvPaths,
   getRelativeSchemaPath,
   mapPreviewFeatures,
   parseEnvValue,
   printConfigWarnings,
-  getClientEngineType,
 } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
+
 import { getDMMF } from '../generation/getDMMF'
 import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'
@@ -26,11 +27,9 @@ const readFile = promisify(fs.readFile)
  * Returns an in-memory client for testing
  */
 export async function getTestClient(schemaDir?: string, printWarnings?: boolean): Promise<any> {
-  if (!schemaDir) {
-    const callsite = parse(new Error('').stack!)
-    schemaDir = path.dirname(callsite[1].file!)
-  }
-  const schemaPath = await getRelativeSchemaPath(schemaDir)
+  const callSite = path.dirname(require.main?.filename ?? '')
+  const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
+  const schemaPath = await getRelativeSchemaPath(absSchemaDir)
   const datamodel = await readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   if (printWarnings) {
@@ -48,14 +47,14 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     datamodel,
     previewFeatures,
   })
-  const outputDir = schemaDir
-  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: schemaDir })
+  const outputDir = absSchemaDir
+  const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
     document,
     generator,
-    dirname: schemaDir,
-    relativePath: path.relative(outputDir, schemaDir),
+    dirname: absSchemaDir,
+    relativePath: path.relative(outputDir, absSchemaDir),
     clientVersion: 'client-test-version',
     engineVersion: 'engine-test-version',
     relativeEnvPaths,

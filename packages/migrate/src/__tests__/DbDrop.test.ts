@@ -1,13 +1,12 @@
-process.env.GITHUB_ACTIONS = '1'
-
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import prompt from 'prompts'
+
 import { DbDrop } from '../commands/DbDrop'
-import { consoleContext, Context } from './__helpers__/context'
 
 // TODO: Windows: snapshot tests fail on Windows because of emoji and different error messages.
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describeIf(process.platform !== 'win32')('drop', () => {
   it('requires --preview-feature flag', async () => {
@@ -129,6 +128,8 @@ No such file or directory (os error 2)
 
   it('should ask for --force if not provided if CI', async () => {
     ctx.fixture('reset')
+    process.env.GITHUB_ACTIONS = '1'
+
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force --preview-feature`,

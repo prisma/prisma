@@ -1,5 +1,5 @@
-import { default as _resolve } from 'resolve'
 import path from 'path'
+import { default as _resolve } from 'resolve'
 
 async function resolve(id: string, options: _resolve.AsyncOpts) {
   const _options = { preserveSymlinks: false, ...options }

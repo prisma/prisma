@@ -1,12 +1,19 @@
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
+// @ts-ignore trick to get typings at dev time
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-// @ts-ignore trick to get typings at dev time
-import type { PrismaClient } from './node_modules/@prisma/client'
+if (process.env.CI) {
+  // to avoid timeouts on macOS and Windows
+  jest.setTimeout(100_000)
+} else {
+  jest.setTimeout(10_000)
+}
 
 let prisma: PrismaClient
 const baseUri = process.env.TEST_MYSQL_URI
@@ -172,16 +179,16 @@ describe('full-text-search (mysql)', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-    Invalid \`.findMany()\` invocation in
-    /client/src/__tests__/integration/happy/full-text-search-mysql/test.ts:0:0
+            Invalid \`.findMany()\` invocation in
+            /client/src/__tests__/integration/happy/full-text-search-mysql/test.ts:0:0
 
-      157  */
-      158 testIf(process.platform !== 'win32')('bad operator', async () => {
-      159   const result = prisma.user
-    → 160     .findMany(
-      Error occurred during query execution:
-    ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })) })
-    `)
+              164  */
+              165 testIf(process.platform !== 'win32')('bad operator', async () => {
+              166   const result = prisma.user
+            → 167     .findMany(
+              Error occurred during query execution:
+            ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })) })
+          `)
   })
 
   test('order by relevance on a single field', async () => {

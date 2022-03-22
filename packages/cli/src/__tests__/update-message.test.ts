@@ -1,8 +1,10 @@
 import 'ts-node/register'
-import { printUpdateMessage } from '../utils/printUpdateMessage'
-import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
+
+import { printUpdateMessage } from '../utils/printUpdateMessage'
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('update available message', () => {
   it('dev tag - minor', () => {

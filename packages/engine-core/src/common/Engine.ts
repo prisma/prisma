@@ -1,6 +1,7 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import type * as Transaction from './types/Transaction'
+
 import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
+import type * as Transaction from './types/Transaction'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 
 export interface FilterConstructor {
@@ -53,7 +54,6 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env?: Record<string, string>
   flags?: string[]
-  useUds?: boolean
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string

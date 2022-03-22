@@ -17,10 +17,6 @@
       "@prisma/engines-version": ["../engines-wrapper/packages/engines-version/src"]
     }
   },
-  "include": ["**/*"],
-  "exclude": [
-    "**/dist",
-    "**/build",
-    "**/node_modules"
-  ]
+  "include": ["**/*", ".eslintrc.js"],
+  "exclude": ["**/dist", "**/build", "**/node_modules", "**/packages"]
 }

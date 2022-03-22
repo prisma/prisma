@@ -1,10 +1,10 @@
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
-
 // @ts-ignore trick to get typings at dev time
-import type { PrismaClient, Prisma } from './node_modules/.prisma/client'
+import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 
 let prisma: PrismaClient
 let PrismaUtil: typeof Prisma

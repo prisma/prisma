@@ -1,0 +1,15 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["cockroachdb"]
+}
+
+datasource db {
+  provider          = "cockroachdb"
+  url               = env("TEST_COCKROACHDB_SHADOWDB_URI_MIGRATE")
+  shadowDatabaseUrl = env("TEST_COCKROACHDB_SHADOWDB_URI_MIGRATE")
+}
+
+model User {
+  id   BigInt  @id(map: "primary") @default(autoincrement())
+  name String?
+}

@@ -1,10 +1,9 @@
-process.env.GITHUB_ACTIONS = '1'
-
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs-jetpack'
-import { MigrateDeploy } from '../commands/MigrateDeploy'
-import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+import { MigrateDeploy } from '../commands/MigrateDeploy'
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -27,8 +26,8 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateDeploy.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now in Preview.
-            Replace the --early-access-feature flag with --preview-feature.
+            Prisma Migrate was in Early Access and is now Generally Available.
+            Remove the --early-access-feature flag.
           `)
   })
 })
@@ -100,7 +99,7 @@ describe('sqlite', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
             P3005
 
-            The database schema for \`dev.db\` is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
+            The database schema is not empty. Read more about how to baseline an existing production database: https://pris.ly/d/migrate-baseline
 
           `)
 

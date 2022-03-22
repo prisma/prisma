@@ -1,10 +1,11 @@
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
-import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
-import { consoleContext, Context } from '../__helpers__/context'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+import { defaultEnv, defaultGitIgnore, defaultSchema } from '../../Init'
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 test('is schema and env written on disk replace', async () => {
   const result = await ctx.cli('init')
@@ -28,9 +29,9 @@ test('works with url param', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
 # Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="file:dev.db"
@@ -48,9 +49,9 @@ test('works with provider param - postgresql', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
 # Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
@@ -68,9 +69,9 @@ test('works with provider param - mysql', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
 # Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
@@ -88,9 +89,9 @@ test('works with provider param - SQLITE', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
 # Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="file:./dev.db"
@@ -108,9 +109,9 @@ test('works with provider param - SqlServer', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
 # Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;"
@@ -128,9 +129,9 @@ test('works with provider param - MongoDB', async () => {
   const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
   expect(env).toMatchInlineSnapshot(`
 # Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority"

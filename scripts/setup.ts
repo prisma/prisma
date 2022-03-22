@@ -1,10 +1,7 @@
-import execa from 'execa'
 import chalk from 'chalk'
-import path from 'path'
-import pRetry from 'p-retry'
-import pMap from 'p-map'
-import { getPackages, getPublishOrder, getPackageDependencies } from './ci/publish'
+import execa from 'execa'
 import fetch from 'node-fetch'
+import path from 'path'
 
 async function main() {
   // this is for when you want to use it locally
@@ -27,7 +24,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
 
   if (process.env.RELEASE_PROMOTE_DEV) {
     // this is a way to get the commit hash of that specific version
-    const versions = await getPrismaCommitFromPackageJsonViaUnpkg(process.env.RELEASE_PROMOTE_DEV)
+    const versions = await getPrismaCommitFromPackageJsonViaNpmRegistry(process.env.RELEASE_PROMOTE_DEV)
 
     await run(`.`, `git stash`) // TODO: can we remove this?
     await run(`.`, `git checkout ${versions.prisma}`, true) // TODO: disable the dry run here
@@ -50,11 +47,6 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   // TODO: separate into utils shared between publish & setup
-  const rawPackages = await getPackages()
-  const packages = getPackageDependencies(rawPackages)
-  const publishOrder = getPublishOrder(packages)
-
-  console.log('publish order', publishOrder)
   if (buildOnly === false) {
     console.debug(`Installing dependencies`)
     await run('.', `pnpm i`).catch((e) => {
@@ -63,62 +55,12 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   }
 
   console.debug(`Building packages`)
-
-  // TODO: replace with pnpm -r
-  for (const batch of publishOrder) {
-    await pMap(
-      batch,
-      async (pkgName) => {
-        const pkg = packages[pkgName]
-        const pkgDir = path.dirname(pkg.path)
-        const runPromise = run(pkgDir, 'pnpm run build')
-
-        // we want to build all in build-only to see all errors at once
-        if (buildOnly) {
-          runPromise.catch(console.error)
-
-          // for sqlite3 native bindings, they need a rebuild after an update
-          if (['@prisma/migrate', '@prisma/integration-tests'].includes(pkgName)) {
-            await run(pkgDir, 'pnpm rebuild')
-          }
-        }
-
-        await runPromise
-      },
-      { concurrency: 1 },
-    )
-  }
+  // Build CLI
+  await run('.', `pnpm -r build`)
 
   if (buildOnly) {
     return
   }
-
-  // TODO: this can now be removed
-  // this should not be necessary, it's an pnpm bug
-  // it doesn't execute postinstall correctly
-  for (const batch of publishOrder) {
-    for (const pkgName of batch) {
-      const pkg = packages[pkgName]
-      if (pkg.packageJson.scripts.postinstall) {
-        const pkgDir = path.dirname(pkg.path)
-        await run(pkgDir, 'pnpm run postinstall')
-      }
-    }
-  }
-
-  // TODO: same as the other retry?
-  // final install on top level
-  await pRetry(
-    async () => {
-      await run('.', 'pnpm i')
-    },
-    {
-      retries: 6,
-      onFailedAttempt: (e) => {
-        console.error(e)
-      },
-    },
-  )
 }
 
 // TODO: fix this
@@ -205,8 +147,8 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getPrismaCommitFromPackageJsonViaUnpkg(npmVersion: string): Promise<{ prisma: string }> {
-  return fetch(`https://unpkg.com/prisma@${npmVersion}/package.json`, {
+async function getPrismaCommitFromPackageJsonViaNpmRegistry(npmVersion: string): Promise<{ prisma: string }> {
+  return fetch(`https://registry.npmjs.org/prisma/${npmVersion}`, {
     headers: {
       accept: 'application/json',
     },

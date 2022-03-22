@@ -1,12 +1,12 @@
-import fs from 'fs'
-import path from 'path'
-import execa from 'execa'
-import hasYarn from 'has-yarn'
+import Debug from '@prisma/debug'
+import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/sdk'
 import chalk from 'chalk'
+import execa from 'execa'
+import fs from 'fs'
+import hasYarn from 'has-yarn'
+import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
-import { getPrismaConfigFromPackageJson, logger, link } from '@prisma/sdk'
-import Debug from '@prisma/debug'
 
 const debug = Debug('prisma:migrate:seed')
 const readFileAsync = promisify(fs.readFile)

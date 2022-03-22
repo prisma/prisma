@@ -1,12 +1,13 @@
 import tempy from 'tempy'
+
+import { credentialsToUri, uriToCredentials } from '../convertCredentials'
 import {
-  execaCommand,
-  doesSqliteDbExist,
   canConnectToDatabase,
   createDatabase,
+  doesSqliteDbExist,
   dropDatabase,
+  execaCommand,
 } from '../migrateEngineCommands'
-import { uriToCredentials, credentialsToUri } from '../convertCredentials'
 
 if (process.env.CI) {
   // 5s is often not enough for the "postgresql - create database" test on macOS CI.
@@ -165,7 +166,7 @@ describe('createDatabase', () => {
 
   test('invalid database type', async () => {
     await expect(createDatabase('invalid:somedburl')).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Unknown database type invalid:"`,
+      `"Unknown protocol invalid:"`,
     )
   })
 

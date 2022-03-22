@@ -24,7 +24,7 @@ Please provide the ${chalk.green('--early-access-feature')} flag to use this com
   }
 }
 
-export class ExperimentalFlagWithNewMigrateError extends Error {
+export class ExperimentalFlagWithMigrateError extends Error {
   constructor() {
     super(
       `Prisma Migrate was Experimental and is now Generally Available.
@@ -35,11 +35,11 @@ ${chalk.yellow(
   }
 }
 
-export class EarlyAccessFeatureFlagWithNewMigrateError extends Error {
+export class EarlyAccessFeatureFlagWithMigrateError extends Error {
   constructor() {
     super(
-      `Prisma Migrate was in Early Access and is now in Preview.
-Replace the ${chalk.red('--early-access-feature')} flag with ${chalk.green('--preview-feature')}.`,
+      `Prisma Migrate was in Early Access and is now Generally Available.
+Remove the ${chalk.red('--early-access-feature')} flag.`,
     )
   }
 }

@@ -6,24 +6,6 @@ To get you started on a good foot, we've created an easy overview of the most im
 
 We also encourage you to join our sprawling [community](https://www.prisma.io/community) online, where you can discuss ideas, ask questions and get inspiration for what to build next.
 
-## Table of Contents
-
-- Contributing Code
-  - General Prerequisites
-  - General Setup
-  - Prisma Client
-    - Initial Setup
-    - Building and Running Prisma Client
-    - Tests
-  - Prisma Migrate
-    - Initial Setup
-    - Building and Running Prisma Migrate
-    - Tests
-- Additional Resources
-- Conventions
-  - Git Commit Messages
-- Legal
-
 ## Contributing Code
 
 Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines)
@@ -31,8 +13,10 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 ## General Prerequisites
 
 1. Install Node.js `>=12.6` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+
    - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
-1. Install [`pnpm`](https://pnpm.js.org/) (for installing npm dependencies, using pnpm workspaces)
+
+1. Install [`pnpm`](https://pnpm.io/) (for installing npm dependencies, using pnpm workspaces)
 1. Install [`docker`](https://www.docker.com/products/docker-desktop) (for managing databases for our tests)
 1. Install [`ts-node`](https://github.com/TypeStrong/ts-node) (for running Node.js scripts written in TypeScript)
 1. Install [`direnv`](https://github.com/direnv/direnv/blob/master/docs/installation.md) (for managing .envrc for environment variables)
@@ -59,8 +43,7 @@ pnpm i
 pnpm run setup
 ```
 
-Note for Windows:
-Use the latest version of [Git Bash](https://gitforwindows.org/)
+> 💡 For Windows users: use the latest version of [Git Bash](https://gitforwindows.org/).
 
 ## Building packages when you make changes
 
@@ -68,24 +51,75 @@ In the root directory:
 
 - `pnpm run setup` will install and build all the packages
 - `pnpm -r run build` (-r for recursive) will build all the packages
-- `pnpm -r run dev` (-r for recursive) will build all the packages without running `tsc` (Fastest)
+- `pnpm -r run dev` (-r for recursive) will build all the packages, without running `tsc`
+- `pnpm run watch` will continuously build any packages that have been modified, without running `tsc` (Fastest)
 
 In a package directory, like `packages/client`:
 
 - `pnpm run build` will build the package
 - `pnpm run dev` will build the package without running `tsc` (Fastest)
 
-Note: Our builder is ESbuild
+> 💡 Our builder is built on top of esbuild
 
 ## Prisma Client
 
 ### First contribution
 
-1. `cd packages/client`
-1. `ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile`
-1. `cd fixtures/blog`
-1. `npx prisma db push --skip-generate` will create the database structure
-1. `ts-node main`
+Create a reproduction folder for developing, trying a new feature, or a fix.
+
+#### Setting up a locally-linked development folder
+
+Set up a local project that will be linked to the local packages.
+
+```sh
+cd reproductions && pnpm install
+# Copy a template from the reproduction folder
+cp -r basic-sqlite my-repro && cd my-repro
+# Ensure that the db and the schema are synced
+pnpx prisma db push --skip-generate
+# Do some code changes, always re-generate the client, then try it out
+pnpx prisma generate && pnpx ts-node index.ts
+```
+
+> 💡 This works best when compiling with `pnpm run watch` in the background.
+
+> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
+
+<details>
+  <summary><b>Alternatives</b></summary>
+  
+  #### Detailed steps for a locally-linked dev folder
+  ```sh
+  cd reproductions
+  mkdir my-repro
+  cd my-repro
+  pnpm init -y
+  pnpm add ../../packages/client
+  pnpm add -D ../../packages/cli
+  pnpm add -D typescript ts-node
+  pnpm add -D @types/node
+  touch index.ts
+  pnpx tsc --init
+  pnpx prisma init
+  # > Manually populate the schema.prisma
+  # > Manually add 👇 to the generator block
+  #   output = "../node_modules/.prisma/client"
+  # > Manually populate the index.ts
+  pnpx prisma db push --skip-generate
+  pnpx prisma generate && pnpx ts-node index.ts # Try it out
+  ```
+
+#### Developing and working in the fixture folder
+
+```sh
+cd packages/client
+ts-node fixtures/generate.ts ./fixtures/blog/ --skip-transpile
+cd fixtures/blog
+npx prisma db push --skip-generate
+ts-node main.ts # Try it out
+```
+
+</details>
 
 ### Tests
 
@@ -101,8 +135,10 @@ The integration tests consisting of mini projects are located in [`src/client/sr
 
 Run the tests:
 
-1. `cd packages/client`
-2. `pnpm run test integration`
+```sh
+cd packages/client
+pnpm run test integration
+```
 
 ##### Creating a new folder-based integration test
 
@@ -117,8 +153,10 @@ The integration tests consisting of mini project are located in [`packages/integ
 
 Run the tests:
 
-1. `cd packages/integration-tests`
-2. `pnpm run test`
+```sh
+cd packages/integration-tests
+pnpm run test
+```
 
 ## Prisma Migrate
 
@@ -128,13 +166,15 @@ Run the tests:
 1. Then modify some code
 1. `../../src/bin.ts dev` for running `prisma migrate dev`
 
+> 💡 You can also test your changes in a reproduction project via the [CLI](#developing-prisma-cli).
+
 ### Tests
 
 For an overview, adding, running tests & guidelines see [TESTING.md](./TESTING.md).
 
 Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./packages/migrate/src/__tests__/fixtures)
 
-## Additional Ressources
+## Additional Resources
 
 - [ARCHITECTURE.md](./ARCHITECTURE.md)
 - [TESTING.md](./TESTING.md)
@@ -143,10 +183,35 @@ Tests fixtures are located in [`./packages/migrate/src/__tests__/fixtures`](./pa
 
 ## Prisma CLI
 
-### Developing `prisma` CLI
+### First contribution
 
-1. `cd packages/cli`
-1. `../src/bin.ts generate` to run `prisma generate`
+Create a reproduction folder for developing, trying a new feature, or a fix.
+
+#### Setting up a locally-linked development folder
+
+Set up a local project that will be linked to the local packages.
+
+```sh
+cd reproductions && pnpm install
+# Copy a template from the reproduction folder
+cp -r basic-sqlite my-repro && cd my-repro
+# Do some code changes, compile, then try it out
+pnpx prisma generate
+```
+
+> 💡 This works best when compiling with `pnpm run watch` in the background.
+
+> 💡 In any successful setup `pnpx prisma -v` should return version `0.0.0`.
+
+<details>
+  <summary><b>Alternatives</b></summary>
+
+```sh
+cd packages/cli
+../src/bin.ts generate # Try it out
+```
+
+</details>
 
 ## Conventions
 

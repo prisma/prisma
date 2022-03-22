@@ -1,4 +1,5 @@
 import { serializeRawParameters } from '../runtime/utils/serializeRawParameters'
+
 function serializeHelper(data: any) {
   return JSON.parse(serializeRawParameters(data))
 }
@@ -11,7 +12,7 @@ describe('serializeRawParemeters', () => {
 
     expect(serializeHelper(data)).toMatchInlineSnapshot(`
       Object {
-        bigInt: 321804719213721,
+        bigInt: 202012310000001,
         date: Object {
           prisma__type: date,
           prisma__value: 2020-06-22T17:07:16.348Z,
@@ -29,7 +30,7 @@ describe('serializeRawParemeters', () => {
     expect(serializeHelper(data)).toMatchInlineSnapshot(`
       Object {
         bigInt: Array [
-          321804719213721,
+          202012310000001,
         ],
         date: Array [
           Object {
@@ -55,7 +56,7 @@ describe('serializeRawParemeters', () => {
   test('scalar bigInt', () => {
     const data = BigInt('321804719213721')
 
-    expect(serializeHelper(data)).toMatchInlineSnapshot(`321804719213721`)
+    expect(serializeHelper(data)).toMatchInlineSnapshot(`202012310000001`)
   })
 
   test('nested', () => {
@@ -70,8 +71,8 @@ describe('serializeRawParemeters', () => {
       Object {
         deep: Object {
           bigInt: Array [
-            321804719213721,
-            321804719213721,
+            202012310000001,
+            202012310000001,
           ],
           date: Array [
             Object {

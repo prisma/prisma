@@ -1,12 +1,21 @@
-import type { Command } from '@prisma/sdk'
-import { arg, canConnectToDatabase, format, getCommandWithExecutor, HelpError, link, logger } from '@prisma/sdk'
-import { protocolToConnectorType } from '@prisma/sdk/dist/convertCredentials'
 import type { ConnectorType } from '@prisma/generator-helper'
+import type { Command } from '@prisma/sdk'
+import {
+  arg,
+  canConnectToDatabase,
+  format,
+  getCommandWithExecutor,
+  HelpError,
+  link,
+  logger,
+  protocolToConnectorType,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
 import { isError } from 'util'
+
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
@@ -47,9 +56,9 @@ export const defaultEnv = (
 ) => {
   let env = comments
     ? `# Environment variables declared in this file are automatically made available to Prisma.
-# See the documentation for more detail: https://pris.ly/d/prisma-schema#using-environment-variables
+# See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server and MongoDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -66,6 +75,8 @@ export const defaultPort = (provider: ConnectorType) => {
       return 27017
     case 'postgresql':
       return 5432
+    case 'cockroachdb':
+      return 26257
   }
 
   return undefined
@@ -75,10 +86,14 @@ export const defaultURL = (provider: ConnectorType, port = defaultPort(provider)
   switch (provider) {
     case 'postgresql':
       return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
+    case 'cockroachdb':
+      return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
     case 'mysql':
       return `mysql://johndoe:randompassword@localhost:${port}/mydb`
     case 'sqlserver':
       return `sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
+    case 'jdbc:sqlserver':
+      return `jdbc:sqlserver://localhost:${port};database=mydb;user=SA;password=randompassword;`
     case 'mongodb':
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':

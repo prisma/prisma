@@ -1,11 +1,12 @@
+import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
+import fs from 'fs'
+import path from 'path'
+import resolve from 'resolve'
+
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { replaceWithPlugin } from '../../../helpers/compile/plugins/replaceWithPlugin'
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
-import resolve from 'resolve'
-import path from 'path'
-import fs from 'fs'
 
 const inlineUndiciWasm = replaceWithPlugin([
   [
@@ -39,7 +40,7 @@ const runtimeBuildConfig: BuildOptions = {
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
-  plugins: [inlineUndiciWasm],
+  plugins: [],
 }
 
 // we define the config for browser
@@ -103,6 +104,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
       bundledPackages: [
         'decimal.js',
         'sql-template-tag',
+        '@opentelemetry/api',
         '@prisma/sdk',
         '@prisma/engine-core',
         '@prisma/generator-helper',
