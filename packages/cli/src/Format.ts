@@ -67,7 +67,7 @@ Or specify a Prisma schema path
 
     console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
-    let output = await formatSchema({
+    const output = await formatSchema({
       schemaPath,
     })
 
