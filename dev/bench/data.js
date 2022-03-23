@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1648028161069,
+  "lastUpdate": 1648043793681,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -90996,6 +90996,72 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 8.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 40,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "piotrowski+github@gmail.com",
+            "name": "Jan Piotrowski",
+            "username": "janpio"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6fc821ffb6fb06f39e20b8357320b157fdb25417",
+          "message": "fix(deps): update undici to 4.x (#8842)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\nCo-authored-by: Pierre-Antoine Mills <pierreantoine.urvoy@gmail.com>\r\nCo-authored-by: Michal Kvasničák <michal.kvasnicak@gmail.com>",
+          "timestamp": "2022-03-23T14:51:03+01:00",
+          "tree_id": "04b9469f26cab29c0ab94311713859ae5f598069",
+          "url": "https://github.com/prisma/prisma/commit/6fc821ffb6fb06f39e20b8357320b157fdb25417"
+        },
+        "date": 1648043788881,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.48,
+            "range": "±4.10%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.88%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
