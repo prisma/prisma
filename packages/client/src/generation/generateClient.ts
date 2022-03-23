@@ -302,21 +302,6 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-  // if (!testMode && process.env.INIT_CWD) {
-  //   const backupPath = path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
-  //   console.log('backupPath', backupPath)
-  //   console.log('finalOutputDir', finalOutputDir)
-
-  //   // if (finalOutputDir !== backupPath && !generator?.isCustomOutput) {
-  //   //   await copy({
-  //   //     from: finalOutputDir,
-  //   //     to: backupPath,
-  //   //     recursive: true,
-  //   //     parallelJobs: process.platform === 'win32' ? 1 : 20,
-  //   //     overwrite: true,
-  //   //   })
-  //   // }
-  // }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
