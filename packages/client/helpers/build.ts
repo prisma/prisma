@@ -30,6 +30,29 @@ const inlineUndiciWasm = replaceWithPlugin([
   ],
 ])
 
+const unlazifyUndici = replaceWithPlugin([
+  [
+    /(let llhttpPromise = )(lazyllhttp\(\))/g,
+    (regex, contents) => {
+      for (const match of contents.matchAll(regex)) {
+        contents = contents.replace(match[0], `${match[1]}() => ${match[2]}`)
+      }
+
+      return contents
+    },
+  ],
+  [
+    /(llhttpInstance = )(await llhttpPromise)/g,
+    (regex, contents) => {
+      for (const match of contents.matchAll(regex)) {
+        contents = contents.replace(match[0], `${match[1]}${match[2]}()`)
+      }
+
+      return contents
+    },
+  ],
+])
+
 // we define the config for runtime
 const runtimeBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
@@ -40,7 +63,7 @@ const runtimeBuildConfig: BuildOptions = {
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
-  plugins: [],
+  plugins: [unlazifyUndici],
 }
 
 // we define the config for browser
