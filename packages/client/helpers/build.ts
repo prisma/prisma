@@ -1,57 +1,9 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
-import fs from 'fs'
 import path from 'path'
-import resolve from 'resolve'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
-import { replaceWithPlugin } from '../../../helpers/compile/plugins/replaceWithPlugin'
-
-const inlineUndiciWasm = replaceWithPlugin([
-  [
-    /(await WebAssembly\.compile\().*?'(.*?)'\)\)\)/g,
-    async (regex, contents) => {
-      for (const match of contents.matchAll(regex)) {
-        if (match[2].includes('simd') === false) {
-          // we only bundle lhttp wasm files that are not simd compiled
-          const engineCoreDir = resolve.sync('@prisma/engine-core')
-          const undiciPackage = resolve.sync('undici/package.json', { basedir: engineCoreDir })
-          const lhttpWasmPath = path.join(path.dirname(undiciPackage), 'lib', match[2])
-          const wasmContents = (await fs.promises.readFile(lhttpWasmPath)).toString('base64')
-          const inlineWasm = `${match[1]}(Buffer.from("${wasmContents}", "base64")))`
-
-          contents = contents.replace(match[0], inlineWasm)
-        }
-      }
-
-      return contents
-    },
-  ],
-])
-
-const unlazifyUndici = replaceWithPlugin([
-  [
-    /(let llhttpPromise = )(lazyllhttp\(\))/g,
-    (regex, contents) => {
-      for (const match of contents.matchAll(regex)) {
-        contents = contents.replace(match[0], `${match[1]}() => ${match[2]}`)
-      }
-
-      return contents
-    },
-  ],
-  [
-    /(llhttpInstance = )(await llhttpPromise)/g,
-    (regex, contents) => {
-      for (const match of contents.matchAll(regex)) {
-        contents = contents.replace(match[0], `${match[1]}${match[2]}()`)
-      }
-
-      return contents
-    },
-  ],
-])
 
 // we define the config for runtime
 const runtimeBuildConfig: BuildOptions = {
@@ -63,7 +15,6 @@ const runtimeBuildConfig: BuildOptions = {
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
-  plugins: [unlazifyUndici],
 }
 
 // we define the config for browser
