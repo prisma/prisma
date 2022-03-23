@@ -1,6 +1,5 @@
 import getStream from 'get-stream'
-import type { Dispatcher } from 'undici'
-import { Pool } from 'undici'
+import type { Dispatcher, Pool } from 'undici'
 import type { URL } from 'url'
 
 export type Result<R> = {
@@ -8,6 +7,8 @@ export type Result<R> = {
   headers: Dispatcher.ResponseData['headers']
   data: R
 }
+
+const undici = () => import('undici')
 
 /**
  * Assertion function to make sure that we have a pool
@@ -23,7 +24,7 @@ function assertHasPool<A>(pool: A): asserts pool is NonNullable<A> {
  * Open an HTTP connection pool
  */
 export class Connection {
-  private _pool: Pool | undefined
+  private _pool: Promise<Pool> | undefined
 
   constructor() {}
 
@@ -53,12 +54,14 @@ export class Connection {
   open(url: string | URL, options?: Pool.Options) {
     if (this._pool) return
 
-    this._pool = new Pool(url, {
-      connections: 1000,
-      keepAliveMaxTimeout: 600e3,
-      headersTimeout: 0,
-      bodyTimeout: 0,
-      ...options,
+    this._pool = undici().then((undici) => {
+      return new undici.Pool(url, {
+        connections: 1000,
+        keepAliveMaxTimeout: 600e3,
+        headersTimeout: 0,
+        bodyTimeout: 0,
+        ...options,
+      })
     })
   }
 
@@ -78,7 +81,8 @@ export class Connection {
   ) {
     assertHasPool(this._pool)
 
-    const response = await this._pool.request({
+    const pool = await this._pool
+    const response = await pool.request({
       path: endpoint,
       method: method,
       headers: {
@@ -126,9 +130,10 @@ export class Connection {
   /**
    * Close the connections
    */
-  close() {
+  async close() {
     if (this._pool) {
-      this._pool.close(() => {
+      const pool = await this._pool
+      pool.close(() => {
         // ignore close errors
       })
     }
