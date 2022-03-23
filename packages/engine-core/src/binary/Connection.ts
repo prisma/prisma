@@ -8,6 +8,8 @@ export type Result<R> = {
   data: R
 }
 
+// because undici lazily loads llhttp wasm which bloats the memory
+// TODO: hopefully replace with `import` but that causes segfaults
 const undici = () => require('undici')
 
 /**
