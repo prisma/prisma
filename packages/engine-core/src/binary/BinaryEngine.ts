@@ -618,14 +618,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        this.child.on('exit', async (code) => {
+        this.child.on('exit', (code): void => {
           logger('removing startPromise')
           this.startPromise = undefined
           if (this.engineStopDeferred) {
             this.engineStopDeferred.resolve(code)
             return
           }
-          await this.connection.close()
+          this.connection.close()
 
           // don't error in restarts
           if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
@@ -681,8 +681,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           reject(err)
         })
 
-        this.child.on('close', async (code, signal) => {
-          await this.connection.close()
+        this.child.on('close', (code, signal): void => {
+          this.connection.close()
           if (code === null && signal === 'SIGABRT' && this.child) {
             const error = new PrismaClientRustPanicError(
               this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
@@ -780,7 +780,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       stopChildPromise = new Promise((resolve, reject) => {
         this.engineStopDeferred = { resolve, reject }
       })
-      await this.connection.close()
+      this.connection.close()
       this.child?.kill()
       this.child = undefined
     }
@@ -792,11 +792,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.engineStopDeferred = undefined
   }
 
-  async kill(signal: string) {
+  kill(signal: string): void {
     this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.child?.kill()
-    await this.connection.close()
+    this.connection.close()
   }
 
   /**
@@ -1100,7 +1100,7 @@ function hookProcess(handler: string, exit = false) {
   process.once(handler as any, async () => {
     for (const engine of engines) {
       await engine.emitExit()
-      await engine.kill(handler)
+      engine.kill(handler)
     }
     engines.splice(0, engines.length)
 

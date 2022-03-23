@@ -8,7 +8,7 @@ export type Result<R> = {
   data: R
 }
 
-const undici = () => import('undici')
+const undici = () => require('undici')
 
 /**
  * Assertion function to make sure that we have a pool
@@ -24,7 +24,7 @@ function assertHasPool<A>(pool: A): asserts pool is NonNullable<A> {
  * Open an HTTP connection pool
  */
 export class Connection {
-  private _pool: Promise<Pool> | undefined
+  private _pool: Pool | undefined
 
   constructor() {}
 
@@ -54,14 +54,12 @@ export class Connection {
   open(url: string | URL, options?: Pool.Options) {
     if (this._pool) return
 
-    this._pool = undici().then((undici) => {
-      return new undici.Pool(url, {
-        connections: 1000,
-        keepAliveMaxTimeout: 600e3,
-        headersTimeout: 0,
-        bodyTimeout: 0,
-        ...options,
-      })
+    this._pool = new (undici().Pool)(url, {
+      connections: 1000,
+      keepAliveMaxTimeout: 600e3,
+      headersTimeout: 0,
+      bodyTimeout: 0,
+      ...options,
     })
   }
 
@@ -81,8 +79,7 @@ export class Connection {
   ) {
     assertHasPool(this._pool)
 
-    const pool = await this._pool
-    const response = await pool.request({
+    const response = await this._pool.request({
       path: endpoint,
       method: method,
       headers: {
@@ -130,10 +127,9 @@ export class Connection {
   /**
    * Close the connections
    */
-  async close() {
+  close() {
     if (this._pool) {
-      const pool = await this._pool
-      pool.close(() => {
+      this._pool.close(() => {
         // ignore close errors
       })
     }
