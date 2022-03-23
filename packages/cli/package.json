@@ -46,6 +46,7 @@
     "runtime/*.d.ts",
     "runtime/utils",
     "runtime/dist",
+    "runtime/llhttp",
     "prisma-client",
     "preinstall",
     "scripts/preinstall-entry.js",
@@ -113,7 +114,7 @@
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
-    "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
+    "tsc": "tsc -d -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build",
     "preinstall": "node scripts/preinstall-entry.js"
   },

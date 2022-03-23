@@ -247,6 +247,7 @@ importers:
       pkg-up: 3.1.0
       pluralize: 8.0.0
       replace-string: 3.1.0
+      resolve: 1.22.0
       rimraf: 3.0.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
@@ -302,6 +303,7 @@ importers:
       pkg-up: 3.1.0
       pluralize: 8.0.0
       replace-string: 3.1.0
+      resolve: 1.22.0
       rimraf: 3.0.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
@@ -348,7 +350,7 @@ importers:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17
       '@types/jest': 27.4.1
-      '@types/node': 12.20.47
+      '@types/node': 16.6.2
       chalk: 4.1.2
       esbuild: 0.13.14
       execa: 5.1.1
@@ -361,7 +363,7 @@ importers:
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
       typescript: 4.5.4
-      undici: 3.3.6
+      undici: 4.16.0
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 3.12.0-16.f2e63a76e8eed99d99f0eb65596c7677b70a1e77
@@ -375,12 +377,12 @@ importers:
       p-retry: 4.6.1
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
-      undici: 3.3.6
+      undici: 4.16.0
     devDependencies:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
       '@types/jest': 27.4.1
-      '@types/node': 12.20.47
+      '@types/node': 16.6.2
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.0.0
@@ -1571,7 +1573,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -2010,6 +2011,10 @@ packages:
     resolution: {integrity: sha512-GZ7bu5A6+4DtG7q9GsoHXy3ALcgeIHP4NnL0Vv2wu0uUB/yQex26v0tf6/na1mm0+bS9Uw+0DFex7aaKr2qawQ==}
     dev: true
 
+  /@types/node/16.6.2:
+    resolution: {integrity: sha512-LSw8TZt12ZudbpHc6EkIyDM3nHVWKYrAvGy6EAJfNfjusbwnThqjqxUKKRwuV3iWYeW/LYMzNgaq3MaLffQ2xA==}
+    dev: true
+
   /@types/node/17.0.18:
     resolution: {integrity: sha512-eKj4f/BsN/qcculZiRSujogjvp5O/k4lOW5m35NopjZM/QwLOR075a8pJW5hD+Rtdm2DaCVPENS6KtSQnUD6BA==}
 
@@ -2354,7 +2359,7 @@ packages:
     resolution: {integrity: sha512-RZNwNclF7+MS/8bDg70amg32dyeZGZxiDuQmZxKLAlQjr3jGyLx+4Kkk58UO7D2QdgFIQCovuSuZESne6RG6XQ==}
     engines: {node: '>= 6.0.0'}
     dependencies:
-      debug: 4.3.4
+      debug: 4.3.3
     transitivePeerDependencies:
       - supports-color
 
@@ -3148,17 +3153,6 @@ packages:
       ms: 2.1.2
       supports-color: 9.2.1
     dev: true
-
-  /debug/4.3.4:
-    resolution: {integrity: sha512-PRWFHuSU3eDtQJPvnNY7Jcket1j0t5OuOsFzPPzsekD52Zl8qUfFIPEiswXqIvHWGVHOgX+7G/vCNNhehwxfkQ==}
-    engines: {node: '>=6.0'}
-    peerDependencies:
-      supports-color: '*'
-    peerDependenciesMeta:
-      supports-color:
-        optional: true
-    dependencies:
-      ms: 2.1.2
 
   /decamelize-keys/1.1.0:
     resolution: {integrity: sha1-0XGoeTMlKAfrPLYdwcFEXQeN8tk=}
@@ -4692,7 +4686,7 @@ packages:
     dependencies:
       '@tootallnate/once': 2.0.0
       agent-base: 6.0.2
-      debug: 4.3.4
+      debug: 4.3.3
     transitivePeerDependencies:
       - supports-color
 
@@ -4711,7 +4705,7 @@ packages:
     engines: {node: '>= 6'}
     dependencies:
       agent-base: 6.0.2
-      debug: 4.3.4
+      debug: 4.3.3
     transitivePeerDependencies:
       - supports-color
 
@@ -8138,8 +8132,9 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
-  /undici/3.3.6:
-    resolution: {integrity: sha512-/j3YTZ5AobMB4ZrTY72mzM54uFUX32v0R/JRW9G2vOyF1uSKYAx+WT8dMsAcRS13TOFISv094TxIyWYk+WEPsA==}
+  /undici/4.16.0:
+    resolution: {integrity: sha512-tkZSECUYi+/T1i4u+4+lwZmQgLXd4BLGlrc7KZPcLIW7Jpq99+Xpc30ONv7nS6F5UNOxp/HBZSSL9MafUrvJbw==}
+    engines: {node: '>=12.18'}
     dev: false
 
   /unique-string/2.0.0:
