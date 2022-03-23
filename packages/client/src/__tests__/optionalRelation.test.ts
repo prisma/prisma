@@ -1,7 +1,9 @@
 import chalk from 'chalk'
+
 import { blog } from '../fixtures/blog'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+
 chalk.level = 0
 
 describe('optional to one relation', () => {
@@ -35,7 +37,7 @@ describe('optional to one relation', () => {
           title
           content
           authorId
-          optionnal
+          optional
         }
       }
     `)

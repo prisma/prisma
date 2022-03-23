@@ -1,5 +1,6 @@
 import type { BinaryPaths, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator-helper'
 import { GeneratorProcess } from '@prisma/generator-helper'
+
 import { parseEnvValue } from './utils/parseEnvValue'
 
 export class Generator {

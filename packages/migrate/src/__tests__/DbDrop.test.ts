@@ -1,12 +1,14 @@
-process.env.GITHUB_ACTIONS = '1'
-
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import prompt from 'prompts'
+
 import { DbDrop } from '../commands/DbDrop'
-import { consoleContext, Context } from './__helpers__/context'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+// TODO: Windows: snapshot tests fail on Windows because of emoji and different error messages.
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-describe('drop', () => {
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+describeIf(process.platform !== 'win32')('drop', () => {
   it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 
@@ -34,12 +36,8 @@ describe('drop', () => {
     prompt.inject(['y']) // simulate user yes input
 
     const result = DbDrop.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `The database name entered "y" doesn't match "dev.db".`,
-    )
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    await expect(result).rejects.toMatchInlineSnapshot(`The database name entered "y" doesn't match "dev.db".`)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('with missing db should fail (--force)', async () => {
@@ -53,9 +51,7 @@ Failed to delete SQLite database at \`dev.db\`.
 No such file or directory (os error 2)
 
 `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should work (prompt)', async () => {
@@ -68,16 +64,13 @@ No such file or directory (os error 2)
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
     `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should work (--force)', async () => {
@@ -88,15 +81,12 @@ No such file or directory (os error 2)
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
     `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should work (-f)', async () => {
@@ -106,15 +96,12 @@ No such file or directory (os error 2)
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
     `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('should be cancelled (prompt)', async () => {
@@ -128,28 +115,25 @@ No such file or directory (os error 2)
             🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
 
           `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n'))
-      .toMatchInlineSnapshot(`
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
       Drop cancelled.
     `)
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(mockExit).toBeCalledWith(0)
   })
 
   it('should ask for --force if not provided if CI', async () => {
     ctx.fixture('reset')
+    process.env.GITHUB_ACTIONS = '1'
+
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
       `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force --preview-feature`,
     )
-    expect(
-      ctx.mocked['console.error'].mock.calls.join('\n'),
-    ).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })

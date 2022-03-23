@@ -1,13 +1,14 @@
-import { ErrorArea, RustPanic, isCi } from '@prisma/sdk'
+import { ErrorArea, isCi, RustPanic } from '@prisma/sdk'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
 import { dirname, join, resolve } from 'path'
+import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import dedent from 'strip-indent'
-import prompt from 'prompts'
 import tempy from 'tempy'
 import { promisify } from 'util'
+
 import { Migrate } from '../Migrate'
 import { handlePanic } from '../utils/handlePanic'
 import CaptureStdout from './__helpers__/captureStdout'
@@ -29,6 +30,7 @@ const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock 
 const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const oldProcessCwd = process.cwd
 // create a temporary set of files
 async function writeFiles(
@@ -57,7 +59,7 @@ describe('handlePanic', () => {
     process.cwd = () => testRootDir
     await mkdir(testRootDir)
   })
-  afterEach(async () => {
+  afterEach(() => {
     process.cwd = oldProcessCwd
     // await del(testRootDir, { force: true }) // Need force: true because `del` does not delete dirs outside the CWD
   })
@@ -101,7 +103,6 @@ describe('handlePanic', () => {
   })
 
   it('no interactive mode in CI', async () => {
-    process.env.GITHUB_ACTIONS = 'maybe'
     try {
       await handlePanic(error, packageJsonVersion, engineVersion, command)
     } catch (error) {
@@ -139,7 +140,7 @@ describe('handlePanic', () => {
     try {
       const migrate = new Migrate(schemaPath)
       await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
         prismaSchema: migrate.getDatamodel(),
@@ -159,41 +160,40 @@ describe('handlePanic', () => {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
-Error in migration engine.
-Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
+        Error in migration engine.
+        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
-Please create an issue with your \`schema.prisma\` at
-https://github.com/prisma/prisma/issues/new
+        Please create an issue with your \`schema.prisma\` at
+        https://github.com/prisma/prisma/issues/new
 
-`)
+      `)
     } else {
       const output = captureStdout.getCapturedText()
       expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
 
-                  console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
+                                  console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
 
-                ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
+                                ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
 
-                ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
+                                ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
 
-                ✔ Submit error report › No
-
-
-
-                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
-
-                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
-
-                ✔ Would you like to create a Github issue? › No
+                                ✔ Submit error report › No
 
 
-            `)
+
+                                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
+
+                                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
+
+                                ✔ Would you like to create a Github issue? › No
+
+
+                        `)
     }
     captureStdout.stopCapture()
   })
 
   it('engine panic no interactive mode in CI', async () => {
-    process.env.GITHUB_ACTIONS = 'maybe'
     process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
 
     const files = {
@@ -216,7 +216,7 @@ https://github.com/prisma/prisma/issues/new
     try {
       const migrate = new Migrate(schemaPath)
       await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
         prismaSchema: migrate.getDatamodel(),

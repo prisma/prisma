@@ -51,7 +51,14 @@ export interface BinaryTargetsEnvValue {
   value: string
 }
 
-export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'sqlserver'
+export type ConnectorType =
+  | 'mysql'
+  | 'mongodb'
+  | 'sqlite'
+  | 'postgresql'
+  | 'sqlserver'
+  | 'jdbc:sqlserver'
+  | 'cockroachdb'
 
 export interface DataSource {
   name: string

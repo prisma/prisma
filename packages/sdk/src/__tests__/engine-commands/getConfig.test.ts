@@ -1,4 +1,5 @@
 import stripAnsi from 'strip-ansi'
+
 import { getConfig } from '../..'
 
 describe('getConfig', () => {

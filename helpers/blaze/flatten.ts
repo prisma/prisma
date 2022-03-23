@@ -1,14 +1,14 @@
 import type { L } from 'ts-toolbelt'
-import { reduce } from './reduce'
+
 import { concat } from './concat'
+import { reduce } from './reduce'
 
 function wrap(item: unknown) {
   return Array.isArray(item) ? item : [item]
 }
 
 // eslint-disable-next-line prettier/prettier
-type Flatten<L extends L.List, I = L[number]> =
-  (I extends L.List ? I[number] : I)[] & {}
+type Flatten<L extends L.List, I = L[number]> = (I extends L.List ? I[number] : I)[] & {}
 
 /**
  * Returns a new array with all sub-array elements concatenated.

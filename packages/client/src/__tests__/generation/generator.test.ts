@@ -1,13 +1,17 @@
-import { getGenerator, getPackedPackage, parseEnvValue, ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType, getGenerator, getPackedPackage, parseEnvValue } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
 import stripAnsi from 'strip-ansi'
 import { promisify } from 'util'
+
 import { omit } from '../../omit'
+
 const del = promisify(rimraf)
 
-jest.setTimeout(30000)
+if (process.env.CI) {
+  jest.setTimeout(100_000)
+}
 
 describe('generator', () => {
   test('minimal', async () => {
@@ -160,7 +164,7 @@ describe('generator', () => {
     } catch (e) {
       doesnNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message).split('generation/')[1]).toMatchInlineSnapshot(
+      expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
         `doesnotexist.prisma does not exist`,
       )
     }

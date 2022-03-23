@@ -45,7 +45,7 @@ model Post {
   title     String
   content   String?
   authorId  String?
-  optionnal  Float?
+  optional  Float?
   author    User? @relation(fields: [authorId], references: [id])
   categories Category[]  @relation("MyPostCatRelationTable")
 }

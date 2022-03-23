@@ -1,4 +1,5 @@
 import type { DataSource } from '@prisma/generator-helper'
+
 import { datasourceToDatasourceOverwrite, serializeDatasources } from '../generation/serializeDatasources'
 import { absolutizeRelativePath } from '../utils/resolveDatasources'
 

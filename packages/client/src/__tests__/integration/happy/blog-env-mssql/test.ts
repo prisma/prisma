@@ -1,9 +1,12 @@
 import sql from 'sql-template-tag'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupMSSQL'
 import { setupMSSQL } from '../../../../utils/setupMSSQL'
 
-describe('blog-env-mssql', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
   let PrismaHelpers: any = null
   const requests: any[] = []

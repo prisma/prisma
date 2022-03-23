@@ -12,12 +12,15 @@ import {
   getVersion,
   HelpError,
   isError,
+  loadEnvFile,
   resolveBinary,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 interface BinaryInfo {
@@ -65,6 +68,8 @@ export class Version implements Command {
     if (args['--help']) {
       return this.help()
     }
+
+    loadEnvFile(undefined, true)
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()

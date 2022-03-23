@@ -39,6 +39,7 @@ export namespace DMMF {
   export interface Datamodel {
     models: Model[]
     enums: DatamodelEnum[]
+    types: Model[]
   }
 
   export interface uniqueIndex {
@@ -58,7 +59,7 @@ export namespace DMMF {
     uniqueIndexes: uniqueIndex[]
     documentation?: string
     primaryKey: PrimaryKey | null
-    [key: string]: any // safe net for additional new props
+    [key: string]: any // safe net for additional new props // TODO: remove this and the others, not safe
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
@@ -73,11 +74,18 @@ export namespace DMMF {
     isList: boolean
     isUnique: boolean
     isId: boolean
-    type: string | DMMF.SchemaEnum | DMMF.OutputType | DMMF.SchemaArg
+    isReadOnly: boolean
+    isGenerated?: boolean // does not exist on 'type' but does on 'model'
+    isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
+    /**
+     * Describes the data type in the same the way is is defined in the Prisma schema:
+     * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
+     */
+    type: string
     dbNames?: string[] | null
-    isGenerated: boolean
     hasDefaultValue: boolean
     default?: FieldDefault | string | boolean | number
+    relationFromFields?: string[]
     relationToFields?: any[]
     relationOnDelete?: string
     relationName?: string
@@ -190,6 +198,8 @@ export namespace DMMF {
     aggregate?: string | null
     groupBy?: string | null
     count?: string | null
+    findRaw?: string | null
+    aggregateRaw?: string | null
   }
 
   export enum ModelAction {
@@ -204,7 +214,9 @@ export namespace DMMF {
     delete = 'delete',
     deleteMany = 'deleteMany',
     groupBy = 'groupBy',
-    count = 'count',
+    count = 'count', // TODO: count does not actually exist, why?
     aggregate = 'aggregate',
+    findRaw = 'findRaw',
+    aggregateRaw = 'aggregateRaw',
   }
 }

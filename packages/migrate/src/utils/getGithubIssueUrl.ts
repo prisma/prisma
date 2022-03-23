@@ -1,8 +1,9 @@
+import { getPlatform } from '@prisma/get-platform'
 import newGithubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
-import { getPlatform } from '@prisma/get-platform'
+
 export function getGithubIssueUrl({
   title,
   user = 'prisma',

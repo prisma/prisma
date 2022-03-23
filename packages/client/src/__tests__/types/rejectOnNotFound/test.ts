@@ -1,6 +1,5 @@
-import { MachineData, Post, PrismaClient, User } from '@prisma/client'
-
-// tslint:disable
+import type { MachineData, Post, User } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
@@ -64,8 +63,8 @@ async function main() {
       findFirst: true,
     },
   })
-  const r1p4: User = await p3.user.findUnique({ where: { id: '' } })
-  const r2p4: User = await p3.user.findFirst({
+  const r1p4: User = await p4.user.findUnique({ where: { id: '' } })
+  const r2p4: User = await p4.user.findFirst({
     rejectOnNotFound: true,
   })
   const p5 = new PrismaClient({

@@ -2,10 +2,13 @@ import { getPlatform } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 // Tests that no error is being thrown when the binary is manually set to chmod 644 because Client fixes that itself
-test('chmod', async () => {
+testIf(process.platform !== 'win32')('chmod', async () => {
   await generateTestClient()
   const platform = await getPlatform()
   if (getClientEngineType() !== ClientEngineType.Library) {

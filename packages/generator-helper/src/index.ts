@@ -1,4 +1,4 @@
-export { GeneratorProcess, GeneratorError } from './GeneratorProcess'
-export { generatorHandler } from './generatorHandler'
-export * from './types'
 export * from './dmmf'
+export { generatorHandler } from './generatorHandler'
+export { GeneratorError, GeneratorProcess } from './GeneratorProcess'
+export * from './types'

@@ -1,11 +1,12 @@
-import { consoleContext, Context } from './__helpers__/context'
+import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
 
-const ctx = Context.new().add(consoleContext()).assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should not load root .env file', async () => {
-  process.argv.push('--version')
+it('should not load root .env file', () => {
   ctx.fixture('dotenv-5-only-root')
-  await import('../bin')
-  expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+  loadEnvFile(undefined, true)
+
+  expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
+
   expect(process.env.DOTENV_ROOT_SHOULD_BE_UNDEFINED).toEqual(undefined)
 })

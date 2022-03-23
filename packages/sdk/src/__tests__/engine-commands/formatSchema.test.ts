@@ -1,6 +1,11 @@
 import path from 'path'
+
 import { formatSchema } from '../..'
 import { fixturesPath } from '../__utils__/fixtures'
+
+if (process.env.CI) {
+  jest.setTimeout(20000)
+}
 
 describe('format', () => {
   test('nothing', async () => {

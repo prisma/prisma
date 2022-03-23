@@ -1,9 +1,10 @@
 import { getLogs } from '@prisma/debug'
-import { getGithubIssueUrl, link } from '../../utils/util'
 import stripAnsi from 'strip-ansi'
+
+import { getGithubIssueUrl, link } from '../../utils/util'
+import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 import { maskQuery } from './maskQuery'
 import { normalizeLogs } from './normalizeLogs'
-import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 
 export function getErrorMessageWithLink({
   version,

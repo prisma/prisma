@@ -3,8 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting"],
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
-  "dependencyDashboard": true,
-  "reviewers": ["@Jolg42", "@millsp"],
+  "reviewers": ["@Jolg42", "@millsp", "@aqrln"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",
@@ -19,11 +18,7 @@
       "automerge": "true",
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"],
-      "excludePackageNames": [
-        "@prisma/studio",
-        "@prisma/studio-server",
-        "checkpoint-client"
-      ],
+      "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
       "schedule": ["before 8am on Wednesday"]
     },
     {
@@ -43,14 +38,12 @@
       "groupName": "Studio",
       "automerge": "true",
       "packageNames": ["@prisma/studio", "@prisma/studio-server"],
-      "updateTypes": ["patch", "minor"],
-      "reviewers": ["@madebysid", "@jolg42", "millsp"]
+      "updateTypes": ["patch", "minor"]
     },
     {
       "groupName": "checkpoint-client",
       "packageNames": ["checkpoint-client"],
-      "updateTypes": ["patch", "minor"],
-      "reviewers": ["@Weakky", "jolg42", "millsp"]
+      "updateTypes": ["patch", "minor"]
     },
     {
       "groupName": "jest",
@@ -64,6 +57,7 @@
     },
     {
       "groupName": "react-prisma",
+      "automerge": "true",
       "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]

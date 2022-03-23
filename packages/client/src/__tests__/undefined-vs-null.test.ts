@@ -1,13 +1,14 @@
 import stripAnsi from 'strip-ansi'
+
 import { blog } from '../fixtures/blog'
-import { DMMFClass } from '../runtime/dmmf'
-import { makeDocument } from '../runtime/query'
 import { getDMMF } from '../generation/getDMMF'
+import { DMMFHelper } from '../runtime/dmmf'
+import { makeDocument } from '../runtime/query'
 
 let dmmf
 beforeAll(async () => {
   const dmmfDocument = await getDMMF({ datamodel: blog })
-  dmmf = new DMMFClass(dmmfDocument)
+  dmmf = new DMMFHelper(dmmfDocument)
 })
 
 describe('select validation', () => {

@@ -1,5 +1,6 @@
-import { getDbInfo } from '../utils/ensureDatabaseExists'
 import chalk from 'chalk'
+
+import { getDbInfo } from '../utils/ensureDatabaseExists'
 
 // Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 // Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
@@ -24,7 +25,9 @@ export async function printDatasource(schemaPath: string): Promise<void> {
         ),
       )
     }
-  } else {
+  } else if (dbInfo.name) {
     console.info(chalk.dim(`Datasource "${dbInfo.name}"`))
+  } else {
+    // Nothing
   }
 }

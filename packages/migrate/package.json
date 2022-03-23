@@ -2,7 +2,7 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "dist/esm/index.mjs",
+  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
@@ -20,34 +20,24 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.7.0-22.290078778b2852913a326899e0571df61eed1792",
+    "@prisma/engines-version": "3.12.0-18.e9aaf2ae00c5c7a241450d0e08165acb030422d0",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@types/jest": "27.0.3",
-    "@types/node": "12.20.37",
-    "@types/pg": "8.6.1",
+    "@swc/core": "1.2.141",
+    "@swc/jest": "0.2.17",
+    "@types/jest": "27.4.1",
+    "@types/node": "12.20.47",
+    "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
-    "@types/sqlite3": "3.1.7",
-    "@typescript-eslint/eslint-plugin": "5.4.0",
-    "@typescript-eslint/parser": "5.4.0",
-    "chalk": "4.1.2",
+    "@types/sqlite3": "3.1.8",
     "esbuild": "0.13.14",
-    "eslint": "8.3.0",
-    "eslint-config-prettier": "8.3.0",
-    "eslint-plugin-eslint-comments": "3.2.0",
-    "eslint-plugin-jest": "25.3.0",
-    "eslint-plugin-prettier": "4.0.0",
-    "fs-jetpack": "4.2.0",
-    "jest": "27.4.5",
-    "lint-staged": "12.0.2",
+    "fs-jetpack": "4.3.0",
+    "jest": "27.5.1",
+    "jest-junit": "13.0.0",
     "make-dir": "3.1.0",
-    "mariadb": "2.5.5",
     "mock-stdin": "1.0.0",
-    "pg": "8.7.1",
-    "prettier": "2.4.1",
     "tempy": "1.0.1",
-    "ts-jest": "27.1.1",
-    "typescript": "4.4.4"
+    "typescript": "4.5.4"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -55,14 +45,19 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.7.0-22.290078778b2852913a326899e0571df61eed1792",
+    "@prisma/get-platform": "3.12.0-18.e9aaf2ae00c5c7a241450d0e08165acb030422d0",
     "@sindresorhus/slugify": "1.1.2",
+    "chalk": "4.1.2",
     "execa": "5.1.1",
+    "get-stdin": "8.0.0",
     "has-yarn": "2.1.0",
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
+    "mariadb": "3.0.0",
+    "mssql": "8.0.2",
     "new-github-issue-url": "0.2.1",
     "open": "7.4.2",
+    "pg": "8.7.3",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
@@ -71,12 +66,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "depcheck": "node -r esbuild-register ../../helpers/compile/depcheck.ts",
     "run": "node dist/bin.js",
-    "precommit": "lint-staged",
-    "format": "prettier --write .",
-    "lint": "eslint --cache --fix --ext .ts .",
-    "lint-ci": "eslint --ext .ts .",
     "test": "jest --verbose",
     "prepublishOnly": "pnpm run build"
   },
@@ -84,11 +74,5 @@
     "README.md",
     "dist"
   ],
-  "lint-staged": {
-    "*.ts": [
-      "eslint",
-      "prettier --write"
-    ]
-  },
   "sideEffects": false
 }

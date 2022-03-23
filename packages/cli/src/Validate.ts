@@ -1,8 +1,8 @@
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import type { Command } from '@prisma/sdk'
-import { arg, format, getConfig, getDMMF, getSchemaPath, HelpError } from '@prisma/sdk'
+import { arg, format, getConfig, getDMMF, HelpError, loadEnvFile } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
-import path from 'path'
 
 /**
  * $ prisma validate
@@ -50,24 +50,13 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    }
-
-    console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
+    // TODO is the order of getDMMF / getConfig important
     await getDMMF({
       datamodel: schema,
     })

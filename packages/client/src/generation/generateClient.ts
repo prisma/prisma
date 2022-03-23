@@ -1,7 +1,7 @@
 import { BinaryType } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/sdk'
-import { getVersion, ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType, getVersion } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -9,6 +9,7 @@ import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
+
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
@@ -103,6 +104,7 @@ export async function buildClient({
   }
 }
 
+// TODO: explore why we have a special case for excluding pnpm
 async function getDotPrismaDir(outputDir: string): Promise<string> {
   if (outputDir.endsWith('node_modules/@prisma/client')) {
     return path.join(outputDir, '../../.prisma/client')
@@ -208,8 +210,8 @@ export async function generateClient({
     }),
   )
   const runtimeSourceDir = testMode
-    ? eval(`require('path').join(__dirname, '../../runtime')`) // tslint:disable-line
-    : eval(`require('path').join(__dirname, '../runtime')`) // tslint:disable-line
+    ? eval(`require('path').join(__dirname, '../../runtime')`)
+    : eval(`require('path').join(__dirname, '../runtime')`)
 
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
@@ -300,18 +302,6 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-  if (!testMode && process.env.INIT_CWD) {
-    const backupPath = path.join(process.env.INIT_CWD, 'node_modules/.prisma/client')
-    if (finalOutputDir !== backupPath && !generator?.isCustomOutput) {
-      await copy({
-        from: finalOutputDir,
-        to: backupPath,
-        recursive: true,
-        parallelJobs: process.platform === 'win32' ? 1 : 20,
-        overwrite: true,
-      })
-    }
-  }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
@@ -345,7 +335,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
 
   const denylists = {
     // A copy of this list is also in prisma-engines. Any edit should be done in both places.
-    // https://github.com/prisma/prisma-engines/blob/master/libs/datamodel/core/src/transform/ast_to_dml/reserved_model_names.rs
+    // https://github.com/prisma/prisma-engines/blob/main/libs/datamodel/core/src/transform/ast_to_dml/reserved_model_names.rs
     models: [
       // Reserved Prisma keywords
       'PrismaClient',

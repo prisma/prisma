@@ -1,6 +1,7 @@
-import { getTestClient } from '../../../../utils/getTestClient'
-import sql from 'sql-template-tag'
 import path from 'path'
+import sql from 'sql-template-tag'
+
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
