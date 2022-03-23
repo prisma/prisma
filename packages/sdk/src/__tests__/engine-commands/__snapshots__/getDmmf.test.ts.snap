@@ -23722,6 +23722,18 @@ Object {
               "isRequired": false,
               "name": "not",
             },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
+            },
           ],
           "name": "IntFilter",
         },
@@ -23881,6 +23893,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "not",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
             },
           ],
           "name": "StringFilter",
@@ -24207,6 +24231,18 @@ Object {
               "isRequired": false,
               "name": "_max",
             },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
+            },
           ],
           "name": "IntWithAggregatesFilter",
         },
@@ -24406,6 +24442,18 @@ Object {
               "isRequired": false,
               "name": "_max",
             },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
+            },
           ],
           "name": "StringWithAggregatesFilter",
         },
@@ -24537,6 +24585,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "not",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
             },
           ],
           "name": "NestedIntFilter",
@@ -24684,6 +24744,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "not",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
             },
           ],
           "name": "NestedStringFilter",
@@ -24861,6 +24933,18 @@ Object {
               "isRequired": false,
               "name": "_max",
             },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
+            },
           ],
           "name": "NestedIntWithAggregatesFilter",
         },
@@ -24971,6 +25055,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "not",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
             },
           ],
           "name": "NestedFloatFilter",
@@ -25157,6 +25253,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "_max",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isSet",
             },
           ],
           "name": "NestedStringWithAggregatesFilter",
