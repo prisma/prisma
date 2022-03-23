@@ -1,13 +1,16 @@
 import getStream from 'get-stream'
-import type { Client } from 'undici'
-import { Pool } from 'undici'
+import type { Dispatcher, Pool } from 'undici'
 import type { URL } from 'url'
 
 export type Result<R> = {
-  statusCode: Client.ResponseData['statusCode']
-  headers: Client.ResponseData['headers']
+  statusCode: Dispatcher.ResponseData['statusCode']
+  headers: Dispatcher.ResponseData['headers']
   data: R
 }
+
+// because undici lazily loads llhttp wasm which bloats the memory
+// TODO: hopefully replace with `import` but that causes segfaults
+const undici = () => require('undici')
 
 /**
  * Assertion function to make sure that we have a pool
@@ -53,10 +56,11 @@ export class Connection {
   open(url: string | URL, options?: Pool.Options) {
     if (this._pool) return
 
-    this._pool = new Pool(url, {
+    this._pool = new (undici().Pool)(url, {
       connections: 1000,
       keepAliveMaxTimeout: 600e3,
       headersTimeout: 0,
+      bodyTimeout: 0,
       ...options,
     })
   }
@@ -72,8 +76,8 @@ export class Connection {
   async raw<R>(
     method: 'POST' | 'GET',
     endpoint: string,
-    headers?: Client.DispatchOptions['headers'],
-    body?: Client.DispatchOptions['body'],
+    headers?: Dispatcher.DispatchOptions['headers'],
+    body?: Dispatcher.DispatchOptions['body'],
   ) {
     assertHasPool(this._pool)
 
@@ -84,8 +88,7 @@ export class Connection {
         'Content-Type': 'application/json',
         ...headers,
       },
-      body,
-      bodyTimeout: 0,
+      body: body,
     })
 
     const result: Result<R> = {
@@ -104,7 +107,11 @@ export class Connection {
    * @param headers
    * @returns
    */
-  post<R>(endpoint: string, body?: Client.DispatchOptions['body'], headers?: Client.DispatchOptions['headers']) {
+  post<R>(
+    endpoint: string,
+    body?: Dispatcher.DispatchOptions['body'],
+    headers?: Dispatcher.DispatchOptions['headers'],
+  ) {
     return this.raw<R>('POST', endpoint, headers, body)
   }
 
@@ -115,7 +122,7 @@ export class Connection {
    * @param headers
    * @returns
    */
-  get<R>(path: string, headers?: Client.DispatchOptions['headers']) {
+  get<R>(path: string, headers?: Dispatcher.DispatchOptions['headers']) {
     return this.raw<R>('GET', path, headers)
   }
 
