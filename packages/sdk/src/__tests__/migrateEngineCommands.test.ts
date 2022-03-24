@@ -11,7 +11,7 @@ import {
 
 if (process.env.CI) {
   // 5s is often not enough for the "postgresql - create database" test on macOS CI.
-  jest.setTimeout(60000)
+  jest.setTimeout(60_000)
 }
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
