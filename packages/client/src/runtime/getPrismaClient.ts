@@ -23,7 +23,7 @@ import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { Middlewares } from './MiddlewareHandler'
-import { makeDocument, transformDocument } from './query'
+import { Document, makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
@@ -381,8 +381,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._dmmf = new DMMFHelper(config.document)
-
         this._previewFeatures = config.generator?.previewFeatures ?? []
 
         this._engineConfig = {
@@ -414,6 +412,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
         }
+
+        this.getDmmf(this._engineConfig)
 
         // Append the mongodb experimental flag if the provider is mongodb
         if (config.activeProvider === 'mongodb') {
@@ -451,6 +451,20 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
+
+    // I've copied a lot of code from the LibraryEngine.ts
+    // Ideally we should extract this code from the Engines and make it common code we could
+    // use here
+    private getDmmf(config: EngineConfig) {
+      const datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+
+      // This is obviously wrong
+      const e_path = path.join(process.cwd(), 'node_modules/.prisma/client/libquery_engine-darwin-arm64.dylib.node')
+      const engine = require(e_path)
+      const dmmf = JSON.parse(engine.dmmf(datamodel))
+      this._dmmf = new DMMFHelper(dmmf)
+    }
+
     private getEngine(): Engine {
       if (this._clientEngineType === ClientEngineType.Library) {
         return (
@@ -537,6 +551,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     $disconnect() {
       try {
+        this._dmmf = null
         return this._engine.stop()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
