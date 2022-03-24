@@ -455,7 +455,7 @@ describe('interactive transactions', () => {
    * Makes sure that the engine does not deadlock
    */
   test('high concurrency', async () => {
-    jest.setTimeout(20000)
+    jest.setTimeout(20_000)
 
     await prisma.user.create({
       data: {

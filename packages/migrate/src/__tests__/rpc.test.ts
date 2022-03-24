@@ -238,7 +238,7 @@ it('push force should accept dataloss', async () => {
 })
 
 it('markMigrationRolledBack - should fail - existing-db-1-migration', async () => {
-  jest.setTimeout(10000)
+  jest.setTimeout(10_000)
   ctx.fixture('existing-db-1-migration')
 
   const schemaPath = (await getSchemaPath())!
