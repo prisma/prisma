@@ -186,12 +186,57 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('updateMany > list', () => {
   /**
    * Simple updateMany
    */
-  test.skip('updateMany', async () => {})
+  test('updateMany', async () => {
+    const comment = await prisma.commentRequiredList.updateMany({
+      where: { id },
+      data: {
+        contents: {
+          updateMany: {
+            data: {
+              upvotes: [{ userId: 'Another Comment', vote: true }],
+            },
+            where: {
+              upvotes: {
+                isEmpty: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        count: 1,
+      }
+    `)
+  })
 
   /**
    * Simple deleteMany
    */
-  test.skip('deleteMany', async () => {})
+  test('deleteMany', async () => {
+    const comment = await prisma.commentRequiredList.updateMany({
+      where: { id },
+      data: {
+        contents: {
+          deleteMany: {
+            where: {
+              upvotes: {
+                isEmpty: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        count: 1,
+      }
+    `)
+  })
 
   /**
    * Simple unset

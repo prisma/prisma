@@ -15941,7 +15941,7 @@ export namespace Prisma {
     NOT?: Enumerable<EmbedHolderWhereInput>
     embedList?: XOR<EmbedCompositeListFilter, Enumerable<EmbedObjectEqualityInput>>
     requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
-    optionalEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput> | null
+    optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
     id?: StringFilter | string
     time?: DateTimeFilter | Date | string
     text?: StringFilter | string
@@ -17992,6 +17992,7 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringNullableFilter | string | null
+    isSet?: boolean
   }
 
   export type BoolFilter = {
@@ -18098,6 +18099,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedStringNullableFilter
     _max?: NestedStringNullableFilter
+    isSet?: boolean
   }
 
   export type BoolWithAggregatesFilter = {
@@ -18133,6 +18135,7 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntNullableFilter | number | null
+    isSet?: boolean
   }
 
   export type FloatFilter = {
@@ -18155,6 +18158,7 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatNullableFilter | number | null
+    isSet?: boolean
   }
   export type JsonFilter = 
     | PatchUndefined<
@@ -18177,6 +18181,7 @@ export namespace Prisma {
   export type JsonNullableFilterBase = {
     equals?: InputJsonValue | null
     not?: InputJsonValue | null
+    isSet?: boolean
   }
 
   export type EnumABeautifulEnumFilter = {
@@ -18191,11 +18196,13 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+    isSet?: boolean
   }
 
   export type BoolNullableFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableFilter | boolean | null
+    isSet?: boolean
   }
 
   export type PostListRelationFilter = {
@@ -18291,6 +18298,7 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter
     _min?: NestedIntNullableFilter
     _max?: NestedIntNullableFilter
+    isSet?: boolean
   }
 
   export type FloatWithAggregatesFilter = {
@@ -18323,6 +18331,7 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter
     _min?: NestedFloatNullableFilter
     _max?: NestedFloatNullableFilter
+    isSet?: boolean
   }
   export type JsonWithAggregatesFilter = 
     | PatchUndefined<
@@ -18351,6 +18360,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedJsonNullableFilter
     _max?: NestedJsonNullableFilter
+    isSet?: boolean
   }
 
   export type EnumABeautifulEnumWithAggregatesFilter = {
@@ -18371,6 +18381,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
     _max?: NestedEnumABeautifulEnumNullableFilter
+    isSet?: boolean
   }
 
   export type BoolNullableWithAggregatesFilter = {
@@ -18379,6 +18390,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedBoolNullableFilter
     _max?: NestedBoolNullableFilter
+    isSet?: boolean
   }
 
   export type EmbedCompositeListFilter = {
@@ -18387,6 +18399,7 @@ export namespace Prisma {
     some?: EmbedWhereInput
     none?: EmbedWhereInput
     isEmpty?: boolean
+    isSet?: boolean
   }
 
   export type EmbedObjectEqualityInput = {
@@ -18401,6 +18414,13 @@ export namespace Prisma {
     equals?: EmbedObjectEqualityInput
     is?: EmbedWhereInput
     isNot?: EmbedWhereInput
+  }
+
+  export type EmbedNullableCompositeFilter = {
+    equals?: EmbedObjectEqualityInput | null
+    is?: EmbedWhereInput | null
+    isNot?: EmbedWhereInput | null
+    isSet?: boolean
   }
 
   export type UserListRelationFilter = {
@@ -19097,6 +19117,7 @@ export namespace Prisma {
 
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
+    unset?: boolean
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -19145,6 +19166,7 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+    unset?: boolean
   }
 
   export type FloatFieldUpdateOperationsInput = {
@@ -19161,6 +19183,7 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+    unset?: boolean
   }
 
   export type EnumABeautifulEnumFieldUpdateOperationsInput = {
@@ -19169,10 +19192,12 @@ export namespace Prisma {
 
   export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = {
     set?: ABeautifulEnum | null
+    unset?: boolean
   }
 
   export type NullableBoolFieldUpdateOperationsInput = {
     set?: boolean | null
+    unset?: boolean
   }
 
   export type PostUpdateManyWithoutAuthorInput = {
@@ -19248,6 +19273,8 @@ export namespace Prisma {
   export type EmbedListUpdateEnvelopeInput = {
     set?: Enumerable<EmbedCreateInput>
     push?: Enumerable<EmbedCreateInput>
+    updateMany?: EmbedUpdateManyInput
+    deleteMany?: EmbedDeleteManyInput
   }
 
   export type EmbedUpdateEnvelopeInput = {
@@ -19257,8 +19284,8 @@ export namespace Prisma {
 
   export type EmbedNullableUpdateEnvelopeInput = {
     set?: EmbedCreateInput | null
-    unset?: boolean
     upsert?: EmbedUpsertInput
+    unset?: boolean
   }
 
   export type UserUpdateManyWithoutEmbedHolderInput = {
@@ -19546,6 +19573,7 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringNullableFilter | string | null
+    isSet?: boolean
   }
 
   export type NestedBoolFilter = {
@@ -19610,6 +19638,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedStringNullableFilter
     _max?: NestedStringNullableFilter
+    isSet?: boolean
   }
 
   export type NestedIntNullableFilter = {
@@ -19621,6 +19650,7 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntNullableFilter | number | null
+    isSet?: boolean
   }
 
   export type NestedBoolWithAggregatesFilter = {
@@ -19667,6 +19697,7 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatNullableFilter | number | null
+    isSet?: boolean
   }
 
   export type NestedEnumABeautifulEnumFilter = {
@@ -19681,11 +19712,13 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
     not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+    isSet?: boolean
   }
 
   export type NestedBoolNullableFilter = {
     equals?: boolean | null
     not?: NestedBoolNullableFilter | boolean | null
+    isSet?: boolean
   }
 
   export type NestedIntNullableWithAggregatesFilter = {
@@ -19702,6 +19735,7 @@ export namespace Prisma {
     _sum?: NestedIntNullableFilter
     _min?: NestedIntNullableFilter
     _max?: NestedIntNullableFilter
+    isSet?: boolean
   }
 
   export type NestedFloatWithAggregatesFilter = {
@@ -19734,6 +19768,7 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter
     _min?: NestedFloatNullableFilter
     _max?: NestedFloatNullableFilter
+    isSet?: boolean
   }
   export type NestedJsonFilter = 
     | PatchUndefined<
@@ -19756,6 +19791,7 @@ export namespace Prisma {
   export type NestedJsonNullableFilterBase = {
     equals?: InputJsonValue | null
     not?: InputJsonValue | null
+    isSet?: boolean
   }
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter = {
@@ -19776,6 +19812,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
     _max?: NestedEnumABeautifulEnumNullableFilter
+    isSet?: boolean
   }
 
   export type NestedBoolNullableWithAggregatesFilter = {
@@ -19784,6 +19821,7 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter
     _min?: NestedBoolNullableFilter
     _max?: NestedBoolNullableFilter
+    isSet?: boolean
   }
 
   export type EmbedWhereInput = {
@@ -19794,7 +19832,7 @@ export namespace Prisma {
     boolean?: BoolFilter | boolean
     embedEmbedList?: XOR<EmbedEmbedCompositeListFilter, Enumerable<EmbedEmbedObjectEqualityInput>>
     requiredEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput>
-    optionalEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput> | null
+    optionalEmbedEmbed?: XOR<EmbedEmbedNullableCompositeFilter, EmbedEmbedObjectEqualityInput> | null
   }
 
   export type EmbedEmbedObjectEqualityInput = {
@@ -20111,6 +20149,15 @@ export namespace Prisma {
 
   export type UserCreateManyEmbedHolderInputEnvelope = {
     data: Enumerable<UserCreateManyEmbedHolderInput>
+  }
+
+  export type EmbedUpdateManyInput = {
+    where: EmbedWhereInput
+    data: EmbedUpdateInput
+  }
+
+  export type EmbedDeleteManyInput = {
+    where: EmbedWhereInput
   }
 
   export type EmbedUpdateInput = {
@@ -20612,12 +20659,20 @@ export namespace Prisma {
     some?: EmbedEmbedWhereInput
     none?: EmbedEmbedWhereInput
     isEmpty?: boolean
+    isSet?: boolean
   }
 
   export type EmbedEmbedCompositeFilter = {
     equals?: EmbedEmbedObjectEqualityInput
     is?: EmbedEmbedWhereInput
     isNot?: EmbedEmbedWhereInput
+  }
+
+  export type EmbedEmbedNullableCompositeFilter = {
+    equals?: EmbedEmbedObjectEqualityInput | null
+    is?: EmbedEmbedWhereInput | null
+    isNot?: EmbedEmbedWhereInput | null
+    isSet?: boolean
   }
 
   export type PostCreateManyAuthorInput = {
@@ -20669,6 +20724,8 @@ export namespace Prisma {
   export type EmbedEmbedListUpdateEnvelopeInput = {
     set?: Enumerable<EmbedEmbedCreateInput>
     push?: Enumerable<EmbedEmbedCreateInput>
+    updateMany?: EmbedEmbedUpdateManyInput
+    deleteMany?: EmbedEmbedDeleteManyInput
   }
 
   export type EmbedEmbedUpdateEnvelopeInput = {
@@ -20678,8 +20735,8 @@ export namespace Prisma {
 
   export type EmbedEmbedNullableUpdateEnvelopeInput = {
     set?: EmbedEmbedCreateInput | null
-    unset?: boolean
     upsert?: EmbedEmbedUpsertInput
+    unset?: boolean
   }
 
   export type UserUpdateWithoutEmbedHolderInput = {
@@ -20895,6 +20952,15 @@ export namespace Prisma {
     NOT?: Enumerable<EmbedEmbedWhereInput>
     text?: StringFilter | string
     boolean?: BoolFilter | boolean
+  }
+
+  export type EmbedEmbedUpdateManyInput = {
+    where: EmbedEmbedWhereInput
+    data: EmbedEmbedUpdateInput
+  }
+
+  export type EmbedEmbedDeleteManyInput = {
+    where: EmbedEmbedWhereInput
   }
 
   export type EmbedEmbedUpdateInput = {

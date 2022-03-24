@@ -49,7 +49,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -126,7 +126,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -156,7 +156,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -186,7 +186,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -233,7 +233,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -263,10 +263,42 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
+    `)
+  })
+
+  /**
+   * Filter isSet
+   */
+  test('filter isSet', async () => {
+    const comment = await prisma.commentOptionalProp.findFirst({
+      where: {
+        OR: [{ id: id1 }, { id: id2 }],
+        country: { isSet: true },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        content: Object {
+          text: Goodbye World,
+          upvotes: Array [
+            Object {
+              userId: 11,
+              vote: false,
+            },
+            Object {
+              userId: 12,
+              vote: true,
+            },
+          ],
+        },
+        country: France,
+        id: 1ddddddddddddddddddddddd,
+      }
     `)
   })
 })

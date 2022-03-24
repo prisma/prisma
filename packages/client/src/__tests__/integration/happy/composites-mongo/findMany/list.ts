@@ -51,7 +51,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -141,7 +141,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -173,7 +173,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -192,24 +192,24 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
     })
 
     expect(comment).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            contents: Array [
-              Object {
-                text: Hello World,
-                upvotes: Array [
-                  Object {
-                    userId: 10,
-                    vote: true,
-                  },
-                ],
-              },
-            ],
-            country: France,
-            id: 9bbbbbbbbbbbbbbbbbbbbbbb,
-          },
-        ]
-      `)
+      Array [
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: null,
+          id: 9bbbbbbbbbbbbbbbbbbbbbbb,
+        },
+      ]
+    `)
   })
 
   /**
@@ -237,7 +237,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -359,7 +359,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
