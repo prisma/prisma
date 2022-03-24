@@ -519,7 +519,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
       if (this.engineEndpoint) {
         try {
-          await pRetry(() => this.connection.get('/'), {
+          this.connection.open(this.engineEndpoint)
+          await pRetry(() => this.connection.get('/status'), {
             retries: 10,
           })
         } catch (e) {
