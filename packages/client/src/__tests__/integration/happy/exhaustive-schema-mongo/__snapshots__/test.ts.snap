@@ -17966,7 +17966,6 @@ export namespace Prisma {
     endsWith?: string
     mode?: QueryMode
     not?: NestedStringFilter | string
-    isSet?: boolean
   }
 
   export type DateTimeFilter = {
@@ -17978,7 +17977,6 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: NestedDateTimeFilter | Date | string
-    isSet?: boolean
   }
 
   export type StringNullableFilter = {
@@ -18000,7 +17998,6 @@ export namespace Prisma {
   export type BoolFilter = {
     equals?: boolean
     not?: NestedBoolFilter | boolean
-    isSet?: boolean
   }
 
   export type UserRelationFilter = {
@@ -18017,7 +18014,6 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntFilter | number
-    isSet?: boolean
   }
 
   export type PostCountOrderByAggregateInput = {
@@ -18071,7 +18067,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedStringFilter
     _max?: NestedStringFilter
-    isSet?: boolean
   }
 
   export type DateTimeWithAggregatesFilter = {
@@ -18086,7 +18081,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedDateTimeFilter
     _max?: NestedDateTimeFilter
-    isSet?: boolean
   }
 
   export type StringNullableWithAggregatesFilter = {
@@ -18114,7 +18108,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedBoolFilter
     _max?: NestedBoolFilter
-    isSet?: boolean
   }
 
   export type IntWithAggregatesFilter = {
@@ -18131,7 +18124,6 @@ export namespace Prisma {
     _sum?: NestedIntFilter
     _min?: NestedIntFilter
     _max?: NestedIntFilter
-    isSet?: boolean
   }
 
   export type IntNullableFilter = {
@@ -18155,7 +18147,6 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatFilter | number
-    isSet?: boolean
   }
 
   export type FloatNullableFilter = {
@@ -18179,7 +18170,6 @@ export namespace Prisma {
   export type JsonFilterBase = {
     equals?: InputJsonValue
     not?: InputJsonValue
-    isSet?: boolean
   }
   export type JsonNullableFilter = 
     | PatchUndefined<
@@ -18199,7 +18189,6 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
-    isSet?: boolean
   }
 
   export type EnumABeautifulEnumNullableFilter = {
@@ -18326,7 +18315,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter
     _min?: NestedFloatFilter
     _max?: NestedFloatFilter
-    isSet?: boolean
   }
 
   export type FloatNullableWithAggregatesFilter = {
@@ -18358,7 +18346,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedJsonFilter
     _max?: NestedJsonFilter
-    isSet?: boolean
   }
   export type JsonNullableWithAggregatesFilter = 
     | PatchUndefined<
@@ -18384,7 +18371,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
     _max?: NestedEnumABeautifulEnumFilter
-    isSet?: boolean
   }
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter = {
@@ -18902,7 +18888,6 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntFilter | bigint | number
-    isSet?: boolean
   }
 
   export type ACountOrderByAggregateInput = {
@@ -18958,7 +18943,6 @@ export namespace Prisma {
     _sum?: NestedBigIntFilter
     _min?: NestedBigIntFilter
     _max?: NestedBigIntFilter
-    isSet?: boolean
   }
 
   export type DecimalFilter = {
@@ -18970,7 +18954,6 @@ export namespace Prisma {
     gt?: Decimal | number | string
     gte?: Decimal | number | string
     not?: NestedDecimalFilter | Decimal | number | string
-    isSet?: boolean
   }
 
   export type BCountOrderByAggregateInput = {
@@ -19025,7 +19008,6 @@ export namespace Prisma {
     _sum?: NestedDecimalFilter
     _min?: NestedDecimalFilter
     _max?: NestedDecimalFilter
-    isSet?: boolean
   }
 
   export type CCountOrderByAggregateInput = {
@@ -19063,7 +19045,6 @@ export namespace Prisma {
     in?: Enumerable<Buffer>
     notIn?: Enumerable<Buffer>
     not?: NestedBytesFilter | Buffer
-    isSet?: boolean
   }
 
   export type DCountOrderByAggregateInput = {
@@ -19097,7 +19078,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
     _max?: NestedBytesFilter
-    isSet?: boolean
   }
 
   export type ECountOrderByAggregateInput = {
@@ -19137,6 +19117,7 @@ export namespace Prisma {
 
   export type NullableStringFieldUpdateOperationsInput = {
     set?: string | null
+    unset?: boolean
   }
 
   export type BoolFieldUpdateOperationsInput = {
@@ -19185,6 +19166,7 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+    unset?: boolean
   }
 
   export type FloatFieldUpdateOperationsInput = {
@@ -19201,6 +19183,7 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
+    unset?: boolean
   }
 
   export type EnumABeautifulEnumFieldUpdateOperationsInput = {
@@ -19209,10 +19192,12 @@ export namespace Prisma {
 
   export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = {
     set?: ABeautifulEnum | null
+    unset?: boolean
   }
 
   export type NullableBoolFieldUpdateOperationsInput = {
     set?: boolean | null
+    unset?: boolean
   }
 
   export type PostUpdateManyWithoutAuthorInput = {
@@ -19563,7 +19548,6 @@ export namespace Prisma {
     startsWith?: string
     endsWith?: string
     not?: NestedStringFilter | string
-    isSet?: boolean
   }
 
   export type NestedDateTimeFilter = {
@@ -19575,7 +19559,6 @@ export namespace Prisma {
     gt?: Date | string
     gte?: Date | string
     not?: NestedDateTimeFilter | Date | string
-    isSet?: boolean
   }
 
   export type NestedStringNullableFilter = {
@@ -19596,7 +19579,6 @@ export namespace Prisma {
   export type NestedBoolFilter = {
     equals?: boolean
     not?: NestedBoolFilter | boolean
-    isSet?: boolean
   }
 
   export type NestedIntFilter = {
@@ -19608,7 +19590,6 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedIntFilter | number
-    isSet?: boolean
   }
 
   export type NestedStringWithAggregatesFilter = {
@@ -19626,7 +19607,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedStringFilter
     _max?: NestedStringFilter
-    isSet?: boolean
   }
 
   export type NestedDateTimeWithAggregatesFilter = {
@@ -19641,7 +19621,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedDateTimeFilter
     _max?: NestedDateTimeFilter
-    isSet?: boolean
   }
 
   export type NestedStringNullableWithAggregatesFilter = {
@@ -19680,7 +19659,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedBoolFilter
     _max?: NestedBoolFilter
-    isSet?: boolean
   }
 
   export type NestedIntWithAggregatesFilter = {
@@ -19697,7 +19675,6 @@ export namespace Prisma {
     _sum?: NestedIntFilter
     _min?: NestedIntFilter
     _max?: NestedIntFilter
-    isSet?: boolean
   }
 
   export type NestedFloatFilter = {
@@ -19709,7 +19686,6 @@ export namespace Prisma {
     gt?: number
     gte?: number
     not?: NestedFloatFilter | number
-    isSet?: boolean
   }
 
   export type NestedFloatNullableFilter = {
@@ -19729,7 +19705,6 @@ export namespace Prisma {
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
     not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
-    isSet?: boolean
   }
 
   export type NestedEnumABeautifulEnumNullableFilter = {
@@ -19777,7 +19752,6 @@ export namespace Prisma {
     _sum?: NestedFloatFilter
     _min?: NestedFloatFilter
     _max?: NestedFloatFilter
-    isSet?: boolean
   }
 
   export type NestedFloatNullableWithAggregatesFilter = {
@@ -19806,7 +19780,6 @@ export namespace Prisma {
   export type NestedJsonFilterBase = {
     equals?: InputJsonValue
     not?: InputJsonValue
-    isSet?: boolean
   }
   export type NestedJsonNullableFilter = 
     | PatchUndefined<
@@ -19829,7 +19802,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
     _max?: NestedEnumABeautifulEnumFilter
-    isSet?: boolean
   }
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
@@ -19886,7 +19858,6 @@ export namespace Prisma {
     gt?: bigint | number
     gte?: bigint | number
     not?: NestedBigIntFilter | bigint | number
-    isSet?: boolean
   }
 
   export type NestedBigIntWithAggregatesFilter = {
@@ -19903,7 +19874,6 @@ export namespace Prisma {
     _sum?: NestedBigIntFilter
     _min?: NestedBigIntFilter
     _max?: NestedBigIntFilter
-    isSet?: boolean
   }
 
   export type NestedDecimalFilter = {
@@ -19915,7 +19885,6 @@ export namespace Prisma {
     gt?: Decimal | number | string
     gte?: Decimal | number | string
     not?: NestedDecimalFilter | Decimal | number | string
-    isSet?: boolean
   }
 
   export type NestedDecimalWithAggregatesFilter = {
@@ -19932,7 +19901,6 @@ export namespace Prisma {
     _sum?: NestedDecimalFilter
     _min?: NestedDecimalFilter
     _max?: NestedDecimalFilter
-    isSet?: boolean
   }
 
   export type NestedBytesFilter = {
@@ -19940,7 +19908,6 @@ export namespace Prisma {
     in?: Enumerable<Buffer>
     notIn?: Enumerable<Buffer>
     not?: NestedBytesFilter | Buffer
-    isSet?: boolean
   }
 
   export type NestedBytesWithAggregatesFilter = {
@@ -19951,7 +19918,6 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
     _max?: NestedBytesFilter
-    isSet?: boolean
   }
 
   export type UserCreateWithoutPostsInput = {
