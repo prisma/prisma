@@ -67,9 +67,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.12.0-17.query-engine-mongodb-feat-isset-filter-364a0017ccde7172fde7d712c61d54da77477072",
+    "@prisma/fetch-engine": "3.11.1-1.1a2506facaf1a4727b7c26850735e88ec779dee9",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.12.0-17.query-engine-mongodb-feat-isset-filter-364a0017ccde7172fde7d712c61d54da77477072",
+    "@prisma/get-platform": "3.11.1-1.1a2506facaf1a4727b7c26850735e88ec779dee9",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.458.0",
@@ -118,7 +118,7 @@
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.12.0-17.query-engine-mongodb-feat-isset-filter-364a0017ccde7172fde7d712c61d54da77477072"
+    "@prisma/engines": "3.11.1-1.1a2506facaf1a4727b7c26850735e88ec779dee9"
   },
   "sideEffects": false
 }
