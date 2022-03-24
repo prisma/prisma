@@ -8,9 +8,8 @@ import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
-
 if (isMacOrWindowsCI) {
-  jest.setTimeout(60000)
+  jest.setTimeout(60_000)
 }
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -467,8 +466,6 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  jest.setTimeout(20000)
-
   const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
   const setupParams: SetupParams = {
     connectionString,

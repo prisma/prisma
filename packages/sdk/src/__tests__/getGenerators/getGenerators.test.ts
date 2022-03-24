@@ -12,11 +12,11 @@ import { pick } from '../../utils/pick'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-jest.setTimeout(20000)
-
 if (process.env.CI) {
   // 20s is often not enough on CI, especially on macOS.
-  jest.setTimeout(60000)
+  jest.setTimeout(60_000)
+} else {
+  jest.setTimeout(20_000)
 }
 
 let generatorPath = path.join(__dirname, 'generator')
