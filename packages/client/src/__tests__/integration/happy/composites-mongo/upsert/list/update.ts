@@ -1,4 +1,5 @@
 import { getTestClient } from '../../../../../../utils/getTestClient'
+import { commentRequiredListDataB } from '../../__helpers__/build-data/commentRequiredListDataB'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
@@ -17,21 +18,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('update > list', () => {
 
   beforeEach(async () => {
     await prisma.commentRequiredList.deleteMany({ where: { id } })
-    await prisma.commentRequiredList.create({
-      data: {
-        id,
-        country: 'France',
-        contents: {
-          set: {
-            text: 'Hello World',
-            upvotes: {
-              vote: true,
-              userId: '10',
-            },
-          },
-        },
-      },
-    })
+    await prisma.commentRequiredList.create({ data: commentRequiredListDataB(id) })
   })
 
   afterEach(async () => {
@@ -226,6 +213,15 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('update > list', () => {
       Object {
         contents: Array [
           Object {
+            text: Goodbye World,
+            upvotes: Array [
+              Object {
+                userId: 11,
+                vote: false,
+              },
+            ],
+          },
+          Object {
             text: Hello World,
             upvotes: Array [
               Object {
@@ -233,6 +229,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('update > list', () => {
                 vote: true,
               },
             ],
+          },
+          Object {
+            text: Hello World,
+            upvotes: Array [],
           },
           Object {
             text: Goodbye World,
@@ -248,12 +248,110 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('update > list', () => {
   /**
    * Simple updateMany
    */
-  test.skip('updateMany', async () => {})
+  test('updateMany', async () => {
+    const comment = await prisma.commentRequiredList.upsert({
+      where: { id },
+      create: {},
+      update: {
+        contents: {
+          updateMany: {
+            data: {
+              upvotes: [{ userId: 'Another Comment', vote: true }],
+            },
+            where: {
+              upvotes: {
+                isEmpty: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        contents: Array [
+          Object {
+            text: Goodbye World,
+            upvotes: Array [
+              Object {
+                userId: 11,
+                vote: false,
+              },
+            ],
+          },
+          Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: Another Comment,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: France,
+        id: 3ccccccccccccccccccccccc,
+      }
+    `)
+  })
 
   /**
    * Simple deleteMany
    */
-  test.skip('deleteMany', async () => {})
+  test('deleteMany', async () => {
+    const comment = await prisma.commentRequiredList.upsert({
+      where: { id },
+      create: {},
+      update: {
+        contents: {
+          deleteMany: {
+            where: {
+              upvotes: {
+                isEmpty: true,
+              },
+            },
+          },
+        },
+      },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`
+      Object {
+        contents: Array [
+          Object {
+            text: Goodbye World,
+            upvotes: Array [
+              Object {
+                userId: 11,
+                vote: false,
+              },
+            ],
+          },
+          Object {
+            text: Hello World,
+            upvotes: Array [
+              Object {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: France,
+        id: 3ccccccccccccccccccccccc,
+      }
+    `)
+  })
 
   /**
    * Simple unset

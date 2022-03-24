@@ -49,7 +49,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -126,7 +126,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -156,7 +156,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -186,7 +186,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -233,7 +233,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
@@ -263,7 +263,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
               },
             ],
           },
-          country: France,
+          country: null,
           id: 3aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
