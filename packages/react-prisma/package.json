@@ -30,7 +30,6 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
     "test": "echo \"not yet\""
   },
   "files": [
