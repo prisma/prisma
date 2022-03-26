@@ -60,6 +60,12 @@ export interface EngineConfig {
   activeProvider?: string
 
   /**
+   * Throw an error if the request takes longer
+   * than this timeout
+   */
+  requestTimeoutMS?: number
+
+  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */

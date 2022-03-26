@@ -6,10 +6,12 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 import path from 'path'
+import { threadId } from 'worker_threads'
 
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientRequestTimeoutError } from '../common/errors/PrismaClientRequestTimeoutError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
@@ -55,6 +57,7 @@ export class LibraryEngine extends Engine {
   private QueryEngineConstructor?: QueryEngineConstructor
   private library?: Library
   private logEmitter: EventEmitter
+  private requestTimeoutMS?: number
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -88,6 +91,7 @@ export class LibraryEngine extends Engine {
       // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
+    this.requestTimeoutMS = config.requestTimeoutMS
 
     initHooks()
     engines.push(this)
@@ -395,45 +399,14 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.versionInfo?.version ?? 'unknown'
   }
 
-  async request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    numTry = 1,
-  ): Promise<{ data: T; elapsed: number }> {
+  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
-    const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(request)
 
-    try {
-      await this.start()
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, headers.transactionId)
-
-      this.lastQuery = queryStr
-      const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
-
-      if (data.errors) {
-        if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
-        }
-        // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
-      } else if (this.loggerRustPanic) {
-        throw this.loggerRustPanic
-      }
-      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-      return { data, elapsed: 0 }
-    } catch (e: any) {
-      if (e instanceof PrismaClientInitializationError) {
-        throw e
-      }
-      const error = this.parseRequestError(e.message)
-      if (typeof error === 'string') {
-        throw e
-      } else {
-        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, this.config.clientVersion!)
-      }
-    }
+    const result = await this.timedRequestInternal(queryStr, headers)
+    this.lastQuery = queryStr
+    return result
   }
 
   async requestBatch<T>(
@@ -447,37 +420,70 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction,
     }
-    await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    this.executingQueryPromise = this.engine!.query(this.lastQuery, JSON.stringify(headers), headers.transactionId)
-    const result = await this.executingQueryPromise
-    const data = this.parseEngineResponse<any>(result)
+    return this.timedRequestInternal(this.lastQuery, headers)
+  }
 
-    if (data.errors) {
-      if (data.errors.length === 1) {
-        throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+  private async timedRequestInternal(query: string, headers: QueryEngineRequestHeaders) {
+    if (this.requestTimeoutMS) {
+      const result = await Promise.race([
+        new Promise((r) => setTimeout(r, this.requestTimeoutMS)).then(() => 'timeout' as const),
+        this.requestInternal(query, headers),
+      ])
+
+      if (result === 'timeout') {
+        throw new PrismaClientRequestTimeoutError(this.version())
       }
-      // this case should not happen, as the query engine only returns one error
-      throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
-    }
 
-    const { batchResult, errors } = data
-    if (Array.isArray(batchResult)) {
-      return batchResult.map((result) => {
-        if (result.errors) {
-          return this.loggerRustPanic ?? prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
-        }
-        return {
-          data: result,
-          elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
-        }
-      })
+      return result
     } else {
-      if (errors && errors.length === 1) {
-        throw new Error(errors[0].error)
+      return this.requestInternal(query, headers)
+    }
+  }
+
+  private async requestInternal(query: string, headers: QueryEngineRequestHeaders = {}) {
+    try {
+      await this.start()
+      this.executingQueryPromise = this.engine?.query(query, JSON.stringify(headers), headers.transactionId)
+
+      const result = await this.executingQueryPromise
+      const data = this.parseEngineResponse<any>(result)
+
+      if (data.errors) {
+        if (data.errors.length === 1) {
+          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        }
+        // this case should not happen, as the query engine only returns one error
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
+      } else if (this.loggerRustPanic) {
+        throw this.loggerRustPanic
       }
-      throw new Error(JSON.stringify(data))
+
+      if (data.batchResult && Array.isArray(data.batchResult)) {
+        return data.batchResult.map((result) => {
+          if (result.errors) {
+            return this.loggerRustPanic ?? prismaGraphQLToJSError(result.errors[0], this.config.clientVersion!)
+          }
+          return {
+            data: result,
+            elapsed: 0, // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
+          }
+        })
+      }
+
+      // TODO Implement Elapsed: https://github.com/prisma/prisma/issues/7726
+      return { data, elapsed: 0 }
+    } catch (e: any) {
+      if (e instanceof PrismaClientInitializationError) {
+        throw e
+      }
+      const error = this.parseRequestError(e.message)
+      if (typeof error === 'string') {
+        throw e
+      } else {
+        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, this.config.clientVersion!)
+      }
     }
   }
 

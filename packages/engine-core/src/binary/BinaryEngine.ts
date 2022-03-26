@@ -21,6 +21,7 @@ import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResul
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
+import { PrismaClientRequestTimeoutError } from '../common/errors/PrismaClientRequestTimeoutError'
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
@@ -111,6 +112,7 @@ export class BinaryEngine extends Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
+  private requestTimeoutMS?: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -133,6 +135,7 @@ export class BinaryEngine extends Engine {
     allowTriggerPanic,
     dirname,
     activeProvider,
+    requestTimeoutMS,
   }: EngineConfig) {
     super()
 
@@ -156,6 +159,7 @@ export class BinaryEngine extends Engine {
     this.flags = flags ?? []
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
+    this.requestTimeoutMS = requestTimeoutMS
     this.connection = new Connection()
 
     initHooks()
@@ -859,10 +863,53 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
+    this.lastQuery = query
+    const result = await this.timedRequestInternal<T>(stringifyQuery(query), headers, numTry)
+
+    // reset restart count after successful request
+    if (this.startCount > 0) {
+      this.startCount = 0
+    }
+
+    return result
+  }
+
+  async requestBatch<T>(
+    queries: string[],
+    headers: QueryEngineRequestHeaders = {},
+    transaction = false,
+    numTry = 1,
+  ): Promise<QueryEngineResult<T>[]> {
+    const request = {
+      batch: queries.map((query) => ({ query, variables: {} })),
+      transaction,
+    }
+
+    this.lastQuery = JSON.stringify(request)
+    return this.timedRequestInternal(this.lastQuery, headers, numTry)
+  }
+
+  private async timedRequestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1) {
+    if (this.requestTimeoutMS) {
+      const result = await Promise.race([
+        new Promise((r) => setTimeout(r, this.requestTimeoutMS)).then(() => 'timeout' as const),
+        this.requestInternal<T>(query, headers, numTry),
+      ])
+
+      if (result === 'timeout') {
+        throw new PrismaClientRequestTimeoutError(this.clientVersion || 'unknown')
+      }
+
+      return result
+    } else {
+      return this.requestInternal<T>(query, headers, numTry)
+    }
+  }
+
+  private async requestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1) {
     await this.start()
 
-    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
-    this.lastQuery = query
+    this.currentRequestPromise = this.connection.post('/', this.lastQuery, runtimeHeadersToHttpHeaders(headers))
 
     try {
       const { data, headers } = await this.currentRequestPromise
@@ -874,16 +921,23 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
       }
 
-      // Rust engine returns time in microseconds and we want it in miliseconds
+      // Rust engine returns time in microseconds and we want it in milliseconds
       const elapsed = parseInt(headers['x-elapsed']) / 1000
-
-      // reset restart count after successful request
-      if (this.startCount > 0) {
-        this.startCount = 0
-      }
-
       this.currentRequestPromise = undefined
-      return { data, elapsed } as any
+
+      if (data.batchResult && Array.isArray(data.batchResult)) {
+        return data.batchResult.map((result) => {
+          if (result.errors) {
+            throw prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+          }
+          return {
+            data: result,
+            elapsed,
+          }
+        })
+      } else {
+        return { data, elapsed } as any
+      }
     } catch (e: any) {
       logger('req - e', e)
       if (e instanceof PrismaClientKnownRequestError) {
@@ -894,59 +948,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       // retry
       if (numTry <= MAX_REQUEST_RETRIES) {
         logger('trying a retry now')
-        return this.request(query, headers, numTry + 1)
+        return this.requestInternal<T>(query, headers, numTry + 1)
       }
     }
 
     return null as any // needed to make TS happy
-  }
-
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction = false,
-    numTry = 1,
-  ): Promise<QueryEngineResult<T>[]> {
-    await this.start()
-
-    const request = {
-      batch: queries.map((query) => ({ query, variables: {} })),
-      transaction,
-    }
-
-    this.lastQuery = JSON.stringify(request)
-    this.currentRequestPromise = this.connection.post('/', this.lastQuery, runtimeHeadersToHttpHeaders(headers))
-
-    return this.currentRequestPromise
-      .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in miliseconds
-        const elapsed = parseInt(headers['x-elapsed']) / 1000
-        const { batchResult, errors } = data
-        if (Array.isArray(batchResult)) {
-          return batchResult.map((result) => {
-            if (result.errors) {
-              throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
-            }
-            return {
-              data: result,
-              elapsed,
-            }
-          })
-        } else {
-          throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
-        }
-      })
-      .catch(async (e) => {
-        const isError = await this.handleRequestError(e, numTry < 3)
-        if (!isError) {
-          // retry
-          if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch(queries, headers, transaction, numTry + 1)
-          }
-        }
-
-        throw isError
-      })
   }
 
   /**
