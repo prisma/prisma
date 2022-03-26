@@ -1,6 +1,7 @@
 import type { RequestResponse } from '../../utils/request'
 import { BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
+import { GatewayTimeoutError } from '../GatewayTimeoutError'
 import { NotFoundError } from '../NotFoundError'
 import { SchemaMissingError } from '../SchemaMissingError'
 import { ServerError } from '../ServerError'
@@ -32,6 +33,10 @@ export async function responseToError(
 
   if (response.status === 429) {
     throw new UsageExceededError(info)
+  }
+
+  if (response.status === 504) {
+    throw new GatewayTimeoutError(info)
   }
 
   if (response.status >= 500) {
