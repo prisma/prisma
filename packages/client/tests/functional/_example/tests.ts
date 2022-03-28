@@ -3,12 +3,8 @@ import type P from '@prisma/client'
 
 import { setupTestSuiteMatrix } from '../../_utils/setupTestSuiteMatrix'
 
-setupTestSuiteMatrix((importClient, prisma: P.PrismaClient, Prisma: typeof P.Prisma) => {
-  beforeAll(async () => {
-    const imported = await importClient()
-    prisma = new imported.PrismaClient()
-    Prisma = imported.Prisma
-  })
+setupTestSuiteMatrix((importClient, prisma: P.PrismaClient) => {
+  beforeAll(async () => (prisma = new (await importClient()).PrismaClient()))
 
   test('simpleInput1', async () => await prisma.user.findMany())
   test('simpleInput2', async () => await prisma.user.findMany())
