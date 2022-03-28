@@ -236,6 +236,7 @@ importers:
       fs-extra: 10.0.0
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
+      globby: 11.1.0
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
@@ -296,6 +297,7 @@ importers:
       fs-extra: 10.0.0
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
+      globby: 11.1.0
       indent-string: 4.0.0
       is-obj: 2.0.0
       is-regexp: 2.1.0
@@ -4198,6 +4200,17 @@ packages:
       glob-parent: 5.1.2
       merge2: 1.4.1
       micromatch: 4.0.4
+    dev: true
+
+  /fast-glob/3.2.11:
+    resolution: {integrity: sha512-xrO3+1bxSo3ZVHAnqzyuewYT6aMFHRAd4Kcs92MAonjwQZLsK9d0SF1IyQ3k5PoirxTW0Oe/RqFgMQ6TcNE5Ew==}
+    engines: {node: '>=8.6.0'}
+    dependencies:
+      '@nodelib/fs.stat': 2.0.5
+      '@nodelib/fs.walk': 1.2.8
+      glob-parent: 5.1.2
+      merge2: 1.4.1
+      micromatch: 4.0.4
 
   /fast-json-stable-stringify/2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
@@ -4576,7 +4589,7 @@ packages:
     dependencies:
       array-union: 2.1.0
       dir-glob: 3.0.1
-      fast-glob: 3.2.10
+      fast-glob: 3.2.11
       ignore: 5.2.0
       merge2: 1.4.1
       slash: 3.0.0
@@ -5206,7 +5219,7 @@ packages:
       pretty-format: 27.5.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.4.0_b575a4ed8d8a14db25cb9540c04f64f6
+      ts-node: 10.4.0_82274b92ec7bae91027ffd577a5efb53
     transitivePeerDependencies:
       - bufferutil
       - canvas

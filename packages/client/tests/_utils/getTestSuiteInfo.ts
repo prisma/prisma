@@ -5,7 +5,7 @@ import { keys } from '../../../../helpers/blaze/keys'
 import { map } from '../../../../helpers/blaze/map'
 import { matrix } from '../../../../helpers/blaze/matrix'
 import { merge } from '../../../../helpers/blaze/merge'
-import type { TestSuiteMeta } from './setupClientTest'
+import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 export type TestSuiteMatrix = { [K in string]: string }[][]
 export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
@@ -67,7 +67,7 @@ export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
 }
 
 export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
-  const schemaPath = path.join(suiteMeta.prismaPath, 'schema.prisma')
+  const schemaPath = path.join(suiteMeta.prismaPath, 'schema.prisma.txt')
   let schema = await fs.readFile(schemaPath, 'utf-8')
 
   for (const key of keys(suiteConfig)) {

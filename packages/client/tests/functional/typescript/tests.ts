@@ -3,6 +3,7 @@ import glob from 'globby'
 import path from 'path'
 import ts from 'typescript'
 
+import { keys } from '../../../../../helpers/blaze/keys'
 import { map } from '../../../../../helpers/blaze/map'
 import { reduce } from '../../../../../helpers/blaze/reduce'
 
@@ -12,6 +13,7 @@ function getAllTestSuiteTypeChecks(fileNames: string[]) {
       require('../../../../../tsconfig.build.json').compilerOptions,
       path.dirname(expect.getState().testPath),
     ).options,
+    skipLibCheck: false,
     noEmit: true,
   })
 
@@ -33,12 +35,18 @@ function getAllTestSuiteTypeChecks(fileNames: string[]) {
 }
 
 describe('typescript', () => {
-  const testSuitePaths = glob.sync('./**/.generated/**/*[!*.d.].ts')
-  const testSuiteChecks = getAllTestSuiteTypeChecks(testSuitePaths)
-  const testSuiteTable = map(testSuitePaths, (path) => [getTestSuiteDisplayName(path), path])
+  const suitePaths = glob.sync('./**/.generated/**/*[!*.d.].ts')
+  const suiteChecks = getAllTestSuiteTypeChecks(suitePaths)
+  const suiteTable = map(suitePaths, (path) => [getTestSuiteDisplayName(path), path])
 
-  test.each(testSuiteTable)('%s', (_, testSuiteFilePath) => {
-    assert(!testSuiteChecks[testSuiteFilePath], testSuiteChecks[testSuiteFilePath])
+  if (suiteTable.length === 0) return test('No test suites found', () => {})
+
+  test.each(suiteTable)('%s', (_, suiteFilePath) => {
+    for (const checkPath of keys(suiteChecks)) {
+      if (checkPath.includes(path.dirname(suiteFilePath))) {
+        assert.fail(suiteChecks[checkPath])
+      }
+    }
   })
 })
 

@@ -1,9 +1,0 @@
-{
-  "extends": "../../../tsconfig.build.json",
-  "compilerOptions": {
-    "noEmit": true,
-    "skipLibCheck": true
-  },
-  "include": ["./functional/**/.generated/**/*"],
-  "exclude": []
-}

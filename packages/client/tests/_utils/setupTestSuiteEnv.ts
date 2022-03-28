@@ -8,14 +8,14 @@ import { DbPush } from '../../../migrate/src/commands/DbPush'
 import { dmmfToTypes } from '../../src/generation/generator'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
-import type { TestSuiteMeta } from './setupClientTest'
+import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
-  await handle.async(() => fs.rmdir(suiteFolder, { recursive: true }))
   await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
   await fs.copy(path.join(suiteMeta.testDir, 'tests.ts'), path.join(suiteFolder, 'tests.ts'))
+  await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
 
   const testsContents = await fs.readFile(path.join(suiteFolder, 'tests.ts'))
   const newTestsContents = testsContents.toString().replace('../../', '../../../../')

@@ -16,7 +16,10 @@ export default () => [
       '#EXTRA_FEATURES': '"interactiveTransactions"',
     },
     {
-      '#EXTRA_FEATURES': '"dataproxy"',
+      '#EXTRA_FEATURES': '"filterJson"',
+    },
+    {
+      '#EXTRA_FEATURES': '"referentialIntegrity"',
     },
   ],
 ]

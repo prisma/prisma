@@ -1,6 +1,5 @@
 module.exports = {
-  testMatch: ['<rootDir>/**/*.ts', '!(<rootDir>/**/*.d.ts)'],
-  testPathIgnorePatterns: ['node_modules/', '_utils/', '_matrix.ts', '.generated'],
+  testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_matrix.ts)', '!(**/.generated/**)'],
   transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
   reporters: [
     'default',
@@ -14,7 +13,7 @@ module.exports = {
       },
     ],
   ],
-  testSequencer: './_utils/setupTestSequencer.js',
+  globalSetup: './_utils/globalSetup.js',
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
   setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
   testTimeout: 10000,
