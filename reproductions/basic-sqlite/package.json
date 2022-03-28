@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "name": "basic-sqlite",
+  "description": "Prisma development playground",
+  "main": "index.ts",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "../../packages/client"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.21",
+    "prisma": "../../packages/cli",
+    "ts-node": "10.4.0",
+    "typescript": "4.5.5"
+  }
+}

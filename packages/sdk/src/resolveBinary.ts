@@ -31,12 +31,13 @@ export const engineEnvVarMap = {
 }
 export { BinaryType }
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
+  // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath
   }
 
+  // If engine path was provided via env var, check and use that one
   const envVar = engineEnvVarMap[name]
-
   if (process.env[envVar]) {
     if (!fs.existsSync(process.env[envVar]!)) {
       throw new Error(`Env var ${envVar} is provided, but provided path ${process.env[envVar]} can't be resolved.`)
@@ -44,54 +45,61 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
     return process.env[envVar]!
   }
 
-  const dir = eval('__dirname')
-
+  // If still here, try different paths
   const binaryName = await getBinaryName(name)
 
-  let prismaPath = path.join(getEnginesPath(), binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return maybeCopyToTmp(prismaPath)
-  }
-  // for pkg
-  prismaPath = path.join(__dirname, '..', binaryName)
+  const prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
 
-  prismaPath = path.join(__dirname, '../..', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return maybeCopyToTmp(prismaPath)
+  // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
+  const prismaPath2 = path.join(__dirname, '..', binaryName)
+  if (fs.existsSync(prismaPath2)) {
+    return maybeCopyToTmp(prismaPath2)
   }
 
-  // needed to come from @prisma/client/generator-build to @prisma/client/runtime
-  prismaPath = path.join(__dirname, '../runtime', binaryName)
-  if (fs.existsSync(prismaPath)) {
-    return maybeCopyToTmp(prismaPath)
+  // TODO for ??
+  const prismaPath3 = path.join(__dirname, '../..', binaryName)
+  if (fs.existsSync(prismaPath3)) {
+    return maybeCopyToTmp(prismaPath3)
   }
 
+  // TODO for ?? / needed to come from @prisma/client/generator-build to @prisma/client/runtime
+  const prismaPath4 = path.join(__dirname, '../runtime', binaryName)
+  if (fs.existsSync(prismaPath4)) {
+    return maybeCopyToTmp(prismaPath4)
+  }
+
+  // Still here? Could not find the engine, so error out.
   throw new Error(
-    `Could not find ${name} binary. Searched in ${path.join(dir, '..', binaryName)} and ${path.join(
-      dir,
-      '../..',
-      binaryName,
-    )}`,
+    `Could not find ${name} binary. Searched in:
+- ${prismaPath}
+- ${prismaPath2}
+- ${prismaPath3}
+- ${prismaPath4}`,
   )
 }
 
 export async function maybeCopyToTmp(file: string): Promise<string> {
-  // in this case, we are in a "pkg" context with a virtual fs
-  // to make this work, we need to copy the binary to /tmp and execute it from there
-
   const dir = eval('__dirname')
+
   if (dir.startsWith('/snapshot/')) {
+    // in this case, we are in a "pkg" context with a virtual fs
+    // to make this work, we need to copy the binary to /tmp and execute it from there
+    // TODO Why is this needed? What happens if you do not do it?
+    // TODO Probably to be able to make the file executable?
+    // TODO Go and Python Client (which use pkg) actually provide the binaries _outside_ of the CLI via env vars - so never and up here
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
+
+    // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved
     const data = await readFile(file)
     await writeFile(target, data)
-    // We have to read and write until https://github.com/zeit/pkg/issues/639
-    // is resolved
+    // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
+
     plusX(target)
     return target
   }

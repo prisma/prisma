@@ -1,4 +1,5 @@
 import { getTestClient } from '../../../../../utils/getTestClient'
+import { commentOptionalPropDataA } from '../__helpers__/build-data/commentOptionalPropDataA'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
@@ -17,21 +18,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > optional', () => {
 
   beforeEach(async () => {
     await prisma.commentOptionalProp.deleteMany({ where: { id } })
-    await prisma.commentOptionalProp.create({
-      data: {
-        id,
-        country: 'France',
-        content: {
-          set: {
-            text: 'Hello World',
-            upvotes: {
-              vote: true,
-              userId: '10',
-            },
-          },
-        },
-      },
-    })
+    await prisma.commentOptionalProp.create({ data: commentOptionalPropDataA(id) })
   })
 
   afterEach(async () => {
@@ -57,7 +44,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > optional', () => {
             },
           ],
         },
-        country: France,
+        country: null,
         id: 7aaaaaaaaaaaaaaaaaaaaaaa,
       }
     `)
@@ -113,9 +100,20 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > optional', () => {
             },
           ],
         },
-        country: France,
+        country: null,
         id: 7aaaaaaaaaaaaaaaaaaaaaaa,
       }
     `)
+  })
+
+  /**
+   * Filter isSet
+   */
+  test('filter isSet', async () => {
+    const comment = await prisma.commentOptionalProp.findFirst({
+      where: { id, country: { isSet: true } },
+    })
+
+    expect(comment).toMatchInlineSnapshot(`null`)
   })
 })

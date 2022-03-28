@@ -18,6 +18,10 @@ export function commentRequiredListDataB(id: string) {
             userId: '10',
           },
         },
+        {
+          text: 'Hello World',
+          upvotes: [],
+        },
       ],
     },
   }

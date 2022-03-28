@@ -200,7 +200,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
               180 
               181 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
             → 182   const post = prisma.post.create(
-              Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111".
+              Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
           `)
   })
 

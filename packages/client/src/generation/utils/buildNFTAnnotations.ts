@@ -21,6 +21,8 @@ export function buildNFTAnnotations(
   relativeOutdir: string,
 ) {
   if (platforms === undefined) {
+    // TODO: should we still build the schema annotations in this case?
+    // Or, even better, make platforms non-nullable in TSClientOptions to avoid this check.
     return ''
   }
 

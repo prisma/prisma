@@ -362,6 +362,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           cwd = config.dirname
         }
 
+        debug('dirname', config.dirname)
+        debug('relativePath', config.relativePath)
+        debug('cwd', cwd)
+
         const thedatasources = options.datasources || {}
         const inputDatasources = Object.entries(thedatasources)
           /* eslint-disable-next-line @typescript-eslint/no-unused-vars */

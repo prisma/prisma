@@ -20,7 +20,7 @@ async function sendRequest(message: any): Promise<any> {
 let studio: Studio
 
 describe('studio with default schema.prisma filename', () => {
-  jest.setTimeout(20000)
+  jest.setTimeout(20_000)
 
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
@@ -203,7 +203,7 @@ describe('studio with default schema.prisma filename', () => {
 })
 
 describe('studio with custom schema.prisma filename', () => {
-  jest.setTimeout(20000)
+  jest.setTimeout(20_000)
 
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.

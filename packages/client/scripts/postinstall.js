@@ -339,7 +339,7 @@ function parsePackageManagerName(userAgent) {
 
   // example: 'yarn/1.22.4 npm/? node/v13.11.0 darwin x64'
   // References:
-  // - https://pnpm.js.org/en/3.6/only-allow-pnpm
+  // - https://pnpm.io/only-allow-pnpm
   // - https://github.com/cameronhunter/npm-config-user-agent-parser
   if (userAgent) {
     const matchResult = userAgent.match(/^([^/]+)\/.+/)

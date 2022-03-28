@@ -1044,7 +1044,7 @@ describe('postgresql', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-postgresql')
-    jest.setTimeout(7000)
+    jest.setTimeout(7_000)
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
@@ -1277,7 +1277,7 @@ describe('mysql', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-mysql')
-    jest.setTimeout(7000)
+    jest.setTimeout(7_000)
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
@@ -1337,7 +1337,12 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  jest.setTimeout(20000)
+  if (process.env.CI) {
+    // to avoid timeouts on macOS
+    jest.setTimeout(80_000)
+  } else {
+    jest.setTimeout(20_000)
+  }
 
   const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
 
@@ -1493,7 +1498,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlserver')
-    jest.setTimeout(10000)
+    jest.setTimeout(10_000)
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
