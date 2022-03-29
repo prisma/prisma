@@ -5,18 +5,18 @@ import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 setupTestSuiteMatrix((suiteConfig, suiteMeta) => {
-  // config (cross-product of _matrix.ts)
+  // an example of how to query with the preloaded client
+  test('findMany', async () => {
+    await prisma.user.findMany()
+  })
+
+  // take a look at the test suite config (see _matrix.ts)
   test('suiteConfig', () => {
     console.log(suiteConfig)
   })
 
-  // an example of how to get the schema
+  // an example of how we generate the schema internally
   test('suiteSchema', async () => {
     console.log(await getTestSuiteSchema(suiteMeta, suiteConfig))
-  })
-
-  // an example of how to make a query
-  test('findMany', async () => {
-    await prisma.user.findMany()
   })
 })
