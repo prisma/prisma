@@ -3,7 +3,6 @@ import crypto from 'crypto'
 import fs from 'fs-extra'
 import path from 'path'
 
-import { handle } from '../../../../helpers/blaze/handle'
 import { DbPush } from '../../../migrate/src/commands/DbPush'
 import { dmmfToTypes } from '../../src/generation/generator'
 import type { TestSuiteConfig } from './getTestSuiteInfo'

@@ -7,26 +7,19 @@ import { setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
-function setupTestSuiteMatrix<Prisma, PrismaClient>(
-  tests: (
-    importClient: () => Promise<any>,
-    prisma: PrismaClient,
-    Prisma: Prisma,
-    suiteMeta: TestSuiteMeta,
-    suiteConfig: TestSuiteConfig,
-  ) => void,
-) {
+function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
   const suiteTable = getTestSuiteTable(suiteMeta)
-  const dummyEmptyValue = undefined as never
 
   describe.each(suiteTable)('%s', (_, suiteConfig) => {
     beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
+    beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
+    beforeAll(async () => (globalThis['prisma'] = new (await global['import'])['PrismaClient']()))
+    afterAll(async () => await globalThis['prisma']?.disconnect())
     afterAll(() => (process.env = originalEnv))
 
-    const importClient = () => setupTestSuiteClient(suiteMeta, suiteConfig)
-    tests(importClient, dummyEmptyValue, dummyEmptyValue, suiteMeta, suiteConfig)
+    tests(suiteConfig, suiteMeta)
   })
 }
 
