@@ -10,6 +10,12 @@ import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 export type TestSuiteMatrix = { [K in string]: string }[][]
 export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
 
+/**
+ * Get the generated test suite name, used for the folder name.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @returns
+ */
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   let name = `${suiteMeta.suiteName} - ${suiteConfig['#PROVIDER']}`
 
@@ -26,11 +32,22 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
   return name
 }
 
+/**
+ * Get the generated test suite features, used for client generation.
+ * @param suiteConfig
+ * @returns
+ */
 export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
   // eslint-disable-next-line prettier/prettier
   return [...(suiteConfig['#FEATURES']?.split(', ') ?? []), ...(suiteConfig['#EXTRA_FEATURES']?.split(', ') ?? [])]
 }
 
+/**
+ * Get the generated test suite path, where files will be copied to.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @returns
+ */
 export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
@@ -39,6 +56,12 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
   return suiteFolder
 }
 
+/**
+ * Get the generated test suite schema file path.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @returns
+ */
 export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
@@ -46,6 +69,12 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
   return schemaPath
 }
 
+/**
+ * Get the generated test suite prisma folder path.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @returns
+ */
 export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const prismaPath = path.join(suiteFolder, 'prisma')
@@ -53,12 +82,22 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
   return prismaPath
 }
 
+/**
+ * Transforms the `_matrix.ts` into the cross-product of config objects.
+ * @param suiteMeta
+ * @returns
+ */
 export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
   const rawMatrix = require(suiteMeta.matrixPath).default() as TestSuiteMatrix
 
   return map(matrix(rawMatrix), (configs) => merge(configs))
 }
 
+/**
+ * Get a jest-compatible test suite table from the test suite configs.
+ * @param suiteMeta
+ * @returns [test-suite-title, test-suite-config]
+ */
 export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
   return map(
     getTestSuiteConfigs(suiteMeta),
@@ -66,6 +105,12 @@ export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
   )
 }
 
+/**
+ * Inflate the base schema with a test suite config, used for schema generation.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @returns
+ */
 export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const schemaPath = path.join(suiteMeta.prismaPath, 'schema.prisma.txt')
   let schema = await fs.readFile(schemaPath, 'utf-8')
@@ -77,6 +122,10 @@ export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: 
   return schema
 }
 
+/**
+ * Get metadata about the test suite executed by jest.
+ * @returns
+ */
 export function getTestSuiteMeta() {
   const testPath = expect.getState().testPath
   const testDir = path.dirname(testPath)

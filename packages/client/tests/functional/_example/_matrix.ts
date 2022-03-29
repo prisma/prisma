@@ -18,8 +18,5 @@ export default () => [
     {
       '#EXTRA_FEATURES': '"filterJson"',
     },
-    {
-      '#EXTRA_FEATURES': '"referentialIntegrity"',
-    },
   ],
 ]

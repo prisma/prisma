@@ -1,15 +1,18 @@
-import type { DMMF } from '@prisma/generator-helper'
 import crypto from 'crypto'
 import fs from 'fs-extra'
 import path from 'path'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
-import { dmmfToTypes } from '../../../src/generation/generator'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
+/**
+ * Copies the necessary files for the generated test suite folder.
+ * @param suiteMeta
+ * @param suiteConfig
+ */
 export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
@@ -18,27 +21,28 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
   await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
 
   const testsContents = await fs.readFile(path.join(suiteFolder, 'tests.ts'))
-  const newTestsContents = testsContents.toString().replace('../../', '../../../../')
+  const newTestsContents = testsContents.toString().replace("'../", "'../../../")
 
-  fs.writeFileSync(path.join(suiteFolder, 'tests.ts'), newTestsContents)
+  await fs.writeFile(path.join(suiteFolder, 'tests.ts'), newTestsContents)
 }
 
-export async function setupTestSuiteTypes(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig, dmmf: DMMF.Document) {
-  const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const typesFolder = path.join(suiteFolder, 'node_modules', '@prisma/client')
-  const typesFile = path.join(typesFolder, 'index.d.ts')
-  const types = dmmfToTypes(dmmf)
-
-  await fs.mkdirp(typesFolder)
-  await fs.writeFile(typesFile, types)
-}
-
+/**
+ * Write the generated test suite schema to the test suite folder.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @param schema
+ */
 export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig, schema: string) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   await fs.writeFile(schemaPath, schema)
 }
 
+/**
+ * Create a database for the generated schema of the test suite.
+ * @param suiteMeta
+ * @param suiteConfig
+ */
 export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
@@ -51,6 +55,11 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
   }
 }
 
+/**
+ * Drop the database for the generated schema of the test suite.
+ * @param suiteMeta
+ * @param suiteConfig
+ */
 export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
@@ -63,6 +72,11 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
   }
 }
 
+/**
+ * Generate a random string to be used as a test suite db url.
+ * @param suiteConfig
+ * @returns
+ */
 export function setupTestSuiteDbURI(suiteConfig: TestSuiteConfig) {
   const dbId = crypto.randomBytes(8).toString('hex')
   const envVarName = `DATABASE_URI_${suiteConfig['#PROVIDER']}`

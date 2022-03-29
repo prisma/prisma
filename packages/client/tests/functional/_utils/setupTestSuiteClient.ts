@@ -11,14 +11,15 @@ import {
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
 import { setupQueryEngine } from './setupQueryEngine'
-import {
-  setupTestSuiteDatabase,
-  setupTestSuiteFiles,
-  setupTestSuiteSchema,
-  setupTestSuiteTypes,
-} from './setupTestSuiteEnv'
+import { setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
+/**
+ * Does the necessary setup to get a test suite client ready to run.
+ * @param suiteMeta
+ * @param suiteConfig
+ * @returns loaded client module
+ */
 export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig)
@@ -30,7 +31,6 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
   await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
-  await setupTestSuiteTypes(suiteMeta, suiteConfig, dmmf)
   await setupTestSuiteDatabase(suiteMeta, suiteConfig)
 
   await generateClient({
