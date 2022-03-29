@@ -575,6 +575,64 @@ describe('interactive transactions', () => {
 
     expect(users.length).toBe(0)
   })
+
+  /**
+   * Makes sure that the engine can process when the transaction has locks inside
+   */
+  test('high concurrency with SET FOR UPDATE', async () => {
+    jest.setTimeout(60_000)
+    const CONCURRENCY = 29
+
+    await prisma.user.create({
+      data: {
+        email: 'x',
+        name: 'y',
+        val: 1,
+      },
+    })
+
+    const promises = [...Array(CONCURRENCY)].map(() =>
+      prisma.$transaction(
+        async (transactionPrisma) => {
+          await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
+
+          const user = await transactionPrisma.user.findUnique({
+            rejectOnNotFound: true,
+            where: {
+              email: 'x',
+            },
+          })
+
+          await new Promise((r) => setTimeout(r, 100))
+
+          const updatedUser = await transactionPrisma.user.update({
+            where: {
+              email: 'x',
+            },
+            data: {
+              val: user.val + 1,
+            },
+          })
+
+          console.log('updated user id', updatedUser.id)
+
+          return updatedUser
+        },
+        { timeout: 60000, maxWait: 60000 },
+      ),
+    )
+
+    await Promise.allSettled(promises)
+
+    const finalUser = await prisma.user.findUnique({
+      rejectOnNotFound: true,
+      where: {
+        email: 'x',
+      },
+    })
+
+    expect(finalUser.val).toEqual(30)
+  })
 })
 
 beforeAll(async () => {
