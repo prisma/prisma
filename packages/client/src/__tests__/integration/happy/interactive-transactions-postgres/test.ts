@@ -581,7 +581,7 @@ describe('interactive transactions', () => {
    */
   test('high concurrency with SET FOR UPDATE', async () => {
     jest.setTimeout(60_000)
-    const CONCURRENCY = 29
+    const CONCURRENCY = 12
 
     await prisma.user.create({
       data: {
@@ -614,8 +614,6 @@ describe('interactive transactions', () => {
             },
           })
 
-          console.log('updated user id', updatedUser.id)
-
           return updatedUser
         },
         { timeout: 60000, maxWait: 60000 },
@@ -631,7 +629,7 @@ describe('interactive transactions', () => {
       },
     })
 
-    expect(finalUser.val).toEqual(30)
+    expect(finalUser.val).toEqual(13)
   })
 })
 
