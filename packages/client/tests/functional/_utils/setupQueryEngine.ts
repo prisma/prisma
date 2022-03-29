@@ -14,7 +14,7 @@ import path from 'path'
  * @param platform
  */
 export async function setupQueryEngine(clientEngineType: ClientEngineType, platform: Platform) {
-  const engineDownloadDir = path.join(__dirname, '..', '..')
+  const engineDownloadDir = path.join(__dirname, '..', '..', '..')
   const queryEngineLibraryPath = path.join(engineDownloadDir, getNodeAPIName(platform, 'fs'))
   const queryEngineBinaryPath = path.join(
     engineDownloadDir,

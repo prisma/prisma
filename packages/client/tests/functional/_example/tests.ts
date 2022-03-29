@@ -1,4 +1,4 @@
-import { setupTestSuiteMatrix } from '../../_utils/setupTestSuiteMatrix'
+import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
 
 // @ts-ignore
 declare let prisma: import('@prisma/client').PrismaClient

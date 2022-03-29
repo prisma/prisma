@@ -1,8 +1,8 @@
 import { getClientEngineType, getConfig, getPlatform, parseEnvValue } from '@prisma/sdk'
 import path from 'path'
 
-import { generateClient } from '../../src/generation/generateClient'
-import { getDMMF } from '../../src/generation/getDMMF'
+import { generateClient } from '../../../src/generation/generateClient'
+import { getDMMF } from '../../../src/generation/getDMMF'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
@@ -47,7 +47,7 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
     transpile: false,
     testMode: true,
     activeProvider: suiteConfig['#PROVIDER'],
-    runtimeDir: path.join(__dirname, '..', '..', 'runtime'),
+    runtimeDir: path.join(__dirname, '..', '..', '..', 'runtime'),
     projectRoot: suiteFolderPath,
   })
 

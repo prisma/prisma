@@ -1,9 +1,8 @@
 import path from 'path'
 
-import type { TestSuiteConfig } from './getTestSuiteInfo'
-import { getTestSuiteTable } from './getTestSuiteInfo'
+import { getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
-import { setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
@@ -15,22 +14,16 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
   describe.each(suiteTable)('%s', (_, suiteConfig) => {
     beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
     beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
-    beforeAll(async () => (globalThis['prisma'] = new (await global['import'])['PrismaClient']()))
-    afterAll(async () => await globalThis['prisma']?.disconnect())
+    beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
+
+    afterAll(async () => await globalThis['prisma']?.$disconnect())
+    afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
     afterAll(() => (process.env = originalEnv))
+    afterAll(() => delete globalThis['loaded'])
+    afterAll(() => delete globalThis['prisma'])
 
     tests(suiteConfig, suiteMeta)
   })
-}
-
-function getTestSuiteMeta() {
-  const testPath = expect.getState().testPath
-  const testDir = path.dirname(testPath)
-  const suiteName = path.basename(path.basename(testDir))
-  const matrixPath = path.join(testDir, '_matrix')
-  const prismaPath = path.join(testDir, 'prisma')
-
-  return { testPath, testDir, suiteName, matrixPath, prismaPath }
 }
 
 export { setupTestSuiteMatrix }

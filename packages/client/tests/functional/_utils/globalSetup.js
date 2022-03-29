@@ -8,7 +8,7 @@ module.exports = () => {
 
   if (ignorePatternsValue === 'typescript') {
     glob
-      .sync('./tests/**/.generated/', {
+      .sync('./**/.generated/', {
         onlyDirectories: true,
         dot: true,
       })

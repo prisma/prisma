@@ -1,10 +1,10 @@
 import fs from 'fs-extra'
 import path from 'path'
 
-import { keys } from '../../../../helpers/blaze/keys'
-import { map } from '../../../../helpers/blaze/map'
-import { matrix } from '../../../../helpers/blaze/matrix'
-import { merge } from '../../../../helpers/blaze/merge'
+import { keys } from '../../../../../helpers/blaze/keys'
+import { map } from '../../../../../helpers/blaze/map'
+import { matrix } from '../../../../../helpers/blaze/matrix'
+import { merge } from '../../../../../helpers/blaze/merge'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 export type TestSuiteMatrix = { [K in string]: string }[][]
@@ -75,4 +75,14 @@ export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: 
   }
 
   return schema
+}
+
+export function getTestSuiteMeta() {
+  const testPath = expect.getState().testPath
+  const testDir = path.dirname(testPath)
+  const suiteName = path.basename(path.basename(testDir))
+  const matrixPath = path.join(testDir, '_matrix')
+  const prismaPath = path.join(testDir, 'prisma')
+
+  return { testPath, testDir, suiteName, matrixPath, prismaPath }
 }

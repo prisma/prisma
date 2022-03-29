@@ -3,8 +3,9 @@ import crypto from 'crypto'
 import fs from 'fs-extra'
 import path from 'path'
 
-import { DbPush } from '../../../migrate/src/commands/DbPush'
-import { dmmfToTypes } from '../../src/generation/generator'
+import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
+import { DbPush } from '../../../../migrate/src/commands/DbPush'
+import { dmmfToTypes } from '../../../src/generation/generator'
 import type { TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
@@ -47,6 +48,18 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
     consoleInfoMock.mockRestore()
   } catch (e) {
     await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+  }
+}
+
+export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+  const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
+
+  try {
+    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
+    await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
+    consoleInfoMock.mockRestore()
+  } catch (e) {
+    await dropTestSuiteDatabase(suiteMeta, suiteConfig)
   }
 }
 
