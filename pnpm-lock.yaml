@@ -363,7 +363,7 @@ importers:
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
       typescript: 4.5.4
-      undici: 4.16.0
+      undici: 5.0.0
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 3.12.0-23.4c9d4edf238ad9c4a706eb5b7201ee0b4ebee93e
@@ -377,7 +377,7 @@ importers:
       p-retry: 4.6.1
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
-      undici: 4.16.0
+      undici: 5.0.0
     devDependencies:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
@@ -8144,8 +8144,8 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
-  /undici/4.16.0:
-    resolution: {integrity: sha512-tkZSECUYi+/T1i4u+4+lwZmQgLXd4BLGlrc7KZPcLIW7Jpq99+Xpc30ONv7nS6F5UNOxp/HBZSSL9MafUrvJbw==}
+  /undici/5.0.0:
+    resolution: {integrity: sha512-VhUpiZ3No1DOPPQVQnsDZyfcbTTcHdcgWej1PdFnSvOeJmOVDgiOHkunJmBLfmjt4CqgPQddPVjSWW0dsTs5Yg==}
     engines: {node: '>=12.18'}
     dev: false
 
