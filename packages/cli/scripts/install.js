@@ -9,7 +9,6 @@ const pkgName = pkg.name
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 if (process.env.INIT_CWD) {
   ensurePostInstall().catch((e) => {
-    console.log('POSTINSTALL HAS HAPPENED')
     debug(e)
   })
 }
@@ -49,6 +48,8 @@ function addPostInstallHook(pkgPath) {
       pkg.scripts['vercel-build'] = `(prisma generate || true) && ${pkg.scripts['vercel-build']}`
     }
   }
+
+  console.log('POSTINSTALL HAS HAPPENED', pkgPath)
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
   return true
