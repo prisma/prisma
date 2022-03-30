@@ -7,7 +7,7 @@ const pkg = require('../package.json')
 const pkgName = pkg.name
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
-if (process.env.INIT_CWD) {
+if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
   ensurePostInstall().catch((e) => {
     debug(e)
   })
@@ -41,11 +41,11 @@ function addPostInstallHook(pkgPath) {
 
   pkg.scripts = pkg.scripts || {}
 
-  if (!pkg.scripts.preinstall) {
-    pkg.scripts.preinstall = `prisma generate || true`
+  if (!pkg.scripts['vercel-build']) {
+    pkg.scripts['vercel-build'] = `(prisma generate || true)`
   } else {
-    if (!pkg.scripts.preinstall.includes('prisma generate')) {
-      pkg.scripts.preinstall = `prisma generate || true && ${pkg.scripts.preinstall}`
+    if (!pkg.scripts['vercel-build'].includes('prisma generate')) {
+      pkg.scripts['vercel-build'] = `(prisma generate || true) && ${pkg.scripts['vercel-build']}`
     }
   }
 
