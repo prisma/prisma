@@ -578,6 +578,8 @@ describe('interactive transactions', () => {
 
   /**
    * Makes sure that the engine can process when the transaction has locks inside
+   * Engine PR - https://github.com/prisma/prisma-engines/pull/2811
+   * Issue - https://github.com/prisma/prisma/issues/11750
    */
   test('high concurrency with SET FOR UPDATE', async () => {
     jest.setTimeout(60_000)
@@ -603,6 +605,9 @@ describe('interactive transactions', () => {
             },
           })
 
+          // Add a delay here to force the transaction to be open for longer
+          // this will increase the chance of deadlock in the itx transactions
+          // if deadlock is a possiblity.
           await new Promise((r) => setTimeout(r, 100))
 
           const updatedUser = await transactionPrisma.user.update({
