@@ -16,10 +16,12 @@ import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
+  // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
   await fs.copy(path.join(suiteMeta.testDir, 'tests.ts'), path.join(suiteFolder, 'tests.ts'))
   await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
 
+  // we adjust the relative paths to work from the generated folder
   const testsContents = await fs.readFile(path.join(suiteFolder, 'tests.ts'))
   const newTestsContents = testsContents.toString().replace("'../", "'../../../")
 
@@ -51,7 +53,7 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
   }
 }
 
@@ -68,7 +70,7 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await dropTestSuiteDatabase(suiteMeta, suiteConfig)
+    await dropTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
   }
 }
 
@@ -78,6 +80,7 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
  * @returns
  */
 export function setupTestSuiteDbURI(suiteConfig: TestSuiteConfig) {
+  // we reuse the original db url but postfix it with a random string
   const dbId = crypto.randomBytes(8).toString('hex')
   const envVarName = `DATABASE_URI_${suiteConfig['#PROVIDER']}`
   const uriRegex = /(\w+:\/\/\w+:\w+@\w+:\d+\/)((?:\w|-)+)(.*)/g

@@ -96,7 +96,7 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
 /**
  * Get a jest-compatible test suite table from the test suite configs.
  * @param suiteMeta
- * @returns [test-suite-title, test-suite-config]
+ * @returns [test-suite-title: string, test-suite-config: object]
  */
 export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
   return map(
@@ -123,7 +123,7 @@ export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: 
 }
 
 /**
- * Get metadata about the test suite executed by jest.
+ * Get metadata about the original test suite executed by jest.
  * @returns
  */
 export function getTestSuiteMeta() {

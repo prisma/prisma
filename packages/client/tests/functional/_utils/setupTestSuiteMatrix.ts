@@ -42,15 +42,21 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
   const forceInlineSnapshot = process.argv.includes('-u')
 
   describe.each(forceInlineSnapshot ? [suiteTable[0]] : suiteTable)('%s', (_, suiteConfig) => {
+    // we inject modified env vars, and make the client available as globals
     beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
     beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
     beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
+    beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
+    beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
 
+    // we disconnect and drop the database, clean up the env, and global vars
     afterAll(async () => await globalThis['prisma']?.$disconnect())
     afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
     afterAll(() => (process.env = originalEnv))
     afterAll(() => delete globalThis['loaded'])
     afterAll(() => delete globalThis['prisma'])
+    afterAll(() => delete globalThis['Prisma'])
+    afterAll(() => delete globalThis['PrismaClient'])
 
     tests(suiteConfig, suiteMeta)
   })
