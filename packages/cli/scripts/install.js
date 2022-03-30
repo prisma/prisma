@@ -9,6 +9,7 @@ const pkgName = pkg.name
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 if (process.env.INIT_CWD) {
   ensurePostInstall().catch((e) => {
+    console.log('POSTINSTALL HAS HAPPENED')
     debug(e)
   })
 }
