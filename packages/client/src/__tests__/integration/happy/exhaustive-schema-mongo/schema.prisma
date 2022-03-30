@@ -195,8 +195,6 @@ model B {
   id       String  @id @default(auto()) @map("_id") @db.ObjectId
   float    Float // @db.Real
   dFloat   Float // @db.DoublePrecision
-  decFloat Decimal // @db.Decimal(2, 1)
-  numFloat Decimal // @db.Decimal(10, 6)
 }
 
 model C {

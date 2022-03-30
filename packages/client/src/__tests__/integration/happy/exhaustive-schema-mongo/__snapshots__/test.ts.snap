@@ -225,9 +225,7 @@ exports.Prisma.AScalarFieldEnum = makeEnum({
 exports.Prisma.BScalarFieldEnum = makeEnum({
   id: 'id',
   float: 'float',
-  dFloat: 'dFloat',
-  decFloat: 'decFloat',
-  numFloat: 'numFloat'
+  dFloat: 'dFloat'
 });
 
 exports.Prisma.CScalarFieldEnum = makeEnum({
@@ -541,8 +539,6 @@ export type B = {
   id: string
   float: number
   dFloat: number
-  decFloat: Prisma.Decimal
-  numFloat: Prisma.Decimal
 }
 
 /**
@@ -12005,39 +12001,29 @@ export namespace Prisma {
   export type BAvgAggregateOutputType = {
     float: number | null
     dFloat: number | null
-    decFloat: Decimal | null
-    numFloat: Decimal | null
   }
 
   export type BSumAggregateOutputType = {
     float: number | null
     dFloat: number | null
-    decFloat: Decimal | null
-    numFloat: Decimal | null
   }
 
   export type BMinAggregateOutputType = {
     id: string | null
     float: number | null
     dFloat: number | null
-    decFloat: Decimal | null
-    numFloat: Decimal | null
   }
 
   export type BMaxAggregateOutputType = {
     id: string | null
     float: number | null
     dFloat: number | null
-    decFloat: Decimal | null
-    numFloat: Decimal | null
   }
 
   export type BCountAggregateOutputType = {
     id: number
     float: number
     dFloat: number
-    decFloat: number
-    numFloat: number
     _all: number
   }
 
@@ -12045,39 +12031,29 @@ export namespace Prisma {
   export type BAvgAggregateInputType = {
     float?: true
     dFloat?: true
-    decFloat?: true
-    numFloat?: true
   }
 
   export type BSumAggregateInputType = {
     float?: true
     dFloat?: true
-    decFloat?: true
-    numFloat?: true
   }
 
   export type BMinAggregateInputType = {
     id?: true
     float?: true
     dFloat?: true
-    decFloat?: true
-    numFloat?: true
   }
 
   export type BMaxAggregateInputType = {
     id?: true
     float?: true
     dFloat?: true
-    decFloat?: true
-    numFloat?: true
   }
 
   export type BCountAggregateInputType = {
     id?: true
     float?: true
     dFloat?: true
-    decFloat?: true
-    numFloat?: true
     _all?: true
   }
 
@@ -12177,8 +12153,6 @@ export namespace Prisma {
     id: string
     float: number
     dFloat: number
-    decFloat: Decimal
-    numFloat: Decimal
     _count: BCountAggregateOutputType | null
     _avg: BAvgAggregateOutputType | null
     _sum: BSumAggregateOutputType | null
@@ -12204,8 +12178,6 @@ export namespace Prisma {
     id?: boolean
     float?: boolean
     dFloat?: boolean
-    decFloat?: boolean
-    numFloat?: boolean
   }
 
   export type BGetPayload<
@@ -15726,9 +15698,7 @@ export namespace Prisma {
   export const BScalarFieldEnum: {
     id: 'id',
     float: 'float',
-    dFloat: 'dFloat',
-    decFloat: 'decFloat',
-    numFloat: 'numFloat'
+    dFloat: 'dFloat'
   };
 
   export type BScalarFieldEnum = (typeof BScalarFieldEnum)[keyof typeof BScalarFieldEnum]
@@ -16546,16 +16516,12 @@ export namespace Prisma {
     id?: StringFilter | string
     float?: FloatFilter | number
     dFloat?: FloatFilter | number
-    decFloat?: DecimalFilter | Decimal | number | string
-    numFloat?: DecimalFilter | Decimal | number | string
   }
 
   export type BOrderByWithRelationInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
   }
 
   export type BWhereUniqueInput = {
@@ -16566,8 +16532,6 @@ export namespace Prisma {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
     _count?: BCountOrderByAggregateInput
     _avg?: BAvgOrderByAggregateInput
     _max?: BMaxOrderByAggregateInput
@@ -16582,8 +16546,6 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter | string
     float?: FloatWithAggregatesFilter | number
     dFloat?: FloatWithAggregatesFilter | number
-    decFloat?: DecimalWithAggregatesFilter | Decimal | number | string
-    numFloat?: DecimalWithAggregatesFilter | Decimal | number | string
   }
 
   export type CWhereInput = {
@@ -17735,52 +17697,38 @@ export namespace Prisma {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
   }
 
   export type BUncheckedCreateInput = {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
   }
 
   export type BUpdateInput = {
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type BUncheckedUpdateInput = {
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type BCreateManyInput = {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
   }
 
   export type BUpdateManyMutationInput = {
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type BUncheckedUpdateManyInput = {
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
   }
 
   export type CCreateInput = {
@@ -18945,69 +18893,32 @@ export namespace Prisma {
     _max?: NestedBigIntFilter
   }
 
-  export type DecimalFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalFilter | Decimal | number | string
-  }
-
   export type BCountOrderByAggregateInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
   }
 
   export type BAvgOrderByAggregateInput = {
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
   }
 
   export type BMaxOrderByAggregateInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
   }
 
   export type BMinOrderByAggregateInput = {
     id?: SortOrder
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
   }
 
   export type BSumOrderByAggregateInput = {
     float?: SortOrder
     dFloat?: SortOrder
-    decFloat?: SortOrder
-    numFloat?: SortOrder
-  }
-
-  export type DecimalWithAggregatesFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
-    _count?: NestedIntFilter
-    _avg?: NestedDecimalFilter
-    _sum?: NestedDecimalFilter
-    _min?: NestedDecimalFilter
-    _max?: NestedDecimalFilter
   }
 
   export type CCountOrderByAggregateInput = {
@@ -19524,14 +19435,6 @@ export namespace Prisma {
     divide?: bigint | number
   }
 
-  export type DecimalFieldUpdateOperationsInput = {
-    set?: Decimal | number | string
-    increment?: Decimal | number | string
-    decrement?: Decimal | number | string
-    multiply?: Decimal | number | string
-    divide?: Decimal | number | string
-  }
-
   export type BytesFieldUpdateOperationsInput = {
     set?: Buffer
   }
@@ -19874,33 +19777,6 @@ export namespace Prisma {
     _sum?: NestedBigIntFilter
     _min?: NestedBigIntFilter
     _max?: NestedBigIntFilter
-  }
-
-  export type NestedDecimalFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalFilter | Decimal | number | string
-  }
-
-  export type NestedDecimalWithAggregatesFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
-    _count?: NestedIntFilter
-    _avg?: NestedDecimalFilter
-    _sum?: NestedDecimalFilter
-    _min?: NestedDecimalFilter
-    _max?: NestedDecimalFilter
   }
 
   export type NestedBytesFilter = {
