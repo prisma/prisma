@@ -575,6 +575,67 @@ describe('interactive transactions', () => {
 
     expect(users.length).toBe(0)
   })
+
+  /**
+   * Makes sure that the engine can process when the transaction has locks inside
+   * Engine PR - https://github.com/prisma/prisma-engines/pull/2811
+   * Issue - https://github.com/prisma/prisma/issues/11750
+   */
+  test('high concurrency with SET FOR UPDATE', async () => {
+    jest.setTimeout(60_000)
+    const CONCURRENCY = 12
+
+    await prisma.user.create({
+      data: {
+        email: 'x',
+        name: 'y',
+        val: 1,
+      },
+    })
+
+    const promises = [...Array(CONCURRENCY)].map(() =>
+      prisma.$transaction(
+        async (transactionPrisma) => {
+          await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
+
+          const user = await transactionPrisma.user.findUnique({
+            rejectOnNotFound: true,
+            where: {
+              email: 'x',
+            },
+          })
+
+          // Add a delay here to force the transaction to be open for longer
+          // this will increase the chance of deadlock in the itx transactions
+          // if deadlock is a possiblity.
+          await new Promise((r) => setTimeout(r, 100))
+
+          const updatedUser = await transactionPrisma.user.update({
+            where: {
+              email: 'x',
+            },
+            data: {
+              val: user.val + 1,
+            },
+          })
+
+          return updatedUser
+        },
+        { timeout: 60000, maxWait: 60000 },
+      ),
+    )
+
+    await Promise.allSettled(promises)
+
+    const finalUser = await prisma.user.findUnique({
+      rejectOnNotFound: true,
+      where: {
+        email: 'x',
+      },
+    })
+
+    expect(finalUser.val).toEqual(13)
+  })
 })
 
 beforeAll(async () => {
