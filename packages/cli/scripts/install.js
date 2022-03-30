@@ -41,11 +41,11 @@ function addPostInstallHook(pkgPath) {
 
   pkg.scripts = pkg.scripts || {}
 
-  if (!pkg.scripts.postinstall) {
-    pkg.scripts.postinstall = `prisma generate || true`
+  if (!pkg.scripts.preinstall) {
+    pkg.scripts.preinstall = `prisma generate || true`
   } else {
-    if (!pkg.scripts.postinstall.includes('prisma generate')) {
-      pkg.scripts.postinstall = `prisma generate || true && ${pkg.scripts.postinstall}`
+    if (!pkg.scripts.preinstall.includes('prisma generate')) {
+      pkg.scripts.preinstall = `prisma generate || true && ${pkg.scripts.preinstall}`
     }
   }
 
