@@ -7,7 +7,7 @@ const pkg = require('../package.json')
 const pkgName = pkg.name
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
-if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
+if (process.env.INIT_CWD) {
   ensurePostInstall().catch((e) => {
     debug(e)
   })
