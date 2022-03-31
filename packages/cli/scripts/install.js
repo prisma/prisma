@@ -50,6 +50,8 @@ function addPostInstallHook(pkgPath) {
   }
 
   console.log('POSTINSTALL HAS HAPPENED', pkgPath)
+  console.info('POSTINSTALL HAS HAPPENED', pkgPath)
+  console.error('POSTINSTALL HAS HAPPENED', pkgPath)
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2))
   return true
