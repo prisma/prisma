@@ -115,7 +115,8 @@
     "test": "true || jest --maxConcurrency=1 --verbose",
     "install": "",
     "tsc": "tsc -d -p tsconfig.build.json",
-    "preinstall": "node scripts/preinstall-entry.js && node scripts/install-entry.js"
+    "preinstall": "node scripts/preinstall-entry.js",
+    "prepare": "node scripts/install-entry.js"
   },
   "dependencies": {
     "@prisma/engines": "3.12.0-21.d15c884f70bfe28d0b3ee1a3efac7fdb991e5de4"
