@@ -721,7 +721,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           clientMethod: 'runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
-          callsite: getCallSite(),
+          callsite: getCallSite(this._errorFormat),
           runInTransaction: !!txId,
           transactionId: txId,
           otelCtx: otelCtx,

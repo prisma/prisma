@@ -3,7 +3,7 @@
  * @param errorFormat
  * @returns
  */
-export function getCallSite(errorFormat?: string) {
+export function getCallSite(errorFormat: string) {
   if (errorFormat === 'minimal') {
     return undefined
   }
