@@ -179,6 +179,7 @@ export async function generateClient({
     activeProvider,
   })
 
+  // TODO put this into the generator?
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
@@ -198,6 +199,7 @@ export async function generateClient({
   await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
 
+  // TODO have a test for this? is is still needed?
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
       const filePath = path.join(finalOutputDir, fileName)
@@ -238,6 +240,8 @@ export async function generateClient({
       }\` in the \`binaryPaths\` object.`,
     )
   }
+
+  // TODO rename this to become more explicit (skip engine copy)
   if (transpile) {
     if (process.env.NETLIFY) {
       await makeDir('/tmp/prisma-engines')
@@ -246,7 +250,7 @@ export async function generateClient({
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
       const target =
-        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
+        process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x' // TODO understand this one day
           ? path.join('/tmp/prisma-engines', fileName)
           : path.join(finalOutputDir, fileName)
       const [sourceFileSize, targetFileSize] = await Promise.all([fileSize(filePath), fileSize(target)])
@@ -268,7 +272,7 @@ export async function generateClient({
       }
       const binaryName =
         clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
-      // They must have an equal size now, let's check for the hash
+      // As they are of equal size now, let's check for the engine hash (/getVersion)
       const [sourceVersion, targetVersion] = await Promise.all([
         getVersion(filePath, binaryName).catch(() => null),
         getVersion(target, binaryName).catch(() => null),
@@ -302,7 +306,7 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-
+  // TODO problem: investigate why we copy it again to the output dir
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')

@@ -74,13 +74,13 @@ export class TSClient implements Generatable {
     // This ensures that any engine override is propagated to the generated clients config
     const engineType = getClientEngineType(generator!)
     if (generator) {
-      generator.config.engineType = engineType
+      generator.config.engineType = engineType // TODO is this needed?
     }
 
     const config: Omit<GetPrismaClientConfig, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      sqliteDatasourceOverrides,
+      sqliteDatasourceOverrides, // TODO is this still used?
       relativePath: path.relative(outputDir, schemaDir),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,

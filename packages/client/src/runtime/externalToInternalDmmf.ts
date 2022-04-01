@@ -19,6 +19,7 @@ export function externalToInternalDmmf(document: ExternalDMMF.Document): DMMF.Do
   }
 }
 
+// TODO do a diff between this and the original one to see if it's needed
 function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel): DMMF.Mappings {
   const modelOperations = mappings.modelOperations
     .filter((mapping) => {
