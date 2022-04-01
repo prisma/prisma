@@ -3,7 +3,7 @@ import type { DMMF } from '@prisma/generator-helper'
 import type { Client } from '../../getPrismaClient'
 import { deepSet } from '../../utils/deep-set'
 import { getCallSite } from '../utils/getCallSite'
-import type { ModelAction } from './applyModel'
+import type { applyModel, ModelAction } from './applyModel'
 import type { UserArgs } from './UserArgs'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
@@ -96,7 +96,7 @@ export function applyFluent(
 
   // we return a regular model action but proxy its return
   return (userArgs?: UserArgs) => {
-    const callsite = getCallSite()
+    const callsite = getCallSite(client._errorFormat)
     // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
