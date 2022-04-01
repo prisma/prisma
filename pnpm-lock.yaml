@@ -560,7 +560,7 @@ importers:
       esbuild: 0.14.29
       jest: 27.5.1
       jest-junit: 13.0.0
-      react: 18.0.0
+      react: 17.0.2
       ts-jest: 27.1.4
       typescript: 4.6.3
     devDependencies:
@@ -570,7 +570,7 @@ importers:
       esbuild: 0.14.29
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.0.0
-      react: 18.0.0
+      react: 17.0.2
       ts-jest: 27.1.4_ca3ba3d69eb7a08d361a98baf82ac249
       typescript: 4.6.3
 
@@ -6950,11 +6950,12 @@ packages:
     resolution: {integrity: sha512-w2GsyukL62IJnlaff/nRegPQR94C/XXamvMWmSHRJ4y7Ts/4ocGRmTHvOs8PSE6pB3dWOrD/nueuU5sduBsQ4w==}
     dev: true
 
-  /react/18.0.0:
-    resolution: {integrity: sha512-x+VL6wbT4JRVPm7EGxXhZ8w8LTROaxPXOqhlGyVSrv0sB1jkyFGgXxJ8LVoPRLvPR6/CIZGFmfzqUa2NYeMr2A==}
+  /react/17.0.2:
+    resolution: {integrity: sha512-gnhPt75i/dq/z3/6q/0asP78D0u592D5L1pd7M8P+dck6Fu/jJeL6iVVK23fptSUZj8Vjf++7wXA8UNclGQcbA==}
     engines: {node: '>=0.10.0'}
     dependencies:
       loose-envify: 1.4.0
+      object-assign: 4.1.1
     dev: true
 
   /read-pkg-up/7.0.1:
