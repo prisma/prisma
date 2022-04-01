@@ -122,8 +122,8 @@ importers:
       '@prisma/get-platform': 3.12.0-31.ae010d3ee58f28c22599b1e5fbd1697a82240550
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
-      '@prisma/studio': 0.458.0
-      '@prisma/studio-server': 0.458.0
+      '@prisma/studio': 0.459.0
+      '@prisma/studio-server': 0.459.0
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17
       '@types/debug': 4.1.7
@@ -167,8 +167,8 @@ importers:
       '@prisma/get-platform': 3.12.0-31.ae010d3ee58f28c22599b1e5fbd1697a82240550
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
-      '@prisma/studio': 0.458.0
-      '@prisma/studio-server': 0.458.0
+      '@prisma/studio': 0.459.0
+      '@prisma/studio-server': 0.459.0
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
       '@types/debug': 4.1.7
@@ -1538,15 +1538,15 @@ packages:
     dependencies:
       '@prisma/debug': 3.11.1
 
-  /@prisma/studio-common/0.458.0:
-    resolution: {integrity: sha512-4j4dBsq3bw9hRb4XEYv4M/0Kq2asObUmQWsA2jaqvHYt43n1s5E9pra2Pt7PSKKk8/6pZSmi7Lsl1GIhCV/mUw==}
+  /@prisma/studio-common/0.459.0:
+    resolution: {integrity: sha512-WXFzamPGxR34GlU0l2Afs0daTpV/raUnCJnFvUNsX8F8SZlvMUMDz8DMQtVJen2bUhXINL5jR0MzIPbQmM3e2g==}
     engines: {node: '>= 12'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.458.0:
-    resolution: {integrity: sha512-8rgvhgbaQpc4BUaxDIAorTm2yOzGPRwwuIGdM3WoD9YQyuFBpHE3xGR2FBABP8v89qcB9YLsGQ9wgyfrRURl+g==}
+  /@prisma/studio-pcw/0.459.0:
+    resolution: {integrity: sha512-V3bvY8XXtRq4dRxtAci3+MAHee0joQU1kVmtjT2RIbFXonnOSo3jkqRMLV2OpNx96oysS5h1u3K86a/EavG2bw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
@@ -1558,15 +1558,15 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.458.0:
-    resolution: {integrity: sha512-kTRXClg14wIYagy8zYQmB6vMfEu3mz4r8rJ+eia+GUWQ/W0aqXznOR6aA/v/FSR9GJAgZN5n5wnsexymETQ88w==}
+  /@prisma/studio-server/0.459.0:
+    resolution: {integrity: sha512-oKGELhEKUdezw1tCHiVzL0dH1WBNpfCvtfghV9SENHterM7Ugb2U8AlNSoKvIiyrOiLgkTG4VYl442o1QjDBnw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/studio': 0.458.0
-      '@prisma/studio-common': 0.458.0
-      '@prisma/studio-pcw': 0.458.0
+      '@prisma/studio': 0.459.0
+      '@prisma/studio-common': 0.459.0
+      '@prisma/studio-pcw': 0.459.0
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
@@ -1577,8 +1577,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio/0.458.0:
-    resolution: {integrity: sha512-59t1c5HPWVsUiwQqKsVB6XCWmdcM4C1zIEbpDX3rYDBsTtHx6IPilwPTE6yoGA7EUMdzQD+1ypeYX7JJ6Y802g==}
+  /@prisma/studio/0.459.0:
+    resolution: {integrity: sha512-rn4EMpHTT8pwfV16KHLMTInLKA4c+bVtjn0+zGOtmZ2rCkKxikb2uFXRzrcwed3CYLJ1R6flyRvV2+oxrZU40g==}
     dev: true
 
   /@rushstack/node-core-library/3.44.3:
@@ -2307,12 +2307,12 @@ packages:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
     dev: true
 
-  /accepts/1.3.7:
-    resolution: {integrity: sha512-Il80Qs2WjYlJIBNzNkK6KYqlVMTbZLXgHx2oT0pU/fjRHyEp+PEfEPY0R3WCwAGVOtauxh1hOxNgIf5bv7dQpA==}
+  /accepts/1.3.8:
+    resolution: {integrity: sha512-PYAthTa2m2VKxuvSD3DPC/Gy+U+sOA1LAuT8mkmRuvw+NACSaeXEQ+NHcVF7rONl6qcaxV3Uuemwawk+7+SJLw==}
     engines: {node: '>= 0.6'}
     dependencies:
-      mime-types: 2.1.34
-      negotiator: 0.6.2
+      mime-types: 2.1.35
+      negotiator: 0.6.3
     dev: true
 
   /acorn-globals/6.0.0:
@@ -4122,7 +4122,7 @@ packages:
     resolution: {integrity: sha512-oxlxJxcQlYwqPWKVJJtvQiwHgosH/LrLSPA+H4UxpyvSS6jC5aH+5MoHFM+KABgTOt0APue4w66Ha8jCUo9QGg==}
     engines: {node: '>= 0.10.0'}
     dependencies:
-      accepts: 1.3.7
+      accepts: 1.3.8
       array-flatten: 1.1.1
       body-parser: 1.19.1
       content-disposition: 0.5.4
@@ -6073,11 +6073,23 @@ packages:
     resolution: {integrity: sha512-5y8A56jg7XVQx2mbv1lu49NR4dokRnhZYTtL+KGfaa27uq4pSTXkwQkFJl4pkRMyNFz/EtYDSkiiEHx3F7UN6g==}
     engines: {node: '>= 0.6'}
 
+  /mime-db/1.52.0:
+    resolution: {integrity: sha512-sPU4uV7dYlvtWJxwwxHD0PuihVNiE7TyAbQ5SWxDCB9mUYvOgroQOwYQQOKPJ8CIbE+1ETVlOoK1UC2nU3gYvg==}
+    engines: {node: '>= 0.6'}
+    dev: true
+
   /mime-types/2.1.34:
     resolution: {integrity: sha512-6cP692WwGIs9XXdOO4++N+7qjqv0rqxxVvJ3VHPh/Sc9mVZcQP+ZGhkKiTvWMQRr2tbHkJP/Yn7Y0npb3ZBs4A==}
     engines: {node: '>= 0.6'}
     dependencies:
       mime-db: 1.51.0
+
+  /mime-types/2.1.35:
+    resolution: {integrity: sha512-ZDY+bPm5zTTF+YpCrAU9nK0UgICYPT0QtT1NZWFv4s++TNkcgVaT0g6+4R2uI4MjQjzysHB1zxuWL50hzaeXiw==}
+    engines: {node: '>= 0.6'}
+    dependencies:
+      mime-db: 1.52.0
+    dev: true
 
   /mime/1.6.0:
     resolution: {integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==}
@@ -6238,8 +6250,8 @@ packages:
       sax: 1.2.4
     dev: true
 
-  /negotiator/0.6.2:
-    resolution: {integrity: sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==}
+  /negotiator/0.6.3:
+    resolution: {integrity: sha512-+EUsqGPLsM+j/zdChZjsnX51g4XrHFOIXwfnCVPGlQk/k5giakcKsuxCObBRu6DSm9opw/O6slWbJdghQM4bBg==}
     engines: {node: '>= 0.6'}
     dev: true
 
@@ -8098,7 +8110,7 @@ packages:
     engines: {node: '>= 0.6'}
     dependencies:
       media-typer: 0.3.0
-      mime-types: 2.1.34
+      mime-types: 2.1.35
     dev: true
 
   /typedarray-to-buffer/3.1.5:
