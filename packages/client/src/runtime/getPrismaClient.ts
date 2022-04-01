@@ -269,7 +269,7 @@ const actionOperationMap = {
   aggregateRaw: 'query',
 }
 
-const TX_ID = Symbol.for('prisma.client.transaction.id')
+export const TX_ID = Symbol.for('prisma.client.transaction.id')
 
 // TODO improve all these types, need a common place to share them between type
 // gen and this. This will be relevant relevant for type gen tech debt refactor
@@ -293,6 +293,9 @@ export interface Client {
   $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   __internal_triggerPanic(fatal: boolean)
   $transaction(input: any, options?: any)
+  $beginTransaction(options?: any)
+  $commitTransaction()
+  $rollbackTransaction()
   _request(internalParams: InternalRequestParams): Promise<any>
 }
 
@@ -978,6 +981,54 @@ new PrismaClient({
       }
 
       return this._transactionWithArray(input)
+    }
+
+    /**
+     * Start a manual transaction. Use the returned PrismaClient to make queries inside the transaction
+     * @param options to set timeouts
+     * @returns a PrismaClient scoped to the opened transaction
+     */
+    async $beginTransaction(options?: { maxWait: number; timeout: number }): Promise<PrismaClient> {
+      const info = await this._engine.transaction('start', options)
+      this[TX_ID] = info.id
+      return transactionProxy(this, info.id)
+    }
+
+    /**
+     * Commit an open transaction. A transaction needs to be opened with $beginTransaction first.
+     * If committing fails the transaction is rolled back.
+     */
+    async $commitTransaction() {
+      const txId = this[TX_ID]
+      if (!txId) {
+        throw new Error(
+          'Could not find a transaction ID. Did you forget to call $beginTransaction or was the transaction already rolled back?',
+        )
+      }
+      try {
+        this[TX_ID] = void 0
+        return await this._engine.transaction('commit', { id: txId })
+      } catch (e) {
+        // it went bad, then we rollback the transaction
+        await this._engine.transaction('rollback', { id: txId }).catch(() => {})
+
+        e.clientVersion = this._clientVersion
+        throw e // silent rollback, throw original error
+      }
+    }
+
+    /**
+     * Rollback an open transaction. A transaction needs to be opened with $beginTransaction first.
+     */
+    async $rollbackTransaction() {
+      const txId = this[TX_ID]
+      if (!txId) {
+        throw new Error(
+          'Could not find a transaction ID. Did you forget to call $beginTransaction or was the transaction already comitted?',
+        )
+      }
+      this[TX_ID] = void 0
+      return await this._engine.transaction('rollback', { id: txId })
     }
 
     /**

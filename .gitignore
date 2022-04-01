@@ -23,6 +23,8 @@ dist/
 !.vscode/launch.json.default
 coverage
 
+.idea
+
 .eslintcache
 
 node_modules
