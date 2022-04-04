@@ -93,19 +93,13 @@ test('interactive transactions logging - binary', async () => {
     log: [
       {
         emit: 'event',
-        level: 'info',
-      },
-      {
-        emit: 'event',
         level: 'query',
       },
     ],
   })
 
-  const onInfo = jest.fn()
   const onQuery = jest.fn()
 
-  prisma.$on('info', onInfo)
   prisma.$on('query', onQuery)
 
   await prisma.$transaction(async (tx) => {
@@ -114,20 +108,7 @@ test('interactive transactions logging - binary', async () => {
 
   await prisma.$disconnect()
 
-  replaceTimeValues(onInfo)
   replaceTimeValues(onQuery)
-
-  expect(onInfo.mock.calls).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
-          message: Starting a postgresql pool with XX connections.,
-          target: quaint::pooled,
-          timestamp: 1970-01-01T00:00:00.000Z,
-        },
-      ],
-    ]
-  `)
 
   expect(onQuery.mock.calls).toMatchInlineSnapshot(`
 Array [
