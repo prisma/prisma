@@ -19,22 +19,7 @@ import { isError } from 'util'
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
-  // add preview flag
-  if (provider === 'mongodb') {
-    return `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider        = "prisma-client-js"
-}
-
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URL")
-}
-`
-  } else {
-    return `// This is your Prisma schema file,
+  return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -46,7 +31,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 `
-  }
 }
 
 export const defaultEnv = (
