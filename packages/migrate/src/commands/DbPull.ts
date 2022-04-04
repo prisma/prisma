@@ -178,7 +178,7 @@ Set composite types introspection depth to 2 levels
       const isReintrospection = modelMatch
 
       if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
-        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
+        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitely ignore and override your current local schema file with ${chalk.green(
           getCommandWithExecutor('prisma db pull --force'),
         )}

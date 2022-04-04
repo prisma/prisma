@@ -419,14 +419,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchemaHash: config.inlineSchemaHash,
         }
 
-        // Append the mongodb experimental flag if the provider is mongodb
-        if (config.activeProvider === 'mongodb') {
-          const previewFeatures = this._engineConfig.previewFeatures
-            ? this._engineConfig.previewFeatures.concat('mongodb')
-            : ['mongodb']
-          this._engineConfig.previewFeatures = previewFeatures
-        }
-
         debug(`clientVersion: ${config.clientVersion}`)
         debug(`clientEngineType: ${this._clientEngineType}`)
 

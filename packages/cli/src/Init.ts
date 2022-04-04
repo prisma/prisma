@@ -26,7 +26,6 @@ export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
 }
 
 datasource db {
@@ -58,7 +57,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -122,7 +121,7 @@ export class Init implements Command {
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB (Preview)
+  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB
                   --url   Define a custom datasource url
 
   ${chalk.bold('Examples')}
@@ -295,7 +294,7 @@ export class Init implements Command {
             'schema.prisma',
           )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')}, ${chalk.green(
             'sqlite',
-          )}, ${chalk.green('sqlserver')} or ${chalk.green('mongodb')} (Preview).`,
+          )}, ${chalk.green('sqlserver')} or ${chalk.green('mongodb')}.`,
         )
       }
 
