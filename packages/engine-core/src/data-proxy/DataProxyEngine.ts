@@ -7,6 +7,7 @@ import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/E
 import { Engine } from '../common/Engine'
 import { PrismaClientRequestTimeoutError } from '../common/errors/PrismaClientRequestTimeoutError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { timedRequest } from '../common/utils/util'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -35,7 +36,7 @@ export class DataProxyEngine extends Engine {
   private remoteClientVersion: string
   private headers: { Authorization: string }
   private host: string
-  private requestTimeoutMS: number
+  private queryTimeout: number
 
   constructor(config: EngineConfig) {
     super()
@@ -46,7 +47,7 @@ export class DataProxyEngine extends Engine {
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
     this.clientVersion = config.clientVersion ?? 'unknown'
-    this.requestTimeoutMS = config.requestTimeoutMS ?? DEFAULT_REQUEST_TIMEOUT_MS
+    this.queryTimeout = config.queryTimeout ?? DEFAULT_REQUEST_TIMEOUT_MS
 
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {})
@@ -132,7 +133,11 @@ export class DataProxyEngine extends Engine {
   request<T>(query: string, headers: Record<string, string>, attempt = 0) {
     this.logEmitter.emit('query', { query })
 
-    return this.timedRequestInternal<T>({ query, variables: {} }, headers, attempt)
+    return timedRequest(
+      this.requestInternal<T>({ query, variables: {} }, headers, attempt),
+      this.queryTimeout,
+      this.clientVersion,
+    )
   }
 
   async requestBatch<T>(queries: string[], headers: Record<string, string>, isTransaction = false, attempt = 0) {
@@ -145,25 +150,20 @@ export class DataProxyEngine extends Engine {
       transaction: isTransaction,
     }
 
-    const { batchResult } = await this.timedRequestInternal<T>(body, headers, attempt)
+    const { batchResult } = await timedRequest(
+      this.requestInternal<T>(body, headers, attempt),
+      this.queryTimeout,
+      this.clientVersion,
+    )
 
     return batchResult
   }
 
-  private async timedRequestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    const result = await Promise.race([
-      new Promise((r) => setTimeout(r, this.requestTimeoutMS)).then(() => 'timeout' as const),
-      this.requestInternal(body, headers, attempt),
-    ])
-
-    if (result === 'timeout') {
-      throw new PrismaClientRequestTimeoutError(this.clientVersion)
-    }
-
-    return result
-  }
-
-  private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
+  private async requestInternal<T>(
+    body: Record<string, any>,
+    headers: Record<string, string>,
+    attempt: number,
+  ): Promise<any> {
     await this.pushPromise
 
     try {

@@ -31,7 +31,7 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { fixBinaryTargets } from '../common/utils/util'
+import { fixBinaryTargets, timedRequest } from '../common/utils/util'
 import type { Library, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -57,7 +57,7 @@ export class LibraryEngine extends Engine {
   private QueryEngineConstructor?: QueryEngineConstructor
   private library?: Library
   private logEmitter: EventEmitter
-  private requestTimeoutMS?: number
+  private queryTimeout?: number
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -91,7 +91,7 @@ export class LibraryEngine extends Engine {
       // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
-    this.requestTimeoutMS = config.requestTimeoutMS
+    this.queryTimeout = config.queryTimeout
 
     initHooks()
     engines.push(this)
@@ -428,17 +428,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   private async timedRequestInternal(query: string, headers: QueryEngineRequestHeaders) {
-    if (this.requestTimeoutMS) {
-      const result = await Promise.race([
-        new Promise((r) => setTimeout(r, this.requestTimeoutMS)).then(() => 'timeout' as const),
-        this.requestInternal(query, headers),
-      ])
-
-      if (result === 'timeout') {
-        throw new PrismaClientRequestTimeoutError(this.version())
-      }
-
-      return result
+    if (this.queryTimeout) {
+      return timedRequest(this.requestInternal(query, headers), this.queryTimeout, this.version())
     } else {
       return this.requestInternal(query, headers)
     }

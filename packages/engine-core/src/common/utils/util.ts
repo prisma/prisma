@@ -7,6 +7,8 @@ import fs from 'fs'
 import newGithubIssueUrl from 'new-github-issue-url'
 import terminalLink from 'terminal-link'
 
+import { PrismaClientRequestTimeoutError } from '../errors/PrismaClientRequestTimeoutError'
+
 const debug = Debug('plusX')
 
 export function plusX(file): void {
@@ -68,4 +70,17 @@ export function getGithubIssueUrl({
 
 export function getRandomString() {
   return crypto.randomBytes(12).toString('hex')
+}
+
+export async function timedRequest(request: Promise<any>, timeout: number, clientVersion: string) {
+  const result = await Promise.race([
+    new Promise((r) => setTimeout(r, timeout)).then(() => 'timeout' as const),
+    request,
+  ])
+
+  if (result === 'timeout') {
+    throw new PrismaClientRequestTimeoutError(clientVersion)
+  }
+
+  return result
 }

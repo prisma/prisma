@@ -33,7 +33,7 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
+import { fixBinaryTargets, getRandomString, plusX, timedRequest } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
 import type { Result } from './Connection'
@@ -112,7 +112,7 @@ export class BinaryEngine extends Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
-  private requestTimeoutMS?: number
+  private queryTimeout?: number
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -135,7 +135,7 @@ export class BinaryEngine extends Engine {
     allowTriggerPanic,
     dirname,
     activeProvider,
-    requestTimeoutMS,
+    queryTimeout,
   }: EngineConfig) {
     super()
 
@@ -159,7 +159,7 @@ export class BinaryEngine extends Engine {
     this.flags = flags ?? []
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
-    this.requestTimeoutMS = requestTimeoutMS
+    this.queryTimeout = queryTimeout
     this.connection = new Connection()
 
     initHooks()
@@ -890,23 +890,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   private async timedRequestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1) {
-    if (this.requestTimeoutMS) {
-      const result = await Promise.race([
-        new Promise((r) => setTimeout(r, this.requestTimeoutMS)).then(() => 'timeout' as const),
+    if (this.queryTimeout) {
+      return timedRequest(
         this.requestInternal<T>(query, headers, numTry),
-      ])
-
-      if (result === 'timeout') {
-        throw new PrismaClientRequestTimeoutError(this.clientVersion || 'unknown')
-      }
-
-      return result
+        this.queryTimeout,
+        this.clientVersion || 'unknown',
+      )
     } else {
       return this.requestInternal<T>(query, headers, numTry)
     }
   }
 
-  private async requestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1) {
+  private async requestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1): Promise<any> {
     await this.start()
 
     this.currentRequestPromise = this.connection.post('/', this.lastQuery, runtimeHeadersToHttpHeaders(headers))

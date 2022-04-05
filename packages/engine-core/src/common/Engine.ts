@@ -60,10 +60,10 @@ export interface EngineConfig {
   activeProvider?: string
 
   /**
-   * Throw an error if the request takes longer
+   * Throw an error if the query takes longer
    * than this timeout
    */
-  requestTimeoutMS?: number
+  queryTimeout?: number
 
   /**
    * The contents of the schema encoded into a string
