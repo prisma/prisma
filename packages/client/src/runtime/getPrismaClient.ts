@@ -18,7 +18,7 @@ import type { PrismaPromise } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { getCallSite } from './core/utils/getCallSite'
 import { DMMFHelper } from './dmmf'
-import { DMMF } from './dmmf-types'
+import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
@@ -419,14 +419,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchemaHash: config.inlineSchemaHash,
         }
 
-        // Append the mongodb experimental flag if the provider is mongodb
-        if (config.activeProvider === 'mongodb') {
-          const previewFeatures = this._engineConfig.previewFeatures
-            ? this._engineConfig.previewFeatures.concat('mongodb')
-            : ['mongodb']
-          this._engineConfig.previewFeatures = previewFeatures
-        }
-
         debug(`clientVersion: ${config.clientVersion}`)
         debug(`clientEngineType: ${this._clientEngineType}`)
 
@@ -721,7 +713,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           clientMethod: 'runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
-          callsite: getCallSite(),
+          callsite: getCallSite(this._errorFormat),
           runInTransaction: !!txId,
           transactionId: txId,
           otelCtx: otelCtx,
@@ -1053,15 +1045,14 @@ new PrismaClient({
         rootField = action
       }
 
-      // TODO: Replace with lookup map for speedup
       let mapping
-      if (model) {
+      if (model !== undefined) {
         mapping = this._dmmf.mappingsMap[model]
-        if (!mapping) {
+        if (mapping === undefined) {
           throw new Error(`Could not find mapping for model ${model}`)
         }
 
-        rootField = mapping[action]
+        rootField = mapping[action === 'count' ? 'aggregate' : action]
       }
 
       if (operation !== 'query' && operation !== 'mutation') {
@@ -1070,7 +1061,7 @@ new PrismaClient({
 
       const field = this._dmmf.rootFieldMap[rootField!]
 
-      if (!field) {
+      if (field === undefined) {
         throw new Error(
           `Could not find rootField ${rootField} for action ${action} for model ${model} on rootType ${operation}`,
         )
@@ -1180,15 +1171,4 @@ function transactionProxy<T>(thing: T, txId: string): T {
       return transactionProxy(target[prop], txId)
     },
   }) as any as T
-}
-
-export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
-  if (
-    action === DMMF.ModelAction.findMany ||
-    action === DMMF.ModelAction.findUnique ||
-    action === DMMF.ModelAction.findFirst
-  ) {
-    return 'query'
-  }
-  return 'mutation'
 }
