@@ -69,7 +69,7 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
       title: options.title ?? '',
       body: issueTemplate(platform, options),
     })
-    await open(url)
+    await open(url, { wait: true })
   }
 }
 
