@@ -19,6 +19,23 @@ import { isError } from 'util'
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
+  // add preview flag
+  if (provider === 'cockroachdb') {
+    return `// This is your Prisma schema file,
+    // learn more about it in the docs: https://pris.ly/d/prisma-schema
+    
+    generator client {
+      provider        = "prisma-client-js"
+      previewFeatures = ["${provider}"]
+    }
+    
+    datasource db {
+      provider = "${provider}"
+      url      = env("DATABASE_URL")
+    }
+    `
+  }
+
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -278,9 +295,7 @@ export class Init implements Command {
             'schema.prisma',
           )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')}, ${chalk.green(
             'sqlite',
-          )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green(
-            'cockroachdb',
-          )} (Preview).`,
+          )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green('cockroachdb')} (Preview).`,
         )
       }
 
