@@ -141,3 +141,5 @@ npm install -D prisma@3.12.0-fix-all-the-things.1
 # or executed with npx like
 npx prisma@3.12.0-fix-all-the-things.1
 ```
+
+Internal note: You can check the #feed-prisma-releases channel on our private Slack to get notified when versions are published.
