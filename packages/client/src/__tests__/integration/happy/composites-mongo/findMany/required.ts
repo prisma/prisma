@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../utils/getTestClient'
 import { commentRequiredPropDataA } from '../__helpers__/build-data/commentRequiredPropDataA'
 import { commentRequiredPropDataB } from '../__helpers__/build-data/commentRequiredPropDataB'
@@ -19,10 +21,15 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > required', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentRequiredProp.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
-    await prisma.commentRequiredProp.createMany({
-      data: [commentRequiredPropDataA(id1), commentRequiredPropDataB(id2)],
-    })
+    await pRetry(
+      async () => {
+        await prisma.commentRequiredProp.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
+        await prisma.commentRequiredProp.createMany({
+          data: [commentRequiredPropDataA(id1), commentRequiredPropDataB(id2)],
+        })
+      },
+      { retries: 2 },
+    )
   })
 
   afterEach(async () => {

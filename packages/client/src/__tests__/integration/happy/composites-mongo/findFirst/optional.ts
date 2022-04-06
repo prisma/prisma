@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../utils/getTestClient'
 import { commentOptionalPropDataA } from '../__helpers__/build-data/commentOptionalPropDataA'
 
@@ -17,8 +19,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findFirst > optional', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentOptionalProp.deleteMany({ where: { id } })
-    await prisma.commentOptionalProp.create({ data: commentOptionalPropDataA(id) })
+    await pRetry(
+      async () => {
+        await prisma.commentOptionalProp.deleteMany({ where: { id } })
+        await prisma.commentOptionalProp.create({ data: commentOptionalPropDataA(id) })
+      },
+      { retries: 2 },
+    )
   })
 
   afterEach(async () => {

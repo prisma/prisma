@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../utils/getTestClient'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -16,22 +18,27 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('aggregate > optional', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentOptionalProp.deleteMany({ where: { id } })
-    await prisma.commentOptionalProp.create({
-      data: {
-        id,
-        country: 'France',
-        content: {
-          set: {
-            text: 'Hello World',
-            upvotes: {
-              vote: true,
-              userId: '10',
+    await pRetry(
+      async () => {
+        await prisma.commentOptionalProp.deleteMany({ where: { id } })
+        await prisma.commentOptionalProp.create({
+          data: {
+            id,
+            country: 'France',
+            content: {
+              set: {
+                text: 'Hello World',
+                upvotes: {
+                  vote: true,
+                  userId: '10',
+                },
+              },
             },
           },
-        },
+        })
       },
-    })
+      { retries: 2 },
+    )
   })
 
   afterEach(async () => {
