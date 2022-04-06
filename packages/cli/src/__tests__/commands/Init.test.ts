@@ -58,6 +58,26 @@ test('works with provider param - postgresql', async () => {
   `)
 })
 
+test('works with provider param - cockroachdb', async () => {
+  ctx.fixture('init')
+  const result = await ctx.cli('init', '--datasource-provider', 'cockroachdb')
+  expect(stripAnsi(result.stdout)).toMatchSnapshot()
+
+  const schema = fs.readFileSync(join(ctx.tmpDir, 'prisma', 'schema.prisma'), 'utf-8')
+  expect(schema).toMatch(defaultSchema('cockroachdb'))
+
+  const env = fs.readFileSync(join(ctx.tmpDir, '.env'), 'utf-8')
+  expect(env).toMatchInlineSnapshot(`
+    # Environment variables declared in this file are automatically made available to Prisma.
+    # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
+
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
+
+    DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public"
+  `)
+})
+
 test('works with provider param - mysql', async () => {
   ctx.fixture('init')
   const result = await ctx.cli('init', '--datasource-provider', 'mysql')
