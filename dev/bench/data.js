@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1649245708461,
+  "lastUpdate": 1649249980714,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -93564,6 +93564,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±2.32%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 40,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "c4c385e049c2c61ef312186255d0be4e3fb2339c",
+          "message": "fix(cli): add CockroachDB to the providers list (#12673)",
+          "timestamp": "2022-04-06T14:54:33+02:00",
+          "tree_id": "e09c3b2745c4fd8eb17d2ce3e032720465b3e0a0",
+          "url": "https://github.com/prisma/prisma/commit/c4c385e049c2c61ef312186255d0be4e3fb2339c"
+        },
+        "date": 1649249975820,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.26%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±3.65%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
