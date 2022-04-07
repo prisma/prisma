@@ -30,4 +30,4 @@ npm -v
 
 pnpm run setup
 
-pnpm run test
+pnpm run test composites-mongo --filter "@prisma/client"
