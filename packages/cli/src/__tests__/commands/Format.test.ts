@@ -12,7 +12,7 @@ it('format should add a trailing EOL', async () => {
 
 it('format should add missing backrelation', async () => {
   ctx.fixture('example-project/prisma')
-  await Format.new().parse(['--schema=missing-backrelation.prisma'])
+  await Format.new().parse(['--schema=' + ctx.tmpDir + '/missing-backrelation.prisma'])
   expect(fs.read('missing-backrelation.prisma')).toMatchSnapshot()
 })
 
