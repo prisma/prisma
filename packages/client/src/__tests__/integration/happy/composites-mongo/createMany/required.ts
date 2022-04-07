@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../utils/getTestClient'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -16,9 +18,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('createMany > required', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentRequiredProp.deleteMany({ where: { id } })
+    await pRetry(
+      async () => {
+        await prisma.commentRequiredProp.deleteMany({ where: { id } })
+      },
+      { retries: 2 },
+    )
   })
-
   afterEach(async () => {
     await prisma.$disconnect()
   })

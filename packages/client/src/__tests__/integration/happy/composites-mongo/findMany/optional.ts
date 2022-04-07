@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../utils/getTestClient'
 import { commentOptionalPropDataA } from '../__helpers__/build-data/commentOptionalPropDataA'
 import { commentOptionalPropDataB } from '../__helpers__/build-data/commentOptionalPropDataB'
@@ -19,10 +21,15 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > optional', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentOptionalProp.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
-    await prisma.commentOptionalProp.createMany({
-      data: [commentOptionalPropDataA(id1), commentOptionalPropDataB(id2)],
-    })
+    await pRetry(
+      async () => {
+        await prisma.commentOptionalProp.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
+        await prisma.commentOptionalProp.createMany({
+          data: [commentOptionalPropDataA(id1), commentOptionalPropDataB(id2)],
+        })
+      },
+      { retries: 2 },
+    )
   })
 
   afterEach(async () => {
