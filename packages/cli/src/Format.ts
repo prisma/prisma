@@ -2,7 +2,6 @@ import type { Command } from '@prisma/sdk'
 import { arg, format, formatms, formatSchema, getDMMF, getSchemaPath, HelpError } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
 
 /**
@@ -68,15 +67,13 @@ Or specify a Prisma schema path
 
     console.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
-    let output = await formatSchema({
+    const output = await formatSchema({
       schemaPath,
     })
 
     await getDMMF({
       datamodel: output,
     })
-
-    output = output.trimEnd() + os.EOL
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
