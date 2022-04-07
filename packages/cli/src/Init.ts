@@ -22,18 +22,18 @@ export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
   // add preview flag
   if (provider === 'cockroachdb') {
     return `// This is your Prisma schema file,
-    // learn more about it in the docs: https://pris.ly/d/prisma-schema
-    
-    generator client {
-      provider        = "prisma-client-js"
-      previewFeatures = ["${provider}"]
-    }
-    
-    datasource db {
-      provider = "${provider}"
-      url      = env("DATABASE_URL")
-    }
-    `
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["${provider}"]
+}
+
+datasource db {
+  provider = "${provider}"
+  url      = env("DATABASE_URL")
+}
+`
   }
 
   return `// This is your Prisma schema file,

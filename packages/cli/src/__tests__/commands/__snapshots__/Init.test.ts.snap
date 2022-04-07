@@ -17,6 +17,21 @@ https://pris.ly/d/getting-started
 `;
 
 exports[`appends when .env present 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+`;
+
+exports[`appends when .env present 3`] = `
 SOMTHING="is here"
 
 # This was inserted by \`prisma init\`:
@@ -45,6 +60,21 @@ https://pris.ly/d/getting-started
     
 `;
 
+exports[`is schema and env written on disk replace 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+`;
+
 exports[`warns when DATABASE_URL present in .env  1`] = `
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
@@ -63,6 +93,21 @@ https://pris.ly/d/getting-started
     
 `;
 
+exports[`warns when DATABASE_URL present in .env  2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+`;
+
 exports[`works with provider param - MongoDB 1`] = `
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
@@ -76,6 +121,21 @@ Next steps:
 More information in our documentation:
 https://pris.ly/d/getting-started
     
+`;
+
+exports[`works with provider param - MongoDB 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
 `;
 
 exports[`works with provider param - SQLITE 1`] = `
@@ -93,6 +153,21 @@ https://pris.ly/d/getting-started
     
 `;
 
+exports[`works with provider param - SQLITE 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+`;
+
 exports[`works with provider param - SqlServer 1`] = `
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
@@ -106,6 +181,21 @@ Next steps:
 More information in our documentation:
 https://pris.ly/d/getting-started
     
+`;
+
+exports[`works with provider param - SqlServer 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
 `;
 
 exports[`works with provider param - cockroachdb 1`] = `
@@ -123,6 +213,22 @@ https://pris.ly/d/getting-started
     
 `;
 
+exports[`works with provider param - cockroachdb 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["cockroachdb"]
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+`;
+
 exports[`works with provider param - mysql 1`] = `
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
@@ -136,6 +242,21 @@ Next steps:
 More information in our documentation:
 https://pris.ly/d/getting-started
     
+`;
+
+exports[`works with provider param - mysql 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
 `;
 
 exports[`works with provider param - postgresql 1`] = `
@@ -153,6 +274,21 @@ https://pris.ly/d/getting-started
     
 `;
 
+exports[`works with provider param - postgresql 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+`;
+
 exports[`works with url param 1`] = `
 
 ✔ Your Prisma schema was created at prisma/schema.prisma
@@ -165,6 +301,21 @@ Next steps:
 More information in our documentation:
 https://pris.ly/d/getting-started
     
+`;
+
+exports[`works with url param 2`] = `
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
 `;
 
 exports[`writes a minimal .gitignore file 1`] = `
