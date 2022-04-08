@@ -50,10 +50,10 @@ export class DataProxyEngine extends Engine {
     const [host, apiKey] = this.extractHostAndApiKey()
     this.remoteClientVersion = getClientVersion(this.config)
     // TODO do this properly
-    if(this.remoteClientVersion == 'unsupported') {
+    if (this.remoteClientVersion === 'unsupported') {
       throw new NotImplementedYetError('Support for non major.minor.patch versions is not implemented yet.', {
-        clientVersion: config.clientVersion,
-      })    
+        clientVersion: this.clientVersion,
+      })
     }
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
