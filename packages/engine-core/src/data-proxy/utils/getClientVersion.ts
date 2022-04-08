@@ -5,7 +5,7 @@ import type { EngineConfig } from '../../common/Engine'
  * @param config
  * @returns
  */
-export function getClientVersion(config: EngineConfig) {
+export function getClientVersion(config: EngineConfig): string | null {
   const [version, suffix] = config.clientVersion?.split('-') ?? []
 
   // we expect the version to match the pattern major.minor.patch
@@ -17,7 +17,6 @@ export function getClientVersion(config: EngineConfig) {
   // arbitrary version for testing purposes.
 
   // TODO: Add way to provide fallback manually, e.g. via env var
-
 
   return null
 }
