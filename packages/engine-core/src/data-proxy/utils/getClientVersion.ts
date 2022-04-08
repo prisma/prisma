@@ -1,4 +1,5 @@
 import type { EngineConfig } from '../../common/Engine'
+import { NotImplementedYetError } from '../errors/NotImplementedYetError'
 
 /**
  * Determine the client version to be sent to the DataProxy
@@ -18,5 +19,7 @@ export function getClientVersion(config: EngineConfig): string | null {
 
   // TODO: Add way to provide fallback manually, e.g. via env var
 
-  return null
+  throw new NotImplementedYetError('Support for non major.minor.patch versions is not implemented yet.', {
+    clientVersion: this.clientVersion,
+  })
 }
