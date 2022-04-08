@@ -22,4 +22,6 @@ export function getClientVersion(config: EngineConfig) {
   throw new NotImplementedYetError('Support for non major.minor.patch versions is not implemented yet.', {
     clientVersion: config.clientVersion,
   })
+
+  return 'foo'
 }
