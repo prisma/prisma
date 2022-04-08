@@ -6,7 +6,7 @@ import { NotImplementedYetError } from '../errors/NotImplementedYetError'
  * @param config
  * @returns
  */
-export function getClientVersion(config: EngineConfig): string | null {
+export function getClientVersion(config: EngineConfig) {
   const [version, suffix] = config.clientVersion?.split('-') ?? []
 
   // we expect the version to match the pattern major.minor.patch
@@ -20,6 +20,6 @@ export function getClientVersion(config: EngineConfig): string | null {
   // TODO: Add way to provide fallback manually, e.g. via env var
 
   throw new NotImplementedYetError('Support for non major.minor.patch versions is not implemented yet.', {
-    clientVersion: this.clientVersion,
+    clientVersion: config.clientVersion,
   })
 }
