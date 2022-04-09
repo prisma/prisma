@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`format should add a trailing EOL 1`] = `
+exports[`format should have consistent EOL for all lines`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
@@ -35,7 +35,6 @@ model User {
   posts   Post[]
   profile Profile?
 }
-
 `;
 
 exports[`format should add missing backrelation 1`] = `
@@ -59,5 +58,4 @@ model User {
   id    Int    @id
   posts Post[]
 }
-
 `;

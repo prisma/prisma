@@ -4,7 +4,7 @@ import { jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().assemble()
 
-it('format should add a trailing EOL', async () => {
+it('format should have consistent EOL for all lines', async () => {
   ctx.fixture('example-project/prisma')
   await Format.new().parse([])
   expect(fs.read('schema.prisma')).toMatchSnapshot()
