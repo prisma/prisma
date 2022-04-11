@@ -24,10 +24,10 @@ tmp.setGracefulCleanup()
 export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number> {
   try {
     const schema: string | undefined = match(error)
-      .with({ schemaPath: P.when((schemaPath) => !!schemaPath) }, (err) => {
+      .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
         return fs.readFileSync(err.schemaPath, 'utf-8')
       })
-      .with({ schema: P.when((schema) => !!schema) }, (err) => err.schema)
+      .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
       .otherwise(() => undefined)
 
     const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
@@ -186,6 +186,7 @@ export enum ErrorKind {
 }
 
 export async function createErrorReport(data: CreateErrorReportInput): Promise<string> {
+  console.log("you shouldn't enter createErrorReport")
   const result = await request(
     `mutation ($data: CreateErrorReportInput!) {
     createErrorReport(data: $data)
