@@ -863,8 +863,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
-    this.lastQuery = query
-    const result = await this.timedRequestInternal<T>(stringifyQuery(query), headers, numTry)
+    this.lastQuery = stringifyQuery(query)
+    const result = await this.timedRequestInternal<T>(this.lastQuery, headers, numTry)
 
     // reset restart count after successful request
     if (this.startCount > 0) {
