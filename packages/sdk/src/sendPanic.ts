@@ -20,7 +20,7 @@ const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
-export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number | void> {
+export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number> {
   try {
     let schema: undefined | string
     let maskedSchema: undefined | string
@@ -82,7 +82,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       dbVersion: dbVersion,
     }
 
-    const signedUrl = await createErrorReport(params)
+    const signedUrl = await exports.createErrorReport(params)
 
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)
@@ -93,6 +93,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
     return id
   } catch (e) {
     debug(e)
+    throw e
   }
 }
 
