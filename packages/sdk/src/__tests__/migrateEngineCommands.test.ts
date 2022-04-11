@@ -4,7 +4,6 @@ import { credentialsToUri, uriToCredentials } from '../convertCredentials'
 import {
   canConnectToDatabase,
   createDatabase,
-  doesSqliteDbExist,
   dropDatabase,
   execaCommand,
 } from '../migrateEngineCommands'
@@ -30,28 +29,6 @@ describe('execaCommand', () => {
       expect(message.includes('mysecret')).toBeFalsy()
       expect(message.includes('<REDACTED>')).toBeTruthy()
     }
-  })
-})
-
-describe('doesSqliteDbExist', () => {
-  test('exist - sqlite:', async () => {
-    await expect(doesSqliteDbExist('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(true)
-  })
-
-  test('exist - file:', async () => {
-    await expect(doesSqliteDbExist('file:./introspection/blog.db', __dirname)).resolves.toEqual(true)
-  })
-
-  test('does not exist - sqlite:', async () => {
-    await expect(doesSqliteDbExist('sqlite:./doesnotexist.db', __dirname)).resolves.toEqual(false)
-  })
-
-  test('does not exist - file:', async () => {
-    await expect(doesSqliteDbExist('file:./doesnotexist.db', __dirname)).resolves.toEqual(false)
-  })
-
-  test('should error if no schemaDir and no schema found', async () => {
-    await expect(doesSqliteDbExist('file:./doesnotexist.db')).rejects.toThrowError()
   })
 })
 
