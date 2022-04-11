@@ -3,6 +3,7 @@ import newGithubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
+import { match } from 'ts-pattern'
 
 export function getGithubIssueUrl({
   title,
@@ -37,32 +38,33 @@ interface IssueOptions {
 }
 
 export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
-  let shouldCreateNewIssue
-
-  if (options.prompt) {
-    shouldCreateNewIssue = await prompt({
-      type: 'select',
-      name: 'value',
-      message: 'Would you like to create a GitHub issue?',
-      initial: 0,
-      choices: [
-        {
-          title: 'Yes',
-          value: true,
-          description: `Create a new GitHub issue`,
-        },
-        {
-          title: 'No',
-          value: false,
-          description: `Don't create a new GitHub issue`,
-        },
-      ],
+  const shouldCreateNewIssue = match(options.prompt)
+    .with(true, async () => {
+      const createNewIssueResponse = await prompt({
+        type: 'select',
+        name: 'value',
+        message: 'Would you like to create a Github issue?',
+        initial: 0,
+        choices: [
+          {
+            title: 'Yes',
+            value: true,
+            description: `Create a new GitHub issue`,
+          },
+          {
+            title: 'No',
+            value: false,
+            description: `Don't create a new GitHub issue`,
+          },
+        ],
+      })
+      // @types/prompts is broken, and doesn't infer the types of the `value` prop,
+      // thus we explicitly cast it to boolean.
+      return Boolean(createNewIssueResponse.value)
     })
-  } else {
-    shouldCreateNewIssue = { value: true }
-  }
+    .otherwise(() => Promise.resolve(true))
 
-  if (shouldCreateNewIssue.value) {
+  if (shouldCreateNewIssue) {
     const platform = await getPlatform()
 
     const url = getGithubIssueUrl({

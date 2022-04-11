@@ -29,7 +29,7 @@ ${chalk.bold('Error reports never contain personal or other sensitive informatio
 ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
 `)
 
-  const response = await prompt({
+  const { value: shouldSubmitReport } = await prompt({
     type: 'select',
     name: 'value',
     message: 'Submit error report',
@@ -37,35 +37,32 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     choices: [
       {
         title: 'Yes',
-        value: true,
+        value: true as const,
         description: `Send error report once`,
       },
       {
         title: 'No',
-        value: false,
+        value: false as const,
         description: `Don't send error report`,
       },
     ],
   })
 
-  const reportFailedMessage = `${chalk.bold.red('Oops. We could not send the error report.')}`
-
-  if (response.value) {
-    let reportId: number | void
+  if (shouldSubmitReport) {
     try {
       console.log('Submitting...')
-      reportId = await sendPanic(error, cliVersion, engineVersion)
-    } catch (error) {
-      console.log(reportFailedMessage)
-    }
-
-    if (reportId) {
+      console.info('sendPanic: ', sendPanic)
+      const reportId = await sendPanic(error, cliVersion, engineVersion)
       console.log(`\n${chalk.bold(`We successfully received the error report id: ${reportId}`)}`)
       console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
+    } catch (error) {
+      const reportFailedMessage = `${chalk.bold.red('Oops. We could not send the error report.')}`
+      console.log(reportFailedMessage)
     }
   }
+
   await wouldYouLikeToCreateANewIssue({
-    prompt: !response.value,
+    prompt: !shouldSubmitReport,
     error,
     cliVersion,
     engineVersion,

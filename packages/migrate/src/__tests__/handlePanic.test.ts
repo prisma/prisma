@@ -1,4 +1,4 @@
-import { ErrorArea, isCi, RustPanic } from '@prisma/sdk'
+import { ErrorArea, isCi, jestConsoleContext, jestContext, RustPanic, sendPanic } from '@prisma/sdk'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
@@ -12,6 +12,9 @@ import { promisify } from 'util'
 import { Migrate } from '../Migrate'
 import { handlePanic } from '../utils/handlePanic'
 import CaptureStdout from './__helpers__/captureStdout'
+
+// follow this issue suggestion: https://github.com/aelbore/esbuild-jest/issues/26#issuecomment-893763840
+const sdk = { sendPanic }
 
 const keys = {
   up: '\x1B\x5B\x41',
@@ -48,6 +51,8 @@ async function writeFiles(
   return root
 }
 // create a temporary set of files
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('handlePanic', () => {
   // testing with env https://stackoverflow.com/a/48042799/1345244
@@ -228,4 +233,35 @@ describe('handlePanic', () => {
       )
     }
   })
+
+  it.skip('when sendPanic fails, the user should be alerted by a reportFailedMessage', async () => {
+    const cliVersion = 'test-cli-version'
+    const engineVersion = 'test-engine-version'
+    const rustStackTrace = 'test-rustStack'
+    const command = 'test-command'
+
+    const sendPanicTag = 'send-panic-failed'
+
+    const spySendPanic = jest
+      .spyOn(sdk, 'sendPanic')
+      .mockImplementation(() => Promise.reject(new Error(sendPanicTag)))
+      .mockName('mock-sendPanic')
+
+    const rustPanic = new RustPanic(
+      'test-message',
+      rustStackTrace,
+      'test-request',
+      ErrorArea.INTROSPECTION_CLI, // area
+      undefined, // schemaPath
+      undefined, // schema
+      undefined, // introspectionUrl
+    )
+
+    prompt.inject(['y']) // submit report
+    await handlePanic(rustPanic, cliVersion, engineVersion, command)
+
+    expect(spySendPanic).toHaveBeenCalledTimes(1)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    spySendPanic.mockRestore()
+  }, 15_000)
 })
