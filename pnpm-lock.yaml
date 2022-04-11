@@ -512,6 +512,7 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tempy: 1.0.1
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -532,6 +533,7 @@ importers:
       prompts: 2.4.2
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
+      ts-pattern: 4.0.1
     devDependencies:
       '@prisma/engines-version': 3.13.0-7.d0e454832ed9b907fa334540e72c4d087abbebc1
       '@prisma/generator-helper': link:../generator-helper
@@ -625,6 +627,7 @@ importers:
       terminal-link: 2.1.1
       tmp: 0.2.1
       ts-node: 10.4.0
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -665,6 +668,7 @@ importers:
       tempy: 1.0.1
       terminal-link: 2.1.1
       tmp: 0.2.1
+      ts-pattern: 4.0.1
     devDependencies:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
@@ -7951,6 +7955,10 @@ packages:
       typescript: 4.5.4
       yn: 3.1.1
     dev: true
+
+  /ts-pattern/4.0.1:
+    resolution: {integrity: sha512-UaEFiG0xvCAa0tXBi242rD2WU28RlurzQe27t7vc2+3difhtA58Q6BiFl3YQbDlDiWfantdP05YICJPpGo/ulg==}
+    dev: false
 
   /ts-toolbelt/9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
