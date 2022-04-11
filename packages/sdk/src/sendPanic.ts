@@ -186,7 +186,6 @@ export enum ErrorKind {
 }
 
 export async function createErrorReport(data: CreateErrorReportInput): Promise<string> {
-  console.log("you shouldn't enter createErrorReport")
   const result = await request(
     `mutation ($data: CreateErrorReportInput!) {
     createErrorReport(data: $data)
