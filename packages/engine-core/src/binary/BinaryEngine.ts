@@ -890,7 +890,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   private async timedRequestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1) {
-    if (this.queryTimeout) {
+    if (this.queryTimeout !== undefined) {
       return timedRequest(
         this.requestInternal<T>(query, headers, numTry),
         this.queryTimeout,

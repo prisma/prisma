@@ -124,6 +124,7 @@ export interface PrismaClientOptions {
       binaryPath?: string
       endpoint?: string
       allowTriggerPanic?: boolean
+      queryTimeout?: number
     }
   }
 }
@@ -413,6 +414,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           flags: [],
           clientVersion: config.clientVersion,
           previewFeatures: mapPreviewFeatures(this._previewFeatures),
+          queryTimeout: engineConfig.queryTimeout,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
           inlineDatasources: config.inlineDatasources,

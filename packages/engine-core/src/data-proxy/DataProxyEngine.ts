@@ -21,7 +21,7 @@ import { request } from './utils/request'
 // TODO this is an issue that we cannot share types from the client to other packages
 
 const MAX_RETRIES = 10
-const DEFAULT_REQUEST_TIMEOUT_MS = 30000
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000
 
 export class DataProxyEngine extends Engine {
   private pushPromise: Promise<void>

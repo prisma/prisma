@@ -428,7 +428,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   private async timedRequestInternal(query: string, headers: QueryEngineRequestHeaders) {
-    if (this.queryTimeout) {
+    if (this.queryTimeout !== undefined) {
       return timedRequest(this.requestInternal(query, headers), this.queryTimeout, this.version())
     } else {
       return this.requestInternal(query, headers)
