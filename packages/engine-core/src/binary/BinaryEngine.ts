@@ -904,7 +904,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   private async requestInternal<T>(query: string, headers: QueryEngineRequestHeaders, numTry = 1): Promise<any> {
     await this.start()
 
-    this.currentRequestPromise = this.connection.post('/', this.lastQuery, runtimeHeadersToHttpHeaders(headers))
+    this.currentRequestPromise = this.connection.post('/', query, runtimeHeadersToHttpHeaders(headers))
 
     try {
       const { data, headers } = await this.currentRequestPromise
