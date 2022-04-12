@@ -38,7 +38,7 @@ interface IssueOptions {
 }
 
 export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
-  const shouldCreateNewIssue = match(options.prompt)
+  const shouldCreateNewIssue = await match(options.prompt)
     .with(true, async () => {
       const createNewIssueResponse = await prompt({
         type: 'select',
