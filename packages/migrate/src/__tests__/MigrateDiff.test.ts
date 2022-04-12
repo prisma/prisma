@@ -90,22 +90,31 @@ describe('migrate diff', () => {
   })
 
   describe('sqlite', () => {
-    // TODO next 2 tests: is it expected to not fail when diffing from/to an unexisting sqlite db?
-    it('should diff --from-empty --to-url=file:doesnotexists.db', async () => {
+    it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:doesnotexists.db'])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1003
+
+              Database doesnotexists.db does not exist at doesnotexists.db
+
+            `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
-    it('should diff --from-url=file:doesnotexists.db --to-empty ', async () => {
+    it('should fail --from-url=file:doesnotexists.db --to-empty ', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-url=file:doesnotexists.db', '--to-empty'])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1003
+
+              Database doesnotexists.db does not exist at doesnotexists.db
+
+            `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
-    it('should fail if path does not exist', async () => {
+    it('should fail if directory in path & sqlite file does not exist', async () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
@@ -114,8 +123,9 @@ describe('migrate diff', () => {
         '--to-empty',
       ])
       await expect(result).rejects.toMatchInlineSnapshot(`
-              unable to open database file: ./something/doesnotexists.db
+              P1003
 
+              Database doesnotexists.db does not exist at ./something/doesnotexists.db
 
             `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -129,18 +139,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                [+] Added tables
-                                                                                  - Post
-                                                                                  - Profile
-                                                                                  - User
-                                                                                  - _Migration
+                                                                                                [+] Added tables
+                                                                                                  - Post
+                                                                                                  - Profile
+                                                                                                  - User
+                                                                                                  - _Migration
 
-                                                                                [*] Changed the \`Profile\` table
-                                                                                  [+] Added unique index on columns (userId)
+                                                                                                [*] Changed the \`Profile\` table
+                                                                                                  [+] Added unique index on columns (userId)
 
-                                                                                [*] Changed the \`User\` table
-                                                                                  [+] Added unique index on columns (email)
-                                                            `)
+                                                                                                [*] Changed the \`User\` table
+                                                                                                  [+] Added unique index on columns (email)
+                                                                        `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -161,9 +171,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                [+] Added tables
-                                                                                  - Blog
-                                                            `)
+                                                                                                [+] Added tables
+                                                                                                  - Blog
+                                                                        `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -195,9 +205,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                [-] Removed tables
-                                                                                  - Blog
-                                                            `)
+                                                                                                [-] Removed tables
+                                                                                                  - Blog
+                                                                        `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -219,6 +229,8 @@ describe('migrate diff', () => {
 
     it('should pass if no schema file around', async () => {
       ctx.fixture('empty')
+      // Create empty file, as the file needs to exists
+      ctx.fs.write('dev.db', '')
 
       const result = MigrateDiff.new().parse(['--preview-feature', '--from-url=file:dev.db', '--to-url=file:dev.db'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -242,9 +254,9 @@ describe('migrate diff', () => {
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                              [-] Removed tables
-                                - Blog
-                        `)
+                                                  [-] Removed tables
+                                                    - Blog
+                                        `)
 
         expect(mockExit).toHaveBeenCalledTimes(1)
         expect(mockExit).toHaveBeenCalledWith(2)
@@ -280,11 +292,13 @@ describe('migrate diff', () => {
 
       it('should exit with code 0 when diff is empty with --script', async () => {
         ctx.fixture('empty')
+        // Create empty file, as the file needs to exists
+        ctx.fs.write('dev.db', '')
 
         const result = MigrateDiff.new().parse([
           '--preview-feature',
           '--from-empty',
-          '--to-url=file:doesnotexists.db',
+          '--to-url=file:dev.db',
           '--script',
           '--exit-code',
         ])
