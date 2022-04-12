@@ -99,7 +99,7 @@ describe('queryTimeout', () => {
 
     test(
       `engineType=${engineType} setting a long queryTimeout does not time out`,
-      buildQueryTimeoutTest({ engineType, queryTimeout: 30000, timesOut: false }),
+      buildQueryTimeoutTest({ engineType, queryTimeout: 30_000, timesOut: false }),
     )
 
     test(
