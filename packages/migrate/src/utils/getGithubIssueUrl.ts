@@ -43,7 +43,7 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
       const createNewIssueResponse = await prompt({
         type: 'select',
         name: 'value',
-        message: 'Would you like to create a Github issue?',
+        message: 'Would you like to create a GitHub issue?',
         initial: 0,
         choices: [
           {
