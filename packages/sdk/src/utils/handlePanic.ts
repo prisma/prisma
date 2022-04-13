@@ -58,7 +58,6 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
   if (shouldSubmitReport) {
     try {
       console.log('Submitting...')
-      console.info('sendPanic: ', sendPanic)
       const reportId = await sendPanic(error, cliVersion, engineVersion)
       console.log(`\n${chalk.bold(`We successfully received the error report id: ${reportId}`)}`)
       console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
