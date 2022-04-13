@@ -187,11 +187,13 @@ describe('handlePanic migrate', () => {
         draft: false,
         prismaSchema: migrate.getDatamodel(),
       })
-    } catch (err) {
-      expect(error).toMatchInlineSnapshot(`Some error message!`)
-      expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
-      )
+    } catch (error) {
+      expect(error).toMatchSnapshot()
+      expect(JSON.parse(JSON.stringify(error))).toMatchObject({
+        area: 'LIFT_CLI',
+        schemaPath,
+      })
+      expect(error.rustStack).toContain('This is the debugPanic artificial panic')
     }
   })
 })
