@@ -1,4 +1,4 @@
-import { ErrorArea, isCi, jestConsoleContext, jestContext, RustPanic, sendPanic } from '@prisma/sdk'
+import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/sdk'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
@@ -10,11 +10,7 @@ import tempy from 'tempy'
 import { promisify } from 'util'
 
 import { Migrate } from '../Migrate'
-import { handlePanic } from '../utils/handlePanic'
 import CaptureStdout from './__helpers__/captureStdout'
-
-// follow this issue suggestion: https://github.com/aelbore/esbuild-jest/issues/26#issuecomment-893763840
-const sdk = { sendPanic }
 
 const keys = {
   up: '\x1B\x5B\x41',
@@ -52,9 +48,7 @@ async function writeFiles(
 }
 // create a temporary set of files
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
-
-describe('handlePanic', () => {
+describe('handlePanic migrate', () => {
   // testing with env https://stackoverflow.com/a/48042799/1345244
   const OLD_ENV = process.env
 
@@ -85,39 +79,6 @@ describe('handlePanic', () => {
   const packageJsonVersion = '0.0.0'
   const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
-
-  // Only works locally (not in CI)
-  it.skip('ask to submit the panic error in interactive mode', async () => {
-    const oldConsoleLog = console.log
-    const logs: string[] = []
-    console.log = (...args) => {
-      logs.push(...args)
-    }
-
-    setTimeout(() => sendKeystrokes(io).then(), 5)
-
-    try {
-      await handlePanic(error, packageJsonVersion, engineVersion, command)
-    } catch (e) {
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
-      expect(stripAnsi(e.message)).toMatchSnapshot()
-    }
-
-    console.log = oldConsoleLog
-    expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()
-  })
-
-  it('no interactive mode in CI', async () => {
-    try {
-      await handlePanic(error, packageJsonVersion, engineVersion, command)
-    } catch (error) {
-      error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`Some error message!`)
-      expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
-      )
-    }
-  })
 
   it('test interactive engine panic', async () => {
     process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
@@ -233,35 +194,4 @@ describe('handlePanic', () => {
       )
     }
   })
-
-  it.skip('when sendPanic fails, the user should be alerted by a reportFailedMessage', async () => {
-    const cliVersion = 'test-cli-version'
-    const engineVersion = 'test-engine-version'
-    const rustStackTrace = 'test-rustStack'
-    const command = 'test-command'
-
-    const sendPanicTag = 'send-panic-failed'
-
-    const spySendPanic = jest
-      .spyOn(sdk, 'sendPanic')
-      .mockImplementation(() => Promise.reject(new Error(sendPanicTag)))
-      .mockName('mock-sendPanic')
-
-    const rustPanic = new RustPanic(
-      'test-message',
-      rustStackTrace,
-      'test-request',
-      ErrorArea.INTROSPECTION_CLI, // area
-      undefined, // schemaPath
-      undefined, // schema
-      undefined, // introspectionUrl
-    )
-
-    prompt.inject(['y']) // submit report
-    await handlePanic(rustPanic, cliVersion, engineVersion, command)
-
-    expect(spySendPanic).toHaveBeenCalledTimes(1)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    spySendPanic.mockRestore()
-  }, 15_000)
 })

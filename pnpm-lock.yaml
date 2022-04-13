@@ -168,7 +168,7 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@prisma/studio': 0.459.0
-      '@prisma/studio-server': 0.459.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-server': 0.459.0
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
       '@types/debug': 4.1.7
@@ -504,8 +504,6 @@ importers:
       mariadb: 3.0.0
       mock-stdin: 1.0.0
       mssql: 8.0.2
-      new-github-issue-url: 0.2.1
-      open: 7.4.2
       pg: 8.7.3
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -526,8 +524,6 @@ importers:
       log-update: 4.0.0
       mariadb: 3.0.0
       mssql: 8.0.2
-      new-github-issue-url: 0.2.1
-      open: 7.4.2
       pg: 8.7.3
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -610,8 +606,12 @@ importers:
       jest: 27.5.1
       jest-junit: 13.0.0
       make-dir: 3.1.0
+      mock-stdin: 1.0.0
+      new-github-issue-url: 0.2.1
       node-fetch: 2.6.7
+      open: '7'
       p-map: 4.0.0
+      prompts: 2.4.2
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
       resolve: 1.22.0
@@ -652,8 +652,11 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.1
       make-dir: 3.1.0
+      new-github-issue-url: 0.2.1
       node-fetch: 2.6.7
+      open: 7.4.2
       p-map: 4.0.0
+      prompts: 2.4.2
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
       resolve: 1.22.0
@@ -680,6 +683,7 @@ importers:
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.0.0
+      mock-stdin: 1.0.0
       ts-node: 10.4.0_82274b92ec7bae91027ffd577a5efb53
       typescript: 4.5.4
 
@@ -1588,31 +1592,28 @@ packages:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.459.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-pcw/0.459.0:
     resolution: {integrity: sha512-V3bvY8XXtRq4dRxtAci3+MAHee0joQU1kVmtjT2RIbFXonnOSo3jkqRMLV2OpNx96oysS5h1u3K86a/EavG2bw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/client': link:packages/client
-      '@prisma/sdk': link:packages/sdk
       debug: 4.3.3
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.459.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-server/0.459.0:
     resolution: {integrity: sha512-oKGELhEKUdezw1tCHiVzL0dH1WBNpfCvtfghV9SENHterM7Ugb2U8AlNSoKvIiyrOiLgkTG4VYl442o1QjDBnw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': link:packages/sdk
       '@prisma/studio': 0.459.0
       '@prisma/studio-common': 0.459.0
-      '@prisma/studio-pcw': 0.459.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-pcw': 0.459.0
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3

@@ -1,9 +1,11 @@
-import type { RustPanic } from '@prisma/sdk'
-import { isCi, link, sendPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
 
+import type { RustPanic } from '../panic'
+import { sendPanic } from '../sendPanic'
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
+import { isCi } from './isCi'
+import { link } from './link'
 
 export async function handlePanic(
   error: RustPanic,
@@ -18,7 +20,12 @@ export async function handlePanic(
   await panicDialog(error, cliVersion, engineVersion, command)
 }
 
-async function panicDialog(error, cliVersion, engineVersion, command) {
+async function panicDialog(
+  error: RustPanic,
+  cliVersion: string,
+  engineVersion: string,
+  command: string,
+): Promise<void> {
   const errorMessage = error.message.split('\n').slice(0, Math.max(20, process.stdout.rows)).join('\n')
 
   console.log(`${chalk.red('Oops, an unexpected error occured!')}
@@ -37,12 +44,12 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     choices: [
       {
         title: 'Yes',
-        value: true as const,
+        value: true,
         description: `Send error report once`,
       },
       {
         title: 'No',
-        value: false as const,
+        value: false,
         description: `Don't send error report`,
       },
     ],

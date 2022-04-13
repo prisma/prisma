@@ -2,7 +2,7 @@
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { HelpError, isError } from '@prisma/sdk'
+import { handlePanic, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 
 import { CLI } from './CLI'
@@ -19,7 +19,6 @@ import { MigrateDiff } from './commands/MigrateDiff'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
-import { handlePanic } from './utils/handlePanic'
 
 process.on('uncaughtException', (e) => {
   console.log(e)
