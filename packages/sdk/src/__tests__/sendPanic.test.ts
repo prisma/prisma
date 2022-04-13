@@ -44,8 +44,8 @@ describe('sendPanic should fail when the error report creation fails', () => {
   })
 
   test('should mask the schema if a valid schemaPath appears in RustPanic', async () => {
-    const schemaPath = 'src/__tests__/__fixtures__/blog-masked.prisma'
-    const maskedSchema = fs.readFileSync(schemaPath, 'utf-8')
+    const schemaPath = 'src/__tests__/__fixtures__/blog.prisma'
+    const expectedMaskedSchema = fs.readFileSync('src/__tests__/__fixtures__/blog-masked.prisma', 'utf-8')
 
     const rustPanic = new RustPanic(
       'test-message',
@@ -62,7 +62,7 @@ describe('sendPanic should fail when the error report creation fails', () => {
     )
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
-      schemaFile: maskedSchema,
+      schemaFile: expectedMaskedSchema,
       rustStackTrace,
       cliVersion,
     })
