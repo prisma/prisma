@@ -108,9 +108,9 @@ describe('handlePanic', () => {
       await handlePanic(error, packageJsonVersion, engineVersion, command)
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`Some error message!`)
+      expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
+        `"{\\"rustStack\\":\\"\\",\\"area\\":\\"LIFT_CLI\\",\\"schemaPath\\":\\"Some Schema Path\\"}"`,
       )
     }
   })
