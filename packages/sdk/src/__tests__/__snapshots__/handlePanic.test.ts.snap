@@ -1,13 +1,12 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`handlePanic when sendPanic fails, the user should be alerted by a reportFailedMessage 1`] = `
-"[31mOops, an unexpected error occured![39m
-[31mtest-message[39m
+Oops, an unexpected error occured!
 
-[1mPlease help us improve Prisma by submitting an error report.[22m
-[1mError reports never contain personal or other sensitive information.[22m
-[2mLearn more: [4mhttps://pris.ly/d/telemetry[24m[22m
+Please help us improve Prisma by submitting an error report.
+Error reports never contain personal or other sensitive information.
+Learn more: https://pris.ly/d/telemetry
 
 Submitting...
-[1m[31mOops. We could not send the error report.[39m[22m"
+Oops. We could not send the error report."
 `;
