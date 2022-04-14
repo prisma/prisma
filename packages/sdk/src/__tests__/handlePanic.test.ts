@@ -1,15 +1,13 @@
-import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
-import { dirname, join, resolve } from 'path'
+import { join, resolve } from 'path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
-import dedent from 'strip-indent'
 import tempy from 'tempy'
-import { promisify } from 'util'
 
 import { ErrorArea, jestConsoleContext, jestContext, RustPanic } from '..'
 import * as sendPanicUtils from '../sendPanic'
+import * as githubUtils from '../utils/getGithubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
 
 const keys = {
@@ -26,27 +24,10 @@ const sendKeystrokes = async (io) => {
 // helper function for timing
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock stdin so we can send messages to the CLI
 
-const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const oldProcessCwd = process.cwd
-// create a temporary set of files
-async function writeFiles(
-  root: string,
-  files: {
-    [name: string]: any // eslint-disable-line @typescript-eslint/no-explicit-any
-  },
-): Promise<string> {
-  for (const name in files) {
-    const filepath = join(root, name)
-    await mkdir(dirname(filepath))
-    await writeFile(filepath, dedent(files[name]))
-  }
-  // return the test path
-  return root
-}
-// create a temporary set of files
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -128,6 +109,11 @@ describe('handlePanic', () => {
       .mockImplementation(() => Promise.reject(new Error(sendPanicTag)))
       .mockName('mock-sendPanic')
 
+    const spyWouldYouLikeToCreateANewIssue = jest
+      .spyOn(githubUtils, 'wouldYouLikeToCreateANewIssue')
+      .mockImplementation(() => Promise.resolve())
+      .mockName('mock-wouldYouLikeToCreateANewIssue')
+
     const rustPanic = new RustPanic(
       'test-message',
       rustStackTrace,
@@ -142,6 +128,7 @@ describe('handlePanic', () => {
     await handlePanic(rustPanic, cliVersion, engineVersion, command)
 
     expect(spySendPanic).toHaveBeenCalledTimes(1)
+    expect(spyWouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     spySendPanic.mockRestore()
   })
