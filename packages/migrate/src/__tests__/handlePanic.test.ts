@@ -181,11 +181,11 @@ describe('handlePanic', () => {
 
 
 
-                                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
+                                ? Would you like to create a GitHub issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
 
-                                ? Would you like to create a Github issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
+                                ? Would you like to create a GitHub issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
 
-                                ✔ Would you like to create a Github issue? › No
+                                ✔ Would you like to create a GitHub issue? › No
 
 
                         `)

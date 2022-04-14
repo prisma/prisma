@@ -335,7 +335,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
           ?.connect({ enableRawQueries: true })
           .then(() => {
             this.libraryStarted = true
-            this.libraryStartingPromise = undefined
             debug('library started')
             resolve()
           })
@@ -348,6 +347,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             } else {
               reject(new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code))
             }
+          })
+          .finally(() => {
+            this.libraryStartingPromise = undefined
           })
       })
       return this.libraryStartingPromise

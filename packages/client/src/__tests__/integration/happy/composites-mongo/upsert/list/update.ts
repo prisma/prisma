@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../../utils/getTestClient'
 import { commentRequiredListDataB } from '../../__helpers__/build-data/commentRequiredListDataB'
 
@@ -17,8 +19,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('update > list', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentRequiredList.deleteMany({ where: { id } })
-    await prisma.commentRequiredList.create({ data: commentRequiredListDataB(id) })
+    await pRetry(
+      async () => {
+        await prisma.commentRequiredList.deleteMany({ where: { id } })
+        await prisma.commentRequiredList.create({ data: commentRequiredListDataB(id) })
+      },
+      { retries: 2 },
+    )
   })
 
   afterEach(async () => {

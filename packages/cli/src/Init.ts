@@ -20,13 +20,13 @@ import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
   // add preview flag
-  if (provider === 'mongodb') {
+  if (provider === 'cockroachdb') {
     return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
+  previewFeatures = ["${provider}"]
 }
 
 datasource db {
@@ -34,8 +34,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 `
-  } else {
-    return `// This is your Prisma schema file,
+  }
+
+  return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
@@ -47,7 +48,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 `
-  }
 }
 
 export const defaultEnv = (
@@ -58,7 +58,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB (Preview) and CockroachDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -122,7 +122,7 @@ export class Init implements Command {
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB (Preview)
+  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB
                   --url   Define a custom datasource url
 
   ${chalk.bold('Examples')}
@@ -211,9 +211,9 @@ export class Init implements Command {
       url = args['--url']
     } else if (args['--datasource-provider']) {
       const providerLowercase = args['--datasource-provider'].toLowerCase()
-      if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb'].includes(providerLowercase)) {
+      if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(providerLowercase)) {
         throw new Error(
-          `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver" or "mongodb".`,
+          `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
         )
       }
       provider = providerLowercase as ConnectorType
@@ -295,7 +295,7 @@ export class Init implements Command {
             'schema.prisma',
           )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')}, ${chalk.green(
             'sqlite',
-          )}, ${chalk.green('sqlserver')} or ${chalk.green('mongodb')} (Preview).`,
+          )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green('cockroachdb')} (Preview).`,
         )
       }
 

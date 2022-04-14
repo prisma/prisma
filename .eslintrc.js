@@ -64,6 +64,13 @@ module.exports = {
         '@typescript-eslint/no-misused-promises': 'off',
         'jest/expect-expect': 'off',
         'no-empty': 'off',
+        'no-restricted-properties': [
+          'error',
+          {
+            property: 'substr',
+            message: 'Deprecated: Use .slice() instead of .substr().',
+          },
+        ],
         'jest/valid-title': 'off',
         '@typescript-eslint/no-unnecessary-type-assertion': 'off',
         // low hanging fruits:

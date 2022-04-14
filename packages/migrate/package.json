@@ -20,7 +20,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.12.0-23.4c9d4edf238ad9c4a706eb5b7201ee0b4ebee93e",
+    "@prisma/engines-version": "3.13.0-8.15bb79c194330f0a6591c38ffc95c885d3a2be46",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.141",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.12.0-23.4c9d4edf238ad9c4a706eb5b7201ee0b4ebee93e",
+    "@prisma/get-platform": "3.13.0-8.15bb79c194330f0a6591c38ffc95c885d3a2be46",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
@@ -54,7 +54,7 @@
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
     "mariadb": "3.0.0",
-    "mssql": "8.0.2",
+    "mssql": "8.1.0",
     "new-github-issue-url": "0.2.1",
     "open": "7.4.2",
     "pg": "8.7.3",
