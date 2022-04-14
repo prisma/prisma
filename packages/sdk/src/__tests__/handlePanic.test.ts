@@ -129,7 +129,7 @@ describe('handlePanic', () => {
 
     expect(spySendPanic).toHaveBeenCalledTimes(1)
     expect(spyWouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
     spySendPanic.mockRestore()
   })
 })
