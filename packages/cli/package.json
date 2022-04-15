@@ -119,7 +119,8 @@
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453"
+    "@prisma/engines": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453",
+    "ts-pattern": "^4.0.1"
   },
   "sideEffects": false
 }
