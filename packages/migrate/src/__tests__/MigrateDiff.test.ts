@@ -11,48 +11,47 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 describe('migrate diff', () => {
   describe('generic', () => {
-    it('--preview-feature flag is required', async () => {
-      ctx.fixture('empty')
+    it('should trigger a warning if --preview-feature is provided', async () => {
+      ctx.fixture('introspection/sqlite')
+      await MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db'])
 
-      const result = MigrateDiff.new().parse([])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `This command is in Preview. Use the --preview-feature flag to use it like prisma migrate diff --preview-feature`,
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
+        '--preview-feature is deprecated and will be removed in the next major version.',
       )
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
     it('should fail if missing --from-... and --to-...', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--preview-feature'])
+      const result = MigrateDiff.new().parse([])
       await expect(result).rejects.toThrowError()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty'])
+      const result = MigrateDiff.new().parse(['--from-empty'])
       await expect(result).rejects.toThrowError()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--to-empty'])
+      const result = MigrateDiff.new().parse(['--to-empty'])
       await expect(result).rejects.toThrowError()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--from-url=file:dev.db'])
+      const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'])
       await expect(result).rejects.toThrowError()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('empty')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--to-empty', '--to-url=file:dev.db'])
+      const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'])
       await expect(result).rejects.toThrowError()
     })
 
@@ -61,11 +60,7 @@ describe('migrate diff', () => {
       expect.assertions(2)
 
       try {
-        await MigrateDiff.new().parse([
-          '--preview-feature',
-          '--from-schema-datasource=./doesnoexists.prisma',
-          '--to-empty',
-        ])
+        await MigrateDiff.new().parse(['--from-schema-datasource=./doesnoexists.prisma', '--to-empty'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toContain(`Error trying to read Prisma schema file at`)
@@ -77,7 +72,7 @@ describe('migrate diff', () => {
       expect.assertions(2)
 
       try {
-        await MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-empty'])
+        await MigrateDiff.new().parse(['--from-empty', '--to-empty'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
@@ -93,7 +88,7 @@ describe('migrate diff', () => {
     it('should fail --from-empty --to-url=file:doesnotexists.db', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:doesnotexists.db'])
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:doesnotexists.db'])
       await expect(result).rejects.toMatchInlineSnapshot(`
               P1003
 
@@ -105,7 +100,7 @@ describe('migrate diff', () => {
     it('should fail --from-url=file:doesnotexists.db --to-empty ', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-url=file:doesnotexists.db', '--to-empty'])
+      const result = MigrateDiff.new().parse(['--from-url=file:doesnotexists.db', '--to-empty'])
       await expect(result).rejects.toMatchInlineSnapshot(`
               P1003
 
@@ -117,11 +112,7 @@ describe('migrate diff', () => {
     it('should fail if directory in path & sqlite file does not exist', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-url=file:./something/doesnotexists.db',
-        '--to-empty',
-      ])
+      const result = MigrateDiff.new().parse(['--from-url=file:./something/doesnotexists.db', '--to-empty'])
       await expect(result).rejects.toMatchInlineSnapshot(`
               P1003
 
@@ -135,7 +126,7 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-url=file:dev.db', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db'])
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
@@ -155,7 +146,7 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db', '--script'])
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchSnapshot()
     })
@@ -163,11 +154,7 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-empty',
-        '--to-schema-datamodel=./prisma/schema.prisma',
-      ])
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema-datamodel=./prisma/schema.prisma'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
@@ -179,7 +166,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-empty',
         '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
@@ -197,11 +183,7 @@ describe('migrate diff', () => {
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
       ctx.fixture('schema-only-sqlite')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-schema-datamodel=./prisma/schema.prisma',
-        '--to-empty',
-      ])
+      const result = MigrateDiff.new().parse(['--from-schema-datamodel=./prisma/schema.prisma', '--to-empty'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
@@ -213,7 +195,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-sqlite')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-schema-datamodel=./prisma/schema.prisma',
         '--to-empty',
         '--script',
@@ -232,7 +213,7 @@ describe('migrate diff', () => {
       // Create empty file, as the file needs to exists
       ctx.fs.write('dev.db', '')
 
-      const result = MigrateDiff.new().parse(['--preview-feature', '--from-url=file:dev.db', '--to-url=file:dev.db'])
+      const result = MigrateDiff.new().parse(['--from-url=file:dev.db', '--to-url=file:dev.db'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
     })
@@ -244,7 +225,6 @@ describe('migrate diff', () => {
         const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
         const result = MigrateDiff.new().parse([
-          '--preview-feature',
           '--from-schema-datamodel=./prisma/schema.prisma',
           '--to-empty',
           '--exit-code',
@@ -269,7 +249,6 @@ describe('migrate diff', () => {
         const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
         const result = MigrateDiff.new().parse([
-          '--preview-feature',
           '--from-schema-datamodel=./prisma/schema.prisma',
           '--to-empty',
           '--script',
@@ -295,13 +274,7 @@ describe('migrate diff', () => {
         // Create empty file, as the file needs to exists
         ctx.fs.write('dev.db', '')
 
-        const result = MigrateDiff.new().parse([
-          '--preview-feature',
-          '--from-empty',
-          '--to-url=file:dev.db',
-          '--script',
-          '--exit-code',
-        ])
+        const result = MigrateDiff.new().parse(['--from-empty', '--to-url=file:dev.db', '--script', '--exit-code'])
 
         await expect(result).resolves.toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`-- This is an empty migration.`)
@@ -314,7 +287,6 @@ describe('migrate diff', () => {
     //   ctx.fixture('schema-only-mongodb')
 
     //   const result = MigrateDiff.new().parse([
-    //     '--preview-feature',
     //     '--from-url',
     //     process.env.TEST_MONGO_URI!,
     //     // '--to-empty',
@@ -330,11 +302,7 @@ describe('migrate diff', () => {
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma', async () => {
       ctx.fixture('schema-only-mongodb')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-empty',
-        '--to-schema-datamodel=./prisma/schema.prisma',
-      ])
+      const result = MigrateDiff.new().parse(['--from-empty', '--to-schema-datamodel=./prisma/schema.prisma'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`[+] Collection \`User\``)
     })
@@ -342,11 +310,7 @@ describe('migrate diff', () => {
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty', async () => {
       ctx.fixture('schema-only-mongodb')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-schema-datamodel=./prisma/schema.prisma',
-        '--to-empty',
-      ])
+      const result = MigrateDiff.new().parse(['--from-schema-datamodel=./prisma/schema.prisma', '--to-empty'])
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
     })
@@ -355,7 +319,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-mongodb')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-empty',
         '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
@@ -394,7 +357,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-postgresql')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-url',
         connectionString,
         '--to-schema-datamodel=./prisma/schema.prisma',
@@ -416,7 +378,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-postgresql')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-schema-datasource=./prisma/using-dotenv.prisma',
         '--to-schema-datamodel=./prisma/schema.prisma',
       ])
@@ -433,13 +394,7 @@ describe('migrate diff', () => {
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-url',
-        connectionString,
-        '--to-url=file:dev.db',
-        '--script',
-      ])
+      const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Error in migration engine.
               Reason: [/some/rust/path:0:0] Missing native type in postgres_renderer::render_column_type()
@@ -477,7 +432,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-mysql')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-url',
         connectionString,
         '--to-schema-datamodel=./prisma/schema.prisma',
@@ -498,13 +452,7 @@ describe('migrate diff', () => {
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-url',
-        connectionString,
-        '--to-url=file:dev.db',
-        '--script',
-      ])
+      const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Error in migration engine.
               Reason: [/some/rust/path:0:0] Column native type missing in mysql_renderer::render_column_type()
@@ -543,7 +491,6 @@ describe('migrate diff', () => {
       ctx.fixture('schema-only-sqlserver')
 
       const result = MigrateDiff.new().parse([
-        '--preview-feature',
         '--from-url',
         jdbcConnectionString,
         '--to-schema-datamodel=./prisma/schema.prisma',
@@ -580,13 +527,7 @@ describe('migrate diff', () => {
     it('should fail for 2 different connectors --from-url=jdbcConnectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse([
-        '--preview-feature',
-        '--from-url',
-        jdbcConnectionString,
-        '--to-url=file:dev.db',
-        '--script',
-      ])
+      const result = MigrateDiff.new().parse(['--from-url', jdbcConnectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Error in migration engine.
               Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()

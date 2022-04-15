@@ -7,12 +7,11 @@ import path from 'path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
-import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
 
 const helpOptions = format(
   `${chalk.bold('Usage')}
 
-${chalk.dim('$')} prisma db execute --preview-feature [options]
+${chalk.dim('$')} prisma db execute [options]
 
 ${chalk.bold('Options')}
 
@@ -27,7 +26,6 @@ ${chalk.italic('Script input, only 1 must be provided:')}
 
 ${chalk.bold('Flags')}
 
---preview-feature    Run Preview Prisma commands
 --stdin              Use the terminal standard input as the script to be executed`,
 )
 
@@ -60,22 +58,19 @@ ${helpOptions}
 ${chalk.bold('Examples')}
  
   Execute the content of a SQL script file to the datasource URL taken from the schema
-  ${chalk.dim('$')} prisma db execute 
-    --preview-feature \\
+  ${chalk.dim('$')} prisma db execute
     --file ./script.sql \\
     --schema schema.prisma
 
   Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
     prisma db execute \\
-    --preview-feature \\
     --stdin \\
     --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
     prisma db execute \\
-    --preview-feature \\
     --stdin \\
     --url="mysql://root:root@localhost/mydb"
 `)
@@ -104,8 +99,8 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (!args['--preview-feature']) {
-      throw new DbExecuteNeedsPreviewFeatureFlagError()
+    if (args['--preview-feature']) {
+      console.warn('--preview-feature is deprecated and will be removed in the next major version.')
     }
 
     loadEnvFile(args['--schema'], false)
