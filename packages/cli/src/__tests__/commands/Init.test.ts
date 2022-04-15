@@ -89,7 +89,7 @@ test('works with provider and url params - cockroachdb', async () => {
     '--datasource-provider',
     'cockroachdb',
     '--url',
-    'postgresql://prisma:prisma@localhost:5432/tests',
+    'postgres://prisma@localhost:26257/defaultdb',
   )
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
