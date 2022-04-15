@@ -46,6 +46,7 @@
     "runtime/*.d.ts",
     "runtime/utils",
     "runtime/dist",
+    "runtime/llhttp",
     "prisma-client",
     "preinstall",
     "scripts/preinstall-entry.js",
@@ -67,13 +68,13 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.12.0-16.f2e63a76e8eed99d99f0eb65596c7677b70a1e77",
+    "@prisma/fetch-engine": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.12.0-16.f2e63a76e8eed99d99f0eb65596c7677b70a1e77",
+    "@prisma/get-platform": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.458.0",
-    "@prisma/studio-server": "0.458.0",
+    "@prisma/studio": "0.459.0",
+    "@prisma/studio-server": "0.459.0",
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.17",
     "@types/debug": "4.1.7",
@@ -113,12 +114,12 @@
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
-    "tsc": "tsc -d -p tsconfig.build.json && bash scripts/copy-runtime-dist.sh",
+    "tsc": "tsc -d -p tsconfig.build.json",
     "prepublishOnly": "pnpm run build",
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.12.0-16.f2e63a76e8eed99d99f0eb65596c7677b70a1e77"
+    "@prisma/engines": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453"
   },
   "sideEffects": false
 }

@@ -1,3 +1,5 @@
+import pRetry from 'p-retry'
+
 import { getTestClient } from '../../../../../utils/getTestClient'
 import { commentRequiredListDataA } from '../__helpers__/build-data/commentRequiredListDataA'
 import { commentRequiredListDataB } from '../__helpers__/build-data/commentRequiredListDataB'
@@ -19,10 +21,15 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
   })
 
   beforeEach(async () => {
-    await prisma.commentRequiredList.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
-    await prisma.commentRequiredList.createMany({
-      data: [commentRequiredListDataA(id1), commentRequiredListDataB(id2)],
-    })
+    await pRetry(
+      async () => {
+        await prisma.commentRequiredList.deleteMany({ where: { OR: [{ id: id1 }, { id: id2 }] } })
+        await prisma.commentRequiredList.createMany({
+          data: [commentRequiredListDataA(id1), commentRequiredListDataB(id2)],
+        })
+      },
+      { retries: 2 },
+    )
   })
 
   afterEach(async () => {
@@ -51,7 +58,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -141,7 +148,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -173,7 +180,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -192,24 +199,24 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
     })
 
     expect(comment).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            contents: Array [
-              Object {
-                text: Hello World,
-                upvotes: Array [
-                  Object {
-                    userId: 10,
-                    vote: true,
-                  },
-                ],
-              },
-            ],
-            country: France,
-            id: 9bbbbbbbbbbbbbbbbbbbbbbb,
-          },
-        ]
-      `)
+      Array [
+        Object {
+          contents: Array [
+            Object {
+              text: Hello World,
+              upvotes: Array [
+                Object {
+                  userId: 10,
+                  vote: true,
+                },
+              ],
+            },
+          ],
+          country: null,
+          id: 9bbbbbbbbbbbbbbbbbbbbbbb,
+        },
+      ]
+    `)
   })
 
   /**
@@ -237,7 +244,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]
@@ -359,7 +366,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('findMany > list', () => {
               ],
             },
           ],
-          country: France,
+          country: null,
           id: 9bbbbbbbbbbbbbbbbbbbbbbb,
         },
       ]

@@ -52,7 +52,7 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
   if (fs.existsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
-  
+
   // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
   const prismaPath2 = path.join(__dirname, '..', binaryName)
   if (fs.existsSync(prismaPath2)) {
@@ -83,7 +83,7 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
 
 export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
-  
+
   if (dir.startsWith('/snapshot/')) {
     // in this case, we are in a "pkg" context with a virtual fs
     // to make this work, we need to copy the binary to /tmp and execute it from there
@@ -93,13 +93,13 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await makeDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
-    
+
     // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved
     const data = await readFile(file)
     await writeFile(target, data)
     // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
-    
+
     plusX(target)
     return target
   }

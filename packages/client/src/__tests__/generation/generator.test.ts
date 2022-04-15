@@ -227,9 +227,7 @@ describe('generator', () => {
         binaryTargets: Array [],
         config: Object {},
         name: client,
-        previewFeatures: Array [
-          mongoDb,
-        ],
+        previewFeatures: Array [],
         provider: Object {
           fromEnvVar: null,
           value: prisma-client-js,

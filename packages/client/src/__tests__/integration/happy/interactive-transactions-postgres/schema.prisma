@@ -15,6 +15,7 @@ model User {
   // / name comment
   name  String?
   posts Post[]
+  val   Int?
 }
 
 model Post {

@@ -452,7 +452,7 @@ COMMIT;`,
         expect(e.message).toMatchInlineSnapshot(`
           P1003
 
-          Database \`tests-migrate-db-execute.public\` does not exist on the database server at \`localhost:5432\`.
+          Database \`test-doesnotexists\` does not exist on the database server at \`localhost:5432\`.
 
         `)
       }

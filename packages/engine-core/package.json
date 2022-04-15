@@ -22,7 +22,7 @@
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.17",
     "@types/jest": "27.4.1",
-    "@types/node": "12.20.47",
+    "@types/node": "16.11.26",
     "esbuild": "0.13.14",
     "jest": "27.5.1",
     "jest-junit": "13.0.0",
@@ -36,9 +36,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.12.0-16.f2e63a76e8eed99d99f0eb65596c7677b70a1e77",
+    "@prisma/engines": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.12.0-16.f2e63a76e8eed99d99f0eb65596c7677b70a1e77",
+    "@prisma/get-platform": "3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
@@ -47,7 +47,7 @@
     "p-retry": "4.6.1",
     "strip-ansi": "6.0.1",
     "terminal-link": "2.1.1",
-    "undici": "3.3.6"
+    "undici": "5.0.0"
   },
   "files": [
     "README.md",

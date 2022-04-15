@@ -1,6 +1,6 @@
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
-import { copySync } from 'fs-extra'
+import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
 import { promisify } from 'util'
@@ -37,7 +37,7 @@ const resolveHelperPlugin: esbuild.Plugin = {
 const cliLifecyclePlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
-    // we only do this for the first oen of the builds
+    // we only do this for the first one of the builds
     if (build.initialOptions?.format === 'esm') return
 
     build.onStart(async () => {
@@ -47,7 +47,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
-      copySync(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
+      await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
         recursive: true,
         overwrite: true,
       })
@@ -72,7 +72,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 const cliBuildConfig: BuildOptions = {
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  external: ['@prisma/engines', '_http_common'],
+  external: ['@prisma/engines'],
   plugins: [resolveHelperPlugin, cliLifecyclePlugin],
   bundle: true,
 }
