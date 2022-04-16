@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`format should have consistent EOL for all lines`] = `
+exports[`format should have consistent EOL for all lines 1`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
