@@ -1,6 +1,6 @@
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link, logger, unknownCommandWithSuggestion } from '@prisma/sdk'
 import chalk from 'chalk'
 
 import { Version } from './Version'
@@ -81,7 +81,7 @@ export class CLI implements Command {
       return cmd.parse(argsForCmd)
     }
     // unknown command
-    return unknownCommand(this.help() as string, args._[0])
+    return unknownCommandWithSuggestion(this.cmds, this.help() as string, args._[0])
   }
 
   public help(error?: string) {

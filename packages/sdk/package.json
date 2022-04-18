@@ -32,6 +32,7 @@
   "devDependencies": {
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.17",
+    "@types/didyoumean": "^1.2.0",
     "@types/jest": "27.4.1",
     "@types/node": "12.20.47",
     "@types/resolve": "1.20.1",
@@ -56,6 +57,7 @@
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
     "cli-truncate": "2.1.0",
+    "didyoumean": "^1.2.2",
     "dotenv": "16.0.0",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",

@@ -12,7 +12,7 @@ export {
   getSchemaSync,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
-export { unknownCommand } from './cli/Help'
+export { unknownCommand, unknownCommandWithSuggestion } from './cli/Help'
 export { HelpError } from './cli/Help'
 export type {
   Command,
