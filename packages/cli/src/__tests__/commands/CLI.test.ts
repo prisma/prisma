@@ -1,20 +1,10 @@
-import {
-  DbCommand,
-  DbPull,
-  DbPush,
-  // DbDrop,
-  DbSeed,
-  handlePanic,
-  MigrateCommand,
-  MigrateDeploy,
-  MigrateDev,
-  MigrateReset,
-  MigrateResolve,
-  MigrateStatus,
-} from '@prisma/migrate'
+import { DbPull } from '@prisma/migrate'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 import { CLI } from '../../CLI'
+import { Format } from '../../Format'
+import { Generate } from '../../Generate'
+import { Version } from '../../Version'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -40,10 +30,10 @@ const cliInstance = CLI.new(
     introspect: DbPull.new(),
     // dev: Dev.new(),
     // studio: Studio.new(),
-    // generate: Generate.new(),
-    // version: Version.new(),
+    generate: Generate.new(),
+    version: Version.new(),
     // validate: Validate.new(),
-    // format: Format.new(),
+    format: Format.new(),
     // doctor: Doctor.new(),
     // telemetry: Telemetry.new(),
   },
@@ -88,6 +78,15 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
+  // Test fuzzy commands matching to suggest a command when misspelled
+  const misspelledCMD = cliInstance.parse(['gnrate'])
+  await expect(misspelledCMD).resolves.toThrowError()
+
+  const misspelledCMDErrMsg = (await (misspelledCMD as Promise<Error>)).message
+  expect(misspelledCMDErrMsg).toContain('Did you mean this?')
+  expect(misspelledCMDErrMsg).toContain('prisma generate')
+
+  // Test is the command doesn't match any of the commands at the defined threshold
   await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrowError()
 })
 
