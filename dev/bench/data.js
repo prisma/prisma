@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1650044334063,
+  "lastUpdate": 1650350884797,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -94488,6 +94488,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±3.14%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b6a58e2f289d6baaad00dc5e060e63b144266a30",
+          "message": "fix(cli): `prisma init --datasource-provider=cockroachdb --url ...` now sets `provider` to `cockroach` (#12835)\n\n* cli: installed ts-pattern\r\n\r\n* fix(cli): prisma init --datasource-provider=cockroachdb --url ... now sets provider to cockroachdb\r\n\r\n* test(cli): replaced test url from postgres service to cockroachdb service",
+          "timestamp": "2022-04-19T08:42:39+02:00",
+          "tree_id": "d9f19a66d55257580ad2be62303362a277152aad",
+          "url": "https://github.com/prisma/prisma/commit/b6a58e2f289d6baaad00dc5e060e63b144266a30"
+        },
+        "date": 1650350879195,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.58%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±3.52%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
