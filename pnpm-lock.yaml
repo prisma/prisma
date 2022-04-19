@@ -156,9 +156,11 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.1
       tempy: 1.0.1
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/engines': 3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453
+      ts-pattern: 4.0.1
     devDependencies:
       '@prisma/client': link:../client
       '@prisma/debug': link:../debug
@@ -504,8 +506,6 @@ importers:
       mariadb: 3.0.0
       mock-stdin: 1.0.0
       mssql: 8.1.0
-      new-github-issue-url: 0.2.1
-      open: 7.4.2
       pg: 8.7.3
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -525,8 +525,6 @@ importers:
       log-update: 4.0.0
       mariadb: 3.0.0
       mssql: 8.1.0
-      new-github-issue-url: 0.2.1
-      open: 7.4.2
       pg: 8.7.3
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -545,7 +543,7 @@ importers:
       '@types/sqlite3': 3.1.8
       esbuild: 0.13.14
       fs-jetpack: 4.3.0
-      jest: 27.5.1_ts-node@10.4.0
+      jest: 27.5.1
       jest-junit: 13.0.0
       make-dir: 3.1.0
       mock-stdin: 1.0.0
@@ -610,8 +608,12 @@ importers:
       jest: 27.5.1
       jest-junit: 13.0.0
       make-dir: 3.1.0
+      mock-stdin: 1.0.0
+      new-github-issue-url: 0.2.1
       node-fetch: 2.6.7
+      open: '7'
       p-map: 4.0.0
+      prompts: 2.4.2
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
       resolve: 1.22.0
@@ -627,6 +629,7 @@ importers:
       terminal-link: 2.1.1
       tmp: 0.2.1
       ts-node: 10.4.0
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -652,8 +655,11 @@ importers:
       has-yarn: 2.1.0
       is-ci: 3.0.1
       make-dir: 3.1.0
+      new-github-issue-url: 0.2.1
       node-fetch: 2.6.7
+      open: 7.4.2
       p-map: 4.0.0
+      prompts: 2.4.2
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
       resolve: 1.22.0
@@ -668,6 +674,7 @@ importers:
       tempy: 1.0.1
       terminal-link: 2.1.1
       tmp: 0.2.1
+      ts-pattern: 4.0.1
     devDependencies:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
@@ -680,6 +687,7 @@ importers:
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.0.0
+      mock-stdin: 1.0.0
       ts-node: 10.4.0_82274b92ec7bae91027ffd577a5efb53
       typescript: 4.5.4
 
@@ -8126,6 +8134,10 @@ packages:
       typescript: 4.5.4
       yn: 3.1.1
     dev: true
+
+  /ts-pattern/4.0.1:
+    resolution: {integrity: sha512-UaEFiG0xvCAa0tXBi242rD2WU28RlurzQe27t7vc2+3difhtA58Q6BiFl3YQbDlDiWfantdP05YICJPpGo/ulg==}
+    dev: false
 
   /ts-toolbelt/9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}
