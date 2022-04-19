@@ -29,7 +29,7 @@ ${chalk.bold('Commands for production/staging')}
      resolve   Resolve issues with database migrations, i.e. baseline, failed migration, hotfix
 
 ${chalk.bold('Command for any stage')}
-        diff   Compare the database schema from two arbitrary sources (Preview)
+        diff   Compare the database schema from two arbitrary sources
 
 ${chalk.bold('Options')}
 
@@ -53,9 +53,8 @@ ${chalk.bold('Examples')}
   Specify a schema
   ${chalk.dim('$')} prisma migrate status --schema=./schema.prisma
 
-  Compare the database schema from two databases and render the diff as a SQL script (Preview)
+  Compare the database schema from two databases and render the diff as a SQL script
   ${chalk.dim('$')} prisma migrate diff \\
-    --preview-feature \\
     --from-url "$DATABASE_URL" \\
     --to-url "postgresql://login:password@localhost:5432/db" \\
     --script
