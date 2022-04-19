@@ -61,11 +61,11 @@ export async function responseToError(
     }
 
     if (typeof body?.EngineNotStarted?.reason === 'string') {
-      throw new ServerError(info, body?.EngineNotStarted?.reason)
+      throw new ServerError(info, body.EngineNotStarted.reason)
     } else if (typeof body?.EngineNotStarted?.reason === 'object') {
-      const keys = Object.keys(body?.EngineNotStarted?.reason)
+      const keys = Object.keys(body.EngineNotStarted.reason)
       if (keys.length > 0) {
-        const reason = body?.EngineNotStarted?.reason
+        const reason = body.EngineNotStarted.reason
         const content = reason[keys[0]]
         throw new ServerError(info, keys[0], content.logs)
       }
