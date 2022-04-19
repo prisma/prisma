@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1650362363238,
+  "lastUpdate": 1650365429453,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -94752,6 +94752,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±6.40%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "piotrowski+github@gmail.com",
+            "name": "Jan Piotrowski",
+            "username": "janpio"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "304785511d56c7f9faa9a4a5857583793aec3ae4",
+          "message": "chore: Rename prisma/e2e-tests to ecosystem-tests (#12480)\n\n* chore: Rename prisma/e2e-tests to ecosystem-tests\r\n\r\n* rename remaining\r\n\r\n* Update packages/client/README.md\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* Update README.md\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* Update TESTING.md\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-04-19T12:45:02+02:00",
+          "tree_id": "4966e71f4b7ac4c4c91fb520d885c403d2f22dca",
+          "url": "https://github.com/prisma/prisma/commit/304785511d56c7f9faa9a4a5857583793aec3ae4"
+        },
+        "date": 1650365424238,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.38%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.86%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
