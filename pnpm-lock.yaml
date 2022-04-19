@@ -156,9 +156,11 @@ importers:
       rimraf: 3.0.2
       strip-ansi: 6.0.1
       tempy: 1.0.1
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/engines': 3.13.0-9.a10084a836a379babc008c28b143dc1c7e644453
+      ts-pattern: 4.0.1
     devDependencies:
       '@prisma/client': link:../client
       '@prisma/debug': link:../debug
@@ -168,7 +170,7 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@prisma/studio': 0.459.0
-      '@prisma/studio-server': 0.459.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-server': 0.459.0
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.17_@swc+core@1.2.141
       '@types/debug': 4.1.7
@@ -1584,38 +1586,34 @@ packages:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.459.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-pcw/0.459.0:
     resolution: {integrity: sha512-V3bvY8XXtRq4dRxtAci3+MAHee0joQU1kVmtjT2RIbFXonnOSo3jkqRMLV2OpNx96oysS5h1u3K86a/EavG2bw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/client': link:packages/client
-      '@prisma/sdk': link:packages/sdk
       debug: 4.3.3
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.459.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-server/0.459.0:
     resolution: {integrity: sha512-oKGELhEKUdezw1tCHiVzL0dH1WBNpfCvtfghV9SENHterM7Ugb2U8AlNSoKvIiyrOiLgkTG4VYl442o1QjDBnw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': link:packages/sdk
       '@prisma/studio': 0.459.0
       '@prisma/studio-common': 0.459.0
-      '@prisma/studio-pcw': 0.459.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-pcw': 0.459.0
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -7982,6 +7980,10 @@ packages:
       typescript: 4.5.4
       yn: 3.1.1
     dev: true
+
+  /ts-pattern/4.0.1:
+    resolution: {integrity: sha512-UaEFiG0xvCAa0tXBi242rD2WU28RlurzQe27t7vc2+3difhtA58Q6BiFl3YQbDlDiWfantdP05YICJPpGo/ulg==}
+    dev: false
 
   /ts-toolbelt/9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}

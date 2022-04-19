@@ -14,6 +14,7 @@ import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'path'
+import { match, P } from 'ts-pattern'
 import { isError } from 'util'
 
 import { printError } from './utils/prompt/utils/print'
@@ -189,39 +190,51 @@ export class Init implements Command {
       process.exit(1)
     }
 
-    let provider: ConnectorType
-    let url: string | undefined
-
-    if (args['--url']) {
-      const canConnect = await canConnectToDatabase(args['--url'])
-      if (canConnect !== true) {
-        const { code, message } = canConnect
-
-        // P1003 means that the db doesn't exist but we can connect
-        if (code !== 'P1003') {
-          if (code) {
-            throw new Error(`${code}: ${message}`)
-          } else {
-            throw new Error(message)
+    const { provider, url } = await match(args)
+      .with(
+        {
+          '--datasource-provider': P.when((provider): provider is string => Boolean(provider)),
+        },
+        (input) => {
+          const providerLowercase = input['--datasource-provider'].toLowerCase()
+          if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(providerLowercase)) {
+            throw new Error(
+              `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
+            )
           }
-        }
-      }
+          const provider = providerLowercase as ConnectorType
+          const url = defaultURL(provider)
+          return Promise.resolve({ provider, url })
+        },
+      )
+      .with(
+        {
+          '--url': P.when((url): url is string => Boolean(url)),
+        },
+        async (input) => {
+          const url = input['--url']
+          const canConnect = await canConnectToDatabase(url)
+          if (canConnect !== true) {
+            const { code, message } = canConnect
 
-      provider = protocolToConnectorType(`${args['--url'].split(':')[0]}:`)
-      url = args['--url']
-    } else if (args['--datasource-provider']) {
-      const providerLowercase = args['--datasource-provider'].toLowerCase()
-      if (!['postgresql', 'mysql', 'sqlserver', 'sqlite', 'mongodb', 'cockroachdb'].includes(providerLowercase)) {
-        throw new Error(
-          `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
-        )
-      }
-      provider = providerLowercase as ConnectorType
-      url = defaultURL(provider)
-    } else {
-      // Default to PostgreSQL
-      provider = 'postgresql'
-    }
+            // P1003 means that the db doesn't exist but we can connect
+            if (code !== 'P1003') {
+              if (code) {
+                throw new Error(`${code}: ${message}`)
+              } else {
+                throw new Error(message)
+              }
+            }
+          }
+
+          const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
+          return { provider, url }
+        },
+      )
+      .otherwise(() => {
+        // Default to PostgreSQL
+        return Promise.resolve({ provider: 'postgresql' as ConnectorType, url: undefined })
+      })
 
     /**
      * Validation successful? Let's create everything!
