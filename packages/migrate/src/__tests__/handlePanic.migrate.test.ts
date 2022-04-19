@@ -1,4 +1,4 @@
-import { ErrorArea, isCi, RustPanic } from '@prisma/sdk'
+import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/sdk'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
@@ -10,7 +10,6 @@ import tempy from 'tempy'
 import { promisify } from 'util'
 
 import { Migrate } from '../Migrate'
-import { handlePanic } from '../utils/handlePanic'
 import CaptureStdout from './__helpers__/captureStdout'
 
 const keys = {
@@ -49,7 +48,7 @@ async function writeFiles(
 }
 // create a temporary set of files
 
-describe('handlePanic', () => {
+describe('handlePanic migrate', () => {
   // testing with env https://stackoverflow.com/a/48042799/1345244
   const OLD_ENV = process.env
 
@@ -80,39 +79,6 @@ describe('handlePanic', () => {
   const packageJsonVersion = '0.0.0'
   const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
-
-  // Only works locally (not in CI)
-  it.skip('ask to submit the panic error in interactive mode', async () => {
-    const oldConsoleLog = console.log
-    const logs: string[] = []
-    console.log = (...args) => {
-      logs.push(...args)
-    }
-
-    setTimeout(() => sendKeystrokes(io).then(), 5)
-
-    try {
-      await handlePanic(error, packageJsonVersion, engineVersion, command)
-    } catch (e) {
-      /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
-      expect(stripAnsi(e.message)).toMatchSnapshot()
-    }
-
-    console.log = oldConsoleLog
-    expect(stripAnsi(logs.join('\n'))).toMatchSnapshot()
-  })
-
-  it('no interactive mode in CI', async () => {
-    try {
-      await handlePanic(error, packageJsonVersion, engineVersion, command)
-    } catch (error) {
-      error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`Some error message!`)
-      expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
-      )
-    }
-  })
 
   it('test interactive engine panic', async () => {
     process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
@@ -221,11 +187,13 @@ describe('handlePanic', () => {
         draft: false,
         prismaSchema: migrate.getDatamodel(),
       })
-    } catch (err) {
-      expect(error).toMatchInlineSnapshot(`Some error message!`)
-      expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `{"rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}`,
-      )
+    } catch (error) {
+      expect(error).toMatchSnapshot()
+      expect(JSON.parse(JSON.stringify(error))).toMatchObject({
+        area: 'LIFT_CLI',
+        schemaPath,
+      })
+      expect(error.rustStack).toContain('This is the debugPanic artificial panic')
     }
   })
 })

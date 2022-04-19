@@ -55,8 +55,6 @@
     "log-update": "4.0.0",
     "mariadb": "3.0.0",
     "mssql": "8.1.0",
-    "new-github-issue-url": "0.2.1",
-    "open": "7.4.2",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",

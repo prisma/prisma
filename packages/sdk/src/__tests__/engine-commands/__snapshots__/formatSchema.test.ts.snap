@@ -51,8 +51,7 @@ exports[`format valid blog schemaPath 1`] = `
 }
 
 generator client {
-  provider      = \\"prisma-client-js\\"
-  binaryTargets = [\\"native\\"]
+  provider = \\"prisma-client-js\\"
 }
 
 model User {
