@@ -1,6 +1,7 @@
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import fs from 'fs'
 import path from 'path'
+import stripAnsi from 'strip-ansi'
 
 import { DbExecute } from '../commands/DbExecute'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
@@ -28,9 +29,10 @@ describe('db execute', () => {
         expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
       }
 
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
-        '--preview-feature is deprecated and will be removed in the next major version.',
-      )
+      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+        prisma:warn "prisma db execute" was in Preview and is now Generally Available.
+        You can now remove the --preview-feature flag.
+      `)
     })
 
     it('should fail if missing --file and --stdin', async () => {

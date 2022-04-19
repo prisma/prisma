@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
+import { arg, format, HelpError, isError, link, loadEnvFile, logger } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 
@@ -147,7 +147,8 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--preview-feature']) {
-      console.warn('--preview-feature is deprecated and will be removed in the next major version.')
+      logger.warn(`"prisma migrate diff" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     const numberOfFromParameterProvided =

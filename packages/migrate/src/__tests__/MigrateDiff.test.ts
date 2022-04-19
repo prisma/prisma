@@ -1,4 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import stripAnsi from 'strip-ansi'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
@@ -15,9 +16,10 @@ describe('migrate diff', () => {
       ctx.fixture('introspection/sqlite')
       await MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db'])
 
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
-        '--preview-feature is deprecated and will be removed in the next major version.',
-      )
+      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+        prisma:warn "prisma migrate diff" was in Preview and is now Generally Available.
+        You can now remove the --preview-feature flag.
+      `)
     })
 
     it('should fail if missing --from-... and --to-...', async () => {

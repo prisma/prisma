@@ -1,5 +1,15 @@
 import type { Command } from '@prisma/sdk'
-import { arg, format, getCommandWithExecutor, getSchemaPath, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  format,
+  getCommandWithExecutor,
+  getSchemaPath,
+  HelpError,
+  isError,
+  link,
+  loadEnvFile,
+  logger,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import getStdin from 'get-stdin'
@@ -36,11 +46,6 @@ export class DbExecute implements Command {
 
   private static help = format(`
 ${process.platform === 'win32' ? '' : chalk.bold('📝 ')}Execute native commands to your database
-
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `${chalk.green(`prisma db execute`)} is currently in Preview (${link('https://pris.ly/d/preview')}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
 
 This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
     `--schema`,
@@ -100,7 +105,8 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--preview-feature']) {
-      console.warn('--preview-feature is deprecated and will be removed in the next major version.')
+      logger.warn(`"prisma db execute" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     loadEnvFile(args['--schema'], false)
