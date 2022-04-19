@@ -41,7 +41,7 @@ services:
       - PATCH_BRANCH
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma test"
-      - SKIP_E2E_CHECK
+      - SKIP_ECOSYSTEMTESTS_CHECK
     depends_on:
       - postgres
       - postgres_isolated
