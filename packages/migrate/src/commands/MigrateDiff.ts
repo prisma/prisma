@@ -16,31 +16,31 @@ ${chalk.dim('$')} prisma migrate diff [options]
 
 ${chalk.bold('Options')}
 
--h, --help               Display this help message
+  -h, --help               Display this help message
 
 ${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
---from-url               A datasource URL
---to-url
+  --from-url               A datasource URL
+  --to-url
 
---from-empty             Flag to assume from or to is an empty datamodel
---to-empty
+  --from-empty             Flag to assume from or to is an empty datamodel
+  --to-empty
 
---from-schema-datamodel  Path to a Prisma schema file, uses the ${chalk.italic('datamodel')} for the diff
---to-schema-datamodel
+  --from-schema-datamodel  Path to a Prisma schema file, uses the ${chalk.italic('datamodel')} for the diff
+  --to-schema-datamodel
 
---from-schema-datasource Path to a Prisma schema file, uses the ${chalk.italic('datasource url')} for the diff
---to-schema-datasource
+  --from-schema-datasource Path to a Prisma schema file, uses the ${chalk.italic('datasource url')} for the diff
+  --to-schema-datasource
 
---from-migrations        Path to the Prisma Migrate migrations directory
---to-migrations
+  --from-migrations        Path to the Prisma Migrate migrations directory
+  --to-migrations
 
 ${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
---shadow-database-url    URL for the shadow database
+  --shadow-database-url    URL for the shadow database
 
 ${chalk.bold('Flags')}
 
---script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
---exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.`,
+  --script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+  --exit-code              Change the exit code behavior to signal if the diff is empty or not (Empty: 0, Error: 1, Not empty: 2). Default behavior is Success: 0, Error: 1.`,
 )
 
 export class MigrateDiff implements Command {
