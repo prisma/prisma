@@ -588,7 +588,7 @@ importers:
       '@types/resolve': 1.20.1
       '@types/shell-quote': 1.7.1
       '@types/tar': 6.1.1
-      archiver: 5.3.0
+      archiver: 5.3.1
       arg: 5.0.1
       chalk: 4.1.2
       checkpoint-client: 1.1.21
@@ -637,7 +637,7 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': 3.13.0-10.f738c2de40b0514b47c5cdbf75f8bb06929df254
       '@timsuchanek/copy': 1.4.5
-      archiver: 5.3.0
+      archiver: 5.3.1
       arg: 5.0.1
       chalk: 4.1.2
       checkpoint-client: 1.1.21
@@ -2496,8 +2496,8 @@ packages:
       readable-stream: 2.3.7
     dev: false
 
-  /archiver/5.3.0:
-    resolution: {integrity: sha512-iUw+oDwK0fgNpvveEsdQ0Ase6IIKztBJU2U0E9MzszMfmVVUyv1QJhS2ITW9ZCqx8dktAxVAjWWkKehuZE8OPg==}
+  /archiver/5.3.1:
+    resolution: {integrity: sha512-8KyabkmbYrH+9ibcTScQ1xCJC/CGcugdVIwB+53f5sZziXgwUh3iXlAlANMxcZyDEfTHMe6+Z5FofV8nopXP7w==}
     engines: {node: '>= 10'}
     dependencies:
       archiver-utils: 2.1.0
