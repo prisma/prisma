@@ -47,7 +47,7 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
     transpile: false,
     testMode: true,
     activeProvider: suiteConfig['#PROVIDER#'],
-    runtimeDir: path.join(__dirname, '..', '..', '..', 'runtime'),
+    runtimeDir: JSON.stringify(path.join(__dirname, '..', '..', '..', 'runtime')),
     projectRoot: suiteFolderPath,
   })
 
