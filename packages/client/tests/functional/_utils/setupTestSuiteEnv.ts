@@ -18,14 +18,13 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
 
   // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
-  await fs.copy(path.join(suiteMeta.testDir, 'tests.ts'), path.join(suiteFolder, 'tests.ts'))
+  await fs.copy(path.join(suiteMeta.testDir, suiteMeta.testFileName), path.join(suiteFolder, suiteMeta.testFileName))
   await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
 
   // we adjust the relative paths to work from the generated folder
-  const testsContents = await fs.readFile(path.join(suiteFolder, 'tests.ts'))
-  const newTestsContents = testsContents.toString().replace("'../", "'../../../")
-
-  await fs.writeFile(path.join(suiteFolder, 'tests.ts'), newTestsContents)
+  const testsContents = await fs.readFile(path.join(suiteFolder, suiteMeta.testFileName))
+  const newTestsContents = testsContents.toString().replace(/'..\//g, "'../../../")
+  await fs.writeFile(path.join(suiteFolder, suiteMeta.testFileName), newTestsContents)
 }
 
 /**
@@ -82,7 +81,7 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
 export function setupTestSuiteDbURI(suiteConfig: TestSuiteConfig) {
   // we reuse the original db url but postfix it with a random string
   const dbId = crypto.randomBytes(8).toString('hex')
-  const envVarName = `DATABASE_URI_${suiteConfig['#PROVIDER']}`
+  const envVarName = `DATABASE_URI_${suiteConfig['#PROVIDER#']}`
   const uriRegex = /(\w+:\/\/\w+:\w+@\w+:\d+\/)((?:\w|-)+)(.*)/g
   const newURI = process.env[envVarName]?.replace(uriRegex, `$1$2${dbId}$3`)
 

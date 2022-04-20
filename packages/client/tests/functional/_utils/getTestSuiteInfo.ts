@@ -17,19 +17,24 @@ export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
  * @returns
  */
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
-  let name = `${suiteMeta.suiteName} - ${suiteConfig['#PROVIDER']}`
+  let name = ``
 
-  name += ` - [`
-  if (suiteConfig['#FEATURES']) {
-    name += `${suiteConfig['#FEATURES']}`
+  name += `${suiteMeta.testDirName.replace(/\\|\//, '.')}`
+
+  name += ` (${suiteConfig['#PROVIDER#']})`
+
+  name += ` (`
+  if (suiteConfig['#PROVIDER_FEATURES#']) {
+    name += `${suiteConfig['#PROVIDER_FEATURES#']}`
   }
 
-  if (suiteConfig['#EXTRA_FEATURES']) {
-    name += `${suiteConfig['#EXTRA_FEATURES']}`
+  if (suiteConfig['#PREVIEW_FEATURES#']) {
+    name += `${suiteConfig['#PREVIEW_FEATURES#']}`
   }
-  name += `]`
+  name += `)`
 
-  return name
+  // replace illegal chars with empty string
+  return name.replace(/[<>:"\/\\|?*]/g, '')
 }
 
 /**
@@ -38,8 +43,10 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
  * @returns
  */
 export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
-  // eslint-disable-next-line prettier/prettier
-  return [...(suiteConfig['#FEATURES']?.split(', ') ?? []), ...(suiteConfig['#EXTRA_FEATURES']?.split(', ') ?? [])]
+  return [
+    ...(suiteConfig['#PROVIDER_FEATURES#']?.split(', ') ?? []),
+    ...(suiteConfig['#PREVIEW_FEATURES#']?.split(', ') ?? []),
+  ]
 }
 
 /**
@@ -127,11 +134,13 @@ export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: 
  * @returns
  */
 export function getTestSuiteMeta() {
+  const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
   const testDir = path.dirname(testPath)
-  const suiteName = path.basename(path.basename(testDir))
+  const testDirName = testDir.replace(testsDir, '')
+  const testFileName = path.basename(testPath)
   const matrixPath = path.join(testDir, '_matrix')
   const prismaPath = path.join(testDir, 'prisma')
 
-  return { testPath, testDir, suiteName, matrixPath, prismaPath }
+  return { testPath, testDir, testDirName, testFileName, matrixPath, prismaPath }
 }

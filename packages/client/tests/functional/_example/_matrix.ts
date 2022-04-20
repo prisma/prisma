@@ -1,22 +1,22 @@
 export default () => [
   [
     {
-      '#PROVIDER': 'sqlite',
-      '#ID': 'Int @id @default(autoincrement())',
-      '#FEATURES': '',
+      '#PROVIDER#': 'sqlite',
+      '#ID#': 'Int @id @default(autoincrement())',
+      '#PROVIDER_FEATURES#': '',
     },
     {
-      '#PROVIDER': 'mongodb',
-      '#ID': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      '#FEATURES': '"mongoDb", ',
+      '#PROVIDER#': 'mongodb',
+      '#ID#': 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      '#PROVIDER_FEATURES#': '"mongoDb", ',
     },
   ],
   [
     {
-      '#EXTRA_FEATURES': '"interactiveTransactions"',
+      '#PREVIEW_FEATURES#': '"interactiveTransactions"',
     },
     {
-      '#EXTRA_FEATURES': '"filterJson"',
+      '#PREVIEW_FEATURES#': '"filterJson"',
     },
   ],
 ]
@@ -25,28 +25,28 @@ export default () => [
 
   [
     {
-      '#PROVIDER': 'sqlite',
-      '#ID': 'Int @id @default(autoincrement())',
-      '#FEATURES': '',
-      '#EXTRA_FEATURES': '"interactiveTransactions"',
+      '#PROVIDER#': 'sqlite',
+      '#ID#': 'Int @id @default(autoincrement())',
+      '#PROVIDER_FEATURES#': '',
+      '#PREVIEW_FEATURES#': '"interactiveTransactions"',
     },
     {
-      '#PROVIDER': 'mongodb',
-      '#ID': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      '#FEATURES': '"mongoDb", ',
-      '#EXTRA_FEATURES': '"interactiveTransactions"',
+      '#PROVIDER#': 'mongodb',
+      '#ID#': 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      '#PROVIDER_FEATURES#': '"mongoDb", ',
+      '#PREVIEW_FEATURES#': '"interactiveTransactions"',
     },
     {
-      '#PROVIDER': 'sqlite',
-      '#ID': 'Int @id @default(autoincrement())',
-      '#FEATURES': '',
-      '#EXTRA_FEATURES': '"filterJson"',
+      '#PROVIDER#': 'sqlite',
+      '#ID#': 'Int @id @default(autoincrement())',
+      '#PROVIDER_FEATURES#': '',
+      '#PREVIEW_FEATURES#': '"filterJson"',
     },
     {
-      '#PROVIDER': 'mongodb',
-      '#ID': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      '#FEATURES': '"mongoDb", ',
-      '#EXTRA_FEATURES': '"filterJson"',
+      '#PROVIDER#': 'mongodb',
+      '#ID#': 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      '#PROVIDER_FEATURES#': '"mongoDb", ',
+      '#PREVIEW_FEATURES#': '"filterJson"',
     },
   ]
 */
