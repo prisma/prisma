@@ -19,21 +19,28 @@ ${chalk.bold('Options')}
 -h, --help                                         Display this help message
 
 ${chalk.italic('From and To inputs (1 `--from-...` and 1 `--to-...` must be provided):')}
---from-url / --to-url                              A datasource URL
---from-empty / --to-empty                          Flag to assume from or to is an empty datamodel
---from-schema-datamodel / --to-schema-datamodel    Path to a Prisma schema file, uses the datamodel for the diff
---from-schema-datasource / --to-schema-datasource  Path to a Prisma schema file, uses the datasource url for the diff
---from-migrations / --to-migrations                Path to the Prisma Migrate migrations directory
+--from-url               A datasource URL
+--to-url
+
+--from-empty             Flag to assume from or to is an empty datamodel
+--to-empty
+
+--from-schema-datamodel  Path to a Prisma schema file, uses the datamodel for the diff
+--to-schema-datamodel
+
+--from-schema-datasource Path to a Prisma schema file, uses the datasource url for the diff
+--to-schema-datasource
+
+--from-migrations        Path to the Prisma Migrate migrations directory
+--to-migrations
 
 ${chalk.italic('Shadow database (only required if using --from-migrations or --to-migrations):')}
---shadow-database-url                              URL for the shadow database
-
-${chalk.italic('Output format:')}
---script                                           Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+--shadow-database-url    URL for the shadow database
 
 ${chalk.bold('Flags')}
 
---exit-code                                        Change the exit code behavior to signal if diff is empty or not (Empty: 0, Error: 1, Not empty: 2)`,
+--script                 Render a SQL script to stdout instead of the default human readable summary (not supported on MongoDB)
+--exit-code              Change the exit code behavior to signal if diff is empty or not (Empty: 0, Error: 1, Not empty: 2)`,
 )
 
 export class MigrateDiff implements Command {
