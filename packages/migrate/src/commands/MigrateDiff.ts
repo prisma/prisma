@@ -12,7 +12,7 @@ const debug = Debug('prisma:migrate:diff')
 const helpOptions = format(
   `${chalk.bold('Usage')}
 
-${chalk.dim('$')} prisma migrate diff [options]
+  ${chalk.dim('$')} prisma migrate diff [options]
 
 ${chalk.bold('Options')}
 
