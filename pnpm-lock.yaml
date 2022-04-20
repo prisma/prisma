@@ -554,7 +554,7 @@ importers:
     specifiers:
       '@prisma/client': workspace:*
       '@types/jest': 27.4.1
-      '@types/node': 16.11.26
+      '@types/node': 16.11.27
       esbuild: 0.14.36
       jest: 27.5.1
       jest-junit: 13.1.0
@@ -564,7 +564,7 @@ importers:
     devDependencies:
       '@prisma/client': link:../client
       '@types/jest': 27.4.1
-      '@types/node': 16.11.26
+      '@types/node': 16.11.27
       esbuild: 0.14.36
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.1.0
@@ -2059,6 +2059,10 @@ packages:
 
   /@types/node/16.11.26:
     resolution: {integrity: sha512-GZ7bu5A6+4DtG7q9GsoHXy3ALcgeIHP4NnL0Vv2wu0uUB/yQex26v0tf6/na1mm0+bS9Uw+0DFex7aaKr2qawQ==}
+    dev: true
+
+  /@types/node/16.11.27:
+    resolution: {integrity: sha512-C1pD3kgLoZ56Uuy5lhfOxie4aZlA3UMGLX9rXteq4WitEZH6Rl80mwactt9QG0w0gLFlN/kLBTFnGXtDVWvWQw==}
     dev: true
 
   /@types/node/17.0.23:
