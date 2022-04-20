@@ -3,7 +3,7 @@ import { download } from '@prisma/fetch-engine'
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType } from '@prisma/sdk'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 /**
@@ -21,9 +21,9 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType, platf
     `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
   )
 
-  if (clientEngineType === ClientEngineType.Library && !fs.existsSync(queryEngineLibraryPath)) {
+  if (clientEngineType === ClientEngineType.Library && !(await fs.pathExists(queryEngineLibraryPath))) {
     await download({ binaries: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
-  } else if (clientEngineType === ClientEngineType.Binary && !fs.existsSync(queryEngineBinaryPath)) {
+  } else if (clientEngineType === ClientEngineType.Binary && !(await fs.pathExists(queryEngineBinaryPath))) {
     await download({ binaries: { 'query-engine': engineDownloadDir }, version: enginesVersion })
   }
 }
