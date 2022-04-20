@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 
 function _range(from: number, to: number, range: number[] = []): number[] {
   if (from === to) return [...range, from]

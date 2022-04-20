@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import type { L, U } from 'ts-toolbelt'
 
 import { reduce } from './reduce'

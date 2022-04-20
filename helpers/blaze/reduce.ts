@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import type { L } from 'ts-toolbelt'
 
 export type Reducer<I, R> = (acc: R, item: I, pos: number, exit: (acc: R) => R) => R

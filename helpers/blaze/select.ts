@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import type { A, L, O } from 'ts-toolbelt'
+
+import type { L, O } from 'ts-toolbelt'
 
 export type LPred<I> = (item: I, pos: number) => boolean
 export type OPred<I> = (item: I, key: string) => boolean

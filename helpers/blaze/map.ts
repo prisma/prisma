@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 import type { A, L, O } from 'ts-toolbelt'
 
 export type LMapper<L, I, R> = (item: I, pos: A.Keys<L>) => R
