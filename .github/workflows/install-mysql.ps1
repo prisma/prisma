@@ -1,4 +1,5 @@
-Invoke-Expression (New-Object System.Net.WebClient).DownloadString('https://get.scoop.sh')
+iwr -useb 'https://get.scoop.sh' -outfile 'scoopinstaller.ps1'
+.\scoopinstaller.ps1 -RunAsAdmin
 
 scoop install mysql
 

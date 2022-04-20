@@ -1,6 +1,8 @@
+import Debug from '@prisma/debug'
+import { getProxyAgent } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
-import Debug from '@prisma/debug'
+import * as checkpoint from 'checkpoint-client'
 import fs from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'
@@ -8,36 +10,32 @@ import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
-import * as checkpoint from 'checkpoint-client'
-import { maskSchema, mapScalarValues } from './utils/maskSchema'
+import { match, P } from 'ts-pattern'
+
+import { IntrospectionEngine } from './IntrospectionEngine'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
-import { getProxyAgent } from '@prisma/fetch-engine'
-import { IntrospectionEngine } from './IntrospectionEngine'
+import { mapScalarValues, maskSchema } from './utils/maskSchema'
 
 const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
-export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number | void> {
+export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number> {
   try {
-    let schema: undefined | string
-    let maskedSchema: undefined | string
-    if (error.schemaPath) {
-      schema = fs.readFileSync(error.schemaPath, 'utf-8')
-    }
-    if (error.schema) {
-      schema = error.schema
-    }
+    const schema: string | undefined = match(error)
+      .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
+        return fs.readFileSync(err.schemaPath, 'utf-8')
+      })
+      .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
+      .otherwise(() => undefined)
 
-    if (schema) {
-      maskedSchema = maskSchema(schema)
-    }
+    const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
 
     let sqlDump: string | undefined
     let dbVersion: string | undefined
-    // For a SQLite datasource like `url = "file:dev.db"` only error.schema will be defined
-    const schemaOrUrl = error.schema || error.introspectionUrl
+    // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
+    const schemaOrUrl = schema || error.introspectionUrl
     if (error.area === ErrorArea.INTROSPECTION_CLI && schemaOrUrl) {
       let engine: undefined | IntrospectionEngine
       try {
@@ -81,7 +79,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       dbVersion: dbVersion,
     }
 
-    const signedUrl = await createErrorReport(params)
+    const signedUrl = await exports.createErrorReport(params)
 
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)
@@ -92,6 +90,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
     return id
   } catch (e) {
     debug(e)
+    throw e
   }
 }
 
@@ -128,6 +127,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
   zip.pipe(outputFile)
 
   // add schema file
+  // Note: the following reads `error.schemaPath` for the second time, we could just re-use
+  // `maskedSchema` from the `sendPanic` function's scope.
   const schemaFile = maskSchema(fs.readFileSync(error.schemaPath, 'utf-8'))
   zip.append(schemaFile, { name: path.basename(error.schemaPath) })
 

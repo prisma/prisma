@@ -1,9 +1,4 @@
-const {
-  createCompilerHost,
-  createProgram,
-  ModuleKind,
-  ScriptTarget,
-} = require('typescript')
+const { createCompilerHost, createProgram, ModuleKind, ScriptTarget } = require('typescript')
 const ts = require('typescript')
 
 function compileFile(filePath) {

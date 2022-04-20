@@ -1,9 +1,8 @@
-import { MigrateStatus } from '../commands/MigrateStatus'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+import { MigrateStatus } from '../commands/MigrateStatus'
 
-process.env.GITHUB_ACTIONS = '1'
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -26,8 +25,8 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateStatus.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now in Preview.
-            Replace the --early-access-feature flag with --preview-feature.
+            Prisma Migrate was in Early Access and is now Generally Available.
+            Remove the --early-access-feature flag.
           `)
   })
 })

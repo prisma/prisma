@@ -4,13 +4,14 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
 import readPkgUp from 'read-pkg-up'
-import { resolvePkg } from './utils/resolve'
 import rimraf from 'rimraf'
 import { quote } from 'shell-quote'
 import tar from 'tar'
 import tempy from 'tempy'
 import { promisify } from 'util'
+
 import { hasYarn } from './utils/hasYarn'
+import { resolvePkg } from './utils/resolve'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
 const del = promisify(rimraf)

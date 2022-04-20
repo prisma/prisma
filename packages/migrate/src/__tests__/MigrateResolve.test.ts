@@ -1,6 +1,6 @@
-import { MigrateResolve } from '../commands/MigrateResolve'
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
-import { SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+
+import { MigrateResolve } from '../commands/MigrateResolve'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -25,8 +25,8 @@ describe('common', () => {
     ctx.fixture('empty')
     const result = MigrateResolve.new().parse(['--early-access-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now in Preview.
-            Replace the --early-access-feature flag with --preview-feature.
+            Prisma Migrate was in Early Access and is now Generally Available.
+            Remove the --early-access-feature flag.
           `)
   })
   it('should fail if no --applied or --rolled-back', async () => {
@@ -67,11 +67,11 @@ describe('sqlite', () => {
     ctx.fixture('existing-db-1-failed-migration')
     const result = MigrateResolve.new().parse(['--applied=does_not_exist'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-P3017
+            P3017
 
-The migration does_not_exist could not be found. Please make sure that the migration exists, and that you included the whole name of the directory. (example: "20201231000000_initial_migration")
+            The migration does_not_exist could not be found. Please make sure that the migration exists, and that you included the whole name of the directory. (example: "20201231000000_initial_migration")
 
-`)
+          `)
   })
 
   it('--applied should fail if migration is already applied', async () => {
@@ -169,7 +169,7 @@ The migration does_not_exist could not be found. Please make sure that the migra
 describe('postgresql', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-postgresql')
-    jest.setTimeout(10000)
+    jest.setTimeout(10_000)
 
     const result = MigrateResolve.new().parse(['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'])
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -179,6 +179,7 @@ describe('postgresql', () => {
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
     `)
@@ -192,7 +193,7 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
-    jest.setTimeout(10000)
+    jest.setTimeout(10_000)
 
     const result = MigrateResolve.new().parse(['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'])
     await expect(result).rejects.toMatchInlineSnapshot(`

@@ -3,19 +3,20 @@ import { BinaryType } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
+
 import { getGenerators } from '../../get-generators/getGenerators'
-import { omit } from '../../omit'
-import { pick } from '../../pick'
 import { resolveBinary } from '../../resolveBinary'
 import { jestConsoleContext, jestContext } from '../../utils/jestContext'
+import { omit } from '../../utils/omit'
+import { pick } from '../../utils/pick'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-jest.setTimeout(20000)
-
 if (process.env.CI) {
   // 20s is often not enough on CI, especially on macOS.
-  jest.setTimeout(60000)
+  jest.setTimeout(60_000)
+} else {
+  jest.setTimeout(20_000)
 }
 
 let generatorPath = path.join(__dirname, 'generator')
@@ -729,87 +730,9 @@ describe('getGenerators', () => {
         You can define a model like this:
 
         model User {
-          id    String  @id @default(dbgenerated()) @map(\\"_id\\") @db.ObjectId
+          id    String  @id @default(auto()) @map(\\"_id\\") @db.ObjectId
           email String  @unique
           name  String?
-        }
-
-        More information in our documentation:
-        https://pris.ly/d/prisma-schema
-        "
-      `)
-    }
-
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('fail if mongoDb not found in previewFeatures - prisma-client-js - mongodb', async () => {
-    expect.assertions(5)
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: generatorPath,
-        outputPath: __dirname,
-      },
-    }
-
-    try {
-      await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-mongoDb-from-previewFeatures-client-js.prisma'),
-        providerAliases: aliases,
-        skipDownload: true,
-      })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        In order to use the mongodb provider,
-        you need to set the mongodb feature flag.
-        You can define the feature flag like this:
-
-        generator client {
-            provider = \\"prisma-client-js\\"
-            previewFeatures = [\\"mongoDb\\"]
-        }
-
-        More information in our documentation:
-        https://pris.ly/d/prisma-schema
-        "
-      `)
-    }
-
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('fail if mongoDb not found in previewFeatures - prisma-client-go - mongodb', async () => {
-    expect.assertions(5)
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: generatorPath,
-        outputPath: __dirname,
-      },
-    }
-
-    try {
-      await getGenerators({
-        schemaPath: path.join(__dirname, 'missing-mongoDb-from-previewFeatures-client-go.prisma'),
-        providerAliases: aliases,
-        skipDownload: true,
-      })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        In order to use the mongodb provider,
-        you need to set the mongodb feature flag.
-        You can define the feature flag like this:
-
-        generator client {
-            provider = \\"prisma-client-js\\"
-            previewFeatures = [\\"mongoDb\\"]
         }
 
         More information in our documentation:
@@ -860,27 +783,5 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  // skipped because breaks in CI: https://github.com/prisma/prisma/runs/3729932474#step:8:596
-  // thrown: "Exceeded timeout of 20000 ms for a test.
-  test.skip('should not be blocked with mongoDb in previewFeatures - prisma-client-go - mongodb', async () => {
-    expect.assertions(5)
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: generatorPath,
-        outputPath: __dirname,
-      },
-    }
-
-    try {
-      await getGenerators({
-        schemaPath: path.join(__dirname, 'mongoDb-from-previewFeatures-client-go.prisma'),
-        providerAliases: aliases,
-        skipDownload: true,
-      })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toContain('Generator at go run github.com/prisma/prisma-client-go could not start')
-    }
   })
 })

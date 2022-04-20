@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
+
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 

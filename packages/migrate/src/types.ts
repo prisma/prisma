@@ -1,3 +1,29 @@
+// See engine's JSON RPC types
+// https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
+
+// https://www.jsonrpc.org/specification
+// A JSON-RPC request or response.
+export interface RpcRequestResponse {
+  id: number
+  jsonrpc: '2.0'
+}
+
+// should this be result: T; error: never? (and same below)
+export interface RpcSuccessResponse<T> extends RpcRequestResponse {
+  result: T
+}
+
+interface RpcErrorResponse<T> extends RpcRequestResponse {
+  error: T
+}
+
+export type RpcResponse<T, E> = RpcSuccessResponse<T> | RpcErrorResponse<E>
+
+export interface RPCPayload extends RpcRequestResponse {
+  method: string
+  params: any
+}
+
 interface UserFacingError {
   is_panic: boolean
   message: string
@@ -108,6 +134,56 @@ export namespace EngineArgs {
     // The input script.
     script: string
   }
+
+  type MigrateDiffTargetUrl = {
+    // The url to a live database. Its schema will be considered.
+    // This will cause the migration engine to connect to the database and read from it. It will not write.
+    tag: 'url'
+    url: string
+  }
+  type MigrateDiffTargetEmpty = {
+    // An empty schema.
+    tag: 'empty'
+  }
+  type MigrateDiffTargetSchemaDatamodel = {
+    // Path to the Prisma schema file to take the datasource URL from.
+    tag: 'schemaDatamodel'
+    schema: string
+  }
+  type MigrateDiffTargetSchemaDatasource = {
+    // The path to a Prisma schema.
+    // The datasource url will be considered, and the live database it points to introspected for its schema.
+    tag: 'schemaDatasource'
+    schema: string
+  }
+  type MigrateDiffTargetMigrations = {
+    // The path to a migrations directory of the shape expected by Prisma Migrate.
+    // The migrations will be applied to a shadow database, and the resulting schema considered for diffing.
+    tag: 'migrations'
+    path: string
+  }
+  export type MigrateDiffTarget =
+    | MigrateDiffTargetUrl
+    | MigrateDiffTargetEmpty
+    | MigrateDiffTargetSchemaDatamodel
+    | MigrateDiffTargetSchemaDatasource
+    | MigrateDiffTargetMigrations
+  export interface MigrateDiffInput {
+    // The source of the schema to consider as a starting point.
+    from: MigrateDiffTarget
+    // The source of the schema to consider as a destination, or the desired end-state.
+    to: MigrateDiffTarget
+    // By default, the response will contain a human-readable diff.
+    // If you want an executable script, pass the "script": true param.
+    script: boolean
+    // The URL to a live database to use as a shadow database. The schema and data on that database will be wiped during diffing.
+    // This is only necessary when one of from or to is referencing a migrations directory as a source for the schema.
+    shadowDatabaseUrl?: string
+    // Change the exit code behaviour when diff is not empty
+    // Empty: 0, Error: 1, Non empty: 2
+    exitCode?: boolean
+  }
+
   export interface SchemaPush {
     schema: string
     force: boolean
@@ -160,6 +236,20 @@ export namespace EngineResults {
     unexecutable: string[]
   }
   export interface DbExecuteOutput {}
+
+  export enum MigrateDiffExitCode {
+    // 0 = success
+    // if --exit-code is passed
+    // 0 = success with empty diff (no changes)
+    SUCCESS = 0,
+    // 1 = Error
+    ERROR = 1,
+    // 2 = Succeeded with non-empty diff (changes present)
+    SUCCESS_NONEMPTY = 2,
+  }
+  export interface MigrateDiffOutput {
+    exitCode: MigrateDiffExitCode
+  }
 }
 
 export interface FileMap {

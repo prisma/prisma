@@ -16,6 +16,15 @@ function normalizePrismaPaths(str) {
     .replace(/custom-folder\\seed\.js/g, 'custom-folder/seed.js')
 }
 
+function normalizeLogs(str) {
+  return str
+    .replace(
+      /Started query engine http server on http:\/\/127\.0\.0\.1:\d{1,5}/g,
+      'Started query engine http server on http://127.0.0.1:00000',
+    )
+    .replace(/Starting a postgresql pool with \d+ connections./g, 'Starting a postgresql pool with XX connections.')
+}
+
 function normalizeTmpDir(str) {
   return str.replace(/\/tmp\/([a-z0-9]+)\//g, '/tmp/dir/')
 }
@@ -62,7 +71,7 @@ function normalizeMigrateTimestamps(str) {
 }
 
 function normalizeDbUrl(str) {
-  return str.replace(/(localhost|postgres|mysql|mssql):(\d+)/g, 'localhost:$2')
+  return str.replace(/(localhost|postgres|mysql|mssql|mongodb_migrate):(\d+)/g, 'localhost:$2')
 }
 
 function normalizeRustError(str) {
@@ -123,6 +132,7 @@ module.exports = {
       normalizeTsClientStackTrace,
       trimErrorPaths,
       normalizePrismaPaths,
+      normalizeLogs,
       // remove windows \\
       normalizeToUnixPaths,
       // From Migrate/CLI package

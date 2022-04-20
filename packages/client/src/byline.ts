@@ -20,7 +20,6 @@
 // IN THE SOFTWARE.
 
 // @ts-ignore
-/* tslint:disable */
 
 import stream from 'stream'
 import util from 'util'

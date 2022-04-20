@@ -1,5 +1,6 @@
 import indent from 'indent-string'
 import path from 'path'
+
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 
@@ -88,12 +89,12 @@ export function getDefaultName(modelName: string): string {
   return `${modelName}Default`
 }
 
-export function getFieldArgName(field: DMMF.SchemaField): string {
-  return getArgName((field.outputType.type as DMMF.OutputType).name, field.outputType.isList)
+export function getFieldArgName(field: DMMF.SchemaField, findMany = true): string {
+  return getArgName((field.outputType.type as DMMF.OutputType).name, findMany && field.outputType.isList)
 }
 
-export function getArgName(name: string, isList: boolean): string {
-  if (!isList) {
+export function getArgName(name: string, findMany: boolean): string {
+  if (!findMany) {
     return `${name}Args`
   }
 
@@ -224,7 +225,7 @@ export function getReturnType({
   if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
 
   if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
-    return `Promise<JsonObject>`
+    return `PrismaPromise<JsonObject>`
   }
 
   const isList = actionName === DMMF.ModelAction.findMany

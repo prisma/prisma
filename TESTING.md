@@ -64,11 +64,11 @@ pnpm run test <fileNamePattern> -- -u
 
 Something is broken? You built a new feature? It's time to write a test! But where?
 
-Everything related to working with specific frameworks like Next.js or deploying to Netlify should be covered by an [End-to-End Test](https://github.com/prisma/e2e-tests).
+Everything related to working with specific frameworks like Next.js or deploying to Netlify should be covered by an [Ecosystem Test](https://github.com/prisma/ecosystem-tests).
 
 Everything that is more basic functionality like a specific query or feature, that doesn't need a platform specific test (yet) should get a test in the `prisma/prisma` repo.
 
-Rule of thumb: If you can write a test in `prisma/prisma`, prefer that over a test in `prisma/e2e-tests`.
+Rule of thumb: If you can write a test in `prisma/prisma`, prefer that over a test in `prisma/ecosystem-tests`.
 
 In the `prisma/prisma` repository we have a few places where you can write tests:
 
@@ -123,4 +123,25 @@ By creating a Pull Request the following pipelines will be triggered
 - [Buildkite `[Test] Prisma TypeScript`](https://buildkite.com/prisma/test-prisma-typescript)
 - [GitHub Action `CI`](https://github.com/prisma/prisma/blob/main/.github/workflows/test.yml)
 
-They are both running the same tests but with different Node.js version and will need to be successful before merging.
+They are both running the same tests but with different Node.js version and will need to be successful before merging ("flaky" tests might show up and might be ignored).
+
+### Publishing an integration version of all the packages
+
+If a branch name starts with `integration/` like `integration/fix-all-the-things` the [Buildkite `[Release] Prisma TypeScript`](https://buildkite.com/prisma/release-prisma-typescript) pipeline will be triggered.
+If tests pass, a new version of the packages will be published to npm with a version like `3.12.0-integration-fix-all-the-things.1` (where `3.12.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this integration branch)
+
+To make a PR which will release an integration version, the name of the branch of the PR would need to start with `integration/`.
+The `Buildkite [Release] Prisma TypeScript` will show its status in the PR checks and might take up to 30min to finish.
+
+Once published to npm the version will need to be installed with the exact version like:
+
+```
+npm install -D prisma@3.12.0-fix-all-the-things.1
+
+# or executed with npx like
+npx prisma@3.12.0-fix-all-the-things.1
+```
+
+(Note that npm version upgrades or the update notifier in Prisma CLI might behave weird and unexpectedly with these integration versions.)
+
+Internal note: You can check the #feed-prisma-releases channel on our private Slack to get notified when versions are published.

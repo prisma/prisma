@@ -1,7 +1,8 @@
+import type { RequestResponse } from '../../utils/request'
 import { BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
+import { GatewayTimeoutError } from '../GatewayTimeoutError'
 import { NotFoundError } from '../NotFoundError'
-import type { RequestResponse } from '../../utils/request'
 import { SchemaMissingError } from '../SchemaMissingError'
 import { ServerError } from '../ServerError'
 import { UnauthorizedError } from '../UnauthorizedError'
@@ -14,6 +15,19 @@ export async function responseToError(
   if (response.ok) return undefined
 
   const info = { clientVersion, response }
+
+  // Explicitly handle 400 errors which contain known errors
+  if (response.status === 400) {
+    let knownError
+    try {
+      const body = await response.json()
+      knownError = body?.EngineNotStarted?.reason?.KnownEngineStartupError
+    } catch (_) {}
+
+    if (knownError) {
+      throw new BadRequestError(info, knownError.msg, knownError.error_code)
+    }
+  }
 
   if (response.status === 401) {
     throw new UnauthorizedError(info)
@@ -34,7 +48,29 @@ export async function responseToError(
     throw new UsageExceededError(info)
   }
 
+  if (response.status === 504) {
+    throw new GatewayTimeoutError(info)
+  }
+
   if (response.status >= 500) {
+    let body
+    try {
+      body = await response.json()
+    } catch (err) {
+      throw new ServerError(info)
+    }
+
+    if (typeof body?.EngineNotStarted?.reason === 'string') {
+      throw new ServerError(info, body.EngineNotStarted.reason)
+    } else if (typeof body?.EngineNotStarted?.reason === 'object') {
+      const keys = Object.keys(body.EngineNotStarted.reason)
+      if (keys.length > 0) {
+        const reason = body.EngineNotStarted.reason
+        const content = reason[keys[0]]
+        throw new ServerError(info, keys[0], content.logs)
+      }
+    }
+
     throw new ServerError(info)
   }
 

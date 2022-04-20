@@ -9,33 +9,34 @@ import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
+import type { IncomingHttpHeaders } from 'http'
 import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
 import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
-import byline from '../tools/byline'
+
 import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import type { RequestError } from '../common/errors/types/RequestError'
-import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import type { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
-import { omit } from '../tools/omit'
+import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
+import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
+import byline from '../tools/byline'
+import { omit } from '../tools/omit'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
-import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
-import type * as Tx from '../common/types/Transaction'
-import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
-import type { IncomingHttpHeaders } from 'http'
-import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 
 const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
@@ -518,7 +519,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
       if (this.engineEndpoint) {
         try {
-          await pRetry(() => this.connection.get('/'), {
+          this.connection.open(this.engineEndpoint)
+          await pRetry(() => this.connection.get('/status'), {
             retries: 10,
           })
         } catch (e) {
@@ -590,7 +592,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               this.engineStartDeferred &&
               json.level === 'INFO' &&
               json.target === 'query_engine::server' &&
-              json.fields?.message?.startsWith('Started http server')
+              json.fields?.message?.startsWith('Started query engine http server')
             ) {
               this.connection.open(`http://127.0.0.1:${this.port}`)
               this.engineStartDeferred.resolve()
@@ -959,29 +961,22 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async transaction(action: any, arg?: any) {
     await this.start()
 
-    try {
-      if (action === 'start') {
-        const jsonOptions = JSON.stringify({
-          max_wait: arg?.maxWait ?? 2000, // default
-          timeout: arg?.timeout ?? 5000, // default
-        })
+    if (action === 'start') {
+      const jsonOptions = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
+      })
 
-        const result = await Connection.onHttpError(
-          this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
-          transactionHttpErrorHandler,
-        )
+      const result = await Connection.onHttpError(
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+        transactionHttpErrorHandler,
+      )
 
-        return result.data
-      } else if (action === 'commit') {
-        await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
-      } else if (action === 'rollback') {
-        await Connection.onHttpError(
-          this.connection.post(`/transaction/${arg.id}/rollback`),
-          transactionHttpErrorHandler,
-        )
-      }
-    } catch (e: any) {
-      this.setError(e)
+      return result.data
+    } else if (action === 'commit') {
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+    } else if (action === 'rollback') {
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), transactionHttpErrorHandler)
     }
 
     return undefined
@@ -1141,7 +1136,7 @@ function initHooks() {
 }
 
 /**
- * Decides how to handle error reponses for transactions
+ * Decides how to handle error responses for transactions
  * @param result
  */
 function transactionHttpErrorHandler<R>(result: Result<R>): never {

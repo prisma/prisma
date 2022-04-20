@@ -1,34 +1,35 @@
+import Debug from '@prisma/debug'
 import type { Command } from '@prisma/sdk'
 import {
   arg,
   format,
-  HelpError,
-  isError,
-  getSchemaPath,
   getCommandWithExecutor,
-  isCi,
-  logger,
   getConfig,
   getDMMF,
+  getSchemaPath,
+  HelpError,
+  isCi,
+  isError,
+  loadEnvFile,
 } from '@prisma/sdk'
-import Debug from '@prisma/debug'
 import chalk from 'chalk'
-import prompt from 'prompts'
 import fs from 'fs'
-import path from 'path'
+import prompt from 'prompts'
+
 import { Migrate } from '../Migrate'
+import type { EngineResults } from '../types'
+import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import type { DbType } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
-import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
-import { NoSchemaFoundError, MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { printMigrationId } from '../utils/printMigrationId'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
+import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
+import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
-import { getMigrationName } from '../utils/promptForMigrationName'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { printDatasource } from '../utils/printDatasource'
-import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
-import type { EngineResults } from '../types'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
+import { printMigrationId } from '../utils/printMigrationId'
+import { getMigrationName } from '../utils/promptForMigrationName'
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 const debug = Debug('prisma:migrate:dev')
 
@@ -94,20 +95,16 @@ ${chalk.bold('Examples')}
     }
 
     if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
+      throw new ExperimentalFlagWithMigrateError()
     }
 
     if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithNewMigrateError()
+      throw new EarlyAccessFeatureFlagWithMigrateError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     await printDatasource(schemaPath)
 
@@ -261,7 +258,7 @@ ${chalk.bold('Examples')}
     let migrationIds: string[]
     try {
       const createMigrationResult = await migrate.createMigration({
-        migrationsDirectoryPath: migrate.migrationsDirectoryPath,
+        migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
         prismaSchema: migrate.getDatamodel(),
@@ -281,6 +278,7 @@ ${chalk.bold('Examples')}
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
+      // Stop engine
       migrate.stop()
     }
 

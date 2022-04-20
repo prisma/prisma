@@ -4,7 +4,7 @@ import arg from 'arg'
 import topo from 'batching-toposort'
 import chalk from 'chalk'
 import execa from 'execa'
-import { promises as fs, existsSync } from 'fs'
+import { existsSync, promises as fs } from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'
 import pMap from 'p-map'
@@ -14,6 +14,7 @@ import path from 'path'
 import redis from 'redis'
 import semver from 'semver'
 import { promisify } from 'util'
+
 import { unique } from './unique'
 
 export type Commit = {
@@ -580,7 +581,7 @@ async function publish() {
 
     let prismaVersion
     let tag: undefined | string
-    let tagForE2ECheck: undefined | string
+    let tagForEcosystemTestsCheck: undefined | string
 
     const patchBranch = getPatchBranch()
     console.log({ patchBranch })
@@ -599,7 +600,7 @@ async function publish() {
       prismaVersion = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
       if (args['--release']) {
-        tagForE2ECheck = 'patch-dev' //?
+        tagForEcosystemTestsCheck = 'patch-dev' //?
         prismaVersion = args['--release']
         tag = 'latest'
       }
@@ -607,7 +608,7 @@ async function publish() {
       // TODO:Where each patch branch goes
       prismaVersion = args['--release']
       tag = 'latest'
-      tagForE2ECheck = 'dev'
+      tagForEcosystemTestsCheck = 'dev'
     } else {
       prismaVersion = await getNewDevVersion(packages)
       tag = 'dev'
@@ -616,7 +617,7 @@ async function publish() {
     console.log({
       patchBranch,
       tag,
-      tagForE2ECheck,
+      tagForEcosystemTestsCheck,
       prismaVersion,
     })
 
@@ -646,13 +647,13 @@ async function publish() {
 
     if (args['--publish'] || dryRun) {
       if (args['--release']) {
-        if (!tagForE2ECheck) {
-          throw new Error(`tagForE2ECheck missing`)
+        if (!tagForEcosystemTestsCheck) {
+          throw new Error(`tagForEcosystemTestsCheck missing`)
         }
-        const passing = await areEndToEndTestsPassing(tagForE2ECheck)
-        if (!passing && !process.env.SKIP_E2E_CHECK) {
-          throw new Error(`We can't release, as the e2e tests are not passing for the ${tag} npm tag!
-Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
+        const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
+        if (!passing && !process.env.SKIP_ECOSYSTEMTESTS_CHECK) {
+          throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag} npm tag!
+Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
         }
       }
 
@@ -1134,8 +1135,8 @@ async function getPrismaBranch(): Promise<string | undefined> {
   return undefined
 }
 
-async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
-  let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg?branch='
+async function areEcosystemTestsPassing(tag: string): Promise<boolean> {
+  let svgUrl = 'https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg?branch='
 
   if (tag === 'patch-dev') {
     svgUrl += tag

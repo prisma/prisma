@@ -1,8 +1,8 @@
-import * as esbuild from 'esbuild'
-import resolve from 'resolve'
-import path from 'path'
 import crypto from 'crypto'
+import * as esbuild from 'esbuild'
 import os from 'os'
+import path from 'path'
+import resolve from 'resolve'
 
 type LoadCache = { [K in string]: string }
 

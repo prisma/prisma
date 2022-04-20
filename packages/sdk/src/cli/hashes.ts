@@ -1,6 +1,7 @@
+import crypto from 'crypto'
+
 import { getSchemaPath } from './getSchema'
 import { arg } from './utils'
-import crypto from 'crypto'
 
 /**
  * Get a unique identifier for the project by hashing

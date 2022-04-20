@@ -1,6 +1,7 @@
-import type { PrismaPromise } from './PrismaPromise'
 import type { Context } from '@opentelemetry/api'
 import { context } from '@opentelemetry/api'
+
+import type { PrismaPromise } from './PrismaPromise'
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -12,39 +13,39 @@ import { context } from '@opentelemetry/api'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (transactionId?: number, runInTransaction?: boolean, otelCtx?: Context) => PrismaPromise<unknown>,
+  callback: (txId?: string | number, lock?: PromiseLike<void>, otelCtx?: Context) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   const otelCtx = context.active() // get the context at time of creation
   // because otel isn't able to propagate context when inside of a promise
 
-  // we handle exceptions that happen in the scope as `Promise` rejections
-  const _callback = (txId?: number, inTx?: boolean) => {
+  let promise: PrismaPromise<unknown> | undefined
+  const _callback = (txId?: string | number, lock?: PromiseLike<void>) => {
     try {
-      return callback(txId, inTx, otelCtx)
+      // we allow the callback to be executed only one time
+      return (promise ??= callback(txId, lock, otelCtx))
     } catch (error) {
+      // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
       return Promise.reject(error) as PrismaPromise<unknown>
     }
   }
 
   return {
-    then(onFulfilled, onRejected, txId?: number) {
-      const promise = _callback(txId, false)
-
-      return promise.then(onFulfilled, onRejected, txId)
+    then(onFulfilled, onRejected, txId?: string) {
+      return _callback(txId).then(onFulfilled, onRejected, txId)
     },
-    catch(onRejected) {
-      return _callback().catch(onRejected)
+    catch(onRejected, txId?: string) {
+      return _callback(txId).catch(onRejected, txId)
     },
-    finally(onFinally) {
-      return _callback().finally(onFinally)
+    finally(onFinally, txId?: string) {
+      return _callback(txId).finally(onFinally, txId)
     },
-    requestTransaction(txId: number) {
-      const promise = _callback(txId, true)
+    requestTransaction(txId: number, lock?: PromiseLike<void>) {
+      const promise = _callback(txId, lock)
 
       if (promise.requestTransaction) {
-        // requestTransaction support for nested promises
-        return promise.requestTransaction(txId)
+        // we want to have support for nested promises
+        return promise.requestTransaction(txId, lock)
       }
 
       return promise

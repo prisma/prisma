@@ -1,5 +1,5 @@
-import dedent from 'strip-indent'
 import Arg from 'arg'
+import dedent from 'strip-indent'
 
 /**
  * format

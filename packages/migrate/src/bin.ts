@@ -1,6 +1,24 @@
 #!/usr/bin/env ts-node
 
-process.env.NODE_NO_WARNINGS = '1'
+import Debug from '@prisma/debug'
+import { enginesVersion } from '@prisma/engines-version'
+import { handlePanic, HelpError, isError } from '@prisma/sdk'
+import chalk from 'chalk'
+
+import { CLI } from './CLI'
+import { DbCommand } from './commands/DbCommand'
+import { DbExecute } from './commands/DbExecute'
+import { DbPull } from './commands/DbPull'
+import { DbPush } from './commands/DbPush'
+// import { DbDrop } from './commands/DbDrop'
+import { DbSeed } from './commands/DbSeed'
+import { MigrateCommand } from './commands/MigrateCommand'
+import { MigrateDeploy } from './commands/MigrateDeploy'
+import { MigrateDev } from './commands/MigrateDev'
+import { MigrateDiff } from './commands/MigrateDiff'
+import { MigrateReset } from './commands/MigrateReset'
+import { MigrateResolve } from './commands/MigrateResolve'
+import { MigrateStatus } from './commands/MigrateStatus'
 
 process.on('uncaughtException', (e) => {
   console.log(e)
@@ -9,58 +27,9 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 
-import { HelpError, isError, tryLoadEnvs, arg, getEnvPaths } from '@prisma/sdk'
-
 const commandArray = process.argv.slice(2)
 
-// Parse CLI arguments
-const args = arg(
-  commandArray,
-  {
-    '--schema': String,
-    '--telemetry-information': String,
-  },
-  false,
-  true,
-)
-
-//
-// Read .env file only if next to schema.prisma
-//
-// if the CLI is called without any command like `dev` we can ignore .env loading
-if (process.argv.length > 2) {
-  try {
-    const envPaths = getEnvPaths(args['--schema'])
-    const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && envData.message && console.log(envData.message)
-  } catch (e) {
-    console.log(e)
-  }
-}
-
-/**
- * Dependencies
- */
-import chalk from 'chalk'
-import Debug from '@prisma/debug'
-
-import { CLI } from './CLI'
-import { MigrateCommand } from './commands/MigrateCommand'
-import { MigrateDev } from './commands/MigrateDev'
-import { MigrateReset } from './commands/MigrateReset'
-import { MigrateDeploy } from './commands/MigrateDeploy'
-import { MigrateResolve } from './commands/MigrateResolve'
-import { MigrateStatus } from './commands/MigrateStatus'
-import { DbCommand } from './commands/DbCommand'
-import { DbExecute } from './commands/DbExecute'
-import { DbPush } from './commands/DbPush'
-import { DbPull } from './commands/DbPull'
-import { DbDrop } from './commands/DbDrop'
-import { DbSeed } from './commands/DbSeed'
-import { handlePanic } from './utils/handlePanic'
-import { enginesVersion } from '@prisma/engines-version'
-
-const packageJson = eval(`require('../package.json')`) // tslint:disable-line
+const packageJson = eval(`require('../package.json')`)
 
 /**
  * Main function
@@ -74,6 +43,7 @@ async function main(): Promise<number> {
       resolve: MigrateResolve.new(),
       reset: MigrateReset.new(),
       deploy: MigrateDeploy.new(),
+      diff: MigrateDiff.new(),
     }),
     db: DbCommand.new({
       execute: DbExecute.new(),

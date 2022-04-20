@@ -2,6 +2,7 @@ import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
+
 import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
@@ -19,7 +20,7 @@ async function sendRequest(message: any): Promise<any> {
 let studio: Studio
 
 describe('studio with default schema.prisma filename', () => {
-  jest.setTimeout(20000)
+  jest.setTimeout(20_000)
 
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
@@ -47,7 +48,7 @@ describe('studio with default schema.prisma filename', () => {
     await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
-  afterAll(async () => {
+  afterAll(() => {
     studio.instance!.stop()
   })
 
@@ -202,7 +203,7 @@ describe('studio with default schema.prisma filename', () => {
 })
 
 describe('studio with custom schema.prisma filename', () => {
-  jest.setTimeout(20000)
+  jest.setTimeout(20_000)
 
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
@@ -230,7 +231,7 @@ describe('studio with custom schema.prisma filename', () => {
     await new Promise((r) => setTimeout(() => r(null), 2000))
   })
 
-  afterAll(async () => {
+  afterAll(() => {
     studio.instance!.stop()
   })
 

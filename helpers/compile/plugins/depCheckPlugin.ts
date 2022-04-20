@@ -1,6 +1,6 @@
 import type * as esbuild from 'esbuild'
-import path from 'path'
 import { builtinModules } from 'module'
+import path from 'path'
 
 // packages that aren't detected but used
 // TODO: these could be scoped at the root
@@ -17,6 +17,8 @@ const unusedIgnore = [
   'typescript',
   'ts-node',
   'ts-jest',
+  '@swc/core',
+  '@swc/jest',
   'jest',
 
   // these are missing 3rd party deps

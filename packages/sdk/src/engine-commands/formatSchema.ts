@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import { BinaryType } from '@prisma/fetch-engine'
 import execa from 'execa'
 import fs from 'fs'
+
 import { resolveBinary } from '../resolveBinary'
 
 const debug = Debug('prisma:formatSchema')
@@ -30,6 +31,11 @@ export async function formatSchema({ schemaPath, schema }: { schemaPath?: string
   } as execa.Options
 
   let result
+
+  if (process.env.FORCE_PANIC_PRISMA_FMT) {
+    result = await execa(prismaFmtPath, ['debug-panic'], options)
+  }
+
   if (schemaPath) {
     if (!fs.existsSync(schemaPath)) {
       throw new Error(`Schema at ${schemaPath} does not exist.`)

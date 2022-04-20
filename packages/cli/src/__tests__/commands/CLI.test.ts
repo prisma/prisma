@@ -1,19 +1,19 @@
-import { CLI } from '../../CLI'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import {
-  MigrateCommand,
-  MigrateDev,
-  MigrateResolve,
-  MigrateStatus,
-  MigrateReset,
-  MigrateDeploy,
-  DbPush,
+  DbCommand,
   DbPull,
+  DbPush,
   // DbDrop,
   DbSeed,
-  DbCommand,
-  handlePanic,
+  MigrateCommand,
+  MigrateDeploy,
+  MigrateDev,
+  MigrateReset,
+  MigrateResolve,
+  MigrateStatus,
 } from '@prisma/migrate'
+import { handlePanic, jestConsoleContext, jestContext } from '@prisma/sdk'
+
+import { CLI } from '../../CLI'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

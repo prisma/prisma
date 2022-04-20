@@ -19,17 +19,12 @@ let uniqueId = 0
 
 export var Prism: any = {
   manual: _self.Prism && _self.Prism.manual,
-  disableWorkerMessageHandler:
-    _self.Prism && _self.Prism.disableWorkerMessageHandler,
+  disableWorkerMessageHandler: _self.Prism && _self.Prism.disableWorkerMessageHandler,
   util: {
     encode: function (tokens: any) {
       if (tokens instanceof Token) {
         const anyTokens: any = tokens
-        return new Token(
-          anyTokens.type,
-          Prism.util.encode(anyTokens.content),
-          anyTokens.alias,
-        )
+        return new Token(anyTokens.type, Prism.util.encode(anyTokens.content), anyTokens.alias)
       } else if (Array.isArray(tokens)) {
         return tokens.map(Prism.util.encode)
       } else {
@@ -188,15 +183,7 @@ export var Prism: any = {
     return Token.stringify(Prism.util.encode(env.tokens), env.language)
   },
 
-  matchGrammar: function (
-    text,
-    strarr,
-    grammar,
-    index,
-    startPos,
-    oneshot,
-    target?: any,
-  ) {
+  matchGrammar: function (text, strarr, grammar, index, startPos, oneshot, target?: any) {
     for (const token in grammar) {
       if (!grammar.hasOwnProperty(token) || !grammar[token]) {
         continue
@@ -226,11 +213,7 @@ export var Prism: any = {
         pattern = pattern.pattern || pattern
 
         // Don’t cache length as it changes during the loop
-        for (
-          let i = index, pos = startPos;
-          i < strarr.length;
-          pos += strarr[i].length, ++i
-        ) {
+        for (let i = index, pos = startPos; i < strarr.length; pos += strarr[i].length, ++i) {
           let str = strarr[i]
 
           if (strarr.length > text.length) {
@@ -254,11 +237,7 @@ export var Prism: any = {
               k = i,
               p = pos
 
-            for (
-              let len = strarr.length;
-              k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy));
-              ++k
-            ) {
+            for (let len = strarr.length; k < len && (p < to || (!strarr[k].type && !strarr[k - 1].greedy)); ++k) {
               p += strarr[k].length
               // Move the index i to the element in strarr that is closest to from
               if (from >= p) {
@@ -309,13 +288,7 @@ export var Prism: any = {
             args.push(before)
           }
 
-          const wrapped = new Token(
-            token,
-            inside ? Prism.tokenize(match, inside) : match,
-            alias,
-            match,
-            greedy,
-          )
+          const wrapped = new Token(token, inside ? Prism.tokenize(match, inside) : match, alias, match, greedy)
 
           args.push(wrapped)
 
@@ -325,8 +298,7 @@ export var Prism: any = {
 
           Array.prototype.splice.apply(strarr, args)
 
-          if (delNum != 1)
-            Prism.matchGrammar(text, strarr, grammar, i, pos, true, token)
+          if (delNum != 1) Prism.matchGrammar(text, strarr, grammar, i, pos, true, token)
 
           if (oneshot) break
         }
@@ -396,15 +368,13 @@ Prism.languages.clike = {
     greedy: true,
   },
   'class-name': {
-    pattern:
-      /((?:\b(?:class|interface|extends|implements|trait|instanceof|new)\s+)|(?:catch\s+\())[\w.\\]+/i,
+    pattern: /((?:\b(?:class|interface|extends|implements|trait|instanceof|new)\s+)|(?:catch\s+\())[\w.\\]+/i,
     lookbehind: true,
     inside: {
       punctuation: /[.\\]/,
     },
   },
-  keyword:
-    /\b(?:if|else|while|do|for|return|in|instanceof|function|new|try|throw|catch|finally|null|break|continue)\b/,
+  keyword: /\b(?:if|else|while|do|for|return|in|instanceof|function|new|try|throw|catch|finally|null|break|continue)\b/,
   boolean: /\b(?:true|false)\b/,
   function: /\w+(?=\()/,
   number: /\b0x[\da-f]+\b|(?:\b\d+\.?\d*|\B\.\d+)(?:e[+-]?\d+)?/i,
@@ -416,8 +386,7 @@ Prism.languages.javascript = Prism.languages.extend('clike', {
   'class-name': [
     Prism.languages.clike['class-name'],
     {
-      pattern:
-        /(^|[^$\w\xA0-\uFFFF])[_$A-Z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\.(?:prototype|constructor))/,
+      pattern: /(^|[^$\w\xA0-\uFFFF])[_$A-Z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\.(?:prototype|constructor))/,
       lookbehind: true,
     },
   ],
@@ -435,10 +404,8 @@ Prism.languages.javascript = Prism.languages.extend('clike', {
   number:
     /\b(?:(?:0[xX](?:[\dA-Fa-f](?:_[\dA-Fa-f])?)+|0[bB](?:[01](?:_[01])?)+|0[oO](?:[0-7](?:_[0-7])?)+)n?|(?:\d(?:_\d)?)+n|NaN|Infinity)\b|(?:\b(?:\d(?:_\d)?)+\.?(?:\d(?:_\d)?)*|\B\.(?:\d(?:_\d)?)+)(?:[Ee][+-]?(?:\d(?:_\d)?)+)?/,
   // Allow for all non-ASCII characters (See http://stackoverflow.com/a/2008444)
-  function:
-    /[_$a-zA-Z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,
-  operator:
-    /-[-=]?|\+[+=]?|!=?=?|<<?=?|>>?>?=?|=(?:==?|>)?|&[&=]?|\|[|=]?|\*\*?=?|\/=?|~|\^=?|%=?|\?|\.{3}/,
+  function: /[_$a-zA-Z\xA0-\uFFFF][$\w\xA0-\uFFFF]*(?=\s*(?:\.\s*(?:apply|bind|call)\s*)?\()/,
+  operator: /-[-=]?|\+[+=]?|!=?=?|<<?=?|>>?>?=?|=(?:==?|>)?|&[&=]?|\|[|=]?|\*\*?=?|\/=?|~|\^=?|%=?|\?|\.{3}/,
 })
 
 Prism.languages.javascript['class-name'][0].pattern =
@@ -459,8 +426,7 @@ Prism.languages.insertBefore('javascript', 'keyword', {
   },
   parameter: [
     {
-      pattern:
-        /(function(?:\s+[_$A-Za-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*)?\s*\(\s*)(?!\s)(?:[^()]|\([^()]*\))+?(?=\s*\))/,
+      pattern: /(function(?:\s+[_$A-Za-z\xA0-\uFFFF][$\w\xA0-\uFFFF]*)?\s*\(\s*)(?!\s)(?:[^()]|\([^()]*\))+?(?=\s*\))/,
       lookbehind: true,
       inside: Prism.languages.javascript,
     },
@@ -493,20 +459,12 @@ Prism.languages.typescript = Prism.languages.extend('javascript', {
   // From JavaScript Prism keyword list and TypeScript language spec: https://github.com/Microsoft/TypeScript/blob/master/doc/spec.md#221-reserved-words
   keyword:
     /\b(?:abstract|as|async|await|break|case|catch|class|const|constructor|continue|debugger|declare|default|delete|do|else|enum|export|extends|finally|for|from|function|get|if|implements|import|in|instanceof|interface|is|keyof|let|module|namespace|new|null|of|package|private|protected|public|readonly|return|require|set|static|super|switch|this|throw|try|type|typeof|var|void|while|with|yield)\b/,
-  builtin:
-    /\b(?:string|Function|any|number|boolean|Array|symbol|console|Promise|unknown|never)\b/,
+  builtin: /\b(?:string|Function|any|number|boolean|Array|symbol|console|Promise|unknown|never)\b/,
 })
 
 Prism.languages.ts = Prism.languages.typescript
 
-export function Token(
-  this: any,
-  type,
-  content,
-  alias,
-  matchedStr?: any,
-  greedy?: any,
-) {
+export function Token(this: any, type, content, alias, matchedStr?: any, greedy?: any) {
   this.type = type
   this.content = content
   this.alias = alias

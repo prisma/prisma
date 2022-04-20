@@ -1,25 +1,15 @@
-import type { BuildOptions } from '../../../helpers/compile/build'
-import { build } from '../../../helpers/compile/build'
-import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 import path from 'path'
 
-const external = ['_http_common']
-
-// we define the config for generator
-const generatorBuildConfig: BuildOptions = {
-  entryPoints: ['src/generation/generator.ts'],
-  outfile: 'generator-build/index',
-  bundle: true,
-  external: external,
-}
+import type { BuildOptions } from '../../../helpers/compile/build'
+import { build } from '../../../helpers/compile/build'
+import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
 // we define the config for runtime
 const runtimeBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/index',
   bundle: true,
-  external: external,
   define: {
     'globalThis.NOT_PRISMA_DATA_PROXY': 'true',
     // that fixes an issue with lz-string umd builds
@@ -33,7 +23,6 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
-  external: external,
 }
 
 // we define the config for proxy
@@ -43,7 +32,6 @@ const proxyBuildConfig: BuildOptions = {
   bundle: true,
   minify: true,
   legalComments: 'none',
-  external: external,
   define: {
     // that helps us to tree-shake unused things out
     'globalThis.NOT_PRISMA_DATA_PROXY': 'false',
@@ -67,6 +55,13 @@ const proxyBuildConfig: BuildOptions = {
     ),
   ],
   logLevel: 'error',
+}
+
+// we define the config for generator
+const generatorBuildConfig: BuildOptions = {
+  entryPoints: ['src/generation/generator.ts'],
+  outfile: 'generator-build/index',
+  bundle: true,
 }
 
 /**

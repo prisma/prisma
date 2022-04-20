@@ -1,5 +1,5 @@
-import chalk from 'chalk'
 import { getCommandWithExecutor, link } from '@prisma/sdk'
+import chalk from 'chalk'
 
 export class NoSchemaFoundError extends Error {
   constructor() {
@@ -92,16 +92,6 @@ export class DbNeedsForceError extends Error {
     super(
       `Use the --force flag to use the ${subcommand} command in an unnattended environment like ${chalk.bold.greenBright(
         getCommandWithExecutor(`prisma db ${subcommand} --force --preview-feature`),
-      )}`,
-    )
-  }
-}
-
-export class DbExecuteNeedsPreviewFeatureFlagError extends Error {
-  constructor() {
-    super(
-      `This command is in Preview. Use the --preview-feature flag to use it like ${chalk.bold.greenBright(
-        getCommandWithExecutor(`prisma db execute --preview-feature`),
       )}`,
     )
   }

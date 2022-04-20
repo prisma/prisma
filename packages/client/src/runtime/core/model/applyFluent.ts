@@ -1,8 +1,10 @@
+import type { DMMF } from '@prisma/generator-helper'
+
 import type { Client } from '../../getPrismaClient'
 import { deepSet } from '../../utils/deep-set'
-import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
-import type { DMMF } from '@prisma/generator-helper'
-import type { ModelAction } from './applyModel'
+import { getCallSite } from '../utils/getCallSite'
+import type { applyModel, ModelAction } from './applyModel'
+import type { UserArgs } from './UserArgs'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**
@@ -18,7 +20,7 @@ import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
   if (fluentPropName === undefined || prevDataPath === undefined) return []
 
-  return [...prevDataPath, 'select', dmmfToJSModelName(fluentPropName)]
+  return [...prevDataPath, 'select', fluentPropName]
 }
 
 /**
@@ -48,10 +50,14 @@ function getNextDataPath(fluentPropName?: string, prevDataPath?: string[]) {
  * // }
  * ```
  */
-function getNextUserArgs(callArgs: object | undefined, prevArgs: object | undefined, nextDataPath: string[]) {
+function getNextUserArgs(
+  callArgs: UserArgs | undefined,
+  prevArgs: UserArgs | undefined,
+  nextDataPath: string[],
+): UserArgs {
   if (prevArgs === undefined) return callArgs ?? {}
 
-  return deepSet(prevArgs, nextDataPath, callArgs || true) as object
+  return deepSet(prevArgs, nextDataPath, callArgs || true)
 }
 
 /**
@@ -77,7 +83,7 @@ export function applyFluent(
   modelAction: ModelAction,
   fluentPropName?: string,
   prevDataPath?: string[],
-  prevUserArgs?: object,
+  prevUserArgs?: UserArgs,
 ) {
   // we retrieve the model that is described from the DMMF
   const dmmfModel = client._dmmf.modelMap[dmmfModelName]
@@ -89,11 +95,12 @@ export function applyFluent(
   )
 
   // we return a regular model action but proxy its return
-  return (userArgs?: object) => {
+  return (userArgs?: UserArgs) => {
+    const callsite = getCallSite(client._errorFormat)
     // ! first call: nextDataPath => [], nextUserArgs => userArgs
     const nextDataPath = getNextDataPath(fluentPropName, prevDataPath)
     const nextUserArgs = getNextUserArgs(userArgs, prevUserArgs, nextDataPath)
-    const prismaPromise = modelAction({ dataPath: nextDataPath })(nextUserArgs)
+    const prismaPromise = modelAction({ dataPath: nextDataPath, callsite })(nextUserArgs)
     // TODO: use an unpacker here instead of ClientFetcher logic
     // TODO: once it's done we can deprecate the use of dataPath
     const ownKeys = getOwnKeys(client, dmmfModelName)
@@ -112,7 +119,7 @@ export function applyFluent(
         // we allow for chaining more with this recursive call
         return applyFluent(client, ...modelArgs, ...dataArgs)
       },
-      ...defaultProxyHandlers(ownKeys),
+      ...defaultProxyHandlers([...ownKeys, ...Object.getOwnPropertyNames(prismaPromise)]),
     })
   }
 }

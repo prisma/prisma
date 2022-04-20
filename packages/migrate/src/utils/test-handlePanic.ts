@@ -1,10 +1,7 @@
-import { RustPanic, ErrorArea } from '@prisma/sdk'
-import { handlePanic } from '../utils/handlePanic'
+import { ErrorArea, handlePanic, RustPanic } from '@prisma/sdk'
 import path from 'path'
 
 async function main() {
-  // process.env.GITHUB_ACTIONS = 'maybe'
-
   const error = new RustPanic(
     'Some error message!\n'.repeat(23),
     '',

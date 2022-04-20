@@ -1,5 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
+
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
@@ -254,7 +255,7 @@ export type HasReject<
   ? IsReject<LocalRejectSettings>
   : GlobalRejectSettings extends RejectPerOperation
   ? Action extends keyof GlobalRejectSettings
-    ? GlobalRejectSettings[Action] extends boolean
+    ? GlobalRejectSettings[Action] extends RejectOnNotFound
       ? IsReject<GlobalRejectSettings[Action]>
       : GlobalRejectSettings[Action] extends RejectPerModel
       ? Model extends keyof GlobalRejectSettings[Action]
@@ -355,6 +356,7 @@ export type PrismaAction =
   | 'queryRaw'
   | 'aggregate'
   | 'count'
+  | 'runCommandRaw'
 
 /**
  * These options are being passed in to the middleware as "params"

@@ -3,9 +3,11 @@ import { BinaryType } from '@prisma/fetch-engine'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
+
 import { ErrorArea, RustPanic } from './panic'
 import { resolveBinary } from './resolveBinary'
 import byline from './utils/byline'
+
 const debugCli = Debug('prisma:introspectionEngine:cli')
 const debugRpc = Debug('prisma:introspectionEngine:rpc')
 const debugStderr = Debug('prisma:introspectionEngine:stderr')
@@ -43,8 +45,8 @@ export class IntrospectionError extends Error {
 }
 
 // See prisma-engines
-// SQL https://github.com/prisma/prisma-engines/blob/master/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
-// Mongo https://github.com/prisma/prisma-engines/blob/master/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
+// SQL https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
+// Mongo https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
 export type IntrospectionWarnings =
   | IntrospectionWarningsUnhandled
   | IntrospectionWarningsInvalidReintro
@@ -61,32 +63,54 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsCuidReintro
   | IntrospectionWarningsUuidReintro
   | IntrospectionWarningsUpdatedAtReintro
+  | IntrospectionWarningsWithoutColumns
+  | IntrospectionWarningsModelsWithIgnoreReintro
+  | IntrospectionWarningsFieldsWithIgnoreReintro
+  | IntrospectionWarningsCustomIndexNameReintro
+  | IntrospectionWarningsCustomPrimaryKeyNamesReintro
+  | IntrospectionWarningsRelationsReintro
   | IntrospectionWarningsMongoMultipleTypes
+  | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
+  | IntrospectionWarningsMongoFieldsWithUnkownTypes
+  | IntrospectionWarningsMongoFieldsWithEmptyNames
 
-type AffectedModel = { model: string }[]
-type AffectedModelAndField = { model: string; field: string }[]
+type AffectedModel = { model: string }
+type AffectedModelAndIndex = { model: string; index_db_name: string }
+type AffectedModelAndField = { model: string; field: string }
 type AffectedModelAndFieldAndType = {
   model: string
   field: string
   tpe: string
-}[]
-type AffectedEnum = { enm: string }[]
-type AffectedEnumAndValue = { enm: string; value: string }[]
+}
+type AffectedModelOrCompositeTypeAndField = {
+  // Either compositeType or model is defined
+  compositeType?: string
+  model?: string
+  field: string
+}
+type AffectedModelOrCompositeTypeAndFieldAndType = AffectedModelOrCompositeTypeAndField & {
+  tpe: string
+}
+type AffectedEnum = { enm: string }
+type AffectedEnumAndValue = { enm: string; value: string }
 
 interface IntrospectionWarning {
   code: number
   message: string
   affected:
-    | AffectedModel
-    | AffectedModelAndField
-    | AffectedModelAndFieldAndType
-    | AffectedEnum
-    | AffectedEnumAndValue
+    | AffectedModel[]
+    | AffectedModelAndIndex[]
+    | AffectedModelAndField[]
+    | AffectedModelAndFieldAndType[]
+    | AffectedModelOrCompositeTypeAndField[]
+    | AffectedModelOrCompositeTypeAndFieldAndType[]
+    | AffectedEnum[]
+    | AffectedEnumAndValue[]
     | null
 }
 
 interface IntrospectionWarningsUnhandled extends IntrospectionWarning {
-  code: number
+  code: -1 // -1 doesn't exist, it's just for the types
   affected: any
 }
 interface IntrospectionWarningsInvalidReintro extends IntrospectionWarning {
@@ -95,73 +119,104 @@ interface IntrospectionWarningsInvalidReintro extends IntrospectionWarning {
 }
 interface IntrospectionWarningsMissingUnique extends IntrospectionWarning {
   code: 1
-  affected: AffectedModel
+  affected: AffectedModel[]
 }
 interface IntrospectionWarningsEmptyFieldName extends IntrospectionWarning {
   code: 2
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
 }
 interface IntrospectionWarningsUnsupportedType extends IntrospectionWarning {
   code: 3
-  affected: AffectedModelAndFieldAndType
+  affected: AffectedModelAndFieldAndType[]
 }
 interface IntrospectionWarningsInvalidEnumName extends IntrospectionWarning {
   code: 4
-  affected: AffectedEnumAndValue
+  affected: AffectedEnumAndValue[]
 }
 interface IntrospectionWarningsCuidPrisma1 extends IntrospectionWarning {
   code: 5
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
 }
 interface IntrospectionWarningsUuidPrisma1 extends IntrospectionWarning {
   code: 6
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
 }
 interface IntrospectionWarningsFieldModelReintro extends IntrospectionWarning {
   code: 7
-  affected: AffectedModel
+  affected: AffectedModel[]
 }
 interface IntrospectionWarningsFieldMapReintro extends IntrospectionWarning {
   code: 8
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
 }
 interface IntrospectionWarningsEnumMapReintro extends IntrospectionWarning {
   code: 9
-  affected: AffectedEnum
+  affected: AffectedEnum[]
 }
 interface IntrospectionWarningsEnumValueMapReintro extends IntrospectionWarning {
   code: 10
-  affected: AffectedEnum
+  affected: AffectedEnum[]
 }
 interface IntrospectionWarningsCuidReintro extends IntrospectionWarning {
   code: 11
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
 }
 interface IntrospectionWarningsUuidReintro extends IntrospectionWarning {
   code: 12
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
 }
 interface IntrospectionWarningsUpdatedAtReintro extends IntrospectionWarning {
   code: 13
-  affected: AffectedModelAndField
+  affected: AffectedModelAndField[]
+}
+interface IntrospectionWarningsWithoutColumns extends IntrospectionWarning {
+  code: 14
+  affected: AffectedModel[]
+}
+interface IntrospectionWarningsModelsWithIgnoreReintro extends IntrospectionWarning {
+  code: 15
+  affected: AffectedModel[]
+}
+interface IntrospectionWarningsFieldsWithIgnoreReintro extends IntrospectionWarning {
+  code: 16
+  affected: AffectedModelAndField[]
+}
+interface IntrospectionWarningsCustomIndexNameReintro extends IntrospectionWarning {
+  code: 17
+  affected: AffectedModelAndIndex[]
+}
+interface IntrospectionWarningsCustomPrimaryKeyNamesReintro extends IntrospectionWarning {
+  code: 18
+  affected: AffectedModel[]
+}
+interface IntrospectionWarningsRelationsReintro extends IntrospectionWarning {
+  code: 19
+  affected: AffectedModel[]
 }
 
 // MongoDB starts at 101 see
-// https://github.com/prisma/prisma-engines/blob/master/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L39-L43
+// https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L39-L43
 interface IntrospectionWarningsMongoMultipleTypes extends IntrospectionWarning {
   code: 101
-  // TODO delete name and replace by affected when done in
-  // https://github.com/prisma/prisma-engines/blob/9649bb31b5d544122adb9ad21d40d9d1ae1448e6/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L42
-  // and adjust https://github.com/prisma/prisma/blob/main/packages/migrate/src/commands/DbPull.ts#L230
-  name: [affected: AffectedModelAndFieldAndType]
-  // affected: AffectedModelAndFieldAndType
+  affected: AffectedModelOrCompositeTypeAndFieldAndType[]
+}
+interface IntrospectionWarningsMongoFieldsPointingToAnEmptyType extends IntrospectionWarning {
+  code: 102
+  affected: AffectedModelOrCompositeTypeAndField[]
+}
+interface IntrospectionWarningsMongoFieldsWithUnkownTypes extends IntrospectionWarning {
+  code: 103
+  affected: AffectedModelOrCompositeTypeAndField[]
+}
+interface IntrospectionWarningsMongoFieldsWithEmptyNames extends IntrospectionWarning {
+  code: 104
+  affected: AffectedModelOrCompositeTypeAndField[]
 }
 
 export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
 
 let messageId = 1
 
-/* tslint:disable */
 export class IntrospectionEngine {
   private debug: boolean
   private cwd: string
@@ -209,7 +264,7 @@ export class IntrospectionEngine {
   public introspect(
     schema: string,
     force?: Boolean,
-    compositeTypeDepth?: number, // optional, only for mongodb
+    compositeTypeDepth = -1, // optional, only for mongodb
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]

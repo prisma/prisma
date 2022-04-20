@@ -1,9 +1,10 @@
 import chalk from 'chalk'
+import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
-import type { DMMF } from '../dmmf-types'
-import Decimal from 'decimal.js'
+
 import type { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 
 export interface Dictionary<T> {
   [key: string]: T
@@ -13,25 +14,6 @@ export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (colle
   const acc = {}
 
   for (const obj of collection) {
-    const key = obj[prop]
-    acc[key] = obj
-  }
-  return acc
-}
-
-export const keyBy2: <T>(collection1: T[], collection2: T[], prop: string) => Dictionary<T> = (
-  collection1,
-  collection2,
-  prop,
-) => {
-  const acc = {}
-
-  for (const obj of collection1) {
-    const key = obj[prop]
-    acc[key] = obj
-  }
-
-  for (const obj of collection2) {
     const key = obj[prop]
     acc[key] = obj
   }

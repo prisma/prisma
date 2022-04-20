@@ -1,6 +1,7 @@
 import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
+
 const exists = promisify(fs.exists)
 
 async function resolveNodeModulesBase(cwd: string): Promise<string> {
