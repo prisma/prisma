@@ -20,13 +20,13 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.13.0-8.15bb79c194330f0a6591c38ffc95c885d3a2be46",
+    "@prisma/engines-version": "3.13.0-10.f738c2de40b0514b47c5cdbf75f8bb06929df254",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.17",
     "@types/jest": "27.4.1",
-    "@types/node": "12.20.47",
+    "@types/node": "12.20.48",
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.8",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.13.0-8.15bb79c194330f0a6591c38ffc95c885d3a2be46",
+    "@prisma/get-platform": "3.13.0-10.f738c2de40b0514b47c5cdbf75f8bb06929df254",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
@@ -55,8 +55,6 @@
     "log-update": "4.0.0",
     "mariadb": "3.0.0",
     "mssql": "8.1.0",
-    "new-github-issue-url": "0.2.1",
-    "open": "7.4.2",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",

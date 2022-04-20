@@ -50,7 +50,7 @@ services:
       - DRY_RUN
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
-      - SKIP_E2E_CHECK
+      - SKIP_ECOSYSTEMTESTS_CHECK
       - SLACK_RELEASE_FEED_WEBHOOK
     depends_on:
       - postgres
