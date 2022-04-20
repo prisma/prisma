@@ -21,7 +21,6 @@ import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResul
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
-import { PrismaClientRequestTimeoutError } from '../common/errors/PrismaClientRequestTimeoutError'
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'

@@ -5,7 +5,6 @@ import EventEmitter from 'events'
 
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { PrismaClientRequestTimeoutError } from '../common/errors/PrismaClientRequestTimeoutError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { timedRequest } from '../common/utils/util'
 import { DataProxyError } from './errors/DataProxyError'
