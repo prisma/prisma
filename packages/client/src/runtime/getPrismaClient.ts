@@ -224,12 +224,6 @@ export interface GetPrismaClientConfig {
   activeProvider: string
 
   /**
-   * The contents of the schema in a string.
-   * @remarks used for testing and internal use only
-   */
-  schemaString?: string
-
-  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
@@ -397,7 +391,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         this._engineConfig = {
           cwd,
-          schemaString: config.schemaString,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,

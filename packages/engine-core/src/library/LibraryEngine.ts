@@ -73,7 +73,7 @@ export class LibraryEngine extends Engine {
   constructor(config: EngineConfig) {
     super()
 
-    this.datamodel = config.schemaString ?? fs.readFileSync(config.datamodelPath, 'utf-8')
+    this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
