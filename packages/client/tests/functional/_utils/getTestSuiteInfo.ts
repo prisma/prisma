@@ -1,7 +1,5 @@
-import fs from 'fs-extra'
 import path from 'path'
 
-import { keys } from '../../../../../helpers/blaze/keys'
 import { map } from '../../../../../helpers/blaze/map'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
@@ -21,15 +19,15 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
 
   name += `${suiteMeta.testDirName.replace(/\\|\//, '.')}`
 
-  name += ` (${suiteConfig['#PROVIDER#']})`
+  name += ` (${suiteConfig['provider']})`
 
   name += ` (`
-  if (suiteConfig['#PROVIDER_FEATURES#']) {
-    name += `${suiteConfig['#PROVIDER_FEATURES#']}`
+  if (suiteConfig['providerFeatures']) {
+    name += `${suiteConfig['providerFeatures']}`
   }
 
-  if (suiteConfig['#PREVIEW_FEATURES#']) {
-    name += `${suiteConfig['#PREVIEW_FEATURES#']}`
+  if (suiteConfig['previewFeatures']) {
+    name += `${suiteConfig['previewFeatures']}`
   }
   name += `)`
 
@@ -44,8 +42,8 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
  */
 export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
   return [
-    ...(suiteConfig['#PROVIDER_FEATURES#']?.split(', ') ?? []),
-    ...(suiteConfig['#PREVIEW_FEATURES#']?.split(', ') ?? []),
+    ...(suiteConfig['providerFeatures']?.split(', ') ?? []),
+    ...(suiteConfig['previewFeatures']?.split(', ') ?? []),
   ]
 }
 
@@ -95,7 +93,7 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @returns
  */
 export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
-  const rawMatrix = require(suiteMeta.matrixPath).default() as TestSuiteMatrix
+  const rawMatrix = require(suiteMeta._matrixPath).default() as TestSuiteMatrix
 
   return map(matrix(rawMatrix), (configs) => merge(configs))
 }
@@ -118,15 +116,8 @@ export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
  * @param suiteConfig
  * @returns
  */
-export async function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
-  const schemaPath = path.join(suiteMeta.prismaPath, 'schema.prisma.txt')
-  let schema = await fs.readFile(schemaPath, 'utf-8')
-
-  for (const key of keys(suiteConfig)) {
-    schema = schema.replaceAll(key, suiteConfig[key])
-  }
-
-  return schema
+export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+  return require(suiteMeta._schemaPath).default(suiteConfig)
 }
 
 /**
@@ -139,8 +130,9 @@ export function getTestSuiteMeta() {
   const testDir = path.dirname(testPath)
   const testDirName = testDir.replace(testsDir, '')
   const testFileName = path.basename(testPath)
-  const matrixPath = path.join(testDir, '_matrix')
   const prismaPath = path.join(testDir, 'prisma')
+  const _matrixPath = path.join(testDir, '_matrix')
+  const _schemaPath = path.join(prismaPath, '_schema')
 
-  return { testPath, testDir, testDirName, testFileName, matrixPath, prismaPath }
+  return { testPath, testDir, testDirName, testFileName, prismaPath, _matrixPath, _schemaPath }
 }

@@ -81,7 +81,7 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
 export function setupTestSuiteDbURI(suiteConfig: TestSuiteConfig) {
   // we reuse the original db url but postfix it with a random string
   const dbId = crypto.randomBytes(8).toString('hex')
-  const envVarName = `DATABASE_URI_${suiteConfig['#PROVIDER#']}`
+  const envVarName = `DATABASE_URI_${suiteConfig['provider']}`
   const uriRegex = /(\w+:\/\/\w+:\w+@\w+:\d+\/)((?:\w|-)+)(.*)/g
   const newURI = process.env[envVarName]?.replace(uriRegex, `$1$2${dbId}$3`)
 

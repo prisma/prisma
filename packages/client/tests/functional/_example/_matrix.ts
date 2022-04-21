@@ -1,52 +1,53 @@
 export default () => [
   [
     {
-      '#PROVIDER#': 'sqlite',
-      '#ID#': 'Int @id @default(autoincrement())',
-      '#PROVIDER_FEATURES#': '',
+      provider: 'sqlite',
+      id: 'Int @id @default(autoincrement())',
+      providerFeatures: '',
     },
     {
-      '#PROVIDER#': 'mongodb',
-      '#ID#': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      '#PROVIDER_FEATURES#': '"mongoDb", ',
+      provider: 'mongodb',
+      id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      providerFeatures: '"mongoDb", ',
     },
   ],
   [
     {
-      '#PREVIEW_FEATURES#': '"interactiveTransactions"',
+      previewFeatures: '"interactiveTransactions"',
     },
     {
-      '#PREVIEW_FEATURES#': '"filterJson"',
+      previewFeatures: '"filterJson"',
     },
   ],
 ]
 /* Each test suite gets its `TestSuiteConfig` thanks to `getTestSuiteConfigs`.
    `getTestSuiteConfigs` gives you `TestSuiteConfig[]`, the matrix cross-product.
+  `_schema.ts` is then inflated with that cross-product, see example inputs below:
 
   [
     {
-      '#PROVIDER#': 'sqlite',
-      '#ID#': 'Int @id @default(autoincrement())',
-      '#PROVIDER_FEATURES#': '',
-      '#PREVIEW_FEATURES#': '"interactiveTransactions"',
+      'provider': 'sqlite',
+      'id': 'Int @id @default(autoincrement())',
+      'providerFeatures': '',
+      'previewFeatures': '"interactiveTransactions"',
     },
     {
-      '#PROVIDER#': 'mongodb',
-      '#ID#': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      '#PROVIDER_FEATURES#': '"mongoDb", ',
-      '#PREVIEW_FEATURES#': '"interactiveTransactions"',
+      'provider': 'mongodb',
+      'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      'providerFeatures': '"mongoDb", ',
+      'previewFeatures': '"interactiveTransactions"',
     },
     {
-      '#PROVIDER#': 'sqlite',
-      '#ID#': 'Int @id @default(autoincrement())',
-      '#PROVIDER_FEATURES#': '',
-      '#PREVIEW_FEATURES#': '"filterJson"',
+      'provider': 'sqlite',
+      'id': 'Int @id @default(autoincrement())',
+      'providerFeatures': '',
+      'previewFeatures': '"filterJson"',
     },
     {
-      '#PROVIDER#': 'mongodb',
-      '#ID#': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      '#PROVIDER_FEATURES#': '"mongoDb", ',
-      '#PREVIEW_FEATURES#': '"filterJson"',
+      'provider': 'mongodb',
+      'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      'providerFeatures': '"mongoDb", ',
+      'previewFeatures': '"filterJson"',
     },
   ]
 */

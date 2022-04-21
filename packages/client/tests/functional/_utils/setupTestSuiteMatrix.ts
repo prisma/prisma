@@ -45,9 +45,9 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
     const [suiteName, suiteConfig] = suiteEntry
 
     // we don't run tests for some providers that we want to skip on the CI
-    if (suiteConfig['#PROVIDER#'].toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) return
-    if (suiteConfig['#PROVIDER#'].toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) return
-    if (suiteConfig['#PROVIDER#'].toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) return
+    if (suiteConfig['provider']?.toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) return
+    if (suiteConfig['provider']?.toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) return
+    if (suiteConfig['provider']?.toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) return
 
     describe(suiteName, () => {
       // we inject modified env vars, and make the client available as globals
