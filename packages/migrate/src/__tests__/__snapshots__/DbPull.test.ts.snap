@@ -72,7 +72,7 @@ model jobs {
 exports[`cockroachdb basic introspection --url 2`] = `
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://prisma@localhost:26257/tests"
+  url      = "postgresql://prisma@cockroachdb:26257/tests"
 }
 
 model Post {
@@ -112,7 +112,7 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = "postgresql://prisma@localhost:26257/tests"
+  url      = "postgresql://prisma@cockroachdb:26257/tests"
 }
 
 model Post {
@@ -152,13 +152,13 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  url      = env("TEST_COCKROACH_URI")
 }
 
 model Post {
   id        String    @id
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
   published Boolean   @default(false)
   title     String
   content   String?
