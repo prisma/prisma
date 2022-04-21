@@ -1,26 +1,19 @@
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
-import { redactCommandArray, tryToReadDataFromSchema } from '../utils/checkpoint'
+import { redactCommandArray, SENSITIVE_CLI_OPTIONS, tryToReadDataFromSchema } from '../utils/checkpoint'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should redact --url [value]', () => {
-  expect(redactCommandArray(['cmd', '--url', 'redactme'])).toMatchInlineSnapshot(`
-    Array [
-      cmd,
-      --url,
-      [redacted],
-    ]
-  `)
+it('should redact --option [value]', () => {
+  for (const option of SENSITIVE_CLI_OPTIONS) {
+    expect(redactCommandArray(['cmd', option, `secret`])).toEqual(['cmd', option, '[redacted]'])
+  }
 })
 
-it('should redact --url=[value]', () => {
-  expect(redactCommandArray(['cmd', '--url=redactme'])).toMatchInlineSnapshot(`
-    Array [
-      cmd,
-      --url=[redacted],
-    ]
-  `)
+it('should redact --option=[value]', () => {
+  for (const option of SENSITIVE_CLI_OPTIONS) {
+    expect(redactCommandArray(['cmd', `${option}=secret`])).toEqual(['cmd', `${option}=[redacted]`])
+  }
 })
 
 it('should read data from Prisma schema', async () => {

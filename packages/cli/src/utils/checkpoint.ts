@@ -123,39 +123,38 @@ export async function tryToReadDataFromSchema(schemaPath: string) {
 }
 
 /*
+ * String options of the CLI
+ * Tip: search for `: String,`
+ */
+export const SENSITIVE_CLI_OPTIONS = [
+  // 1. Connection strings
+  '--url',
+  '--shadow-database-url',
+  '--from-url',
+  '--to-url',
+  // 2. Paths
+  '--schema',
+  '--file',
+  '--from-schema-datamodel',
+  '--to-schema-datamodel',
+  '--from-schema-datasource',
+  '--to-schema-datasource',
+  '--from-migrations',
+  '--to-migrations',
+  '--hostname',
+  // 3. Migration names
+  '--name',
+  '--applied',
+  '--rolled-back',
+]
+/*
  * removes potentially sensitive information from the command array (argv strings)
  */
 export const redactCommandArray = (commandArray: string[]) => {
-  /*
-   * String options of the CLI
-   * Tip: search for `: String,`
-   */
-  const SENSITIVE_OPTIONS = [
-    // 1. Connection strings
-    '--url',
-    '--shadow-database-url',
-    '--from-url',
-    '--to-url',
-    // 2. Paths
-    '--schema',
-    '--file',
-    '--from-schema-datamodel',
-    '--to-schema-datamodel',
-    '--from-schema-datasource',
-    '--to-schema-datasource',
-    '--from-migrations',
-    '--to-migrations',
-    '--hostname',
-    // 3. Migration names
-    '--name',
-    '--applied',
-    '--rolled-back',
-  ]
-
   for (let i = 0; i < commandArray.length; i++) {
     const arg = commandArray[i]
     // redact --option arguments
-    SENSITIVE_OPTIONS.forEach((option: string) => {
+    SENSITIVE_CLI_OPTIONS.forEach((option: string) => {
       // --url file:./dev.db
       // arg is `--url` and a complete match
       const argIndexCompleteMatch = arg === option
