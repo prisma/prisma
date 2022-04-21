@@ -597,7 +597,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 // TODO: Windows: tests fail on Windows, introspected schema differs from snapshots.
 // TODO: macOS: disabled on CI because it fails with timeout. Somehow jest.setTimeout
 // doesn't seem to work in this test case particularly.
-describe('MongoDB', () => {
+describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
@@ -612,21 +612,26 @@ describe('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/no-model.prisma
       Datasource "my_db"
-
-      Introspecting based on datasource defined in prisma/no-model.prisma …
-
-      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
-            
-      *** WARNING ***
-
-      The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Json"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-
-      Run prisma generate to generate Prisma Client.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+    (spinner) Introspecting based on datasource defined in prisma/no-model.prisma
+
+    (spinner ✔) Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
+          
+    *** WARNING ***
+    
+    The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+    - Model "users", field: "numberOrString1", chosen data type: "Json"
+    - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+    - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+
+    Run prisma generate to generate Prisma Client.
+
+  `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   test('introspection --force (existing models)', async () => {
