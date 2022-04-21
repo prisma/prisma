@@ -512,6 +512,7 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tempy: 1.0.1
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -530,6 +531,7 @@ importers:
       prompts: 2.4.2
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
+      ts-pattern: 4.0.1
     devDependencies:
       '@prisma/engines-version': 3.13.0-10.f738c2de40b0514b47c5cdbf75f8bb06929df254
       '@prisma/generator-helper': link:../generator-helper
@@ -2056,10 +2058,6 @@ packages:
 
   /@types/node/14.18.13:
     resolution: {integrity: sha512-Z6/KzgyWOga3pJNS42A+zayjhPbf2zM3hegRQaOPnLOzEi86VV++6FLDWgR1LGrVCRufP/ph2daa3tEa5br1zA==}
-    dev: true
-
-  /@types/node/16.11.26:
-    resolution: {integrity: sha512-GZ7bu5A6+4DtG7q9GsoHXy3ALcgeIHP4NnL0Vv2wu0uUB/yQex26v0tf6/na1mm0+bS9Uw+0DFex7aaKr2qawQ==}
     dev: true
 
   /@types/node/16.11.27:
@@ -5263,7 +5261,7 @@ packages:
       pretty-format: 27.5.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.4.0_a16cbeb8e0fa356850b3b86d32b2cb91
+      ts-node: 10.4.0_6971bcbb08a723855b7f8db1d8bb7314
     transitivePeerDependencies:
       - bufferutil
       - canvas
