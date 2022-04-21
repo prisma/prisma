@@ -239,7 +239,6 @@ jobs:
         database:
           - sqlite
           - postgres
-          - cockroachdb
           - mysql
           - mariadb
           - mssql
