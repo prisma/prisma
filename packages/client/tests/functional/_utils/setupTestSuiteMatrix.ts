@@ -4,9 +4,6 @@ import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-const SKIP_COND = !process.env.TEST_SKIP_MONGODB || !process.env.TEST_SKIP_MSSQL || !process.env.TEST_SKIP_COCKROACHDB
-
 /**
  * How does this work from a high level? What steps?
  * 1. You create a file that uses `setupTestSuiteMatrix`
@@ -47,7 +44,12 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
   ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
     const [suiteName, suiteConfig] = suiteEntry
 
-    describeIf(SKIP_COND)(suiteName, () => {
+    // we don't run tests for some providers that we want to skip on the CI
+    if (suiteConfig['#PROVIDER#'].toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) return
+    if (suiteConfig['#PROVIDER#'].toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) return
+    if (suiteConfig['#PROVIDER#'].toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) return
+
+    describe(suiteName, () => {
       // we inject modified env vars, and make the client available as globals
       beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
       beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
