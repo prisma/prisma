@@ -161,7 +161,7 @@ Set composite types introspection depth to 2 levels
               datamodel: rawSchema,
               ignoreEnvVarErrors: true,
             })
-            const { provider } = config.datasources[0]
+            const provider = config.datasources[0]?.provider
             const schema = this.urlToDatasource(input.url, provider) + removeDatasource(rawSchema)
             return schema
           }
