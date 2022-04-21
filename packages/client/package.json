@@ -42,7 +42,8 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "pnpm run test:functional:code && pnpm run test:functional:types && jest --verbose",
+    "test": "jest --verbose",
+    "test:functional": "pnpm run test:functional:code && pnpm run test:functional:types",
     "test:functional:code": "jest --verbose --config=tests/functional/jest.config.js --testPathIgnorePatterns typescript",
     "test:functional:types": "jest --verbose --config=tests/functional/jest.config.js -- typescript",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",

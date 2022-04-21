@@ -18,7 +18,7 @@ cd packages/integration-tests
 pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
 cd ../..
 
-pnpm run test
+pnpm run test && pnpm run test:functional
 
 # disable printing with +x and return as before just after
 set +x
