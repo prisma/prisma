@@ -62,6 +62,7 @@ const proxyBuildConfig: BuildOptions = {
 
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
+  name: 'generator',
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
