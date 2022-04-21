@@ -2,6 +2,7 @@ import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -52,8 +53,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('basic introspection with invalid --url', async () => {
-    ctx.fixture('introspection/sqlite')
+  test('basic introspection with invalid --url if schema is unspecified', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'invalidstring'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol invalidstring:`)
@@ -414,6 +414,66 @@ describe('postgresql', () => {
       Introspecting based on datasource defined in prisma/using-dotenv.prisma …
 
     `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describe('cockroachdb', () => {
+  // TODO: plug in 'cockroachdb' service rather than 'postgres'.
+  // Currently this isn't possible (at least locally) due to: https://github.com/cockroachdb/cockroach/issues/60916
+  const setupParams: SetupParams = {
+    // connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'cockroachdb'),
+  }
+
+  beforeAll(async () => {
+    // await tearDownCockroach(setupParams).catch((e) => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    // await setupCockroach(setupParams).catch((e) => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    // await tearDownCockroach(setupParams).catch((e) => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  test('basic introspection', async () => {
+    ctx.fixture('introspection/cockroachdb')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection --url', async () => {
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection --url with schema', async () => {
+    ctx.fixture('introspection/cockroachdb')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
