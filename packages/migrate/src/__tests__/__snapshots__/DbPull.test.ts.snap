@@ -72,7 +72,7 @@ model jobs {
 exports[`cockroachdb basic introspection --url 2`] = `
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://prisma@cockroachdb:26257/tests"
+  url      = "postgresql://prisma@localhost:26257/tests"
 }
 
 model Post {
@@ -112,7 +112,7 @@ generator client {
 
 datasource db {
   provider = "cockroachdb"
-  url      = "postgresql://prisma@cockroachdb:26257/tests"
+  url      = "postgresql://prisma@localhost:26257/tests"
 }
 
 model Post {
