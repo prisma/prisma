@@ -146,7 +146,7 @@ export async function generateClient({
   clientVersion,
   engineVersion,
   activeProvider,
-}: GenerateClientOptions): Promise<BuildClientResult | undefined> {
+}: GenerateClientOptions): Promise<{}> {
   const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
   runtimeDir = runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
@@ -302,7 +302,6 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
@@ -318,7 +317,7 @@ export async function generateClient({
     await copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
-  return { prismaClientDmmf, fileMap }
+  return {}
 }
 
 async function fileSize(name: string): Promise<number | null> {
