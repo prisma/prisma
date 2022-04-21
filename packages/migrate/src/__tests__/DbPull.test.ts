@@ -419,31 +419,25 @@ describe('postgresql', () => {
 })
 
 describe('cockroachdb', () => {
-  // TODO: plug in 'cockroachdb' service rather than 'postgres'.
-  // Currently this isn't possible (at least locally) due to: https://github.com/cockroachdb/cockroach/issues/60916
   const setupParams: SetupParams = {
-    // connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'cockroachdb'),
   }
 
   beforeAll(async () => {
-    // await tearDownCockroach(setupParams).catch((e) => {
-    await tearDownPostgres(setupParams).catch((e) => {
+    await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    // await setupCockroach(setupParams).catch((e) => {
-    await setupPostgres(setupParams).catch((e) => {
+    await setupCockroach(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
   afterEach(async () => {
-    // await tearDownCockroach(setupParams).catch((e) => {
-    await tearDownPostgres(setupParams).catch((e) => {
+    await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
   })
