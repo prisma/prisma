@@ -4,6 +4,9 @@ import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const SKIP_COND = !process.env.TEST_SKIP_MONGODB || !process.env.TEST_SKIP_MSSQL || !process.env.TEST_SKIP_COCKROACHDB
+
 /**
  * How does this work from a high level? What steps?
  * 1. You create a file that uses `setupTestSuiteMatrix`
@@ -41,24 +44,28 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
   const suiteTable = getTestSuiteTable(suiteMeta)
   const forceInlineSnapshot = process.argv.includes('-u')
 
-  describe.each(forceInlineSnapshot ? [suiteTable[0]] : suiteTable)('%s', (_, suiteConfig) => {
-    // we inject modified env vars, and make the client available as globals
-    beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
-    beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
-    beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
-    beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
-    beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
+  ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
+    const [suiteName, suiteConfig] = suiteEntry
 
-    // we disconnect and drop the database, clean up the env, and global vars
-    afterAll(async () => await globalThis['prisma']?.$disconnect())
-    afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
-    afterAll(() => (process.env = originalEnv))
-    afterAll(() => delete globalThis['loaded'])
-    afterAll(() => delete globalThis['prisma'])
-    afterAll(() => delete globalThis['Prisma'])
-    afterAll(() => delete globalThis['PrismaClient'])
+    describeIf(SKIP_COND)(suiteName, () => {
+      // we inject modified env vars, and make the client available as globals
+      beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
+      beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
+      beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
+      beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
+      beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
 
-    tests(suiteConfig, suiteMeta)
+      // we disconnect and drop the database, clean up the env, and global vars
+      afterAll(async () => await globalThis['prisma']?.$disconnect())
+      afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+      afterAll(() => (process.env = originalEnv))
+      afterAll(() => delete globalThis['loaded'])
+      afterAll(() => delete globalThis['prisma'])
+      afterAll(() => delete globalThis['Prisma'])
+      afterAll(() => delete globalThis['PrismaClient'])
+
+      tests(suiteConfig, suiteMeta)
+    })
   })
 }
 

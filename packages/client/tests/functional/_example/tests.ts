@@ -13,7 +13,6 @@ setupTestSuiteMatrix((suiteConfig, suiteMeta) => {
   // take a look at the test suite config (see _matrix.ts)
   test('suiteConfig', () => {
     console.log(suiteConfig)
-    console.log(suiteMeta)
   })
 
   // an example of how we generate the schema internally
