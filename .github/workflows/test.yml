@@ -98,9 +98,9 @@ jobs:
       # https://github.com/actions/setup-node/blob/bacd6b4b3ac3127b28a1e1920c23bf1c2cadbb85/src/main.ts#L54-L60
       - name: Disable GitHub annotations from linting
         run: |
-         echo "::remove-matcher owner=eslint-compact::"
-         echo "::remove-matcher owner=eslint-stylish::"
-       
+          echo "::remove-matcher owner=eslint-compact::"
+          echo "::remove-matcher owner=eslint-stylish::"
+
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
@@ -239,6 +239,7 @@ jobs:
         database:
           - sqlite
           - postgres
+          - cockroachdb
           - mysql
           - mariadb
           - mssql
@@ -381,7 +382,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
