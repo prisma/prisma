@@ -382,7 +382,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed
 
       - name: Set CLI Engine Type
         run: |
