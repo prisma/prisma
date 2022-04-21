@@ -26,7 +26,7 @@ export async function runCheckpointClientCheck({
   version: string
   commandArray: string[]
   telemetryInformation: string
-}): Promise<Check.Result> {
+}): Promise<Check.Result | 0> {
   try {
     // SHA256 identifier for the project based on the Prisma schema path
     const projectPathHash = await getProjectHash()
@@ -72,6 +72,7 @@ export async function runCheckpointClientCheck({
   } catch (e) {
     debug('Error from runCheckpointClientCheck()')
     debug(e)
+    return 0
   }
 }
 
