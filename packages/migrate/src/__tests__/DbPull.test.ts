@@ -444,7 +444,7 @@ describe('postgresql', () => {
 
   test('introspection should load .env file with --print', async () => {
     ctx.fixture('schema-only-postgresql')
-    expect.assertions(5)
+    expect.assertions(7)
 
     try {
       await DbPull.new().parse(['--print', '--schema=./prisma/using-dotenv.prisma'])
