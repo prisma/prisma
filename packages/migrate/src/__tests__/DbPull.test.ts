@@ -83,9 +83,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting based on datasource defined in schema.prisma
+      - Introspecting based on datasource defined in schema.prisma
       
-      (spinner ✔) Introspected 3 models and wrote them into schema.prisma in XXXms
+      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
       
@@ -110,9 +110,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting
+      - Introspecting
       
-      (spinner ✔) Introspected 3 models and wrote them into schema.prisma in XXXms
+      ✔ Introspected 3 models and wrote them into schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
       
@@ -148,9 +148,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting based on datasource defined in prisma/reintrospection.prisma
+      - Introspecting based on datasource defined in prisma/reintrospection.prisma
       
-      (spinner ✔) Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
+      ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
             
       *** WARNING ***
 
@@ -245,9 +245,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting based on datasource defined in prisma/schema.prisma
+      - Introspecting based on datasource defined in prisma/schema.prisma
       
-      (spinner ✔) Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
+      ✔ Introspected 3 models and wrote them into prisma/schema.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
       
@@ -281,9 +281,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting based on datasource defined in prisma/schema.prisma
+      - Introspecting based on datasource defined in prisma/schema.prisma
 
-      (spinner ✖) Introspecting based on datasource defined in prisma/schema.prisma
+      ✖ Introspecting based on datasource defined in prisma/schema.prisma
       
     `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -316,9 +316,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting based on datasource defined in prisma/schema.prisma
+      - Introspecting based on datasource defined in prisma/schema.prisma
 
-      (spinner ✖) Introspecting based on datasource defined in prisma/schema.prisma
+      ✖ Introspecting based on datasource defined in prisma/schema.prisma
       
     `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -359,9 +359,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       
       
-      (spinner) Introspecting based on datasource defined in prisma/invalid.prisma
+      - Introspecting based on datasource defined in prisma/invalid.prisma
 
-      (spinner ✖) Introspecting based on datasource defined in prisma/invalid.prisma
+      ✖ Introspecting based on datasource defined in prisma/invalid.prisma
       
     `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -382,9 +382,9 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      (spinner) Introspecting based on datasource defined in prisma/invalid.prisma
+      - Introspecting based on datasource defined in prisma/invalid.prisma
 
-      (spinner ✔) Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
+      ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
             
       Run prisma generate to generate Prisma Client.
 
@@ -482,9 +482,9 @@ describe('postgresql', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      (spinner) Introspecting based on datasource defined in prisma/using-dotenv.prisma
+      - Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-      (spinner ✖) Introspecting based on datasource defined in prisma/using-dotenv.prisma
+      ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
     `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -617,9 +617,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-    (spinner) Introspecting based on datasource defined in prisma/no-model.prisma
+    - Introspecting based on datasource defined in prisma/no-model.prisma
 
-    (spinner ✔) Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
+    ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
           
     *** WARNING ***
     
@@ -648,9 +648,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      (spinner) Introspecting based on datasource defined in prisma/schema.prisma
+      - Introspecting based on datasource defined in prisma/schema.prisma
 
-      (spinner ✔) Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
             
       *** WARNING ***
       
@@ -828,9 +828,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      (spinner) Introspecting based on datasource defined in prisma/schema.prisma
+      - Introspecting based on datasource defined in prisma/schema.prisma
 
-      (spinner ✔) Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
             
       *** WARNING ***
       
@@ -940,9 +940,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      (spinner) Introspecting
+      - Introspecting
 
-      (spinner ✔) Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
+      ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
             
       *** WARNING ***
       
@@ -971,9 +971,9 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      (spinner) Introspecting based on datasource defined in prisma/schema.prisma
+      - Introspecting based on datasource defined in prisma/schema.prisma
 
-      (spinner ✔) Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
             
       *** WARNING ***
       

@@ -34,23 +34,6 @@ export function createSpinner(enableOutput = true, oraOptions: Partial<OraOption
     }
 
     actualOptions.stream?.write('\n')
-
-    /**
-     * Ships the mocks with the actual implementation in order to have sane jest snapshots.
-     * This is a workaround because jest doesn't support mocking classes.
-     */
-    if (process.env.NODE_ENV === 'test' || process.env.CI) {
-      actualOptions.stream?.write(`(spinner) ${text}\n`)
-      return {
-        success: (textSuccess) => {
-          actualOptions.stream?.write(`(spinner ✔) ${textSuccess ?? text}\n`)
-        },
-        failure: (textFailure) => {
-          actualOptions.stream?.write(`(spinner ✖) ${textFailure ?? text}\n`)
-        },
-      }
-    }
-
     const spinner = ora(actualOptions)
     spinner.start(text)
 
