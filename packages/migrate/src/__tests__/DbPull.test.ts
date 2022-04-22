@@ -551,6 +551,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     })
   })
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlserver')
     const introspect = new DbPull()
@@ -561,6 +563,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', JDBC_URI])
