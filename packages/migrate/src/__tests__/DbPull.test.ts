@@ -418,7 +418,7 @@ describe('postgresql', () => {
   })
 })
 
-describe('cockroachdb', () => {
+describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'cockroachdb'),
