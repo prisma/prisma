@@ -37,7 +37,7 @@ import { Init } from './Init'
 */
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
-import { runCheckpointClientCheck } from './utils/checkpoint'
+import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
@@ -79,6 +79,9 @@ const args = arg(
   false,
   true,
 )
+
+// Redact the command options and make it a string
+const redactedCommandAsString = redactCommandArray([...commandArray]).join(' ')
 
 // because chalk ...
 if (process.env.NO_COLOR) {
@@ -158,7 +161,7 @@ async function main(): Promise<number> {
    * See function for more info
    */
   const checkResult = await runCheckpointClientCheck({
-    commandArray,
+    command: redactedCommandAsString,
     isPrismaInstalledGlobally,
     schemaPath: args['--schema'],
     telemetryInformation: args['--telemetry-information'],
@@ -201,7 +204,7 @@ if (eval('require.main === module')) {
 
 function handleIndividualError(error): void {
   if (error.rustStack) {
-    handlePanic(error, packageJson.version, enginesVersion, commandArray.join(' '))
+    handlePanic(error, packageJson.version, enginesVersion, redactedCommandAsString)
       .catch((e) => {
         if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)

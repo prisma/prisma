@@ -18,13 +18,13 @@ export async function runCheckpointClientCheck({
   schemaPath,
   isPrismaInstalledGlobally,
   version,
-  commandArray,
+  command,
   telemetryInformation,
 }: {
   schemaPath: string
   isPrismaInstalledGlobally: 'npm' | 'yarn' | false
   version: string
-  commandArray: string[]
+  command: string
   telemetryInformation: string
 }): Promise<Check.Result | 0> {
   try {
@@ -32,8 +32,6 @@ export async function runCheckpointClientCheck({
     const projectPathHash = await getProjectHash()
     // SHA256 of the cli path
     const cliPathHash = getCLIPathHash()
-    // Redact the command options and make it a string
-    const commandAsString = redactCommandArray(commandArray).join(' ')
     // Read schema and extract some data
     const { schemaProvider, schemaPreviewFeatures, schemaGeneratorsProviders } = await tryToReadDataFromSchema(
       schemaPath,
@@ -57,7 +55,7 @@ export async function runCheckpointClientCheck({
       // Type of CLI install: global or local
       cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
       // Command with redacted options
-      command: commandAsString,
+      command,
       // Internal: Additional information from `--telemetry-information` option or `PRISMA_TELEMETRY_INFORMATION` env var
       // Default: undefined
       information: telemetryInformation || process.env.PRISMA_TELEMETRY_INFORMATION,
@@ -150,7 +148,9 @@ export const SENSITIVE_CLI_OPTIONS = [
 /*
  * removes potentially sensitive information from the command array (argv strings)
  */
-export const redactCommandArray = (commandArray: string[]) => {
+export const redactCommandArray = (commandArray: string[]): string[] => {
+  const REDACTED_TAG = '[redacted]'
+
   for (let i = 0; i < commandArray.length; i++) {
     const arg = commandArray[i]
     // redact --option arguments
@@ -164,11 +164,11 @@ export const redactCommandArray = (commandArray: string[]) => {
 
       // First check for complete match and redact the value
       if (argIndexCompleteMatch) {
-        commandArray[i + 1] = '[redacted]'
+        commandArray[i + 1] = REDACTED_TAG
       }
       // else check for partial match and redact the value
       else if (argIndexPartialMatch !== -1) {
-        commandArray[i] = `${option}=[redacted]`
+        commandArray[i] = `${option}=${REDACTED_TAG}`
       }
     })
   }
