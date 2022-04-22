@@ -192,7 +192,8 @@ test('introspection basic', async () => {
                 }
               ],
               \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"algorithm\\": null,
+              \\"clustered\\": null
             }
           ],
           \\"primary_key\\": {
@@ -204,7 +205,8 @@ test('introspection basic', async () => {
               }
             ],
             \\"sequence\\": null,
-            \\"constraint_name\\": null
+            \\"constraint_name\\": null,
+            \\"clustered\\": null
           },
           \\"foreign_keys\\": [
             {
@@ -338,7 +340,8 @@ test('introspection basic', async () => {
                 }
               ],
               \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"algorithm\\": null,
+              \\"clustered\\": null
             },
             {
               \\"name\\": \\"User.id\\",
@@ -350,7 +353,8 @@ test('introspection basic', async () => {
                 }
               ],
               \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"algorithm\\": null,
+              \\"clustered\\": null
             }
           ],
           \\"primary_key\\": {
@@ -362,7 +366,8 @@ test('introspection basic', async () => {
               }
             ],
             \\"sequence\\": null,
-            \\"constraint_name\\": null
+            \\"constraint_name\\": null,
+            \\"clustered\\": null
           },
           \\"foreign_keys\\": []
         },
@@ -501,7 +506,8 @@ test('introspection basic', async () => {
               }
             ],
             \\"sequence\\": null,
-            \\"constraint_name\\": null
+            \\"constraint_name\\": null,
+            \\"clustered\\": null
           },
           \\"foreign_keys\\": []
         }
