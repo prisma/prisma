@@ -18,7 +18,7 @@ export interface SpinnerStarted {
 
 /**
  * Closure that starts a spinner if `enableOutput` is true, and returns a `SpinnerStarted` instance.
- * Note: the spinner is automatically disabled when `process.env.CI` is defined.
+ * Note: the spinner will only be enabled if the stream is being run inside a TTY context (not spawned or piped) and/or not in a CI environment.
  * @param enableOutput Whether to enable or disable any output. Useful e.g. for "--print" flags in commands.
  * @param oraOptions Additional options to pass to `ora` for customizing the spinner.
  * @returns
