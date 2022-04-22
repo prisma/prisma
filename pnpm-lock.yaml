@@ -610,7 +610,7 @@ importers:
       new-github-issue-url: 0.2.1
       node-fetch: 2.6.7
       open: '7'
-      ora: ^5
+      ora: 5.4.1
       p-map: 4.0.0
       prompts: 2.4.2
       read-pkg-up: 7.0.1
