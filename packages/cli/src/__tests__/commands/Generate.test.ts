@@ -17,7 +17,7 @@ describe('using cli', () => {
     const { main } = await import(ctx.fs.path('main.ts'))
     expect(replaceEngineType(data.stdout)).toMatchSnapshot()
     await expect(main()).resolves.toMatchSnapshot()
-  }, 60000) // timeout
+  }, 60_000) // timeout
 
   it('should error with exit code 1 with incorrect schema', async () => {
     ctx.fixture('broken-example-project')
@@ -33,7 +33,7 @@ describe('using cli', () => {
     }
 
     expect(data.stdout).toContain(`I am a minimal generator`)
-  }, 50000) // timeout
+  }, 75_000) // timeout
 })
 
 describe('--schema from project directory', () => {
