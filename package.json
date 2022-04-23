@@ -59,7 +59,7 @@
     "eventemitter3": "4.0.7",
     "execa": "5.1.1",
     "glob": "8.0.1",
-    "globby": "11.0.4",
+    "globby": "13.1.1",
     "graphviz-mit": "0.0.9",
     "husky": "7.0.4",
     "is-ci": "3.0.1",

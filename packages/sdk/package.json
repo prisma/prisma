@@ -63,7 +63,7 @@
     "find-up": "5.0.0",
     "fs-jetpack": "4.3.1",
     "global-dirs": "3.0.0",
-    "globby": "11.1.0",
+    "globby": "13.1.1",
     "has-yarn": "2.1.0",
     "is-ci": "3.0.1",
     "make-dir": "3.1.0",
