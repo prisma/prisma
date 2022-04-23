@@ -72,7 +72,7 @@
     "open": "7",
     "p-map": "4.0.0",
     "prompts": "2.4.2",
-    "read-pkg-up": "7.0.1",
+    "read-pkg-up": "9.1.0",
     "replace-string": "3.1.0",
     "resolve": "1.22.0",
     "rimraf": "3.0.2",
