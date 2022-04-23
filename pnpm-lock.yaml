@@ -151,7 +151,7 @@ importers:
       node-fetch: 2.6.7
       open: 7.4.2
       pkg-up: 3.1.0
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       strip-ansi: 6.0.1
@@ -198,7 +198,7 @@ importers:
       node-fetch: 2.6.7
       open: 7.4.2
       pkg-up: 3.1.0
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve-pkg: 2.0.0
       rimraf: 3.0.2
       strip-ansi: 6.0.1
@@ -248,7 +248,7 @@ importers:
       pg: 8.7.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve: 1.22.0
       rimraf: 3.0.2
       sort-keys: 4.2.0
@@ -304,7 +304,7 @@ importers:
       pg: 8.7.1
       pkg-up: 3.1.0
       pluralize: 8.0.0
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve: 1.22.0
       rimraf: 3.0.2
       sort-keys: 4.2.0
@@ -441,7 +441,7 @@ importers:
       mariadb: 3.0.0
       mssql: 8.0.1
       pg: 8.7.1
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       sqlite-async: 1.1.2
       string-hash: 1.1.3
       strip-ansi: 6.0.1
@@ -468,7 +468,7 @@ importers:
       mariadb: 3.0.0
       mssql: 8.0.1
       pg: 8.7.1
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       sqlite-async: 1.1.2
       string-hash: 1.1.3
       strip-ansi: 6.0.1
@@ -613,7 +613,7 @@ importers:
       p-map: 4.0.0
       prompts: 2.4.2
       read-pkg-up: 7.0.1
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve: 1.22.0
       rimraf: 3.0.2
       shell-quote: 1.7.3
@@ -658,7 +658,7 @@ importers:
       p-map: 4.0.0
       prompts: 2.4.2
       read-pkg-up: 7.0.1
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve: 1.22.0
       rimraf: 3.0.2
       shell-quote: 1.7.3
@@ -7088,9 +7088,9 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /replace-string/3.1.0:
-    resolution: {integrity: sha512-yPpxc4ZR2makceA9hy/jHNqc7QVkd4Je/N0WRHm6bs3PtivPuPynxE5ejU/mp5EhnCv8+uZL7vhz8rkluSlx+Q==}
-    engines: {node: '>=8'}
+  /replace-string/4.0.0:
+    resolution: {integrity: sha512-fcgyZ62o26oBaihEC302pZQ2WectvmZ4sGOq4Lwa8ad12lPbhIlZCvLpgpI1sOAsbN83kpXiH5KCcr3pcZa8bA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   /request/2.88.2:
     resolution: {integrity: sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==}
