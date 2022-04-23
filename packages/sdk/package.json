@@ -68,7 +68,7 @@
     "is-ci": "3.0.1",
     "make-dir": "3.1.0",
     "new-github-issue-url": "0.2.1",
-    "node-fetch": "2.6.7",
+    "node-fetch": "3.2.3",
     "open": "7",
     "p-map": "4.0.0",
     "prompts": "2.4.2",
