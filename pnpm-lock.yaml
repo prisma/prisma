@@ -29,7 +29,7 @@ importers:
       eslint-plugin-prettier: 4.0.0
       eslint-plugin-simple-import-sort: 7.0.0
       eventemitter3: 4.0.7
-      execa: 5.1.1
+      execa: 6.1.0
       glob: 8.0.1
       globby: 11.0.4
       graphviz-mit: 0.0.9
@@ -83,7 +83,7 @@ importers:
       eslint-plugin-prettier: 4.0.0_1c588f61426b1faf18812943f1678311
       eslint-plugin-simple-import-sort: 7.0.0_eslint@8.6.0
       eventemitter3: 4.0.7
-      execa: 5.1.1
+      execa: 6.1.0
       glob: 8.0.1
       globby: 11.0.4
       graphviz-mit: 0.0.9
@@ -136,7 +136,7 @@ importers:
       debug: 4.3.3
       dotenv: 16.0.0
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       fast-deep-equal: 3.1.3
       fs-extra: 10.0.0
       fs-jetpack: 4.3.0
@@ -183,7 +183,7 @@ importers:
       debug: 4.3.3
       dotenv: 16.0.0
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       fast-deep-equal: 3.1.3
       fs-extra: 10.0.0
       fs-jetpack: 4.3.0
@@ -230,7 +230,7 @@ importers:
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
@@ -286,7 +286,7 @@ importers:
       chalk: 4.1.2
       decimal.js: 10.3.1
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       flat-map-polyfill: 0.3.8
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
@@ -355,7 +355,7 @@ importers:
       '@types/node': 16.11.27
       chalk: 4.1.2
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       get-stream: 6.0.1
       indent-string: 4.0.0
       jest: 27.5.1
@@ -372,7 +372,7 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': 3.13.0-11.07815b335736eb128666b4a5a86e94e19656f4ff
       chalk: 4.1.2
-      execa: 5.1.1
+      execa: 6.1.0
       get-stream: 6.0.1
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
@@ -434,7 +434,7 @@ importers:
       '@types/sqlite3': 3.1.8
       decimal.js: 10.3.1
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       fs-jetpack: 4.3.0
       jest: 27.5.1
       jest-junit: 13.0.0
@@ -461,7 +461,7 @@ importers:
       '@types/sqlite3': 3.1.8
       decimal.js: 10.3.1
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       fs-jetpack: 4.3.0
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.0.0
@@ -494,7 +494,7 @@ importers:
       '@types/sqlite3': 3.1.8
       chalk: 4.1.2
       esbuild: 0.13.14
-      execa: 5.1.1
+      execa: 6.1.0
       fs-jetpack: 4.3.0
       get-stdin: 8.0.0
       has-yarn: 2.1.0
@@ -518,7 +518,7 @@ importers:
       '@prisma/get-platform': 3.13.0-11.07815b335736eb128666b4a5a86e94e19656f4ff
       '@sindresorhus/slugify': 1.1.2
       chalk: 4.1.2
-      execa: 5.1.1
+      execa: 6.1.0
       get-stdin: 8.0.0
       has-yarn: 2.1.0
       indent-string: 4.0.0
@@ -596,7 +596,7 @@ importers:
       dotenv: 16.0.0
       esbuild: 0.13.14
       escape-string-regexp: 4.0.0
-      execa: 5.1.1
+      execa: 6.1.0
       find-up: 5.0.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
@@ -644,7 +644,7 @@ importers:
       cli-truncate: 2.1.0
       dotenv: 16.0.0
       escape-string-regexp: 4.0.0
-      execa: 5.1.1
+      execa: 6.1.0
       find-up: 5.0.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
@@ -4145,6 +4145,20 @@ packages:
       signal-exit: 3.0.7
       strip-final-newline: 2.0.0
 
+  /execa/6.1.0:
+    resolution: {integrity: sha512-QVWlX2e50heYJcCPG0iWtf8r0xjEYfz/OYLGDYH+IyjWezzPNxz63qNFOu0l4YftGWuizFVZHHs8PrLU5p2IDA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      cross-spawn: 7.0.3
+      get-stream: 6.0.1
+      human-signals: 3.0.1
+      is-stream: 3.0.0
+      merge-stream: 2.0.0
+      npm-run-path: 5.1.0
+      onetime: 6.0.0
+      signal-exit: 3.0.7
+      strip-final-newline: 3.0.0
+
   /exit-on-epipe/1.0.1:
     resolution: {integrity: sha512-h2z5mrROTxce56S+pnvAV890uu7ls7f1kEvVGJbw1OlFH3/mlJ5bkXu0KRyW94v37zzHPiUd55iLn3DA7TjWpw==}
     engines: {node: '>=0.8'}
@@ -4790,6 +4804,10 @@ packages:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
 
+  /human-signals/3.0.1:
+    resolution: {integrity: sha512-rQLskxnM/5OCldHo+wNXbpVgDn5A17CUoKX+7Sokwaknlq7CdSnphy0W39GU8dw59XiCXmFXDg4fRuckQRKewQ==}
+    engines: {node: '>=12.20.0'}
+
   /husky/7.0.4:
     resolution: {integrity: sha512-vbaCKN2QLtP/vD4yvs6iz6hBEo6wkSzs8HpRah1Z6aGmF2KW5PdYuAd7uX5a+OyBZHBhd+TFLqgjUgytQr4RvQ==}
     engines: {node: '>=12'}
@@ -5065,6 +5083,10 @@ packages:
   /is-stream/2.0.1:
     resolution: {integrity: sha512-hFoiJiTl63nn+kstHGBtewWSKnQLpyb155KHheA1l39uvtO9nWIop1p3udqPcUd/xbF1VLMO4n7OI6p7RbngDg==}
     engines: {node: '>=8'}
+
+  /is-stream/3.0.0:
+    resolution: {integrity: sha512-LnQR4bZ9IADDRSkvpqMGvt/tEJWclzklNgSw48V5EAaAeDd6qGvN8ei6k5p0tvxSR171VmGyHuTiAOfxAbr8kA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
 
   /is-string/1.0.7:
     resolution: {integrity: sha512-tE2UXzivje6ofPW7l23cjDOMa09gb7xlAqG6jG5ej6uPV32TlWP3NKPigtaGeHNu9fohccRYvIiZMfOOnOYUtg==}
@@ -6163,6 +6185,10 @@ packages:
     resolution: {integrity: sha512-OqbOk5oEQeAZ8WXWydlu9HJjz9WVdEIvamMCcXmuqUYjTknH/sqsWvhQ3vgwKFRR1HpjvNBKQ37nbJgYzGqGcg==}
     engines: {node: '>=6'}
 
+  /mimic-fn/4.0.0:
+    resolution: {integrity: sha512-vqiC06CuhBTUdZH+RYl8sFrL096vA45Ok5ISO6sE/Mr1jRbGH4Csnhi8f3wKVl7x8mO4Au7Ir9D3Oyv1VYMFJw==}
+    engines: {node: '>=12'}
+
   /min-indent/1.0.1:
     resolution: {integrity: sha512-I9jwMn07Sy/IwOj3zVkVik2JTvgpaykDZEigL6Rx6N9LbMywwUSMtxET+7lVoDLLd3O3IXwJwvuuns8UB/HeAg==}
     engines: {node: '>=4'}
@@ -6443,6 +6469,12 @@ packages:
     dependencies:
       path-key: 3.1.1
 
+  /npm-run-path/5.1.0:
+    resolution: {integrity: sha512-sJOdmRGrY2sjNTRMbSvluQqg+8X7ZK61yvzBEIDhz4f8z1TZFYABsqjjCBd/0PUNE9M6QDgHJXQkGUEm7Q+l9Q==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dependencies:
+      path-key: 4.0.0
+
   /npmlog/4.1.2:
     resolution: {integrity: sha512-2uUqazuKlTaSI/dC8AzicUck7+IrEaOnN/e0jd3Xtt1KcGpwx30v50mL7oPyr/h9bL3E4aZccVwpwP+5W9Vjkg==}
     dependencies:
@@ -6516,6 +6548,12 @@ packages:
     engines: {node: '>=6'}
     dependencies:
       mimic-fn: 2.1.0
+
+  /onetime/6.0.0:
+    resolution: {integrity: sha512-1FlR+gjXK7X+AsAHso35MnyN5KqGwJRi/31ft6x0M194ht7S+rWAvd7PHss9xSKMzE0asv1pyIHaJYq+BbacAQ==}
+    engines: {node: '>=12'}
+    dependencies:
+      mimic-fn: 4.0.0
 
   /open/7.4.2:
     resolution: {integrity: sha512-MVHddDVweXZF3awtlAS+6pgKLlm/JgxZ90+/NBurBoQctVOOB/zDdVjcyPzQ+0laDGbsWgrRkflI65sQeOgT9Q==}
@@ -6703,6 +6741,10 @@ packages:
   /path-key/3.1.1:
     resolution: {integrity: sha512-ojmeN0qd+y0jszEtoY48r0Peq5dwMEkIlCOu6Q5f41lfkswXuKtYrhgoTpLnyIcHm24Uhqx+5Tqm2InSwLhE6Q==}
     engines: {node: '>=8'}
+
+  /path-key/4.0.0:
+    resolution: {integrity: sha512-haREypq7xkM7ErfgIyA0z+Bj4AGKlMSdlQE2jvJo6huWD1EdkKYV+G/T4nq0YEF2vgTT8kqMFKo1uHn950r4SQ==}
+    engines: {node: '>=12'}
 
   /path-parse/1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
@@ -7589,6 +7631,10 @@ packages:
   /strip-final-newline/2.0.0:
     resolution: {integrity: sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==}
     engines: {node: '>=6'}
+
+  /strip-final-newline/3.0.0:
+    resolution: {integrity: sha512-dOESqjYr96iWYylGObzd39EuNTa5VJxyvVAEm5Jnh7KGo75V43Hk1odPQkNDyXNmUR6k+gEiDVXnjB8HJ3crXw==}
+    engines: {node: '>=12'}
 
   /strip-indent/3.0.0:
     resolution: {integrity: sha512-laJTa3Jb+VQpaC6DseHhF7dXVqHTfJPCRDaEbid/drOhgitgYku/letMUqOXFoWV0zIIUbjpdH2t+tYj4bQMRQ==}

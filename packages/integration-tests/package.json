@@ -24,7 +24,7 @@
     "@types/sqlite3": "3.1.8",
     "decimal.js": "10.3.1",
     "esbuild": "0.13.14",
-    "execa": "5.1.1",
+    "execa": "6.1.0",
     "fs-jetpack": "4.3.0",
     "jest": "27.5.1",
     "jest-junit": "13.0.0",

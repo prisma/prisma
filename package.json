@@ -57,7 +57,7 @@
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-simple-import-sort": "7.0.0",
     "eventemitter3": "4.0.7",
-    "execa": "5.1.1",
+    "execa": "6.1.0",
     "glob": "8.0.1",
     "globby": "11.0.4",
     "graphviz-mit": "0.0.9",

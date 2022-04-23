@@ -59,7 +59,7 @@
     "cli-truncate": "2.1.0",
     "dotenv": "16.0.0",
     "escape-string-regexp": "4.0.0",
-    "execa": "5.1.1",
+    "execa": "6.1.0",
     "find-up": "5.0.0",
     "fs-jetpack": "4.3.1",
     "global-dirs": "3.0.0",
