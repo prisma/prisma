@@ -67,7 +67,7 @@
     "lint-staged": "12.3.4",
     "node-fetch": "2.6.7",
     "p-map": "4.0.0",
-    "p-reduce": "2.1.0",
+    "p-reduce": "3.0.0",
     "p-retry": "4.6.1",
     "path-browserify": "1.0.1",
     "prettier": "2.5.1",
