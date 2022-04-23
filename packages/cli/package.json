@@ -82,7 +82,7 @@
     "@types/jest": "27.4.1",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.5.3",
-    "chalk": "4.1.2",
+    "chalk": "5.0.1",
     "checkpoint-client": "1.1.21",
     "debug": "4.3.3",
     "dotenv": "16.0.0",
