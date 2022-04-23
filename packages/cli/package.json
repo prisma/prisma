@@ -97,7 +97,7 @@
     "jest": "27.5.1",
     "jest-junit": "13.0.0",
     "line-replace": "2.0.1",
-    "log-update": "4.0.0",
+    "log-update": "5.0.1",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.7",
     "open": "7.4.2",
