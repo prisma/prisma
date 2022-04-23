@@ -66,7 +66,7 @@
     "jest-junit": "13.0.0",
     "lint-staged": "12.3.4",
     "node-fetch": "2.6.7",
-    "p-map": "4.0.0",
+    "p-map": "5.3.0",
     "p-reduce": "2.1.0",
     "p-retry": "4.6.1",
     "path-browserify": "1.0.1",
