@@ -87,7 +87,7 @@
     "get-own-enumerable-property-symbols": "3.0.2",
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
-    "is-regexp": "2.1.0",
+    "is-regexp": "3.1.0",
     "jest": "27.5.1",
     "jest-junit": "13.0.0",
     "js-levenshtein": "1.1.6",
