@@ -51,7 +51,7 @@
     "execa": "5.1.1",
     "get-stdin": "8.0.0",
     "has-yarn": "2.1.0",
-    "indent-string": "4.0.0",
+    "indent-string": "5.0.0",
     "log-update": "4.0.0",
     "mariadb": "3.0.0",
     "mssql": "8.1.0",

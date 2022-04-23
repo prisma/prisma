@@ -42,7 +42,7 @@
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
-    "indent-string": "4.0.0",
+    "indent-string": "5.0.0",
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.1",
     "strip-ansi": "6.0.1",
