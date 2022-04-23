@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@prisma/sdk": "workspace:*",
-    "@sindresorhus/slugify": "1.1.2",
+    "@sindresorhus/slugify": "2.1.0",
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.17",
     "@types/jest": "27.4.1",
