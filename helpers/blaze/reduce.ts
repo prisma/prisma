@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type { L } from 'ts-toolbelt'
 
 export type Reducer<I, R> = (acc: R, item: I, pos: number, exit: (acc: R) => R) => R
@@ -8,21 +10,22 @@ export type Reducer<I, R> = (acc: R, item: I, pos: number, exit: (acc: R) => R) 
  * provided as an argument in the next call to the callback function.
  *
  * (more efficient than native reduce)
+ *
  * @param list to accumulate
  * @param reducer to callback
  * @param acc initial value
  * @returns
  */
-const reduce = <L extends L.List<I>, I, R>(list: L & L.List<I>, reducer: Reducer<I, R>, acc: R) => {
-  let exited = false
+const reduce = <I, R>(list: L.List<I>, reducer: Reducer<I, R>, acc: R) => {
+  let hasExit = false
 
   const exit = (acc: R) => {
-    exited = true
+    hasExit = true
 
     return acc
   }
 
-  for (let i = 0; !exited && i < list.length; ++i) {
+  for (let i = 0; !hasExit && i < list.length; ++i) {
     acc = reducer(acc, list[i], i, exit)
   }
 
