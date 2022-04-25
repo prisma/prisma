@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuites name="jest tests" tests="1" failures="0" errors="0" time="1.11">
-  <testsuite name="undefined" errors="0" failures="0" skipped="0" timestamp="2022-04-25T07:23:16" time="1.024" tests="1">
-    <testcase classname="" name="should throw error" time="0.032" file="src\__tests__\dotenv-3-conflict.test.ts">
-    </testcase>
-  </testsuite>
-</testsuites>
