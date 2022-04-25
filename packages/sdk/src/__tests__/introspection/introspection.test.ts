@@ -192,8 +192,7 @@ test('introspection basic', async () => {
                 }
               ],
               \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null,
-              \\"clustered\\": null
+              \\"algorithm\\": null
             }
           ],
           \\"primary_key\\": {
@@ -205,8 +204,7 @@ test('introspection basic', async () => {
               }
             ],
             \\"sequence\\": null,
-            \\"constraint_name\\": null,
-            \\"clustered\\": null
+            \\"constraint_name\\": null
           },
           \\"foreign_keys\\": [
             {
@@ -340,8 +338,7 @@ test('introspection basic', async () => {
                 }
               ],
               \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null,
-              \\"clustered\\": null
+              \\"algorithm\\": null
             },
             {
               \\"name\\": \\"User.id\\",
@@ -353,8 +350,7 @@ test('introspection basic', async () => {
                 }
               ],
               \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null,
-              \\"clustered\\": null
+              \\"algorithm\\": null
             }
           ],
           \\"primary_key\\": {
@@ -366,8 +362,7 @@ test('introspection basic', async () => {
               }
             ],
             \\"sequence\\": null,
-            \\"constraint_name\\": null,
-            \\"clustered\\": null
+            \\"constraint_name\\": null
           },
           \\"foreign_keys\\": []
         },
@@ -506,8 +501,7 @@ test('introspection basic', async () => {
               }
             ],
             \\"sequence\\": null,
-            \\"constraint_name\\": null,
-            \\"clustered\\": null
+            \\"constraint_name\\": null
           },
           \\"foreign_keys\\": []
         }
@@ -516,7 +510,8 @@ test('introspection basic', async () => {
       \\"sequences\\": [],
       \\"views\\": [],
       \\"procedures\\": [],
-      \\"user_defined_types\\": []
+      \\"user_defined_types\\": [],
+      \\"connector_data\\": null
     }"
   `)
   engine.stop()
