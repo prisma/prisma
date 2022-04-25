@@ -1,18 +1,30 @@
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/sdk'
 import crypto from 'crypto'
+import fs from 'fs'
+import path from 'path'
 
-import { chinook } from '../fixtures/chinook'
-import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
-import { getPrismaClient } from '../runtime/getPrismaClient'
+import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
+import { getPrismaClient } from '../../runtime/getPrismaClient'
 
-const schemaContentsBase64 = Buffer.from(chinook).toString('base64')
-const schemaContentsHashed = crypto.createHash('sha256').update(schemaContentsBase64).digest('hex')
 let prismaClientOptions: GetPrismaClientConfig
 let config
 
+// Keep original process.env
+const originalEnv = process.env
+
 beforeAll(async () => {
-  config = await getConfig({ datamodel: chinook })
-  const prismaClientDmmf = await getDMMF({ datamodel: chinook })
+  // Change process.env for dataproxy tests
+  process.env = {
+    ...originalEnv,
+    PRISMA_CLIENT_ENGINE_TYPE: 'dataproxy',
+    PRISMA_CLI_QUERY_ENGINE_TYPE: 'library',
+  }
+
+  const schema = fs.readFileSync(path.join(__dirname, 'schema.prisma'), { encoding: 'utf8' })
+  config = await getConfig({ datamodel: schema })
+  const prismaClientDmmf = await getDMMF({ datamodel: schema })
+  const schemaContentsBase64 = Buffer.from(schema).toString('base64')
+  const schemaContentsHashed = crypto.createHash('sha256').update(schemaContentsBase64).digest('hex')
 
   prismaClientOptions = {
     inlineSchema: schemaContentsBase64,
@@ -30,7 +42,7 @@ beforeAll(async () => {
       previewFeatures: [],
     },
     // clientVersion: '',
-    dirname: './some/path',
+    dirname: path.dirname(__dirname),
     activeProvider: config.datasources[0].provider,
     datasourceNames: [config.datasources[0].name],
     relativePath: '',
@@ -41,7 +53,14 @@ beforeAll(async () => {
   }
 })
 
+afterAll(() => {
+  // Restore process.env
+  process.env = originalEnv
+})
+
 test('getPrismaClient: Data Proxy: Error: inlineDatasources is required', () => {
+  expect.assertions(1)
+
   const PrismaClient = getPrismaClient({
     ...prismaClientOptions,
   })
@@ -54,6 +73,8 @@ test('getPrismaClient: Data Proxy: Error: inlineDatasources is required', () => 
 })
 
 test('getPrismaClient: Data Proxy: Error: Datasource URL must start with prisma://', () => {
+  expect.assertions(1)
+
   const PrismaClient = getPrismaClient({
     ...prismaClientOptions,
     inlineDatasources: {
@@ -74,6 +95,8 @@ test('getPrismaClient: Data Proxy: Error: Datasource URL must start with prisma:
 })
 
 test('getPrismaClient: Data Proxy: InvalidDatasourceError: No valid API key found in the datasource URL', () => {
+  expect.assertions(1)
+
   const PrismaClient = getPrismaClient({
     ...prismaClientOptions,
     inlineDatasources: {
@@ -94,6 +117,8 @@ test('getPrismaClient: Data Proxy: InvalidDatasourceError: No valid API key foun
 })
 
 test('getPrismaClient: Data Proxy: Error: client version is required', () => {
+  expect.assertions(1)
+
   const PrismaClient = getPrismaClient({
     ...prismaClientOptions,
     inlineDatasources: {
@@ -116,6 +141,8 @@ test('getPrismaClient: Data Proxy: Error: client version is required', () => {
 })
 
 test('getPrismaClient: Data Proxy: Error: client version must be major.minor.patch', () => {
+  expect.assertions(1)
+
   const PrismaClient = getPrismaClient({
     ...prismaClientOptions,
     clientVersion: 'does-not-exist',
