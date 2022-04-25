@@ -38,7 +38,7 @@ describe('sqlite', () => {
     await expect(result).resolves.toMatchInlineSnapshot(`
             Database connection error:
 
-            P1003: SQLite database file doesn't exist
+            P1003: Database dev.db does not exist at dev.db
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`

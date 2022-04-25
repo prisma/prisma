@@ -155,7 +155,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test-notypes
+      - run: pnpm run test-notypes && pnpm run test:functional
         working-directory: packages/client
         env:
           CI: true

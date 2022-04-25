@@ -1,6 +1,7 @@
 import type { Command, IntrospectionSchemaVersion, IntrospectionWarnings } from '@prisma/sdk'
 import {
   arg,
+  createSpinner,
   drawBox,
   format,
   formatms,
@@ -94,12 +95,7 @@ Set composite types introspection depth to 2 levels
       '--clean': Boolean,
     })
 
-    const log = (...messages): void => {
-      if (!args['--print']) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        console.info(...messages)
-      }
-    }
+    const spinnerFactory = createSpinner(!args['--print'])
 
     if (args instanceof Error) {
       return this.help(args.message)
@@ -209,7 +205,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       !args['--url'] && schemaPath
         ? ` based on datasource defined in ${chalk.underline(path.relative(process.cwd(), schemaPath))}`
         : ''
-    log(`\nIntrospecting${basedOn} …`)
+    const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
     const before = Date.now()
     let introspectionSchema = ''
@@ -222,6 +218,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       introspectionWarnings = introspectionResult.warnings
       introspectionSchemaVersion = introspectionResult.version
     } catch (e: any) {
+      introspectionSpinner.failure()
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
           throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
@@ -321,7 +318,7 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
           })
         : ''
 
-      log(`\n✔ Introspected ${modelsAndTypesCountMessage} into ${chalk.underline(
+      introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
