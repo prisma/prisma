@@ -29,6 +29,8 @@ export abstract class Engine {
   abstract transaction(action: 'start', options?: Transaction.Options): Promise<Transaction.Info>
   abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
   abstract transaction(action: 'rollback', info: Transaction.Info): Promise<void>
+  abstract startTracing?(host: string): Promise<void>
+  abstract stopTracing?(): Promise<void>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'

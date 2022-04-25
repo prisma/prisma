@@ -356,6 +356,16 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
+  async startTracing(host: string) {
+    await this.start()
+    await this.engine?.startTracing(host, 'query-engine')
+  }
+
+  async stopTracing() {
+    await this.start()
+    await this.engine?.stopTracing()
+  }
+
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise

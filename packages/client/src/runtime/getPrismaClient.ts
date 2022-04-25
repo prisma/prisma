@@ -540,6 +540,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
     }
 
+    async $startTracing(host: string) {
+      await this._engine?.startTracing?.(host)
+    }
+
+    async $stopTracing() {
+      await this._engine?.stopTracing?.()
+    }
+
     private async _getActiveProvider(): Promise<void> {
       try {
         const configResult = await this._engine.getConfig()
