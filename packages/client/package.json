@@ -62,7 +62,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@jest/test-sequencer": "27.5.1",
+    "@jest/test-sequencer": "28.0.0",
     "@microsoft/api-extractor": "7.19.3",
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
