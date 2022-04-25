@@ -29,6 +29,7 @@ ${chalk.bold('Commands for production/staging')}
      resolve   Resolve issues with database migrations, i.e. baseline, failed migration, hotfix
 
 ${chalk.bold('Command for any stage')}
+
         diff   Compare the database schema from two arbitrary sources
 
 ${chalk.bold('Options')}
