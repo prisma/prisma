@@ -27,3 +27,5 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType, platf
     await download({ binaries: { 'query-engine': engineDownloadDir }, version: enginesVersion })
   }
 }
+
+// TODO this might be duplicated in a few places, find a common place
