@@ -38,3 +38,5 @@ esm
 reproductions/*
 !reproductions/basic-sqlite
 !reproductions/pnpm-workspace.yaml
+
+junit.xml
