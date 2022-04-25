@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1650871555288,
+  "lastUpdate": 1650871947677,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -95412,6 +95412,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.09,
             "range": "±2.62%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f2391f23750c276a40732b199d7efe96d5bc9ba0",
+          "message": "feat(db pull): add spinner in CLI when introspecting (#12897)\n\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-04-25T09:25:08+02:00",
+          "tree_id": "ae2e810048542976c9de8cbba980b321c3e3a352",
+          "url": "https://github.com/prisma/prisma/commit/f2391f23750c276a40732b199d7efe96d5bc9ba0"
+        },
+        "date": 1650871941944,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.46,
+            "range": "±4.69%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±4.10%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
