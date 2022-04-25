@@ -17,7 +17,7 @@ it('should fail when db is missing', async () => {
   ctx.fixture('schema-db-out-of-sync')
   ctx.fs.remove('dev.db')
   const result = Doctor.new().parse([])
-  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`P1003: SQLite database file doesn't exist`)
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 })
 
 it('should fail when Prisma schema is missing', async () => {
