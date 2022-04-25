@@ -349,7 +349,7 @@ export type Post = {
   title: string
   content: string | null
   published: boolean
-  authorId: number
+  authorId: string
 }
 
 /**
@@ -456,7 +456,7 @@ export type OneOptional = {
  */
 export type ManyRequired = {
   id: string
-  oneOptionalId: number | null
+  oneOptionalId: string | null
   int: number
   optionalInt: number | null
   float: number
@@ -477,7 +477,7 @@ export type ManyRequired = {
  */
 export type OptionalSide1 = {
   id: string
-  optionalSide2Id: number | null
+  optionalSide2Id: string | null
   int: number
   optionalInt: number | null
   float: number
@@ -1915,18 +1915,8 @@ export namespace Prisma {
 
   export type AggregatePost = {
     _count: PostCountAggregateOutputType | null
-    _avg: PostAvgAggregateOutputType | null
-    _sum: PostSumAggregateOutputType | null
     _min: PostMinAggregateOutputType | null
     _max: PostMaxAggregateOutputType | null
-  }
-
-  export type PostAvgAggregateOutputType = {
-    authorId: number | null
-  }
-
-  export type PostSumAggregateOutputType = {
-    authorId: number | null
   }
 
   export type PostMinAggregateOutputType = {
@@ -1935,7 +1925,7 @@ export namespace Prisma {
     title: string | null
     content: string | null
     published: boolean | null
-    authorId: number | null
+    authorId: string | null
   }
 
   export type PostMaxAggregateOutputType = {
@@ -1944,7 +1934,7 @@ export namespace Prisma {
     title: string | null
     content: string | null
     published: boolean | null
-    authorId: number | null
+    authorId: string | null
   }
 
   export type PostCountAggregateOutputType = {
@@ -1957,14 +1947,6 @@ export namespace Prisma {
     _all: number
   }
 
-
-  export type PostAvgAggregateInputType = {
-    authorId?: true
-  }
-
-  export type PostSumAggregateInputType = {
-    authorId?: true
-  }
 
   export type PostMinAggregateInputType = {
     id?: true
@@ -2037,18 +2019,6 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Select which fields to average
-    **/
-    _avg?: PostAvgAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
-     * Select which fields to sum
-    **/
-    _sum?: PostSumAggregateInputType
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
-     * 
      * Select which fields to find the minimum value
     **/
     _min?: PostMinAggregateInputType
@@ -2079,8 +2049,6 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: PostCountAggregateInputType | true
-    _avg?: PostAvgAggregateInputType
-    _sum?: PostSumAggregateInputType
     _min?: PostMinAggregateInputType
     _max?: PostMaxAggregateInputType
   }
@@ -2092,10 +2060,8 @@ export namespace Prisma {
     title: string
     content: string | null
     published: boolean
-    authorId: number
+    authorId: string
     _count: PostCountAggregateOutputType | null
-    _avg: PostAvgAggregateOutputType | null
-    _sum: PostSumAggregateOutputType | null
     _min: PostMinAggregateOutputType | null
     _max: PostMaxAggregateOutputType | null
   }
@@ -7973,7 +7939,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredAvgAggregateOutputType = {
-    oneOptionalId: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -7981,7 +7946,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredSumAggregateOutputType = {
-    oneOptionalId: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -7990,7 +7954,7 @@ export namespace Prisma {
 
   export type ManyRequiredMinAggregateOutputType = {
     id: string | null
-    oneOptionalId: number | null
+    oneOptionalId: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -8005,7 +7969,7 @@ export namespace Prisma {
 
   export type ManyRequiredMaxAggregateOutputType = {
     id: string | null
-    oneOptionalId: number | null
+    oneOptionalId: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -8038,7 +8002,6 @@ export namespace Prisma {
 
 
   export type ManyRequiredAvgAggregateInputType = {
-    oneOptionalId?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -8046,7 +8009,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredSumAggregateInputType = {
-    oneOptionalId?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -8195,7 +8157,7 @@ export namespace Prisma {
 
   export type ManyRequiredGroupByOutputType = {
     id: string
-    oneOptionalId: number | null
+    oneOptionalId: string | null
     int: number
     optionalInt: number | null
     float: number
@@ -9011,7 +8973,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1AvgAggregateOutputType = {
-    optionalSide2Id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -9019,7 +8980,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1SumAggregateOutputType = {
-    optionalSide2Id: number | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -9028,7 +8988,7 @@ export namespace Prisma {
 
   export type OptionalSide1MinAggregateOutputType = {
     id: string | null
-    optionalSide2Id: number | null
+    optionalSide2Id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -9043,7 +9003,7 @@ export namespace Prisma {
 
   export type OptionalSide1MaxAggregateOutputType = {
     id: string | null
-    optionalSide2Id: number | null
+    optionalSide2Id: string | null
     int: number | null
     optionalInt: number | null
     float: number | null
@@ -9076,7 +9036,6 @@ export namespace Prisma {
 
 
   export type OptionalSide1AvgAggregateInputType = {
-    optionalSide2Id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -9084,7 +9043,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1SumAggregateInputType = {
-    optionalSide2Id?: true
     int?: true
     optionalInt?: true
     float?: true
@@ -9233,7 +9191,7 @@ export namespace Prisma {
 
   export type OptionalSide1GroupByOutputType = {
     id: string
-    optionalSide2Id: number | null
+    optionalSide2Id: string | null
     int: number
     optionalInt: number | null
     float: number
@@ -15771,7 +15729,7 @@ export namespace Prisma {
     content?: StringNullableFilter | string | null
     published?: BoolFilter | boolean
     author?: XOR<UserRelationFilter, UserWhereInput>
-    authorId?: IntFilter | number
+    authorId?: StringFilter | string
   }
 
   export type PostOrderByWithRelationInput = {
@@ -15796,10 +15754,8 @@ export namespace Prisma {
     published?: SortOrder
     authorId?: SortOrder
     _count?: PostCountOrderByAggregateInput
-    _avg?: PostAvgOrderByAggregateInput
     _max?: PostMaxOrderByAggregateInput
     _min?: PostMinOrderByAggregateInput
-    _sum?: PostSumOrderByAggregateInput
   }
 
   export type PostScalarWhereWithAggregatesInput = {
@@ -15811,7 +15767,7 @@ export namespace Prisma {
     title?: StringWithAggregatesFilter | string
     content?: StringNullableWithAggregatesFilter | string | null
     published?: BoolWithAggregatesFilter | boolean
-    authorId?: IntWithAggregatesFilter | number
+    authorId?: StringWithAggregatesFilter | string
   }
 
   export type UserWhereInput = {
@@ -16212,7 +16168,7 @@ export namespace Prisma {
     NOT?: Enumerable<ManyRequiredWhereInput>
     id?: StringFilter | string
     one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
-    oneOptionalId?: IntNullableFilter | number | null
+    oneOptionalId?: StringNullableFilter | string | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -16276,7 +16232,7 @@ export namespace Prisma {
     OR?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
     NOT?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
-    oneOptionalId?: IntNullableWithAggregatesFilter | number | null
+    oneOptionalId?: StringNullableWithAggregatesFilter | string | null
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -16297,7 +16253,7 @@ export namespace Prisma {
     NOT?: Enumerable<OptionalSide1WhereInput>
     id?: StringFilter | string
     opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
-    optionalSide2Id?: IntNullableFilter | number | null
+    optionalSide2Id?: StringNullableFilter | string | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -16332,7 +16288,7 @@ export namespace Prisma {
 
   export type OptionalSide1WhereUniqueInput = {
     id?: string
-    optionalSide2Id?: number
+    optionalSide2Id?: string
   }
 
   export type OptionalSide1OrderByWithAggregationInput = {
@@ -16362,7 +16318,7 @@ export namespace Prisma {
     OR?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
     NOT?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
-    optionalSide2Id?: IntNullableWithAggregatesFilter | number | null
+    optionalSide2Id?: StringNullableWithAggregatesFilter | string | null
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
     float?: FloatWithAggregatesFilter | number
@@ -16707,7 +16663,7 @@ export namespace Prisma {
     title: string
     content?: string | null
     published?: boolean
-    authorId: number
+    authorId: string
   }
 
   export type PostUpdateInput = {
@@ -16723,7 +16679,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
     published?: BoolFieldUpdateOperationsInput | boolean
-    authorId?: IntFieldUpdateOperationsInput | number
+    authorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type PostCreateManyInput = {
@@ -16732,7 +16688,7 @@ export namespace Prisma {
     title: string
     content?: string | null
     published?: boolean
-    authorId: number
+    authorId: string
   }
 
   export type PostUpdateManyMutationInput = {
@@ -16747,7 +16703,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
     published?: BoolFieldUpdateOperationsInput | boolean
-    authorId?: IntFieldUpdateOperationsInput | number
+    authorId?: StringFieldUpdateOperationsInput | string
   }
 
   export type UserCreateInput = {
@@ -17314,7 +17270,7 @@ export namespace Prisma {
 
   export type ManyRequiredUncheckedCreateInput = {
     id?: string
-    oneOptionalId?: number | null
+    oneOptionalId?: string | null
     int: number
     optionalInt?: number | null
     float: number
@@ -17346,7 +17302,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateInput = {
-    oneOptionalId?: NullableIntFieldUpdateOperationsInput | number | null
+    oneOptionalId?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17363,7 +17319,7 @@ export namespace Prisma {
 
   export type ManyRequiredCreateManyInput = {
     id?: string
-    oneOptionalId?: number | null
+    oneOptionalId?: string | null
     int: number
     optionalInt?: number | null
     float: number
@@ -17394,7 +17350,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUncheckedUpdateManyInput = {
-    oneOptionalId?: NullableIntFieldUpdateOperationsInput | number | null
+    oneOptionalId?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17428,7 +17384,7 @@ export namespace Prisma {
 
   export type OptionalSide1UncheckedCreateInput = {
     id?: string
-    optionalSide2Id?: number | null
+    optionalSide2Id?: string | null
     int: number
     optionalInt?: number | null
     float: number
@@ -17460,7 +17416,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedUpdateInput = {
-    optionalSide2Id?: NullableIntFieldUpdateOperationsInput | number | null
+    optionalSide2Id?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17477,7 +17433,7 @@ export namespace Prisma {
 
   export type OptionalSide1CreateManyInput = {
     id?: string
-    optionalSide2Id?: number | null
+    optionalSide2Id?: string | null
     int: number
     optionalInt?: number | null
     float: number
@@ -17508,7 +17464,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UncheckedUpdateManyInput = {
-    optionalSide2Id?: NullableIntFieldUpdateOperationsInput | number | null
+    optionalSide2Id?: NullableStringFieldUpdateOperationsInput | string | null
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17954,27 +17910,12 @@ export namespace Prisma {
     isNot?: UserWhereInput
   }
 
-  export type IntFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
-  }
-
   export type PostCountOrderByAggregateInput = {
     id?: SortOrder
     createdAt?: SortOrder
     title?: SortOrder
     content?: SortOrder
     published?: SortOrder
-    authorId?: SortOrder
-  }
-
-  export type PostAvgOrderByAggregateInput = {
     authorId?: SortOrder
   }
 
@@ -17993,10 +17934,6 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     published?: SortOrder
-    authorId?: SortOrder
-  }
-
-  export type PostSumOrderByAggregateInput = {
     authorId?: SortOrder
   }
 
@@ -18059,7 +17996,7 @@ export namespace Prisma {
     _max?: NestedBoolFilter
   }
 
-  export type IntWithAggregatesFilter = {
+  export type IntFilter = {
     equals?: number
     in?: Enumerable<number>
     notIn?: Enumerable<number>
@@ -18067,12 +18004,7 @@ export namespace Prisma {
     lte?: number
     gt?: number
     gte?: number
-    not?: NestedIntWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedIntFilter
-    _min?: NestedIntFilter
-    _max?: NestedIntFilter
+    not?: NestedIntFilter | number
   }
 
   export type IntNullableFilter = {
@@ -18231,6 +18163,22 @@ export namespace Prisma {
     optionalInt?: SortOrder
     float?: SortOrder
     optionalFloat?: SortOrder
+  }
+
+  export type IntWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    _max?: NestedIntFilter
   }
 
   export type IntNullableWithAggregatesFilter = {
@@ -18652,7 +18600,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredAvgOrderByAggregateInput = {
-    oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -18690,7 +18637,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredSumOrderByAggregateInput = {
-    oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -18720,7 +18666,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1AvgOrderByAggregateInput = {
-    optionalSide2Id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -18758,7 +18703,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1SumOrderByAggregateInput = {
-    optionalSide2Id?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -19044,14 +18988,6 @@ export namespace Prisma {
     update?: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
   }
 
-  export type IntFieldUpdateOperationsInput = {
-    set?: number
-    increment?: number
-    decrement?: number
-    multiply?: number
-    divide?: number
-  }
-
   export type PostCreateNestedManyWithoutAuthorInput = {
     create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
@@ -19070,6 +19006,14 @@ export namespace Prisma {
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     createMany?: PostCreateManyAuthorInputEnvelope
     connect?: Enumerable<PostWhereUniqueInput>
+  }
+
+  export type IntFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -19485,17 +19429,6 @@ export namespace Prisma {
     not?: NestedBoolFilter | boolean
   }
 
-  export type NestedIntFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
-  }
-
   export type NestedStringWithAggregatesFilter = {
     equals?: string
     in?: Enumerable<string>
@@ -19511,6 +19444,17 @@ export namespace Prisma {
     _count?: NestedIntFilter
     _min?: NestedStringFilter
     _max?: NestedStringFilter
+  }
+
+  export type NestedIntFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntFilter | number
   }
 
   export type NestedDateTimeWithAggregatesFilter = {
@@ -19565,22 +19509,6 @@ export namespace Prisma {
     _max?: NestedBoolFilter
   }
 
-  export type NestedIntWithAggregatesFilter = {
-    equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedIntFilter
-    _min?: NestedIntFilter
-    _max?: NestedIntFilter
-  }
-
   export type NestedFloatFilter = {
     equals?: number
     in?: Enumerable<number>
@@ -19623,6 +19551,22 @@ export namespace Prisma {
     equals?: boolean | null
     not?: NestedBoolNullableFilter | boolean | null
     isSet?: boolean
+  }
+
+  export type NestedIntWithAggregatesFilter = {
+    equals?: number
+    in?: Enumerable<number>
+    notIn?: Enumerable<number>
+    lt?: number
+    lte?: number
+    gt?: number
+    gte?: number
+    not?: NestedIntWithAggregatesFilter | number
+    _count?: NestedIntFilter
+    _avg?: NestedFloatFilter
+    _sum?: NestedIntFilter
+    _min?: NestedIntFilter
+    _max?: NestedIntFilter
   }
 
   export type NestedIntNullableWithAggregatesFilter = {
@@ -19952,7 +19896,7 @@ export namespace Prisma {
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
     published?: BoolFilter | boolean
-    authorId?: IntFilter | number
+    authorId?: StringFilter | string
   }
 
   export type EmbedHolderUpsertWithoutUserInput = {
@@ -20299,7 +20243,7 @@ export namespace Prisma {
     OR?: Enumerable<ManyRequiredScalarWhereInput>
     NOT?: Enumerable<ManyRequiredScalarWhereInput>
     id?: StringFilter | string
-    oneOptionalId?: IntNullableFilter | number | null
+    oneOptionalId?: StringNullableFilter | string | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
