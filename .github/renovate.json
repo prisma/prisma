@@ -46,9 +46,9 @@
       "updateTypes": ["patch", "minor"]
     },
     {
-      "groupName": "jest",
+      "groupName": "Jest",
       "automerge": "true",
-      "packageNames": ["jest", "@types/jest", "ts-jest"]
+      "matchPackagePatterns": [".*jest.*"],
     },
     {
       "groupName": "node-fetch",
