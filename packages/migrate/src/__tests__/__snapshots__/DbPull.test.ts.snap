@@ -236,7 +236,7 @@ model AwesomeProfile {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`common/sqlite should succeed when schema is invalid and using --force 5`] = `
+exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
