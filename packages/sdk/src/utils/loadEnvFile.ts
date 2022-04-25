@@ -7,7 +7,7 @@ import { tryLoadEnvs } from './tryLoadEnvs'
  */
 export function loadEnvFile(schemaPath?: string, print = false) {
   const envPaths = getEnvPaths(schemaPath)
-  const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
+  const envData = tryLoadEnvs(envPaths, { conflictCheck: 'warn' })
 
   if (print && envData && envData.message) {
     console.info(envData.message)

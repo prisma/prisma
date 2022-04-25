@@ -5,11 +5,11 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DOTENV_ROOT_PRISMA_SHOULD_WORK")
+  url      = env("TEST_ENV")
 }
 
 model Post {
-  id        Int      @default(autoincrement()) @id
+  id        Int      @id @default(autoincrement())
   createdAt DateTime @default(now())
   title     String
   content   String?
@@ -19,14 +19,14 @@ model Post {
 }
 
 model Profile {
-  id     Int     @default(autoincrement()) @id
+  id     Int     @id @default(autoincrement())
   bio    String?
   user   User    @relation(fields: [userId], references: [id])
   userId Int     @unique
 }
 
 model User {
-  id      Int      @default(autoincrement()) @id
+  id      Int      @id @default(autoincrement())
   email   String   @unique
   name    String?
   posts   Post[]

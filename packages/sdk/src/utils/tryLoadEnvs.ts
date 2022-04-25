@@ -37,14 +37,14 @@ export function tryLoadEnvs(
     rootEnvPath: string | null | undefined
     schemaEnvPath: string | null | undefined
   },
-  opts: { conflictCheck: 'warn' | 'error' | 'none' } = {
+  opts: { conflictCheck: 'warn' | 'none' } = {
     conflictCheck: 'none',
   },
 ): LoadedEnv {
   const rootEnvInfo = loadEnv(rootEnvPath)
   if (opts.conflictCheck !== 'none') {
     // This will throw an error if there are conflicts
-    checkForConflicts(rootEnvInfo, schemaEnvPath, opts.conflictCheck)
+    checkForConflicts(rootEnvInfo, schemaEnvPath)
   }
   // Only load the schema .env if it is not the same as root
   let schemaEnvInfo: DotenvLoadEnvResult | null = null
@@ -71,47 +71,36 @@ export function tryLoadEnvs(
     },
   }
 }
+
 /**
  * Will throw an error if the file at `envPath` has env conflicts with `rootEnv`
  */
-function checkForConflicts(
-  rootEnvInfo: DotenvLoadEnvResult | null,
-  envPath: string | null | undefined,
-  type: 'warn' | 'error',
-) {
+function checkForConflicts(rootEnvInfo: DotenvLoadEnvResult | null, envPath: string | null | undefined) {
   const parsedRootEnv = rootEnvInfo?.dotenvResult.parsed
   const areNotTheSame = !pathsEqual(rootEnvInfo?.path, envPath)
+
   if (parsedRootEnv && envPath && areNotTheSame && fs.existsSync(envPath)) {
     const envConfig = dotenv.parse(fs.readFileSync(envPath))
     const conflicts: string[] = []
+
     for (const k in envConfig) {
       if (parsedRootEnv[k] === envConfig[k]) {
         conflicts.push(k)
       }
     }
+
     if (conflicts.length > 0) {
       // const message = `You are trying to load env variables which are already present in your project root .env
       const relativeRootEnvPath = path.relative(process.cwd(), rootEnvInfo!.path)
       const relativeEnvPath = path.relative(process.cwd(), envPath)
-      if (type === 'error') {
-        const message = `There is a conflict between env var${conflicts.length > 1 ? 's' : ''} in ${chalk.underline(
-          relativeRootEnvPath,
-        )} and ${chalk.underline(relativeEnvPath)}
-Conflicting env vars:
-${conflicts.map((conflict) => `  ${chalk.bold(conflict)}`).join('\n')}
 
-We suggest to move the contents of ${chalk.underline(relativeEnvPath)} to ${chalk.underline(
-          relativeRootEnvPath,
-        )} to consolidate your env vars.\n`
-        throw new Error(message)
-      } else if (type === 'warn') {
-        const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
-          .map((c) => chalk.bold(c))
-          .join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
+      const message = `Conflict for env var${conflicts.length > 1 ? 's' : ''} ${conflicts
+        .map((c) => chalk.bold(c))
+        .join(', ')} in ${chalk.underline(relativeRootEnvPath)} and ${chalk.underline(relativeEnvPath)}
 Env vars from ${chalk.underline(relativeEnvPath)} overwrite the ones from ${chalk.underline(relativeRootEnvPath)}
       `
-        console.warn(`${chalk.yellow('warn(prisma)')} ${message}`)
-      }
+
+      console.warn(`${chalk.yellow('warn(prisma)')} ${message}`)
     }
   }
 }
