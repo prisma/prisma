@@ -135,7 +135,7 @@ test('getPrismaClient: Data Proxy: Error: client version is required', () => {
     const prisma = new PrismaClient()
   } catch (e) {
     expect(e).toMatchInlineSnapshot(
-      `clientVersion or \`PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION\` env var needs to be set with a \`major.minor.patch\` version.`,
+      `clientVersion or \`PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION\` env var needs to be set with a \`major.minor.patch\` version for Prisma Data Proxy.`,
     )
   }
 })
@@ -145,7 +145,7 @@ test('getPrismaClient: Data Proxy: Error: client version must be major.minor.pat
 
   const PrismaClient = getPrismaClient({
     ...prismaClientOptions,
-    clientVersion: 'does-not-exist',
+    clientVersion: 'unsupported',
     inlineDatasources: {
       [config.datasources[0].name]: {
         url: {
@@ -159,6 +159,6 @@ test('getPrismaClient: Data Proxy: Error: client version must be major.minor.pat
   try {
     const prisma = new PrismaClient()
   } catch (e) {
-    expect(e).toMatchInlineSnapshot(`Only \`major.minor.patch\` versions are supported.`)
+    expect(e).toMatchInlineSnapshot(`Only \`major.minor.patch\` versions are supported by Prisma Data Proxy.`)
   }
 })
