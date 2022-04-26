@@ -515,7 +515,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     })
   })
 
-  test('basic introspection', async () => {
+  test('basic introspection (with cockroachdb schema)', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
@@ -525,7 +525,17 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('basic introspection --url', async () => {
+  test('basic introspection (with postgresql schema)', async () => {
+    ctx.fixture('introspection/cockroachdb-with-postgresql-provider')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection (no schema) --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -538,7 +548,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
   //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
   //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('basic introspection --url with schema', async () => {
+  testIf(process.platform !== 'win32')('basic introspection (with cockroach schema) --url ', async () => {
     ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString])
