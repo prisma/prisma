@@ -81,7 +81,7 @@ test('getPrismaClient: Data Proxy: Error: Datasource URL must start with prisma:
       [config.datasources[0].name]: {
         url: {
           fromEnvVar: null,
-          value: parseEnvValue(config.datasources[0].url),
+          value: 'postgresql://localhost',
         },
       },
     },
@@ -90,7 +90,9 @@ test('getPrismaClient: Data Proxy: Error: Datasource URL must start with prisma:
   try {
     const prisma = new PrismaClient()
   } catch (e) {
-    expect(e).toMatchInlineSnapshot(`Datasource URL should use prisma:// protocol`)
+    expect(e).toMatchInlineSnapshot(
+      `Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the \`dataProxy\` from the \`previewFeatures\` in your schema and ensure that \`PRISMA_CLIENT_ENGINE_TYPE\` environment variable is not set to \`dataproxy\`.`,
+    )
   }
 })
 
