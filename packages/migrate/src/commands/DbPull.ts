@@ -146,6 +146,18 @@ Set composite types introspection depth to 2 levels
       throw new NoSchemaFoundError()
     }
 
+    /**
+     * When `schemaPath` is set:
+     * - read the schema file from disk
+     * - in case `url` is also set, embed the URL to the schema's datasource without overriding the provider.
+     *   This is especially useful to distinguish CockroachDB from Postgres datasources.
+     *
+     * When `url` is set, and `schemaPath` isn't:
+     * - create a minimal schema with a datasource block from the given URL.
+     *   CockroachDB URLs are however mapped to the `postgresql` provider, as those URLs are indistinguishable from Postgres URLs.
+     *
+     * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
+     */
     const schema = await match({ url, schemaPath })
       .when(
         (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
@@ -158,7 +170,7 @@ Set composite types introspection depth to 2 levels
               ignoreEnvVarErrors: true,
             })
             const provider = config.datasources[0]?.provider
-            const schema = this.urlToDatasource(input.url, provider) + removeDatasource(rawSchema)
+            const schema = `${this.urlToDatasource(input.url, provider)}${removeDatasource(rawSchema)}`
             return schema
           }
 
@@ -245,7 +257,7 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
         // Schema Parsing Error
         console.info() // empty line
 
-        // TODO: this error is misleading, as it gets thrown even when the schema is valid, put the protocol of the given
+        // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
         throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
 
