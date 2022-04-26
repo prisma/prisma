@@ -64,11 +64,11 @@ pnpm run test <fileNamePattern> -- -u
 
 Something is broken? You built a new feature? It's time to write a test! But where?
 
-Everything related to working with specific frameworks like Next.js or deploying to Netlify should be covered by an [End-to-End Test](https://github.com/prisma/e2e-tests).
+Everything related to working with specific frameworks like Next.js or deploying to Netlify should be covered by an [Ecosystem Test](https://github.com/prisma/ecosystem-tests).
 
 Everything that is more basic functionality like a specific query or feature, that doesn't need a platform specific test (yet) should get a test in the `prisma/prisma` repo.
 
-Rule of thumb: If you can write a test in `prisma/prisma`, prefer that over a test in `prisma/e2e-tests`.
+Rule of thumb: If you can write a test in `prisma/prisma`, prefer that over a test in `prisma/ecosystem-tests`.
 
 In the `prisma/prisma` repository we have a few places where you can write tests:
 

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type { A, F } from 'ts-toolbelt'
 
 import { skip } from './transduce'

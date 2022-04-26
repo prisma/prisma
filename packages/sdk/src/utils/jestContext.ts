@@ -82,19 +82,19 @@ type ContextContributorFactory<Settings, Context, NewContext> = Settings extends
   : (settings: Settings) => ContextContributor<Context, NewContext>
 
 /**
- * A function that provides additonal test context.
+ * A function that provides additional test context.
  */
-type ContextContributor<Context, NewContext> = (ctx: Context) => NewContext
+type ContextContributor<Context, NewContext> = (ctx: Context) => Context & NewContext
 
 /**
  * Main context builder API that permits recursively building up context.
  */
+
 function factory<Context>(ctx: Context) {
   return {
     add<NewContext>(contextContributor: ContextContributor<Context, NewContext>) {
-      contextContributor(ctx)
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-      return factory<Context & NewContext>(ctx as any)
+      const newCtx = contextContributor(ctx)
+      return factory<Context & NewContext>(newCtx)
     },
     assemble(): Context {
       return ctx
@@ -105,18 +105,19 @@ function factory<Context>(ctx: Context) {
 /**
  * Test context contributor. Mocks console.error with a Jest spy before each test.
  */
-export const jestConsoleContext: ContextContributorFactory<
-  {},
-  BaseContext,
-  {
-    mocked: {
-      'console.error': jest.SpyInstance
-      'console.log': jest.SpyInstance
-      'console.info': jest.SpyInstance
-      'console.warn': jest.SpyInstance
-    }
+
+type ConsoleContext = {
+  mocked: {
+    'console.error': jest.SpyInstance
+    'console.log': jest.SpyInstance
+    'console.info': jest.SpyInstance
+    'console.warn': jest.SpyInstance
   }
-> = () => (ctx) => {
+}
+
+export const jestConsoleContext: ContextContributorFactory<{}, BaseContext, ConsoleContext> = () => (c) => {
+  const ctx = c as BaseContext & ConsoleContext
+
   beforeEach(() => {
     ctx.mocked['console.error'] = jest.spyOn(console, 'error').mockImplementation(() => {})
     ctx.mocked['console.log'] = jest.spyOn(console, 'log').mockImplementation(() => {})
@@ -131,5 +132,36 @@ export const jestConsoleContext: ContextContributorFactory<
     ctx.mocked['console.warn'].mockRestore()
   })
 
-  return null as any
+  return ctx
+}
+
+/**
+ * Test context contributor. Mocks process.std(out|err).write with a Jest spy before each test.
+ */
+
+type ProcessContext = {
+  mocked: {
+    'process.stderr.write': jest.SpyInstance
+    'process.stdout.write': jest.SpyInstance
+  }
+}
+
+export const jestProcessContext: ContextContributorFactory<{}, BaseContext, ProcessContext> = () => (c) => {
+  const ctx = c as BaseContext & ProcessContext
+
+  beforeEach(() => {
+    ctx.mocked['process.stderr.write'] = jest
+      .spyOn(process.stderr, 'write')
+      .mockImplementation((message: string | Uint8Array) => true)
+    ctx.mocked['process.stdout.write'] = jest
+      .spyOn(process.stdout, 'write')
+      .mockImplementation((message: string | Uint8Array) => true)
+  })
+
+  afterEach(() => {
+    ctx.mocked['process.stderr.write'].mockRestore()
+    ctx.mocked['process.stdout.write'].mockRestore()
+  })
+
+  return ctx
 }

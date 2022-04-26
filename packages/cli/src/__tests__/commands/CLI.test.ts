@@ -4,7 +4,6 @@ import {
   DbPush,
   // DbDrop,
   DbSeed,
-  handlePanic,
   MigrateCommand,
   MigrateDeploy,
   MigrateDev,
@@ -12,7 +11,7 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { handlePanic, jestConsoleContext, jestContext } from '@prisma/sdk'
 
 import { CLI } from '../../CLI'
 

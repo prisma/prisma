@@ -72,7 +72,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
-      - uses: fkirc/skip-duplicate-actions@v3.4.1
+      - uses: fkirc/skip-duplicate-actions@v4.0.0
 
   #
   # Linting
@@ -98,9 +98,9 @@ jobs:
       # https://github.com/actions/setup-node/blob/bacd6b4b3ac3127b28a1e1920c23bf1c2cadbb85/src/main.ts#L54-L60
       - name: Disable GitHub annotations from linting
         run: |
-         echo "::remove-matcher owner=eslint-compact::"
-         echo "::remove-matcher owner=eslint-stylish::"
-       
+          echo "::remove-matcher owner=eslint-compact::"
+          echo "::remove-matcher owner=eslint-stylish::"
+
       - run: bash .github/workflows/setup.sh
         env:
           CI: true
@@ -155,7 +155,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test-notypes
+      - run: pnpm run test-notypes && pnpm run test:functional
         working-directory: packages/client
         env:
           CI: true

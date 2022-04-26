@@ -10,7 +10,7 @@ import { dmmfToTypes } from './utils/types/dmmfToTypes'
 
 const debug = Debug('prisma:client:generator')
 
-// As specced in https://github.com/prisma/specs/tree/master/generators
+// See https://www.notion.so/prismaio/Prisma-Generators-a2cdf262207a4e9dbcd0e362dfac8dc0
 
 const pkg = require('../../package.json')
 
