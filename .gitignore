@@ -38,3 +38,7 @@ esm
 reproductions/*
 !reproductions/basic-sqlite
 !reproductions/pnpm-workspace.yaml
+
+dev.db
+junit.xml
+introspection.test.ts.snap
