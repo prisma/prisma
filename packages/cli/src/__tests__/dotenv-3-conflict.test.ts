@@ -1,17 +1,22 @@
-import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/sdk'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-it('should throw error', () => {
-  const spy = jest.spyOn(console, 'warn').mockImplementation()
+it('should throw error', async () => {
   ctx.fixture('dotenv-3-conflict')
-  loadEnvFile(undefined, true)
+  expect.assertions(1)
 
-  expect(spy.mock.calls.join('\n')).toMatchInlineSnapshot(`
-  warn(prisma) Conflict for env var TEST_ENV in .env and prisma/.env
-  Env vars from prisma/.env overwrite the ones from .env
-        
-`)
+  await expect(
+    ctx.cli('validate').catch((e) => {
+      const message = e.message.split('\n').slice(1).join('\n')
+      throw new Error(message)
+    }),
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+          Error: There is a conflict between env var in .env and prisma/.env
+          Conflicting env vars:
+            SHOULD_THROW
 
-  expect(process.env.TEST_ENV).toEqual('shouldbebread')
+          We suggest to move the contents of prisma/.env to .env to consolidate your env vars.
+
+        `)
 })
