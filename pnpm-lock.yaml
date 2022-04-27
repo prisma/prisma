@@ -371,7 +371,7 @@ importers:
       jest: 27.5.1
       jest-junit: 13.2.0
       new-github-issue-url: 0.2.1
-      p-retry: 4.6.1
+      p-retry: 4.6.2
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
       typescript: 4.5.4
@@ -386,7 +386,7 @@ importers:
       get-stream: 6.0.1
       indent-string: 4.0.0
       new-github-issue-url: 0.2.1
-      p-retry: 4.6.1
+      p-retry: 4.6.2
       strip-ansi: 6.0.1
       terminal-link: 2.1.1
       undici: 5.0.0
@@ -2333,6 +2333,10 @@ packages:
   /@types/resolve/1.20.1:
     resolution: {integrity: sha512-Ku5+GPFa12S3W26Uwtw+xyrtIpaZsGYHH6zxNbZlstmlvMYSZRzOwzwsXbxlVUbHyUucctSyuFtu6bNxwYomIw==}
     dev: true
+
+  /@types/retry/0.12.0:
+    resolution: {integrity: sha512-wWKOClTTiizcZhXnPY4wikVAwmdYHp8q6DmC+EJUzAMsycb7HB32Kh9RN4+0gExjmPmZSAQjgURXIGATPegAvA==}
+    dev: false
 
   /@types/retry/0.12.1:
     resolution: {integrity: sha512-xoDlM2S4ortawSWORYqsdU+2rxdh4LRW9ytc3zmT37RIKQh6IHyKwwtKhKis9ah8ol07DCkZxPt8BBvPjC6v4g==}
@@ -7420,6 +7424,14 @@ packages:
     dependencies:
       '@types/retry': 0.12.1
       retry: 0.13.1
+
+  /p-retry/4.6.2:
+    resolution: {integrity: sha512-312Id396EbJdvRONlngUx0NydfrIQ5lsYu0znKVUzVvArzEIt08V1qhtyESbGVd1FGX7UKtiFp5uwKZdM8wIuQ==}
+    engines: {node: '>=8'}
+    dependencies:
+      '@types/retry': 0.12.0
+      retry: 0.13.1
+    dev: false
 
   /p-try/1.0.0:
     resolution: {integrity: sha1-y8ec26+P1CKOE/Yh8rGiN8GyB7M=}
