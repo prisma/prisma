@@ -510,7 +510,8 @@ test('introspection basic', async () => {
       \\"sequences\\": [],
       \\"views\\": [],
       \\"procedures\\": [],
-      \\"user_defined_types\\": []
+      \\"user_defined_types\\": [],
+      \\"connector_data\\": null
     }"
   `)
   engine.stop()

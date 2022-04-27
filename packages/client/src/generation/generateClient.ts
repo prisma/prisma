@@ -302,7 +302,6 @@ export async function generateClient({
     await writeFile(packageJsonTargetPath, pkgJson)
   }
 
-
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')

@@ -82,22 +82,6 @@ export async function canConnectToDatabase(
     )
   }
 
-  // hack to parse the protocol
-  const provider = protocolToConnectorType(`${connectionString.split(':')[0]}:`)
-
-  if (provider === 'sqlite') {
-    const sqliteExists = await doesSqliteDbExist(connectionString, cwd)
-    if (sqliteExists) {
-      return true
-    } else {
-      // is this necessary to do in CLI?
-      return {
-        code: 'P1003',
-        message: "SQLite database file doesn't exist",
-      }
-    }
-  }
-
   try {
     await execaCommand({
       connectionString,
@@ -224,24 +208,4 @@ export async function execaCommand({
     }
     throw e
   }
-}
-
-export async function doesSqliteDbExist(connectionString: string, schemaDir?: string): Promise<boolean> {
-  let filePath = connectionString
-
-  // this logic is duplicated
-  if (filePath.startsWith('file:')) {
-    filePath = filePath.slice(5)
-  } else if (filePath.startsWith('sqlite:')) {
-    filePath = filePath.slice(7)
-  }
-
-  const cwd = schemaDir || (await getSchemaDir())
-  if (!cwd) {
-    throw new Error(`Could not find schema.prisma in ${process.cwd()}`)
-  }
-
-  const absoluteTarget = path.resolve(cwd, filePath)
-
-  return exists(absoluteTarget)
 }
