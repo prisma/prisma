@@ -282,10 +282,11 @@ export async function generateClient({
     }
   }
 
-  const datamodelTargetPath = path.join(finalOutputDir, 'schema.prisma')
-  if (datamodelPath !== datamodelTargetPath) {
-    await copyFile(datamodelPath, datamodelTargetPath)
-  }
+  // Do not copy schema.prisma file to generated Client
+  // const datamodelTargetPath = path.join(finalOutputDir, 'schema.prisma')
+  // if (datamodelPath !== datamodelTargetPath) {
+  //   await copyFile(datamodelPath, datamodelTargetPath)
+  // }
 
   if (!generator?.isCustomOutput) {
     const packageJsonTargetPath = path.join(finalOutputDir, 'package.json')
