@@ -55,6 +55,21 @@ describe('serializeRawParameters', () => {
     ])
   })
 
+  test('Int8Array/Uint8Array', () => {
+    const data = [Int8Array.of(104, 101, 108, 108, 111), Uint8Array.of(104, 101, 108, 108, 111)]
+
+    expect(serialize(data)).toEqual([
+      {
+        prisma__type: 'bytes',
+        prisma__value: 'aGVsbG8=',
+      },
+      {
+        prisma__type: 'bytes',
+        prisma__value: 'aGVsbG8=',
+      },
+    ])
+  })
+
   // Objects are serialized as-is, except for BigInts which are serialized as
   // strings because otherwise JSON.stringify would throw TypeError.
   test('object', () => {
