@@ -5,6 +5,11 @@ function serialize(data: any[]) {
 }
 
 describe('serializeRawParameters', () => {
+  test('primitives', () => {
+    const data = [0, 1, true, false, '', 'hi', null, undefined]
+    expect(serialize(data)).toEqual([0, 1, true, false, '', 'hi', null, null])
+  })
+
   test('date', () => {
     const data = [new Date('2020-06-22T17:07:16.348Z')]
 
