@@ -70,6 +70,8 @@ describe('serializeRawParameters', () => {
     ])
   })
 
+  test.todo('ArrayBuffer')
+
   // Objects are serialized as-is, except for BigInts which are serialized as
   // strings because otherwise JSON.stringify would throw TypeError.
   test('object', () => {
