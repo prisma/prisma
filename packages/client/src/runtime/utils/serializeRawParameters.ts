@@ -38,6 +38,7 @@ function isDate(value: any): value is Date {
     return true
   }
 
+  // Support dates created in another V8 context
   return getTypeTag(value) === '[object Date]' && typeof value.toJSON === 'function'
 }
 
