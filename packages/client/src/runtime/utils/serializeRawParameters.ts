@@ -1,72 +1,62 @@
-export function serializeRawParameters(data: any): string {
-  return JSON.stringify(serializeBigInt(replaceDates(data)))
+import { map } from '../../../../../helpers/blaze/map'
+
+export function serializeRawParameters(parameters: any[]): string {
+  try {
+    return serializeRawParametersInternal(parameters, 'fast')
+  } catch (error) {
+    return serializeRawParametersInternal(parameters, 'slow')
+  }
 }
 
-/**
- * Replaces Date as needed in https://github.com/prisma/prisma-engines/pull/835
- * @param data parameters
- */
-export function replaceDates(data: any): any {
-  const type = Object.prototype.toString.call(data)
+function serializeRawParametersInternal(parameters: any[], objectSerialization: 'fast' | 'slow'): string {
+  return JSON.stringify(map(parameters, (parameter) => prepareParameter(parameter, objectSerialization)))
+}
 
-  if (type === '[object Date]') {
+function prepareParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
+  if (typeof parameter === 'bigint') {
+    return parameter.toString()
+  }
+
+  if (isDate(parameter)) {
     return {
       prisma__type: 'date',
-      prisma__value: data.toJSON(),
+      prisma__value: parameter.toJSON(),
     }
   }
 
-  if (type === '[object Object]') {
-    const tmp = {}
-    for (const key in data) {
-      if (key !== '__proto__') {
-        tmp[key] = replaceDates(data[key])
-      }
-    }
-    return tmp
+  if (typeof parameter === 'object' && objectSerialization === 'slow') {
+    return preprocessObject(parameter)
   }
 
-  if (type === '[object Array]') {
-    let k = data.length
-    let tmp
-    for (tmp = new Array(k); k--; ) {
-      tmp[k] = replaceDates(data[k])
-    }
-    return tmp
-  }
-
-  return data
+  return parameter
 }
 
-/**
- * Serializes BigInt as a string https://github.com/prisma/prisma/issues/5823
- * @param data parameters
- */
-export function serializeBigInt(data: any): any {
-  const type = Object.prototype.toString.call(data)
-
-  if (type === '[object BigInt]') {
-    return data.toString()
+function isDate(value: any): value is Date {
+  if (value instanceof Date) {
+    return true
   }
 
-  if (type === '[object Object]') {
-    const tmp = {}
-    for (const key in data) {
-      if (key !== '__proto__') {
-        tmp[key] = serializeBigInt(data[key])
-      }
+  return getTypeTag(value) === '[object Date]' && typeof value.toJSON === 'function'
+}
+
+function getTypeTag(value: any): string {
+  return Object.prototype.toString.call(value)
+}
+
+function preprocessObject(obj: any): unknown {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj
+  }
+
+  return map(obj, (value) => {
+    if (typeof value === 'bigint') {
+      return value.toString()
     }
-    return tmp
-  }
 
-  if (type === '[object Array]') {
-    let k = data.length
-    let tmp
-    for (tmp = new Array(k); k--; ) {
-      tmp[k] = serializeBigInt(data[k])
+    if (typeof value === 'object' && value !== null && typeof (value as any).toJSON === 'function') {
+      return (value as any).toJSON()
     }
-    return tmp
-  }
 
-  return data
+    return preprocessObject(value)
+  })
 }
