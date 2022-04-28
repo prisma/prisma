@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js'
+
 import { map } from '../../../../../helpers/blaze/map'
 
 export function serializeRawParameters(parameters: any[]): string {
@@ -26,6 +28,20 @@ function prepareParameter(parameter: any, objectSerialization: 'fast' | 'slow'):
     }
   }
 
+  if (Decimal.isDecimal(parameter)) {
+    return {
+      prisma__type: 'decimal',
+      prisma__value: parameter.toJSON(),
+    }
+  }
+
+  if (Buffer.isBuffer(parameter)) {
+    return {
+      prisma__type: 'bytes',
+      prisma__value: parameter.toString('base64'),
+    }
+  }
+
   if (typeof parameter === 'object' && objectSerialization === 'slow') {
     return preprocessObject(parameter)
   }
@@ -51,13 +67,13 @@ function preprocessObject(obj: any): unknown {
     return obj
   }
 
+  if (typeof obj.toJSON === 'function') {
+    return obj.toJSON()
+  }
+
   return map(obj, (value) => {
     if (typeof value === 'bigint') {
       return value.toString()
-    }
-
-    if (typeof value === 'object' && value !== null && typeof (value as any).toJSON === 'function') {
-      return (value as any).toJSON()
     }
 
     return preprocessObject(value)

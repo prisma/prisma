@@ -1,3 +1,5 @@
+import Decimal from 'decimal.js'
+
 import { serializeRawParameters } from '../runtime/utils/serializeRawParameters'
 
 function serialize(data: any[]) {
@@ -5,6 +7,10 @@ function serialize(data: any[]) {
 }
 
 describe('serializeRawParameters', () => {
+  test('empty', () => {
+    expect(serialize([])).toEqual([])
+  })
+
   test('primitives', () => {
     const data = [0, 1, true, false, '', 'hi', null, undefined]
     expect(serialize(data)).toEqual([0, 1, true, false, '', 'hi', null, null])
@@ -25,6 +31,28 @@ describe('serializeRawParameters', () => {
     const data = [BigInt('321804719213721')]
 
     expect(serialize(data)).toEqual(['321804719213721'])
+  })
+
+  test('Decimal', () => {
+    const data = [new Decimal(1.1)]
+
+    expect(serialize(data)).toEqual([
+      {
+        prisma__type: 'decimal',
+        prisma__value: '1.1',
+      },
+    ])
+  })
+
+  test('Buffer', () => {
+    const data = [Buffer.from('hello')]
+
+    expect(serialize(data)).toEqual([
+      {
+        prisma__type: 'bytes',
+        prisma__value: 'aGVsbG8=',
+      },
+    ])
   })
 
   // Objects are serialized as-is, except for BigInts which are serialized as
