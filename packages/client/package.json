@@ -49,7 +49,6 @@
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
