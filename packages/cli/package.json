@@ -107,6 +107,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
+    "ts-pattern": "^4.0.1",
     "typescript": "4.5.4"
   },
   "scripts": {
@@ -119,8 +120,7 @@
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.14.0-7.4ae1eb270190caa8f6baacc69dbc167bb6fa36f6",
-    "ts-pattern": "^4.0.1"
+    "@prisma/engines": "3.14.0-7.4ae1eb270190caa8f6baacc69dbc167bb6fa36f6"
   },
   "sideEffects": false
 }
