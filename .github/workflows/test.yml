@@ -517,7 +517,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
