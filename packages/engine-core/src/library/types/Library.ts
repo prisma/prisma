@@ -37,5 +37,5 @@ export type Library = {
   /**
    * Artificial panic function that can be used to test the query engine
    */
-  debugPanic: (message?: string) => never
+  debugPanic: (message?: string) => Promise<never>
 }

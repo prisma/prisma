@@ -397,8 +397,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.versionInfo?.version ?? 'unknown'
   }
 
-  debugPanic(message?: string): never {
-    return this.library?.debugPanic(message) as never
+  debugPanic(message?: string): Promise<never> {
+    return this.library?.debugPanic(message) as Promise<never>
   }
 
   async request<T>(
