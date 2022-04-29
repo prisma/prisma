@@ -55,22 +55,54 @@ describe('serializeRawParameters', () => {
     ])
   })
 
-  test('Int8Array/Uint8Array', () => {
-    const data = [Int8Array.of(104, 101, 108, 108, 111), Uint8Array.of(104, 101, 108, 108, 111)]
+  test('typed byte arrays', () => {
+    const data = [
+      Int8Array.of(0x69, 0x6e, 0x74, 0x38),
+      Uint8Array.of(0x75, 0x69, 0x6e, 0x74, 0x38),
+      Uint8ClampedArray.of(0x75, 0x69, 0x6e, 0x74, 0x38, 0x63),
+    ]
 
     expect(serialize(data)).toEqual([
       {
         prisma__type: 'bytes',
-        prisma__value: 'aGVsbG8=',
+        prisma__value: 'aW50OA==',
       },
       {
         prisma__type: 'bytes',
-        prisma__value: 'aGVsbG8=',
+        prisma__value: 'dWludDg=',
+      },
+      {
+        prisma__type: 'bytes',
+        prisma__value: 'dWludDhj',
       },
     ])
   })
 
-  test.todo('ArrayBuffer')
+  test('ArrayBuffer', () => {
+    const arrayBuffer = new ArrayBuffer(6)
+    const array = new Uint8Array(arrayBuffer)
+    array.set([0x62, 0x75, 0x66, 0x66, 0x65, 0x72])
+
+    expect(serialize([arrayBuffer])).toEqual([
+      {
+        prisma__type: 'bytes',
+        prisma__value: 'YnVmZmVy',
+      },
+    ])
+  })
+
+  test('SharedArrayBuffer', () => {
+    const sharedArrayBuffer = new SharedArrayBuffer(6)
+    const array = new Uint8Array(sharedArrayBuffer)
+    array.set([0x73, 0x68, 0x61, 0x72, 0x65, 0x64])
+
+    expect(serialize([sharedArrayBuffer])).toEqual([
+      {
+        prisma__type: 'bytes',
+        prisma__value: 'c2hhcmVk',
+      },
+    ])
+  })
 
   // Objects are serialized as-is, except for BigInts which are serialized as
   // strings because otherwise JSON.stringify would throw TypeError.
