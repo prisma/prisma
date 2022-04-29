@@ -40,7 +40,7 @@ jobs:
           cache: 'pnpm'
           node-version: '16'
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
