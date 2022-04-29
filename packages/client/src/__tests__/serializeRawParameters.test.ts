@@ -30,7 +30,12 @@ describe('serializeRawParameters', () => {
   test('BigInt', () => {
     const data = [BigInt('321804719213721')]
 
-    expect(serialize(data)).toEqual(['321804719213721'])
+    expect(serialize(data)).toEqual([
+      {
+        prisma__type: 'bigint',
+        prisma__value: '321804719213721',
+      },
+    ])
   })
 
   test('Decimal', () => {

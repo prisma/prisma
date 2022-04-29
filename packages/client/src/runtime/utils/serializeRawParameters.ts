@@ -18,7 +18,10 @@ function serializeRawParametersInternal(parameters: any[], objectSerialization: 
 
 function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
   if (typeof parameter === 'bigint') {
-    return parameter.toString()
+    return {
+      prisma__type: 'bigint',
+      prisma__value: parameter.toString(),
+    }
   }
 
   if (isDate(parameter)) {
