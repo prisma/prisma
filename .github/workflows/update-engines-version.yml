@@ -43,11 +43,12 @@ jobs:
             echo 'Awesome - proceeding to make the PR'
 
       - name: Extract Engine Commit hash from version
-        uses: bhowell2/github-substring-action@v1
         id: extract-engine-commit-hash
+        uses: actions/github-script@v6
         with:
-          value: "${{ github.event.inputs.version }}"
-          length_from_end: 40
+          script: |
+            const hash = context.payload.inputs.version.split('.').pop()
+            core.setOutput('hash', hash)
 
       - name: Create Pull Request
         id: cpr
@@ -71,7 +72,7 @@ jobs:
             |`@prisma/fetch-engine`| https://npmjs.com/package/@prisma/fetch-engine/v/${{ github.event.inputs.version }}|
             |`@prisma/get-platform`| https://npmjs.com/package/@prisma/get-platform/v/${{ github.event.inputs.version }}|
             ## Engines commit
-            [`prisma/prisma-engines@{{ steps.extract-engine-commit-hash.outputs.substring }}`](https://github.com/prisma/prisma-engines/commit/{{ steps.extract-engine-commit-hash.outputs.substring }})
+            [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
 
       - name: PR url
         run: |
