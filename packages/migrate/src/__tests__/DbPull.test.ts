@@ -43,7 +43,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: Windows: fails with
+  // TODO (https://github.com/prisma/prisma/issues/13077): Windows: fails with
   // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
   //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
   //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
