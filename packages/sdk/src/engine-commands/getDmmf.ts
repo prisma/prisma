@@ -56,6 +56,10 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   const datamodel = options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
   let dmmf: DMMF.Document | undefined
   try {
+    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+      await NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_DMMF')
+    }
+
     dmmf = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
   } catch (e: any) {
     const error = JSON.parse(e.message)
@@ -90,6 +94,18 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     }
 
     const args = ['--enable-raw-queries', 'cli', 'dmmf']
+
+    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+      await execa(queryEnginePath, ['cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF'], {
+        cwd: options.cwd,
+        env: {
+          PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
+          RUST_BACKTRACE: '1',
+        },
+        maxBuffer: MAX_BUFFER,
+      })
+    }
+
     result = await execa(queryEnginePath, args, execaOptions)
 
     if (!options.datamodelPath) {

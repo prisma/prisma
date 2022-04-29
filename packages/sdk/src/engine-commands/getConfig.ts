@@ -72,6 +72,11 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
 
   try {
     const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
+
+    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+      await NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_CONFIG')
+    }
+
     data = await NodeAPIQueryEngineLibrary.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},
@@ -79,6 +84,8 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
       env: process.env,
     })
   } catch (e: any) {
+    // TODO: if e.is_panic is true, throw a RustPanic error
+
     let error
     try {
       error = JSON.parse(e.message)
@@ -118,6 +125,21 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
     const engineArgs = []
 
     const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
+
+    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+      await execa(
+        queryEnginePath,
+        [...engineArgs, 'cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_CONFIG'],
+        {
+          cwd: options.cwd,
+          env: {
+            PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
+            RUST_BACKTRACE: '1',
+          },
+          maxBuffer: MAX_BUFFER,
+        },
+      )
+    }
 
     const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], {
       cwd: options.cwd,
