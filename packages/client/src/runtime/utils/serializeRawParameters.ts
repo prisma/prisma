@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { map } from '../../../../../helpers/blaze/map'
+// import { map } from '../../../../../helpers/blaze/map'
 
 export function serializeRawParameters(parameters: any[]): string {
   try {
@@ -13,7 +13,7 @@ export function serializeRawParameters(parameters: any[]): string {
 }
 
 function serializeRawParametersInternal(parameters: any[], objectSerialization: 'fast' | 'slow'): string {
-  return JSON.stringify(map(parameters, (parameter) => encodeParameter(parameter, objectSerialization)))
+  return JSON.stringify(parameters.map((parameter) => encodeParameter(parameter, objectSerialization)))
 }
 
 function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
@@ -90,11 +90,23 @@ function preprocessObject(obj: any): unknown {
     return obj.toJSON()
   }
 
-  return map(obj, (value) => {
-    if (typeof value === 'bigint') {
-      return value.toString()
-    }
+  if (Array.isArray(obj)) {
+    return obj.map(preprocessValueInObject)
+  }
 
-    return preprocessObject(value)
-  })
+  const result = {} as any
+
+  for (const key of Object.keys(obj as object)) {
+    result[key] = preprocessValueInObject(obj[key])
+  }
+
+  return result
+}
+
+function preprocessValueInObject(value: any): unknown {
+  if (typeof value === 'bigint') {
+    return value.toString()
+  }
+
+  return preprocessObject(value)
 }
