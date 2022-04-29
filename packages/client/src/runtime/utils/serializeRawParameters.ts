@@ -65,6 +65,7 @@ function isDate(value: any): value is Date {
   }
 
   // Support dates created in another V8 context
+  // Note: dates don't have Symbol.toStringTag defined
   return Object.prototype.toString.call(value) === '[object Date]' && typeof value.toJSON === 'function'
 }
 
