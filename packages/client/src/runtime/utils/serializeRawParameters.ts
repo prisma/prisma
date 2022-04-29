@@ -1,7 +1,5 @@
 import Decimal from 'decimal.js'
 
-// import { map } from '../../../../../helpers/blaze/map'
-
 export function serializeRawParameters(parameters: any[]): string {
   try {
     return serializeRawParametersInternal(parameters, 'fast')
@@ -89,6 +87,10 @@ function preprocessObject(obj: any): unknown {
   if (typeof obj.toJSON === 'function') {
     return obj.toJSON()
   }
+
+  // TODO: map from blaze would've been convenient here to map arrays and
+  // objects uniformly, but importing it here causes weird compilation errors in
+  // tsd tests.
 
   if (Array.isArray(obj)) {
     return obj.map(preprocessValueInObject)
