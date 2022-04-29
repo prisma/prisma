@@ -82,7 +82,6 @@ module.exports = {
         'jest/no-conditional-expect': 'off',
         'jest/no-export': 'off',
         '@typescript-eslint/no-empty-interface': 'off',
-        '@typescript-eslint/consistent-type-imports': 'error',
         // Allow the `testIf`/`describeIf` pattern.
         // TODO: it's not exactly correct to have `describeIf` in `additionalTestBlockFunctions`,
         // but it's better than disabling the rule completely for files that need `describeIf`.

@@ -132,18 +132,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                [+] Added tables
-                                                                                                  - Post
-                                                                                                  - Profile
-                                                                                                  - User
-                                                                                                  - _Migration
+                                                                                                        [+] Added tables
+                                                                                                          - Post
+                                                                                                          - Profile
+                                                                                                          - User
+                                                                                                          - _Migration
 
-                                                                                                [*] Changed the \`Profile\` table
-                                                                                                  [+] Added unique index on columns (userId)
+                                                                                                        [*] Changed the \`Profile\` table
+                                                                                                          [+] Added unique index on columns (userId)
 
-                                                                                                [*] Changed the \`User\` table
-                                                                                                  [+] Added unique index on columns (email)
-                                                                        `)
+                                                                                                        [*] Changed the \`User\` table
+                                                                                                          [+] Added unique index on columns (email)
+                                                                              `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -160,9 +160,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                [+] Added tables
-                                                                                                  - Blog
-                                                                        `)
+                                                                                                        [+] Added tables
+                                                                                                          - Blog
+                                                                              `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -189,9 +189,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                [-] Removed tables
-                                                                                                  - Blog
-                                                                        `)
+                                                                                                        [-] Removed tables
+                                                                                                          - Blog
+                                                                              `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -236,9 +236,9 @@ describe('migrate diff', () => {
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                  [-] Removed tables
-                                                    - Blog
-                                        `)
+                                                            [-] Removed tables
+                                                              - Blog
+                                                `)
 
         expect(mockExit).toHaveBeenCalledTimes(1)
         expect(mockExit).toHaveBeenCalledWith(2)
@@ -508,7 +508,7 @@ describe('migrate diff', () => {
         CREATE TABLE [dbo].[Blog] (
             [id] INT NOT NULL,
             [viewCount20] INT NOT NULL,
-            CONSTRAINT [Blog_pkey] PRIMARY KEY ([id])
+            CONSTRAINT [Blog_pkey] PRIMARY KEY CLUSTERED ([id])
         );
 
         COMMIT TRAN;

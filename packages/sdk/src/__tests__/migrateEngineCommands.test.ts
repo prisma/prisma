@@ -4,7 +4,6 @@ import { credentialsToUri, uriToCredentials } from '../convertCredentials'
 import {
   canConnectToDatabase,
   createDatabase,
-  doesSqliteDbExist,
   dropDatabase,
   execaCommand,
 } from '../migrateEngineCommands'
@@ -33,28 +32,6 @@ describe('execaCommand', () => {
   })
 })
 
-describe('doesSqliteDbExist', () => {
-  test('exist - sqlite:', async () => {
-    await expect(doesSqliteDbExist('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(true)
-  })
-
-  test('exist - file:', async () => {
-    await expect(doesSqliteDbExist('file:./introspection/blog.db', __dirname)).resolves.toEqual(true)
-  })
-
-  test('does not exist - sqlite:', async () => {
-    await expect(doesSqliteDbExist('sqlite:./doesnotexist.db', __dirname)).resolves.toEqual(false)
-  })
-
-  test('does not exist - file:', async () => {
-    await expect(doesSqliteDbExist('file:./doesnotexist.db', __dirname)).resolves.toEqual(false)
-  })
-
-  test('should error if no schemaDir and no schema found', async () => {
-    await expect(doesSqliteDbExist('file:./doesnotexist.db')).rejects.toThrowError()
-  })
-})
-
 describe('canConnectToDatabase', () => {
   test('sqlite - can', async () => {
     await expect(canConnectToDatabase('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(true)
@@ -64,7 +41,7 @@ describe('canConnectToDatabase', () => {
     await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves.toMatchInlineSnapshot(`
             Object {
               "code": "P1003",
-              "message": "SQLite database file doesn't exist",
+              "message": "Database doesnotexist.db does not exist at ./doesnotexist.db",
             }
           `)
   })
@@ -166,7 +143,7 @@ describe('createDatabase', () => {
 
   test('invalid database type', async () => {
     await expect(createDatabase('invalid:somedburl')).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Unknown protocol invalid:"`,
+      '"P1013: The provided database string is invalid. `invalid` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters."',
     )
   })
 

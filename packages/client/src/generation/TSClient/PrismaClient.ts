@@ -32,11 +32,10 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
     return ''
   }
 
-  const txPrismaClient = `Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>`
   const txOptions = `{ maxWait?: number, timeout?: number }`
 
   return `
-  $transaction<R>(fn: (prisma: ${txPrismaClient}) => Promise<R>, options?: ${txOptions}): Promise<R>;`
+  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: ${txOptions}): Promise<R>;`
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
@@ -357,6 +356,7 @@ export type PrismaAction =
   | 'aggregate'
   | 'count'
   | 'runCommandRaw'
+  | 'findRaw'
 
 /**
  * These options are being passed in to the middleware as "params"
@@ -378,6 +378,17 @@ export type Middleware<T = any> = (
 ) => Promise<T>
 
 // tested in getLogLevel.test.ts
-export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined; `
+export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
+${
+  this.generator?.previewFeatures.includes('interactiveTransactions')
+    ? `
+
+/**
+ * \`PrismaClient\` proxy available in interactive transactions.
+ */
+export type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+`
+    : ''
+}`
   }
 }
