@@ -87,12 +87,17 @@ function checkForConflicts(
     const duplicates: string[] = []
 
     for (const k in envConfig) {
-      if (parsedRootEnv[k] !== envConfig[k]) {
-        conflicts.push(k)
-      }
+      const a = parsedRootEnv[k]
+      const b = envConfig[k]
 
-      if (parsedRootEnv[k] === envConfig[k]) {
-        duplicates.push(k)
+      if (a && b) {
+        if (a !== b) {
+          conflicts.push(k)
+        }
+
+        if (a === b) {
+          duplicates.push(k)
+        }
       }
     }
 
