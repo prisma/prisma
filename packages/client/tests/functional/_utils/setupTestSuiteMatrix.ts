@@ -53,7 +53,17 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
       // we inject modified env vars, and make the client available as globals
       beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
       beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
-      beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
+      beforeAll(
+        async () =>
+          (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']({
+            log: [
+              // {
+              //   level: 'query',
+              //   emit: 'stdout',
+              // },
+            ],
+          })),
+      )
       beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
       beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
 
