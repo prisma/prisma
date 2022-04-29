@@ -13,10 +13,10 @@ export function serializeRawParameters(parameters: any[]): string {
 }
 
 function serializeRawParametersInternal(parameters: any[], objectSerialization: 'fast' | 'slow'): string {
-  return JSON.stringify(map(parameters, (parameter) => prepareParameter(parameter, objectSerialization)))
+  return JSON.stringify(map(parameters, (parameter) => encodeParameter(parameter, objectSerialization)))
 }
 
-function prepareParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
+function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): unknown {
   if (typeof parameter === 'bigint') {
     return parameter.toString()
   }
@@ -42,6 +42,13 @@ function prepareParameter(parameter: any, objectSerialization: 'fast' | 'slow'):
     }
   }
 
+  if (isArrayBufferLike(parameter) || ArrayBuffer.isView(parameter)) {
+    return {
+      prisma__type: 'bytes',
+      prisma__value: Buffer.from(parameter).toString('base64'),
+    }
+  }
+
   if (typeof parameter === 'object' && objectSerialization === 'slow') {
     return preprocessObject(parameter)
   }
@@ -55,11 +62,19 @@ function isDate(value: any): value is Date {
   }
 
   // Support dates created in another V8 context
-  return getTypeTag(value) === '[object Date]' && typeof value.toJSON === 'function'
+  return Object.prototype.toString.call(value) === '[object Date]' && typeof value.toJSON === 'function'
 }
 
-function getTypeTag(value: any): string {
-  return Object.prototype.toString.call(value)
+function isArrayBufferLike(value: any): value is ArrayBufferLike {
+  if (value instanceof ArrayBuffer || value instanceof SharedArrayBuffer) {
+    return true
+  }
+
+  if (typeof value === 'object' && value !== null) {
+    return value[Symbol.toStringTag] === 'ArrayBuffer' || value[Symbol.toStringTag] === 'SharedArrayBuffer'
+  }
+
+  return false
 }
 
 function preprocessObject(obj: any): unknown {
