@@ -88,9 +88,8 @@ function preprocessObject(obj: any): unknown {
     return obj.toJSON()
   }
 
-  // TODO: map from blaze would've been convenient here to map arrays and
-  // objects uniformly, but importing it here causes weird compilation errors in
-  // tsd tests.
+  // TODO: map from blaze would've been convenient here to map arrays and objects uniformly,
+  // but importing it in this file causes compilation errors in tsd tests.
 
   if (Array.isArray(obj)) {
     return obj.map(preprocessValueInObject)
