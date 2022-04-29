@@ -11,6 +11,12 @@ jobs:
     name: 'Check and update @prisma/engines@${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
+      - name: Print workflow_dispatch input
+        env:
+          THE_INPUT: '${{ toJson(github.event.inputs) }}'
+        run: |
+          echo $THE_INPUT
+          
       - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.1
