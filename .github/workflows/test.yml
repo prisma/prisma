@@ -610,10 +610,10 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Setup PostgreSQL
+      - name: Set up PostgreSQL
         run: bash .github/workflows/setup-postgres.sh
 
-      - name: Setup MySQL
+      - name: Set up MySQL
         run: bash .github/workflows/setup-mysql.sh
 
       - uses: pnpm/action-setup@v2.2.1
@@ -781,10 +781,10 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Setup PostgreSQL
+      - name: Set up PostgreSQL
         run: bash .github/workflows/setup-postgres.sh
 
-      - name: Setup MySQL
+      - name: Set up MySQL
         run: bash .github/workflows/setup-mysql.sh
 
       - uses: pnpm/action-setup@v2.2.1
