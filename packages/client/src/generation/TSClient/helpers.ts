@@ -1,5 +1,3 @@
-import pluralize from 'pluralize'
-
 import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getAggregateArgsName, getModelArgName, unique } from '../utils'
@@ -9,7 +7,6 @@ import { JSDocs } from './jsdoc'
 export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   const ctx: JSDocMethodBodyCtx = {
     singular: capitalize(mapping.model),
-    plural: capitalize(mapping.plural),
     firstScalar: model.fields.find((f) => f.kind === 'scalar'),
     method: `prisma.${lowerCase(mapping.model)}.${action}`,
     action,
@@ -81,8 +78,7 @@ export function getArgFieldJSDoc(
   const fieldName = typeof field === 'string' ? field : field.name
   if (JSDocs[action] && JSDocs[action]?.fields[fieldName]) {
     const singular = type.name
-    const plural = pluralize(type.name)
-    const comment = JSDocs[action]?.fields[fieldName](singular, plural)
+    const comment = JSDocs[action]?.fields[fieldName](singular)
     return comment as string
   }
 

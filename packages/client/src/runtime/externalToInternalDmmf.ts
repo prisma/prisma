@@ -1,5 +1,4 @@
 import type { DMMF as ExternalDMMF } from '@prisma/generator-helper'
-import pluralize from 'pluralize'
 
 import type { DMMF } from './dmmf-types'
 import { capitalize, lowerCase } from './utils/common'
@@ -31,7 +30,6 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
     // TODO most of this is probably not needed anymore
     .map((mapping: any) => ({
       model: mapping.model,
-      plural: pluralize(lowerCase(mapping.model)), // TODO not needed anymore
       findUnique: mapping.findUnique || mapping.findSingle,
       findFirst: mapping.findFirst,
       findMany: mapping.findMany,

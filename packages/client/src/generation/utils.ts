@@ -158,29 +158,6 @@ export function getOperation(action: DMMF.ModelAction): 'query' | 'mutation' {
   return 'mutation'
 }
 
-/**
- * Used to render the initial client args
- * @param modelName
- * @param fieldName
- * @param mapping
- */
-export function renderInitialClientArgs( // TODO: dead code
-  actionName: DMMF.ModelAction,
-  fieldName: string,
-  mapping: DMMF.ModelMapping,
-): string {
-  return `
-  dmmf,
-  fetcher,
-  '${getOperation(actionName)}',
-  '${fieldName}',
-  '${mapping.plural}.${actionName}',
-  args || {},
-  [],
-  errorFormat,
-  measurePerformance\n`
-}
-
 export function getFieldTypeName(field: DMMF.SchemaField): string {
   if (typeof field.outputType.type === 'string') {
     return field.outputType.type

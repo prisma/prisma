@@ -344,7 +344,7 @@ export class ModelDelegate implements Generatable {
   public toTS(): string {
     const { fields, name } = this.outputType
 
-    const mapping = this.dmmf.mappingsMap[name] ?? { model: name, plural: `${name}s` }
+    const mapping = this.dmmf.mappingsMap[name] ?? { model: name }
     const modelOrType = this.dmmf.typeAndModelMap[name]
 
     const mappingKeys = Object.keys(mapping)

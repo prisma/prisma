@@ -170,7 +170,7 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@prisma/studio': 0.459.0
-      '@prisma/studio-server': 0.459.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-server': 0.459.0
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.20_@swc+core@1.2.141
       '@types/debug': 4.1.7
@@ -252,7 +252,6 @@ importers:
       mssql: 8.0.1
       pg: 8.7.1
       pkg-up: 3.1.0
-      pluralize: 8.0.0
       replace-string: 3.1.0
       resolve: 1.22.0
       rimraf: 3.0.2
@@ -313,7 +312,6 @@ importers:
       mssql: 8.0.1
       pg: 8.7.1
       pkg-up: 3.1.0
-      pluralize: 8.0.0
       replace-string: 3.1.0
       resolve: 1.22.0
       rimraf: 3.0.2
@@ -1816,38 +1814,34 @@ packages:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.459.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-pcw/0.459.0:
     resolution: {integrity: sha512-V3bvY8XXtRq4dRxtAci3+MAHee0joQU1kVmtjT2RIbFXonnOSo3jkqRMLV2OpNx96oysS5h1u3K86a/EavG2bw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/client': link:packages/client
-      '@prisma/sdk': link:packages/sdk
       debug: 4.3.3
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.459.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-server/0.459.0:
     resolution: {integrity: sha512-oKGELhEKUdezw1tCHiVzL0dH1WBNpfCvtfghV9SENHterM7Ugb2U8AlNSoKvIiyrOiLgkTG4VYl442o1QjDBnw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': link:packages/sdk
       '@prisma/studio': 0.459.0
       '@prisma/studio-common': 0.459.0
-      '@prisma/studio-pcw': 0.459.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-pcw': 0.459.0
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -7618,11 +7612,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       irregular-plurals: 3.3.0
-    dev: true
-
-  /pluralize/8.0.0:
-    resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
-    engines: {node: '>=4'}
     dev: true
 
   /postgres-array/2.0.0:
