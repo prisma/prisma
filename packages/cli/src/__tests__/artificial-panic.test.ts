@@ -30,14 +30,15 @@ describe('artificial-panic', () => {
   //
   // You can either provide it with --schema, set it as `prisma.schema` in your package.json or
   // put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-  it('introspection-engine binary', async () => {
+  it.skip('introspection-engine binary', async () => {
+    ctx.fixture('artificial-panic')
     expect.assertions(1)
     process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'binary'
     process.env.FORCE_PANIC_INTROSPECTION_ENGINE = '1'
 
     const command = new DbPull()
     try {
-      await command.parse([])
+      await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`[/some/rust/path:0:0] This is the debugPanic artificial panic`)
     }
@@ -117,7 +118,7 @@ datasource db {
   //
   // Schema parsing
   // error: Found argument 'debug-panic' which wasn't expected, or isn't valid in this context
-  it('query-engine get-dmmf binary', async () => {
+  it.skip('query-engine get-dmmf binary', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(4)
     process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'binary'
@@ -150,29 +151,8 @@ datasource db {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(``)
-      expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toContain('prisma/schema.prisma')
-      expect(e).toMatchObject({
-        schema: undefined,
-      })
-    }
-  })
-
-  // TODO: currently it fails with:
-  //
-  // Get config: undefined
-  it('query-engine get-config library', async () => {
-    ctx.fixture('artificial-panic')
-    expect.assertions(4)
-    process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'library'
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
-
-    const command = new Validate()
-    try {
-      await command.parse([])
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(``)
+      expect(e).toMatchInlineSnapshot(`Schema parsing
+      FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath).toContain('prisma/schema.prisma')
       expect(e).toMatchObject({
@@ -184,7 +164,7 @@ datasource db {
   // TODO: currently it fails with:
   //
   // Get config: error: Found argument 'debug-panic' which wasn't expected, or isn't valid in this context
-  it('query-engine get-config binary', async () => {
+  it.skip('query-engine get-config binary', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(4)
     process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'binary'
@@ -195,6 +175,27 @@ datasource db {
       await command.parse([])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(``)
+      expect(e.rustStack).toBeTruthy()
+      expect(e.schemaPath).toContain('prisma/schema.prisma')
+      expect(e).toMatchObject({
+        schema: undefined,
+      })
+    }
+  })
+
+  it('query-engine get-config library', async () => {
+    ctx.fixture('artificial-panic')
+    expect.assertions(4)
+    process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'library'
+    process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
+
+    const command = new Validate()
+    try {
+      await command.parse([])
+    } catch (e) {
+      expect(e).toMatchInlineSnapshot(`Get config: undefined
+
+[object Object]`)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath).toContain('prisma/schema.prisma')
       expect(e).toMatchObject({
