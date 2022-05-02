@@ -34,7 +34,7 @@ export type GetDMMFOptions = {
   retry?: number
   previewFeatures?: string[]
 }
-// TODO add error handling functions
+
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
@@ -50,23 +50,23 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
   const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
-
   debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
-  const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
-  const datamodel = options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
-  let dmmf: DMMF.Document | undefined
+
   try {
+    const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
     if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+      // cause a Rust panic
       await NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_DMMF')
     }
 
-    dmmf = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
+    const datamodel = options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
+    const dmmf: DMMF.Document = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
+    return dmmf
   } catch (e: any) {
     const error = JSON.parse(e.message)
     const message = addMissingOpenSSLInfo(error.message)
     throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
   }
-  return dmmf
 }
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
