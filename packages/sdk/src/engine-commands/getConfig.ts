@@ -38,7 +38,7 @@ export class GetConfigError extends Error {
     super(chalk.redBright.bold('Get config: ') + message)
   }
 }
-// TODO add error handling functions
+
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   let data: ConfigMetaFormat | undefined
@@ -47,42 +47,28 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
   } else {
     data = await getConfigBinary(options)
   }
-
-  if (!data) throw new GetConfigError(`Failed to return any data`)
-
-  // TODO This has been outdated for ages and needs to be handled differently and/or removed
-  if (
-    data.datasources?.[0]?.provider === 'sqlite' &&
-    data.generators.some((g) => g.previewFeatures.includes('createMany'))
-  ) {
-    const message = `Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.
-  Please either remove the "createMany" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver.`
-    throw new GetConfigError(message)
-  }
-
   return data
 }
 
-async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
-  let data: ConfigMetaFormat | undefined
-
+async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
   await isNodeAPISupported()
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
 
   try {
     const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
-
     if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+      // cause a Rust panic
       await NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_CONFIG')
     }
 
-    data = await NodeAPIQueryEngineLibrary.getConfig({
+    const data: ConfigMetaFormat = await NodeAPIQueryEngineLibrary.getConfig({
       datamodel: options.datamodel,
       datasourceOverrides: {},
       ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
       env: process.env,
     })
+    return data
   } catch (e: any) {
     // TODO: if e.is_panic is true, throw a RustPanic error
 
@@ -100,15 +86,11 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
     }
     throw new GetConfigError(message)
   }
-
-  return data
 }
 
 // TODO Add comments
 // TODO Rename datamodelPath to schemaPath
-async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
-  let data: ConfigMetaFormat | undefined
-
+async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
@@ -154,7 +136,8 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
       await unlink(tempDatamodelPath)
     }
 
-    data = JSON.parse(result.stdout)
+    const data: ConfigMetaFormat = JSON.parse(result.stdout)
+    return data
   } catch (e: any) {
     if (e.stderr || e.stdout) {
       const error = e.stderr ? e.stderr : e.stout
@@ -179,5 +162,4 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
 
     throw new GetConfigError(e)
   }
-  return data
 }
