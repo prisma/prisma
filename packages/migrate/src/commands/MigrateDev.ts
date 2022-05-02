@@ -330,7 +330,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
             console.info() // empty line
           }
         } else {
-          // Only used to help users to setup their seeds from old way to new package.json config
+          // Only used to help users to set up their seeds from old way to new package.json config
           const schemaPath = await getSchemaPath(args['--schema'])
           // we don't want to output the returned warning message
           // but we still want to run it for `legacyTsNodeScriptWarning()`
