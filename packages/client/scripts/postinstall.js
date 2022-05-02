@@ -58,7 +58,7 @@ function findPackageRoot(startPath, limit = 10) {
  * - sets the path of the root of the project (TODO: to verify) to the `process.env.PRISMA_GENERATE_IN_POSTINSTALL`
  *   variable, or `'true'` if the project root cannot be found.
  * - runs `prisma generate`, passing through additional information about the command that triggered the generation,
- *   which is useful for telemetry. It tries to use the local `prisma` package if it is installed, otherwise it
+ *   which is useful for debugging/telemetry. It tries to use the local `prisma` package if it is installed, otherwise it
  *   falls back to the global `prisma` package. If neither options are available, it warns the user to install `prisma` first.
  */
 async function main() {
