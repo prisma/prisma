@@ -191,8 +191,7 @@ test('introspection basic', async () => {
                   \\"length\\": null
                 }
               ],
-              \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"tpe\\": \\"Unique\\"
             }
           ],
           \\"primary_key\\": {
@@ -336,8 +335,7 @@ test('introspection basic', async () => {
                   \\"length\\": null
                 }
               ],
-              \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"tpe\\": \\"Unique\\"
             },
             {
               \\"name\\": \\"User.id\\",
@@ -348,8 +346,7 @@ test('introspection basic', async () => {
                   \\"length\\": null
                 }
               ],
-              \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"tpe\\": \\"Unique\\"
             }
           ],
           \\"primary_key\\": {
