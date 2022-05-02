@@ -39,7 +39,7 @@
   ],
   "peerDependencies": {
     "@prisma/client": "*",
-    "react": "^18.0.0"
+    "react": ">=17.0.0"
   },
   "sideEffects": false
 }
