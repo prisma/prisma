@@ -148,7 +148,9 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
         if (activeDatasource.provider === 'cockroachdb') {
           databaseProvider = 'CockroachDB'
         }
-        return `${dbType} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
+        return `${databaseProvider} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(
+          getDbLocation(credentials),
+        )}`
       } else {
         // SQL Server case, never reached?
         return `${schemaWord} created.`
