@@ -62,7 +62,6 @@ Or specify a Prisma schema path
       })
     } catch (err) {
       if (err.exitCode === 101 || err.stderr?.includes('panicked at')) {
-        console.log('Object.freeze(err)', Object.freeze(err))
         throw new RustPanic(
           /* message */ err.shortMessage,
           /* rustStack */ err.stack,

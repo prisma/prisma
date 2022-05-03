@@ -10,6 +10,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
+import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
@@ -71,6 +72,8 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
     return data
   } catch (e: any) {
     // TODO: if e.is_panic is true, throw a RustPanic error
+    console.log('e@getConfigNodeAPI', JSON.stringify(JSON.parse(e)))
+    console.log('\n\n')
 
     let error
     try {
@@ -88,49 +91,43 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
   }
 }
 
-// TODO Add comments
 // TODO Rename datamodelPath to schemaPath
 async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
+  // If we do not get the path we write the datamodel to a tmp location
+  let tempDatamodelPath: string | undefined
+  if (!options.datamodelPath) {
+    try {
+      tempDatamodelPath = await tmpWrite(options.datamodel!)
+    } catch (err) {
+      throw new GetConfigError('Unable to write temp data model path')
+    }
+  }
+
   try {
-    // If we do not get the path we write the datamodel to a tmp location
-    let tempDatamodelPath: string | undefined
-    if (!options.datamodelPath) {
-      try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
-      } catch (err) {
-        throw new GetConfigError('Unable to write temp data model path')
-      }
-    }
-    const engineArgs = []
-
-    const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
-
-    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
-      await execa(
-        queryEnginePath,
-        [...engineArgs, 'cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_CONFIG'],
-        {
-          cwd: options.cwd,
-          env: {
-            PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
-            RUST_BACKTRACE: '1',
-          },
-          maxBuffer: MAX_BUFFER,
-        },
-      )
-    }
-
-    const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], {
+    const execaOptions = {
       cwd: options.cwd,
       env: {
         PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
         RUST_BACKTRACE: '1',
       },
       maxBuffer: MAX_BUFFER,
-    })
+    }
+
+    const engineArgs = []
+    const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
+
+    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+      await execa(
+        queryEnginePath,
+        [...engineArgs, 'cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_CONFIG'],
+        execaOptions,
+      )
+    }
+
+    const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], execaOptions)
 
     if (tempDatamodelPath) {
       await unlink(tempDatamodelPath)
@@ -139,6 +136,17 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
     const data: ConfigMetaFormat = JSON.parse(result.stdout)
     return data
   } catch (e: any) {
+    if (isExecaErrorCausedByRustPanic(e as execa.ExecaError)) {
+      throw new RustPanic(
+        /* message */ e.shortMessage, // Command failed with exit code 101: ~/query-engine1.x cli debug-panic --message FORCE_PANIC_QUERY_ENGINE_GET_DMMF
+        /* rustStack */ e.stderr, // thread 'main' panicked at 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF', /root/build/query-engine/query-engine/src/cli.rs:95:21
+        /* request */ 'query-engine get-config',
+        ErrorArea.QUERY_CLI,
+        /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
+        /* schema */ undefined,
+      )
+    }
+
     if (e.stderr || e.stdout) {
       const error = e.stderr ? e.stderr : e.stout
       let jsonError, message

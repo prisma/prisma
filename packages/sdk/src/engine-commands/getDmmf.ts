@@ -11,6 +11,7 @@ import fs from 'fs'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
+import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
@@ -63,6 +64,9 @@ async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
     const dmmf: DMMF.Document = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
     return dmmf
   } catch (e: any) {
+    console.log('e@getDmmfNodeAPI', JSON.stringify(JSON.parse(e)))
+    console.log('\n\n')
+
     const error = JSON.parse(e.message)
     const message = addMissingOpenSSLInfo(error.message)
     throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
@@ -96,14 +100,11 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const args = ['--enable-raw-queries', 'cli', 'dmmf']
 
     if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
-      await execa(queryEnginePath, ['cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF'], {
-        cwd: options.cwd,
-        env: {
-          PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
-          RUST_BACKTRACE: '1',
-        },
-        maxBuffer: MAX_BUFFER,
-      })
+      await execa(
+        queryEnginePath,
+        ['cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF'],
+        execaOptions,
+      )
     }
 
     result = await execa(queryEnginePath, args, execaOptions)
@@ -122,11 +123,39 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     }
 
     // necessary, as sometimes the query engine prints some other stuff
+    // TODO: identify when the binary does that.
     const firstCurly = result.stdout.indexOf('{')
     const stdout = result.stdout.slice(firstCurly)
 
     return JSON.parse(stdout)
   } catch (e: any) {
+    /*
+    Object.keys(e) [
+      'shortMessage',
+      'command',
+      'escapedCommand',
+      'exitCode',
+      'signal',
+      'signalDescription',
+      'stdout',
+      'stderr',
+      'failed',
+      'timedOut',
+      'isCanceled',
+      'killed'
+    ]
+    */
+    console.log('e@getDmmfBinary', e)
+    console.log('typeof e', typeof e)
+    console.log('e.exitCode', e.exitCode)
+    console.log('e.command', e.command)
+    console.log('e.stack', e.stack)
+    console.log('e.stdout', e.stdout)
+    console.log('e.stderr', e.stderr)
+    console.log('e.failed', e.failed)
+    console.log('e.shortMessage', e.shortMessage)
+    console.log('\n\n')
+
     debug('getDMMF failed', e)
     // If this unlikely event happens, try it at least once more
     if (e.message.includes('Command failed with exit code 26 (ETXTBSY)') && options.retry && options.retry > 0) {

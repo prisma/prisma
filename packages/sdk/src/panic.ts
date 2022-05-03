@@ -1,3 +1,5 @@
+import { ExecaError } from 'execa'
+
 export class RustPanic extends Error {
   public request: any
   public rustStack: string
@@ -30,4 +32,13 @@ export enum ErrorArea {
   INTROSPECTION_CLI = 'INTROSPECTION_CLI',
   FMT_CLI = 'FMT_CLI',
   QUERY_CLI = 'QUERY_CLI',
+  QUERY_LIBRARY = 'QUERY_LIBRARY',
+}
+
+/**
+ * @param error error thrown by execa
+ * @returns true if the given error is caused by a panic on a Rust binary.
+ */
+export function isExecaErrorCausedByRustPanic<E extends ExecaError>(error: E) {
+  return error.exitCode === 101 || error.stderr?.includes('panicked at')
 }
