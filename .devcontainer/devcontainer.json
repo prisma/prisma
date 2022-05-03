@@ -2,26 +2,16 @@
 // https://github.com/microsoft/vscode-dev-containers/tree/main/containers/codespaces-linux
 {
   "name": "GitHub Codespaces (Default)",
-  
   "build": {
-    "dockerfile": "Dockerfile",
+    "dockerfile": "Dockerfile"
   },
-  
-  // More info: https://aka.ms/vscode-remote/containers/non-root.
+  // More info: https://aka.ms/vscode-remote/containers/non-root
   "remoteUser": "codespace",
-  
-  "overrideCommand": false,
-	
-  "mounts": ["source=codespaces-linux-var-lib-docker,target=/var/lib/docker,type=volume"],
-	
-  "runArgs": [
-		"--cap-add=SYS_PTRACE",
-		"--security-opt",
-		"seccomp=unconfined",
-		"--privileged",
-		"--init"
-	],
-  
+  // "overrideCommand": false,
+  // "mounts": [
+  //   "source=codespaces-linux-var-lib-docker,target=/var/lib/docker,type=volume"
+  // ],
+  "runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined", "--privileged", "--init"],
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "telemetry.enableTelemetry": false,
@@ -30,22 +20,19 @@
     "editor.renderWhitespace": "all",
     "editor.renderControlCharacters": true,
     "editor.formatOnSave": true,
-    "files.insertFinalNewline": true,
+    "files.insertFinalNewline": true
   },
-  
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
-    // "dbaeumer.vscode-eslint",
+    "dbaeumer.vscode-eslint",
     "Prisma.prisma-insider",
     "esbenp.prettier-vscode",
     "Orta.vscode-jest",
     "ms-azuretools.vscode-docker",
-    "GitHub.vscode-pull-request-github",
-  ],
-  
+    "GitHub.vscode-pull-request-github"
+  ]
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
-
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "pnpm install",
 }
