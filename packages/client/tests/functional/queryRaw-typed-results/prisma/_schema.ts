@@ -10,9 +10,16 @@ export default ({ provider, previewFeatures }) => {
     url      = env("DATABASE_URI_${provider}")
   }
   
-  model Entry {
-    id     Int @id @default(autoincrement())
-    binary Bytes
+  model TestModel {
+    id          Int       @id
+    string      String?
+    int         Int?
+    bInt        BigInt?
+    float       Float?
+    bytes       Bytes?
+    bool        Boolean?
+    dt          DateTime?
+    dec         Decimal?
   }
   `
 }
