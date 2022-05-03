@@ -34,7 +34,7 @@ npm install --global pnpm@6 ts-node
 
 ## General Setup
 
-To setup and build all the packages, follow these steps:
+To set up and build all the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
