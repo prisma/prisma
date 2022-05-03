@@ -67,7 +67,7 @@ function buildTests() {
           expect.assertions(2)
           const schema = buildSchema(engineType)
 
-          // Setup Project in tmp dir
+          // Set up Project in tmp dir
           const projectDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`)
           fs.copyFileSync(path.join(__dirname, './dev.db'), path.join(projectDir, 'dev.db'))
           fs.writeFileSync(path.join(projectDir, 'schema.prisma'), schema)

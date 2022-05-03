@@ -69,7 +69,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
     if (!seedCommandFromPkgJson) {
-      // Only used to help users to setup their seeds from old way to new package.json config
+      // Only used to help users to set up their seeds from old way to new package.json config
       const schemaPath = await getSchemaPath(args['--schema'])
 
       const message = await verifySeedConfigAndReturnMessage(schemaPath)

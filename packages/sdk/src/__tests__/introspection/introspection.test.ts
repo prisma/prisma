@@ -191,8 +191,7 @@ test('introspection basic', async () => {
                   \\"length\\": null
                 }
               ],
-              \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"tpe\\": \\"Unique\\"
             }
           ],
           \\"primary_key\\": {
@@ -203,7 +202,6 @@ test('introspection basic', async () => {
                 \\"sort_order\\": null
               }
             ],
-            \\"sequence\\": null,
             \\"constraint_name\\": null
           },
           \\"foreign_keys\\": [
@@ -337,8 +335,7 @@ test('introspection basic', async () => {
                   \\"length\\": null
                 }
               ],
-              \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"tpe\\": \\"Unique\\"
             },
             {
               \\"name\\": \\"User.id\\",
@@ -349,8 +346,7 @@ test('introspection basic', async () => {
                   \\"length\\": null
                 }
               ],
-              \\"tpe\\": \\"Unique\\",
-              \\"algorithm\\": null
+              \\"tpe\\": \\"Unique\\"
             }
           ],
           \\"primary_key\\": {
@@ -361,7 +357,6 @@ test('introspection basic', async () => {
                 \\"sort_order\\": null
               }
             ],
-            \\"sequence\\": null,
             \\"constraint_name\\": null
           },
           \\"foreign_keys\\": []
@@ -500,14 +495,12 @@ test('introspection basic', async () => {
                 \\"sort_order\\": null
               }
             ],
-            \\"sequence\\": null,
             \\"constraint_name\\": null
           },
           \\"foreign_keys\\": []
         }
       ],
       \\"enums\\": [],
-      \\"sequences\\": [],
       \\"views\\": [],
       \\"procedures\\": [],
       \\"user_defined_types\\": [],
