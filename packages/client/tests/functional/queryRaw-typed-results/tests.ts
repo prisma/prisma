@@ -18,11 +18,11 @@ setupTestSuiteMatrix((suiteConfig) => {
         string: 'str',
         int: 42,
         bInt: BigInt('12345'),
-        float: 1.5432,
+        float: 0.125,
         bytes: Buffer.from([1, 2, 3]),
         bool: true,
         dt: new Date('1900-10-10T01:10:10.001Z'),
-        dec: new Prisma.Decimal('123.45678910'),
+        dec: new Prisma.Decimal('0.0625'),
       },
     })
 
@@ -38,11 +38,11 @@ setupTestSuiteMatrix((suiteConfig) => {
           string: 'str',
           int: 42,
           bInt: 12345,
-          float: 1.5432,
+          float: 0.125,
           bytes: 'AQID',
           bool: true,
-          dt: '1900-10-10T01:10:10.001Z',
-          dec: 123.4567891,
+          dt: '1900-10-10T01:10:10.001+00:00',
+          dec: 0.0625,
         },
       ])
     } else {
@@ -52,11 +52,11 @@ setupTestSuiteMatrix((suiteConfig) => {
           string: 'str',
           int: 42,
           bInt: BigInt('12345'),
-          float: 1.5432,
+          float: 0.125,
           bytes: Buffer.from([1, 2, 3]),
           bool: true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
-          dec: new Prisma.Decimal('123.45678910'),
+          dec: new Prisma.Decimal('0.0625'),
         },
       ])
     }

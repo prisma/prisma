@@ -9,7 +9,7 @@ setupTestSuiteMatrix((suiteConfig) => {
       data: {
         id: 1,
         json: '{"a": "b"}',
-        string_list: ['1', 'a', '2', '123123213'],
+        string_list: ['1', 'a', '2', ''],
         bInt_list: [BigInt('-1234'), BigInt('1234')],
       },
     })
@@ -23,7 +23,7 @@ setupTestSuiteMatrix((suiteConfig) => {
         {
           id: 1,
           json: '{"a": "b"}',
-          string_list: ['1', 'a', '2', '123123213'],
+          string_list: ['1', 'a', '2', ''],
           bInt_list: [-1234, 1234],
         },
       ])
@@ -32,7 +32,7 @@ setupTestSuiteMatrix((suiteConfig) => {
         {
           id: 1,
           json: '{"a": "b"}',
-          string_list: ['1', 'a', '2', '123123213'],
+          string_list: ['1', 'a', '2', ''],
           bInt_list: [BigInt('-1234'), BigInt('1234')],
         },
       ])
