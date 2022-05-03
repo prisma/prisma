@@ -1,14 +1,17 @@
-# See https://github.com/microsoft/vscode-dev-containers/tree/main/containers/codespaces-linux
+# Original from https://github.com/microsoft/vscode-dev-containers/blob/main/containers/codespaces-linux/.devcontainer/Dockerfile
+# More info https://github.com/microsoft/vscode-dev-containers/tree/main/containers/codespaces-linux
+# Docker https://hub.docker.com/_/microsoft-vscode-devcontainers
+# All tags https://mcr.microsoft.com/v2/vscode/devcontainers/universal/tags/list
 
-FROM mcr.microsoft.com/vscode/devcontainers/universal
+FROM mcr.microsoft.com/vscode/devcontainers/universal:1-linux
+
+USER root
 
 # [Optional] Uncomment this section to install additional OS packages.
 # RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 #     && apt-get -y install --no-install-recommends <your-package-list-here>
 
-# [Optional] Uncomment if you want to install an additional version of node using nvm
-# ARG EXTRA_NODE_VERSION=10
-# RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
+# To install npm global packages
+RUN npm install -g pnpm@6 ts-node
 
-# To install more global node packages
-RUN su node -c "npm install -g pnpm@6 ts-node"
+USER codespace
