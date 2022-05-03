@@ -10,7 +10,7 @@ setupTestSuiteMatrix((suiteConfig) => {
         id: 1,
         json: '{"a": "b"}',
         string_list: ['1', 'a', '2', '123123213'],
-        bInt_list: [BigInt('-9223372036854775808'), BigInt('9223372036854775807')],
+        bInt_list: [BigInt('-1234'), BigInt('1234')],
       },
     })
 
@@ -19,19 +19,23 @@ setupTestSuiteMatrix((suiteConfig) => {
     const backwardCompatible = !suiteConfig['previewFeatures'].includes('improvedQueryRaw')
 
     if (backwardCompatible) {
-      expect(testModel).toEqual({
-        id: 1,
-        json: '{"a": "b"}',
-        string_list: ['1', 'a', '2', '123123213'],
-        bInt_list: ['-9223372036854775808', '9223372036854775807'],
-      })
+      expect(testModel).toEqual([
+        {
+          id: 1,
+          json: '{"a": "b"}',
+          string_list: ['1', 'a', '2', '123123213'],
+          bInt_list: [-1234, 1234],
+        },
+      ])
     } else {
-      expect(testModel).toEqual({
-        id: 1,
-        json: '{"a": "b"}',
-        string_list: ['1', 'a', '2', '123123213'],
-        bInt_list: [BigInt('-9223372036854775808'), BigInt('9223372036854775807')],
-      })
+      expect(testModel).toEqual([
+        {
+          id: 1,
+          json: '{"a": "b"}',
+          string_list: ['1', 'a', '2', '123123213'],
+          bInt_list: [BigInt('-1234'), BigInt('1234')],
+        },
+      ])
     }
   })
 })

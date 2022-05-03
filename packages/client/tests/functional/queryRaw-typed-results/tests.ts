@@ -8,7 +8,7 @@ declare let Prisma: typeof import('@prisma/client').Prisma
 setupTestSuiteMatrix((suiteConfig) => {
   test('simple expression', async () => {
     const result = await prisma.$queryRaw`SELECT 1 + 1`
-    expect(result).toEqual(2)
+    expect(Object.values(result[0] as Record<string, unknown>)[0]).toEqual(2)
   })
 
   test('query model with multiple types', async () => {
@@ -17,7 +17,7 @@ setupTestSuiteMatrix((suiteConfig) => {
         id: 1,
         string: 'str',
         int: 42,
-        bInt: BigInt('9223372036854775807'),
+        bInt: BigInt('12345'),
         float: 1.5432,
         bytes: Buffer.from([1, 2, 3]),
         bool: true,
@@ -32,29 +32,33 @@ setupTestSuiteMatrix((suiteConfig) => {
     const sqlite = suiteConfig['provider'] === 'sqlite'
 
     if (backwardCompatible || sqlite) {
-      expect(testModel).toEqual({
-        id: 1,
-        string: 'str',
-        int: 42,
-        bInt: '9223372036854775807',
-        float: 1.5432,
-        bytes: 'AQID',
-        bool: true,
-        dt: '1900-10-10T01:10:10.001Z',
-        dec: '123.45678910',
-      })
+      expect(testModel).toEqual([
+        {
+          id: 1,
+          string: 'str',
+          int: 42,
+          bInt: 12345,
+          float: 1.5432,
+          bytes: 'AQID',
+          bool: true,
+          dt: '1900-10-10T01:10:10.001Z',
+          dec: 123.4567891,
+        },
+      ])
     } else {
-      expect(testModel).toEqual({
-        id: 1,
-        string: 'str',
-        int: 42,
-        bInt: BigInt('9223372036854775807'),
-        float: 1.5432,
-        bytes: Buffer.from([1, 2, 3]),
-        bool: true,
-        dt: new Date('1900-10-10T01:10:10.001Z'),
-        dec: new Prisma.Decimal('123.45678910'),
-      })
+      expect(testModel).toEqual([
+        {
+          id: 1,
+          string: 'str',
+          int: 42,
+          bInt: BigInt('12345'),
+          float: 1.5432,
+          bytes: Buffer.from([1, 2, 3]),
+          bool: true,
+          dt: new Date('1900-10-10T01:10:10.001Z'),
+          dec: new Prisma.Decimal('123.45678910'),
+        },
+      ])
     }
   })
 })

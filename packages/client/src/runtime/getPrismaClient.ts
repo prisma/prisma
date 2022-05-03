@@ -27,6 +27,7 @@ import { makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
+import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
 import { runInChildSpan } from './utils/otel/runInChildSpan'
@@ -818,7 +819,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       const args = { query: queryString, parameters }
 
       debug(`Prisma Client call:`)
-      // const doRequest = (runInTransaction = false) => {
+
       return this._request({
         args,
         clientMethod: 'queryRaw',
@@ -829,7 +830,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         transactionId: txId,
         otelCtx: otelCtx,
         lock,
-      })
+      }).then(deserializeRawResults)
     }
 
     /**
