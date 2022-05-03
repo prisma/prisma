@@ -15,7 +15,7 @@ type BaseContext = {
     cwd: string
   }
   /**
-   * Setup the temporary directory based on the contents of some fixture.
+   * Set up the temporary directory based on the contents of some fixture.
    */
   fixture: (name: string) => void
   /**

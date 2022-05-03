@@ -49,7 +49,6 @@
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
-    "prepare": "cp scripts/backup-index.js index.js && cp scripts/backup-index.d.ts index.d.ts",
     "prepublishOnly": "pnpm run build"
   },
   "files": [
@@ -67,10 +66,10 @@
     "@opentelemetry/api": "1.0.3",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.14.0-8.194f3643b83b9089974d7a9ee6fbe321c100d390",
-    "@prisma/fetch-engine": "3.14.0-8.194f3643b83b9089974d7a9ee6fbe321c100d390",
+    "@prisma/engines": "3.14.0-12.fd79bd1b7ef358f87831ab08bc0b01470c2fde8a",
+    "@prisma/fetch-engine": "3.14.0-12.fd79bd1b7ef358f87831ab08bc0b01470c2fde8a",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.14.0-8.194f3643b83b9089974d7a9ee6fbe321c100d390",
+    "@prisma/get-platform": "3.14.0-12.fd79bd1b7ef358f87831ab08bc0b01470c2fde8a",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.141",
@@ -129,7 +128,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.14.0-8.194f3643b83b9089974d7a9ee6fbe321c100d390"
+    "@prisma/engines-version": "3.14.0-12.fd79bd1b7ef358f87831ab08bc0b01470c2fde8a"
   },
   "sideEffects": false
 }

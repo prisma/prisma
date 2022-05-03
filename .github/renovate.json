@@ -102,6 +102,12 @@
       "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "react-prisma peerDependencies: react >=17",
+      "paths": ["packages/react-prisma/**"],
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "widen"
     }
   ]
 }
