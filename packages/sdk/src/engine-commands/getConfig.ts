@@ -198,7 +198,13 @@ async function getConfigBinaryFP(options: GetConfigOptions) {
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
     const unlinkEither = await TE.tryCatch(
-      () => unlink(tempDatamodelPath),
+      () => {
+        if (tempDatamodelPath) {
+          return unlink(tempDatamodelPath)
+        }
+
+        return Promise.resolve(undefined)
+      },
       (e) => ({
         type: 'unlink-temp-datamodel-path',
         reason: 'Unable to delete temporary datamodel path',
