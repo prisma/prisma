@@ -29,6 +29,47 @@
       "schedule": ["before 8am on Wednesday"]
     },
     {
+      "groupName": "ESM devDependencies & dependencies (major)",
+      "depTypeList": ["dependencies", "devDependencies"],
+      "updateTypes": ["major"],
+      "matchPackageNames": [
+        "get-port",
+        "is-obj",
+        "is-regexp",
+        "mongo",
+        "p-reduce",
+        "postgres",
+        "sort-keys",
+        "node.js",
+        "@sindresorhus/slugify",
+        "chalk",
+        "cli-truncate",
+        "escape-string-regexp",
+        "execa",
+        "find-up",
+        "get-stdin",
+        "globby",
+        "has-yarn",
+        "indent-string",
+        "log-update",
+        "new-github-issue-url",
+        "node-fetch",
+        "ora",
+        "p-map",
+        "p-retry",
+        "pkg-up",
+        "read-pkg-up",
+        "replace-string",
+        "string-width",
+        "strip-ansi",
+        "strip-indent",
+        "temp-write",
+        "tempy",
+        "terminal-link"
+      ],
+      "schedule": ["before 8am on Wednesday"]
+    },
+    {
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
@@ -46,9 +87,9 @@
       "updateTypes": ["patch", "minor"]
     },
     {
-      "groupName": "jest",
+      "groupName": "Jest",
       "automerge": "true",
-      "packageNames": ["jest", "@types/jest", "ts-jest"]
+      "matchPackagePatterns": [".*jest.*"]
     },
     {
       "groupName": "node-fetch",
@@ -61,6 +102,12 @@
       "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "react-prisma peerDependencies: react >=17",
+      "paths": ["packages/react-prisma/**"],
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "widen"
     }
   ]
 }

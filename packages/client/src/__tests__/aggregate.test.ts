@@ -1,7 +1,7 @@
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
 
-export const recommender = /* GraphQL */ `
+export const recommender = /* Prisma */ `
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"

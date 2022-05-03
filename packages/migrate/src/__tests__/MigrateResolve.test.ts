@@ -49,7 +49,7 @@ describe('sqlite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(['--schema=./prisma/empty.prisma', '--applied=something_applied'])
-    await expect(result).rejects.toMatchInlineSnapshot(`P1003: SQLite database file doesn't exist`)
+    await expect(result).rejects.toMatchInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma

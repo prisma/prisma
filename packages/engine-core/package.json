@@ -20,12 +20,12 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.17",
+    "@swc/jest": "0.2.20",
     "@types/jest": "27.4.1",
-    "@types/node": "16.11.27",
+    "@types/node": "16.11.31",
     "esbuild": "0.13.14",
     "jest": "27.5.1",
-    "jest-junit": "13.0.0",
+    "jest-junit": "13.2.0",
     "typescript": "4.5.4"
   },
   "scripts": {
@@ -36,17 +36,16 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.13.0-10.f738c2de40b0514b47c5cdbf75f8bb06929df254",
+    "@prisma/engines": "3.14.0-15.8195e4e838b2c6d535ad38a39d010665acdb5ab2",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.13.0-10.f738c2de40b0514b47c5cdbf75f8bb06929df254",
+    "@prisma/get-platform": "3.14.0-15.8195e4e838b2c6d535ad38a39d010665acdb5ab2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
     "indent-string": "4.0.0",
     "new-github-issue-url": "0.2.1",
-    "p-retry": "4.6.1",
+    "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "terminal-link": "2.1.1",
     "undici": "5.0.0"
   },
   "files": [
