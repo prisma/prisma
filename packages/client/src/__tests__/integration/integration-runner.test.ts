@@ -12,22 +12,31 @@ const excluded = ['exhaustive-schema', 'exhaustive-schema-mongo', 'client-engine
 
 type TestType = 'happy' | 'errors'
 
-async function spawnJest(options: {
-  dir: string
-  testType: TestType
-}): Promise<child_process.PromiseWithChild<unknown>> {
+type Log = {
+  name: string
+  stderr?: string
+  stdout?: string
+}
+
+async function spawnJest(options: { dir: string; testType: TestType }): Promise<Log> {
+  const name = `${options.testType}/${options.dir}`
+
   // Errors inside this child will propagate up
-  const child = await exec(`jest ${options.testType}/${options.dir} --config=${__dirname}/jest.config.js --runInBand`, {
+  const child = await exec(`jest  ${name} --config=${__dirname.replace(/\\\\/g, '/')}/jest.config.js --runInBand`, {
     cwd: process.cwd(),
   })
 
   const { stderr, stdout } = child
-  stderr && console.log(stderr)
-  stdout && console.log(stdout)
-  return child
+  const log: Log = {
+    name,
+    stderr,
+    stdout,
+  }
+
+  return log
 }
 
-async function* generator(dirs: string[], testType: TestType) {
+async function* generator(dirs: string[], testType: TestType): AsyncIterableIterator<Log[]> {
   let __dirs__ = [...dirs]
 
   while (true) {
@@ -39,17 +48,29 @@ async function* generator(dirs: string[], testType: TestType) {
 
     __dirs__ = __dirs__.slice(MAX + 1)
 
-    yield await Promise.all(firstMax.map((dir) => spawnJest({ dir, testType })))
-  }
-}
+    const logs = await Promise.all(firstMax.map((dir) => spawnJest({ dir, testType })))
 
-async function consume(gen: AsyncGenerator<unknown[], void, unknown>) {
-  for await (const _ of gen) {
-    await wait(BACKOFF_MS)
+    yield logs
   }
 }
 
 describe('integration/integration-runner', () => {
+  let logs: Log[] = []
+
+  afterAll(() => {
+    const log = logs
+      .map((log) => `${log.name}${log.stderr && `\n${log.stderr}`}${log.stderr && `\n${log.stderr}`}`)
+      .join('\n')
+    console.log(log)
+  })
+
+  async function consume(gen: AsyncIterableIterator<Log[]>) {
+    for await (const l of gen) {
+      logs = [...logs, ...l]
+      await wait(BACKOFF_MS)
+    }
+  }
+
   test.concurrent('happy', async () => {
     const dirs = (await fs.promises.readdir(path.join(__dirname, 'happy'))).filter((dir) => !excluded.includes(dir))
     const gen = generator(dirs, 'happy')
