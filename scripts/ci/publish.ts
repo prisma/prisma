@@ -645,7 +645,7 @@ async function publish() {
         // Skip testing
         console.log(
           chalk.bold(`\nTesting was skipped as it's an integration branch.
-For tests, check GitHub Actions ot the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript`),
+For tests, check GitHub Actions or the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript`),
         )
       } else {
         console.log(chalk.bold('\nTesting packages'))
