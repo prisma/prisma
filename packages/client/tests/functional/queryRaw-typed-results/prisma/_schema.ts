@@ -11,15 +11,15 @@ export default ({ provider, previewFeatures }) => {
   }
   
   model TestModel {
-    id          Int       @id
-    string      String?
-    int         Int?
-    bInt        BigInt?
-    float       Float?
-    bytes       Bytes?
-    bool        Boolean?
-    dt          DateTime?
-    dec         Decimal?
+    id     Int       @id
+    string String?
+    int    Int?
+    bInt   BigInt?
+    float  Float?
+    bytes  Bytes?
+    bool   Boolean?
+    dt     DateTime?
+    dec    Decimal?
   }
   `
 }

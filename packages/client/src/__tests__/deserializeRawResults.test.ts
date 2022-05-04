@@ -147,6 +147,29 @@ describe('deserializeRawResults', () => {
     ])
   })
 
+  test('json', () => {
+    expect(
+      deserializeRawResults([
+        {
+          a: {
+            prisma__type: 'json',
+            prisma__value: {
+              a: 1,
+              b: [2],
+            },
+          },
+        },
+      ]),
+    ).toEqual([
+      {
+        a: {
+          a: 1,
+          b: [2],
+        },
+      },
+    ])
+  })
+
   test('date and time', () => {
     expect(
       deserializeRawResults([

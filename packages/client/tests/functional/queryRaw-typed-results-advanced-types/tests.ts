@@ -8,7 +8,7 @@ setupTestSuiteMatrix((suiteConfig) => {
     await prisma.testModel.create({
       data: {
         id: 1,
-        json: '{"a": "b"}',
+        json: { a: 'b' },
         string_list: ['1', 'a', '2', ''],
         bInt_list: [BigInt('-1234'), BigInt('1234')],
       },
@@ -22,7 +22,7 @@ setupTestSuiteMatrix((suiteConfig) => {
       expect(testModel).toEqual([
         {
           id: 1,
-          json: '{"a": "b"}',
+          json: { a: 'b' },
           string_list: ['1', 'a', '2', ''],
           bInt_list: [-1234, 1234],
         },
@@ -31,7 +31,7 @@ setupTestSuiteMatrix((suiteConfig) => {
       expect(testModel).toEqual([
         {
           id: 1,
-          json: '{"a": "b"}',
+          json: { a: 'b' },
           string_list: ['1', 'a', '2', ''],
           bInt_list: [BigInt('-1234'), BigInt('1234')],
         },
