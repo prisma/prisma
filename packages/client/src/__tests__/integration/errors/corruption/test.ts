@@ -21,7 +21,7 @@ test('corruption of query engine binary', async () => {
     binaryPath += '.exe'
   }
 
-  fs.writeFileSync(binaryPath, 'hello world')
+  await fs.promises.writeFile(binaryPath, 'hello world')
 
   const prisma = new PrismaClient({
     log: [

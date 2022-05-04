@@ -25,7 +25,7 @@ test('missing-engine-native-binaryTarget: binary', async () => {
     binaryPath += '.exe'
   }
 
-  fs.unlinkSync(binaryPath)
+  await fs.promises.unlink(binaryPath)
   const prisma = new PrismaClient({
     log: [
       {
