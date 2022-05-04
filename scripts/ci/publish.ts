@@ -551,7 +551,7 @@ async function publish() {
     args['--publish'] = true
   }
 
-  // makes sure that only 1 publish job runs at a time
+  // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
     console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
@@ -977,21 +977,22 @@ async function publishPackages(
 
       console.log(`\nPublishing ${chalk.magentaBright(`${pkgName}@${newVersion}`)} ${chalk.dim(`on ${tag}`)}`)
 
-      const prismaDeps = [...pkg.uses, ...pkg.usesDev]
-      if (prismaDeps.length > 0) {
-        await pRetry(
-          async () => {
-            await run(pkgDir, `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`, dryRun)
-          },
-          {
-            retries: 6,
-            onFailedAttempt: (e) => {
-              console.error(e)
-            },
-          },
-        )
-      }
+      // const prismaDeps = [...pkg.uses, ...pkg.usesDev]
+      // if (prismaDeps.length > 0) {
+      //   await pRetry(
+      //     async () => {
+      //       await run(pkgDir, `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`, dryRun)
+      //     },
+      //     {
+      //       retries: 6,
+      //       onFailedAttempt: (e) => {
+      //         console.error(e)
+      //       },
+      //     },
+      //   )
+      // }
 
+      // set the version in package.json for current package
       await writeVersion(pkgDir, newVersion, dryRun)
 
       // For package `prisma`, get latest commit hash (that is being released)
@@ -1003,9 +1004,10 @@ async function publishPackages(
         })
       }
 
-      if (process.env.BUILDKITE) {
-        await run(pkgDir, `pnpm run build`, dryRun)
-      }
+      // if (process.env.BUILDKITE) {
+      //   // Run build?
+      //   await run(pkgDir, `pnpm run build`, dryRun)
+      // }
 
       const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
