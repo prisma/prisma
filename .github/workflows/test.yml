@@ -633,7 +633,7 @@ jobs:
 
       - name: Test packages/sdk
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test
         working-directory: packages/sdk
         env:
           CI: true
@@ -650,7 +650,7 @@ jobs:
 
       - name: Test packages/migrate
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test
         working-directory: packages/migrate
         env:
           CI: true
@@ -667,7 +667,7 @@ jobs:
 
       - name: Test packages/cli
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test
         working-directory: packages/cli
         env:
           CI: true
@@ -804,7 +804,7 @@ jobs:
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes -- --testTimeout=40000
+        run: pnpm run test-notypes
         working-directory: packages/client
         env:
           CI: true
