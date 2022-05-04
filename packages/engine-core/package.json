@@ -22,7 +22,7 @@
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.20",
     "@types/jest": "27.4.1",
-    "@types/node": "16.11.31",
+    "@types/node": "16.11.33",
     "esbuild": "0.13.14",
     "jest": "27.5.1",
     "jest-junit": "13.2.0",
