@@ -16,15 +16,14 @@ async function spawnJest(options: {
   dir: string
   testType: TestType
 }): Promise<child_process.PromiseWithChild<unknown>> {
-  console.log(`Running: '${options.dir}'`)
   // Errors inside this child will propagate up
-  const child = await exec(`jest ${options.testType}/${options.dir}`, {
-    cwd: path.join(__dirname),
+  const child = await exec(`jest ${options.testType}/${options.dir} --config=${__dirname}/jest.config.js --runInBand`, {
+    cwd: process.cwd(),
   })
 
   const { stderr, stdout } = child
-  console.log(stderr)
-  console.log(stdout)
+  stderr && console.log(stderr)
+  stdout && console.log(stdout)
   return child
 }
 
