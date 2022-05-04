@@ -1011,6 +1011,14 @@ async function publishPackages(
 
       const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
+        /*
+         *  About `--no-git-checks`
+         *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
+         *  The next checks will happen:
+         *  - The current branch is your publish branch. The publish branch is `master` by default. This is configurable through the `publish-branch` setting.
+         *  - Your working directory is clean (there are no uncommitted changes).
+         *  - The branch is up-to-date.
+         */
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
       }
     }
