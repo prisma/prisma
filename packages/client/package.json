@@ -48,8 +48,7 @@
     "test:functional:types": "jest --verbose --config=tests/functional/jest.config.js -- typescript",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
-    "postinstall": "node scripts/postinstall.js",
-    "prepublishOnly": "pnpm run build"
+    "postinstall": "node scripts/postinstall.js"
   },
   "files": [
     "README.md",

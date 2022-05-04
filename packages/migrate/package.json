@@ -66,8 +66,7 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "run": "node dist/bin.js",
-    "test": "jest --verbose",
-    "prepublishOnly": "pnpm run build"
+    "test": "jest --verbose"
   },
   "files": [
     "README.md",

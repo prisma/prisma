@@ -116,7 +116,6 @@
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "tsc": "tsc -d -p tsconfig.build.json",
-    "prepublishOnly": "pnpm run build",
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
