@@ -14,7 +14,7 @@ test('dmmf-types', async () => {
   })
   const dmmfFile = path.join(__dirname, 'generated-dmmf.ts')
 
-  fs.writeFileSync(
+  await fs.promises.writeFile(
     dmmfFile,
     `import { DMMF } from '@prisma/generator-helper'
 

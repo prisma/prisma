@@ -18,8 +18,8 @@ function clean(array: any[]) {
   })
 }
 
-beforeAll(() => {
-  fs.copyFileSync(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev2.db'))
+beforeAll(async () => {
+  await fs.promises.copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev2.db'))
 })
 
 test('transaction', async () => {

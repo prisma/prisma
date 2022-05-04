@@ -25,8 +25,8 @@ test('custom engine binary path (internal API)', async () => {
   const defaultBinaryPath = path.join(__dirname, 'node_modules/.prisma/client', binaryFileName)
   const customBinaryPath = path.join(__dirname, binaryFileName)
 
-  fs.copyFileSync(defaultBinaryPath, customBinaryPath)
-  fs.unlinkSync(defaultBinaryPath)
+  await fs.promises.copyFile(defaultBinaryPath, customBinaryPath)
+  await fs.promises.unlink(defaultBinaryPath)
 
   const { PrismaClient } = require('./node_modules/@prisma/client')
 

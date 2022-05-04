@@ -54,51 +54,58 @@ function getExpectedEngine(engineType, envVar, envVarValue) {
 
   return DEFAULT_CLIENT_ENGINE_TYPE
 }
-function buildTests() {
+
+describe('client engine', () => {
   const engineTypes = [ClientEngineType.Binary, ClientEngineType.Library, undefined]
   const envVars = {
     PRISMA_CLIENT_ENGINE_TYPE: engineTypes,
   }
-  for (const engineType of engineTypes) {
-    for (const envVar in envVars) {
-      for (const value of envVars[envVar]) {
-        const expectedClientEngine = getExpectedEngine(engineType, envVar, value)
-        test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
-          expect.assertions(2)
-          const schema = buildSchema(engineType)
 
-          // Set up Project in tmp dir
-          const projectDir = fs.mkdtempSync(`${os.tmpdir()}${path.sep}`)
-          fs.copyFileSync(path.join(__dirname, './dev.db'), path.join(projectDir, 'dev.db'))
-          fs.writeFileSync(path.join(projectDir, 'schema.prisma'), schema)
+  test('engines', async () => {
+    const promises: (() => Promise<void>)[] = []
 
-          // Set ENV VAR
-          process.env[envVar] = value
+    for (const engineType of engineTypes) {
+      for (const envVar in envVars) {
+        for (const value of envVars[envVar]) {
+          const expectedClientEngine = getExpectedEngine(engineType, envVar, value)
+          const prom = async () => {
+            expect.assertions(2)
+            const schema = buildSchema(engineType)
 
-          // Generate Client to tmp dir
-          await generateTestClient(projectDir)
+            // Set up Project in tmp dir
+            const projectDir = await fs.promises.mkdtemp(`${os.tmpdir()}${path.sep}`)
+            await fs.promises.copyFile(path.join(__dirname, './dev.db'), path.join(projectDir, 'dev.db'))
+            await fs.promises.writeFile(path.join(projectDir, 'schema.prisma'), schema)
 
-          // Run Tests
-          const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
-          const prisma = new PrismaClient()
-          const users = await prisma.user.findMany()
-          expect(users).toMatchInlineSnapshot(`
-            Array [
-              Object {
-                email: a@a.de,
-                id: 576eddf9-2434-421f-9a86-58bede16fd95,
-                name: Alice,
-              },
-            ]
-            `)
+            // Set ENV VAR
+            process.env[envVar] = value
 
-          expect(prisma._clientEngineType).toMatch(expectedClientEngine)
-          await prisma.$disconnect()
-        })
+            // Generate Client to tmp dir
+            await generateTestClient(projectDir)
+
+            // Run Tests
+            const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
+            const prisma = new PrismaClient()
+            const users = await prisma.user.findMany()
+            expect(users).toMatchInlineSnapshot(`
+              Array [
+                Object {
+                  email: a@a.de,
+                  id: 576eddf9-2434-421f-9a86-58bede16fd95,
+                  name: Alice,
+                },
+              ]
+              `)
+
+            expect(prisma._clientEngineType).toMatch(expectedClientEngine)
+            await prisma.$disconnect()
+          }
+
+          promises.push(prom)
+        }
       }
     }
-  }
-}
-describe('client engine', () => {
-  buildTests()
+
+    await Promise.all(promises)
+  })
 })

@@ -13,7 +13,7 @@ testIf(process.platform !== 'win32')('chmod', async () => {
   const platform = await getPlatform()
   if (getClientEngineType() !== ClientEngineType.Library) {
     const binaryPath = path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
-    fs.chmodSync(binaryPath, '644')
+    await fs.promises.chmod(binaryPath, '644')
   }
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
