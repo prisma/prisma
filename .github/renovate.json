@@ -12,6 +12,9 @@
     "@prisma/fetch-engine",
     "@prisma/get-platform"
   ],
+  "constraints": {
+    "pnpm": "6"
+  },
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
