@@ -7,11 +7,22 @@
   },
   // More info: https://aka.ms/vscode-remote/containers/non-root
   "remoteUser": "codespace",
-  // "overrideCommand": false,
-  // "mounts": [
-  //   "source=codespaces-linux-var-lib-docker,target=/var/lib/docker,type=volume"
-  // ],
-  "runArgs": ["--cap-add=SYS_PTRACE", "--security-opt", "seccomp=unconfined", "--privileged", "--init"],
+  // Always run image-defined docker-init.sh to enable docker-in-docker
+  "overrideCommand": false,
+  "mounts": [
+    // Mount docker-in-docker library volume
+    "source=codespaces-linux-var-lib-docker,target=/var/lib/docker,type=volume"
+  ],
+  "workspaceFolder": "/home/codespace/workspace",
+  "runArgs": [
+    // Enable ptrace-based debugging in container
+    "--cap-add=SYS_PTRACE", 
+    "--security-opt",
+    "seccomp=unconfined",
+    // Enable docker-in-docker configuration
+    "--privileged",
+    "--init"
+  ],  
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "telemetry.enableTelemetry": false,
@@ -20,7 +31,8 @@
     "editor.renderWhitespace": "all",
     "editor.renderControlCharacters": true,
     "editor.formatOnSave": true,
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "debug.node.autoAttach": false,
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
@@ -30,9 +42,9 @@
     "Orta.vscode-jest",
     "ms-azuretools.vscode-docker",
     "GitHub.vscode-pull-request-github"
-  ]
+  ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "pnpm install",
+  // "postCreateCommand": "npm install -g pnpm@6 ts-node && pnpm install && pnpm -r run dev",
 }
