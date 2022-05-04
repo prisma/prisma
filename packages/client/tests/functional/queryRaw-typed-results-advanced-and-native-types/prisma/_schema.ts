@@ -12,9 +12,11 @@ export default ({ provider, previewFeatures }) => {
   
   model TestModel {
     id          Int       @id
-    json        Json?
+    json        Json
     string_list String[]
     bInt_list   BigInt[]
+    date        DateTime  @db.Date
+    time        DateTime  @db.Time(3)
   }
   `
 }
