@@ -641,8 +641,16 @@ async function publish() {
     }
 
     if (!dryRun && args['--test']) {
-      console.log(chalk.bold('\nTesting packages'))
-      await testPackages(packages, getPublishOrder(packages))
+      if (tag === 'integration') {
+        // Skip testing
+        console.log(
+          chalk.bold(`\nTesting was skipped as it's an integration branch.
+For tests, check GitHub Actions ot the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript`),
+        )
+      } else {
+        console.log(chalk.bold('\nTesting packages'))
+        await testPackages(packages, getPublishOrder(packages))
+      }
     }
 
     if (args['--publish'] || dryRun) {
