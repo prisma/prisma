@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1651673688217,
+  "lastUpdate": 1651677451103,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -98316,6 +98316,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.11,
             "range": "±4.25%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "piotrowski+github@gmail.com",
+            "name": "Jan Piotrowski",
+            "username": "janpio"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6937321bee9a3729dfdaee69e2feef33f362c412",
+          "message": "ci: Removing /rebase GH Actions (#13159)\n\n* ci: Removing /rebase GH Actions \r\n\r\nas they caused a _lot_ of GH Actions workflow runs that do nothing in 99.99% of cases - but they still consume runners and actually wait quite long\r\n\r\n* Delete rebase-action.yml",
+          "timestamp": "2022-05-04T16:47:13+02:00",
+          "tree_id": "6fd6c2a21fd88381ff6a9348f73b44ceeb71281f",
+          "url": "https://github.com/prisma/prisma/commit/6937321bee9a3729dfdaee69e2feef33f362c412"
+        },
+        "date": 1651677445139,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.94%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.50%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
