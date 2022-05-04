@@ -180,19 +180,19 @@ describe('deserializeRawResults', () => {
           },
           b: {
             prisma__type: 'date',
-            prisma__value: '2022-01-01',
+            prisma__value: '2022-05-04',
           },
           c: {
             prisma__type: 'time',
-            prisma__value: '00:00:00.000',
+            prisma__value: '14:10:45.912',
           },
         },
       ]),
     ).toEqual([
       {
         a: new Date('2022-01-01T00:00:00.000Z'),
-        b: '2022-01-01',
-        c: '00:00:00.000',
+        b: new Date('2022-05-04T00:00:00.000Z'),
+        c: new Date('1970-01-01T14:10:45.912Z'),
       },
     ])
   })

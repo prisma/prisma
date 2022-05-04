@@ -47,7 +47,11 @@ function deserializeValue({ prisma__type: type, prisma__value: value }: TypedVal
       return new Decimal(value as string)
 
     case 'datetime':
+    case 'date':
       return new Date(value as string)
+
+    case 'time':
+      return new Date(`1970-01-01T${value}Z`)
 
     case 'array':
       return (value as TypedValue[]).map(deserializeValue)
