@@ -7,8 +7,8 @@ declare let Prisma: typeof import('@prisma/client').Prisma
 
 setupTestSuiteMatrix((suiteConfig) => {
   test('simple expression', async () => {
-    const result = await prisma.$queryRaw`SELECT 1 + 1`
-    expect(Object.values(result[0] as Record<string, unknown>)[0]).toEqual(2)
+    const result = (await prisma.$queryRaw`SELECT 1 + 1`) as Array<Record<string, unknown>>
+    expect(Object.values(result[0])[0]).toEqual(2)
   })
 
   test('query model with multiple types', async () => {
