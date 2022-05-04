@@ -362,7 +362,7 @@ importers:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.20
       '@types/jest': 27.4.1
-      '@types/node': 16.11.31
+      '@types/node': 16.11.33
       chalk: 4.1.2
       esbuild: 0.13.14
       execa: 5.1.1
@@ -392,7 +392,7 @@ importers:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.20_@swc+core@1.2.141
       '@types/jest': 27.4.1
-      '@types/node': 16.11.31
+      '@types/node': 16.11.33
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.2.0
@@ -2294,6 +2294,10 @@ packages:
 
   /@types/node/16.11.31:
     resolution: {integrity: sha512-wh/d0pcu/Ie2mqTIqh4tjd0mLAB4JWxOjHQtLN20HS7sjMHiV4Afr+90hITTyZcxowwha5wjv32jGEn1zkEFMg==}
+    dev: true
+
+  /@types/node/16.11.33:
+    resolution: {integrity: sha512-0PJ0vg+JyU0MIan58IOIFRtSvsb7Ri+7Wltx2qAg94eMOrpg4+uuP3aUHCpxXc1i0jCXiC+zIamSZh3l9AbcQA==}
     dev: true
 
   /@types/node/17.0.23:
