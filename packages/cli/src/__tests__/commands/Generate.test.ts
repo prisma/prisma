@@ -53,7 +53,6 @@ describe('--schema from project directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
-
     // Specific expect to check the raw value
     // Because we modify snapshots with `jestSnapshotSerializer.js`, so `toMatchInlineSnapshot()`
     // can be different than what is expected here
@@ -99,9 +98,11 @@ describe('--schema from project directory', () => {
 
 describe('--schema from parent directory', () => {
   it('--schema relative path: should work', async () => {
+    expect.assertions(2)
     ctx.fixture('generate-from-parent-dir')
     const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'])
-    expect(replaceEngineType(result)).toMatchInlineSnapshot(`
+    const output = stripAnsi(replaceEngineType(result))
+    expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
       You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
@@ -110,6 +111,16 @@ describe('--schema from parent directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
+    // Specific expect to check the raw value
+    // Because we modify snapshots with `jestSnapshotSerializer.js`, so `toMatchInlineSnapshot()`
+    // can be different than what is expected here
+    if (process.platform === 'win32') {
+      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
+    } else if (process.platform === 'darwin') {
+      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
+    } else {
+      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
+    }
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -122,11 +133,12 @@ describe('--schema from parent directory', () => {
   })
 
   it('--schema absolute path: should work', async () => {
+    expect.assertions(2)
     ctx.fixture('generate-from-parent-dir')
-
     const absoluteSchemaPath = path.resolve('./subdirectory/schema.prisma')
     const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    expect(replaceEngineType(result)).toMatchInlineSnapshot(`
+    const output = stripAnsi(replaceEngineType(result))
+    expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
       You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
@@ -135,6 +147,16 @@ describe('--schema from parent directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
+    // Specific expect to check the raw value
+    // Because we modify snapshots with `jestSnapshotSerializer.js`, so `toMatchInlineSnapshot()`
+    // can be different than what is expected here
+    if (process.platform === 'win32') {
+      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
+    } else if (process.platform === 'darwin') {
+      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
+    } else {
+      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
+    }
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
