@@ -8,6 +8,10 @@ module.exports = {
     '<rootDir>/happy/logging/__helpers__',
     '<rootDir>/happy/signals/__helpers__',
   ],
+  testPathIgnorePatterns: [
+    '<rootDir>/happy/exhaustive-schema/generated-dmmf.ts',
+    '<rootDir>/happy/exhaustive-schema-mongo/generated-dmmf.ts',
+  ],
   reporters: ['default'],
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
   globals: {

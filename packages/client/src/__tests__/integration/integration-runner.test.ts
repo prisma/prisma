@@ -56,13 +56,7 @@ async function* generator(dirs: string[], testType: TestType): AsyncIterableIter
 
 describe('integration/integration-runner', () => {
   let logs: Log[] = []
-
-  afterAll(() => {
-    const log = logs
-      .map((log) => `${log.name}${log.stderr && `\n${log.stderr}`}${log.stderr && `\n${log.stderr}`}`)
-      .join('\n')
-    console.log(log)
-  })
+  let timeout: NodeJS.Timeout
 
   async function consume(gen: AsyncIterableIterator<Log[]>) {
     for await (const l of gen) {
@@ -70,6 +64,21 @@ describe('integration/integration-runner', () => {
       await wait(BACKOFF_MS)
     }
   }
+
+  beforeAll(() => {
+    timeout = setInterval(() => {
+      console.log(`integration/integration-runner still alive: ${logs.length} completed`)
+    }, 5000)
+  })
+
+  afterAll(() => {
+    clearTimeout(timeout)
+
+    const log = logs
+      .map((log) => `${log.name}${log.stderr && `\n${log.stderr}`}${log.stderr && `\n${log.stderr}`}`)
+      .join('\n')
+    console.log(log)
+  })
 
   test.concurrent('happy', async () => {
     const dirs = (await fs.promises.readdir(path.join(__dirname, 'happy'))).filter((dir) => !excluded.includes(dir))
