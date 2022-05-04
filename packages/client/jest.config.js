@@ -1,6 +1,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
+  testTimeout: 999999,
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
@@ -26,7 +27,6 @@ module.exports = {
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
-  testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
   reporters: [
     'default',
