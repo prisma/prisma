@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1651760623995,
+  "lastUpdate": 1651768350917,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -98646,6 +98646,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±2.94%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "31554476+njmaeff@users.noreply.github.com",
+            "name": "Nik Jmaeff",
+            "username": "njmaeff"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f863feea0d2f3caad0909a7970950d486f0422c7",
+          "message": "fix(client): join `runtimeDir` and `runtimeName` using `path.join()` (#12425)\n\n* fix(client): join `runtimeDir` and `runtimeName` using `path.join()`\r\n\r\nPreviously these paths used a hard-coded forward slash. This change should fix an issue on Windows when `runtimeDir` is a relative path.\r\n\r\n* fix(client): add function to make import paths POSIX style\r\n\r\n* fix(client): remove the hard coded win32 separator\r\n\r\n- remove hardcoded win32 separator.\r\n- prefix non @prisma/client runtime paths with a relative prefix ('./').\r\n- Apply win32 replacement only on windows since the separator may be a valid file character on Linux.",
+          "timestamp": "2022-05-05T18:27:12+02:00",
+          "tree_id": "299a26e3d02a2437f899724e9a02a2bd22df4129",
+          "url": "https://github.com/prisma/prisma/commit/f863feea0d2f3caad0909a7970950d486f0422c7"
+        },
+        "date": 1651768344984,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.47%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.02%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
