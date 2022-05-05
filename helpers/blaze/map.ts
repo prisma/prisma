@@ -24,7 +24,7 @@ function mapObject<O extends O.Object, I, R>(object: O & O.Record<A.Key, I>, map
 
   const keys = Object.keys(object) as A.Keys<O>[]
   for (let i = 0; i < keys.length; ++i) {
-    mapped[keys[i]] = mapper(object[keys[i]], keys[i])
+    mapped[i] = mapper(object[keys[i]], keys[i])
   }
 
   return mapped
