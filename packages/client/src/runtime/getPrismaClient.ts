@@ -645,7 +645,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       debug(`Prisma Client call:`)
       return this._request({
         args,
-        clientMethod: 'executeRaw',
+        clientMethod: '$executeRaw',
         dataPath: [],
         action: 'executeRaw',
         callsite: getCallSite(this._errorFormat),
@@ -710,7 +710,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return createPrismaPromise((txId, lock, otelCtx) => {
         return this._request({
           args: { command: command },
-          clientMethod: 'runCommandRaw',
+          clientMethod: '$runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
           callsite: getCallSite(this._errorFormat),
@@ -821,7 +821,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       // const doRequest = (runInTransaction = false) => {
       return this._request({
         args,
-        clientMethod: 'queryRaw',
+        clientMethod: '$queryRaw',
         dataPath: [],
         action: 'queryRaw',
         callsite: getCallSite(this._errorFormat),
