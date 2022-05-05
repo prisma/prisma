@@ -32,7 +32,7 @@ module.exports = {
    * First reason:
    *
    * Database isolation in setupTestSuiteDbURI() doesn't seem to work properly.
-   * Tests are using to the same database concurrently, which causes constraint
+   * Tests are using the same database concurrently, which causes constraint
    * violation errors and "database does not exist" errors.
    * TODO: fix this.
    *
