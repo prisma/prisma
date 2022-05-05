@@ -1,3 +1,3 @@
-const prisma = require('.prisma/client/index')
-
-module.exports = prisma
+module.exports = {
+  ...require('.prisma/client/index'),
+}
