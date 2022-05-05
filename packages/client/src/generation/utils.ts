@@ -1,4 +1,5 @@
 import indent from 'indent-string'
+import os from 'os'
 import path from 'path'
 
 import type { DMMFHelper } from '../runtime/dmmf'
@@ -328,4 +329,36 @@ export function unique<T>(arr: T[]): T[] {
   }
 
   return result
+}
+
+/**
+ * @param value - string to escape
+ */
+export function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+/**
+ *     replaces all backslash separators with a forward slash when running on Windows.
+ *     The resulting path may target the @prisma/client node_module. If this is the case we
+ *     will return the resulting path. If not, then the runtime exists outside node_modules, so we
+ *     prefix that with a relative path './'. Backslashes are ignored on linux as they may be a valid
+ *     character in the file name.
+ *
+ * @param paths - list of paths in posix or win32 format to join
+ */
+export function makeRuntimeImportPath(...paths: string[]): string {
+  let importPath: string
+  if (os.platform() === 'win32') {
+    const separator = escapeRegExp(path.win32.sep)
+    const matchTrailing = new RegExp(`${separator}$`)
+    const matchAll = new RegExp(separator, 'g')
+    importPath = path
+      .join(...paths.map((segment) => segment.replace(matchTrailing, '')))
+      .replace(matchAll, path.posix.sep)
+  } else {
+    importPath = path.join(...paths)
+  }
+
+  return importPath.startsWith('@') ? importPath : `./${importPath}`
 }
