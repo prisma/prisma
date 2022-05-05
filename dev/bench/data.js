@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1651751420224,
+  "lastUpdate": 1651760623995,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -98580,6 +98580,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±2.82%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tnzk.marge@gmail.com",
+            "name": "Kyohei",
+            "username": "tnzk"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f5028089ac1ce723db623ee4a572e00ca78fb6e7",
+          "message": "fix(client): re-export in the way that cjs-module-lexer can detect (#12907)\n\nCurrently, client/index.js provides only default export, which prevents ES modules from importing PrismaClient, Prisma helper object or enum values directly. This change makes them to be recognized by static analyzer in Node so that even ES modules can use named exports. cf. https://github.com/nodejs/cjs-module-lexer/tree/1.2.2\r\n\r\nCo-authored-by: Kyohei Hamaguchi (@tnzk) <tnzk@users.noreply.github.com>\r\nCo-authored-by: Jan Piotrowski <piotrowski+github@gmail.com>",
+          "timestamp": "2022-05-05T15:39:00+02:00",
+          "tree_id": "2e1f5daa93a977a8d7e1a9985a8a8d6a29e7cf92",
+          "url": "https://github.com/prisma/prisma/commit/f5028089ac1ce723db623ee4a572e00ca78fb6e7"
+        },
+        "date": 1651760618164,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±5.09%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.94%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
