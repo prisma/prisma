@@ -8,7 +8,7 @@ const wait = util.promisify(setTimeout)
 
 const MAX = 2
 const BACKOFF_MS = 100
-const excluded = ['exhaustive-schema', 'exhaustive-schema-mongo', 'client-engine', 'ignore']
+const excluded = ['']
 
 type TestType = 'happy' | 'errors'
 
