@@ -8,7 +8,6 @@ const wait = util.promisify(setTimeout)
 
 const MAX = 2
 const BACKOFF_MS = 100
-const excluded = ['']
 
 type TestType = 'happy' | 'errors'
 
@@ -81,7 +80,7 @@ describe('integration/integration-runner', () => {
   })
 
   test.concurrent('happy', async () => {
-    const dirs = (await fs.promises.readdir(path.join(__dirname, 'happy'))).filter((dir) => !excluded.includes(dir))
+    const dirs = await fs.promises.readdir(path.join(__dirname, 'happy'))
     const gen = generator(dirs, 'happy')
     await consume(gen)
   })
