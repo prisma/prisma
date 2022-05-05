@@ -68,18 +68,18 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.13.0-17.efdf9b1183dddfd4258cd181a72125755215ab7b",
+    "@prisma/fetch-engine": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.13.0-17.efdf9b1183dddfd4258cd181a72125755215ab7b",
+    "@prisma/get-platform": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.459.0",
-    "@prisma/studio-server": "0.459.0",
+    "@prisma/studio": "0.460.0",
+    "@prisma/studio-server": "0.460.0",
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.17",
+    "@swc/jest": "0.2.20",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "27.4.1",
+    "@types/jest": "27.5.0",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.5.3",
     "chalk": "4.1.2",
@@ -95,7 +95,7 @@
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
     "jest": "27.5.1",
-    "jest-junit": "13.0.0",
+    "jest-junit": "13.2.0",
     "line-replace": "2.0.1",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
@@ -107,6 +107,7 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
+    "ts-pattern": "4.0.2",
     "typescript": "4.5.4"
   },
   "scripts": {
@@ -119,8 +120,7 @@
     "preinstall": "node scripts/preinstall-entry.js"
   },
   "dependencies": {
-    "@prisma/engines": "3.13.0-17.efdf9b1183dddfd4258cd181a72125755215ab7b",
-    "ts-pattern": "^4.0.1"
+    "@prisma/engines": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2"
   },
   "sideEffects": false
 }

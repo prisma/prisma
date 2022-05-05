@@ -1,4 +1,4 @@
-export const enums = /* GraphQL */ `
+export const enums = /* Prisma */ `
 datasource db {
   provider = "postgresql"
   url      = "postgresql://localhost:5432/db"

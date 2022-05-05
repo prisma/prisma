@@ -1,7 +1,8 @@
 import { getLogs } from '@prisma/debug'
+import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
 
-import { getGithubIssueUrl, link } from '../../utils/util'
+import { getGithubIssueUrl } from '../../utils/util'
 import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 import { maskQuery } from './maskQuery'
 import { normalizeLogs } from './normalizeLogs'
@@ -59,7 +60,7 @@ ${query ? maskQuery(query) : ''}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
 
-${link(url)}
+${chalk.underline(url)}
 
 If you want the Prisma team to look into it, please open the link above 🙏
 To increase the chance of success, please post your schema and a snippet of

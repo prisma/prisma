@@ -39,7 +39,7 @@ test('scalar-list filter', async () => {
   const PrismaClient = await getTestClient()
 
   const prisma = new PrismaClient()
-  // 1. setup data
+  // 1. set up data
   await setupData(prisma)
 
   // 2. do some queries

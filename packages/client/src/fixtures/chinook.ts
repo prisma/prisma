@@ -1,4 +1,4 @@
-export const chinook = /* GraphQL */ `
+export const chinook = /* Prisma */ `
 datasource db {
   provider = "postgresql"
   url      = "postgresql://localhost:5432/db"

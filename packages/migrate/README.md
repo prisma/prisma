@@ -32,7 +32,7 @@ You can find more info about Prisma Migrate in the [Prisma documentation](https:
 
 - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - [Add Prisma Migrate to an existing project](https://www.prisma.io/docs/guides/prisma-guides/prisma-migrate-guides/add-prisma-migrate-to-a-project)
-- [Setup a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres) (15 min)
+- [Set up a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres) (15 min)
 - [Prisma schema](https://www.prisma.io/docs/concepts/components/prisma-schema)
 - [Data model](https://www.prisma.io/docs/concepts/components/prisma-schema/data-model)
 - [Relations](https://www.prisma.io/docs/concepts/components/prisma-schema/relations)

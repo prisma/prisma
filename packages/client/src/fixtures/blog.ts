@@ -1,4 +1,4 @@
-export const blog = /* GraphQL */ `
+export const blog = /* Prisma */ `
 datasource db {
   provider = "postgresql"
   url      = "postgresql://localhost:5432/db"

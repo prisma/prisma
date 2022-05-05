@@ -49,19 +49,34 @@ function findPackageRoot(startPath, limit = 10) {
   return null
 }
 
+/**
+ * The `postinstall` hook of client sets up the ground and env vars for the `prisma generate` command,
+ * and runs it, showing a warning if the schema is not found.
+ * - initializes the ./node_modules/.prisma/client folder with the default index(-browser).js/index.d.ts,
+ *   which define a `PrismaClient` class stub that throws an error if instantiated before the `prisma generate`
+ *   command is successfully executed.
+ * - sets the path of the root of the project (TODO: to verify) to the `process.env.PRISMA_GENERATE_IN_POSTINSTALL`
+ *   variable, or `'true'` if the project root cannot be found.
+ * - runs `prisma generate`, passing through additional information about the command that triggered the generation,
+ *   which is useful for debugging/telemetry. It tries to use the local `prisma` package if it is installed, otherwise it
+ *   falls back to the global `prisma` package. If neither options are available, it warns the user to install `prisma` first.
+ */
 async function main() {
   if (process.env.INIT_CWD) {
     process.chdir(process.env.INIT_CWD) // necessary, because npm chooses __dirname as process.cwd()
     // in the postinstall hook
   }
+
+  // initializes the ./node_modules/.prisma/client folder with the default index(-browser).js/index.d.ts,
+  // which define a `PrismaClient` class stub that throws an error if instantiated before the `prisma generate`
+  // command is successfully executed.
   await ensureEmptyDotPrisma()
 
+  // TODO: consider using the `which` package
   const localPath = getLocalPackagePath()
+
   // Only execute if !localpath
   const installedGlobally = localPath ? undefined : await isInstalledGlobally()
-
-  // this is needed, so that the Generate command does not fail in postinstall
-  process.env.PRISMA_GENERATE_IN_POSTINSTALL = 'true'
 
   // this is needed, so we can find the correct schemas in yarn workspace projects
   const root = findPackageRoot(localPath)
@@ -108,6 +123,7 @@ function getLocalPackagePath() {
     }
   } catch (e) {} // eslint-disable-line no-empty
 
+  // TODO: consider removing this
   try {
     const packagePath = require.resolve('@prisma/cli/package.json')
     if (packagePath) {

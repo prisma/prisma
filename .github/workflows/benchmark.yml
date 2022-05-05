@@ -33,14 +33,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: '16'
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true

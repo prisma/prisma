@@ -3,7 +3,7 @@
 set -ex
 
 if [ "$RUNNER_OS" = "Windows" ]; then
-    pwsh .github/workflows/install-mysql.ps1
+    pwsh .github/workflows/scripts/install-mysql.ps1
 fi
 
 if [ "$RUNNER_OS" = "macOS" ]; then
