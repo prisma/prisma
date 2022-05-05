@@ -1,5 +1,5 @@
 export default ({ provider, providerFeatures, previewFeatures, id }) => {
-  return `
+  return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
     previewFeatures = [${providerFeatures}${previewFeatures}]
