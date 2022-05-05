@@ -10,12 +10,10 @@ datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
 }
-
 generator client {
   provider = "prisma-client-js"
   ${engineType ? `engineType="${engineType}"` : ''}
 }
-
 // / User model comment
 model User {
   id    String  @default(uuid()) @id
@@ -25,14 +23,12 @@ model User {
   posts Post[]
   profile Profile?
 }
-
 model Profile {
   id     String     @default(cuid()) @id
   bio    String?
   user   User    @relation(fields: [userId], references: [id])
   userId String     @unique
 }
-
 model Post {
   id        String   @default(cuid()) @id
   createdAt DateTime @default(now())
@@ -54,58 +50,51 @@ function getExpectedEngine(engineType, envVar, envVarValue) {
 
   return DEFAULT_CLIENT_ENGINE_TYPE
 }
-
-describe('client engine', () => {
+function buildTests() {
   const engineTypes = [ClientEngineType.Binary, ClientEngineType.Library, undefined]
   const envVars = {
     PRISMA_CLIENT_ENGINE_TYPE: engineTypes,
   }
+  for (const engineType of engineTypes) {
+    for (const envVar in envVars) {
+      for (const value of envVars[envVar]) {
+        const expectedClientEngine = getExpectedEngine(engineType, envVar, value)
+        test(`expects(${expectedClientEngine}) | ${envVar}=${value} | engineType=${engineType}`, async () => {
+          expect.assertions(2)
+          const schema = buildSchema(engineType)
 
-  test('engines', async () => {
-    const promises: (() => Promise<void>)[] = []
+          // Set up Project in tmp dir
+          const projectDir = await fs.promises.mkdtemp(`${os.tmpdir()}${path.sep}`)
+          await fs.promises.copyFile(path.join(__dirname, './dev.db'), path.join(projectDir, 'dev.db'))
+          await fs.promises.writeFile(path.join(projectDir, 'schema.prisma'), schema)
 
-    for (const engineType of engineTypes) {
-      for (const envVar in envVars) {
-        for (const value of envVars[envVar]) {
-          const expectedClientEngine = getExpectedEngine(engineType, envVar, value)
-          const prom = async () => {
-            expect.assertions(2)
-            const schema = buildSchema(engineType)
+          // Set ENV VAR
+          process.env[envVar] = value
 
-            // Set up Project in tmp dir
-            const projectDir = await fs.promises.mkdtemp(`${os.tmpdir()}${path.sep}`)
-            await fs.promises.copyFile(path.join(__dirname, './dev.db'), path.join(projectDir, 'dev.db'))
-            await fs.promises.writeFile(path.join(projectDir, 'schema.prisma'), schema)
+          // Generate Client to tmp dir
+          await generateTestClient(projectDir)
 
-            // Set ENV VAR
-            process.env[envVar] = value
+          // Run Tests
+          const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
+          const prisma = new PrismaClient()
+          const users = await prisma.user.findMany()
+          expect(users).toMatchInlineSnapshot(`
+            Array [
+              Object {
+                email: a@a.de,
+                id: 576eddf9-2434-421f-9a86-58bede16fd95,
+                name: Alice,
+              },
+            ]
+            `)
 
-            // Generate Client to tmp dir
-            await generateTestClient(projectDir)
-
-            // Run Tests
-            const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
-            const prisma = new PrismaClient()
-            const users = await prisma.user.findMany()
-            expect(users).toMatchInlineSnapshot(`
-              Array [
-                Object {
-                  email: a@a.de,
-                  id: 576eddf9-2434-421f-9a86-58bede16fd95,
-                  name: Alice,
-                },
-              ]
-              `)
-
-            expect(prisma._clientEngineType).toMatch(expectedClientEngine)
-            await prisma.$disconnect()
-          }
-
-          promises.push(prom)
-        }
+          expect(prisma._clientEngineType).toMatch(expectedClientEngine)
+          await prisma.$disconnect()
+        })
       }
     }
-
-    await Promise.all(promises)
-  })
+  }
+}
+describe('client engine', () => {
+  buildTests()
 })
