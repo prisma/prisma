@@ -111,41 +111,79 @@ describe('serializeRawParameters', () => {
 
   // Objects are serialized as-is, except for BigInts which are serialized as
   // strings because otherwise JSON.stringify would throw TypeError.
-  test('object', () => {
-    const data = [
-      {
-        text: 'text',
-        number: 1,
-      },
-      {
-        date: new Date('2020-06-22T17:07:16.348Z'),
-        bigInt: BigInt('321804719213721'),
-        buffer: Buffer.from('hello'),
-      },
-      {
-        nested: {
-          array: [new Date('2020-06-22T17:07:16.348Z'), BigInt('321804719213721')],
+  describe('objects', () => {
+    test('no BigInts', () => {
+      const data = [
+        {
+          text: 'text',
+          number: 1,
         },
-      },
-      [123, BigInt('321804719213721')],
-    ]
+        {
+          date: new Date('2020-06-22T17:07:16.348Z'),
+          buffer: Buffer.from('hello'),
+        },
+        {
+          nested: {
+            array: [new Date('2020-06-22T17:07:16.348Z'), '321804719213721'],
+          },
+        },
+        [123, '321804719213721'],
+      ]
 
-    expect(serialize(data)).toEqual([
-      {
-        text: 'text',
-        number: 1,
-      },
-      {
-        date: '2020-06-22T17:07:16.348Z',
-        bigInt: '321804719213721',
-        buffer: { type: 'Buffer', data: [104, 101, 108, 108, 111] },
-      },
-      {
-        nested: {
-          array: ['2020-06-22T17:07:16.348Z', '321804719213721'],
+      expect(serialize(data)).toEqual([
+        {
+          text: 'text',
+          number: 1,
         },
-      },
-      [123, '321804719213721'],
-    ])
+        {
+          date: '2020-06-22T17:07:16.348Z',
+          buffer: { type: 'Buffer', data: [104, 101, 108, 108, 111] },
+        },
+        {
+          nested: {
+            array: ['2020-06-22T17:07:16.348Z', '321804719213721'],
+          },
+        },
+        [123, '321804719213721'],
+      ])
+    })
+
+    test('with BigInts', () => {
+      const data = [
+        {
+          text: 'text',
+          number: 1,
+        },
+        {
+          date: new Date('2020-06-22T17:07:16.348Z'),
+          bigInt: BigInt('321804719213721'),
+          buffer: Buffer.from('hello'),
+        },
+        {
+          nested: {
+            array: [new Date('2020-06-22T17:07:16.348Z'), BigInt('321804719213721')],
+          },
+        },
+        [123, BigInt('321804719213721')],
+      ]
+
+      expect(serialize(data)).toEqual([
+        {
+          text: 'text',
+          number: 1,
+        },
+        {
+          date: '2020-06-22T17:07:16.348Z',
+          bigInt: '321804719213721',
+          buffer: { type: 'Buffer', data: [104, 101, 108, 108, 111] },
+        },
+        {
+          nested: {
+            array: ['2020-06-22T17:07:16.348Z', '321804719213721'],
+          },
+        },
+        [123, '321804719213721'],
+      ])
+    })
   })
 })
