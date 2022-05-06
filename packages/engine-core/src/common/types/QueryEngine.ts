@@ -84,6 +84,8 @@ export type GetDMMFOptions = {
 
 // Errors
 export type SyncRustError = {
+  readonly __typename: 'SyncRustError'
+
   is_panic: boolean
   message: string
   meta: {
@@ -93,9 +95,19 @@ export type SyncRustError = {
 }
 
 export type RustRequestError = {
+  readonly __typename: 'RustRequestError'
+
   is_panic: boolean
   message: string
   backtrace: string
+}
+
+export function isRustRequestError(e: any): e is RustRequestError {
+  return e.__typename === 'RustRequestError'
+}
+
+export function isSyncRustError(e: any): e is SyncRustError {
+  return e.__typename === 'SyncRustError'
 }
 
 // Responses

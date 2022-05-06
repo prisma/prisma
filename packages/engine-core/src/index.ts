@@ -7,6 +7,8 @@ export { PrismaClientInitializationError } from './common/errors/PrismaClientIni
 export { PrismaClientKnownRequestError } from './common/errors/PrismaClientKnownRequestError'
 export { PrismaClientRustPanicError } from './common/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './common/errors/PrismaClientUnknownRequestError'
+export type { RustRequestError, SyncRustError } from './common/types/QueryEngine'
+export { isRustRequestError, isSyncRustError } from './common/types/QueryEngine'
 export { getInternalDatamodelJson } from './common/utils/getInternalDatamodelJson'
 export { getOriginalBinaryTargetsValue, printGeneratorConfig } from './common/utils/printGeneratorConfig'
 export { fixBinaryTargets } from './common/utils/util'

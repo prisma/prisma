@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
-import type { NodeAPILibraryTypes } from '@prisma/engine-core'
+import type { NodeAPILibraryTypes, RustRequestError, SyncRustError } from '@prisma/engine-core'
+import { isRustRequestError, isSyncRustError } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
@@ -46,13 +47,178 @@ export class GetConfigError extends Error {
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
-  let data: ConfigMetaFormat | undefined
-  if (cliEngineBinaryType === BinaryType.libqueryEngine) {
-    data = await getConfigNodeAPI(options)
-  } else {
-    data = await getConfigBinaryFP(options)
-  }
+  const data: ConfigMetaFormat = await match(cliEngineBinaryType)
+    .with(BinaryType.libqueryEngine, () => {
+      return getConfigNodeAPIFP(options)
+    })
+    .with(BinaryType.queryEngine, () => {
+      return getConfigBinaryFP(options)
+    })
+    .exhaustive()
   return data
+}
+
+async function getConfigNodeAPIFP(options: GetConfigOptions) {
+  /**
+   * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
+   * error handling.
+   */
+  const preliminaryEither = await pipe(
+    TE.Do,
+    TE.bind('queryEnginePath', () => {
+      return TE.tryCatch(
+        () => resolveBinary(BinaryType.libqueryEngine, options.prismaPath),
+        (e) => ({
+          type: 'query-engine-unresolved',
+          reason: 'Unable to resolve path to query-engine binary',
+          error: e as Error, // "Could not find libquery-engine binary. Searched in..."
+        }),
+      )
+    }),
+    TE.bind('_', () => {
+      return TE.tryCatch(
+        () => isNodeAPISupported(),
+        (e) => ({
+          type: 'node-api-not-support',
+          reason: 'The query-engine library is not supported on this platform',
+          error: e as Error,
+        }),
+      )
+    }),
+  )()
+  if (E.isLeft(preliminaryEither)) {
+    const { reason, error } = preliminaryEither.left
+
+    // TODO: is there an existing way of embedding the error in GetConfigError?
+    throw new GetConfigError(reason)
+  }
+  const { queryEnginePath } = preliminaryEither.right
+  debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
+
+  const pipeline = pipe(
+    pipe(
+      E.tryCatch(
+        () => load<NodeAPILibraryTypes.Library>(queryEnginePath),
+        (e) => ({
+          type: 'connection-error' as const,
+          reason: 'Unable to establish a connection to query-engine-node-api library',
+          error: e as Error,
+        }),
+      ),
+      TE.fromEither,
+    ),
+    TE.map((NodeAPIQueryEngineLibrary) => ({ NodeAPIQueryEngineLibrary })),
+    TE.chainW(({ NodeAPIQueryEngineLibrary }) => {
+      const data = TE.tryCatch(
+        () => {
+          if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+            // trigger a Rust panic
+            return NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_CONFIG')
+          }
+
+          return NodeAPIQueryEngineLibrary.getConfig({
+            datamodel: options.datamodel,
+            datasourceOverrides: {},
+            ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+            env: process.env,
+          })
+        },
+        (e) => ({
+          type: 'node-api' as const,
+          reason: 'Error while interacting with query-engine-node-api library',
+          error: e as Error,
+        }),
+      )
+      return data
+    }),
+  )
+
+  const configEither = await pipeline()
+  if (E.isRight(configEither)) {
+    const { right: data } = configEither
+    return data
+  }
+
+  const error = match(configEither.left)
+    .with({ type: 'node-api' }, (e) => {
+      // For future reference: the type guards for RustRequestError or SyncRustError are not working
+      // because the "__typename" tag is never set by the "@prisma/engine-core" package.
+      //
+      // if (isRustRequestError(e.error)) {
+      //   console.log('e@getConfigNodeAPI "node-api" "RustRequestError"', e)
+      //   const error = e.error
+      //   // TODO: sometimes there is no backtrace (are backtrace and stacktrace the same thing?),
+      //   // even though the type explicitly says that it should be a totally defined string.
+      //   error.backtrace = error.backtrace ?? 'NO_STACKTRACE'
+      //
+      //   if (error.is_panic) {
+      //     return new RustPanic(
+      //       /* message */ '[RustRequestError] ' + error.message,
+      //       /* rustStack */ error.backtrace,
+      //       /* request */ 'query-engine-node-api get-config',
+      //       ErrorArea.QUERY_LIBRARY,
+      //       /* schemaPath */ options.prismaPath,
+      //       /* schema */ undefined,
+      //     )
+      //   }
+      //
+      //   return JSON.parse(error.message)
+      //
+      // } else if (isSyncRustError(e.error)) {
+      //   console.log('e@getConfigNodeAPI "node-api" "SyncRustError"', e)
+      //   const error = e.error
+      //   const message = match(error.error_code)
+      //     .with('P1012', () => chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n')
+      //     .otherwise(() => chalk.redBright(`${error.error_code}\n\n`) + error)
+      //
+      //   if (error.is_panic) {
+      //     return new RustPanic(
+      //       /* message */ message, // Command failed with exit code 101: ~/query-engine1.x cli debug-panic --message FORCE_PANIC_QUERY_ENGINE_GET_DMMF
+      //       /* rustStack */ 'NO_STACKTRACE',
+      //       /* request */ 'query-engine-node-api get-config',
+      //       ErrorArea.QUERY_LIBRARY,
+      //       /* schemaPath */ options.prismaPath,
+      //       /* schema */ undefined,
+      //     )
+      //   }
+      //
+      //   return new GetConfigError(message)
+      // }
+
+      console.log('e@getConfigNodeAPI "node-api"', e)
+
+      // TODO: if e.is_panic is true, throw a RustPanic error
+      let error
+      try {
+        error = JSON.parse((e.error as any).message)
+        if (error.is_panic) {
+          return new RustPanic(
+            /* message */ error.message,
+            /* rustStack */ error.backtrace,
+            /* request */ 'query-engine-node-api get-config',
+            ErrorArea.QUERY_LIBRARY,
+            /* schemaPath */ options.prismaPath,
+            /* schema */ undefined,
+          )
+        }
+      } catch {
+        return e
+      }
+      let message: string
+      if (error.error_code === 'P1012') {
+        message = chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n'
+      } else {
+        message = chalk.redBright(`${error.error_code}\n\n`) + error
+      }
+      return new GetConfigError(message)
+    })
+    .with({ type: 'connection-error' }, (e) => {
+      debug('e@getConfigNodeAPI "connection-error"', e)
+      return new GetConfigError(e.reason)
+    })
+    .exhaustive()
+
+  throw error
 }
 
 async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat> {
@@ -63,7 +229,7 @@ async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFo
   try {
     const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
     if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
-      // cause a Rust panic
+      // trigger a Rust panic
       await NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_CONFIG')
     }
 
@@ -101,32 +267,34 @@ async function getConfigBinaryFP(options: GetConfigOptions) {
    * error handling.
    */
   const preliminaryEither = await pipe(
-    TE.Do,
-    TE.bind('queryEnginePath', () => {
-      return TE.tryCatch(
-        () => resolveBinary(BinaryType.queryEngine, options.prismaPath),
-        (e) => ({
-          type: 'query-engine-unresolved',
-          reason: 'Unable to resolve path to query-engine binary',
-          error: e,
-        }),
-      )
-    }),
-    TE.bind('tempDatamodelPath', ({ queryEnginePath }) => {
-      debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
-
+    TE.tryCatch(
+      () => resolveBinary(BinaryType.queryEngine, options.prismaPath),
+      (e) => ({
+        type: 'query-engine-unresolved' as const,
+        reason: 'Unable to resolve path to query-engine binary',
+        error: e as Error,
+      }),
+    ),
+    TE.map((queryEnginePath) => ({ queryEnginePath })),
+    TE.chainW(({ queryEnginePath }) => {
       if (!options.datamodelPath) {
-        return TE.tryCatch(
-          () => tmpWrite(options.datamodel),
-          (e) => ({
-            type: 'datamodel-write',
-            reason: 'Unable to write temp data model path',
-            error: e,
-          }),
+        return pipe(
+          TE.tryCatch(
+            () => tmpWrite(options.datamodel),
+            (e) => ({
+              type: 'datamodel-write' as const,
+              reason: 'Unable to write temp data model path',
+              error: e as Error,
+            }),
+          ),
+          TE.map((tempDatamodelPath) => ({ queryEnginePath, tempDatamodelPath })),
         )
       }
 
-      return TE.right(undefined as string | undefined)
+      return TE.right({
+        queryEnginePath,
+        tempDatamodelPath: undefined as string | undefined,
+      })
     }),
   )()
   if (E.isLeft(preliminaryEither)) {
@@ -136,6 +304,7 @@ async function getConfigBinaryFP(options: GetConfigOptions) {
     throw new GetConfigError(reason)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
+  debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   const pipeline = pipe(
     TE.Do,
@@ -161,7 +330,7 @@ async function getConfigBinaryFP(options: GetConfigOptions) {
               execaOptions,
             ),
           (e) => ({
-            type: 'execa',
+            type: 'execa' as const,
             reason: 'Error while interacting with query-engine binary',
             error: e,
           }),
@@ -171,18 +340,18 @@ async function getConfigBinaryFP(options: GetConfigOptions) {
       return TE.tryCatch(
         () => execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], execaOptions),
         (e) => ({
-          type: 'execa',
+          type: 'execa' as const,
           reason: 'Error while interacting with query-engine binary',
           error: e,
         }),
       )
     }),
-    TE.bind('data', ({ result }) => {
+    TE.chainW(({ result }) => {
       return pipe(
         E.tryCatch(
           () => JSON.parse(result.stdout) as ConfigMetaFormat,
           (e) => ({
-            type: 'parse-json',
+            type: 'parse-json' as const,
             reason: 'Unable to parse JSON',
             error: e,
           }),
@@ -194,7 +363,7 @@ async function getConfigBinaryFP(options: GetConfigOptions) {
 
   const configEither = await pipeline()
   if (E.isRight(configEither)) {
-    const { data } = configEither.right
+    const { right: data } = configEither
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
     const unlinkEither = await TE.tryCatch(
@@ -337,7 +506,7 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
             message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
           }
         }
-      } catch (e) {
+      } catch (_) {
         // if JSON parse / pretty handling fails, fallback to simple printing
         throw new GetConfigError(error)
       }

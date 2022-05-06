@@ -42,7 +42,7 @@
     "jest-junit": "13.2.0",
     "mock-stdin": "1.0.0",
     "ts-node": "10.4.0",
-    "typescript": "4.5.4"
+    "typescript": "4.6.4"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
