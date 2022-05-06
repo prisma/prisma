@@ -266,11 +266,6 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      # TODO: is this still necessary?
-      # - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-      #   if: ${{ matrix.database == 'sqlite' }}
-      #   working-directory: packages/integration-tests
-
       - run: pnpm run test
         working-directory: packages/integration-tests
         env:
@@ -397,10 +392,6 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      # TODO: is this still necessary?
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        working-directory: packages/cli
 
       - run: pnpm run test
         working-directory: packages/migrate
