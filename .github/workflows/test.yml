@@ -236,13 +236,6 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
-          # - mongo
         node: [12]
 
     steps:
@@ -256,8 +249,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
-        if: matrix.database != 'sqlite'
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
       - uses: pnpm/action-setup@v2.2.1
         with:
@@ -275,11 +267,11 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       # TODO: is this still necessary?
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        if: ${{ matrix.database == 'sqlite' }}
-        working-directory: packages/integration-tests
+      # - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
+      #   if: ${{ matrix.database == 'sqlite' }}
+      #   working-directory: packages/integration-tests
 
-      - run: pnpm run jest integration/${{ matrix.database }} -- --maxConcurrency=8
+      - run: pnpm run test
         working-directory: packages/integration-tests
         env:
           CI: true
@@ -296,8 +288,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
-          flags: integration-tests,${{ matrix.database }},${{ matrix.queryEngine }}
-          name: integration-tests-${{ matrix.database }}-${{ matrix.queryEngine }}
+          flags: integration-tests,${{ matrix.node }},${{ matrix.queryEngine }}
+          name: integration-tests-${{ matrix.node }}-${{ matrix.queryEngine }}
 
   #
   # SDK
