@@ -5,7 +5,7 @@ import { BinaryType } from '@prisma/fetch-engine'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
-import type { ExecaChildProcess, ExecaError, ExecaReturnValue } from 'execa'
+import type { ExecaError } from 'execa'
 import execa from 'execa'
 import * as E from 'fp-ts/Either'
 import { identity, pipe } from 'fp-ts/lib/function'
@@ -46,44 +46,22 @@ export class GetDmmfError extends Error {
   }
 }
 
-// TODO: add support for retry
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   const dmmf: DMMF.Document = await match(cliEngineBinaryType)
     .with(BinaryType.libqueryEngine, () => {
-      return getDmmfNodeAPIFP(options)
+      return getDmmfNodeAPI(options)
     })
     .with(BinaryType.queryEngine, () => {
-      return getDmmfBinaryFP(options)
+      // TODO: the binary may fail and might need to be retried again
+      return getDmmfBinary(options)
     })
     .exhaustive()
   return dmmf
 }
 
-async function getDmmfNodeAPI(options: GetDMMFOptions): Promise<DMMF.Document> {
-  const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
-  await isNodeAPISupported()
-  debug(`Using CLI Query Engine (Node-API) at: ${queryEnginePath}`)
-
-  try {
-    const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
-    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
-      // cause a Rust panic
-      await NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_DMMF')
-    }
-
-    const datamodel = options.datamodel ?? fs.readFileSync(options.datamodelPath!, 'utf-8')
-    const dmmf: DMMF.Document = JSON.parse(await NodeAPIQueryEngineLibrary.dmmf(datamodel)) as DMMF.Document
-    return dmmf
-  } catch (e: any) {
-    const error = JSON.parse(e.message)
-    const message = addMissingOpenSSLInfo(error.message)
-    throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
-  }
-}
-
-async function getDmmfNodeAPIFP(options: GetDMMFOptions) {
+async function getDmmfNodeAPI(options: GetDMMFOptions) {
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -195,7 +173,7 @@ async function getDmmfNodeAPIFP(options: GetDMMFOptions) {
           (e) => ({
             type: 'parse-json' as const,
             reason: 'Unable to parse JSON',
-            error: e,
+            error: e as Error,
           }),
         ),
         TE.fromEither,
@@ -205,38 +183,45 @@ async function getDmmfNodeAPIFP(options: GetDMMFOptions) {
 
   const dmmfEither = await pipeline()
   if (E.isRight(dmmfEither)) {
+    debug('dmmf retrieved without errors in getDmmfNodeAPI')
     const { right: dmmf } = dmmfEither
     return dmmf
   }
 
   const error = match(dmmfEither.left)
     .with({ type: 'node-api' }, (e) => {
+      debug(`error in getDmmfNodeAPI "${e.type}"`, e)
       try {
         const error = JSON.parse(e.error.message)
         const message = addMissingOpenSSLInfo(error.message)
+
+        if (error.is_panic) {
+          const panic = new RustPanic(
+            /* message */ message,
+            /* rustStack */ error.backtrace || 'NO_BACKTRACE', // TODO: understand how to retrieve stacktrace for node-api
+            /* request */ 'query-engine-node-api get-dmmf',
+            ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY
+            /* schemaPath */ options.prismaPath,
+            /* schema */ undefined,
+          )
+          debug(`panic in getDmmfNodeAPI "${e.type}"`, panic)
+          return panic
+        }
+
         return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message)
       } catch (jsonError) {
         return new GetDmmfError(e.reason)
       }
     })
-    .with({ type: 'connection-error' }, (e) => {
-      debug('e@getConfigNodeAPI "connection-error"', e)
+    .otherwise((e) => {
+      debug(`error in getDmmfNodeAPI "${e.type}"`, e)
       return new GetDmmfError(e.reason)
     })
-    .with({ type: 'read-datamodel-path' }, (e) => {
-      debug('error in getDmmfNodeAPI', e)
-      return new GetDmmfError(e.reason)
-    })
-    .with({ type: 'parse-json' }, (e) => {
-      debug('error in getDmmfNodeAPI', e)
-      return new GetDmmfError(e.reason)
-    })
-    .exhaustive()
 
   throw error
 }
 
-async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> {
+async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -293,9 +278,8 @@ async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> 
         maxBuffer: MAX_BUFFER,
       }
 
-      const args = ['--enable-raw-queries', 'cli', 'dmmf']
-
       if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+        // trigger a Rust panic
         return TE.tryCatch(
           () =>
             execa(
@@ -311,6 +295,7 @@ async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> 
         )
       }
 
+      const args = ['--enable-raw-queries', 'cli', 'dmmf']
       return TE.tryCatch(
         () => execa(queryEnginePath, args, execaOptions),
         (e) => ({
@@ -358,6 +343,7 @@ async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> 
 
   const dmmfEither = await pipeline()
   if (E.isRight(dmmfEither)) {
+    debug('dmmf retrieved without errors in getDmmfBinary')
     const { right: dmmf } = dmmfEither
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
@@ -380,21 +366,24 @@ async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> 
   }
 
   const error = match(dmmfEither.left)
-    .with({ type: 'execa' }, ({ error, reason }) => {
+    .with({ type: 'execa' }, ({ error, reason, type }) => {
+      debug(`error in getDmmfBinary "${type}"`, { error, reason, type })
       const e = error as ExecaError
 
       /**
        * Capture and propagate possible Rust panics.
        */
       if (isExecaErrorCausedByRustPanic(e as execa.ExecaError)) {
-        return new RustPanic(
+        const panic = new RustPanic(
           /* message */ e.shortMessage, // Command failed with exit code 101: ~/query-engine1.x cli debug-panic --message FORCE_PANIC_QUERY_ENGINE_GET_DMMF
           /* rustStack */ e.stderr, // thread 'main' panicked at 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF', /root/build/query-engine/query-engine/src/cli.rs:95:21
           /* request */ 'query-engine get-dmmf',
-          ErrorArea.QUERY_CLI,
+          ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
           /* schema */ undefined,
         )
+        debug(`panic in getDmmfBinary "${type}"`, panic)
+        return panic
       }
 
       /**
@@ -417,7 +406,8 @@ async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> 
 
       return actualError
     })
-    .with({ type: 'parse-json' }, ({ error, reason, result }) => {
+    .with({ type: 'parse-json' }, ({ error, reason, result, type }) => {
+      debug(`error in getDmmfBinary "${type}"`, { error, reason, type, result })
       const message = `Problem while parsing the query engine response at ${queryEnginePath}. ${result.stdout}\n${
         (error as any)?.stack
       }`
@@ -431,121 +421,7 @@ async function getDmmfBinaryFP(options: GetDMMFOptions): Promise<DMMF.Document> 
   throw error
 }
 
-async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
-  let result: ExecaChildProcess<string> | undefined | ExecaReturnValue<string>
-  const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
-  debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
-
-  try {
-    let tempDatamodelPath: string | undefined = options.datamodelPath
-    if (!tempDatamodelPath) {
-      try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
-      } catch (err) {
-        throw new Error(chalk.redBright.bold('Get DMMF ') + 'unable to write temp data model path')
-      }
-    }
-    const execaOptions = {
-      cwd: options.cwd,
-      env: {
-        PRISMA_DML_PATH: tempDatamodelPath,
-        RUST_BACKTRACE: '1',
-        ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
-      },
-      maxBuffer: MAX_BUFFER,
-    }
-
-    const args = ['--enable-raw-queries', 'cli', 'dmmf']
-
-    if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
-      await execa(
-        queryEnginePath,
-        ['cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF'],
-        execaOptions,
-      )
-    }
-
-    result = await execa(queryEnginePath, args, execaOptions)
-
-    if (!options.datamodelPath) {
-      await unlink(tempDatamodelPath)
-    }
-
-    if (result.stdout.includes('Please wait until the') && options.retry && options.retry > 0) {
-      debug('Retrying after "Please wait until"')
-      await new Promise((r) => setTimeout(r, 5000))
-      return getDMMF({
-        ...options,
-        retry: options.retry - 1,
-      })
-    }
-
-    // necessary, as sometimes the query engine prints some other stuff
-    // TODO: identify when the binary does that.
-    const firstCurly = result.stdout.indexOf('{')
-    const stdout = result.stdout.slice(firstCurly)
-
-    return JSON.parse(stdout)
-  } catch (e: any) {
-    /*
-    Object.keys(e) [
-      'shortMessage',
-      'command',
-      'escapedCommand',
-      'exitCode',
-      'signal',
-      'signalDescription',
-      'stdout',
-      'stderr',
-      'failed',
-      'timedOut',
-      'isCanceled',
-      'killed'
-    ]
-    */
-    console.log('e@getDmmfBinary', e)
-    console.log('typeof e', typeof e)
-    console.log('e.exitCode', e.exitCode)
-    console.log('e.command', e.command)
-    console.log('e.stack', e.stack)
-    console.log('e.stdout', e.stdout)
-    console.log('e.stderr', e.stderr)
-    console.log('e.failed', e.failed)
-    console.log('e.shortMessage', e.shortMessage)
-    console.log('\n\n')
-
-    debug('getDMMF failed', e)
-    // If this unlikely event happens, try it at least once more
-    if (e.message.includes('Command failed with exit code 26 (ETXTBSY)') && options.retry && options.retry > 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500))
-      debug('Retrying after ETXTBSY')
-      return getDMMF({
-        ...options,
-        retry: options.retry - 1,
-      })
-    }
-
-    const output = e.stderr || e.stdout
-    if (output) {
-      let json
-      try {
-        json = JSON.parse(output)
-      } catch (e) {
-        //
-      }
-      let message = (json && json.message) || output
-      message = addMissingOpenSSLInfo(message)
-      throw new Error(chalk.redBright.bold('Schema parsing\n') + message)
-    }
-    if (e.message.includes('in JSON at position')) {
-      throw new Error(
-        `Problem while parsing the query engine response at ${queryEnginePath}. ${result?.stdout}\n${e.stack}`,
-      )
-    }
-    throw new Error(e)
-  }
-}
-
+// TODO: should this function be used by getConfig as well?
 function addMissingOpenSSLInfo(message: string) {
   if (
     message.includes(

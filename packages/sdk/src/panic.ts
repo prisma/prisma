@@ -1,6 +1,7 @@
 import { ExecaError } from 'execa'
 
 export class RustPanic extends Error {
+  public readonly __typename = 'RustPanic'
   public request: any
   public rustStack: string
   public area: ErrorArea
@@ -24,6 +25,10 @@ export class RustPanic extends Error {
     this.schema = schema
     this.introspectionUrl = introspectionUrl
   }
+}
+
+export function isRustPanic(e: Error): e is RustPanic {
+  return (e as RustPanic).__typename === 'RustPanic'
 }
 
 export enum ErrorArea {
