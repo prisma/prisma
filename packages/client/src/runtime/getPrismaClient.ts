@@ -27,6 +27,7 @@ import { makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
+import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
 import { runInChildSpan } from './utils/otel/runInChildSpan'
@@ -645,7 +646,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       debug(`Prisma Client call:`)
       return this._request({
         args,
-        clientMethod: 'executeRaw',
+        clientMethod: '$executeRaw',
         dataPath: [],
         action: 'executeRaw',
         callsite: getCallSite(this._errorFormat),
@@ -710,7 +711,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return createPrismaPromise((txId, lock, otelCtx) => {
         return this._request({
           args: { command: command },
-          clientMethod: 'runCommandRaw',
+          clientMethod: '$runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
           callsite: getCallSite(this._errorFormat),
@@ -818,10 +819,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       const args = { query: queryString, parameters }
 
       debug(`Prisma Client call:`)
-      // const doRequest = (runInTransaction = false) => {
+
       return this._request({
         args,
-        clientMethod: 'queryRaw',
+        clientMethod: '$queryRaw',
         dataPath: [],
         action: 'queryRaw',
         callsite: getCallSite(this._errorFormat),
@@ -829,7 +830,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         transactionId: txId,
         otelCtx: otelCtx,
         lock,
-      })
+      }).then(deserializeRawResults)
     }
 
     /**

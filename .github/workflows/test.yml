@@ -61,7 +61,7 @@ jobs:
         with:
           format: 'json'
       - id: detect
-        run: ./.github/workflows/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
+        run: ./.github/workflows/scripts/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
 
   # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
@@ -86,7 +86,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
@@ -101,7 +101,7 @@ jobs:
           echo "::remove-matcher owner=eslint-compact::"
           echo "::remove-matcher owner=eslint-stylish::"
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -142,14 +142,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -196,14 +196,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -236,13 +236,6 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        database:
-          - sqlite
-          - postgres
-          - mysql
-          - mariadb
-          - mssql
-          # - mongo
         node: [12]
 
     steps:
@@ -256,30 +249,24 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach ${{matrix.database}}
-        if: matrix.database != 'sqlite'
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      # TODO: is this still necessary?
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        if: ${{ matrix.database == 'sqlite' }}
-        working-directory: packages/integration-tests
-
-      - run: pnpm run jest integration/${{ matrix.database }} -- --maxConcurrency=8
+      - run: pnpm run test
         working-directory: packages/integration-tests
         env:
           CI: true
@@ -296,8 +283,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/integration-tests/src/__tests__/coverage/clover.xml
-          flags: integration-tests,${{ matrix.database }},${{ matrix.queryEngine }}
-          name: integration-tests-${{ matrix.database }}-${{ matrix.queryEngine }}
+          flags: integration-tests,${{ matrix.node }},${{ matrix.queryEngine }}
+          name: integration-tests-${{ matrix.node }}-${{ matrix.queryEngine }}
 
   #
   # SDK
@@ -331,14 +318,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -393,22 +380,18 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      # TODO: is this still necessary?
-      - run: pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-        working-directory: packages/cli
 
       - run: pnpm run test
         working-directory: packages/migrate
@@ -463,14 +446,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -510,14 +493,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -610,22 +593,22 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Setup PostgreSQL
-        run: bash .github/workflows/setup-postgres.sh
+      - name: Set up PostgreSQL
+        run: bash .github/workflows/scripts/setup-postgres.sh
 
-      - name: Setup MySQL
-        run: bash .github/workflows/setup-mysql.sh
+      - name: Set up MySQL
+        run: bash .github/workflows/scripts/setup-mysql.sh
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -781,22 +764,22 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Setup PostgreSQL
-        run: bash .github/workflows/setup-postgres.sh
+      - name: Set up PostgreSQL
+        run: bash .github/workflows/scripts/setup-postgres.sh
 
-      - name: Setup MySQL
-        run: bash .github/workflows/setup-mysql.sh
+      - name: Set up MySQL
+        run: bash .github/workflows/scripts/setup-mysql.sh
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true

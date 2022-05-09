@@ -33,14 +33,14 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: '16'
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -65,7 +65,7 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@Jolg42,@millsp'
+          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@danstarns,@jkomyno'
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() }}

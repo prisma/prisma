@@ -1,11 +1,9 @@
 import Debug from '@prisma/debug'
 import type { BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import chalk from 'chalk'
 import crypto from 'crypto'
 import fs from 'fs'
 import newGithubIssueUrl from 'new-github-issue-url'
-import terminalLink from 'terminal-link'
 
 const debug = Debug('plusX')
 
@@ -36,12 +34,6 @@ export function fixBinaryTargets(
   }
 
   return [...binaryTargets, transformPlatformToEnvValue(platform)]
-}
-
-export function link(url: string): string {
-  return terminalLink(url, url, {
-    fallback: (url) => chalk.underline(url),
-  })
 }
 
 export function getGithubIssueUrl({

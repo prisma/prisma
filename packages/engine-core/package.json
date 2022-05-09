@@ -21,8 +21,8 @@
   "devDependencies": {
     "@swc/core": "1.2.141",
     "@swc/jest": "0.2.20",
-    "@types/jest": "27.4.1",
-    "@types/node": "16.11.31",
+    "@types/jest": "27.5.0",
+    "@types/node": "16.11.33",
     "esbuild": "0.13.14",
     "jest": "27.5.1",
     "jest-junit": "13.2.0",
@@ -36,9 +36,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.14.0-8.194f3643b83b9089974d7a9ee6fbe321c100d390",
+    "@prisma/engines": "3.14.0-32.13d12f1fc9655c2d6bbd8f772677f0dc1e662963",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.14.0-8.194f3643b83b9089974d7a9ee6fbe321c100d390",
+    "@prisma/get-platform": "3.14.0-32.13d12f1fc9655c2d6bbd8f772677f0dc1e662963",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
@@ -46,7 +46,6 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "terminal-link": "2.1.1",
     "undici": "5.0.0"
   },
   "files": [

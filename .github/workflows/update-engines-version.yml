@@ -11,11 +11,17 @@ jobs:
     name: 'Check and update @prisma/engines@${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
+      - name: Print workflow_dispatch input
+        env:
+          THE_INPUT: '${{ toJson(github.event.inputs) }}'
+        run: |
+          echo $THE_INPUT
+
       - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.1
         with:
-          version: latest
+          version: 6
 
       - uses: actions/setup-node@v3
         with:
@@ -42,6 +48,14 @@ jobs:
             pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version }} @prisma/fetch-engine@${{ github.event.inputs.version }} @prisma/get-platform@${{ github.event.inputs.version }}
             echo 'Awesome - proceeding to make the PR'
 
+      - name: Extract Engine Commit hash from version
+        id: extract-engine-commit-hash
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const hash = context.payload.inputs.version.split('.').pop()
+            core.setOutput('hash', hash)
+
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v4
@@ -55,14 +69,16 @@ jobs:
           labels: automerge
           title: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           body: |
-            This automatic PR updates the engines to version `${{  github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
-            ## Packages:
+            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
+            ## Packages
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines`| https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.version }}|
-            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{  github.event.inputs.version }}|
-            |`@prisma/fetch-engine`| https://npmjs.com/package/@prisma/fetch-engine/v/${{  github.event.inputs.version }}|
-            |`@prisma/get-platform`| https://npmjs.com/package/@prisma/get-platform/v/${{  github.event.inputs.version }}|
+            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/fetch-engine`| https://npmjs.com/package/@prisma/fetch-engine/v/${{ github.event.inputs.version }}|
+            |`@prisma/get-platform`| https://npmjs.com/package/@prisma/get-platform/v/${{ github.event.inputs.version }}|
+            ## Engines commit
+            [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
 
       - name: PR url
         run: |

@@ -157,7 +157,7 @@ The following migration(s) have been applied:\n\n${chalk(
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
         }
       } else {
-        // Only used to help users to setup their seeds from old way to new package.json config
+        // Only used to help users to set up their seeds from old way to new package.json config
         const schemaPath = await getSchemaPath(args['--schema'])
         // we don't want to output the returned warning message
         // but we still want to run it for `legacyTsNodeScriptWarning()`

@@ -1,4 +1,4 @@
-export const singularRelation = /* GraphQL */ `
+export const singularRelation = /* Prisma */ `
 datasource db {
   provider = "postgresql"
   url      = "postgresql://localhost:5432/db"

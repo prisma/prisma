@@ -115,7 +115,7 @@ export class Init implements Command {
   }
 
   private static help = format(`
-  Setup a new Prisma project
+  Set up a new Prisma project
     
   ${chalk.bold('Usage')}
 
@@ -128,13 +128,13 @@ export class Init implements Command {
 
   ${chalk.bold('Examples')}
 
-  Setup a new Prisma project with PostgreSQL (default)
+  Set up a new Prisma project with PostgreSQL (default)
     ${chalk.dim('$')} prisma init
 
-  Setup a new Prisma project and specify MySQL as the datasource provider to use
+  Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${chalk.dim('$')} prisma init --datasource-provider mysql
   
-  Setup a new Prisma project and specify the url that will be used
+  Set up a new Prisma project and specify the url that will be used
     ${chalk.dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
