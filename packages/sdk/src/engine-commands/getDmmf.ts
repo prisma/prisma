@@ -37,7 +37,7 @@ export type GetDMMFOptions = {
 }
 
 export class GetDmmfError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly _error?: Error) {
     super(chalk.redBright.bold('Get DMMF: ') + message)
   }
 }
@@ -70,9 +70,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
   const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { reason, error } = preliminaryEither.left
-
-    // TODO: is there an existing way of embedding the error in GetDmmfError?
-    throw new GetDmmfError(reason)
+    throw new GetDmmfError(reason, error)
   }
   const { queryEnginePath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
@@ -157,7 +155,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
         if (error.is_panic) {
           const panic = new RustPanic(
             /* message */ message,
-            /* rustStack */ error.backtrace || 'NO_BACKTRACE', // TODO: understand how to retrieve stacktrace for node-api
+            /* rustStack */ error.backtrace || e.error.stack || 'NO_BACKTRACE', // TODO: understand how to retrieve stacktrace for node-api
             /* request */ 'query-engine-node-api get-dmmf',
             ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY
             /* schemaPath */ options.prismaPath,
@@ -169,12 +167,12 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
 
         return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message)
       } catch (jsonError) {
-        return new GetDmmfError(e.reason)
+        return new GetDmmfError(e.reason, e.error)
       }
     })
     .otherwise((e) => {
       debug(`error in getDmmfNodeAPI "${e.type}"`, e)
-      return new GetDmmfError(e.reason)
+      return new GetDmmfError(e.reason, e.error)
     })
 
   throw error
@@ -190,7 +188,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const { reason, error } = preliminaryEither.left
 
     // TODO: is there an existing way of embedding the error in GetDmmfError?
-    throw new GetDmmfError(reason)
+    throw new GetDmmfError(reason, error)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
@@ -225,7 +223,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         (e) => ({
           type: 'execa' as const,
           reason: 'Error while interacting with query-engine binary',
-          error: e,
+          error: e as execa.ExecaError,
         }),
       )
     })(),
@@ -256,7 +254,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           (e) => ({
             type: 'parse-json' as const,
             reason: 'Unable to parse JSON',
-            error: e,
+            error: e as Error,
             result,
           }),
         ),
@@ -290,30 +288,28 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   }
 
   const error = match(dmmfEither.left)
-    .with({ type: 'execa' }, ({ error, reason, type }) => {
-      debug(`error in getDmmfBinary "${type}"`, { error, reason, type })
-      const e = error as ExecaError
-
+    .with({ type: 'execa' }, (e) => {
+      debug(`error in getDmmfBinary "${e.type}"`, e)
       /**
        * Capture and propagate possible Rust panics.
        */
-      if (isExecaErrorCausedByRustPanic(e as execa.ExecaError)) {
+      if (isExecaErrorCausedByRustPanic(e.error)) {
         const panic = new RustPanic(
-          /* message */ e.shortMessage,
-          /* rustStack */ e.stderr,
+          /* message */ e.error.shortMessage,
+          /* rustStack */ e.error.stderr,
           /* request */ 'query-engine get-dmmf',
           ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
           /* schema */ undefined,
         )
-        debug(`panic in getDmmfBinary "${type}"`, panic)
+        debug(`panic in getDmmfBinary "${e.type}"`, panic)
         return panic
       }
 
       /**
        * Extract the actual error by attempting to JSON-parse the output of the query-engine binary.
        */
-      const errorOutput = e.stderr ? e.stderr : e.stdout
+      const errorOutput = e.error.stderr ?? e.error.stdout
       const actualError = pipe(
         E.tryCatch(
           () => JSON.parse(errorOutput),
@@ -323,19 +319,17 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           let message = `${chalk.redBright(jsonError.message)}\n`
           message = addMissingOpenSSLInfo(message)
 
-          return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message)
+          return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message, e.error)
         }),
         E.getOrElse(identity),
       )
 
       return actualError
     })
-    .with({ type: 'parse-json' }, ({ error, reason, result, type }) => {
-      debug(`error in getDmmfBinary "${type}"`, { error, reason, type, result })
-      const message = `Problem while parsing the query engine response at ${queryEnginePath}. ${result.stdout}\n${
-        (error as any)?.stack
-      }`
-      return new GetDmmfError(chalk.redBright.bold('JSON parsing\n') + message)
+    .with({ type: 'parse-json' }, (e) => {
+      debug(`error in getDmmfBinary "${e.type}"`, e)
+      const message = `Problem while parsing the query engine response at ${queryEnginePath}. ${e.result.stdout}\n${e.error?.stack}`
+      return new GetDmmfError(chalk.redBright.bold('JSON parsing\n') + message, e.error)
     })
     .with({ type: 'retry' }, ({ reason, retry }) => {
       // TODO: handle retry

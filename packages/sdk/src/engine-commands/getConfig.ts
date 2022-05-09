@@ -35,7 +35,7 @@ export type GetConfigOptions = {
   ignoreEnvVarErrors?: boolean
 }
 export class GetConfigError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly _error?: Error) {
     super(chalk.redBright.bold('Get config: ') + message)
   }
 }
@@ -65,9 +65,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
   const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { reason, error } = preliminaryEither.left
-
-    // TODO: is there an existing way of embedding the error in GetConfigError?
-    throw new GetConfigError(reason)
+    throw new GetConfigError(reason, error)
   }
   const { queryEnginePath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
@@ -192,7 +190,7 @@ async function getConfigBinary(options: GetConfigOptions) {
         (e) => ({
           type: 'execa' as const,
           reason: 'Error while interacting with query-engine binary',
-          error: e,
+          error: e as execa.ExecaError,
         }),
       )
     })(),
@@ -204,7 +202,7 @@ async function getConfigBinary(options: GetConfigOptions) {
           (e) => ({
             type: 'parse-json' as const,
             reason: 'Unable to parse JSON',
-            error: e,
+            error: e as Error,
           }),
         ),
         TE.fromEither,
@@ -237,30 +235,28 @@ async function getConfigBinary(options: GetConfigOptions) {
   }
 
   const error: RustPanic | GetConfigError = match(configEither.left)
-    .with({ type: 'execa' }, ({ error, reason, type }) => {
-      debug(`error in getConfigBinary "${type}"`, { error, reason, type })
-      const e = error as ExecaError
-
+    .with({ type: 'execa' }, (e) => {
+      debug(`error in getConfigBinary "${e.type}"`, e)
       /**
        * Capture and propagate possible Rust panics.
        */
-      if (isExecaErrorCausedByRustPanic(e as execa.ExecaError)) {
+      if (isExecaErrorCausedByRustPanic(e.error)) {
         const panic = new RustPanic(
-          /* message */ e.shortMessage,
-          /* rustStack */ e.stderr,
+          /* message */ e.error.shortMessage,
+          /* rustStack */ e.error.stderr,
           /* request */ 'query-engine get-config',
           ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
           /* schema */ undefined,
         )
-        debug(`panic in getConfigBinary "${type}"`, panic)
+        debug(`panic in getConfigBinary "${e.type}"`, panic)
         return panic
       }
 
       /**
        * Extract the actual error by attempting to JSON-parse the output of the query-engine binary.
        */
-      const errorOutput = e.stderr ? e.stderr : e.stdout
+      const errorOutput = e.error.stderr ?? e.error.stdout
       const actualError = pipe(
         E.tryCatch(
           () => JSON.parse(errorOutput),
@@ -276,7 +272,7 @@ async function getConfigBinary(options: GetConfigOptions) {
             }
           }
 
-          return new GetConfigError(message)
+          return new GetConfigError(message, e.error)
         }),
         E.getOrElse(identity),
       )
@@ -284,7 +280,7 @@ async function getConfigBinary(options: GetConfigOptions) {
     })
     .otherwise((e) => {
       debug(`error in getConfigBinary "${e.type}"`, e)
-      return new GetConfigError(e.reason)
+      return new GetConfigError(e.reason, e.error)
     })
 
   throw error
