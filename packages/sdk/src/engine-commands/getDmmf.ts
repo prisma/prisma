@@ -163,7 +163,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
             /* message */ message,
             /* rustStack */ error.backtrace || e.error.stack || 'NO_BACKTRACE', // TODO: understand how to retrieve stacktrace for node-api
             /* request */ 'query-engine-node-api get-dmmf',
-            ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY
+            ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
             /* schemaPath */ options.prismaPath,
             /* schema */ undefined,
           )

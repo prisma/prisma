@@ -123,7 +123,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
             /* message */ error.message,
             /* rustStack */ error.backtrace || 'NO_BACKTRACE', // TODO: understand how to retrieve stacktrace for node-api
             /* request */ 'query-engine-node-api get-config',
-            ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY
+            ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
             /* schemaPath */ options.prismaPath,
             /* schema */ undefined,
           )
