@@ -1,9 +1,7 @@
 import Debug from '@prisma/debug'
-import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import type { ExecaError } from 'execa'
 import execa from 'execa'
@@ -11,13 +9,11 @@ import * as E from 'fp-ts/Either'
 import { identity, pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
-import tmpWrite from 'temp-write'
 import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
-import { resolveBinary } from '../resolveBinary'
-import { load } from '../utils/load'
+import { loadNodeAPILibrary, preliminaryBinaryPipeline, preliminaryNodeAPIPipeline } from './queryEngineCommons'
 
 const debug = Debug('prisma:getDMMF')
 
@@ -51,9 +47,14 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   const dmmf: DMMF.Document = await match(cliEngineBinaryType)
     .with(BinaryType.libqueryEngine, () => {
+      // To trigger panic, run:
+      // PRISMA_CLI_QUERY_ENGINE_TYPE=library FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate
       return getDmmfNodeAPI(options)
     })
     .with(BinaryType.queryEngine, () => {
+      // To trigger panic, run:
+      // PRISMA_CLI_QUERY_ENGINE_TYPE=binary FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate
+      //
       // TODO: the binary may fail and might need to be retried again
       return getDmmfBinary(options)
     })
@@ -66,29 +67,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
    */
-  const preliminaryEither = await pipe(
-    TE.Do,
-    TE.bind('queryEnginePath', () => {
-      return TE.tryCatch(
-        () => resolveBinary(BinaryType.libqueryEngine, options.prismaPath),
-        (e) => ({
-          type: 'query-engine-unresolved',
-          reason: 'Unable to resolve path to query-engine binary',
-          error: e as Error, // "Could not find libquery-engine binary. Searched in..."
-        }),
-      )
-    }),
-    TE.bind('_', () => {
-      return TE.tryCatch(
-        () => isNodeAPISupported(),
-        (e) => ({
-          type: 'node-api-not-support',
-          reason: 'The query-engine library is not supported on this platform',
-          error: e as Error,
-        }),
-      )
-    }),
-  )()
+  const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { reason, error } = preliminaryEither.left
 
@@ -99,39 +78,9 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
 
   const pipeline = pipe(
-    pipe(
-      E.tryCatch(
-        () => load<NodeAPILibraryTypes.Library>(queryEnginePath),
-        (e) => ({
-          type: 'connection-error' as const,
-          reason: 'Unable to establish a connection to query-engine-node-api library',
-          error: e as Error,
-        }),
-      ),
-      TE.fromEither,
-    ),
-    TE.map((NodeAPIQueryEngineLibrary) => ({ NodeAPIQueryEngineLibrary })),
+    loadNodeAPILibrary(queryEnginePath),
     TE.chainW(({ NodeAPIQueryEngineLibrary }) => {
-      return pipe(
-        TE.tryCatch(
-          () => {
-            if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
-              // trigger a Rust panic
-              return NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_DMMF')
-            }
-
-            return Promise.resolve(undefined)
-          },
-          (e) => ({
-            type: 'node-api' as const,
-            reason: 'Error while interacting with query-engine-node-api library',
-            error: e as Error,
-          }),
-        ),
-        TE.map(() => ({ NodeAPIQueryEngineLibrary })),
-      )
-    }),
-    TE.chainW(({ NodeAPIQueryEngineLibrary }) => {
+      debug('Loaded Node-API Library')
       return pipe(
         TE.tryCatch(
           () => {
@@ -152,10 +101,19 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
       )
     }),
     TE.chainW(({ NodeAPIQueryEngineLibrary, datamodel }) => {
+      debug('datamodel ready')
       return pipe(
         TE.tryCatch(
           () => {
-            return NodeAPIQueryEngineLibrary.dmmf(datamodel)
+            if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+              debug('Triggering a Rust panic...')
+              return NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_DMMF')
+            }
+
+            // TODO: `result` is a `string`, even though it's typed as `Promise<string>`, so we should
+            // probably change the type definition in `Library.ts` (in `@prisma/engine-core`)
+            const result = NodeAPIQueryEngineLibrary.dmmf(datamodel)
+            return Promise.resolve(result)
           },
           (e) => ({
             type: 'node-api' as const,
@@ -167,6 +125,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
       )
     }),
     TE.chainW(({ result }) => {
+      debug('unserialized dmmf result ready')
       return pipe(
         E.tryCatch(
           () => JSON.parse(result) as DMMF.Document,
@@ -226,37 +185,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
    */
-  const preliminaryEither = await pipe(
-    TE.tryCatch(
-      () => resolveBinary(BinaryType.queryEngine, options.prismaPath),
-      (e) => ({
-        type: 'query-engine-unresolved' as const,
-        reason: 'Unable to resolve path to query-engine binary',
-        error: e as Error,
-      }),
-    ),
-    TE.map((queryEnginePath) => ({ queryEnginePath })),
-    TE.chainW(({ queryEnginePath }) => {
-      if (!options.datamodelPath) {
-        return pipe(
-          TE.tryCatch(
-            () => tmpWrite(options.datamodel!),
-            (e) => ({
-              type: 'datamodel-write' as const,
-              reason: 'Unable to write temp data model path',
-              error: e as Error,
-            }),
-          ),
-          TE.map((tempDatamodelPath) => ({ queryEnginePath, tempDatamodelPath })),
-        )
-      }
-
-      return TE.right({
-        queryEnginePath,
-        tempDatamodelPath: undefined as string | undefined,
-      })
-    }),
-  )()
+  const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { reason, error } = preliminaryEither.left
 
@@ -278,26 +207,21 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         maxBuffer: MAX_BUFFER,
       }
 
-      if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
-        // trigger a Rust panic
-        return TE.tryCatch(
-          () =>
-            execa(
+      const args = ['--enable-raw-queries', 'cli', 'dmmf']
+
+      return TE.tryCatch(
+        () => {
+          if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+            debug('Triggering a Rust panic...')
+            return execa(
               queryEnginePath,
               ['cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF'],
               execaOptions,
-            ),
-          (e) => ({
-            type: 'execa' as const,
-            reason: 'Error while interacting with query-engine binary',
-            error: e,
-          }),
-        )
-      }
+            )
+          }
 
-      const args = ['--enable-raw-queries', 'cli', 'dmmf']
-      return TE.tryCatch(
-        () => execa(queryEnginePath, args, execaOptions),
+          return execa(queryEnginePath, args, execaOptions)
+        },
         (e) => ({
           type: 'execa' as const,
           reason: 'Error while interacting with query-engine binary',
@@ -375,8 +299,8 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
        */
       if (isExecaErrorCausedByRustPanic(e as execa.ExecaError)) {
         const panic = new RustPanic(
-          /* message */ e.shortMessage, // Command failed with exit code 101: ~/query-engine1.x cli debug-panic --message FORCE_PANIC_QUERY_ENGINE_GET_DMMF
-          /* rustStack */ e.stderr, // thread 'main' panicked at 'FORCE_PANIC_QUERY_ENGINE_GET_DMMF', /root/build/query-engine/query-engine/src/cli.rs:95:21
+          /* message */ e.shortMessage,
+          /* rustStack */ e.stderr,
           /* request */ 'query-engine get-dmmf',
           ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
