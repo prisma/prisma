@@ -640,7 +640,7 @@ importers:
       tmp: 0.2.1
       ts-node: 10.4.0
       ts-pattern: ^4.0.1
-      typescript: 4.6.4
+      typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
@@ -686,6 +686,7 @@ importers:
       terminal-link: 2.1.1
       tmp: 0.2.1
       ts-pattern: 4.0.1
+      typescript: 4.5.4
     devDependencies:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.20_@swc+core@1.2.141
@@ -698,8 +699,7 @@ importers:
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.2.0
       mock-stdin: 1.0.0
-      ts-node: 10.4.0_c0a800df78385e5274110219942bfd4e
-      typescript: 4.6.4
+      ts-node: 10.4.0_afb9ee88631d40f2c69e68e3e635407d
 
 packages:
 
@@ -5657,7 +5657,7 @@ packages:
       pretty-format: 27.5.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.4.0_d9cb1f4ee7e04f775fcaa0725854f49f
+      ts-node: 10.4.0_afb9ee88631d40f2c69e68e3e635407d
     transitivePeerDependencies:
       - bufferutil
       - canvas
@@ -8745,37 +8745,6 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-node/10.4.0_c0a800df78385e5274110219942bfd4e:
-    resolution: {integrity: sha512-g0FlPvvCXSIO1JDF6S232P5jPYqBkRL9qly81ZgAOSU7rwI0stphCgd2kLiCrU9DjQCrJMWEqcNSjQL02s6d8A==}
-    hasBin: true
-    peerDependencies:
-      '@swc/core': '>=1.2.50'
-      '@swc/wasm': '>=1.2.50'
-      '@types/node': '*'
-      typescript: '>=2.7'
-    peerDependenciesMeta:
-      '@swc/core':
-        optional: true
-      '@swc/wasm':
-        optional: true
-    dependencies:
-      '@cspotcode/source-map-support': 0.7.0
-      '@swc/core': 1.2.141
-      '@tsconfig/node10': 1.0.8
-      '@tsconfig/node12': 1.0.9
-      '@tsconfig/node14': 1.0.1
-      '@tsconfig/node16': 1.0.2
-      '@types/node': 12.20.50
-      acorn: 8.7.0
-      acorn-walk: 8.2.0
-      arg: 4.1.3
-      create-require: 1.1.1
-      diff: 4.0.2
-      make-error: 1.3.6
-      typescript: 4.6.4
-      yn: 3.1.1
-    dev: true
-
   /ts-node/10.4.0_d9cb1f4ee7e04f775fcaa0725854f49f:
     resolution: {integrity: sha512-g0FlPvvCXSIO1JDF6S232P5jPYqBkRL9qly81ZgAOSU7rwI0stphCgd2kLiCrU9DjQCrJMWEqcNSjQL02s6d8A==}
     hasBin: true
@@ -8940,7 +8909,6 @@ packages:
     resolution: {integrity: sha512-VgYs2A2QIRuGphtzFV7aQJduJ2gyfTljngLzjpfW9FoYZF6xuw1W0vW9ghCKLfcWrCFxK81CSGRAvS1pn4fIUg==}
     engines: {node: '>=4.2.0'}
     hasBin: true
-    dev: true
 
   /typescript/4.6.3:
     resolution: {integrity: sha512-yNIatDa5iaofVozS/uQJEl3JRWLKKGJKh6Yaiv0GLGSuhpFJe7P3SbHZ8/yjAHRQwKRoA6YZqlfjXWmVzoVSMw==}

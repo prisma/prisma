@@ -41,8 +41,7 @@
     "jest": "27.5.1",
     "jest-junit": "13.2.0",
     "mock-stdin": "1.0.0",
-    "ts-node": "10.4.0",
-    "typescript": "4.6.4"
+    "ts-node": "10.4.0"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
@@ -88,7 +87,8 @@
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
-    "ts-pattern": "^4.0.1"
+    "ts-pattern": "^4.0.1",
+    "typescript": "4.5.4"
   },
   "sideEffects": false
 }
