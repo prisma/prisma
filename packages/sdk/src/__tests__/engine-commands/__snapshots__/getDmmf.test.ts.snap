@@ -22883,7 +22883,7 @@ exports[`getDMMF big schema 1`] = `132028293`;
 exports[`getDMMF chinook introspected schema 1`] = `883934`;
 
 exports[`getDMMF model with autoincrement should fail if mysql 1`] = `
-"Schema parsing
+"Get DMMF: Schema parsing
 error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
   -->  schema.prisma:7
    | 
@@ -22896,7 +22896,7 @@ Validation Error Count: 1"
 `;
 
 exports[`getDMMF model with autoincrement should fail if sqlite 1`] = `
-"Schema parsing
+"Get DMMF: Schema parsing
 error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
   -->  schema.prisma:7
    | 
@@ -42903,7 +42903,7 @@ Object {
 `;
 
 exports[`getDMMF with validation errors 1`] = `
-"Schema parsing
+"Get DMMF: Schema parsing
 error: Field \\"id\\" is already defined on model \\"User\\".
   -->  schema.prisma:12
    | 

@@ -27,7 +27,7 @@ describe('getConfig', () => {
   test('sqlite and createMany', async () => {
     expect.assertions(1)
     try {
-      await getConfig({
+      const config = await getConfig({
         datamodel: `
       datasource db {
         provider = "sqlite"
@@ -44,6 +44,7 @@ describe('getConfig', () => {
         name String
       }`,
       })
+      console.log('config @ sqlite and createMany', config)
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "Get config: Database provider \\"sqlite\\" and the preview feature \\"createMany\\" can't be used at the same time.
