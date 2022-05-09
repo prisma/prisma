@@ -40,6 +40,34 @@ test('allows to pass it decimal instance', () => {
   `)
 })
 
+test('allows to pass it decimal-like object', () => {
+  const document = makeDocument({
+    dmmf,
+    rootTypeName: 'query',
+    rootField: 'findManyUser',
+    select: {
+      where: {
+        money: {
+          d: [12, 5000000],
+          e: 1,
+          s: 1,
+        },
+      },
+    },
+  })
+
+  expect(document.toString()).toMatchInlineSnapshot(`
+    query {
+      findManyUser(where: {
+        money: 12.5
+      }) {
+        id
+        money
+      }
+    }
+  `)
+})
+
 test('allows to pass it decimal array', () => {
   const document = makeDocument({
     dmmf,
