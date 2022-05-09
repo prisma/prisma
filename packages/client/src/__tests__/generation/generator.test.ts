@@ -94,6 +94,7 @@ describe('generator', () => {
   })
 
   test('denylist from engine validation', async () => {
+    expect.assertions(1)
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
     try {

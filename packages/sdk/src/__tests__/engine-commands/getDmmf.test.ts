@@ -128,6 +128,7 @@ describe('getDMMF', () => {
   })
 
   test('model with autoincrement should fail if sqlite', async () => {
+    expect.assertions(1)
     const datamodel = `
       datasource db {
         provider = "sqlite"
@@ -142,11 +143,33 @@ describe('getDMMF', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchSnapshot()
+      const snapshot = `Get DMMF: Schema parsing
+error: Error parsing attribute \"@default\": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
+  -->  schema.prisma:7
+   | 
+ 6 |       model User {
+ 7 |         id        Int      @default(autoincrement())
+ 8 |         email     String   @unique
+   | 
+error: Error parsing attribute \"@default\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+  -->  schema.prisma:7
+   | 
+ 6 |       model User {
+ 7 |         id        Int      @default(autoincrement())
+ 8 |         email     String   @unique
+   | 
+
+Validation Error Count: 2`
+      if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
+        expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
+      } else {
+        expect(stripAnsi(e.message)).toEqual(snapshot)
+      }
     }
   })
 
   test('model with autoincrement should fail if mysql', async () => {
+    expect.assertions(1)
     const datamodel = `
       datasource db {
         provider = "mysql"
@@ -161,7 +184,21 @@ describe('getDMMF', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchSnapshot()
+      const snapshot = `Get DMMF: Schema parsing
+error: Error parsing attribute \"@default\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
+  -->  schema.prisma:7
+   | 
+ 6 |       model User {
+ 7 |         id        Int      @default(autoincrement())
+ 8 |         email     String   @unique
+   | 
+
+Validation Error Count: 1`
+      if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
+        expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
+      } else {
+        expect(stripAnsi(e.message)).toEqual(snapshot)
+      }
     }
   })
 
