@@ -146,7 +146,7 @@ export async function generateClient({
   clientVersion,
   engineVersion,
   activeProvider,
-}: GenerateClientOptions): Promise<{}> {
+}: GenerateClientOptions): Promise<void> {
   const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
   runtimeDir = runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
@@ -316,8 +316,6 @@ export async function generateClient({
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
     await copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
-
-  return {}
 }
 
 async function fileSize(name: string): Promise<number | null> {
