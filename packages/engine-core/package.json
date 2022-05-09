@@ -25,8 +25,7 @@
     "@types/node": "16.11.33",
     "esbuild": "0.13.14",
     "jest": "27.5.1",
-    "jest-junit": "13.2.0",
-    "typescript": "4.6.4"
+    "jest-junit": "13.2.0"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -46,6 +45,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
+    "typescript": "4.5.4",
     "undici": "5.0.0"
   },
   "files": [

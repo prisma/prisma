@@ -373,7 +373,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      typescript: 4.6.4
+      typescript: 4.5.4
       undici: 5.0.0
     dependencies:
       '@prisma/debug': link:../debug
@@ -387,6 +387,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
+      typescript: 4.5.4
       undici: 5.0.0
     devDependencies:
       '@swc/core': 1.2.141
@@ -396,7 +397,6 @@ importers:
       esbuild: 0.13.14
       jest: 27.5.1_ts-node@10.4.0
       jest-junit: 13.2.0
-      typescript: 4.6.4
 
   packages/generator-helper:
     specifiers:
