@@ -157,9 +157,7 @@ async function getConfigBinary(options: GetConfigOptions) {
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { reason, error } = preliminaryEither.left
-
-    // TODO: is there an existing way of embedding the error in GetConfigError?
-    throw new GetConfigError(reason)
+    throw new GetConfigError(reason, error)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)

@@ -192,8 +192,6 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { reason, error } = preliminaryEither.left
-
-    // TODO: is there an existing way of embedding the error in GetDmmfError?
     throw new GetDmmfError(reason, error)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
