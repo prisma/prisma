@@ -4,10 +4,14 @@ import { isNodeAPISupported } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
+import fs from 'fs'
 import tmpWrite from 'temp-write'
+import { promisify } from 'util'
 
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
+
+const unlink = promisify(fs.unlink)
 
 export function preliminaryNodeAPIPipeline(options: { prismaPath?: string }) {
   return pipe(
@@ -82,5 +86,22 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
     ),
     TE.fromEither,
     TE.map((NodeAPIQueryEngineLibrary) => ({ NodeAPIQueryEngineLibrary })),
+  )
+}
+
+export function unlinkTempDatamodelPath(tempDatamodelPath: string) {
+  return TE.tryCatch(
+    () => {
+      if (tempDatamodelPath) {
+        return unlink(tempDatamodelPath)
+      }
+
+      return Promise.resolve(undefined)
+    },
+    (e) => ({
+      type: 'unlink-temp-datamodel-path',
+      reason: 'Unable to delete temporary datamodel path',
+      error: e,
+    }),
   )
 }

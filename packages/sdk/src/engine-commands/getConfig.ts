@@ -3,20 +3,21 @@ import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
-import execa, { ExecaError } from 'execa'
+import execa from 'execa'
 import * as E from 'fp-ts/Either'
 import { identity, pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
 import { match } from 'ts-pattern'
-import { promisify } from 'util'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
-import { loadNodeAPILibrary, preliminaryBinaryPipeline, preliminaryNodeAPIPipeline } from './queryEngineCommons'
+import {
+  loadNodeAPILibrary,
+  preliminaryBinaryPipeline,
+  preliminaryNodeAPIPipeline,
+  unlinkTempDatamodelPath,
+} from './queryEngineCommons'
 
 const debug = Debug('prisma:getConfig')
-
-const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1_000_000_000
 
@@ -107,6 +108,9 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
     return data
   }
 
+  /**
+   * Check which error to throw.
+   */
   const error = match(configEither.left)
     .with({ type: 'node-api' }, (e) => {
       debug(`error in getConfigNodeAPI "${e.type}"`, e)
@@ -216,24 +220,14 @@ async function getConfigBinary(options: GetConfigOptions) {
     const { right: data } = configEither
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
-    const unlinkEither = await TE.tryCatch(
-      () => {
-        if (tempDatamodelPath) {
-          return unlink(tempDatamodelPath)
-        }
-
-        return Promise.resolve(undefined)
-      },
-      (e) => ({
-        type: 'unlink-temp-datamodel-path',
-        reason: 'Unable to delete temporary datamodel path',
-        error: e,
-      }),
-    )()
+    const unlinkEither = await unlinkTempDatamodelPath(tempDatamodelPath)()
 
     return data
   }
 
+  /**
+   * Check which error to throw.
+   */
   const error: RustPanic | GetConfigError = match(configEither.left)
     .with({ type: 'execa' }, (e) => {
       debug(`error in getConfigBinary "${e.type}"`, e)

@@ -3,21 +3,22 @@ import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
-import type { ExecaError } from 'execa'
 import execa from 'execa'
 import * as E from 'fp-ts/Either'
 import { identity, pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import { match } from 'ts-pattern'
-import { promisify } from 'util'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
-import { loadNodeAPILibrary, preliminaryBinaryPipeline, preliminaryNodeAPIPipeline } from './queryEngineCommons'
+import {
+  loadNodeAPILibrary,
+  preliminaryBinaryPipeline,
+  preliminaryNodeAPIPipeline,
+  unlinkTempDatamodelPath,
+} from './queryEngineCommons'
 
 const debug = Debug('prisma:getDMMF')
-
-const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1_000_000_000
 
@@ -55,7 +56,9 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
       // To trigger panic, run:
       // PRISMA_CLI_QUERY_ENGINE_TYPE=binary FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate
       //
-      // TODO: the binary may fail and might need to be retried again
+      // Note: this function may be retried in case of:
+      // - ETXTBSY (busy) error
+      // - when reading 'Retrying after "Please wait until"' from the console output
       return getDmmfBinary(options)
     })
     .exhaustive()
@@ -145,6 +148,9 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
     return dmmf
   }
 
+  /**
+   * Check which error to throw.
+   */
   const error = match(dmmfEither.left)
     .with({ type: 'node-api' }, (e) => {
       debug(`error in getDmmfNodeAPI "${e.type}"`, e)
@@ -236,7 +242,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         return TE.left({
           type: 'retry' as const,
           reason: 'Retrying after "Please wait until"',
-          retry: (options.retry ?? 0) - 1,
+          timeout: 5000,
         })
       }
 
@@ -269,27 +275,38 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const { right: dmmf } = dmmfEither
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
-    const unlinkEither = await TE.tryCatch(
-      () => {
-        if (tempDatamodelPath) {
-          return unlink(tempDatamodelPath)
-        }
-
-        return Promise.resolve(undefined)
-      },
-      (e) => ({
-        type: 'unlink-temp-datamodel-path',
-        reason: 'Unable to delete temporary datamodel path',
-        error: e,
-      }),
-    )()
+    const unlinkEither = await unlinkTempDatamodelPath(tempDatamodelPath)()
 
     return dmmf
   }
 
-  const error = match(dmmfEither.left)
+  /**
+   * Check which error to throw (using Either.Right), or whether to retry the whole function (using Either.Left).
+   */
+  const errorEither: E.Either<
+    {
+      type: 'retry'
+      reason: string
+      timeout: number
+    },
+    RustPanic | GetDmmfError
+  > = match(dmmfEither.left)
     .with({ type: 'execa' }, (e) => {
       debug(`error in getDmmfBinary "${e.type}"`, e)
+
+      // If the unlikely ETXTBSY event happens, try it at least once more
+      if (
+        e.error.message.includes('Command failed with exit code 26 (ETXTBSY)') &&
+        options.retry &&
+        options.retry > 0
+      ) {
+        return E.left({
+          type: 'retry' as const,
+          reason: 'Retrying because of error "ETXTBSY"',
+          timeout: 500,
+        })
+      }
+
       /**
        * Capture and propagate possible Rust panics.
        */
@@ -303,7 +320,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           /* schema */ undefined,
         )
         debug(`panic in getDmmfBinary "${e.type}"`, panic)
-        return panic
+        return E.right(panic)
       }
 
       /**
@@ -324,19 +341,32 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         E.getOrElse(identity),
       )
 
-      return actualError
+      return E.right(actualError)
     })
     .with({ type: 'parse-json' }, (e) => {
       debug(`error in getDmmfBinary "${e.type}"`, e)
       const message = `Problem while parsing the query engine response at ${queryEnginePath}. ${e.result.stdout}\n${e.error?.stack}`
-      return new GetDmmfError(chalk.redBright.bold('JSON parsing\n') + message, e.error)
+      const error = new GetDmmfError(chalk.redBright.bold('JSON parsing\n') + message, e.error)
+      return E.right(error)
     })
-    .with({ type: 'retry' }, ({ reason, retry }) => {
-      // TODO: handle retry
+    .with({ type: 'retry' }, ({ reason, timeout }) => {
+      return E.left({
+        type: 'retry' as const,
+        reason,
+        timeout,
+      })
     })
     .exhaustive()
 
-  throw error
+  if (E.isRight(errorEither)) {
+    throw errorEither.right
+  }
+
+  const { timeout: retryTimeout, reason: retryReason } = errorEither.left
+  debug(`Waiting "${retryTimeout}" seconds before retrying...`)
+  await new Promise((resolve) => setTimeout(resolve, retryTimeout))
+  debug(retryReason)
+  return getDmmfBinary({ ...options, retry: (options.retry ?? 0) - 1 })
 }
 
 // TODO: should this function be used by getConfig as well?
