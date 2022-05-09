@@ -18,10 +18,12 @@ import {
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+import { match } from 'ts-pattern'
 
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
-import { ConnectorType, printDatasources } from '../utils/printDatasources'
+import type { ConnectorType } from '../utils/printDatasources'
+import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 
 export class DbPull implements Command {
@@ -67,8 +69,8 @@ Set composite types introspection depth to 2 levels
 
 `)
 
-  private urlToDatasource(url: string): string {
-    const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
+  private urlToDatasource(url: string, defaultProvider?: ConnectorType): string {
+    const provider = defaultProvider || protocolToConnectorType(`${url.split(':')[0]}:`)
     return printDatasources([
       {
         config: {},
@@ -144,22 +146,45 @@ Set composite types introspection depth to 2 levels
       throw new NoSchemaFoundError()
     }
 
-    let schema: string | null = null
+    /**
+     * When `schemaPath` is set:
+     * - read the schema file from disk
+     * - in case `url` is also set, embed the URL to the schema's datasource without overriding the provider.
+     *   This is especially useful to distinguish CockroachDB from Postgres datasources.
+     *
+     * When `url` is set, and `schemaPath` isn't:
+     * - create a minimal schema with a datasource block from the given URL.
+     *   CockroachDB URLs are however mapped to the `postgresql` provider, as those URLs are indistinguishable from Postgres URLs.
+     *
+     * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
+     */
+    const schema = await match({ url, schemaPath })
+      .when(
+        (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
+        async (input) => {
+          const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
 
-    // Makes sure we have a schema to pass to the engine
-    if (url) {
-      if (schemaPath) {
-        schema = this.urlToDatasource(url)
-        const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
-        schema += removeDatasource(rawSchema)
-      } else {
-        schema = this.urlToDatasource(url)
-      }
-    } else if (schemaPath) {
-      schema = fs.readFileSync(schemaPath, 'utf-8')
-    } else {
-      throw new Error('Could not find a `schema.prisma` file')
-    }
+          if (input.url) {
+            const config = await getConfig({
+              datamodel: rawSchema,
+              ignoreEnvVarErrors: true,
+            })
+            const provider = config.datasources[0]?.provider
+            const schema = `${this.urlToDatasource(input.url, provider)}${removeDatasource(rawSchema)}`
+            return schema
+          }
+
+          return rawSchema
+        },
+      )
+      .when(
+        (input): input is { url: string; schemaPath: null } => input.url !== undefined,
+        (input) => {
+          const schema = this.urlToDatasource(input.url)
+          return Promise.resolve(schema)
+        },
+      )
+      .run()
 
     // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
@@ -231,6 +256,9 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
       } else if (e.code === 'P1012') {
         // Schema Parsing Error
         console.info() // empty line
+
+        // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
+        // '--url' argument is different than the one written in the schema.prisma file.
         throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually, use ${chalk.green(
