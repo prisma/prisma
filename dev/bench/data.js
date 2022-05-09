@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1652107780205,
+  "lastUpdate": 1652109608319,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -99966,6 +99966,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±2.56%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "uralbayhan0@gmail.com",
+            "name": "Ural Bayhan",
+            "username": "flatplate"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "197f9191d4cce2c2729d07008fc1231e5acf6bbe",
+          "message": "fix(client): Fix package path in `generate` output (#13031)\n\n* fix(client): Fix package path in generate output\r\n\r\nPreviously after running generate with a custom output\r\nfolder on Windows, code snippet that was shown had\r\nbackslashes in the import statement rather than forward\r\nslashes.\r\n\r\nThis commit fixes that by replacing the backslashes in the\r\npath string with forward slashes if the platform is windows.\r\n\r\n* test(cli): check Prisma Client import path on all OS\r\n\r\nRelated https://github.com/prisma/prisma/pull/13031\r\n\r\n* more asserts\r\n\r\n* tests(cli): simplify assertions (remove unnecessary conditionals)\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-05-09T17:14:56+02:00",
+          "tree_id": "da8100b60702a71ff53ec4d46f22fcc869f2acfa",
+          "url": "https://github.com/prisma/prisma/commit/197f9191d4cce2c2729d07008fc1231e5acf6bbe"
+        },
+        "date": 1652109602136,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.52%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±3.19%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
