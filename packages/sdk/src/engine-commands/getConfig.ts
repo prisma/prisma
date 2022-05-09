@@ -161,13 +161,14 @@ async function getConfigBinary(options: GetConfigOptions) {
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
+  debug(`PRISMA_DML_PATH: ${tempDatamodelPath}`)
 
   const pipeline = pipe(
     (() => {
       const execaOptions = {
         cwd: options.cwd,
         env: {
-          PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
+          PRISMA_DML_PATH: tempDatamodelPath,
           RUST_BACKTRACE: '1',
         },
         maxBuffer: MAX_BUFFER,
@@ -218,7 +219,7 @@ async function getConfigBinary(options: GetConfigOptions) {
     const { right: data } = configEither
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
-    const unlinkEither = await unlinkTempDatamodelPath(tempDatamodelPath)()
+    const unlinkEither = await unlinkTempDatamodelPath(options, tempDatamodelPath)()
 
     return data
   }

@@ -68,7 +68,7 @@ export function preliminaryBinaryPipeline(options: {
 
       return TE.right({
         queryEnginePath,
-        tempDatamodelPath: undefined as string | undefined,
+        tempDatamodelPath: options.datamodelPath,
       })
     }),
   )
@@ -89,10 +89,10 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
   )
 }
 
-export function unlinkTempDatamodelPath(tempDatamodelPath: string | undefined) {
+export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tempDatamodelPath: string | undefined) {
   return TE.tryCatch(
     () => {
-      if (tempDatamodelPath) {
+      if (!options.datamodelPath && tempDatamodelPath) {
         return unlink(tempDatamodelPath)
       }
 

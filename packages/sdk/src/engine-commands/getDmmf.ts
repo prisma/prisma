@@ -185,6 +185,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
 }
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
+  debug('Entering getDmmfBinary with options', options)
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -196,6 +197,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
+  debug(`PRISMA_DML_PATH: ${tempDatamodelPath}`)
 
   const pipeline = pipe(
     (() => {
@@ -273,7 +275,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     const { right: dmmf } = dmmfEither
 
     // TODO: we may want to show a warning in case we're not able to delete a temporary path
-    const unlinkEither = await unlinkTempDatamodelPath(tempDatamodelPath)()
+    const unlinkEither = await unlinkTempDatamodelPath(options, tempDatamodelPath)()
 
     return dmmf
   }
