@@ -33,7 +33,7 @@ importers:
       glob: 8.0.1
       globby: 11.0.4
       graphviz-mit: 0.0.9
-      husky: 7.0.4
+      husky: 8.0.0
       is-ci: 3.0.1
       jest-junit: 13.2.0
       lint-staged: 12.3.4
@@ -87,7 +87,7 @@ importers:
       glob: 8.0.1
       globby: 11.0.4
       graphviz-mit: 0.0.9
-      husky: 7.0.4
+      husky: 8.0.0
       is-ci: 3.0.1
       jest-junit: 13.2.0
       lint-staged: 12.3.4
@@ -567,7 +567,7 @@ importers:
       jest: 28.1.0
       jest-junit: 13.2.0
       react: 18.1.0
-      ts-jest: 27.1.4
+      ts-jest: 28.0.2
       typescript: 4.6.4
     devDependencies:
       '@prisma/client': link:../client
@@ -577,7 +577,7 @@ importers:
       jest: 28.1.0_3bf04036703475bc05cf227372d2c869
       jest-junit: 13.2.0
       react: 18.1.0
-      ts-jest: 27.1.4_572f5494b613c4a635e3e9455bd5a3d7
+      ts-jest: 28.0.2_572f5494b613c4a635e3e9455bd5a3d7
       typescript: 4.6.4
 
   packages/sdk:
@@ -5123,9 +5123,9 @@ packages:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
     engines: {node: '>=10.17.0'}
 
-  /husky/7.0.4:
-    resolution: {integrity: sha512-vbaCKN2QLtP/vD4yvs6iz6hBEo6wkSzs8HpRah1Z6aGmF2KW5PdYuAd7uX5a+OyBZHBhd+TFLqgjUgytQr4RvQ==}
-    engines: {node: '>=12'}
+  /husky/8.0.0:
+    resolution: {integrity: sha512-4qbE/5dzNDNxFEkX9MNRPKl5+omTXQzdILCUWiqG/lWIAioiM5vln265/l6I2Zx8gpW8l1ukZwGQeCFbBZ6+6w==}
+    engines: {node: '>=14'}
     hasBin: true
     dev: true
 
@@ -8690,17 +8690,17 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
-  /ts-jest/27.1.4_572f5494b613c4a635e3e9455bd5a3d7:
-    resolution: {integrity: sha512-qjkZlVPWVctAezwsOD1OPzbZ+k7zA5z3oxII4dGdZo5ggX/PL7kvwTM0pXTr10fAtbiVpJaL3bWd502zAhpgSQ==}
-    engines: {node: ^10.13.0 || ^12.13.0 || ^14.15.0 || >=15.0.0}
+  /ts-jest/28.0.2_572f5494b613c4a635e3e9455bd5a3d7:
+    resolution: {integrity: sha512-IOZMb3D0gx6IHO9ywPgiQxJ3Zl4ECylEFwoVpENB55aTn5sdO0Ptyx/7noNBxAaUff708RqQL4XBNxxOVjY0vQ==}
+    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
     hasBin: true
     peerDependencies:
       '@babel/core': '>=7.0.0-beta.0 <8'
       '@types/jest': ^27.0.0
-      babel-jest: '>=27.0.0 <28'
+      babel-jest: ^28.0.0
       esbuild: '*'
-      jest: ^27.0.0
-      typescript: '>=3.8 <5.0'
+      jest: ^28.0.0
+      typescript: '>=4.3'
     peerDependenciesMeta:
       '@babel/core':
         optional: true
@@ -8716,7 +8716,7 @@ packages:
       esbuild: 0.14.38
       fast-json-stable-stringify: 2.1.0
       jest: 28.1.0_3bf04036703475bc05cf227372d2c869
-      jest-util: 27.5.1
+      jest-util: 28.1.0
       json5: 2.2.1
       lodash.memoize: 4.1.2
       make-error: 1.3.6
