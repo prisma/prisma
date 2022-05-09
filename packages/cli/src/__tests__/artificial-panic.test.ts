@@ -91,7 +91,6 @@ datasource db {
   it('query-engine get-config library', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(4)
-    process.env.PRISMA_CLI_QUERY_ENGINE_TYPE = 'library'
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
 
     const command = new Validate()
@@ -118,7 +117,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-pan
 
   it('introspection-engine binary', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(1)
+    expect.assertions(4)
     process.env.FORCE_PANIC_INTROSPECTION_ENGINE = '1'
 
     const command = new DbPull()
@@ -126,6 +125,24 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-pan
       await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`[/some/rust/path:0:0] This is the debugPanic artificial panic`)
+      expect(isRustPanic(e)).toBe(true)
+      expect(e.rustStack).toBeTruthy()
+      expect(e).toMatchObject({
+        area: 'INTROSPECTION_CLI',
+        schemaPath: undefined,
+        schema: `// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = \"prisma-client-js\"
+}
+
+datasource db {
+  provider = \"postgresql\"
+  url      = env(\"DATABASE_URL\")
+}
+`,
+      })
     }
   })
 
