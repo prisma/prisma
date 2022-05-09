@@ -2,19 +2,19 @@
 
 set -ex
 
+# Install pnpm
 npm i --silent -g pnpm@6 --unsafe-perm # TODO: is this unsafe-perm needed?
 
+# Install packages
 pnpm i
 
+# Output versions
+pnpm -v
 node -v
 npm -v
 
+# See package.json setup script
 pnpm run setup
-
-# TODO: why is this necessary?
-# cd packages/integration-tests
-# pnpm i sqlite3@5.0.2 --unsafe-perm --reporter=silent
-# cd ../..
 
 # New client test suite
 pnpm run test:functional --filter "@prisma/client"
@@ -22,9 +22,10 @@ pnpm run test:functional --filter "@prisma/client"
 # Run test for all packages
 pnpm run test
 
-# disable printing with +x and return as before just after
+# Disable printing with +x and return as before just after
 set +x
 echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
 set -ex
 
+# Publish all packages
 pnpm run publish-all
