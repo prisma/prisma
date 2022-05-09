@@ -89,7 +89,7 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
   )
 }
 
-export function unlinkTempDatamodelPath(tempDatamodelPath: string) {
+export function unlinkTempDatamodelPath(tempDatamodelPath: string | undefined) {
   return TE.tryCatch(
     () => {
       if (tempDatamodelPath) {
