@@ -520,6 +520,7 @@ importers:
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
       tempy: 1.0.1
+      ts-pattern: ^4.0.1
       typescript: 4.5.4
     dependencies:
       '@prisma/debug': link:../debug
@@ -538,6 +539,7 @@ importers:
       prompts: 2.4.2
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
+      ts-pattern: 4.0.1
     devDependencies:
       '@prisma/engines-version': 3.14.0-32.13d12f1fc9655c2d6bbd8f772677f0dc1e662963
       '@prisma/generator-helper': link:../generator-helper
