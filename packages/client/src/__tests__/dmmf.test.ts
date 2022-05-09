@@ -348,7 +348,7 @@ describe('dmmf', () => {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        Schema parsing
+        Get DMMF: Schema parsing
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14
            | 
