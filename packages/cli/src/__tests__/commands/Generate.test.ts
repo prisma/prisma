@@ -53,16 +53,11 @@ describe('--schema from project directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
-    // Specific expect to check the raw value
-    // Because we modify snapshots with `jestSnapshotSerializer.js`, so `toMatchInlineSnapshot()`
-    // can be different than what is expected here
-    if (process.platform === 'win32') {
-      expect(output).toContain("import { PrismaClient } from './@prisma/client'")
-    } else if (process.platform === 'darwin') {
-      expect(output).toContain("import { PrismaClient } from './@prisma/client'")
-    } else {
-      expect(output).toContain("import { PrismaClient } from './@prisma/client'")
-    }
+    // Check that the client path in the import statement actually contains
+    // forward slashes regardless of the platform (a snapshot test wouldn't
+    // detect the difference because backward slashes are replaced with forward
+    // slashes by the snapshot serializer).
+    expect(output).toContain("import { PrismaClient } from './@prisma/client'")
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -111,16 +106,11 @@ describe('--schema from parent directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
-    // Specific expect to check the raw value
-    // Because we modify snapshots with `jestSnapshotSerializer.js`, so `toMatchInlineSnapshot()`
-    // can be different than what is expected here
-    if (process.platform === 'win32') {
-      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
-    } else if (process.platform === 'darwin') {
-      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
-    } else {
-      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
-    }
+    // Check that the client path in the import statement actually contains
+    // forward slashes regardless of the platform (a snapshot test wouldn't
+    // detect the difference because backward slashes are replaced with forward
+    // slashes by the snapshot serializer).
+    expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -147,16 +137,11 @@ describe('--schema from parent directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
-    // Specific expect to check the raw value
-    // Because we modify snapshots with `jestSnapshotSerializer.js`, so `toMatchInlineSnapshot()`
-    // can be different than what is expected here
-    if (process.platform === 'win32') {
-      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
-    } else if (process.platform === 'darwin') {
-      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
-    } else {
-      expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
-    }
+    // Check that the client path in the import statement actually contains
+    // forward slashes regardless of the platform (a snapshot test wouldn't
+    // detect the difference because backward slashes are replaced with forward
+    // slashes by the snapshot serializer).
+    expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
