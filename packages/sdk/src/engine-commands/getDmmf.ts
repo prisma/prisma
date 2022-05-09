@@ -48,14 +48,9 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   const dmmf: DMMF.Document = await match(cliEngineBinaryType)
     .with(BinaryType.libqueryEngine, () => {
-      // To trigger panic, run:
-      // PRISMA_CLI_QUERY_ENGINE_TYPE=library FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate
       return getDmmfNodeAPI(options)
     })
     .with(BinaryType.queryEngine, () => {
-      // To trigger panic, run:
-      // PRISMA_CLI_QUERY_ENGINE_TYPE=binary FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate
-      //
       // Note: this function may be retried in case of:
       // - ETXTBSY (busy) error
       // - when reading 'Retrying after "Please wait until"' from the console output
@@ -72,12 +67,19 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
    */
   const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
-    const { reason, error } = preliminaryEither.left
-    throw new GetDmmfError(reason, error)
+    const { left: e } = preliminaryEither
+    debug(`error in getDmmfNodeAPI "${e.type}"`, e)
+    throw new GetDmmfError(e.reason, e.error)
   }
   const { queryEnginePath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
 
+  /**
+   * - load the query engine library
+   * - create a temporary datamodel file if one is not provided
+   * - run the "dmmf" command
+   * - JSON-deserialize the "dmmf" output
+   */
   const pipeline = pipe(
     loadNodeAPILibrary(queryEnginePath),
     TE.chainW(({ NodeAPIQueryEngineLibrary }) => {
@@ -102,7 +104,6 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
       )
     }),
     TE.chainW(({ NodeAPIQueryEngineLibrary, datamodel }) => {
-      debug('datamodel ready')
       return pipe(
         TE.tryCatch(
           () => {
@@ -154,27 +155,40 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
   const error = match(dmmfEither.left)
     .with({ type: 'node-api' }, (e) => {
       debug(`error in getDmmfNodeAPI "${e.type}"`, e)
-      try {
-        const error = JSON.parse(e.error.message)
-        const message = addMissingOpenSSLInfo(error.message)
 
-        if (error.is_panic) {
-          const panic = new RustPanic(
-            /* message */ message,
-            /* rustStack */ error.backtrace || e.error.stack || 'NO_BACKTRACE', // TODO: understand how to retrieve stacktrace for node-api
-            /* request */ 'query-engine-node-api get-dmmf',
-            ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
-            /* schemaPath */ options.prismaPath,
-            /* schema */ undefined,
-          )
-          debug(`panic in getDmmfNodeAPI "${e.type}"`, panic)
-          return panic
-        }
+      /*
+       * Extract the actual error by attempting to JSON-parse the error message.
+       */
+      const errorOutput = e.error.message
+      const actualError = pipe(
+        E.tryCatch(
+          () => JSON.parse(errorOutput),
+          () => {
+            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            return new GetDmmfError(errorOutput, e.error)
+          },
+        ),
+        E.map((errorOutputAsJSON: Record<string, string>) => {
+          if (errorOutputAsJSON.is_panic) {
+            const panic = new RustPanic(
+              /* message */ errorOutputAsJSON.message,
+              /* rustStack */ errorOutputAsJSON.backtrace || e.error.stack || 'NO_BACKTRACE',
+              /* request */ 'query-engine-node-api get-dmmf', // TODO: understand which type it expects
+              ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
+              /* schemaPath */ options.prismaPath,
+              /* schema */ undefined,
+            )
+            debug(`panic in getDmmfNodeAPI "${e.type}"`, panic)
+            return panic
+          }
 
-        return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message)
-      } catch (jsonError) {
-        return new GetDmmfError(e.reason, e.error)
-      }
+          const defaultMessage = addMissingOpenSSLInfo(errorOutputAsJSON.message)
+          return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + defaultMessage, e.error)
+        }),
+        E.getOrElseW(identity),
+      )
+
+      return actualError
     })
     .otherwise((e) => {
       debug(`error in getDmmfNodeAPI "${e.type}"`, e)
@@ -185,20 +199,24 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
 }
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
-  debug('Entering getDmmfBinary with options', options)
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
    */
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
-    const { reason, error } = preliminaryEither.left
-    throw new GetDmmfError(reason, error)
+    const { left: e } = preliminaryEither
+    debug(`error in getDmmfBinary "${e.type}"`, e)
+    throw new GetDmmfError(e.reason, e.error)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
   debug(`PRISMA_DML_PATH: ${tempDatamodelPath}`)
 
+  /**
+   * - run the `query-engine cli dmmf` command
+   * - JSON-deserialize the command output, starting from the first appearance of "{"
+   */
   const pipeline = pipe(
     (() => {
       const execaOptions = {
@@ -270,13 +288,11 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   )
 
   const dmmfEither = await pipeline()
+  await unlinkTempDatamodelPath(options, tempDatamodelPath)()
+
   if (E.isRight(dmmfEither)) {
     debug('dmmf retrieved without errors in getDmmfBinary')
     const { right: dmmf } = dmmfEither
-
-    // TODO: we may want to show a warning in case we're not able to delete a temporary path
-    const unlinkEither = await unlinkTempDatamodelPath(options, tempDatamodelPath)()
-
     return dmmf
   }
 
@@ -314,7 +330,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         const panic = new RustPanic(
           /* message */ e.error.shortMessage,
           /* rustStack */ e.error.stderr,
-          /* request */ 'query-engine get-dmmf',
+          /* request */ 'query-engine get-dmmf', // TODO: understand which type it expects
           ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
           /* schema */ undefined,
@@ -330,12 +346,14 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
       const actualError = pipe(
         E.tryCatch(
           () => JSON.parse(errorOutput),
-          () => new GetDmmfError(errorOutput),
+          () => {
+            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            return new GetDmmfError(errorOutput, e.error)
+          },
         ),
-        E.map((jsonError) => {
-          let message = `${chalk.redBright(jsonError.message)}\n`
-          message = addMissingOpenSSLInfo(message)
-
+        E.map((errorOutputAsJSON: Record<string, string>) => {
+          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
+          const message = addMissingOpenSSLInfo(defaultMessage)
           return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message, e.error)
         }),
         E.getOrElse(identity),
@@ -358,10 +376,14 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     })
     .exhaustive()
 
-  if (E.isRight(errorEither)) {
+  const shouldRetry = E.isLeft(errorEither)
+  if (!shouldRetry) {
     throw errorEither.right
   }
 
+  /**
+   * Handle retries.
+   */
   const { timeout: retryTimeout, reason: retryReason } = errorEither.left
   debug(`Waiting "${retryTimeout}" seconds before retrying...`)
   await new Promise((resolve) => setTimeout(resolve, retryTimeout))
@@ -370,6 +392,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 // TODO: should this function be used by getConfig as well?
+// TODO: should we check for openssl 3?
 function addMissingOpenSSLInfo(message: string) {
   if (
     message.includes(

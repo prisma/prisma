@@ -18,7 +18,7 @@ export function preliminaryNodeAPIPipeline(options: { prismaPath?: string }) {
     TE.tryCatch(
       () => resolveBinary(BinaryType.libqueryEngine, options.prismaPath),
       (e) => ({
-        type: 'query-engine-unresolved',
+        type: 'query-engine-unresolved' as const,
         reason: 'Unable to resolve path to query-engine binary',
         error: e as Error, // "Could not find libquery-engine binary. Searched in..."
       }),
@@ -26,7 +26,7 @@ export function preliminaryNodeAPIPipeline(options: { prismaPath?: string }) {
     TE.chainW((queryEnginePath) => {
       return pipe(
         TE.tryCatch(isNodeAPISupported, (e) => ({
-          type: 'node-api-not-supported',
+          type: 'node-api-not-supported' as const,
           reason: 'The query-engine library is not supported on this platform',
           error: e as Error,
         })),
