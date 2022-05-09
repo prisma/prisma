@@ -285,10 +285,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   private parseInitError(str: string): SyncRustError | string {
     try {
       const error = JSON.parse(str)
-      return {
-        ...error,
-        __typename: 'SyncRustError',
-      }
+      return error
     } catch (e) {
       //
     }
@@ -298,10 +295,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   private parseRequestError(str: string): RustRequestError | string {
     try {
       const error = JSON.parse(str)
-      return {
-        ...error,
-        __typename: 'RustRequestError',
-      }
+      return error
     } catch (e) {
       //
     }
