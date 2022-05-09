@@ -11,6 +11,7 @@ import { match, P } from 'ts-pattern'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
 import {
+  createDebugErrorType,
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
@@ -55,6 +56,8 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
 }
 
 async function getConfigNodeAPI(options: GetConfigOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getConfigNodeAPI')
+
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -62,7 +65,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
   const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
-    debug(`error in getConfigNodeAPI "${e.type}"`, e)
+    debugErrorType(e)
     throw new GetConfigError(e.reason, e.error)
   }
   const { queryEnginePath } = preliminaryEither.right
@@ -114,7 +117,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
    */
   const error = match(configEither.left)
     .with({ type: 'node-api' }, (e) => {
-      debug(`error in getConfigNodeAPI "${e.type}"`, e)
+      debugErrorType(e)
 
       /*
        * Extract the actual error by attempting to JSON-parse the error message.
@@ -157,7 +160,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
       return actualError
     })
     .otherwise((e) => {
-      debug(`error in getConfigNodeAPI "${e.type}"`, e)
+      debugErrorType(e)
       return new GetConfigError(e.reason, e.error)
     })
 
@@ -165,6 +168,8 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
 }
 
 async function getConfigBinary(options: GetConfigOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getConfigBinary')
+
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -172,7 +177,7 @@ async function getConfigBinary(options: GetConfigOptions) {
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
-    debug(`error in getConfigBinary "${e.type}"`, e)
+    debugErrorType(e)
     throw new GetConfigError(e.reason, e.error)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
@@ -247,7 +252,7 @@ async function getConfigBinary(options: GetConfigOptions) {
    */
   const error: RustPanic | GetConfigError = match(configEither.left)
     .with({ type: 'execa' }, (e) => {
-      debug(`error in getConfigBinary "${e.type}"`, e)
+      debugErrorType(e)
       /**
        * Capture and propagate possible Rust panics.
        */
@@ -296,7 +301,7 @@ async function getConfigBinary(options: GetConfigOptions) {
       return actualError
     })
     .otherwise((e) => {
-      debug(`error in getConfigBinary "${e.type}"`, e)
+      debugErrorType(e)
       return new GetConfigError(e.reason, e.error)
     })
 

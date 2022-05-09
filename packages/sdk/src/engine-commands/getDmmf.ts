@@ -12,6 +12,7 @@ import { match } from 'ts-pattern'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
 import {
+  createDebugErrorType,
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
@@ -61,6 +62,8 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 async function getDmmfNodeAPI(options: GetDMMFOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getDmmfNodeAPI')
+
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -68,7 +71,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
   const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
-    debug(`error in getDmmfNodeAPI "${e.type}"`, e)
+    debugErrorType(e)
     throw new GetDmmfError(e.reason, e.error)
   }
   const { queryEnginePath } = preliminaryEither.right
@@ -121,6 +124,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
             type: 'node-api' as const,
             reason: 'Error while interacting with query-engine-node-api library',
             error: e as Error,
+            datamodel,
           }),
         ),
         TE.map((result) => ({ result })),
@@ -154,7 +158,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
    */
   const error = match(dmmfEither.left)
     .with({ type: 'node-api' }, (e) => {
-      debug(`error in getDmmfNodeAPI "${e.type}"`, e)
+      debugErrorType(e)
 
       /*
        * Extract the actual error by attempting to JSON-parse the error message.
@@ -176,7 +180,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
               /* request */ 'query-engine-node-api get-dmmf', // TODO: understand which type it expects
               ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
               /* schemaPath */ options.prismaPath,
-              /* schema */ undefined,
+              /* schema */ e.datamodel,
             )
             debug(`panic in getDmmfNodeAPI "${e.type}"`, panic)
             return panic
@@ -191,7 +195,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
       return actualError
     })
     .otherwise((e) => {
-      debug(`error in getDmmfNodeAPI "${e.type}"`, e)
+      debugErrorType(e)
       return new GetDmmfError(e.reason, e.error)
     })
 
@@ -199,6 +203,8 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
 }
 
 async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
+  const debugErrorType = createDebugErrorType(debug, 'getDmmfBinary')
+
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
    * error handling.
@@ -206,7 +212,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
-    debug(`error in getDmmfBinary "${e.type}"`, e)
+    debugErrorType(e)
     throw new GetDmmfError(e.reason, e.error)
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
@@ -308,7 +314,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     RustPanic | GetDmmfError
   > = match(dmmfEither.left)
     .with({ type: 'execa' }, (e) => {
-      debug(`error in getDmmfBinary "${e.type}"`, e)
+      debugErrorType(e)
 
       // If the unlikely ETXTBSY event happens, try it at least once more
       if (
@@ -362,17 +368,13 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
       return E.right(actualError)
     })
     .with({ type: 'parse-json' }, (e) => {
-      debug(`error in getDmmfBinary "${e.type}"`, e)
+      debugErrorType(e)
       const message = `Problem while parsing the query engine response at ${queryEnginePath}. ${e.result.stdout}\n${e.error?.stack}`
       const error = new GetDmmfError(chalk.redBright.bold('JSON parsing\n') + message, e.error)
       return E.right(error)
     })
-    .with({ type: 'retry' }, ({ reason, timeout }) => {
-      return E.left({
-        type: 'retry' as const,
-        reason,
-        timeout,
-      })
+    .with({ type: 'retry' }, (e) => {
+      return E.left(e)
     })
     .exhaustive()
 
