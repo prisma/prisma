@@ -32,7 +32,7 @@
     "@types/sqlite3": "3.1.8",
     "esbuild": "0.13.14",
     "fs-jetpack": "4.3.0",
-    "jest": "27.5.1",
+    "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
@@ -59,7 +59,8 @@
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
-    "strip-indent": "3.0.0"
+    "strip-indent": "3.0.0",
+    "ts-pattern": "^4.0.1"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

@@ -24,8 +24,9 @@
     "@types/jest": "27.5.0",
     "@types/node": "16.11.33",
     "esbuild": "0.13.14",
-    "jest": "27.5.1",
-    "jest-junit": "13.2.0"
+    "jest": "28.1.0",
+    "jest-junit": "13.2.0",
+    "typescript": "4.5.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

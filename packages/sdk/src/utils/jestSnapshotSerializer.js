@@ -71,7 +71,7 @@ function normalizeMigrateTimestamps(str) {
 }
 
 function normalizeDbUrl(str) {
-  return str.replace(/(localhost|postgres|mysql|mssql|mongodb_migrate):(\d+)/g, 'localhost:$2')
+  return str.replace(/(localhost|postgres|mysql|mssql|mongodb_migrate|cockroachdb):(\d+)/g, 'localhost:$2')
 }
 
 function normalizeRustError(str) {
