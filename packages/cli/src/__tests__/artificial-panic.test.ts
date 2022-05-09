@@ -1,5 +1,5 @@
 import { DbPull } from '@prisma/migrate'
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { isRustPanic, jestConsoleContext, jestContext } from '@prisma/sdk'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'
@@ -21,7 +21,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
 
   it('introspection-engine library', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(3)
+    expect.assertions(4)
     process.env.FORCE_PANIC_INTROSPECTION_ENGINE = '1'
 
     const command = new DbPull()
@@ -29,6 +29,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
       await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`[/some/rust/path:0:0] This is the debugPanic artificial panic`)
+      expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e).toMatchObject({
         area: 'INTROSPECTION_CLI',
@@ -51,7 +52,7 @@ datasource db {
 
   it('formatter library', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(4)
+    expect.assertions(5)
     process.env.FORCE_PANIC_PRISMA_FMT = '1'
 
     const command = new Format()
@@ -59,6 +60,7 @@ datasource db {
       await command.parse([])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`Command failed with exit code 101: prisma-engines-path debug-panic`)
+      expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath).toContain('prisma/schema.prisma')
       expect(e).toMatchObject({
@@ -67,10 +69,6 @@ datasource db {
     }
   })
 
-  // TODO: currently it fails with:
-  //
-  // Schema parsing
-  // error: Found argument 'debug-panic' which wasn't expected, or isn't valid in this context
   it('query-engine get-dmmf library', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(4)
@@ -80,11 +78,11 @@ datasource db {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`Schema parsing
-      FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
+      expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
+      expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toContain('prisma/schema.prisma')
       expect(e).toMatchObject({
+        schemaPath: undefined,
         schema: undefined,
       })
     }
@@ -100,12 +98,11 @@ datasource db {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`Get config: undefined
-
-[object Object]`)
+      expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_CONFIG`)
+      expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toContain('prisma/schema.prisma')
       expect(e).toMatchObject({
+        schemaPath: undefined,
         schema: undefined,
       })
     }
@@ -153,16 +150,19 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-pan
 
   it('query-engine get-dmmf binary', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(4)
+    expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
 
     const command = new Validate()
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(``)
+      expect(e).toMatchInlineSnapshot(
+        `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_DMMF`,
+      )
+      expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toContain('prisma/schema.prisma')
+      expect(e.schemaPath).toBeTruthy()
       expect(e).toMatchObject({
         schema: undefined,
       })
@@ -171,16 +171,19 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-pan
 
   it('query-engine get-config binary', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(4)
+    expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
 
     const command = new Validate()
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(``)
+      expect(e).toMatchInlineSnapshot(
+        `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_CONFIG`,
+      )
+      expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toContain('prisma/schema.prisma')
+      expect(e.schemaPath).toBeTruthy()
       expect(e).toMatchObject({
         schema: undefined,
       })
