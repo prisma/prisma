@@ -341,10 +341,32 @@ Validation Error Count: 1`
     try {
       await getDMMF({ datamodel })
     } catch (e) {
+      const snapshot = `Get DMMF: Schema parsing
+error: Field \"id\" is already defined on model \"User\".
+  -->  schema.prisma:12
+   | 
+11 |       id           String     @id @default(cuid())
+12 |       id           String     @id @default(cuid())
+   | 
+error: Field \"permissions\" is already defined on model \"User\".
+  -->  schema.prisma:17
+   | 
+16 |       permissions  Permission @default()
+17 |       permissions  Permission @default(\"\")
+   | 
+error: Field \"posts\" is already defined on model \"User\".
+  -->  schema.prisma:19
+   | 
+18 |       posts        Post[]
+19 |       posts        Post[]
+   | 
+
+Validation Error Count: 3`
+
       if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
-        expect(stripAnsi(e.message)).toMatchSnapshot('binary')
+        expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
       } else {
-        expect(stripAnsi(e.message)).toMatchSnapshot('library')
+        expect(stripAnsi(e.message)).toEqual(snapshot)
       }
     }
   })
