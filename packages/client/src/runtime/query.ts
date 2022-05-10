@@ -13,6 +13,7 @@ import type {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
+import { makeScalarInputType } from './queryArgsTypecheck'
 import {
   getGraphQLType,
   getInputTypeName,
@@ -1092,123 +1093,15 @@ function getInvalidTypeArg(
   return arrg
 }
 
-// TODO: Refactor
-function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): boolean {
-  const { type, isList } = inputType
-  const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
-  const graphQLType = getGraphQLType(value, type)
-
-  if (graphQLType === expectedType) {
-    return true
-  }
-
-  if (isList && graphQLType === 'List<>') {
-    return true
-  }
-
-  if (expectedType === 'Json') {
-    return true
-  }
-
-  if (graphQLType === 'Int' && expectedType === 'BigInt') {
-    return true
-  }
-
-  if (graphQLType === 'List<Int>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if (graphQLType === 'List<BigInt | Int>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if (graphQLType === 'List<Int | BigInt>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
-    return true
-  }
-
-  if (isValidDecimalListInput(graphQLType, value) && expectedType === 'List<Decimal>') {
-    return true
-  }
-
-  // DateTime is a subset of string
-  if (graphQLType === 'DateTime' && expectedType === 'String') {
-    return true
-  }
-  if (graphQLType === 'List<DateTime>' && expectedType === 'List<String>') {
-    return true
-  }
-
-  // UUID is a subset of string
-  if (graphQLType === 'UUID' && expectedType === 'String') {
-    return true
-  }
-  if (graphQLType === 'List<UUID>' && expectedType === 'List<String>') {
-    return true
-  }
-
-  if (graphQLType === 'String' && expectedType === 'ID') {
-    return true
-  }
-  if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
-    return true
-  }
-
-  if (graphQLType === 'List<String>' && expectedType === 'List<Json>') {
-    return true
-  }
-
-  if (
-    expectedType === 'List<String>' &&
-    (graphQLType === 'List<String | UUID>' || graphQLType === 'List<UUID | String>')
-  ) {
-    return true
-  }
-
-  // Int is a subset of Float
-  if (graphQLType === 'Int' && expectedType === 'Float') {
-    return true
-  }
-  if (graphQLType === 'List<Int>' && expectedType === 'List<Float>') {
-    return true
-  }
-  // Int is a subset of Long
-  if (graphQLType === 'Int' && expectedType === 'Long') {
-    return true
-  }
-  if (graphQLType === 'List<Int>' && expectedType === 'List<Long>') {
-    return true
-  }
-
-  // to match all strings which are valid decimals
-  if (graphQLType === 'String' && expectedType === 'Decimal' && isDecimalString(value)) {
-    return true
-  }
-
+function hasCorrectScalarType(value: unknown, inputType: DMMF.SchemaArgInputType): boolean {
   if (value === null) {
     return true
   }
-
-  return false
+  const argType = makeScalarInputType(inputType)
+  return argType.acceptsValue(value)
 }
 
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
-
-function isValidDecimalListInput(graphQLType: string, value: any[]): boolean {
-  return (
-    graphQLType === 'List<Int>' ||
-    graphQLType === 'List<Float>' ||
-    (graphQLType === 'List<String>' && value.every(isDecimalString))
-  )
-}
-
-function isDecimalString(value: string): boolean {
-  // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L116
-  return /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value)
-}
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   /**
@@ -1497,7 +1390,7 @@ export function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType
 }
 
 function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg {
-  if (hasCorrectScalarType(value, arg, inputType)) {
+  if (hasCorrectScalarType(value, inputType)) {
     return new Arg({
       key,
       value,
