@@ -30,7 +30,8 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "echo \"not yet\""
+    "test": "echo \"not yet\"",
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "README.md",

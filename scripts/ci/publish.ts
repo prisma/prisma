@@ -981,20 +981,20 @@ async function publishPackages(
 
       console.log(`\nPublishing ${chalk.magentaBright(`${pkgName}@${newVersion}`)} ${chalk.dim(`on ${tag}`)}`)
 
-      const prismaDeps = [...pkg.uses, ...pkg.usesDev]
-      if (prismaDeps.length > 0) {
-        await pRetry(
-          async () => {
-            await run(pkgDir, `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`, dryRun)
-          },
-          {
-            retries: 6,
-            onFailedAttempt: (e) => {
-              console.error(e)
-            },
-          },
-        )
-      }
+      // const prismaDeps = [...pkg.uses, ...pkg.usesDev]
+      // if (prismaDeps.length > 0) {
+      //   await pRetry(
+      //     async () => {
+      //       await run(pkgDir, `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`, dryRun)
+      //     },
+      //     {
+      //       retries: 6,
+      //       onFailedAttempt: (e) => {
+      //         console.error(e)
+      //       },
+      //     },
+      //   )
+      // }
 
       // set the version in package.json for current package
       await writeVersion(pkgDir, newVersion, dryRun)

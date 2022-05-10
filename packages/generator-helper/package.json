@@ -28,7 +28,8 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
     "@swc/core": "1.2.141",
