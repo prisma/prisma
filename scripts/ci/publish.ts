@@ -505,6 +505,10 @@ async function publish() {
     throw new Error(`Missing env var GITHUB_TOKEN`)
   }
 
+  if (!process.env.BUILDKITE_BRANCH) {
+    throw new Error(`Missing env var BUILDKITE_BRANCH`)
+  }
+
   if (process.env.DRY_RUN) {
     console.log(chalk.blue.bold(`\nThe DRY_RUN env var is set, so we'll do a dry run!\n`))
     args['--dry-run'] = true
@@ -556,7 +560,7 @@ async function publish() {
   if (process.env.BUILDKITE && args['--publish']) {
     console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
     const before = Date.now()
-    unlock = await acquireLock() // TODO: problem lock might not work for more than 2 jobs
+    unlock = await acquireLock(process.env.BUILDKITE_BRANCH) // TODO: problem lock might not work for more than 2 jobs
     const after = Date.now()
     console.log(`Acquired lock after ${after - before}ms`)
   }
@@ -1003,7 +1007,6 @@ async function publishPackages(
           pkg.prisma.prismaCommit = latestCommit.hash
         })
       }
-
 
       const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
