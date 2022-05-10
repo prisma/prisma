@@ -25,6 +25,7 @@ import {
   unionBy,
   wrapWithList,
 } from './utils/common'
+import { isDecimalJsLike, stringifyDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
@@ -635,8 +636,8 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     return 'null'
   }
 
-  if (Decimal.isDecimal(value)) {
-    return value.toString()
+  if (Decimal.isDecimal(value) || (inputType?.type === 'Decimal' && isDecimalJsLike(value))) {
+    return stringifyDecimalJsLike(value)
   }
 
   if (inputType?.location === 'enumTypes' && typeof value === 'string') {
