@@ -1004,10 +1004,6 @@ async function publishPackages(
         })
       }
 
-      // if (process.env.BUILDKITE) {
-      //   // Run build?
-      //   await run(pkgDir, `pnpm run build`, dryRun)
-      // }
 
       const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
