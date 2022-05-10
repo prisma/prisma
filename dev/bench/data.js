@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1652171813742,
+  "lastUpdate": 1652194300050,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -100230,6 +100230,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.08,
             "range": "±1.97%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "868c110692a536c3aaa96f9547f960c9f649c1f1",
+          "message": "fix(client): Allow to use non-bundled Decimal.js versions (#13253)\n\nSince we bundle Decimal.js types, if the user has their own copy of the\r\nlibrary, our type will be incompatible with their. Introduce\r\n`DecimalJSLike` interface. which includes public properties of decimal\r\ninstances and no methods and use this interface as input type. This\r\nallows us to accept following things:\r\n\r\n1. `Prisma.Decimal`\r\n2. User-provided decimal instance, even if it is does not match\r\n   our bundled version of the library.\r\n3. Some compatible libraries, like decimal.js-light (not tested yet)\r\n4. Manuallly constructed object with matching properties\r\n\r\nBecause of the last item, in some cases we have to do serialization\r\nmanually. `Decimal.isDecimal` returns true for items 1-3, but in case it\r\nreturns `false` we manually construct the instance from provided\r\nproperties.\r\n\r\nAlso adds a couple of functional tests for decimal.js handling.\r\n\r\nFix #6021\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-05-10T16:46:26+02:00",
+          "tree_id": "ecd2289b1801ad849a47146e86d37a08964385e5",
+          "url": "https://github.com/prisma/prisma/commit/868c110692a536c3aaa96f9547f960c9f649c1f1"
+        },
+        "date": 1652194294187,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.47,
+            "range": "±4.19%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.54%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
