@@ -65,6 +65,7 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
       // TODO: we should report why we're not able to submit an error report
       const reportFailedMessage = `${chalk.bold.red('Oops. We could not send the error report.')}`
       console.log(reportFailedMessage)
+      console.error(`${chalk.gray('Error report submission failed due to: ')}`, error)
     }
   }
 
