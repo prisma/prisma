@@ -341,7 +341,11 @@ Validation Error Count: 1`
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchSnapshot()
+      if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
+        expect(stripAnsi(e.message)).toMatchSnapshot('binary')
+      } else {
+        expect(stripAnsi(e.message)).toMatchSnapshot('library')
+      }
     }
   })
 })
