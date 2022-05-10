@@ -16,8 +16,6 @@ npm -v
 # See package.json setup script
 pnpm run setup
 
-[[ $a == z* ]] 
-
 if [[ $BUILDKITE_BRANCH == integration/* ]] ;
 then
     echo "Testing was skipped as it's an integration branch. For tests, check GitHub Actions or the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript"
