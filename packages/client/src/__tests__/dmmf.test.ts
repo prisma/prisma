@@ -347,20 +347,23 @@ describe('dmmf', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing
-        error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
-          -->  schema.prisma:14
-           | 
-        13 | 
-        14 |       enum PostKind {
-        15 |         NICE
-        16 |         AWESOME
-        17 |       }
-           | 
+      const snapshot = `Get DMMF: Schema parsing
+error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
+  -->  schema.prisma:14
+   | 
+13 | 
+14 |       enum PostKind {
+15 |         NICE
+16 |         AWESOME
+17 |       }
+   | 
 
-        Validation Error Count: 1
-      `)
+Validation Error Count: 1`
+      if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
+        expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
+      } else {
+        expect(stripAnsi(e.message)).toEqual(snapshot)
+      }
     }
   })
 })
