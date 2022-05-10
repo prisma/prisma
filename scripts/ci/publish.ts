@@ -641,16 +641,8 @@ async function publish() {
     }
 
     if (!dryRun && args['--test']) {
-      if (tag === 'integration') {
-        // Skip testing
-        console.log(
-          chalk.bold(`\nTesting was skipped as it's an integration branch.
-For tests, check GitHub Actions or the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript`),
-        )
-      } else {
-        console.log(chalk.bold('\nTesting packages'))
-        await testPackages(packages, getPublishOrder(packages))
-      }
+      console.log(chalk.bold('\nTesting all packages...'))
+      await testPackages(packages, getPublishOrder(packages))
     }
 
     if (args['--publish'] || dryRun) {
@@ -953,15 +945,15 @@ async function publishPackages(
       ),
     )
     if (!dryRun) {
-      console.log(chalk.red('Are you absolutely sure you want to do this? We wait for 10secs just in case...'))
+      console.log(chalk.red('Are you sure you want to do this? We wait for 10s just in case...'))
       await new Promise((r) => {
-        setTimeout(r, 10000)
+        setTimeout(r, 10_000)
       })
     }
   } else if (!dryRun) {
-    console.log(`\nGiving you 5sec to review the changes...`)
+    console.log(`\nGiving you 5s to review the changes...`)
     await new Promise((r) => {
-      setTimeout(r, 5000)
+      setTimeout(r, 5_000)
     })
   }
 
