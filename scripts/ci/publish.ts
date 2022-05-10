@@ -981,20 +981,23 @@ async function publishPackages(
 
       console.log(`\nPublishing ${chalk.magentaBright(`${pkgName}@${newVersion}`)} ${chalk.dim(`on ${tag}`)}`)
 
-      // const prismaDeps = [...pkg.uses, ...pkg.usesDev]
-      // if (prismaDeps.length > 0) {
-      //   await pRetry(
-      //     async () => {
-      //       await run(pkgDir, `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`, dryRun)
-      //     },
-      //     {
-      //       retries: 6,
-      //       onFailedAttempt: (e) => {
-      //         console.error(e)
-      //       },
-      //     },
-      //   )
-      // }
+      // Why is this needed?
+      // Was introduced in the first version of this script on Apr 14, 2020
+      // https://github.com/prisma/prisma/commit/7d6a26c1777c59ee945356687673102de4b1fe55#diff-51cd3eaba5264dc956e45fabcc02d5d21d8a8c473bd1bd00a297f9f4550c115bR790-R797
+      const prismaDeps = [...pkg.uses, ...pkg.usesDev]
+      if (prismaDeps.length > 0) {
+        await pRetry(
+          async () => {
+            await run(pkgDir, `pnpm update ${prismaDeps.join(' ')} --filter "${pkgName}"`, dryRun)
+          },
+          {
+            retries: 6,
+            onFailedAttempt: (e) => {
+              console.error(e)
+            },
+          },
+        )
+      }
 
       // set the version in package.json for current package
       await writeVersion(pkgDir, newVersion, dryRun)
