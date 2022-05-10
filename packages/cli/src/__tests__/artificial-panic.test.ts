@@ -71,7 +71,7 @@ datasource db {
 
   it('query-engine get-dmmf library', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(4)
+    expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
 
     const command = new Validate()
@@ -81,9 +81,22 @@ datasource db {
       expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
+      expect(e.schema).toMatchInlineSnapshot(`
+        // This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+        }
+
+      `)
       expect(e).toMatchObject({
         schemaPath: undefined,
-        schema: undefined,
       })
     }
   })
