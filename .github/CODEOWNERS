@@ -3,3 +3,14 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
 *                                @Jolg42 @millsp @aqrln @SevInf @danstarns @jkomyno
+
+# Schema Team
+/src/packages/migrate/           @Jolg42 @jkomyno
+
+# Client Team
+/src/packages/client/            @millsp @aqrln @SevInf @danstarns
+/src/packages/react-prisma/      @millsp @aqrln @SevInf @danstarns
+/src/packages/integration-tests/ @millsp @aqrln @SevInf @danstarns
+/src/packages/engine-core/       @millsp @aqrln @SevInf @danstarns
+/src/packages/generator-helper/  @millsp @aqrln @SevInf @danstarns
+/src/packages/get-platform/      @millsp @aqrln @SevInf @danstarns
