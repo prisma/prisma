@@ -1,10 +1,10 @@
 import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-setupTestSuiteMatrix((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   // an example of how to query with the preloaded client
   test('findMany', async () => {
     await prisma.user.findMany()
