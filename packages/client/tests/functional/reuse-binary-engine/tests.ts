@@ -37,13 +37,11 @@ setupTestSuiteMatrix(() => {
     const randomName = 'some-random-name'
 
     const created = await prismaClient1.user.create({ data: { name: randomName } })
-    // @ts-ignore
-    const [found] = await (prismaClient2 as PrismaClient).user.findMany({ where: { name: randomName } })
+    const [found] = await prismaClient2.user.findMany({ where: { name: randomName } })
 
     expect(created).toMatchObject(found)
 
     await prismaClient1.$disconnect()
-    // @ts-ignore
     await prismaClient2.$disconnect()
   })
 })
