@@ -73,7 +73,7 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
     "@types/jest": "27.5.0",
