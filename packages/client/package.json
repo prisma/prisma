@@ -111,7 +111,7 @@
     "rimraf": "3.0.2",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
-    "sql-template-tag": "4.1.0",
+    "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",

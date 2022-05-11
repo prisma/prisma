@@ -56,7 +56,7 @@ function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
 // TODO also check/disallow for CREATE, DROP
 function checkAlter(
   query: string,
-  values: sqlTemplateTag.Value[],
+  values: sqlTemplateTag.RawValue[],
   invalidCall:
     | 'prisma.$executeRaw`<SQL>`'
     | 'prisma.$executeRawUnsafe(<SQL>, [...values])'
