@@ -14,15 +14,18 @@ setupTestSuiteMatrix(() => {
     })
 
     const internalURL = await ((): Promise<string> =>
-      new Promise((resolve) => {
+      new Promise((resolve, reject) => {
         prismaClient1.$on('info', (data) => {
           if (/Started query engine/.test(data.message as string)) {
-            const port = data.message.split(':').pop() // pops off the last one
+            const port = data.message.split(':').pop()
             resolve(`http://127.0.0.1:${port}`)
           }
         })
 
-        prismaClient1.$connect()
+        prismaClient1
+          .$connect()
+          .then(() => {})
+          .catch(reject)
       }))()
 
     // @ts-ignore
@@ -34,15 +37,16 @@ setupTestSuiteMatrix(() => {
       },
     })
 
-    const randomName = 'some-random-name'
+    const name = 'some-random-name'
 
-    const created = await prismaClient1.user.create({ data: { name: randomName } })
-    const [found] = await prismaClient2.user.findMany({ where: { name: randomName } })
+    const created = await prismaClient1.user.create({ data: { name } })
+    const [found] = await prismaClient2.user.findMany({ where: { name } })
 
     expect(created).toMatchObject(found)
 
     await prismaClient1.$disconnect()
     await prismaClient2.$disconnect()
+
     jest.clearAllTimers()
   })
 })
