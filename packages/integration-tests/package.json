@@ -22,7 +22,7 @@
     "@types/pg": "8.6.5",
     "@types/sqlite3": "3.1.8",
     "decimal.js": "10.3.1",
-    "esbuild": "0.14.5",
+    "esbuild": "0.14.38",
     "execa": "5.1.1",
     "fs-jetpack": "4.3.1",
     "jest": "28.1.0",

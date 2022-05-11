@@ -35,7 +35,7 @@
     "@swc/jest": "0.2.21",
     "@types/jest": "27.5.0",
     "@types/node": "12.20.51",
-    "esbuild": "0.14.5",
+    "esbuild": "0.14.38",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "ts-node": "10.7.0",
