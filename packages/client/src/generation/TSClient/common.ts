@@ -28,7 +28,8 @@ const {
   empty,
   join,
   raw,
-  Decimal
+  Decimal,
+  DecimalJsLike
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -112,6 +113,8 @@ export import Sql = runtime.Sql
  * Decimal.js
  */
 export import Decimal = runtime.Decimal
+
+export type DecimalJsLike = runtime.DecimalJsLike
 
 /**
  * Prisma Client JS version: ${clientVersion}

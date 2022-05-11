@@ -20,19 +20,19 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2",
+    "@prisma/engines-version": "3.15.0-1.40300bb9a78949ed2d23316cd82e0bc719cdc167",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/jest": "0.2.21",
     "@types/jest": "27.5.0",
-    "@types/node": "12.20.50",
+    "@types/node": "12.20.51",
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.8",
     "esbuild": "0.13.14",
     "fs-jetpack": "4.3.0",
-    "jest": "27.5.1",
+    "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
@@ -45,7 +45,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2",
+    "@prisma/get-platform": "3.15.0-1.40300bb9a78949ed2d23316cd82e0bc719cdc167",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
@@ -59,7 +59,8 @@
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
-    "strip-indent": "3.0.0"
+    "strip-indent": "3.0.0",
+    "ts-pattern": "^4.0.1"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

@@ -873,6 +873,8 @@ export namespace Prisma {
    */
   export import Decimal = runtime.Decimal
 
+  export type DecimalJsLike = runtime.DecimalJsLike
+
   /**
    * Prisma Client JS version: local
    * Query Engine version: local
