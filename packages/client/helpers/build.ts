@@ -89,6 +89,11 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
       ],
       compiler: {
         tsconfigFilePath: 'tsconfig.build.json',
+        overrideTsconfig: {
+          compilerOptions: {
+            paths: {}, // bug with api extract + paths
+          },
+        },
       },
       dtsRollup: {
         enabled: true,
