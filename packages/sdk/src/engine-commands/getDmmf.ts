@@ -178,7 +178,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
               /* message */ errorOutputAsJSON.message,
               /* rustStack */ errorOutputAsJSON.backtrace || e.error.stack || 'NO_BACKTRACE',
               /* request */ 'query-engine-node-api get-dmmf', // TODO: understand which type it expects
-              ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
+              ErrorArea.QUERY_ENGINE_LIBRARY_CLI,
               /* schemaPath */ options.prismaPath,
               /* schema */ e.datamodel,
             )
@@ -337,7 +337,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           /* message */ e.error.shortMessage,
           /* rustStack */ e.error.stderr,
           /* request */ 'query-engine get-dmmf', // TODO: understand which type it expects
-          ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
+          ErrorArea.QUERY_ENGINE_BINARY_CLI,
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
           /* schema */ undefined,
         )

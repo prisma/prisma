@@ -66,7 +66,7 @@ Or specify a Prisma schema path
           /* message */ err.shortMessage,
           /* rustStack */ err.stack,
           /* request */ 'format',
-          ErrorArea.INTROSPECTION_CLI, // TODO: change to FMT_CLI
+          ErrorArea.FMT_CLI,
           schemaPath,
           /* schema */ undefined,
         )

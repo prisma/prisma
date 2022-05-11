@@ -137,7 +137,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
               /* message */ errorOutputAsJSON.message,
               /* rustStack */ errorOutputAsJSON.backtrace || e.error.stack || 'NO_BACKTRACE',
               /* request */ 'query-engine-node-api get-config', // TODO: understand which type it expects
-              ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_LIBRARY_CLI
+              ErrorArea.QUERY_ENGINE_LIBRARY_CLI,
               /* schemaPath */ options.prismaPath,
               /* schema */ undefined,
             )
@@ -261,7 +261,7 @@ async function getConfigBinary(options: GetConfigOptions) {
           /* message */ e.error.shortMessage,
           /* rustStack */ e.error.stderr,
           /* request */ 'query-engine get-config',
-          ErrorArea.INTROSPECTION_CLI, // TODO: change to QUERY_ENGINE_BINARY_CLI
+          ErrorArea.QUERY_ENGINE_BINARY_CLI,
           /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
           /* schema */ undefined,
         )
