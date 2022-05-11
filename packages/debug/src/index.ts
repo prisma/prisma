@@ -1,28 +1,38 @@
-/// <reference types="debug" />
-import DebugNode from './node'
+import debug from 'debug'
 
 const cache: any[] = []
 
 const MAX_LOGS = 100
 
-export default function Debug(namespace: string): debug.Debugger {
-  const debug: debug.Debugger = DebugNode(namespace, (...args) => {
+/**
+ * Wrapper on top of the original `Debug` to keep a history of the all last
+ * {@link MAX_LOGS}. This is then used by {@link getLogs} to generate an error
+ * report url (forGitHub) in the case where the something has crashed.
+ * @param namespace
+ * @returns
+ */
+export default function Debug(namespace: string) {
+  const debugNamespace = debug(namespace)
+
+  return (...args: any[]) => {
     cache.push(args)
-    // keeping 100 logs is just a heuristic. The real truncating comes later
+
     if (cache.length > MAX_LOGS) {
       cache.shift()
     }
-  })
 
-  return debug
+    // @ts-ignore
+    debugNamespace(...args)
+  }
 }
+
 export { Debug }
 
 Debug.enable = (namespace: string): void => {
-  DebugNode.enable(namespace)
+  debug.enable(namespace)
 }
 
-Debug.enabled = (namespace: string): boolean => DebugNode.enabled(namespace)
+Debug.enabled = (namespace: string): boolean => debug.enabled(namespace)
 
 // https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
 // we need some space for other characters, so we go for 30k here

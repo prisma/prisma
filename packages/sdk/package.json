@@ -2,7 +2,6 @@
   "name": "@prisma/sdk",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
@@ -37,7 +36,7 @@
     "@types/resolve": "1.20.2",
     "@types/shell-quote": "1.7.1",
     "@types/tar": "6.1.1",
-    "esbuild": "0.14.38",
+    "esbuild": "0.14.5",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "mock-stdin": "1.0.0",

@@ -1,6 +1,5 @@
 import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
-import execa from 'execa'
 import glob from 'globby'
 import path from 'path'
 
@@ -14,7 +13,6 @@ import { transduce } from '../blaze/transduce'
 import { depCheckPlugin } from './plugins/depCheckPlugin'
 import { fixImportsPlugin } from './plugins/fixImportsPlugin'
 import { onErrorPlugin } from './plugins/onErrorPlugin'
-import { replaceWithPlugin } from './plugins/replaceWithPlugin'
 import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
@@ -36,50 +34,21 @@ const DEFAULT_BUILD_OPTIONS = {
  * Apply defaults to allow us to build tree-shaken esm
  * @param options the original build options
  */
-const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
-  ...DEFAULT_BUILD_OPTIONS,
-  format: 'esm',
-  target: 'esnext',
-  outExtension: { '.js': '.mjs' },
-  resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
-  entryPoints: glob.sync('./src/**/*.{j,t}s', {
-    ignore: ['./src/__tests__/**/*'],
-  }),
-  mainFields: ['module', 'main'],
-  ...options,
-  // outfile has precedence over outdir, hence these ternaries
-  outfile: options.outfile ? getEsmOutFile(options) : undefined,
-  outdir: options.outfile ? undefined : getEsmOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, onErrorPlugin],
-})
-
-/**
- * Apply defaults to allow compiling tree-shaken esm to cjs
- * @param options the original build options
- */
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
   target: 'es2018',
   outExtension: { '.js': '.js' },
-  resolveExtensions: ['.mjs'],
-  mainFields: ['module'],
+  resolveExtensions: ['.ts', '.js', '.node'],
+  entryPoints: glob.sync('./src/**/*.{j,t}s', {
+    ignore: ['./src/__tests__/**/*'],
+  }),
   ...options,
-  // override the path to point it to the previously built esm
-  entryPoints: options.outfile
-    ? glob.sync(`./${getEsmOutFile(options)}.mjs`)
-    : glob.sync(`./${getEsmOutDir(options)}/**/*.mjs`),
   // outfile has precedence over outdir, hence these ternaries
+  outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  // we only produce typescript types on the second run (cjs)
-  plugins: [replacePlugin, ...(options.plugins ?? []), tscPlugin, onErrorPlugin],
+  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin, onErrorPlugin],
 })
-
-// because we compile tree-shaken esm to cjs, we need to replace __require
-const replacePlugin = replaceWithPlugin([
-  [/var __require =.*?(?=var)/gs, ''], // remove the utility
-  [/__require(?!\w)/gs, 'require'], // replace calls to util
-])
 
 /**
  * Create two deferred builds for esm and cjs. The one follows the other:
@@ -92,8 +61,8 @@ function createBuildOptions(options: BuildOptions[]) {
   return flatten(
     map(options, (options) => [
       // we defer it so that we don't trigger glob immediately
-      () => applyEsmDefaults(options),
       () => applyCjsDefaults(options),
+      // () => applyEsmDefaults(options),
     ]),
   )
 }
@@ -243,30 +212,16 @@ function getOutDir(options: BuildOptions) {
   return options.outdir ?? 'dist'
 }
 
-// get the esm output path from an original path
-function getEsmOutDir(options: BuildOptions) {
-  return `esm/${getOutDir(options)}`
-}
-
-// get the esm output file from an original path
-function getEsmOutFile(options: BuildOptions) {
+// get the output file from an original path
+function getOutFile(options: BuildOptions) {
   if (options.outfile !== undefined) {
     const dirname = getOutDir(options)
     const filename = path.basename(options.outfile)
 
-    return `esm/${dirname}/${filename}`
+    return `${dirname}/${filename}`
   }
 
   return undefined
-}
-
-// wrapper around execa to run our build cmds
-export function run(command: string) {
-  return execa.command(command, {
-    preferLocal: true,
-    shell: true,
-    stdio: 'inherit',
-  })
 }
 
 // gets the files to be watched from esbuild

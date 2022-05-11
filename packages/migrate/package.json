@@ -2,7 +2,6 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
@@ -30,7 +29,7 @@
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.8",
-    "esbuild": "0.14.38",
+    "esbuild": "0.14.5",
     "fs-jetpack": "4.3.1",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",

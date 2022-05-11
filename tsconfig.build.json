@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "lib": ["esnext"],
+    "lib": ["es2018"],
     "esModuleInterop": true,
     "isolatedModules": true,
     "sourceMap": true,
@@ -14,7 +14,20 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "useUnknownInCatchVariables": false,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+
+    "paths": {
+      "@prisma/client": ["./packages/client/src"],
+      "@prisma/sdk": ["./packages/sdk/src"],
+      "@prisma/sdk/dist/*": ["./packages/sdk/src/*"],
+      "@prisma/migrate": ["./packages/migrate/src"],
+      "@prisma/generator-helper": ["./packages/generator-helper/src"],
+      "@prisma/engine-core": ["./packages/engine-core/src"],
+      "@prisma/engine-core/dist/*": ["./packages/engine-core/src/*"],
+      "@prisma/debug": ["./packages/debug/src"],
+      "@prisma/cli": ["./packages/cli/src"]
+    }
   },
   "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
 }

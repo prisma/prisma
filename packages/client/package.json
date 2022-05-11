@@ -85,7 +85,7 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "decimal.js": "10.3.1",
-    "esbuild": "0.14.38",
+    "esbuild": "0.14.5",
     "execa": "5.1.1",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "10.1.0",

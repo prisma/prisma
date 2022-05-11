@@ -4,5 +4,5 @@
     "outDir": "declaration",
     "emitDeclarationOnly": true
   },
-  "include": ["src/runtime"]
+  "include": ["src"]
 }
