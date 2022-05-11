@@ -2,8 +2,7 @@
   "extends": "../../tsconfig.build.json",
   "compilerOptions": {
     "outDir": "declaration",
-    "emitDeclarationOnly": true,
-    "baseUrl": "./src"
+    "emitDeclarationOnly": true
   },
   "include": ["src/runtime"]
 }

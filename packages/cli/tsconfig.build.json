@@ -2,8 +2,7 @@
   "extends": "../../tsconfig.build.json",
   "compilerOptions": {
     "outDir": "dist",
-    "noEmit": true,
-    "baseUrl": "./src"
+    "noEmit": true
   },
   "include": ["src"]
 }
