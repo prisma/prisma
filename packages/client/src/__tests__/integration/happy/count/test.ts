@@ -2,7 +2,8 @@ import { getTestClient } from '../../../../utils/getTestClient'
 
 let PrismaClient, prisma
 
-describe('count', () => {
+// TODO - Delete me. Replaced in https://github.com/prisma/prisma/pull/13198
+describe.skip('count', () => {
   beforeAll(async () => {
     PrismaClient = await getTestClient()
   })
