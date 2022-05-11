@@ -117,8 +117,8 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
 
 void build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig, proxyBuildConfig]).then(() => {
   if (process.env.DEV !== 'true') {
-    bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/proxy')
-    bundleTypeDefinitions('declaration/client/src/runtime/index-browser', 'runtime/index-browser')
+    bundleTypeDefinitions('declaration/packages/client/src/runtime/index', 'runtime/index')
+    bundleTypeDefinitions('declaration/packages/client/src/runtime/index', 'runtime/proxy')
+    bundleTypeDefinitions('declaration/packages/client/src/runtime/index-browser', 'runtime/index-browser')
   }
 })
