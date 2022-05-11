@@ -3,8 +3,6 @@ import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
 // https://github.com/prisma/prisma/issues/12507
 setupTestSuiteMatrix(() => {
   test('should create data using one PrismaClient and read using another', async () => {
-    jest.setTimeout(60000)
-
     // @ts-ignore
     const prismaClient1 = new PrismaClient({
       log: [
@@ -45,5 +43,6 @@ setupTestSuiteMatrix(() => {
 
     await prismaClient1.$disconnect()
     await prismaClient2.$disconnect()
+    jest.clearAllTimers()
   })
 })
