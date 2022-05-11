@@ -125,7 +125,7 @@ importers:
       '@prisma/studio': 0.460.0
       '@prisma/studio-server': 0.460.0
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.5.0
@@ -171,7 +171,7 @@ importers:
       '@prisma/studio': 0.460.0
       '@prisma/studio-server': 0.460.0_839d6f5e1e290969a8d17594ebaffe12
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 27.5.0
@@ -220,7 +220,7 @@ importers:
       '@prisma/migrate': workspace:*
       '@prisma/sdk': workspace:*
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
       '@types/jest': 27.5.0
@@ -281,7 +281,7 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
       '@types/jest': 27.5.0
@@ -360,7 +360,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.15.0-1.40300bb9a78949ed2d23316cd82e0bc719cdc167
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@types/jest': 27.5.0
       '@types/node': 16.11.33
       chalk: 4.1.2
@@ -390,7 +390,7 @@ importers:
       undici: 5.0.0
     devDependencies:
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@types/jest': 27.5.0
       '@types/node': 16.11.33
       esbuild: 0.13.14
@@ -402,7 +402,7 @@ importers:
     specifiers:
       '@prisma/debug': workspace:*
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@types/cross-spawn': 6.0.2
       '@types/jest': 27.5.0
       '@types/node': 12.20.50
@@ -420,7 +420,7 @@ importers:
       cross-spawn: 7.0.3
     devDependencies:
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@types/jest': 27.5.0
       '@types/node': 12.20.50
       esbuild: 0.13.14
@@ -434,7 +434,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@types/jest': 27.5.0
       '@types/mssql': 7.1.5
       '@types/node': 12.20.50
@@ -461,7 +461,7 @@ importers:
       '@prisma/sdk': link:../sdk
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@types/jest': 27.5.0
       '@types/mssql': 7.1.5
       '@types/node': 12.20.50
@@ -494,7 +494,7 @@ importers:
       '@prisma/sdk': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@types/jest': 27.5.0
       '@types/node': 12.20.50
       '@types/pg': 8.6.5
@@ -545,7 +545,7 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/sdk': link:../sdk
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@types/jest': 27.5.0
       '@types/node': 12.20.50
       '@types/pg': 8.6.5
@@ -591,7 +591,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.15.0-1.40300bb9a78949ed2d23316cd82e0bc719cdc167
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20
+      '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
       '@types/jest': 27.5.0
       '@types/node': 12.20.50
@@ -687,7 +687,7 @@ importers:
       ts-pattern: 4.0.1
     devDependencies:
       '@swc/core': 1.2.141
-      '@swc/jest': 0.2.20_@swc+core@1.2.141
+      '@swc/jest': 0.2.21_@swc+core@1.2.141
       '@types/jest': 27.5.0
       '@types/node': 12.20.50
       '@types/resolve': 1.20.2
@@ -1892,8 +1892,8 @@ packages:
       '@swc/core-win32-x64-msvc': 1.2.141
     dev: true
 
-  /@swc/jest/0.2.20_@swc+core@1.2.141:
-    resolution: {integrity: sha512-5qSUBYY1wyIMn7p0Vl9qqV4hMI69oJwZCIPUpBsTFWN2wlwn6RDugzdgCn+bLXVYh+Cxi8bJcZ1uumDgsoL+FA==}
+  /@swc/jest/0.2.21_@swc+core@1.2.141:
+    resolution: {integrity: sha512-/+NcExiZbxXANNhNPnIdFuGq62CeumulLS1bngwqIXd8H7d96LFUfrYzdt8tlTwLMel8tFtQ5aRjzVkyOTyPDw==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'

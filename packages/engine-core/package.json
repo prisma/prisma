@@ -20,7 +20,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/jest": "0.2.21",
     "@types/jest": "27.5.0",
     "@types/node": "16.11.33",
     "esbuild": "0.13.14",

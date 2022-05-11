@@ -76,7 +76,7 @@
     "@prisma/studio": "0.460.0",
     "@prisma/studio-server": "0.460.0",
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "27.5.0",
