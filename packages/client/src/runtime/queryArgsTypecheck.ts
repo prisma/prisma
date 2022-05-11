@@ -64,7 +64,7 @@ class DateTimeType implements Type {
       return false
     }
 
-    return RFC_3339_REGEX.test(value)
+    return RFC_3339_REGEX.test(value) && String(new Date(value)) !== 'Invalid Date'
   }
 }
 
