@@ -110,7 +110,6 @@ it('should read data from Prisma schema', async () => {
             ],
             schemaPreviewFeatures: Array [
               extendedIndexes,
-              cockroachdb,
             ],
             schemaProvider: sqlite,
           }
