@@ -79,7 +79,7 @@
     "@types/jest": "27.5.0",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.5",
-    "@types/node": "12.20.51",
+    "@types/node": "16.11.34",
     "@types/pg": "8.6.5",
     "arg": "5.0.1",
     "benchmark": "2.1.4",
