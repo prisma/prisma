@@ -5,11 +5,13 @@
  */
 const notReallyObjects = {
   '[object Date]': true,
-  '[object BitInt]': true,
   '[object Uint8Array]': true, // for Buffers
-  '[object Function]': true, // for Decimal
+  '[object Decimal]': true, // for Decimal
 }
 
-export function isObject(value: any): boolean {
-  return value && typeof value === 'object' && !notReallyObjects[Object.prototype.toString.call(value)]
+export function isObject(value: unknown): boolean {
+  if (!value) {
+    return false
+  }
+  return typeof value === 'object' && !notReallyObjects[Object.prototype.toString.call(value)]
 }

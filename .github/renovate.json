@@ -3,7 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting"],
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln"],
+  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",

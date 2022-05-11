@@ -1,13 +1,15 @@
 /* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import { enginesVersion } from '@prisma/engines'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import type { Command, Generator } from '@prisma/sdk'
 import {
   arg,
+  Command,
   format,
+  Generator,
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
+  getPlatform,
   HelpError,
   highlightTS,
   isError,
@@ -16,10 +18,12 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
+  Platform,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
+import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
@@ -202,7 +206,9 @@ Please run \`prisma generate\` manually.`
       if (prismaClientJSGenerator) {
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-              path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+              replacePathSeperatorsIfNecessary(
+                path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+              ),
             )
           : '@prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
@@ -321,4 +327,12 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
+}
+
+function replacePathSeperatorsIfNecessary(path: string): string {
+  const isWindows = os.platform() === 'win32'
+  if (isWindows) {
+    return path.replace(/\\/g, '/')
+  }
+  return path
 }
