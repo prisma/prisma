@@ -21,8 +21,8 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "jest --verbose"
+    "test": "jest --verbose",
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "README.md",
@@ -31,9 +31,9 @@
   ],
   "devDependencies": {
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/jest": "0.2.21",
     "@types/jest": "27.5.0",
-    "@types/node": "12.20.50",
+    "@types/node": "12.20.51",
     "@types/resolve": "1.20.2",
     "@types/shell-quote": "1.7.1",
     "@types/tar": "6.1.1",
@@ -58,7 +58,7 @@
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
     "cli-truncate": "2.1.0",
-    "dotenv": "16.0.0",
+    "dotenv": "16.0.1",
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "find-up": "5.0.0",

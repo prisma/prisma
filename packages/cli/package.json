@@ -76,7 +76,7 @@
     "@prisma/studio": "0.460.0",
     "@prisma/studio-server": "0.460.0",
     "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "27.5.0",
@@ -116,8 +116,8 @@
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "tsc": "tsc -d -p tsconfig.build.json",
-    "prepublishOnly": "pnpm run build",
-    "preinstall": "node scripts/preinstall-entry.js"
+    "preinstall": "node scripts/preinstall-entry.js",
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
     "@prisma/engines": "3.15.0-1.40300bb9a78949ed2d23316cd82e0bc719cdc167"

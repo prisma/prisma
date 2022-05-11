@@ -19,7 +19,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "27.5.0",
-    "@types/node": "12.20.50",
+    "@types/node": "12.20.51",
     "esbuild": "0.13.14",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",
@@ -29,8 +29,8 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "pnpm run build"
   },
   "files": [
     "README.md",
