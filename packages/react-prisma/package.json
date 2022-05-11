@@ -19,7 +19,7 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@types/jest": "27.5.0",
-    "@types/node": "16.11.33",
+    "@types/node": "16.11.34",
     "esbuild": "0.14.38",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",
