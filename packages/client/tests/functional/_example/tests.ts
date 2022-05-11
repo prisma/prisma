@@ -39,7 +39,7 @@ setupTestSuiteMatrix((suiteConfig, suiteMeta) => {
     */
 
     expect(typeof suiteMeta.testPath).toEqual('string')
-    expect(suiteMeta.testFileName).toEqual(__filename.split(path.sep).pop())
+    expect(suiteMeta.testFileName).toEqual(path.basename(__filename))
   })
 
   test('getTestSuiteSchema', async () => {
