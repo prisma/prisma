@@ -374,7 +374,7 @@ importers:
       p-retry: 4.6.2
       strip-ansi: 6.0.1
       typescript: 4.5.4
-      undici: 5.0.0
+      undici: 5.1.1
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 3.15.0-1.40300bb9a78949ed2d23316cd82e0bc719cdc167
@@ -387,7 +387,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      undici: 5.0.0
+      undici: 5.1.1
     devDependencies:
       '@swc/core': 1.2.141
       '@swc/jest': 0.2.21_@swc+core@1.2.141
@@ -603,7 +603,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
-      dotenv: 16.0.0
+      dotenv: 16.0.1
       esbuild: 0.13.14
       escape-string-regexp: 4.0.0
       execa: 5.1.1
@@ -654,7 +654,7 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
-      dotenv: 16.0.0
+      dotenv: 16.0.1
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
@@ -3398,6 +3398,12 @@ packages:
   /dotenv/16.0.0:
     resolution: {integrity: sha512-qD9WU0MPM4SWLPJy/r2Be+2WgQj8plChsyrCNQzW/0WjvcJQiKQJ9mH3ZgB3fxbUUxgc/11ZJ0Fi5KiimWGz2Q==}
     engines: {node: '>=12'}
+    dev: true
+
+  /dotenv/16.0.1:
+    resolution: {integrity: sha512-1K6hR6wtk2FviQ4kEiSjFiH5rpzEVi8WW0x96aztHVMhEspNpc4DVOUTEHtEva5VThQ8IaBX1Pe4gSzpVVUsKQ==}
+    engines: {node: '>=12'}
+    dev: false
 
   /eastasianwidth/0.2.0:
     resolution: {integrity: sha512-I88TYZWc9XiYHRQ4/3c5rjjfgkjhLyW2luGIheGERbNQ6OY7yTybanSpDXZa8y7VUP9YmDcYa+eyq4ca7iLqWA==}
@@ -8291,8 +8297,8 @@ packages:
       which-boxed-primitive: 1.0.2
     dev: true
 
-  /undici/5.0.0:
-    resolution: {integrity: sha512-VhUpiZ3No1DOPPQVQnsDZyfcbTTcHdcgWej1PdFnSvOeJmOVDgiOHkunJmBLfmjt4CqgPQddPVjSWW0dsTs5Yg==}
+  /undici/5.1.1:
+    resolution: {integrity: sha512-CmK9JzLSMGx+2msOao8LhkKn3J7eKo2M50v0KZQ2XbiHcGqLS1HiIj01ceIm3jbUYlspw/FTSb6nMdSNyvVyaQ==}
     engines: {node: '>=12.18'}
     dev: false
 
