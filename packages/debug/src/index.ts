@@ -1,8 +1,8 @@
 import debug from 'debug'
 
-const cache: any[] = []
-
 const MAX_LOGS = 100
+
+const debugArgsHistory: any[] = []
 
 /**
  * Wrapper on top of the original `Debug` to keep a history of the all last
@@ -11,34 +11,48 @@ const MAX_LOGS = 100
  * @param namespace
  * @returns
  */
-export default function Debug(namespace: string) {
+function debugCall(namespace: string) {
   const debugNamespace = debug(namespace)
 
-  return (...args: any[]) => {
-    cache.push(args)
+  // we take over the `debugNamespace` function
+  const call = (...args: any[]) => {
+    // debug only calls log if you implement it
+    debugNamespace.log = (call as any)?.log
 
-    if (cache.length > MAX_LOGS) {
-      cache.shift()
+    // we push the args to our history of args
+    if (args.length !== 0) {
+      debugArgsHistory.push([namespace, ...args])
     }
 
-    // @ts-ignore
-    debugNamespace(...args)
+    // if it is too big, then we remove some
+    if (debugArgsHistory.length > MAX_LOGS) {
+      debugArgsHistory.shift()
+    }
+
+    // we apply the function with no format
+    return debugNamespace('', ...args)
   }
+
+  return call as debug.Debugger
 }
 
-export { Debug }
+/**
+ * This essentially mimics the original `debug` api. It is a debug function call
+ * that has utility properties on it. We provide our custom {@link debugCall},
+ * and expose the original original api as-is.
+ */
+const Debug = Object.assign(debugCall, debug)
 
-Debug.enable = (namespace: string): void => {
-  debug.enable(namespace)
-}
-
-Debug.enabled = (namespace: string): boolean => debug.enabled(namespace)
-
-// https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
-// we need some space for other characters, so we go for 30k here
+/**
+ * We can get the logs for all the last {@link MAX_LOGS} ${@link debugCall} that
+ * have happened in the different packages. Useful to generate error report links.
+ * @see https://stackoverflow.com/questions/417142/what-is-the-maximum-length-of-a-url-in-different-browsers
+ * @param numChars
+ * @returns
+ */
 export function getLogs(numChars = 7500): string {
   // flatmap on text level
-  const output = cache
+  const output = debugArgsHistory
     .map((c) =>
       c
         .map((item) => {
@@ -48,7 +62,7 @@ export function getLogs(numChars = 7500): string {
 
           return JSON.stringify(item)
         })
-        .join('  '),
+        .join(' '),
     )
     .join('\n')
 
@@ -58,3 +72,6 @@ export function getLogs(numChars = 7500): string {
 
   return output.slice(-numChars)
 }
+
+export { Debug }
+export default Debug
