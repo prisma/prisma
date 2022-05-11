@@ -5,7 +5,7 @@ datasource my_db {
 
 generator client {
     provider        = "prisma-client-js"
-    previewFeatures = ["extendedIndexes", "cockroachdb"]
+    previewFeatures = ["extendedIndexes"]
 }
 
 generator something {
