@@ -21,7 +21,7 @@ describe('artificial-panic introspection', () => {
 
   it('introspection-engine', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(4)
+    expect.assertions(5)
     process.env.FORCE_PANIC_INTROSPECTION_ENGINE = '1'
 
     const command = new DbPull()
@@ -31,22 +31,24 @@ describe('artificial-panic introspection', () => {
       expect(e).toMatchInlineSnapshot(`[/some/rust/path:0:0] This is the debugPanic artificial panic`)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
-      expect(e).toMatchObject({
-        area: 'INTROSPECTION_CLI',
-        schemaPath: undefined,
-        schema: `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+      expect(e.schema).toMatchInlineSnapshot(`
+        // This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-generator client {
-  provider = \"prisma-client-js\"
-}
+        generator client {
+          provider = "prisma-client-js"
+        }
 
-datasource db {
-  provider = \"postgresql\"
-  url      = env(\"DATABASE_URL\")
-}
-`.replace(/\r\n/g, '\n'), // replace due to Windows CI
-      })
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+        }
+
+      `),
+        expect(e).toMatchObject({
+          area: 'INTROSPECTION_CLI',
+          schemaPath: undefined,
+        })
     }
   })
 })
