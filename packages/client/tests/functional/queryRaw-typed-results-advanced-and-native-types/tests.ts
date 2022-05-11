@@ -1,9 +1,9 @@
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // @ts-ignore
 declare let prisma: import('@prisma/client').PrismaClient
 
-setupTestSuiteMatrix((suiteConfig) => {
+testMatrix.setupTestSuite((suiteConfig) => {
   test('query model with multiple fields', async () => {
     await prisma.testModel.create({
       data: {
