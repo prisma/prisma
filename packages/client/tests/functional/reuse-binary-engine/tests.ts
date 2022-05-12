@@ -24,7 +24,6 @@ setupTestSuiteMatrix(() => {
 
         prismaClient1
           .$connect()
-          .then(() => {})
           .catch(reject)
       }))()
 
