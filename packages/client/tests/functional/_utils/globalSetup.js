@@ -12,6 +12,6 @@ module.exports = () => {
         onlyDirectories: true,
         dot: true,
       })
-      .forEach((dir) => fs.rmSync(dir, { recursive: true }))
+      .forEach((dir) => fs.removeSync(dir, { recursive: true }))
   }
 }
