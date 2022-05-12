@@ -604,7 +604,7 @@ export type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum
  * \`\`\`
  * const prisma = new PrismaClient()
  * // Fetch zero or more 'Post'
- * const post = await prisma.post.findMany()
+ * const results = await prisma.post.findMany()
  * \`\`\`
  *
  * 
@@ -650,7 +650,7 @@ export class PrismaClient<
    * \`\`\`
    * const prisma = new PrismaClient()
    * // Fetch zero or more 'Post'
-   * const post = await prisma.post.findMany()
+   * const results = await prisma.post.findMany()
    * \`\`\`
    *
    * 
@@ -711,7 +711,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'Post'
-    * const post = await prisma.post.findMany()
+    * const results = await prisma.post.findMany()
     * \`\`\`
     */
   get post(): Prisma.PostDelegate<GlobalReject>;
@@ -721,7 +721,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'User'
-    * const user = await prisma.user.findMany()
+    * const results = await prisma.user.findMany()
     * \`\`\`
     */
   get user(): Prisma.UserDelegate<GlobalReject>;
@@ -731,7 +731,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'EmbedHolder'
-    * const embedHolder = await prisma.embedHolder.findMany()
+    * const results = await prisma.embedHolder.findMany()
     * \`\`\`
     */
   get embedHolder(): Prisma.EmbedHolderDelegate<GlobalReject>;
@@ -741,7 +741,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'M'
-    * const m = await prisma.m.findMany()
+    * const results = await prisma.m.findMany()
     * \`\`\`
     */
   get m(): Prisma.MDelegate<GlobalReject>;
@@ -751,7 +751,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'N'
-    * const n = await prisma.n.findMany()
+    * const results = await prisma.n.findMany()
     * \`\`\`
     */
   get n(): Prisma.NDelegate<GlobalReject>;
@@ -761,7 +761,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'OneOptional'
-    * const oneOptional = await prisma.oneOptional.findMany()
+    * const results = await prisma.oneOptional.findMany()
     * \`\`\`
     */
   get oneOptional(): Prisma.OneOptionalDelegate<GlobalReject>;
@@ -771,7 +771,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'ManyRequired'
-    * const manyRequired = await prisma.manyRequired.findMany()
+    * const results = await prisma.manyRequired.findMany()
     * \`\`\`
     */
   get manyRequired(): Prisma.ManyRequiredDelegate<GlobalReject>;
@@ -781,7 +781,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'OptionalSide1'
-    * const optionalSide1 = await prisma.optionalSide1.findMany()
+    * const results = await prisma.optionalSide1.findMany()
     * \`\`\`
     */
   get optionalSide1(): Prisma.OptionalSide1Delegate<GlobalReject>;
@@ -791,7 +791,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'OptionalSide2'
-    * const optionalSide2 = await prisma.optionalSide2.findMany()
+    * const results = await prisma.optionalSide2.findMany()
     * \`\`\`
     */
   get optionalSide2(): Prisma.OptionalSide2Delegate<GlobalReject>;
@@ -801,7 +801,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'A'
-    * const a = await prisma.a.findMany()
+    * const results = await prisma.a.findMany()
     * \`\`\`
     */
   get a(): Prisma.ADelegate<GlobalReject>;
@@ -811,7 +811,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'B'
-    * const b = await prisma.b.findMany()
+    * const results = await prisma.b.findMany()
     * \`\`\`
     */
   get b(): Prisma.BDelegate<GlobalReject>;
@@ -821,7 +821,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'C'
-    * const c = await prisma.c.findMany()
+    * const results = await prisma.c.findMany()
     * \`\`\`
     */
   get c(): Prisma.CDelegate<GlobalReject>;
@@ -831,7 +831,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'D'
-    * const d = await prisma.d.findMany()
+    * const results = await prisma.d.findMany()
     * \`\`\`
     */
   get d(): Prisma.DDelegate<GlobalReject>;
@@ -841,7 +841,7 @@ export class PrismaClient<
     * Example usage:
     * \`\`\`ts
     * // Fetch zero or more 'E'
-    * const e = await prisma.e.findMany()
+    * const results = await prisma.e.findMany()
     * \`\`\`
     */
   get e(): Prisma.EDelegate<GlobalReject>;
@@ -2165,13 +2165,13 @@ export namespace Prisma {
      * @param {PostFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'Post'
-     * const post = await prisma.post.findMany()
+     * const results = await prisma.post.findMany()
      *         
      * // Get first 10 'Post'
-     * const post = await prisma.post.findMany({ take: 10 })
+     * const results = await prisma.post.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const postWithIdOnly = await prisma.post.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.post.findMany({ select: { id: true } })
     **/
     findMany<T extends PostFindManyArgs>(
       args?: SelectSubset<T, PostFindManyArgs>
@@ -2194,15 +2194,14 @@ export namespace Prisma {
 
     /**
      * Create many 'Post'.
-     *       @param {PostCreateManyArgs} args - Arguments to create many 'Post'.
-     *       @example
-     *       // Create many 'Post'
-     *       const post = await prisma.post.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {PostCreateManyArgs} args - Arguments to create many 'Post'.
+     * @example
+     * // Create many 'Post'
+     * const results = await prisma.post.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends PostCreateManyArgs>(
       args?: SelectSubset<T, PostCreateManyArgs>
@@ -2213,7 +2212,7 @@ export namespace Prisma {
      * @param {PostDeleteArgs} args - Arguments to delete one Post.
      * @example
      * // Delete one Post
-     * const Post = await prisma.post.delete({
+     * await prisma.post.delete({
      *   where: {
      *     // ... filter to delete one Post
      *   }
@@ -2263,7 +2262,7 @@ export namespace Prisma {
      * @param {PostUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'Post'
-     * const post = await prisma.post.updateMany({
+     * const results = await prisma.post.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -2301,7 +2300,7 @@ export namespace Prisma {
      * Find zero or more 'Post' that matches the filter.
      * @param {PostFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const post = await prisma.post.findRaw({
+     * const results = await prisma.post.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -2313,7 +2312,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'Post'.
      * @param {PostAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const post = await prisma.post.aggregateRaw({
+     * const results = await prisma.post.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -3208,13 +3207,13 @@ export namespace Prisma {
      * @param {UserFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'User'
-     * const user = await prisma.user.findMany()
+     * const results = await prisma.user.findMany()
      *         
      * // Get first 10 'User'
-     * const user = await prisma.user.findMany({ take: 10 })
+     * const results = await prisma.user.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const userWithIdOnly = await prisma.user.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.user.findMany({ select: { id: true } })
     **/
     findMany<T extends UserFindManyArgs>(
       args?: SelectSubset<T, UserFindManyArgs>
@@ -3237,15 +3236,14 @@ export namespace Prisma {
 
     /**
      * Create many 'User'.
-     *       @param {UserCreateManyArgs} args - Arguments to create many 'User'.
-     *       @example
-     *       // Create many 'User'
-     *       const user = await prisma.user.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {UserCreateManyArgs} args - Arguments to create many 'User'.
+     * @example
+     * // Create many 'User'
+     * const results = await prisma.user.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends UserCreateManyArgs>(
       args?: SelectSubset<T, UserCreateManyArgs>
@@ -3256,7 +3254,7 @@ export namespace Prisma {
      * @param {UserDeleteArgs} args - Arguments to delete one User.
      * @example
      * // Delete one User
-     * const User = await prisma.user.delete({
+     * await prisma.user.delete({
      *   where: {
      *     // ... filter to delete one User
      *   }
@@ -3306,7 +3304,7 @@ export namespace Prisma {
      * @param {UserUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'User'
-     * const user = await prisma.user.updateMany({
+     * const results = await prisma.user.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -3344,7 +3342,7 @@ export namespace Prisma {
      * Find zero or more 'User' that matches the filter.
      * @param {UserFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const user = await prisma.user.findRaw({
+     * const results = await prisma.user.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -3356,7 +3354,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'User'.
      * @param {UserAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const user = await prisma.user.aggregateRaw({
+     * const results = await prisma.user.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -4132,13 +4130,13 @@ export namespace Prisma {
      * @param {EmbedHolderFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'EmbedHolder'
-     * const embedholder = await prisma.embedHolder.findMany()
+     * const results = await prisma.embedHolder.findMany()
      *         
      * // Get first 10 'EmbedHolder'
-     * const embedholder = await prisma.embedHolder.findMany({ take: 10 })
+     * const results = await prisma.embedHolder.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const embedHolderWithIdOnly = await prisma.embedHolder.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.embedHolder.findMany({ select: { id: true } })
     **/
     findMany<T extends EmbedHolderFindManyArgs>(
       args?: SelectSubset<T, EmbedHolderFindManyArgs>
@@ -4161,15 +4159,14 @@ export namespace Prisma {
 
     /**
      * Create many 'EmbedHolder'.
-     *       @param {EmbedHolderCreateManyArgs} args - Arguments to create many 'EmbedHolder'.
-     *       @example
-     *       // Create many 'EmbedHolder'
-     *       const embedHolder = await prisma.embedHolder.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {EmbedHolderCreateManyArgs} args - Arguments to create many 'EmbedHolder'.
+     * @example
+     * // Create many 'EmbedHolder'
+     * const results = await prisma.embedHolder.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends EmbedHolderCreateManyArgs>(
       args?: SelectSubset<T, EmbedHolderCreateManyArgs>
@@ -4180,7 +4177,7 @@ export namespace Prisma {
      * @param {EmbedHolderDeleteArgs} args - Arguments to delete one EmbedHolder.
      * @example
      * // Delete one EmbedHolder
-     * const EmbedHolder = await prisma.embedHolder.delete({
+     * await prisma.embedHolder.delete({
      *   where: {
      *     // ... filter to delete one EmbedHolder
      *   }
@@ -4230,7 +4227,7 @@ export namespace Prisma {
      * @param {EmbedHolderUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'EmbedHolder'
-     * const embedHolder = await prisma.embedHolder.updateMany({
+     * const results = await prisma.embedHolder.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -4268,7 +4265,7 @@ export namespace Prisma {
      * Find zero or more 'EmbedHolder' that matches the filter.
      * @param {EmbedHolderFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const embedHolder = await prisma.embedHolder.findRaw({
+     * const results = await prisma.embedHolder.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -4280,7 +4277,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'EmbedHolder'.
      * @param {EmbedHolderAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const embedHolder = await prisma.embedHolder.aggregateRaw({
+     * const results = await prisma.embedHolder.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -5165,13 +5162,13 @@ export namespace Prisma {
      * @param {MFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'M'
-     * const m = await prisma.m.findMany()
+     * const results = await prisma.m.findMany()
      *         
      * // Get first 10 'M'
-     * const m = await prisma.m.findMany({ take: 10 })
+     * const results = await prisma.m.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const mWithIdOnly = await prisma.m.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.m.findMany({ select: { id: true } })
     **/
     findMany<T extends MFindManyArgs>(
       args?: SelectSubset<T, MFindManyArgs>
@@ -5194,15 +5191,14 @@ export namespace Prisma {
 
     /**
      * Create many 'M'.
-     *       @param {MCreateManyArgs} args - Arguments to create many 'M'.
-     *       @example
-     *       // Create many 'M'
-     *       const m = await prisma.m.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {MCreateManyArgs} args - Arguments to create many 'M'.
+     * @example
+     * // Create many 'M'
+     * const results = await prisma.m.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends MCreateManyArgs>(
       args?: SelectSubset<T, MCreateManyArgs>
@@ -5213,7 +5209,7 @@ export namespace Prisma {
      * @param {MDeleteArgs} args - Arguments to delete one M.
      * @example
      * // Delete one M
-     * const M = await prisma.m.delete({
+     * await prisma.m.delete({
      *   where: {
      *     // ... filter to delete one M
      *   }
@@ -5263,7 +5259,7 @@ export namespace Prisma {
      * @param {MUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'M'
-     * const m = await prisma.m.updateMany({
+     * const results = await prisma.m.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -5301,7 +5297,7 @@ export namespace Prisma {
      * Find zero or more 'M' that matches the filter.
      * @param {MFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const m = await prisma.m.findRaw({
+     * const results = await prisma.m.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -5313,7 +5309,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'M'.
      * @param {MAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const m = await prisma.m.aggregateRaw({
+     * const results = await prisma.m.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -6192,13 +6188,13 @@ export namespace Prisma {
      * @param {NFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'N'
-     * const n = await prisma.n.findMany()
+     * const results = await prisma.n.findMany()
      *         
      * // Get first 10 'N'
-     * const n = await prisma.n.findMany({ take: 10 })
+     * const results = await prisma.n.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const nWithIdOnly = await prisma.n.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.n.findMany({ select: { id: true } })
     **/
     findMany<T extends NFindManyArgs>(
       args?: SelectSubset<T, NFindManyArgs>
@@ -6221,15 +6217,14 @@ export namespace Prisma {
 
     /**
      * Create many 'N'.
-     *       @param {NCreateManyArgs} args - Arguments to create many 'N'.
-     *       @example
-     *       // Create many 'N'
-     *       const n = await prisma.n.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {NCreateManyArgs} args - Arguments to create many 'N'.
+     * @example
+     * // Create many 'N'
+     * const results = await prisma.n.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends NCreateManyArgs>(
       args?: SelectSubset<T, NCreateManyArgs>
@@ -6240,7 +6235,7 @@ export namespace Prisma {
      * @param {NDeleteArgs} args - Arguments to delete one N.
      * @example
      * // Delete one N
-     * const N = await prisma.n.delete({
+     * await prisma.n.delete({
      *   where: {
      *     // ... filter to delete one N
      *   }
@@ -6290,7 +6285,7 @@ export namespace Prisma {
      * @param {NUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'N'
-     * const n = await prisma.n.updateMany({
+     * const results = await prisma.n.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -6328,7 +6323,7 @@ export namespace Prisma {
      * Find zero or more 'N' that matches the filter.
      * @param {NFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const n = await prisma.n.findRaw({
+     * const results = await prisma.n.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -6340,7 +6335,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'N'.
      * @param {NAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const n = await prisma.n.aggregateRaw({
+     * const results = await prisma.n.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -7215,13 +7210,13 @@ export namespace Prisma {
      * @param {OneOptionalFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'OneOptional'
-     * const oneoptional = await prisma.oneOptional.findMany()
+     * const results = await prisma.oneOptional.findMany()
      *         
      * // Get first 10 'OneOptional'
-     * const oneoptional = await prisma.oneOptional.findMany({ take: 10 })
+     * const results = await prisma.oneOptional.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const oneOptionalWithIdOnly = await prisma.oneOptional.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.oneOptional.findMany({ select: { id: true } })
     **/
     findMany<T extends OneOptionalFindManyArgs>(
       args?: SelectSubset<T, OneOptionalFindManyArgs>
@@ -7244,15 +7239,14 @@ export namespace Prisma {
 
     /**
      * Create many 'OneOptional'.
-     *       @param {OneOptionalCreateManyArgs} args - Arguments to create many 'OneOptional'.
-     *       @example
-     *       // Create many 'OneOptional'
-     *       const oneOptional = await prisma.oneOptional.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {OneOptionalCreateManyArgs} args - Arguments to create many 'OneOptional'.
+     * @example
+     * // Create many 'OneOptional'
+     * const results = await prisma.oneOptional.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends OneOptionalCreateManyArgs>(
       args?: SelectSubset<T, OneOptionalCreateManyArgs>
@@ -7263,7 +7257,7 @@ export namespace Prisma {
      * @param {OneOptionalDeleteArgs} args - Arguments to delete one OneOptional.
      * @example
      * // Delete one OneOptional
-     * const OneOptional = await prisma.oneOptional.delete({
+     * await prisma.oneOptional.delete({
      *   where: {
      *     // ... filter to delete one OneOptional
      *   }
@@ -7313,7 +7307,7 @@ export namespace Prisma {
      * @param {OneOptionalUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'OneOptional'
-     * const oneOptional = await prisma.oneOptional.updateMany({
+     * const results = await prisma.oneOptional.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -7351,7 +7345,7 @@ export namespace Prisma {
      * Find zero or more 'OneOptional' that matches the filter.
      * @param {OneOptionalFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const oneOptional = await prisma.oneOptional.findRaw({
+     * const results = await prisma.oneOptional.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -7363,7 +7357,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'OneOptional'.
      * @param {OneOptionalAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const oneOptional = await prisma.oneOptional.aggregateRaw({
+     * const results = await prisma.oneOptional.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -8242,13 +8236,13 @@ export namespace Prisma {
      * @param {ManyRequiredFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'ManyRequired'
-     * const manyrequired = await prisma.manyRequired.findMany()
+     * const results = await prisma.manyRequired.findMany()
      *         
      * // Get first 10 'ManyRequired'
-     * const manyrequired = await prisma.manyRequired.findMany({ take: 10 })
+     * const results = await prisma.manyRequired.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const manyRequiredWithIdOnly = await prisma.manyRequired.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.manyRequired.findMany({ select: { id: true } })
     **/
     findMany<T extends ManyRequiredFindManyArgs>(
       args?: SelectSubset<T, ManyRequiredFindManyArgs>
@@ -8271,15 +8265,14 @@ export namespace Prisma {
 
     /**
      * Create many 'ManyRequired'.
-     *       @param {ManyRequiredCreateManyArgs} args - Arguments to create many 'ManyRequired'.
-     *       @example
-     *       // Create many 'ManyRequired'
-     *       const manyRequired = await prisma.manyRequired.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {ManyRequiredCreateManyArgs} args - Arguments to create many 'ManyRequired'.
+     * @example
+     * // Create many 'ManyRequired'
+     * const results = await prisma.manyRequired.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends ManyRequiredCreateManyArgs>(
       args?: SelectSubset<T, ManyRequiredCreateManyArgs>
@@ -8290,7 +8283,7 @@ export namespace Prisma {
      * @param {ManyRequiredDeleteArgs} args - Arguments to delete one ManyRequired.
      * @example
      * // Delete one ManyRequired
-     * const ManyRequired = await prisma.manyRequired.delete({
+     * await prisma.manyRequired.delete({
      *   where: {
      *     // ... filter to delete one ManyRequired
      *   }
@@ -8340,7 +8333,7 @@ export namespace Prisma {
      * @param {ManyRequiredUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'ManyRequired'
-     * const manyRequired = await prisma.manyRequired.updateMany({
+     * const results = await prisma.manyRequired.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -8378,7 +8371,7 @@ export namespace Prisma {
      * Find zero or more 'ManyRequired' that matches the filter.
      * @param {ManyRequiredFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const manyRequired = await prisma.manyRequired.findRaw({
+     * const results = await prisma.manyRequired.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -8390,7 +8383,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'ManyRequired'.
      * @param {ManyRequiredAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const manyRequired = await prisma.manyRequired.aggregateRaw({
+     * const results = await prisma.manyRequired.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -9269,13 +9262,13 @@ export namespace Prisma {
      * @param {OptionalSide1FindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'OptionalSide1'
-     * const optionalside1 = await prisma.optionalSide1.findMany()
+     * const results = await prisma.optionalSide1.findMany()
      *         
      * // Get first 10 'OptionalSide1'
-     * const optionalside1 = await prisma.optionalSide1.findMany({ take: 10 })
+     * const results = await prisma.optionalSide1.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const optionalSide1WithIdOnly = await prisma.optionalSide1.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.optionalSide1.findMany({ select: { id: true } })
     **/
     findMany<T extends OptionalSide1FindManyArgs>(
       args?: SelectSubset<T, OptionalSide1FindManyArgs>
@@ -9298,15 +9291,14 @@ export namespace Prisma {
 
     /**
      * Create many 'OptionalSide1'.
-     *       @param {OptionalSide1CreateManyArgs} args - Arguments to create many 'OptionalSide1'.
-     *       @example
-     *       // Create many 'OptionalSide1'
-     *       const optionalSide1 = await prisma.optionalSide1.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {OptionalSide1CreateManyArgs} args - Arguments to create many 'OptionalSide1'.
+     * @example
+     * // Create many 'OptionalSide1'
+     * const results = await prisma.optionalSide1.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends OptionalSide1CreateManyArgs>(
       args?: SelectSubset<T, OptionalSide1CreateManyArgs>
@@ -9317,7 +9309,7 @@ export namespace Prisma {
      * @param {OptionalSide1DeleteArgs} args - Arguments to delete one OptionalSide1.
      * @example
      * // Delete one OptionalSide1
-     * const OptionalSide1 = await prisma.optionalSide1.delete({
+     * await prisma.optionalSide1.delete({
      *   where: {
      *     // ... filter to delete one OptionalSide1
      *   }
@@ -9367,7 +9359,7 @@ export namespace Prisma {
      * @param {OptionalSide1UpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'OptionalSide1'
-     * const optionalSide1 = await prisma.optionalSide1.updateMany({
+     * const results = await prisma.optionalSide1.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -9405,7 +9397,7 @@ export namespace Prisma {
      * Find zero or more 'OptionalSide1' that matches the filter.
      * @param {OptionalSide1FindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const optionalSide1 = await prisma.optionalSide1.findRaw({
+     * const results = await prisma.optionalSide1.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -9417,7 +9409,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'OptionalSide1'.
      * @param {OptionalSide1AggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const optionalSide1 = await prisma.optionalSide1.aggregateRaw({
+     * const results = await prisma.optionalSide1.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -10288,13 +10280,13 @@ export namespace Prisma {
      * @param {OptionalSide2FindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'OptionalSide2'
-     * const optionalside2 = await prisma.optionalSide2.findMany()
+     * const results = await prisma.optionalSide2.findMany()
      *         
      * // Get first 10 'OptionalSide2'
-     * const optionalside2 = await prisma.optionalSide2.findMany({ take: 10 })
+     * const results = await prisma.optionalSide2.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const optionalSide2WithIdOnly = await prisma.optionalSide2.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.optionalSide2.findMany({ select: { id: true } })
     **/
     findMany<T extends OptionalSide2FindManyArgs>(
       args?: SelectSubset<T, OptionalSide2FindManyArgs>
@@ -10317,15 +10309,14 @@ export namespace Prisma {
 
     /**
      * Create many 'OptionalSide2'.
-     *       @param {OptionalSide2CreateManyArgs} args - Arguments to create many 'OptionalSide2'.
-     *       @example
-     *       // Create many 'OptionalSide2'
-     *       const optionalSide2 = await prisma.optionalSide2.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {OptionalSide2CreateManyArgs} args - Arguments to create many 'OptionalSide2'.
+     * @example
+     * // Create many 'OptionalSide2'
+     * const results = await prisma.optionalSide2.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends OptionalSide2CreateManyArgs>(
       args?: SelectSubset<T, OptionalSide2CreateManyArgs>
@@ -10336,7 +10327,7 @@ export namespace Prisma {
      * @param {OptionalSide2DeleteArgs} args - Arguments to delete one OptionalSide2.
      * @example
      * // Delete one OptionalSide2
-     * const OptionalSide2 = await prisma.optionalSide2.delete({
+     * await prisma.optionalSide2.delete({
      *   where: {
      *     // ... filter to delete one OptionalSide2
      *   }
@@ -10386,7 +10377,7 @@ export namespace Prisma {
      * @param {OptionalSide2UpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'OptionalSide2'
-     * const optionalSide2 = await prisma.optionalSide2.updateMany({
+     * const results = await prisma.optionalSide2.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -10424,7 +10415,7 @@ export namespace Prisma {
      * Find zero or more 'OptionalSide2' that matches the filter.
      * @param {OptionalSide2FindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const optionalSide2 = await prisma.optionalSide2.findRaw({
+     * const results = await prisma.optionalSide2.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -10436,7 +10427,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'OptionalSide2'.
      * @param {OptionalSide2AggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const optionalSide2 = await prisma.optionalSide2.aggregateRaw({
+     * const results = await prisma.optionalSide2.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -11247,13 +11238,13 @@ export namespace Prisma {
      * @param {AFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'A'
-     * const a = await prisma.a.findMany()
+     * const results = await prisma.a.findMany()
      *         
      * // Get first 10 'A'
-     * const a = await prisma.a.findMany({ take: 10 })
+     * const results = await prisma.a.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const aWithIdOnly = await prisma.a.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.a.findMany({ select: { id: true } })
     **/
     findMany<T extends AFindManyArgs>(
       args?: SelectSubset<T, AFindManyArgs>
@@ -11276,15 +11267,14 @@ export namespace Prisma {
 
     /**
      * Create many 'A'.
-     *       @param {ACreateManyArgs} args - Arguments to create many 'A'.
-     *       @example
-     *       // Create many 'A'
-     *       const a = await prisma.a.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {ACreateManyArgs} args - Arguments to create many 'A'.
+     * @example
+     * // Create many 'A'
+     * const results = await prisma.a.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends ACreateManyArgs>(
       args?: SelectSubset<T, ACreateManyArgs>
@@ -11295,7 +11285,7 @@ export namespace Prisma {
      * @param {ADeleteArgs} args - Arguments to delete one A.
      * @example
      * // Delete one A
-     * const A = await prisma.a.delete({
+     * await prisma.a.delete({
      *   where: {
      *     // ... filter to delete one A
      *   }
@@ -11345,7 +11335,7 @@ export namespace Prisma {
      * @param {AUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'A'
-     * const a = await prisma.a.updateMany({
+     * const results = await prisma.a.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -11383,7 +11373,7 @@ export namespace Prisma {
      * Find zero or more 'A' that matches the filter.
      * @param {AFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const a = await prisma.a.findRaw({
+     * const results = await prisma.a.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -11395,7 +11385,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'A'.
      * @param {AAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const a = await prisma.a.aggregateRaw({
+     * const results = await prisma.a.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -12137,13 +12127,13 @@ export namespace Prisma {
      * @param {BFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'B'
-     * const b = await prisma.b.findMany()
+     * const results = await prisma.b.findMany()
      *         
      * // Get first 10 'B'
-     * const b = await prisma.b.findMany({ take: 10 })
+     * const results = await prisma.b.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const bWithIdOnly = await prisma.b.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.b.findMany({ select: { id: true } })
     **/
     findMany<T extends BFindManyArgs>(
       args?: SelectSubset<T, BFindManyArgs>
@@ -12166,15 +12156,14 @@ export namespace Prisma {
 
     /**
      * Create many 'B'.
-     *       @param {BCreateManyArgs} args - Arguments to create many 'B'.
-     *       @example
-     *       // Create many 'B'
-     *       const b = await prisma.b.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {BCreateManyArgs} args - Arguments to create many 'B'.
+     * @example
+     * // Create many 'B'
+     * const results = await prisma.b.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends BCreateManyArgs>(
       args?: SelectSubset<T, BCreateManyArgs>
@@ -12185,7 +12174,7 @@ export namespace Prisma {
      * @param {BDeleteArgs} args - Arguments to delete one B.
      * @example
      * // Delete one B
-     * const B = await prisma.b.delete({
+     * await prisma.b.delete({
      *   where: {
      *     // ... filter to delete one B
      *   }
@@ -12235,7 +12224,7 @@ export namespace Prisma {
      * @param {BUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'B'
-     * const b = await prisma.b.updateMany({
+     * const results = await prisma.b.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -12273,7 +12262,7 @@ export namespace Prisma {
      * Find zero or more 'B' that matches the filter.
      * @param {BFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const b = await prisma.b.findRaw({
+     * const results = await prisma.b.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -12285,7 +12274,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'B'.
      * @param {BAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const b = await prisma.b.aggregateRaw({
+     * const results = await prisma.b.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -13021,13 +13010,13 @@ export namespace Prisma {
      * @param {CFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'C'
-     * const c = await prisma.c.findMany()
+     * const results = await prisma.c.findMany()
      *         
      * // Get first 10 'C'
-     * const c = await prisma.c.findMany({ take: 10 })
+     * const results = await prisma.c.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const cWithIdOnly = await prisma.c.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.c.findMany({ select: { id: true } })
     **/
     findMany<T extends CFindManyArgs>(
       args?: SelectSubset<T, CFindManyArgs>
@@ -13050,15 +13039,14 @@ export namespace Prisma {
 
     /**
      * Create many 'C'.
-     *       @param {CCreateManyArgs} args - Arguments to create many 'C'.
-     *       @example
-     *       // Create many 'C'
-     *       const c = await prisma.c.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {CCreateManyArgs} args - Arguments to create many 'C'.
+     * @example
+     * // Create many 'C'
+     * const results = await prisma.c.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends CCreateManyArgs>(
       args?: SelectSubset<T, CCreateManyArgs>
@@ -13069,7 +13057,7 @@ export namespace Prisma {
      * @param {CDeleteArgs} args - Arguments to delete one C.
      * @example
      * // Delete one C
-     * const C = await prisma.c.delete({
+     * await prisma.c.delete({
      *   where: {
      *     // ... filter to delete one C
      *   }
@@ -13119,7 +13107,7 @@ export namespace Prisma {
      * @param {CUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'C'
-     * const c = await prisma.c.updateMany({
+     * const results = await prisma.c.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -13157,7 +13145,7 @@ export namespace Prisma {
      * Find zero or more 'C' that matches the filter.
      * @param {CFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const c = await prisma.c.findRaw({
+     * const results = await prisma.c.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -13169,7 +13157,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'C'.
      * @param {CAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const c = await prisma.c.aggregateRaw({
+     * const results = await prisma.c.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -13889,13 +13877,13 @@ export namespace Prisma {
      * @param {DFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'D'
-     * const d = await prisma.d.findMany()
+     * const results = await prisma.d.findMany()
      *         
      * // Get first 10 'D'
-     * const d = await prisma.d.findMany({ take: 10 })
+     * const results = await prisma.d.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const dWithIdOnly = await prisma.d.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.d.findMany({ select: { id: true } })
     **/
     findMany<T extends DFindManyArgs>(
       args?: SelectSubset<T, DFindManyArgs>
@@ -13918,15 +13906,14 @@ export namespace Prisma {
 
     /**
      * Create many 'D'.
-     *       @param {DCreateManyArgs} args - Arguments to create many 'D'.
-     *       @example
-     *       // Create many 'D'
-     *       const d = await prisma.d.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {DCreateManyArgs} args - Arguments to create many 'D'.
+     * @example
+     * // Create many 'D'
+     * const results = await prisma.d.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends DCreateManyArgs>(
       args?: SelectSubset<T, DCreateManyArgs>
@@ -13937,7 +13924,7 @@ export namespace Prisma {
      * @param {DDeleteArgs} args - Arguments to delete one D.
      * @example
      * // Delete one D
-     * const D = await prisma.d.delete({
+     * await prisma.d.delete({
      *   where: {
      *     // ... filter to delete one D
      *   }
@@ -13987,7 +13974,7 @@ export namespace Prisma {
      * @param {DUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'D'
-     * const d = await prisma.d.updateMany({
+     * const results = await prisma.d.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -14025,7 +14012,7 @@ export namespace Prisma {
      * Find zero or more 'D' that matches the filter.
      * @param {DFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const d = await prisma.d.findRaw({
+     * const results = await prisma.d.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -14037,7 +14024,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'D'.
      * @param {DAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const d = await prisma.d.aggregateRaw({
+     * const results = await prisma.d.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -14749,13 +14736,13 @@ export namespace Prisma {
      * @param {EFindManyArgs=} args - Arguments to filter and select certain fields only.
      * @example
      * // Get all 'E'
-     * const e = await prisma.e.findMany()
+     * const results = await prisma.e.findMany()
      *         
      * // Get first 10 'E'
-     * const e = await prisma.e.findMany({ take: 10 })
+     * const results = await prisma.e.findMany({ take: 10 })
      * 
      * // Only select the \`id\`
-     * const eWithIdOnly = await prisma.e.findMany({ select: { id: true } })
+     * const resultsWithIdOnly = await prisma.e.findMany({ select: { id: true } })
     **/
     findMany<T extends EFindManyArgs>(
       args?: SelectSubset<T, EFindManyArgs>
@@ -14778,15 +14765,14 @@ export namespace Prisma {
 
     /**
      * Create many 'E'.
-     *       @param {ECreateManyArgs} args - Arguments to create many 'E'.
-     *       @example
-     *       // Create many 'E'
-     *       const e = await prisma.e.createMany({
-     *         data: {
-     *           // ... provide data here
-     *         }
-     *       })
-     *     
+     * @param {ECreateManyArgs} args - Arguments to create many 'E'.
+     * @example
+     * // Create many 'E'
+     * const results = await prisma.e.createMany({
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
     **/
     createMany<T extends ECreateManyArgs>(
       args?: SelectSubset<T, ECreateManyArgs>
@@ -14797,7 +14783,7 @@ export namespace Prisma {
      * @param {EDeleteArgs} args - Arguments to delete one E.
      * @example
      * // Delete one E
-     * const E = await prisma.e.delete({
+     * await prisma.e.delete({
      *   where: {
      *     // ... filter to delete one E
      *   }
@@ -14847,7 +14833,7 @@ export namespace Prisma {
      * @param {EUpdateManyArgs} args - Arguments to update one or more rows.
      * @example
      * // Update many 'E'
-     * const e = await prisma.e.updateMany({
+     * const results = await prisma.e.updateMany({
      *   where: {
      *     // ... provide filter here
      *   },
@@ -14885,7 +14871,7 @@ export namespace Prisma {
      * Find zero or more 'E' that matches the filter.
      * @param {EFindRawArgs} args - Select which filters you would like to apply.
      * @example
-     * const e = await prisma.e.findRaw({
+     * const results = await prisma.e.findRaw({
      *   filter: { age: { $gt: 25 } } 
      * })
     **/
@@ -14897,7 +14883,7 @@ export namespace Prisma {
      * Perform aggregation operations on 'E'.
      * @param {EAggregateRawArgs} args - Select which aggregations you would like to apply.
      * @example
-     * const e = await prisma.e.aggregateRaw({
+     * const results = await prisma.e.aggregateRaw({
      *   pipeline: [
      *     { $match: { status: "registered" } },
      *     { $group: { _id: "$country", total: { $sum: 1 } } }

@@ -94,11 +94,12 @@ export const JSDocs: JSDocsType = {
     },
   },
   createMany: {
-    body: (ctx) => `Create many '${ctx.singular}'.
+    body: (ctx) => dedent`
+      Create many '${ctx.singular}'.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many '${ctx.singular}'.
       @example
       // Create many '${ctx.singular}'
-      const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+      const results = await ${ctx.method}({
         data: {
           // ... provide data here
         }
@@ -150,7 +151,7 @@ export const JSDocs: JSDocsType = {
     body: (ctx) => {
       const onlySelect = ctx.firstScalar
         ? `\n// Only select the \`${ctx.firstScalar.name}\`
-const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ select: { ${
+const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({ select: { ${
             ctx.firstScalar.name
           }: true } })`
         : ''
@@ -164,10 +165,10 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
         )}=} args - Arguments to filter and select certain fields only.
         @example
         // Get all '${ctx.singular}'
-        const ${ctx.singular.toLowerCase()} = await ${ctx.method}()
+        const results = await ${ctx.method}()
                 
         // Get first 10 '${ctx.singular}'
-        const ${ctx.singular.toLowerCase()} = await ${ctx.method}({ take: 10 })
+        const results = await ${ctx.method}({ take: 10 })
         ${onlySelect}
       `
     },
@@ -231,7 +232,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to delete one ${ctx.singular}.
       @example
       // Delete one ${ctx.singular}
-      const ${ctx.singular} = await ${ctx.method}({
+      await ${ctx.method}({
         where: {
           // ... filter to delete one ${ctx.singular}
         }
@@ -308,7 +309,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one or more rows.
       @example
       // Update many '${ctx.singular}'
-      const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+      const results = await ${ctx.method}({
         where: {
           // ... provide filter here
         },
@@ -343,7 +344,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
       Perform aggregation operations on '${ctx.singular}'.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which aggregations you would like to apply.
       @example
-      const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+      const results = await ${ctx.method}({
         pipeline: [
           { $match: { status: "registered" } },
           { $group: { _id: "$country", total: { $sum: 1 } } }
@@ -362,7 +363,7 @@ const ${lowerCase(ctx.mapping.model)}With${capitalize(ctx.firstScalar.name)}Only
       Find zero or more '${ctx.singular}' that matches the filter.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
       @example
-      const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+      const results = await ${ctx.method}({
         filter: { age: { $gt: 25 } } 
       })
     `,

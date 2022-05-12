@@ -145,7 +145,7 @@ export class PrismaClientClass implements Generatable {
  * \`\`\`
  * const prisma = new PrismaClient()
  * // Fetch zero or more '${capitalize(example.model)}'
- * const ${lowerCase(example.model)} = await prisma.${lowerCase(example.model)}.findMany()
+ * const results = await prisma.${lowerCase(example.model)}.findMany()
  * \`\`\`
  *
  * 
@@ -228,7 +228,7 @@ ${[
   * Example usage:
   * \`\`\`ts
   * // Fetch zero or more '${capitalize(m.model)}'
-  * const ${lowerCase(m.model)} = await prisma.${methodName}.findMany()
+  * const results = await prisma.${methodName}.findMany()
   * \`\`\`
   */
 get ${methodName}(): Prisma.${m.model}Delegate<GlobalReject>;`
