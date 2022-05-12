@@ -1,8 +1,7 @@
 {
-  "extends": "../../tsconfig.build.json",
+  "extends": "../../tsconfig.build.regular.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "emitDeclarationOnly": true
+    "outDir": "dist"
   },
   "include": ["src"],
   // to not copy local engines to dist

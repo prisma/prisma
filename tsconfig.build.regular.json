@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "lib": ["esnext"],
+    "lib": ["es2018"],
     "esModuleInterop": true,
     "isolatedModules": true,
     "sourceMap": true,
@@ -14,7 +14,10 @@
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
     "useUnknownInCatchVariables": false,
-    "skipDefaultLibCheck": true
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+
+    "emitDeclarationOnly": true
   },
   "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
 }

@@ -1,20 +1,20 @@
 import stripAnsi from 'strip-ansi'
 
-import { getLogs } from '..'
 import { sanitizeTestLogs } from '../util'
 
 describe('debug', () => {
-  process.env.DEBUG = ''
-  const DebugLib = require('../')
-  const Debug = DebugLib.Debug
-  const getLogs = DebugLib.getLogs
+  test('empty env var works as expected', async () => {
+    process.env.DEBUG = ''
 
-  test('* works as expected', () => {
+    const { Debug, getLogs } = await import('../index')
+
     const debug = Debug('my-namespace')
     const logs: string[] = []
+
     debug.log = (...args) => {
-      logs.push(stripAnsi(args[0]).trimStart())
+      logs.push(stripAnsi(`${args[0]}${args[1]}`).trim())
     }
+
     debug('Does it even log?')
     debug('I dont know')
 

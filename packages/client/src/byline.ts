@@ -26,11 +26,11 @@ import util from 'util'
 
 // convenience API
 export default function byline(readStream, options?: any) {
-  return module.exports.createStream(readStream, options)
+  return createStream(readStream, options)
 }
 
 // basic API
-module.exports.createStream = function (readStream, options) {
+export function createStream(readStream, options) {
   if (readStream) {
     return createLineStream(readStream, options)
   } else {
@@ -54,9 +54,7 @@ export function createLineStream(readStream, options) {
 // using the new node v0.10 "streams2" API
 //
 
-module.exports.LineStream = LineStream
-
-function LineStream(this: any, options) {
+export function LineStream(this: any, options) {
   stream.Transform.call(this, options)
   options = options || {}
 
