@@ -1,4 +1,6 @@
-export default () => [
+import { defineMatrix } from '../_utils/defineMatrix'
+
+export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
@@ -19,7 +21,7 @@ export default () => [
       previewFeatures: '"filterJson"',
     },
   ],
-]
+])
 /* Each test suite gets its `TestSuiteConfig` thanks to `getTestSuiteConfigs`.
    `getTestSuiteConfigs` gives you `TestSuiteConfig[]`, the matrix cross-product.
   `_schema.ts` is then inflated with that cross-product, see example inputs below:

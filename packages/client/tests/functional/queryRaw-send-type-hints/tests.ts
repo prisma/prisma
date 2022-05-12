@@ -1,11 +1,11 @@
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // @ts-ignore
 declare let prisma: import('@prisma/client').PrismaClient
 // @ts-ignore
 declare let Prisma: typeof import('@prisma/client').Prisma
 
-setupTestSuiteMatrix((suiteConfig) => {
+testMatrix.setupTestSuite((suiteConfig) => {
   test('Buffer ($queryRaw)', async () => {
     if (suiteConfig['provider'] === 'mysql') {
       await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES (1, ${Buffer.from('hello')})`

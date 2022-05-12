@@ -608,6 +608,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
+      fp-ts: 2.12.1
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
       globby: 11.1.0
@@ -658,6 +659,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
+      fp-ts: 2.12.1
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
       globby: 11.1.0
@@ -4186,6 +4188,10 @@ packages:
     resolution: {integrity: sha512-buRG0fpBtRHSTCOASe6hD258tEubFoRLb4ZNA6NxMVHNw2gOcwHo9wyablzMzOA5z9xA9L1KNjk/Nt6MT9aYow==}
     engines: {node: '>= 0.6'}
     dev: true
+
+  /fp-ts/2.12.1:
+    resolution: {integrity: sha512-oxvgqUYR6O9VkKXrxkJ0NOyU0FrE705MeqgBUMEPWyTu6Pwn768cJbHChw2XOBlgFLKfIHxjr2OOBFpv2mUGZw==}
+    dev: false
 
   /fresh/0.5.2:
     resolution: {integrity: sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=}

@@ -1,10 +1,9 @@
-import testMatrix from '../_matrix'
+import { idForProvider } from '../../_utils/idForProvider'
 
-export default testMatrix.setupSchema(({ provider, providerFeatures, previewFeatures, id }) => {
+export default ({ provider }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
-    previewFeatures = [${providerFeatures}${previewFeatures}]
   }
   
   datasource db {
@@ -13,7 +12,8 @@ export default testMatrix.setupSchema(({ provider, providerFeatures, previewFeat
   }
   
   model User {
-    id ${id}
+    id ${idForProvider(provider)}
+    decimals Decimal[]
   }
   `
-})
+}

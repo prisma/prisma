@@ -78,6 +78,10 @@ function normalizeRustError(str) {
   return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
+function normalizeArtificialPanic(str) {
+  return str.replace(/(Command failed with exit code 101:) (.+) /g, '$1 prisma-engines-path ')
+}
+
 function normalizeTime(str) {
   // sometimes someting can take a few seconds when usually it's less than 1s or a few ms
   return str.replace(/ \d+ms/g, ' XXXms').replace(/ \d+(\.\d+)?s/g, ' XXXms')
@@ -139,6 +143,8 @@ module.exports = {
       normalizeDbUrl,
       normalizeRustError,
       normalizeMigrateTimestamps,
+      // artificial panic
+      normalizeArtificialPanic,
     )(message)
   },
 }
