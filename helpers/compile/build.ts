@@ -43,6 +43,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
+  mainFields: ['module', 'main'],
   ...options,
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
