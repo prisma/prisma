@@ -302,7 +302,10 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
 
   if (E.isRight(dmmfEither)) {
     debug('dmmf retrieved without errors in getDmmfBinary')
+
+    // Unlink only when no error occurs, as `sendPanic` might need the `tempDatamodelPath` later in case of errors.
     await unlinkTempDatamodelPath(options, tempDatamodelPath)()
+
     const { right: dmmf } = dmmfEither
     return dmmf
   }

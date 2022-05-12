@@ -247,7 +247,10 @@ async function getConfigBinary(options: GetConfigOptions) {
 
   if (E.isRight(configEither)) {
     debug('config data retrieved without errors in getConfigBinary')
+
+    // Unlink only when no error occurs, as `sendPanic` might need the `tempDatamodelPath` later in case of errors.
     await unlinkTempDatamodelPath(options, tempDatamodelPath)()
+
     const { right: data } = configEither
     return data
   }
