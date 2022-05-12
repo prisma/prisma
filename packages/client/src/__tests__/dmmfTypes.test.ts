@@ -33,6 +33,7 @@ const dmmf: DMMF.Document = ${JSON.stringify(sortKeys(dmmf, { deep: true }), nul
   fs.writeFileSync(target, file)
 
   try {
+    // @ts-ignore - This file is generated
     await import('./__helpers__/dmmf-types')
   } catch (e) {
     // we need to do this, as jest can't print the errors
