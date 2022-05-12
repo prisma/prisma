@@ -16,7 +16,7 @@ import {
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
-  scheduleUnlinkTempDatamodelPath,
+  unlinkTempDatamodelPath,
 } from './queryEngineCommons'
 
 const debug = Debug('prisma:getDMMF')
@@ -207,7 +207,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
 
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
-   * error handling.
+   * error handling. For instance, `tempDatamodelPath` is used when submit a Rust panic error report.
    */
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
@@ -294,10 +294,10 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   )
 
   const dmmfEither = await pipeline()
-  scheduleUnlinkTempDatamodelPath(options, tempDatamodelPath)
 
   if (E.isRight(dmmfEither)) {
     debug('dmmf retrieved without errors in getDmmfBinary')
+    await unlinkTempDatamodelPath(options, tempDatamodelPath)()
     const { right: dmmf } = dmmfEither
     return dmmf
   }

@@ -15,7 +15,7 @@ import {
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
-  scheduleUnlinkTempDatamodelPath,
+  unlinkTempDatamodelPath,
 } from './queryEngineCommons'
 
 const debug = Debug('prisma:getConfig')
@@ -172,7 +172,7 @@ async function getConfigBinary(options: GetConfigOptions) {
 
   /**
    * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
-   * error handling.
+   * error handling. For instance, `tempDatamodelPath` is used when submit a Rust panic error report.
    */
   const preliminaryEither = await preliminaryBinaryPipeline(options)()
   if (E.isLeft(preliminaryEither)) {
@@ -239,10 +239,10 @@ async function getConfigBinary(options: GetConfigOptions) {
   )
 
   const configEither = await pipeline()
-  scheduleUnlinkTempDatamodelPath(options, tempDatamodelPath)
 
   if (E.isRight(configEither)) {
     debug('config data retrieved without errors in getConfigBinary')
+    await unlinkTempDatamodelPath(options, tempDatamodelPath)()
     const { right: data } = configEither
     return data
   }

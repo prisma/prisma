@@ -13,8 +13,6 @@ if (isMacOrWindowsCI) {
   jest.setTimeout(60_000)
 }
 
-process.setMaxListeners(200)
-
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
