@@ -1,9 +1,9 @@
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-setupTestSuiteMatrix(() => {
+testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: 'user-1@email.com', age: 111, name: 'some-name-1' } })
     await prisma.user.create({ data: { email: 'user-2@email.com', age: 222, name: 'some-name-2' } })
