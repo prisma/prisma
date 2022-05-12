@@ -15,9 +15,9 @@ function debugCall(namespace: string) {
   const debugNamespace = debug(namespace)
 
   // we take over the `debugNamespace` function
-  const call = (...args: any[]) => {
+  const call = Object.assign((...args: any[]) => {
     // debug only calls log if you implement it
-    debugNamespace.log = (call as any)?.log
+    debugNamespace.log = (call as any).log
 
     // we push the args to our history of args
     if (args.length !== 0) {
@@ -31,7 +31,7 @@ function debugCall(namespace: string) {
 
     // we apply the function with no format
     return debugNamespace('', ...args)
-  }
+  }, debugNamespace)
 
   return call as debug.Debugger
 }
