@@ -42,20 +42,15 @@ const proxyBuildConfig: BuildOptions = {
     'define.amd': 'false',
   },
   plugins: [
-    fillPlugin(
-      {
-        // TODO no tree shaking on wrapper pkgs
-        '@prisma/get-platform': { contents: '' },
-        // removes un-needed code out of `chalk`
-        'supports-color': { contents: '' },
-        // these can not be exported any longer
-        './warnEnvConflicts': { contents: '' },
-        './utils/find': { contents: '' },
-      },
-      // we only trigger it on the first step (esm)
-      // because that is where tree-shaking happens
-      (options) => options.format === 'esm',
-    ),
+    fillPlugin({
+      // TODO no tree shaking on wrapper pkgs
+      '@prisma/get-platform': { contents: '' },
+      // removes un-needed code out of `chalk`
+      'supports-color': { contents: '' },
+      // these can not be exported any longer
+      './warnEnvConflicts': { contents: '' },
+      './utils/find': { contents: '' },
+    }),
   ],
   logLevel: 'error',
 }
