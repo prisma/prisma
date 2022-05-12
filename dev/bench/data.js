@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1652361209892,
+  "lastUpdate": 1652362526630,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -101022,6 +101022,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.1,
             "range": "±2.68%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 8.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 45,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1cb4bc0aaf13eb1a0a64d1e89f0407b73b7a36f3",
+          "message": "test/refactor(client): Remove logs and broken fs-extra import (#13276)\n\n* refactor: remove logs\r\n\r\n* fix: use correct fs-extra func\r\n\r\n* refactor: add better assersions and comments from example test\r\n\r\n* Update packages/client/tests/functional/_example/tests.ts\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-05-12T14:28:31+01:00",
+          "tree_id": "d6043ab0f3335cb6d1763411e30d332363f3610b",
+          "url": "https://github.com/prisma/prisma/commit/1cb4bc0aaf13eb1a0a64d1e89f0407b73b7a36f3"
+        },
+        "date": 1652362518900,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.35,
+            "range": "±6.64%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.09,
+            "range": "±2.84%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
