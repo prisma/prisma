@@ -7,15 +7,11 @@ import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
-import tmpWrite from 'temp-write'
-import { promisify } from 'util'
 
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
 const debug = Debug('prisma:getConfig')
-
-const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1_000_000_000
 
@@ -106,32 +102,29 @@ async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFor
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
-    // If we do not get the path we write the datamodel to a tmp location
-    let tempDatamodelPath: string | undefined
-    if (!options.datamodelPath) {
-      try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
-      } catch (err) {
-        throw new GetConfigError('Unable to write temp data model path')
-      }
-    }
     const engineArgs = []
 
     const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
-
-    const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], {
+    const params = {
       cwd: options.cwd,
       env: {
-        PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
         RUST_BACKTRACE: '1',
+        PRISMA_DML: undefined,
       },
       maxBuffer: MAX_BUFFER,
-    })
-
-    if (tempDatamodelPath) {
-      await unlink(tempDatamodelPath)
     }
 
+    if (options.datamodel) {
+      // @ts-ignore
+      params.env.PRISMA_DML = Buffer.from(options.datamodel).toString('base64')
+    } else if (options.datamodelPath) {
+      const schema = fs.readFileSync(options.datamodelPath, 'utf-8')
+      // @ts-ignore
+      params.env.PRISMA_DML = Buffer.from(schema).toString('base64')
+    }
+    debug(`getConfigBinary PRISMA_DML: ${params.env.PRISMA_DML}`)
+
+    const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], params)
     data = JSON.parse(result.stdout)
   } catch (e: any) {
     if (e.stderr || e.stdout) {

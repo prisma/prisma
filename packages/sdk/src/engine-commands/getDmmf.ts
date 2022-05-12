@@ -71,30 +71,28 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
 
   try {
-    let tempDatamodelPath: string | undefined = options.datamodelPath
-    if (!tempDatamodelPath) {
-      try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
-      } catch (err) {
-        throw new Error(chalk.redBright.bold('Get DMMF ') + 'unable to write temp data model path')
-      }
-    }
     const execaOptions = {
       cwd: options.cwd,
       env: {
-        PRISMA_DML_PATH: tempDatamodelPath,
+        PRISMA_DML: undefined,
         RUST_BACKTRACE: '1',
         ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
       },
       maxBuffer: MAX_BUFFER,
     }
 
+    if (options.datamodel) {
+      // @ts-ignore
+      execaOptions.env.PRISMA_DML = Buffer.from(options.datamodel).toString('base64')
+    } else if (options.datamodelPath) {
+      const schema = fs.readFileSync(options.datamodelPath, 'utf-8')
+      // @ts-ignore
+      execaOptions.env.PRISMA_DML = Buffer.from(schema).toString('base64')
+    }
+    debug(`getDmmfBinary PRISMA_DML: ${execaOptions.env.PRISMA_DML}`)
+
     const args = ['--enable-raw-queries', 'cli', 'dmmf']
     result = await execa(queryEnginePath, args, execaOptions)
-
-    if (!options.datamodelPath) {
-      await unlink(tempDatamodelPath)
-    }
 
     if (result.stdout.includes('Please wait until the') && options.retry && options.retry > 0) {
       debug('Retrying after "Please wait until"')
