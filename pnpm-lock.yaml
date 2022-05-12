@@ -337,14 +337,12 @@ importers:
       esbuild: 0.14.38
       jest: 28.1.0
       jest-junit: 13.2.0
-      ms: 2.1.3
       strip-ansi: 6.0.1
       ts-jest: 28.0.2
       typescript: 4.6.4
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.4
-      ms: 2.1.3
       strip-ansi: 6.0.1
     devDependencies:
       '@types/jest': 27.5.0
