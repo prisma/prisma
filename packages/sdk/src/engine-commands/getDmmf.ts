@@ -228,6 +228,11 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
       const execaOptions = {
         cwd: options.cwd,
         env: {
+          /**
+           * NOTE: we could potentially Base64-encode the datamodel and store it the `PRISMA_DML` environment variable,
+           * which is alternative to `PRISMA_DML_PATH`, but then chances are we'd get an `E2BIG` error when trying
+           * to serialize big datamodels.
+           */
           PRISMA_DML_PATH: tempDatamodelPath,
           RUST_BACKTRACE: '1',
           ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
