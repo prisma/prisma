@@ -33,6 +33,7 @@ export function isRustPanic(e: Error): e is RustPanic {
 
 export enum ErrorArea {
   LIFT_CLI = 'LIFT_CLI',
+  // Looks unused, could probably be removed
   PHOTON_STUDIO = 'PHOTON_STUDIO',
   INTROSPECTION_CLI = 'INTROSPECTION_CLI',
   FMT_CLI = 'FMT_CLI',
