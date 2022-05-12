@@ -13,9 +13,11 @@ const ctx = jestContext
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 describe('artificial-panic introspection', () => {
+  // backup env vars
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
+    // reset env vars to backup state
     process.env = { ...OLD_ENV }
   })
 
