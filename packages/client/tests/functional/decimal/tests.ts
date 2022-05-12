@@ -1,11 +1,11 @@
 import { Decimal } from 'decimal.js'
 
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-setupTestSuiteMatrix(() => {
+testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
     await prisma.user.create({
       data: { money: new Decimal('12.5') },

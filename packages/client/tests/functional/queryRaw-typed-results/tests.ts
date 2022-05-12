@@ -1,11 +1,11 @@
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // @ts-ignore
 declare let prisma: import('@prisma/client').PrismaClient
 // @ts-ignore
 declare let Prisma: typeof import('@prisma/client').Prisma
 
-setupTestSuiteMatrix((suiteConfig) => {
+testMatrix.setupTestSuite((suiteConfig) => {
   test('simple expression', async () => {
     const result = (await prisma.$queryRaw`SELECT 1 + 1`) as Array<Record<string, unknown>>
     expect(Object.values(result[0])[0]).toEqual(2)
