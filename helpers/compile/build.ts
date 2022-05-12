@@ -63,7 +63,7 @@ function createBuildOptions(options: BuildOptions[]) {
     map(options, (options) => [
       // we defer it so that we don't trigger glob immediately
       () => applyCjsDefaults(options),
-      // () => applyEsmDefaults(options),
+      // ... here can go more steps
     ]),
   )
 }

@@ -10,13 +10,7 @@
       "@prisma/engine-core": ["./packages/engine-core/src"],
       "@prisma/engine-core/dist/*": ["./packages/engine-core/src/*"],
       "@prisma/debug": ["./packages/debug/src"],
-      "@prisma/cli": ["./packages/cli/src"],
-      "@prisma/get-platform": ["../engines-wrapper/packages/get-platform/src"],
-      "@prisma/fetch-engine": ["../engines-wrapper/packages/fetch-engine/src"],
-      "@prisma/engines": ["../engines-wrapper/packages/engines/src"],
-      "@prisma/engines-version": ["../engines-wrapper/packages/engines-version/src"]
+      "@prisma/cli": ["./packages/cli/src"]
     }
-  },
-  "include": ["**/*", ".eslintrc.js"],
-  "exclude": ["**/dist", "**/build", "**/node_modules", "**/packages"]
+  }
 }
