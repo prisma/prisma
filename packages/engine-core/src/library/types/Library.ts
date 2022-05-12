@@ -34,4 +34,8 @@ export type Library = {
    * This returns a string representation of `DMMF.Document`
    */
   dmmf: (datamodel: string) => Promise<string>
+  /**
+   * Artificial panic function that can be used to test the query engine
+   */
+  debugPanic: (message?: string) => Promise<never>
 }

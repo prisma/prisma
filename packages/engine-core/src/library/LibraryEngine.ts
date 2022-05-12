@@ -396,6 +396,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     this.versionInfo = this.library?.version()
     return this.versionInfo?.version ?? 'unknown'
   }
+  /**
+   * Triggers an artificial panic
+   */
+  debugPanic(message?: string): Promise<never> {
+    return this.library?.debugPanic(message) as Promise<never>
+  }
 
   async request<T>(
     query: string,

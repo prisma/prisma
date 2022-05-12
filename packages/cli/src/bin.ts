@@ -17,7 +17,7 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError } from '@prisma/sdk'
+import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 
@@ -202,8 +202,8 @@ if (eval('require.main === module')) {
     })
 }
 
-function handleIndividualError(error): void {
-  if (error.rustStack) {
+function handleIndividualError(error: Error): void {
+  if (isRustPanic(error)) {
     handlePanic(error, packageJson.version, enginesVersion, redactedCommandAsString)
       .catch((e) => {
         if (Debug.enabled('prisma')) {
