@@ -1,9 +1,9 @@
 import { getClientEngineType, ClientEngineType } from '@prisma/sdk'
 
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
+import testMatrix from './_matrix'
 
 // https://github.com/prisma/prisma/issues/12507
-setupTestSuiteMatrix(() => {
+testMatrix.setupTestSuite(() => {
   test('should create data using one PrismaClient and read using another', async () => {
     if (getClientEngineType() === ClientEngineType.Library) {
       return
