@@ -276,7 +276,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       platform: this.platform,
       title,
       version: this.config.clientVersion!,
-      engineVersion: this.versionInfo?.version,
+      engineVersion: this.versionInfo?.commit,
       database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
