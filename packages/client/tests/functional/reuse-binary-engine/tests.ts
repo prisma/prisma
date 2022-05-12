@@ -50,6 +50,5 @@ testMatrix.setupTestSuite(() => {
     await prismaClient1.$disconnect()
     await prismaClient2.$disconnect()
 
-    jest.clearAllTimers()
   })
 })
