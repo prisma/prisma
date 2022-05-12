@@ -9,6 +9,7 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
+import tmp from 'tmp'
 
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
@@ -390,12 +391,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
 
+        let datamodelPath = path.join(config.dirname, config.filename ?? 'schema.prisma')
+        if (config.inlineSchema) {
+          datamodelPath = tmp.fileSync().name
+          fs.writeFileSync(datamodelPath, Buffer.from(config.inlineSchema, 'base64').toString())
+        }
         this._engineConfig = {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
+          datamodelPath: datamodelPath,
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,

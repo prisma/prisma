@@ -121,7 +121,7 @@ const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
 ${buildInlineDatasource(engineType, datasources)}
-${await buildInlineSchema(engineType, schemaPath)}
+${await buildInlineSchema(engineType, schemaPath, generator?.config.forceInlineSchema === 'true')}
 ${buildInlineEnv(engineType, datasources, envPaths)}
 ${buildWarnEnvConflicts(engineType, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)

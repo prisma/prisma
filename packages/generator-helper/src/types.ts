@@ -39,6 +39,7 @@ export interface GeneratorConfig {
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
+  forceInlineSchema?: string
 }
 
 export interface EnvValue {
