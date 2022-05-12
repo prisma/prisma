@@ -41,3 +41,4 @@ reproductions/*
 
 dev.db
 junit.xml
+packages/client/src/__tests__/__helpers__/dmmf-types.ts
