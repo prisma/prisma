@@ -22,6 +22,7 @@ export async function setupMysql(options: SetupParams): Promise<void> {
     database: credentials.database,
     user: credentials.user,
     password: credentials.password,
+    socketPath: credentials.socket,
     multipleStatements: true,
   })
 
