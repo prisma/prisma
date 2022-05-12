@@ -62,7 +62,6 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
       console.log(`\n${chalk.bold(`We successfully received the error report id: ${reportId}`)}`)
       console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
     } catch (error) {
-      // TODO: we should report why we're not able to submit an error report
       const reportFailedMessage = `${chalk.bold.red('Oops. We could not send the error report.')}`
       console.log(reportFailedMessage)
       console.error(`${chalk.gray('Error report submission failed due to: ')}`, error)
