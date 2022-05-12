@@ -5,14 +5,11 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
-import path from 'path'
 import tmpWrite from 'temp-write'
-import { promisify } from 'util'
 
 import { resolveBinary } from '../resolveBinary'
+import { isCi } from '../utils/isCi'
 import { load } from '../utils/load'
-
-const unlink = promisify(fs.unlink)
 
 export function preliminaryNodeAPIPipeline(options: { prismaPath?: string }) {
   return pipe(
@@ -101,7 +98,7 @@ export function scheduleUnlinkTempDatamodelPath(
   options: { datamodelPath?: string },
   tempDatamodelPath: string | undefined,
 ) {
-  process.once('exit', () => {
+  const unlinkTempDatamodelPath = () => {
     /**
      * The 'exit' event only allows using synchronous functions.
      * We currently cannot use 'beforeExit', as it is not supported when using `process.exit` explicitly.
@@ -109,7 +106,15 @@ export function scheduleUnlinkTempDatamodelPath(
     if (!options.datamodelPath && tempDatamodelPath) {
       fs.unlinkSync(tempDatamodelPath)
     }
-  })
+  }
+
+  /**
+   * Avoid creating a new event listener when running this on the CI,
+   * to avoid MaxListenersExceededWarning.
+   */
+  if (!isCi()) {
+    process.once('exit', unlinkTempDatamodelPath)
+  }
 }
 
 export const createDebugErrorType =
