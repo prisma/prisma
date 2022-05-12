@@ -106,8 +106,7 @@ enum Role {
 
 exports[`cockroachdb basic introspection (with cockroach schema) --url  2`] = `
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["cockroachdb"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -146,8 +145,7 @@ enum Role {
 
 exports[`cockroachdb basic introspection (with cockroachdb schema) 2`] = `
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["cockroachdb"]
+  provider = "prisma-client-js"
 }
 
 datasource db {

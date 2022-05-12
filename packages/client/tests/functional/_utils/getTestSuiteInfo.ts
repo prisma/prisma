@@ -3,10 +3,13 @@ import path from 'path'
 import { map } from '../../../../../helpers/blaze/map'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
+import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 export type TestSuiteMatrix = { [K in string]: string }[][]
 export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
+
+type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
 /**
  * Get the generated test suite name, used for the folder name.
@@ -93,7 +96,9 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @returns
  */
 export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
-  const rawMatrix = require(suiteMeta._matrixPath).default() as TestSuiteMatrix
+  const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
+
+  const rawMatrix = typeof matrixModule === 'function' ? matrixModule() : matrixModule.matrix()
 
   return map(matrix(rawMatrix), (configs) => merge(configs))
 }
