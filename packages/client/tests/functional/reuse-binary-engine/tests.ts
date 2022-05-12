@@ -1,8 +1,14 @@
+import { getClientEngineType, ClientEngineType } from '@prisma/sdk'
+
 import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
 
 // https://github.com/prisma/prisma/issues/12507
 setupTestSuiteMatrix(() => {
   test('should create data using one PrismaClient and read using another', async () => {
+    if (getClientEngineType() === ClientEngineType.Library) {
+      return
+    }
+
     // @ts-ignore
     const prismaClient1 = new PrismaClient({
       log: [
@@ -22,9 +28,7 @@ setupTestSuiteMatrix(() => {
           }
         })
 
-        prismaClient1
-          .$connect()
-          .catch(reject)
+        prismaClient1.$connect().catch(reject)
       }))()
 
     // @ts-ignore
