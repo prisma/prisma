@@ -18,13 +18,19 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
 
   // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
-  await fs.copy(path.join(suiteMeta.testDir, suiteMeta.testFileName), path.join(suiteFolder, suiteMeta.testFileName))
+  await copyWithImportsAdjust(
+    path.join(suiteMeta.testDir, suiteMeta.testFileName),
+    path.join(suiteFolder, suiteMeta.testFileName),
+  )
+  await copyWithImportsAdjust(path.join(suiteMeta.testDir, '_matrix.ts'), path.join(suiteFolder, '_matrix.ts'))
   await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
+}
 
+async function copyWithImportsAdjust(from: string, to: string): Promise<void> {
   // we adjust the relative paths to work from the generated folder
-  const testsContents = await fs.readFile(path.join(suiteFolder, suiteMeta.testFileName))
-  const newTestsContents = testsContents.toString().replace(/'..\//g, "'../../../")
-  await fs.writeFile(path.join(suiteFolder, suiteMeta.testFileName), newTestsContents)
+  const contents = await fs.readFile(from, 'utf8')
+  const newContents = contents.replace(/'..\//g, "'../../../")
+  await fs.writeFile(to, newContents, 'utf8')
 }
 
 /**
