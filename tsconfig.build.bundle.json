@@ -1,4 +1,5 @@
 {
+  // useful for bundling because esbuild can then tree-shake via the paths
   "extends": "./tsconfig.build.regular.json",
   "compilerOptions": {
     "paths": {
@@ -10,7 +11,7 @@
       "@prisma/engine-core": ["./packages/engine-core/src"],
       "@prisma/engine-core/dist/*": ["./packages/engine-core/src/*"],
       "@prisma/debug": ["./packages/debug/src"],
-      "@prisma/cli": ["./packages/cli/src"]
+      "prisma": ["./packages/cli/src"]
     }
   }
 }
