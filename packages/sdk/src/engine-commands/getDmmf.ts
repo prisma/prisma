@@ -16,7 +16,7 @@ import {
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
-  unlinkTempDatamodelPath,
+  scheduleUnlinkTempDatamodelPath,
 } from './queryEngineCommons'
 
 const debug = Debug('prisma:getDMMF')
@@ -294,7 +294,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   )
 
   const dmmfEither = await pipeline()
-  await unlinkTempDatamodelPath(options, tempDatamodelPath)()
+  scheduleUnlinkTempDatamodelPath(options, tempDatamodelPath)
 
   if (E.isRight(dmmfEither)) {
     debug('dmmf retrieved without errors in getDmmfBinary')

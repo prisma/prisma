@@ -5,6 +5,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
+import path from 'path'
 import tmpWrite from 'temp-write'
 import { promisify } from 'util'
 
@@ -89,21 +90,26 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
   )
 }
 
-export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tempDatamodelPath: string | undefined) {
-  return TE.tryCatch(
-    () => {
-      if (!options.datamodelPath && tempDatamodelPath) {
-        return unlink(tempDatamodelPath)
-      }
-
-      return Promise.resolve(undefined)
-    },
-    (e) => ({
-      type: 'unlink-temp-datamodel-path',
-      reason: 'Unable to delete temporary datamodel path',
-      error: e,
-    }),
-  )
+/**
+ * Tell Node.js to unlink the temp datamodel path before the process exits.
+ * In fact, once `sendPanic` is triggered, soon before exiting with an error code,
+ * it still needs to be able to read from this temporary path.
+ * @param options
+ * @param tempDatamodelPath
+ */
+export function scheduleUnlinkTempDatamodelPath(
+  options: { datamodelPath?: string },
+  tempDatamodelPath: string | undefined,
+) {
+  process.once('exit', () => {
+    /**
+     * The 'exit' event only allows using synchronous functions.
+     * We currently cannot use 'beforeExit', as it is not supported when using `process.exit` explicitly.
+     */
+    if (!options.datamodelPath && tempDatamodelPath) {
+      fs.unlinkSync(tempDatamodelPath)
+    }
+  })
 }
 
 export const createDebugErrorType =

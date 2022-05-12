@@ -15,7 +15,7 @@ import {
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
-  unlinkTempDatamodelPath,
+  scheduleUnlinkTempDatamodelPath,
 } from './queryEngineCommons'
 
 const debug = Debug('prisma:getConfig')
@@ -239,7 +239,7 @@ async function getConfigBinary(options: GetConfigOptions) {
   )
 
   const configEither = await pipeline()
-  await unlinkTempDatamodelPath(options, tempDatamodelPath)()
+  scheduleUnlinkTempDatamodelPath(options, tempDatamodelPath)
 
   if (E.isRight(configEither)) {
     debug('config data retrieved without errors in getConfigBinary')
