@@ -31,4 +31,5 @@ module.exports = {
       },
     ],
   ],
+  globalSetup: '<rootDir>/src/__tests__/test-setup.js',
 }
