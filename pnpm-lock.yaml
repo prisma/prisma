@@ -614,6 +614,8 @@ importers:
       globby: 11.1.0
       has-yarn: 2.1.0
       is-ci: 3.0.1
+      is-windows: ^1.0.2
+      is-wsl: ^2.2.0
       jest: 28.1.0
       jest-junit: 13.2.0
       make-dir: 3.1.0
@@ -665,6 +667,8 @@ importers:
       globby: 11.1.0
       has-yarn: 2.1.0
       is-ci: 3.0.1
+      is-windows: 1.0.2
+      is-wsl: 2.2.0
       make-dir: 3.1.0
       new-github-issue-url: 0.2.1
       node-fetch: 2.6.7
@@ -4840,6 +4844,11 @@ packages:
     dependencies:
       call-bind: 1.0.2
 
+  /is-windows/1.0.2:
+    resolution: {integrity: sha512-eXK1UInq2bPmjyX6e3VHIzMLobc4J94i4AWn+Hpq3OU5KkrRC96OAcR3PRJ/pGu6m8TRnBHP9dkXQVsT/COVIA==}
+    engines: {node: '>=0.10.0'}
+    dev: false
+
   /is-wsl/2.2.0:
     resolution: {integrity: sha512-fKzAra0rGJUUBwGBgNkHZuToZcn+TtXHpeCgmkMJMMYx1sQDYaCSyjJBSCa2nH1DGm7s3n1oBnohoVTBaN7Lww==}
     engines: {node: '>=8'}
@@ -5093,7 +5102,7 @@ packages:
       pretty-format: 28.1.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.7.0_aacea2e2ceb2eedb541abadde39d7eb4
+      ts-node: 10.7.0_846947f995cad05039d329998167cccd
     transitivePeerDependencies:
       - supports-color
     dev: true
