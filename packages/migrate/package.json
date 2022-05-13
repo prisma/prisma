@@ -2,7 +2,6 @@
   "name": "@prisma/migrate",
   "version": "0.0.0",
   "main": "dist/index.js",
-  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "repository": {
     "type": "git",
@@ -20,24 +19,24 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.14.0-28.7065cb28b6b34148da7ce0e72533104aab97466e",
+    "@prisma/engines-version": "3.15.0-3.55eef363a3b2e17691b1f98ed28da8b387f3bdb8",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/core": "1.2.182",
+    "@swc/jest": "0.2.21",
     "@types/jest": "27.5.0",
-    "@types/node": "12.20.50",
+    "@types/node": "12.20.51",
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.8",
-    "esbuild": "0.13.14",
-    "fs-jetpack": "4.3.0",
-    "jest": "27.5.1",
+    "esbuild": "0.14.38",
+    "fs-jetpack": "4.3.1",
+    "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "tempy": "1.0.1",
-    "typescript": "4.5.4"
+    "typescript": "4.6.4"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -45,7 +44,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.14.0-28.7065cb28b6b34148da7ce0e72533104aab97466e",
+    "@prisma/get-platform": "3.15.0-3.55eef363a3b2e17691b1f98ed28da8b387f3bdb8",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
@@ -59,7 +58,8 @@
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
-    "strip-indent": "3.0.0"
+    "strip-indent": "3.0.0",
+    "ts-pattern": "^4.0.1"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

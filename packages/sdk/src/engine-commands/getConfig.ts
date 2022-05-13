@@ -1,21 +1,24 @@
 import Debug from '@prisma/debug'
-import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import execa from 'execa'
-import fs from 'fs'
-import tmpWrite from 'temp-write'
-import { promisify } from 'util'
+import * as E from 'fp-ts/Either'
+import { identity, pipe } from 'fp-ts/lib/function'
+import * as TE from 'fp-ts/TaskEither'
+import { match, P } from 'ts-pattern'
 
-import { resolveBinary } from '../resolveBinary'
-import { load } from '../utils/load'
+import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
+import {
+  createDebugErrorType,
+  loadNodeAPILibrary,
+  preliminaryBinaryPipeline,
+  preliminaryNodeAPIPipeline,
+  unlinkTempDatamodelPath,
+} from './queryEngineCommons'
 
 const debug = Debug('prisma:getConfig')
-
-const unlink = promisify(fs.unlink)
 
 const MAX_BUFFER = 1_000_000_000
 
@@ -34,128 +37,281 @@ export type GetConfigOptions = {
   ignoreEnvVarErrors?: boolean
 }
 export class GetConfigError extends Error {
-  constructor(message: string) {
+  constructor(message: string, public readonly _error?: Error) {
     super(chalk.redBright.bold('Get config: ') + message)
   }
 }
-// TODO add error handling functions
+
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
-  let data: ConfigMetaFormat | undefined
-  if (cliEngineBinaryType === BinaryType.libqueryEngine) {
-    data = await getConfigNodeAPI(options)
-  } else {
-    data = await getConfigBinary(options)
-  }
-
-  if (!data) throw new GetConfigError(`Failed to return any data`)
-
-  // TODO This has been outdated for ages and needs to be handled differently and/or removed
-  if (
-    data.datasources?.[0]?.provider === 'sqlite' &&
-    data.generators.some((g) => g.previewFeatures.includes('createMany'))
-  ) {
-    const message = `Database provider "sqlite" and the preview feature "createMany" can't be used at the same time.
-  Please either remove the "createMany" feature flag or use any other database type that Prisma supports: postgres, mysql or sqlserver.`
-    throw new GetConfigError(message)
-  }
-
+  const data: ConfigMetaFormat = await match(cliEngineBinaryType)
+    .with(BinaryType.libqueryEngine, () => {
+      return getConfigNodeAPI(options)
+    })
+    .with(BinaryType.queryEngine, () => {
+      return getConfigBinary(options)
+    })
+    .exhaustive()
   return data
 }
 
-async function getConfigNodeAPI(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
-  let data: ConfigMetaFormat | undefined
+async function getConfigNodeAPI(options: GetConfigOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getConfigNodeAPI')
 
-  const queryEnginePath = await resolveBinary(BinaryType.libqueryEngine, options.prismaPath)
-  await isNodeAPISupported()
+  /**
+   * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
+   * error handling.
+   */
+  const preliminaryEither = await preliminaryNodeAPIPipeline(options)()
+  if (E.isLeft(preliminaryEither)) {
+    const { left: e } = preliminaryEither
+    debugErrorType(e)
+    throw new GetConfigError(e.reason, e.error)
+  }
+  const { queryEnginePath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
 
-  try {
-    const NodeAPIQueryEngineLibrary = load<NodeAPILibraryTypes.Library>(queryEnginePath)
-    data = await NodeAPIQueryEngineLibrary.getConfig({
-      datamodel: options.datamodel,
-      datasourceOverrides: {},
-      ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
-      env: process.env,
-    })
-  } catch (e: any) {
-    let error
-    try {
-      error = JSON.parse(e.message)
-    } catch {
-      throw e
-    }
-    let message: string
-    if (error.error_code === 'P1012') {
-      message = chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n'
-    } else {
-      message = chalk.redBright(`${error.error_code}\n\n`) + error
-    }
-    throw new GetConfigError(message)
+  /**
+   * - load the query engine library
+   * - run the "getConfig" command
+   */
+  const pipeline = pipe(
+    loadNodeAPILibrary(queryEnginePath),
+    TE.chainW(({ NodeAPIQueryEngineLibrary }) => {
+      debug('Loaded Node-API Library')
+      return TE.tryCatch(
+        () => {
+          if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+            debug('Triggering a Rust panic...')
+            return NodeAPIQueryEngineLibrary.debugPanic('FORCE_PANIC_QUERY_ENGINE_GET_CONFIG')
+          }
+
+          // TODO: `result` is a `ConfigMetaFormat`, even though it's typed as `Promise<ConfigMetaFormat>`, so we should
+          // probably change the type definition in `Library.ts` (in `@prisma/engine-core`)
+          const data = NodeAPIQueryEngineLibrary.getConfig({
+            datamodel: options.datamodel,
+            datasourceOverrides: {},
+            ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+            env: process.env,
+          })
+          return Promise.resolve(data)
+        },
+        (e) => ({
+          type: 'node-api' as const,
+          reason: 'Error while interacting with query-engine-node-api library',
+          error: e as Error,
+        }),
+      )
+    }),
+  )
+
+  const configEither = await pipeline()
+  if (E.isRight(configEither)) {
+    debug('config data retrieved without errors in getConfigNodeAPI')
+    const { right: data } = configEither
+    return data
   }
 
-  return data
+  /**
+   * Check which error to throw.
+   */
+  const error = match(configEither.left)
+    .with({ type: 'node-api' }, (e) => {
+      debugErrorType(e)
+
+      /*
+       * Extract the actual error by attempting to JSON-parse the error message.
+       */
+      const errorOutput = e.error.message
+      const actualError = pipe(
+        E.tryCatch(
+          () => JSON.parse(errorOutput),
+          () => {
+            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            return new GetConfigError(errorOutput, e.error)
+          },
+        ),
+        E.map((errorOutputAsJSON: Record<string, string>) => {
+          if (errorOutputAsJSON.is_panic) {
+            const panic = new RustPanic(
+              /* message */ errorOutputAsJSON.message,
+              /* rustStack */ errorOutputAsJSON.backtrace || e.error.stack || 'NO_BACKTRACE',
+              /* request */ 'query-engine-node-api get-config', // TODO: understand which type it expects
+              ErrorArea.QUERY_ENGINE_LIBRARY_CLI,
+              /* schemaPath */ options.prismaPath,
+              /* schema */ undefined,
+            )
+            debug(`panic in getConfigNodeAPI "${e.type}"`, panic)
+            return panic
+          }
+
+          const message = match(errorOutputAsJSON)
+            .with({ error_code: 'P1012' }, (error: Record<string, string>) => {
+              return chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n'
+            })
+            .otherwise((error: any) => {
+              return chalk.redBright(`${error.error_code}\n\n`) + error
+            })
+          return new GetConfigError(message, e.error)
+        }),
+        E.getOrElseW(identity),
+      )
+
+      return actualError
+    })
+    .otherwise((e) => {
+      debugErrorType(e)
+      return new GetConfigError(e.reason, e.error)
+    })
+
+  throw error
 }
 
-// TODO Add comments
-// TODO Rename datamodelPath to schemaPath
-async function getConfigBinary(options: GetConfigOptions): Promise<ConfigMetaFormat | undefined> {
-  let data: ConfigMetaFormat | undefined
+async function getConfigBinary(options: GetConfigOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getConfigBinary')
 
-  const queryEnginePath = await resolveBinary(BinaryType.queryEngine, options.prismaPath)
+  /**
+   * Perform side effects to retrieve variables and metadata that may be useful in the main pipeline's
+   * error handling. For instance, `tempDatamodelPath` is used when submit a Rust panic error report.
+   */
+  const preliminaryEither = await preliminaryBinaryPipeline(options)()
+  if (E.isLeft(preliminaryEither)) {
+    const { left: e } = preliminaryEither
+    debugErrorType(e)
+    throw new GetConfigError(e.reason, e.error)
+  }
+  const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
+  debug(`PRISMA_DML_PATH: ${tempDatamodelPath}`)
 
-  try {
-    // If we do not get the path we write the datamodel to a tmp location
-    let tempDatamodelPath: string | undefined
-    if (!options.datamodelPath) {
-      try {
-        tempDatamodelPath = await tmpWrite(options.datamodel!)
-      } catch (err) {
-        throw new GetConfigError('Unable to write temp data model path')
+  /**
+   * - run the `query-engine cli get-config` command
+   * - JSON-deserialize the command output
+   */
+  const pipeline = pipe(
+    (() => {
+      const execaOptions = {
+        cwd: options.cwd,
+        env: {
+          /**
+           * NOTE: we could potentially Base64-encode the datamodel and store it the `PRISMA_DML` environment variable,
+           * which is alternative to `PRISMA_DML_PATH`, but then chances are we'd get an `E2BIG` error when trying
+           * to serialize big datamodels.
+           */
+          PRISMA_DML_PATH: tempDatamodelPath,
+          RUST_BACKTRACE: '1',
+        },
+        maxBuffer: MAX_BUFFER,
       }
-    }
-    const engineArgs = []
 
-    const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
+      const engineArgs = []
+      const args = options.ignoreEnvVarErrors ? ['--ignoreEnvVarErrors'] : []
 
-    const result = await execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], {
-      cwd: options.cwd,
-      env: {
-        PRISMA_DML_PATH: options.datamodelPath ?? tempDatamodelPath,
-        RUST_BACKTRACE: '1',
-      },
-      maxBuffer: MAX_BUFFER,
+      return TE.tryCatch(
+        () => {
+          if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+            debug('Triggering a Rust panic...')
+            return execa(
+              queryEnginePath,
+              [...engineArgs, 'cli', 'debug-panic', '--message', 'FORCE_PANIC_QUERY_ENGINE_GET_CONFIG'],
+              execaOptions,
+            )
+          }
+
+          return execa(queryEnginePath, [...engineArgs, 'cli', 'get-config', ...args], execaOptions)
+        },
+        (e) => ({
+          type: 'execa' as const,
+          reason: 'Error while interacting with query-engine binary',
+          error: e as execa.ExecaError,
+        }),
+      )
+    })(),
+    TE.map((result) => ({ result })),
+    TE.chainW(({ result }) => {
+      return pipe(
+        E.tryCatch(
+          () => JSON.parse(result.stdout) as ConfigMetaFormat,
+          (e) => ({
+            type: 'parse-json' as const,
+            reason: 'Unable to parse JSON',
+            error: e as Error,
+          }),
+        ),
+        TE.fromEither,
+      )
+    }),
+  )
+
+  const configEither = await pipeline()
+
+  if (E.isRight(configEither)) {
+    debug('config data retrieved without errors in getConfigBinary')
+
+    // Unlink only when no error occurs, as `sendPanic` might need the `tempDatamodelPath` later in case of errors.
+    await unlinkTempDatamodelPath(options, tempDatamodelPath)()
+
+    const { right: data } = configEither
+    return data
+  }
+
+  /**
+   * Check which error to throw.
+   */
+  const error: RustPanic | GetConfigError = match(configEither.left)
+    .with({ type: 'execa' }, (e) => {
+      debugErrorType(e)
+      /**
+       * Capture and propagate possible Rust panics.
+       */
+      if (isExecaErrorCausedByRustPanic(e.error)) {
+        const panic = new RustPanic(
+          /* message */ e.error.shortMessage,
+          /* rustStack */ e.error.stderr,
+          /* request */ 'query-engine get-config',
+          ErrorArea.QUERY_ENGINE_BINARY_CLI,
+          /* schemaPath */ options.datamodelPath ?? tempDatamodelPath,
+          /* schema */ undefined,
+        )
+        debug(`panic in getConfigBinary "${e.type}"`, panic)
+        return panic
+      }
+
+      /**
+       * Extract the actual error by attempting to JSON-parse the output of the query-engine binary.
+       */
+      const errorOutput = e.error.stderr ?? e.error.stdout
+      const actualError = pipe(
+        E.tryCatch(
+          () => JSON.parse(errorOutput),
+          () => {
+            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            return new GetConfigError(errorOutput, e.error)
+          },
+        ),
+        E.map((errorOutputAsJSON: Record<string, string>) => {
+          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
+          const message = match(errorOutputAsJSON)
+            .with({ error_code: 'P1012' }, (error) => {
+              return chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + defaultMessage
+            })
+            .with({ error_code: P.string }, (error) => {
+              return chalk.redBright(`${error.error_code}\n\n`) + defaultMessage
+            })
+            .otherwise(() => {
+              return defaultMessage
+            })
+
+          return new GetConfigError(message, e.error)
+        }),
+        E.getOrElse(identity),
+      )
+      return actualError
+    })
+    .otherwise((e) => {
+      debugErrorType(e)
+      return new GetConfigError(e.reason, e.error)
     })
 
-    if (tempDatamodelPath) {
-      await unlink(tempDatamodelPath)
-    }
-
-    data = JSON.parse(result.stdout)
-  } catch (e: any) {
-    if (e.stderr || e.stdout) {
-      const error = e.stderr ? e.stderr : e.stout
-      let jsonError, message
-      try {
-        jsonError = JSON.parse(error)
-        message = `${chalk.redBright(jsonError.message)}\n`
-        if (jsonError.error_code) {
-          if (jsonError.error_code === 'P1012') {
-            message = chalk.redBright(`Schema Parsing ${jsonError.error_code}\n\n`) + message
-          } else {
-            message = chalk.redBright(`${jsonError.error_code}\n\n`) + message
-          }
-        }
-      } catch (e) {
-        // if JSON parse / pretty handling fails, fallback to simple printing
-        throw new GetConfigError(error)
-      }
-
-      throw new GetConfigError(message)
-    }
-
-    throw new GetConfigError(e)
-  }
-  return data
+  throw error
 }

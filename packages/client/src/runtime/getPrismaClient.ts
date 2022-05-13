@@ -56,7 +56,7 @@ function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
 // TODO also check/disallow for CREATE, DROP
 function checkAlter(
   query: string,
-  values: sqlTemplateTag.Value[],
+  values: sqlTemplateTag.RawValue[],
   invalidCall:
     | 'prisma.$executeRaw`<SQL>`'
     | 'prisma.$executeRawUnsafe(<SQL>, [...values])'
@@ -646,7 +646,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       debug(`Prisma Client call:`)
       return this._request({
         args,
-        clientMethod: 'executeRaw',
+        clientMethod: '$executeRaw',
         dataPath: [],
         action: 'executeRaw',
         callsite: getCallSite(this._errorFormat),
@@ -711,7 +711,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return createPrismaPromise((txId, lock, otelCtx) => {
         return this._request({
           args: { command: command },
-          clientMethod: 'runCommandRaw',
+          clientMethod: '$runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
           callsite: getCallSite(this._errorFormat),
@@ -822,7 +822,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       return this._request({
         args,
-        clientMethod: 'queryRaw',
+        clientMethod: '$queryRaw',
         dataPath: [],
         action: 'queryRaw',
         callsite: getCallSite(this._errorFormat),

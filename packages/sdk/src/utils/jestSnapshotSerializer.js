@@ -71,11 +71,15 @@ function normalizeMigrateTimestamps(str) {
 }
 
 function normalizeDbUrl(str) {
-  return str.replace(/(localhost|postgres|mysql|mssql|mongodb_migrate):(\d+)/g, 'localhost:$2')
+  return str.replace(/(localhost|postgres|mysql|mssql|mongodb_migrate|cockroachdb):(\d+)/g, 'localhost:$2')
 }
 
 function normalizeRustError(str) {
   return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
+}
+
+function normalizeArtificialPanic(str) {
+  return str.replace(/(Command failed with exit code 101:) (.+) /g, '$1 prisma-engines-path ')
 }
 
 function normalizeTime(str) {
@@ -139,6 +143,8 @@ module.exports = {
       normalizeDbUrl,
       normalizeRustError,
       normalizeMigrateTimestamps,
+      // artificial panic
+      normalizeArtificialPanic,
     )(message)
   },
 }

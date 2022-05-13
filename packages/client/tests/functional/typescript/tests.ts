@@ -10,7 +10,7 @@ import { reduce } from '../../../../../helpers/blaze/reduce'
 function getAllTestSuiteTypeChecks(fileNames: string[]) {
   const program = ts.createProgram(fileNames, {
     ...ts.convertCompilerOptionsFromJson(
-      require('../../../../../tsconfig.build.json').compilerOptions,
+      require('../../../../../tsconfig.build.regular.json').compilerOptions,
       path.dirname(expect.getState().testPath),
     ).options,
     skipLibCheck: false,
