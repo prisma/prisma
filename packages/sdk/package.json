@@ -70,7 +70,7 @@
     "make-dir": "3.1.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.6.7",
-    "open": "7",
+    "open": "^7.4.2",
     "ora": "5.4.1",
     "p-map": "4.0.0",
     "prompts": "2.4.2",
@@ -88,7 +88,7 @@
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
-    "ts-pattern": "^4.0.1"
+    "ts-pattern": "^4.0.2"
   },
   "sideEffects": false
 }

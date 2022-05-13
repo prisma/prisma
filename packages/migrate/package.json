@@ -59,7 +59,7 @@
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-pattern": "^4.0.1"
+    "ts-pattern": "^4.0.2"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
