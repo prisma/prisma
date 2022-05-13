@@ -325,9 +325,11 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
           console.info() // empty line
           const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
           if (successfulSeeding) {
+            // TODO: what about Windows users running prisma on Git Bash or similar? Technically, they'd
+            // still be able to support emojis in their terminal.
             console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {
-            // Should we exit 1 here like in db seed and migrate reset?
+            // TODO: Should we exit 1 here like in db seed and migrate reset?
             console.info() // empty line
           }
         } else {
