@@ -16,7 +16,7 @@ jobs:
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
           echo $THE_INPUT
-          
+
       - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.1
