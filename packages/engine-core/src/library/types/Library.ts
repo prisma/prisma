@@ -22,6 +22,10 @@ export interface QueryEngineConstructor {
   new (config: QueryEngineConfig, logger: (err: string, log: string) => void): QueryEngineInstance
 }
 
+export interface LibraryLoader {
+  loadLibrary(): Promise<Library>
+}
+
 // Main
 export type Library = {
   QueryEngine: QueryEngineConstructor
