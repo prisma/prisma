@@ -7,7 +7,7 @@ exports[`appends when .env present 1`] = `
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb (Preview).
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb.
 3. Run prisma db pull to turn your database schema into a Prisma schema.
 4. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -38,7 +38,7 @@ SOMTHING="is here"
 # Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
 DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
@@ -51,7 +51,7 @@ exports[`is schema and env written on disk replace 1`] = `
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb (Preview).
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb.
 3. Run prisma db pull to turn your database schema into a Prisma schema.
 4. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -84,7 +84,7 @@ warn Prisma would have added DATABASE_URL but it already exists in .env
 
 Next steps:
 1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb (Preview).
+2. Set the provider of the datasource block in schema.prisma to match your database: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb.
 3. Run prisma db pull to turn your database schema into a Prisma schema.
 4. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -128,8 +128,7 @@ exports[`works with provider and url params - cockroachdb 2`] = `
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["cockroachdb"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -249,8 +248,7 @@ exports[`works with provider param - cockroachdb 2`] = `
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["cockroachdb"]
+  provider = "prisma-client-js"
 }
 
 datasource db {

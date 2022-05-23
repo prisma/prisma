@@ -29,7 +29,7 @@ export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database
 export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
 export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
 
-export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/
+export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/tests
 ```
 
 - Load the environment variables with:
@@ -145,3 +145,10 @@ npx prisma@3.12.0-fix-all-the-things.1
 (Note that npm version upgrades or the update notifier in Prisma CLI might behave weird and unexpectedly with these integration versions.)
 
 Internal note: You can check the #feed-prisma-releases channel on our private Slack to get notified when versions are published.
+
+#### About [ecosystem-tests](https://github.com/prisma/ecosystem-tests/)
+
+Once the integration version is published on npm:
+
+- The `check-for-update` workflow, which runs continuously, will find the new version, update the package.json and do a commit on the [`integration` branch](https://github.com/prisma/ecosystem-tests/tree/integration)
+- The tests worflows will then run for that commit and will be visible [here](https://github.com/prisma/ecosystem-tests/actions?query=branch%3Aintegration)

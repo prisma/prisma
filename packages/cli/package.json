@@ -68,15 +68,15 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2",
+    "@prisma/fetch-engine": "3.15.0-9.0c364ac42b7e78faad00640efb007598192fa511",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2",
+    "@prisma/get-platform": "3.15.0-9.0c364ac42b7e78faad00640efb007598192fa511",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.460.0",
     "@prisma/studio-server": "0.460.0",
-    "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.20",
+    "@swc/core": "1.2.182",
+    "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "27.5.0",
@@ -84,17 +84,17 @@
     "@types/ws": "8.5.3",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
-    "debug": "4.3.3",
-    "dotenv": "16.0.0",
-    "esbuild": "0.13.14",
+    "debug": "4.3.4",
+    "dotenv": "16.0.1",
+    "esbuild": "0.14.38",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
-    "fs-extra": "10.0.0",
-    "fs-jetpack": "4.3.0",
+    "fs-extra": "10.1.0",
+    "fs-jetpack": "4.3.1",
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "27.5.1",
+    "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "line-replace": "2.0.1",
     "log-update": "4.0.0",
@@ -108,7 +108,7 @@
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
     "ts-pattern": "4.0.2",
-    "typescript": "4.5.4"
+    "typescript": "4.6.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -116,11 +116,11 @@
     "test": "jest --maxConcurrency=1 --verbose",
     "install": "node scripts/install-entry.js",
     "tsc": "tsc -d -p tsconfig.build.json",
-    "prepublishOnly": "pnpm run build",
-    "preinstall": "node scripts/preinstall-entry.js"
+    "preinstall": "node scripts/preinstall-entry.js",
+    "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.14.0-20.da5675bdd71708d45094cf108b148b0a2728def2"
+    "@prisma/engines": "3.15.0-9.0c364ac42b7e78faad00640efb007598192fa511"
   },
   "sideEffects": false
 }

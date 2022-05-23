@@ -276,7 +276,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       platform: this.platform,
       title,
       version: this.config.clientVersion!,
-      engineVersion: this.versionInfo?.version,
+      engineVersion: this.versionInfo?.commit,
       database: this.config.activeProvider as any,
       query: this.lastQuery!,
     })
@@ -395,6 +395,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   version(): string {
     this.versionInfo = this.library?.version()
     return this.versionInfo?.version ?? 'unknown'
+  }
+  /**
+   * Triggers an artificial panic
+   */
+  debugPanic(message?: string): Promise<never> {
+    return this.library?.debugPanic(message) as Promise<never>
   }
 
   async request<T>(

@@ -91,7 +91,7 @@ describe('handlePanic', () => {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{\\"rustStack\\":\\"\\",\\"area\\":\\"LIFT_CLI\\",\\"schemaPath\\":\\"Some Schema Path\\"}"`,
+        `"{\\"__typename\\":\\"RustPanic\\",\\"rustStack\\":\\"\\",\\"area\\":\\"LIFT_CLI\\",\\"schemaPath\\":\\"Some Schema Path\\"}"`,
       )
     }
   })
@@ -130,6 +130,9 @@ describe('handlePanic', () => {
     expect(spySendPanic).toHaveBeenCalledTimes(1)
     expect(spyWouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
     expect(stripAnsi(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
+      new RegExp(`^Error report submission failed due to:?`),
+    )
     spySendPanic.mockRestore()
   })
 })
