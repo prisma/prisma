@@ -90,7 +90,7 @@ function checkForConflicts(
       const a = parsedRootEnv[k]
       const b = envConfig[k]
 
-      if (a && b) {
+      if (a !== undefined && b !== undefined) {
         if (a !== b) {
           conflicts.push(k)
         }
