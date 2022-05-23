@@ -9,6 +9,10 @@ CREATE TABLE "public"."Post" (
     "title" varchar NOT NULL,
     "content" string,
     "authorId" character varying,
+    "exampleChar" char,
+    "exampleCharLength" char(16),
+    "exampleBit" bit,
+    "exampleBitLength" bit(16),
     "jsonData" jsonb,
     "coinflips" _bool,
     PRIMARY KEY ("id")

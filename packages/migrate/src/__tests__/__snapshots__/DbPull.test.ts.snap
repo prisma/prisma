@@ -154,22 +154,26 @@ datasource db {
 }
 
 model Post {
-  id        String    @id
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
-  published Boolean   @default(false)
-  title     String
-  content   String?
-  authorId  String?
-  jsonData  Json?
-  coinflips Boolean[]
-  User      User?     @relation(fields: [authorId], references: [id])
+  id                String    @id
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  published         Boolean   @default(false)
+  title             String
+  content           String?
+  authorId          String?
+  exampleChar       String?   @db.Char(1)
+  exampleCharLength String?   @db.Char(16)
+  exampleBit        String?   @db.Bit(1)
+  exampleBitLength  String?   @db.Bit(16)
+  jsonData          Json?
+  coinflips         Boolean[]
+  User              User?     @relation(fields: [authorId], references: [id])
 }
 
 model User {
   id    String  @id
-  email String  @unique(map: "User.email")
-  name  String?
+  email String  @unique(map: "User.email") @db.String(32)
+  name  String? @db.String(32)
   Post  Post[]
 }
 
@@ -232,22 +236,26 @@ datasource db {
 }
 
 model Post {
-  id        String    @id
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
-  published Boolean   @default(false)
-  title     String
-  content   String?
-  authorId  String?
-  jsonData  Json?
-  coinflips Boolean[]
-  User      User?     @relation(fields: [authorId], references: [id])
+  id                String    @id
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  published         Boolean   @default(false)
+  title             String
+  content           String?
+  authorId          String?
+  exampleChar       String?   @db.Char(1)
+  exampleCharLength String?   @db.Char(16)
+  exampleBit        String?   @db.Bit(1)
+  exampleBitLength  String?   @db.Bit(16)
+  jsonData          Json?
+  coinflips         Boolean[]
+  User              User?     @relation(fields: [authorId], references: [id])
 }
 
 model User {
   id    String  @id
-  email String  @unique(map: "User.email")
-  name  String?
+  email String  @unique(map: "User.email") @db.String(32)
+  name  String? @db.String(32)
   Post  Post[]
 }
 
@@ -310,22 +318,26 @@ datasource db {
 }
 
 model Post {
-  id        String    @id
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
-  published Boolean   @default(false)
-  title     String
-  content   String?
-  authorId  String?
-  jsonData  Json?
-  coinflips Boolean[]
-  User      User?     @relation(fields: [authorId], references: [id])
+  id                String    @id
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  published         Boolean   @default(false)
+  title             String    @db.VarChar
+  content           String?
+  authorId          String?   @db.VarChar
+  exampleChar       String?   @db.Char(1)
+  exampleCharLength String?   @db.Char(16)
+  exampleBit        String?   @db.Bit(1)
+  exampleBitLength  String?   @db.Bit(16)
+  jsonData          Json?
+  coinflips         Boolean[]
+  User              User?     @relation(fields: [authorId], references: [id])
 }
 
 model User {
   id    String  @id
   email String  @unique(map: "User.email")
-  name  String?
+  name  String? @db.VarChar(32)
   Post  Post[]
 }
 
