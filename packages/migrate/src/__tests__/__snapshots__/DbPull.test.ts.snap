@@ -143,6 +143,44 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
+exports[`cockroachdb basic introspection (with cockroach schema, cockroachdb native types) --url  2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = "postgresql://prisma@localhost:26257/tests"
+}
+
+model Post {
+  id                String  @id
+  title             String
+  content           String?
+  authorId          String?
+  exampleChar       String? @db.Char(1)
+  exampleCharLength String? @db.Char(16)
+  exampleBit        String? @db.Bit(1)
+  exampleBitLength  String? @db.Bit(16)
+  User              User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email") @db.String(32)
+  name  String? @db.String(32)
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`cockroachdb basic introspection (with cockroachdb schema) 2`] = `
 generator client {
   provider = "prisma-client-js"
@@ -182,6 +220,44 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
+exports[`cockroachdb basic introspection (with cockroachdb schema, cockroachdb native types) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_COCKROACH_URI")
+}
+
+model Post {
+  id                String  @id
+  title             String
+  content           String?
+  authorId          String?
+  exampleChar       String? @db.Char(1)
+  exampleCharLength String? @db.Char(16)
+  exampleBit        String? @db.Bit(1)
+  exampleBitLength  String? @db.Bit(16)
+  User              User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email") @db.String(32)
+  name  String? @db.String(32)
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`cockroachdb basic introspection (with postgresql schema) 2`] = `
 generator client {
   provider = "prisma-client-js"
@@ -209,6 +285,44 @@ model User {
   id    String  @id
   email String  @unique(map: "User.email")
   name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with postgresql schema, cockroachdb native types) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_COCKROACH_URI")
+}
+
+model Post {
+  id                String  @id
+  title             String  @db.VarChar
+  content           String?
+  authorId          String? @db.VarChar
+  exampleChar       String? @db.Char(1)
+  exampleCharLength String? @db.Char(16)
+  exampleBit        String? @db.Bit(1)
+  exampleBitLength  String? @db.Bit(16)
+  User              User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String? @db.VarChar(32)
   Post  Post[]
 }
 
