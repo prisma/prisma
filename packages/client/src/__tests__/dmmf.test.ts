@@ -358,7 +358,9 @@ error: Error validating: You defined the enum \`PostKind\`. But the current conn
 17 |       }
    | 
 
-Validation Error Count: 1`
+Validation Error Count: 1
+
+Prisma CLI Version : 0.0.0`
       if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
         expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
       } else {

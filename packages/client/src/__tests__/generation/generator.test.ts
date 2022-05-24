@@ -136,6 +136,8 @@ error: Error validating model "return": The model name \`return\` is invalid. It
    | 
 
 Validation Error Count: 2
+
+Prisma CLI Version : 0.0.0
 `
       if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
         expect(stripAnsi(e.message)).toMatchInlineSnapshot(snapshot + '\n')

@@ -159,7 +159,9 @@ error: Error parsing attribute \"@default\": The \`autoincrement()\` default val
  8 |         email     String   @unique
    | 
 
-Validation Error Count: 2`
+Validation Error Count: 2
+
+Prisma CLI Version : 0.0.0`
       if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
         expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
       } else {
@@ -193,7 +195,9 @@ error: Error parsing attribute \"@default\": The \`autoincrement()\` default val
  8 |         email     String   @unique
    | 
 
-Validation Error Count: 1`
+Validation Error Count: 1
+
+Prisma CLI Version : 0.0.0`
       if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
         expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
       } else {
@@ -361,7 +365,9 @@ error: Field \"posts\" is already defined on model \"User\".
 19 |       posts        Post[]
    | 
 
-Validation Error Count: 3`
+Validation Error Count: 3
+
+Prisma CLI Version : 0.0.0`
 
       if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
         expect(stripAnsi(e.message)).toEqual(`${snapshot}\n`)
