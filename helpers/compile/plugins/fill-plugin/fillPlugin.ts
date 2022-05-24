@@ -137,7 +137,7 @@ const load = loader({})
  */
 const fillPlugin = (
   fillerOverrides: Fillers,
-  triggerPredicate: (options: esbuild.BuildOptions) => boolean,
+  triggerPredicate: (options: esbuild.BuildOptions) => boolean = () => true,
 ): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
