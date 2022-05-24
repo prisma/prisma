@@ -228,7 +228,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   },
   delete: {
     body: (ctx) => dedent`
-      Delete a ${ctx.singular}.
+      Delete '${ctx.singular}'.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to delete one ${ctx.singular}.
       @example
       // Delete one ${ctx.singular}
