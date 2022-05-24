@@ -173,7 +173,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       `
     },
     fields: {
-      where: (singular) => `Filter on one or more '${singular}'.`,
+      where: (singular) => `Filter on '${singular}'.`,
       orderBy: JSDocFields.orderBy,
       skip: JSDocFields.skip,
       cursor: (singular) => addLinkToDocs(`Sets the position for listing '${singular}'.`, 'cursor'),
