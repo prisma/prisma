@@ -3,12 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { Client } from 'pg'
 
-export type SetupParams = {
-  connectionString: string
-  dirname: string
-}
-
-export async function setupCockroach(options: SetupParams): Promise<void> {
+export async function setupCockroach(options: { connectionString: string; dirname: string }): Promise<void> {
   const { connectionString } = options
   const { dirname } = options
   const credentials = uriToCredentials(connectionString)
@@ -35,7 +30,7 @@ export async function setupCockroach(options: SetupParams): Promise<void> {
   }
 }
 
-export async function tearDownCockroach(options: SetupParams) {
+export async function tearDownCockroach(options: { connectionString: string }) {
   const { connectionString } = options
   const credentials = uriToCredentials(connectionString)
   const credentialsClone = { ...credentials }
