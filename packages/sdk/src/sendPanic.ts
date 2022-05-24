@@ -78,7 +78,6 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       dbVersion: dbVersion,
     }
 
-    // TODO: What is the exports doing here? A jest thing?
     const signedUrl = await createErrorReport(params)
 
     if (error.schemaPath) {
