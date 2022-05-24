@@ -4,27 +4,19 @@ export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
-      id: 'Int @id @default(autoincrement())',
-      foreignKeyId: 'Int?',
-      providerFeatures: '',
+      foreignKeyId: 'String?',
     },
     {
       provider: 'postgresql',
-      id: 'Int @id @default(autoincrement())',
-      foreignKeyId: 'Int?',
-      providerFeatures: '',
+      foreignKeyId: 'String?',
     },
     {
       provider: 'mysql',
-      id: 'Int @id @default(autoincrement())',
-      foreignKeyId: 'Int?',
-      providerFeatures: '',
+      foreignKeyId: 'String?',
     },
     {
       provider: 'mongodb',
-      id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
       foreignKeyId: 'String @db.ObjectId',
-      providerFeatures: '',
     },
   ],
 ])
