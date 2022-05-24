@@ -8,7 +8,7 @@ We also encourage you to join our sprawling [community](https://www.prisma.io/co
 
 ## Contributing Code
 
-Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines)
+Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines))
 
 ## General Prerequisites
 
