@@ -1,6 +1,6 @@
 import type * as esbuild from 'esbuild'
 
-import { run } from '../build'
+import { run } from '../run'
 
 /**
  * Triggers the TypeScript compiler.

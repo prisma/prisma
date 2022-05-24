@@ -379,13 +379,13 @@ export type User = {
  * 
  */
 export type EmbedHolder = {
-  embedList: Embed[]
-  requiredEmbed: Embed
-  optionalEmbed: Embed | null
   id: string
   time: Date
   text: string
   boolean: boolean
+  embedList: Embed[]
+  requiredEmbed: Embed
+  optionalEmbed: Embed | null
 }
 
 /**
@@ -4054,13 +4054,13 @@ export namespace Prisma {
 
 
   export type EmbedHolderSelect = {
-    embedList?: boolean | EmbedArgs
-    requiredEmbed?: boolean | EmbedArgs
-    optionalEmbed?: boolean | EmbedArgs
     id?: boolean
     time?: boolean
     text?: boolean
     boolean?: boolean
+    embedList?: boolean | EmbedArgs
+    requiredEmbed?: boolean | EmbedArgs
+    optionalEmbed?: boolean | EmbedArgs
     User?: boolean | UserFindManyArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   }
@@ -15869,24 +15869,24 @@ export namespace Prisma {
     AND?: Enumerable<EmbedHolderWhereInput>
     OR?: Enumerable<EmbedHolderWhereInput>
     NOT?: Enumerable<EmbedHolderWhereInput>
-    embedList?: XOR<EmbedCompositeListFilter, Enumerable<EmbedObjectEqualityInput>>
-    requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
-    optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
     id?: StringFilter | string
     time?: DateTimeFilter | Date | string
     text?: StringFilter | string
     boolean?: BoolFilter | boolean
+    embedList?: XOR<EmbedCompositeListFilter, Enumerable<EmbedObjectEqualityInput>>
+    requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
+    optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
     User?: UserListRelationFilter
   }
 
   export type EmbedHolderOrderByWithRelationInput = {
-    embedList?: EmbedOrderByCompositeAggregateInput
-    requiredEmbed?: EmbedOrderByInput
-    optionalEmbed?: EmbedOrderByInput
     id?: SortOrder
     time?: SortOrder
     text?: SortOrder
     boolean?: SortOrder
+    embedList?: EmbedOrderByCompositeAggregateInput
+    requiredEmbed?: EmbedOrderByInput
+    optionalEmbed?: EmbedOrderByInput
     User?: UserOrderByRelationAggregateInput
   }
 
@@ -16835,73 +16835,73 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateInput = {
-    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
     boolean: boolean
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     User?: UserCreateNestedManyWithoutEmbedHolderInput
   }
 
   export type EmbedHolderUncheckedCreateInput = {
-    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
     boolean: boolean
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     User?: UserUncheckedCreateNestedManyWithoutEmbedHolderInput
   }
 
   export type EmbedHolderUpdateInput = {
-    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     User?: UserUpdateManyWithoutEmbedHolderInput
   }
 
   export type EmbedHolderUncheckedUpdateInput = {
-    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     User?: UserUncheckedUpdateManyWithoutEmbedHolderInput
   }
 
   export type EmbedHolderCreateManyInput = {
-    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
     boolean: boolean
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type EmbedHolderUpdateManyMutationInput = {
-    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type EmbedHolderUncheckedUpdateManyInput = {
-    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type MCreateInput = {
@@ -19850,23 +19850,23 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCreateWithoutUserInput = {
-    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
     boolean: boolean
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type EmbedHolderUncheckedCreateWithoutUserInput = {
-    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
     id?: string
     time?: Date | string
     text: string
     boolean: boolean
+    embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type EmbedHolderCreateOrConnectWithoutUserInput = {
@@ -19908,21 +19908,21 @@ export namespace Prisma {
   }
 
   export type EmbedHolderUpdateWithoutUserInput = {
-    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type EmbedHolderUncheckedUpdateWithoutUserInput = {
-    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
-    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
-    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
+    requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
+    optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
   }
 
   export type EmbedEmbedCreateInput = {

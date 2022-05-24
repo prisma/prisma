@@ -2,7 +2,6 @@
   "name": "react-prisma",
   "version": "0.0.5",
   "main": "dist/index.js",
-  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
