@@ -1,4 +1,4 @@
-import { getClientEngineType, ClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 
 import testMatrix from './_matrix'
 
@@ -49,6 +49,5 @@ testMatrix.setupTestSuite(() => {
 
     await prismaClient1.$disconnect()
     await prismaClient2.$disconnect()
-
   })
 })

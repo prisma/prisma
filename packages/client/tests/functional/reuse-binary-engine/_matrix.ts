@@ -4,9 +4,15 @@ export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
-      id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
+    },
+    {
+      provider: 'postgresql',
+    },
+    {
+      provider: 'mysql',
+    },
+    {
+      provider: 'mongodb',
     },
   ],
-  [],
 ])

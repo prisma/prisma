@@ -1,4 +1,7 @@
-export default ({ provider, id }) => {
+import { idForProvider } from '../../_utils/idForProvider'
+import testMatrix from '../_matrix'
+
+export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
     generator client {
       engineType = "binary"
@@ -11,8 +14,8 @@ export default ({ provider, id }) => {
     }
     
     model User {
-      id ${id}
+      id ${idForProvider(provider)}
       name String
     }
   `
-}
+})
