@@ -3,9 +3,6 @@ CREATE TYPE "Role" AS ENUM ('USER', 'ADMIN');
 DROP TABLE IF EXISTS "public"."Post" CASCADE;
 CREATE TABLE "public"."Post" (
     "id" text NOT NULL,
-    "createdAt" timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" timestamp(3) NOT NULL DEFAULT '1970-01-01 00:00:00'::timestamp without time zone,
-    "published" boolean NOT NULL DEFAULT false,
     "title" varchar NOT NULL,
     "content" string,
     "authorId" character varying,
@@ -13,8 +10,6 @@ CREATE TABLE "public"."Post" (
     "exampleCharLength" char(16),
     "exampleBit" bit,
     "exampleBitLength" bit(16),
-    "jsonData" jsonb,
-    "coinflips" _bool,
     PRIMARY KEY ("id")
 );
 DROP TABLE IF EXISTS "public"."User" CASCADE;
