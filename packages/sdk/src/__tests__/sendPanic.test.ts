@@ -1,19 +1,20 @@
 import { enginesVersion } from '@prisma/engines'
 import fs from 'fs'
 
+import * as errorReportingUtils from '../errorReporting'
 import { ErrorArea, RustPanic } from '../panic'
-import * as sendPanicUtils from '../sendPanic'
+import { sendPanic } from '../sendPanic'
 
 describe('sendPanic should fail when the error report creation fails', () => {
   const createErrorReportTag = 'error-report-creation-failed'
   const cliVersion = 'test-cli-version'
   const rustStackTrace = 'test-rustStack'
 
-  let spyCreateErrorReport: jest.SpyInstance<Promise<string>, [data: sendPanicUtils.CreateErrorReportInput]>
+  let spyCreateErrorReport: jest.SpyInstance<Promise<string>, [data: errorReportingUtils.CreateErrorReportInput]>
 
   beforeEach(() => {
     spyCreateErrorReport = jest
-      .spyOn(sendPanicUtils, 'createErrorReport')
+      .spyOn(errorReportingUtils, 'createErrorReport')
       .mockImplementation(() => Promise.reject(new Error(createErrorReportTag)))
   })
 
@@ -32,9 +33,7 @@ describe('sendPanic should fail when the error report creation fails', () => {
       undefined, // introspectionUrl
     )
 
-    await expect(sendPanicUtils.sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(
-      createErrorReportTag,
-    )
+    await expect(sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
       schemaFile: undefined,
@@ -57,9 +56,7 @@ describe('sendPanic should fail when the error report creation fails', () => {
       undefined, // introspectionUrl
     )
 
-    await expect(sendPanicUtils.sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(
-      createErrorReportTag,
-    )
+    await expect(sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
       schemaFile: expectedMaskedSchema,
@@ -92,9 +89,7 @@ datasource db {
       undefined, // introspectionUrl
     )
 
-    await expect(sendPanicUtils.sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(
-      createErrorReportTag,
-    )
+    await expect(sendPanic(rustPanic, cliVersion, enginesVersion)).rejects.toThrowError(createErrorReportTag)
     expect(spyCreateErrorReport).toHaveBeenCalledTimes(1)
     expect(spyCreateErrorReport.mock.calls[0][0]).toMatchObject({
       schemaFile: maskedSchema,
