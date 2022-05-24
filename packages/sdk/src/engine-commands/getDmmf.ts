@@ -367,7 +367,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
-          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
+          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}`
           const message = addMissingOpenSSLInfo(defaultMessage)
           return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message, e.error)
         }),
