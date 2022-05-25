@@ -141,7 +141,7 @@ export const JSDocs: JSDocsType = {
     fields: {
       where: (singular) => `Filter, which ${singular} to fetch.`,
       orderBy: JSDocFields.orderBy,
-      cursor: (singular) => addLinkToDocs(`Sets the position for searching for a ${singular}.`, 'cursor'),
+      cursor: (singular) => addLinkToDocs(`Sets the position for searching for '${singular}'.`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       distinct: JSDocFields.distinct,
