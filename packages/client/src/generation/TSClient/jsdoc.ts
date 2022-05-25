@@ -111,7 +111,7 @@ export const JSDocs: JSDocsType = {
   },
   findUnique: {
     body: (ctx) => dedent`
-      Find one ${ctx.singular} that matches the filter.
+      Returns ${ctx.singular} that matches the filter or null if nothing is found
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
       @example
       // Get one ${ctx.singular}
@@ -157,7 +157,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
         : ''
 
       return dedent`
-        Find one or more '${ctx.singular}' that matches the filter.
+        Find zero or more '${ctx.singular}' that matches the filter.
         ${undefinedNote}
         @param {${getModelArgName(
           ctx.model.name,
