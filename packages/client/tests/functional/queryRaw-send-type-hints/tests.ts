@@ -15,7 +15,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const record = await prisma.entry.findUnique({
       where: {
-        id: 1,
+        id: '1',
       },
     })
 
@@ -31,7 +31,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const record = await prisma.entry.findUnique({
       where: {
-        id: 2,
+        id: '2',
       },
     })
 
@@ -47,7 +47,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const record = await prisma.entry.findUnique({
       where: {
-        id: 3,
+        id: '3',
       },
     })
 
@@ -65,7 +65,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
 
     const record = await prisma.entry.findUnique({
       where: {
-        id: 4,
+        id: '4',
       },
     })
 
