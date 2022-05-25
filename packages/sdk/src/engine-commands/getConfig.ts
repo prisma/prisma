@@ -10,6 +10,7 @@ import * as TE from 'fp-ts/TaskEither'
 import { match, P } from 'ts-pattern'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
+import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
   loadNodeAPILibrary,
@@ -38,7 +39,7 @@ export type GetConfigOptions = {
 }
 export class GetConfigError extends Error {
   constructor(message: string, public readonly _error?: Error) {
-    super(chalk.redBright.bold('Get config: ') + message)
+    super(addVersionDetailsToErrorMessage(`${chalk.redBright.bold('Get config: ')}${message}`))
   }
 }
 
