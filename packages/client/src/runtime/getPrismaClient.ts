@@ -225,6 +225,11 @@ export interface GetPrismaClientConfig {
   activeProvider: string
 
   /**
+   * True when `--data-proxy` is passed to `prisma generate`
+   */
+  dataProxy: boolean
+
+  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
@@ -318,6 +323,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
+    private _dataProxy: boolean
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -327,6 +333,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._dataProxy = config.dataProxy
       this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:
@@ -449,7 +456,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return 'PrismaClient'
     }
     private getEngine(): Engine {
-      if (this._clientEngineType === ClientEngineType.Library) {
+      if (this._dataProxy === true) {
+        return new DataProxyEngine(this._engineConfig)
+      } else if (this._clientEngineType === ClientEngineType.Library) {
         return (
           // this is for tree-shaking for esbuild
           globalThis.NOT_PRISMA_DATA_PROXY && new LibraryEngine(this._engineConfig)
@@ -459,9 +468,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           // this is for tree-shaking for esbuild
           globalThis.NOT_PRISMA_DATA_PROXY && new BinaryEngine(this._engineConfig)
         )
-      } else {
-        return new DataProxyEngine(this._engineConfig)
       }
+
+      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
     }
 
     /**

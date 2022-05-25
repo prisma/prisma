@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/sdk'
 import lzString from 'lz-string'
 
 /**
@@ -8,8 +7,8 @@ import lzString from 'lz-string'
  * @param dmmf
  * @returns
  */
-export function buildDMMF(engineType: ClientEngineType, dmmf: string) {
-  if (engineType === ClientEngineType.DataProxy) {
+export function buildDMMF(dataProxy: boolean, dmmf: string) {
+  if (dataProxy === true) {
     return buildCompressedDMMF(dmmf)
   }
 

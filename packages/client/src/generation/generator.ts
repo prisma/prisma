@@ -51,6 +51,7 @@ if (process.argv[1] === __filename) {
         clientVersion,
         transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
+        dataProxy: options.dataProxy,
       })
     },
   })

@@ -36,7 +36,7 @@ function getAllTestSuiteTypeChecks(fileNames: string[]) {
 
 describe('typescript', () => {
   const suitePaths = glob.sync('./**/.generated/**/*.ts', {
-    ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema.ts'],
+    ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_*.ts'],
   })
   const suiteChecks = getAllTestSuiteTypeChecks(suitePaths)
   const suiteTable = map(suitePaths, (path) => [getTestSuiteDisplayName(path), path])

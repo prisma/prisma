@@ -1,33 +1,26 @@
 import type { ConfigMetaFormat } from '../../../engine-commands'
-import { forbiddenTransactionsWithProxyFlagMessage } from './forbiddenTransactionsWithProxyFlagMessage'
-import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage'
+import { GetGeneratorOptions } from '../../getGenerators'
+import { forbiddenItxWithDataProxyFlagMessage } from './forbiddenTransactionsWithProxyFlagMessage'
 
-export function checkFeatureFlags(config: ConfigMetaFormat) {
-  checkProxyFeatureFlag(config)
-  checkForbiddenTransactionsWithProxyFlag(config)
+/**
+ * Check feature flags and preview features
+ * @param config
+ * @param options
+ */
+export function checkFeatureFlags(config: ConfigMetaFormat, options: GetGeneratorOptions) {
+  checkForbiddenItxWithDataProxyFlag(config, options)
 }
 
-function checkProxyFeatureFlag(config: ConfigMetaFormat) {
+function checkForbiddenItxWithDataProxyFlag(config: ConfigMetaFormat, options: GetGeneratorOptions) {
   if (
-    (config.generators.some((g) => g.config.engineType === 'dataproxy') ||
-      process.env.PRISMA_CLIENT_ENGINE_TYPE === 'dataproxy') &&
-    !config.generators.some((g) => {
-      return g.previewFeatures.some((previewFeature) => previewFeature.toLowerCase() === 'dataProxy'.toLowerCase())
+    options.dataProxy === true &&
+    config.generators.some((generatorConfig) => {
+      return generatorConfig.previewFeatures.some(
+        (feature) => feature.toLocaleLowerCase() === 'interactiveTransactions'.toLocaleLowerCase(),
+      )
     })
   ) {
-    throw new Error(proxyFeatureFlagMissingMessage)
-  }
-}
-
-// TODO: this check should be gone as soon as Data Proxy supports Interactive Transactions
-function checkForbiddenTransactionsWithProxyFlag(config: ConfigMetaFormat) {
-  if (
-    config.generators.some((g) => {
-      const lowerCasePreviewFeatures = g.previewFeatures.map((pf) => pf.toLowerCase())
-      return ['dataProxy', 'interactiveTransactions'].every((pf) => lowerCasePreviewFeatures.includes(pf.toLowerCase()))
-    })
-  ) {
-    throw new Error(forbiddenTransactionsWithProxyFlagMessage)
+    throw new Error(forbiddenItxWithDataProxyFlagMessage)
   }
 }
 

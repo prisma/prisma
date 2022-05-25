@@ -1,6 +1,3 @@
-/// <reference lib="webworker" />
-// TODO: this is a problem because it propagates everywhere
-
 import EventEmitter from 'events'
 
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
@@ -237,7 +234,7 @@ export class DataProxyEngine extends Engine {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the `dataProxy` from the `previewFeatures` in your schema and ensure that `PRISMA_CLIENT_ENGINE_TYPE` environment variable is not set to `dataproxy`.', {
+      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol when --data-proxy is used', {
         clientVersion: this.clientVersion,
       })
     }

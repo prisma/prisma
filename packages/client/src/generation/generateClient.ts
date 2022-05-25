@@ -48,6 +48,7 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
+  dataProxy: boolean
 }
 
 export interface BuildClientResult {
@@ -57,7 +58,6 @@ export interface BuildClientResult {
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
-  datamodel,
   schemaDir = process.cwd(),
   runtimeDir = '@prisma/client/runtime',
   runtimeName = 'index',
@@ -70,6 +70,7 @@ export async function buildClient({
   clientVersion,
   projectRoot,
   activeProvider,
+  dataProxy,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
   const clientEngineType = getClientEngineType(generator!)
@@ -90,6 +91,7 @@ export async function buildClient({
     engineVersion,
     projectRoot: projectRoot!,
     activeProvider,
+    dataProxy,
   })
 
   const fileMap = {
@@ -146,14 +148,15 @@ export async function generateClient({
   clientVersion,
   engineVersion,
   activeProvider,
+  dataProxy,
 }: GenerateClientOptions): Promise<void> {
   const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
   runtimeDir = runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
   // we make sure that we point to the right engine build
-  if (clientEngineType === ClientEngineType.DataProxy) {
-    runtimeName = 'proxy'
+  if (dataProxy === true) {
+    runtimeName = 'proxy' // TODO: decouple the runtimes
   }
 
   const finalOutputDir = useDotPrisma ? await getDotPrismaDir(outputDir) : outputDir
@@ -177,6 +180,7 @@ export async function generateClient({
     engineVersion,
     projectRoot,
     activeProvider,
+    dataProxy,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)

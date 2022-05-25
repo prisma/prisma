@@ -1,5 +1,3 @@
-import { ClientEngineType } from '@prisma/sdk'
-
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 
 // that is all we need for the data proxy
@@ -16,8 +14,8 @@ export type InlineDatasources = {
  * @param internalDatasources
  * @returns
  */
-export function buildInlineDatasource(engineType: ClientEngineType, internalDatasources: InternalDatasource[]) {
-  if (engineType === ClientEngineType.DataProxy) {
+export function buildInlineDatasource(dataProxy: boolean, internalDatasources: InternalDatasource[]) {
+  if (dataProxy === true) {
     const datasources = internalToInlineDatasources(internalDatasources)
 
     return `

@@ -42,6 +42,7 @@ export interface TSClientOptions {
   schemaDir: string
   outputDir: string
   activeProvider: string
+  dataProxy: boolean
 }
 
 export class TSClient implements Generatable {
@@ -62,6 +63,7 @@ export class TSClient implements Generatable {
       runtimeDir,
       runtimeName,
       datasources,
+      dataProxy,
     } = this.options
     const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
@@ -86,6 +88,7 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
+      dataProxy: this.options.dataProxy,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -112,7 +115,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(engineType, this.dmmfString)}
+${buildDMMF(dataProxy, this.dmmfString)}
 
 /**
  * Create the Client
@@ -120,14 +123,14 @@ ${buildDMMF(engineType, this.dmmfString)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${buildInlineDatasource(engineType, datasources)}
-${await buildInlineSchema(engineType, schemaPath)}
-${buildInlineEnv(engineType, datasources, envPaths)}
-${buildWarnEnvConflicts(engineType, runtimeDir, runtimeName)}
+${buildInlineDatasource(dataProxy, datasources)}
+${await buildInlineSchema(dataProxy, schemaPath)}
+${buildInlineEnv(dataProxy, datasources, envPaths)}
+${buildWarnEnvConflicts(dataProxy, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
   }

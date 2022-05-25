@@ -1,5 +1,5 @@
 import type { EnvPaths } from '@prisma/sdk'
-import { ClientEngineType, tryLoadEnvs } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk'
 
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 
@@ -20,12 +20,8 @@ type LoadedEnv = {
  * @param envPaths
  * @returns
  */
-export function buildInlineEnv(
-  clientEngineType: ClientEngineType,
-  datasources: InternalDatasource[],
-  envPaths: EnvPaths,
-) {
-  if (clientEngineType === ClientEngineType.DataProxy) {
+export function buildInlineEnv(dataProxy: boolean, datasources: InternalDatasource[], envPaths: EnvPaths) {
+  if (dataProxy === true) {
     const envVarNames = getSelectedEnvVarNames(datasources)
     const loadedEnv = loadSelectedEnvVars(envPaths, envVarNames)
 
