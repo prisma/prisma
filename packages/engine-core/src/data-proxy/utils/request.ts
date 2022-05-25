@@ -1,20 +1,24 @@
 import type { IncomingMessage } from 'http'
 import type _https from 'https'
-import type { O } from 'ts-toolbelt'
 
 import { getJSRuntimeName } from './getJSRuntimeName'
 
-// our implementation handles less
-export type RequestOptions = O.Patch<
-  {
-    headers?: { [k: string]: string }
-    body?: string
-  },
-  RequestInit
->
+// our implementation handles less than the real fetch
+export type RequestOptions = {
+  headers?: { [k: string]: string }
+  body?: string
+  method?: string
+}
 
-// our implementation handles less
-export type RequestResponse = O.Required<O.Optional<Response>, 'json' | 'url' | 'ok' | 'status'>
+// our implementation handles less than the real fetch
+export type RequestResponse = {
+  json(): Promise<any>
+  readonly url: string
+  readonly ok: boolean
+  readonly status: number
+}
+
+declare let fetch: typeof nodeFetch
 
 /**
  * Isomorphic `fetch` that imitates `fetch` via `http` when on Node.js.
