@@ -2127,7 +2127,7 @@ export namespace Prisma {
 
   export interface PostDelegate<GlobalRejectSettings> {
     /**
-     * Find one Post that matches the filter.
+     * Returns Post that matches the filter or null if nothing is found
      * @param {PostFindUniqueArgs} args - Arguments to find a Post
      * @example
      * // Get one Post
@@ -2159,7 +2159,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null >, Prisma__PostClient<PostGetPayload<T> | null >>
 
     /**
-     * Find one or more 'Post' that matches the filter.
+     * Find zero or more 'Post' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {PostFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -2208,7 +2208,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a Post.
+     * Delete 'Post'.
      * @param {PostDeleteArgs} args - Arguments to delete one Post.
      * @example
      * // Delete one Post
@@ -2603,7 +2603,7 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
-     * Filter on one or more 'Post'.
+     * Filter on 'Post'.
      * 
     **/
     where?: PostWhereInput
@@ -3169,7 +3169,7 @@ export namespace Prisma {
 
   export interface UserDelegate<GlobalRejectSettings> {
     /**
-     * Find one User that matches the filter.
+     * Returns User that matches the filter or null if nothing is found
      * @param {UserFindUniqueArgs} args - Arguments to find a User
      * @example
      * // Get one User
@@ -3201,7 +3201,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>
 
     /**
-     * Find one or more 'User' that matches the filter.
+     * Find zero or more 'User' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -3250,7 +3250,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a User.
+     * Delete 'User'.
      * @param {UserDeleteArgs} args - Arguments to delete one User.
      * @example
      * // Delete one User
@@ -3647,7 +3647,7 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
-     * Filter on one or more 'User'.
+     * Filter on 'User'.
      * 
     **/
     where?: UserWhereInput
@@ -4092,7 +4092,7 @@ export namespace Prisma {
 
   export interface EmbedHolderDelegate<GlobalRejectSettings> {
     /**
-     * Find one EmbedHolder that matches the filter.
+     * Returns EmbedHolder that matches the filter or null if nothing is found
      * @param {EmbedHolderFindUniqueArgs} args - Arguments to find a EmbedHolder
      * @example
      * // Get one EmbedHolder
@@ -4124,7 +4124,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>> : CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null >, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null >>
 
     /**
-     * Find one or more 'EmbedHolder' that matches the filter.
+     * Find zero or more 'EmbedHolder' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {EmbedHolderFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -4173,7 +4173,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a EmbedHolder.
+     * Delete 'EmbedHolder'.
      * @param {EmbedHolderDeleteArgs} args - Arguments to delete one EmbedHolder.
      * @example
      * // Delete one EmbedHolder
@@ -4574,7 +4574,7 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
-     * Filter on one or more 'EmbedHolder'.
+     * Filter on 'EmbedHolder'.
      * 
     **/
     where?: EmbedHolderWhereInput
@@ -5124,7 +5124,7 @@ export namespace Prisma {
 
   export interface MDelegate<GlobalRejectSettings> {
     /**
-     * Find one M that matches the filter.
+     * Returns M that matches the filter or null if nothing is found
      * @param {MFindUniqueArgs} args - Arguments to find a M
      * @example
      * // Get one M
@@ -5156,7 +5156,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null >, Prisma__MClient<MGetPayload<T> | null >>
 
     /**
-     * Find one or more 'M' that matches the filter.
+     * Find zero or more 'M' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -5205,7 +5205,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a M.
+     * Delete 'M'.
      * @param {MDeleteArgs} args - Arguments to delete one M.
      * @example
      * // Delete one M
@@ -5600,7 +5600,7 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
-     * Filter on one or more 'M'.
+     * Filter on 'M'.
      * 
     **/
     where?: MWhereInput
@@ -6150,7 +6150,7 @@ export namespace Prisma {
 
   export interface NDelegate<GlobalRejectSettings> {
     /**
-     * Find one N that matches the filter.
+     * Returns N that matches the filter or null if nothing is found
      * @param {NFindUniqueArgs} args - Arguments to find a N
      * @example
      * // Get one N
@@ -6182,7 +6182,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null >, Prisma__NClient<NGetPayload<T> | null >>
 
     /**
-     * Find one or more 'N' that matches the filter.
+     * Find zero or more 'N' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -6231,7 +6231,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a N.
+     * Delete 'N'.
      * @param {NDeleteArgs} args - Arguments to delete one N.
      * @example
      * // Delete one N
@@ -6626,7 +6626,7 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
-     * Filter on one or more 'N'.
+     * Filter on 'N'.
      * 
     **/
     where?: NWhereInput
@@ -7172,7 +7172,7 @@ export namespace Prisma {
 
   export interface OneOptionalDelegate<GlobalRejectSettings> {
     /**
-     * Find one OneOptional that matches the filter.
+     * Returns OneOptional that matches the filter or null if nothing is found
      * @param {OneOptionalFindUniqueArgs} args - Arguments to find a OneOptional
      * @example
      * // Get one OneOptional
@@ -7204,7 +7204,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>
 
     /**
-     * Find one or more 'OneOptional' that matches the filter.
+     * Find zero or more 'OneOptional' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -7253,7 +7253,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a OneOptional.
+     * Delete 'OneOptional'.
      * @param {OneOptionalDeleteArgs} args - Arguments to delete one OneOptional.
      * @example
      * // Delete one OneOptional
@@ -7648,7 +7648,7 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
-     * Filter on one or more 'OneOptional'.
+     * Filter on 'OneOptional'.
      * 
     **/
     where?: OneOptionalWhereInput
@@ -8198,7 +8198,7 @@ export namespace Prisma {
 
   export interface ManyRequiredDelegate<GlobalRejectSettings> {
     /**
-     * Find one ManyRequired that matches the filter.
+     * Returns ManyRequired that matches the filter or null if nothing is found
      * @param {ManyRequiredFindUniqueArgs} args - Arguments to find a ManyRequired
      * @example
      * // Get one ManyRequired
@@ -8230,7 +8230,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null >>
 
     /**
-     * Find one or more 'ManyRequired' that matches the filter.
+     * Find zero or more 'ManyRequired' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -8279,7 +8279,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a ManyRequired.
+     * Delete 'ManyRequired'.
      * @param {ManyRequiredDeleteArgs} args - Arguments to delete one ManyRequired.
      * @example
      * // Delete one ManyRequired
@@ -8674,7 +8674,7 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
-     * Filter on one or more 'ManyRequired'.
+     * Filter on 'ManyRequired'.
      * 
     **/
     where?: ManyRequiredWhereInput
@@ -9224,7 +9224,7 @@ export namespace Prisma {
 
   export interface OptionalSide1Delegate<GlobalRejectSettings> {
     /**
-     * Find one OptionalSide1 that matches the filter.
+     * Returns OptionalSide1 that matches the filter or null if nothing is found
      * @param {OptionalSide1FindUniqueArgs} args - Arguments to find a OptionalSide1
      * @example
      * // Get one OptionalSide1
@@ -9256,7 +9256,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>
 
     /**
-     * Find one or more 'OptionalSide1' that matches the filter.
+     * Find zero or more 'OptionalSide1' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1FindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -9305,7 +9305,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a OptionalSide1.
+     * Delete 'OptionalSide1'.
      * @param {OptionalSide1DeleteArgs} args - Arguments to delete one OptionalSide1.
      * @example
      * // Delete one OptionalSide1
@@ -9700,7 +9700,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
-     * Filter on one or more 'OptionalSide1'.
+     * Filter on 'OptionalSide1'.
      * 
     **/
     where?: OptionalSide1WhereInput
@@ -10242,7 +10242,7 @@ export namespace Prisma {
 
   export interface OptionalSide2Delegate<GlobalRejectSettings> {
     /**
-     * Find one OptionalSide2 that matches the filter.
+     * Returns OptionalSide2 that matches the filter or null if nothing is found
      * @param {OptionalSide2FindUniqueArgs} args - Arguments to find a OptionalSide2
      * @example
      * // Get one OptionalSide2
@@ -10274,7 +10274,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>
 
     /**
-     * Find one or more 'OptionalSide2' that matches the filter.
+     * Find zero or more 'OptionalSide2' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2FindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -10323,7 +10323,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a OptionalSide2.
+     * Delete 'OptionalSide2'.
      * @param {OptionalSide2DeleteArgs} args - Arguments to delete one OptionalSide2.
      * @example
      * // Delete one OptionalSide2
@@ -10718,7 +10718,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
-     * Filter on one or more 'OptionalSide2'.
+     * Filter on 'OptionalSide2'.
      * 
     **/
     where?: OptionalSide2WhereInput
@@ -11200,7 +11200,7 @@ export namespace Prisma {
 
   export interface ADelegate<GlobalRejectSettings> {
     /**
-     * Find one A that matches the filter.
+     * Returns A that matches the filter or null if nothing is found
      * @param {AFindUniqueArgs} args - Arguments to find a A
      * @example
      * // Get one A
@@ -11232,7 +11232,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null >, Prisma__AClient<AGetPayload<T> | null >>
 
     /**
-     * Find one or more 'A' that matches the filter.
+     * Find zero or more 'A' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {AFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -11281,7 +11281,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a A.
+     * Delete 'A'.
      * @param {ADeleteArgs} args - Arguments to delete one A.
      * @example
      * // Delete one A
@@ -11660,7 +11660,7 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
-     * Filter on one or more 'A'.
+     * Filter on 'A'.
      * 
     **/
     where?: AWhereInput
@@ -12089,7 +12089,7 @@ export namespace Prisma {
 
   export interface BDelegate<GlobalRejectSettings> {
     /**
-     * Find one B that matches the filter.
+     * Returns B that matches the filter or null if nothing is found
      * @param {BFindUniqueArgs} args - Arguments to find a B
      * @example
      * // Get one B
@@ -12121,7 +12121,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null >, Prisma__BClient<BGetPayload<T> | null >>
 
     /**
-     * Find one or more 'B' that matches the filter.
+     * Find zero or more 'B' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {BFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -12170,7 +12170,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a B.
+     * Delete 'B'.
      * @param {BDeleteArgs} args - Arguments to delete one B.
      * @example
      * // Delete one B
@@ -12549,7 +12549,7 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
-     * Filter on one or more 'B'.
+     * Filter on 'B'.
      * 
     **/
     where?: BWhereInput
@@ -12972,7 +12972,7 @@ export namespace Prisma {
 
   export interface CDelegate<GlobalRejectSettings> {
     /**
-     * Find one C that matches the filter.
+     * Returns C that matches the filter or null if nothing is found
      * @param {CFindUniqueArgs} args - Arguments to find a C
      * @example
      * // Get one C
@@ -13004,7 +13004,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null >, Prisma__CClient<CGetPayload<T> | null >>
 
     /**
-     * Find one or more 'C' that matches the filter.
+     * Find zero or more 'C' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {CFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -13053,7 +13053,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a C.
+     * Delete 'C'.
      * @param {CDeleteArgs} args - Arguments to delete one C.
      * @example
      * // Delete one C
@@ -13432,7 +13432,7 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
-     * Filter on one or more 'C'.
+     * Filter on 'C'.
      * 
     **/
     where?: CWhereInput
@@ -13839,7 +13839,7 @@ export namespace Prisma {
 
   export interface DDelegate<GlobalRejectSettings> {
     /**
-     * Find one D that matches the filter.
+     * Returns D that matches the filter or null if nothing is found
      * @param {DFindUniqueArgs} args - Arguments to find a D
      * @example
      * // Get one D
@@ -13871,7 +13871,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null >, Prisma__DClient<DGetPayload<T> | null >>
 
     /**
-     * Find one or more 'D' that matches the filter.
+     * Find zero or more 'D' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {DFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -13920,7 +13920,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a D.
+     * Delete 'D'.
      * @param {DDeleteArgs} args - Arguments to delete one D.
      * @example
      * // Delete one D
@@ -14299,7 +14299,7 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
-     * Filter on one or more 'D'.
+     * Filter on 'D'.
      * 
     **/
     where?: DWhereInput
@@ -14698,7 +14698,7 @@ export namespace Prisma {
 
   export interface EDelegate<GlobalRejectSettings> {
     /**
-     * Find one E that matches the filter.
+     * Returns E that matches the filter or null if nothing is found
      * @param {EFindUniqueArgs} args - Arguments to find a E
      * @example
      * // Get one E
@@ -14730,7 +14730,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null >, Prisma__EClient<EGetPayload<T> | null >>
 
     /**
-     * Find one or more 'E' that matches the filter.
+     * Find zero or more 'E' that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {EFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -14779,7 +14779,7 @@ export namespace Prisma {
     ): PrismaPromise<BatchPayload>
 
     /**
-     * Delete a E.
+     * Delete 'E'.
      * @param {EDeleteArgs} args - Arguments to delete one E.
      * @example
      * // Delete one E
@@ -15158,7 +15158,7 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
-     * Filter on one or more 'E'.
+     * Filter on 'E'.
      * 
     **/
     where?: EWhereInput

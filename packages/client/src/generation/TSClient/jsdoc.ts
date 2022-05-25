@@ -5,7 +5,7 @@ import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getGroupByArgsName, getModelArgName } from '../utils'
 
 export interface JSDocMethodBodyCtx {
-  singular: string
+  name: string
   firstScalar: DMMF.Field | undefined
   method: string
   model: DMMF.Model
@@ -35,16 +35,18 @@ function addLinkToDocs(comment: string, docs: keyof typeof Docs) {
 
 ${comment}`
 }
+
 function getDeprecationString(since: string, replacement: string) {
   return `@deprecated since ${since} please use \`${replacement}\``
 }
+
 const undefinedNote = `Note, that providing \`undefined\` is treated as the value not being there.
 Read more here: https://pris.ly/d/null-undefined`
 
 const JSDocFields = {
-  take: (singular) => addLinkToDocs(`Take \`±n\` '${singular}' from the position of the cursor.`, 'pagination'),
-  skip: (singular) => addLinkToDocs(`Skip the first \`n\` '${singular}'.`, 'pagination'),
-  _count: (singular) => addLinkToDocs(`Count returned '${singular}'`, 'aggregations'),
+  take: (name) => addLinkToDocs(`Take \`±n\` '${name}' from the position of the cursor.`, 'pagination'),
+  skip: (name) => addLinkToDocs(`Skip the first \`n\` '${name}'.`, 'pagination'),
+  _count: (name) => addLinkToDocs(`Count returned '${name}'`, 'aggregations'),
   _avg: () => addLinkToDocs(`Select which fields to average`, 'aggregations'),
   _sum: () => addLinkToDocs(`Select which fields to sum`, 'aggregations'),
   _min: () => addLinkToDocs(`Select which fields to find the minimum value`, 'aggregations'),
@@ -54,13 +56,14 @@ const JSDocFields = {
   sum: () => getDeprecationString('2.23.0', '_sum'),
   min: () => getDeprecationString('2.23.0', '_min'),
   max: () => getDeprecationString('2.23.0', '_max'),
-  distinct: (singular) => addLinkToDocs(`Filter by unique combinations of '${singular}'.`, 'distinct'),
-  orderBy: (singular) => addLinkToDocs(`Determine the order of '${singular}' to fetch.`, 'sorting'),
+  distinct: (name) => addLinkToDocs(`Filter by unique combinations of '${name}'.`, 'distinct'),
+  orderBy: (name) => addLinkToDocs(`Determine the order of '${name}' to fetch.`, 'sorting'),
 }
+
 export const JSDocs: JSDocsType = {
   groupBy: {
     body: (ctx) => dedent`
-      Group by '${ctx.singular}'.
+      Group by '${ctx.name}'.
       ${undefinedNote}
       @param {${getGroupByArgsName(ctx.model.name)}} args - Group by arguments.
       @example
@@ -79,26 +82,26 @@ export const JSDocs: JSDocsType = {
   },
   create: {
     body: (ctx) => dedent`
-      Create a ${ctx.singular}.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create a ${ctx.singular}.
+      Create a ${ctx.name}.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create a ${ctx.name}.
       @example
-      // Create one ${ctx.singular}
-      const ${ctx.singular} = await ${ctx.method}({
+      // Create one ${ctx.name}
+      const ${ctx.name} = await ${ctx.method}({
         data: {
-          // ... data to create a ${ctx.singular}
+          // ... data to create a ${ctx.name}
         }
       })
     `,
     fields: {
-      data: (singular) => `The data needed to create a ${singular}.`,
+      data: (name) => `The data needed to create a ${name}.`,
     },
   },
   createMany: {
     body: (ctx) => dedent`
-      Create many '${ctx.singular}'.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many '${ctx.singular}'.
+      Create many '${ctx.name}'.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create many '${ctx.name}'.
       @example
-      // Create many '${ctx.singular}'
+      // Create many '${ctx.name}'
       const results = await ${ctx.method}({
         data: {
           // ... provide data here
@@ -106,15 +109,15 @@ export const JSDocs: JSDocsType = {
       })
     `,
     fields: {
-      data: (singular) => `The data used to create many '${singular}'.`,
+      data: (name) => `The data used to create many '${name}'.`,
     },
   },
   findUnique: {
     body: (ctx) => dedent`
-      Returns ${ctx.singular} that matches the filter or null if nothing is found
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
+      Returns ${ctx.name} that matches the filter or null if nothing is found
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.name}
       @example
-      // Get one ${ctx.singular}
+      // Get one ${ctx.name}
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         where: {
           // ... provide filter here
@@ -122,16 +125,16 @@ export const JSDocs: JSDocsType = {
       })
     `,
     fields: {
-      where: (singular) => `Filter, which ${singular} to fetch.`,
+      where: (name) => `Filter, which ${name} to fetch.`,
     },
   },
   findFirst: {
     body: (ctx) => dedent`
-      Find the first ${ctx.singular} that matches the filter.
+      Find the first ${ctx.name} that matches the filter.
       ${undefinedNote}
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.name}
       @example
-      // Get one ${ctx.singular}
+      // Get one ${ctx.name}
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         where: {
           // ... provide filter here
@@ -139,9 +142,9 @@ export const JSDocs: JSDocsType = {
       })
     `,
     fields: {
-      where: (singular) => `Filter, which ${singular} to fetch.`,
+      where: (name) => `Filter, which ${name} to fetch.`,
       orderBy: JSDocFields.orderBy,
-      cursor: (singular) => addLinkToDocs(`Sets the position for searching for a ${singular}.`, 'cursor'),
+      cursor: (name) => addLinkToDocs(`Sets the position for searching for a ${name}.`, 'cursor'),
       take: JSDocFields.take,
       skip: JSDocFields.skip,
       distinct: JSDocFields.distinct,
@@ -157,35 +160,35 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
         : ''
 
       return dedent`
-        Find zero or more '${ctx.singular}' that matches the filter.
+        Find zero or more '${ctx.name}' that matches the filter.
         ${undefinedNote}
         @param {${getModelArgName(
           ctx.model.name,
           ctx.action,
         )}=} args - Arguments to filter and select certain fields only.
         @example
-        // Get all '${ctx.singular}'
+        // Get all '${ctx.name}'
         const results = await ${ctx.method}()
                 
-        // Get first 10 '${ctx.singular}'
+        // Get first 10 '${ctx.name}'
         const results = await ${ctx.method}({ take: 10 })
         ${onlySelect}
       `
     },
     fields: {
-      where: (singular) => `Filter on '${singular}'.`,
+      where: (name) => `Filter on '${name}'.`,
       orderBy: JSDocFields.orderBy,
       skip: JSDocFields.skip,
-      cursor: (singular) => addLinkToDocs(`Sets the position for listing '${singular}'.`, 'cursor'),
+      cursor: (name) => addLinkToDocs(`Sets the position for listing '${name}'.`, 'cursor'),
       take: JSDocFields.take,
     },
   },
   update: {
     body: (ctx) => dedent`
-      Update one ${ctx.singular}.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one ${ctx.singular}.
+      Update one ${ctx.name}.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one ${ctx.name}.
       @example
-      // Update one ${ctx.singular}
+      // Update one ${ctx.name}
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         where: {
           // ... provide filter here
@@ -196,55 +199,54 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       })
     `,
     fields: {
-      data: (singular) => `The data needed to update a ${singular}.`,
-      where: (singular) => `Choose, which ${singular} to update.`,
+      data: (name) => `The data needed to update a ${name}.`,
+      where: (name) => `Choose, which ${name} to update.`,
     },
   },
   upsert: {
     body: (ctx) => dedent`
-      Create or update one ${ctx.singular}.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create a ${ctx.singular}.
+      Create or update one ${ctx.name}.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create a ${ctx.name}.
       @example
-      // Update or create a ${ctx.singular}
+      // Update or create a ${ctx.name}
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         create: {
-          // ... data to create a ${ctx.singular}
+          // ... data to create a ${ctx.name}
         },
         update: {
           // ... in case it already exists, update
         },
         where: {
-          // ... the filter for the ${ctx.singular} we want to update
+          // ... the filter for the ${ctx.name} we want to update
         }
       })
     `,
     fields: {
-      where: (singular) => `The filter to search for the ${singular} to update in case it exists.`,
-      create: (singular) =>
-        `In case the ${singular} found by the \`where\` argument doesn't exist, create a new ${singular} with this data.`,
-      update: (singular) =>
-        `In case the ${singular} was found with the provided \`where\` argument, update it with this data.`,
+      where: (name) => `The filter to search for the ${name} to update in case it exists.`,
+      create: (name) =>
+        `In case the ${name} found by the \`where\` argument doesn't exist, create a new ${name} with this data.`,
+      update: (name) => `In case the ${name} was found with the provided \`where\` argument, update it with this data.`,
     },
   },
   delete: {
     body: (ctx) => dedent`
-      Delete '${ctx.singular}'.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to delete one ${ctx.singular}.
+      Delete '${ctx.name}'.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to delete one ${ctx.name}.
       @example
-      // Delete one ${ctx.singular}
+      // Delete one ${ctx.name}
       await ${ctx.method}({
         where: {
-          // ... filter to delete one ${ctx.singular}
+          // ... filter to delete one ${ctx.name}
         }
       })
     `,
     fields: {
-      where: (singular) => `Filter which ${singular} to delete.`,
+      where: (name) => `Filter which ${name} to delete.`,
     },
   },
   aggregate: {
     body: (ctx) => dedent`
-      Allows you to perform aggregations operations on '${ctx.singular}'.
+      Allows you to perform aggregations operations on '${ctx.name}'.
       ${undefinedNote}
       @param {${getModelArgName(
         ctx.model.name,
@@ -270,7 +272,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       })
     `,
     fields: {
-      where: (singular) => `Filter what '${singular}' to aggregate.`,
+      where: (name) => `Filter what '${name}' to aggregate.`,
       orderBy: JSDocFields.orderBy,
       cursor: () => addLinkToDocs(`Sets the start position`, 'cursor'),
       take: JSDocFields.take,
@@ -289,14 +291,14 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   },
   count: {
     body: (ctx) => dedent`
-      Count the number of '${ctx.singular}'.
+      Count the number of '${ctx.name}'.
       ${undefinedNote}
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter '${ctx.singular}' to count.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter '${ctx.name}' to count.
       @example
-      // Count the number of '${ctx.singular}'
+      // Count the number of '${ctx.name}'
       const count = await ${ctx.method}({
         where: {
-          // ... the filter for the '${ctx.singular}' we want to count
+          // ... the filter for the '${ctx.name}' we want to count
         }
       })
     `,
@@ -304,11 +306,11 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   },
   updateMany: {
     body: (ctx) => dedent`
-      Update zero or more '${ctx.singular}'.
+      Update zero or more '${ctx.name}'.
       ${undefinedNote}
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update one or more rows.
       @example
-      // Update many '${ctx.singular}'
+      // Update many '${ctx.name}'
       const results = await ${ctx.method}({
         where: {
           // ... provide filter here
@@ -319,16 +321,16 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       })
     `,
     fields: {
-      data: (singular) => `The data used to update '${singular}'.`,
-      where: (singular) => `Filter which '${singular}' to update`,
+      data: (name) => `The data used to update '${name}'.`,
+      where: (name) => `Filter which '${name}' to update`,
     },
   },
   deleteMany: {
     body: (ctx) => dedent`
-      Delete zero or more '${ctx.singular}'.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter '${ctx.singular}' to delete.
+      Delete zero or more '${ctx.name}'.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to filter '${ctx.name}' to delete.
       @example
-      // Delete a few '${ctx.singular}'
+      // Delete a few '${ctx.name}'
       const { count } = await ${ctx.method}({
         where: {
           // ... provide filter here
@@ -336,12 +338,12 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       })
     `,
     fields: {
-      where: (singular) => `Filter which '${singular}' to delete`,
+      where: (name) => `Filter which '${name}' to delete`,
     },
   },
   aggregateRaw: {
     body: (ctx) => dedent`
-      Perform aggregation operations on '${ctx.singular}'.
+      Perform aggregation operations on '${ctx.name}'.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which aggregations you would like to apply.
       @example
       const results = await ${ctx.method}({
@@ -360,7 +362,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   },
   findRaw: {
     body: (ctx) => dedent`
-      Find zero or more '${ctx.singular}' that matches the filter.
+      Find zero or more '${ctx.name}' that matches the filter.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
       @example
       const results = await ${ctx.method}({

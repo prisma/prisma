@@ -6,7 +6,7 @@ import { JSDocs } from './jsdoc'
 
 export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   const ctx: JSDocMethodBodyCtx = {
-    singular: capitalize(mapping.model),
+    name: capitalize(mapping.model),
     firstScalar: model.fields.find((f) => f.kind === 'scalar'),
     method: `prisma.${lowerCase(mapping.model)}.${action}`,
     action,
@@ -21,6 +21,7 @@ export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.Model
 export function getMethodJSDoc(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   return wrapComment(getMethodJSDocBody(action, mapping, model))
 }
+
 export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   if (actionName === 'count') {
     return ''
@@ -44,6 +45,7 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   }
   return `<T extends ${modelArgName}>`
 }
+
 export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
   if (actionName === 'count') {
     return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include'>`
@@ -63,12 +65,14 @@ export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
       : ''
   }: SelectSubset<T, ${getModelArgName(modelName, actionName)}>`
 }
+
 export function wrapComment(str: string): string {
   return `/**\n${str
     .split('\n')
     .map((l) => ' * ' + l)
     .join('\n')}\n**/`
 }
+
 export function getArgFieldJSDoc(
   type?: DMMF.OutputType,
   action?: DMMF.ModelAction,
@@ -77,7 +81,8 @@ export function getArgFieldJSDoc(
   if (!field || !action || !type) return
   const fieldName = typeof field === 'string' ? field : field.name
   if (JSDocs[action] && JSDocs[action]?.fields[fieldName]) {
-    const comment = JSDocs[action]?.fields[fieldName](type.name)
+    const name = type.name
+    const comment = JSDocs[action]?.fields[fieldName](name)
     return comment as string
   }
 
