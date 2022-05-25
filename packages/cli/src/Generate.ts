@@ -9,7 +9,6 @@ import {
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
-  getPlatform,
   HelpError,
   highlightTS,
   isError,
@@ -18,7 +17,6 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  Platform,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'

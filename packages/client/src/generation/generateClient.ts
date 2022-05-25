@@ -242,7 +242,8 @@ export async function generateClient({
       }\` in the \`binaryPaths\` object.`,
     )
   }
-  if (transpile) {
+
+  if (transpile === true && dataProxy === false) {
     if (process.env.NETLIFY) {
       await makeDir('/tmp/prisma-engines')
     }

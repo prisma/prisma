@@ -226,6 +226,8 @@ export interface GetPrismaClientConfig {
 
   /**
    * True when `--data-proxy` is passed to `prisma generate`
+   * If enabled, we disregard the generator config engineType.
+   * It means that `--data-proxy` binds you to the Data Proxy.
    */
   dataProxy: boolean
 
