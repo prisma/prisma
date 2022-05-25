@@ -77,7 +77,6 @@ export function getArgFieldJSDoc(
   if (!field || !action || !type) return
   const fieldName = typeof field === 'string' ? field : field.name
   if (JSDocs[action] && JSDocs[action]?.fields[fieldName]) {
-    const singular = type.name
     const comment = JSDocs[action]?.fields[fieldName](type.name)
     return comment as string
   }
