@@ -2,6 +2,9 @@ import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
 
 import testMatrix from './_matrix'
 
+// @ts-ignore
+declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+
 // https://github.com/prisma/prisma/issues/12507
 testMatrix.setupTestSuite(() => {
   test('should create data using one PrismaClient and read using another', async () => {
@@ -9,7 +12,6 @@ testMatrix.setupTestSuite(() => {
       return
     }
 
-    // @ts-ignore
     const prismaClient1 = new PrismaClient({
       log: [
         {
@@ -31,8 +33,8 @@ testMatrix.setupTestSuite(() => {
         prismaClient1.$connect().catch(reject)
       }))()
 
-    // @ts-ignore
     const prismaClient2 = new PrismaClient({
+      // @ts-ignore
       __internal: {
         engine: {
           endpoint: internalURL,
