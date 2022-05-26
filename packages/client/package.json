@@ -118,7 +118,7 @@
     "ts-jest": "28.0.2",
     "ts-node": "10.7.0",
     "tsd": "0.20.0",
-    "typescript": "4.7.2"
+    "typescript": "4.6.4"
   },
   "peerDependencies": {
     "prisma": "*"

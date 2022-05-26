@@ -24,7 +24,7 @@
     "jest-junit": "13.2.0",
     "react": "18.1.0",
     "ts-jest": "28.0.2",
-    "typescript": "4.7.2"
+    "typescript": "4.6.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
