@@ -199,7 +199,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       })
     `,
     fields: {
-      data: (name) => `The data needed to update a ${name}.`,
+      data: (name) => `The data needed to update '${name}'.`,
       where: (name) => `Choose, which ${name} to update.`,
     },
   },
