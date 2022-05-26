@@ -83,7 +83,7 @@ export const JSDocs: JSDocsType = {
   create: {
     body: (ctx) => dedent`
       Create a ${ctx.name}.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create a ${ctx.name}.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create '${ctx.name}'.
       @example
       // Create one ${ctx.name}
       const ${ctx.name} = await ${ctx.method}({
