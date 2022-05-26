@@ -211,7 +211,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       // Update or create '${ctx.name}'
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         create: {
-          // ... data to create a ${ctx.name}
+          // ... data to create '${ctx.name}'
         },
         update: {
           // ... in case it already exists, update
