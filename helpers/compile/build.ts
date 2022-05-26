@@ -183,7 +183,7 @@ const watch =
     }, 10)
 
     // triggers a full rebuild on added file
-    const onAdd = debounce(async () => {
+    const onAddOrUnlink = debounce(async () => {
       void changeWatcher.close() // stop all
 
       // only one watcher will do this task
@@ -194,7 +194,8 @@ const watch =
     }, 10)
 
     changeWatcher.on('change', onChange)
-    restartWatcher.once('add', onAdd)
+    restartWatcher.once('add', onAddOrUnlink)
+    restartWatcher.once('unlink', onAddOrUnlink)
 
     return undefined
   }
