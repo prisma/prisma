@@ -51,5 +51,7 @@ testMatrix.setupTestSuite(
       expect(schemaString).toContain('model')
     })
   },
-  { optIn: ['sqlite', 'mongodb'] },
+  // Use to optIn to a select few providers
+  // - otherwize the suite will require all providers.
+  // { optIn: ['sqlite', 'mongodb'] },
 )
