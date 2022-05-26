@@ -88,7 +88,7 @@ export const JSDocs: JSDocsType = {
       // Create one ${ctx.name}
       const ${ctx.name} = await ${ctx.method}({
         data: {
-          // ... data to create a ${ctx.name}
+          // ... data to create '${ctx.name}'
         }
       })
     `,
