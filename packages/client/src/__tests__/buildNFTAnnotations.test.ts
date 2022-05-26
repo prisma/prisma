@@ -94,9 +94,7 @@ describe('dataproxy', () => {
 
     // TODO: when using .toMatchInlineSnapshot(), this fails after updating snapshots.
     // Probably an issue with the snapshot serializer?
-    expect(normalizePaths(annotations)).toBe(`
-
-`)
+    expect(normalizePaths(annotations)).toBe('')
   })
 })
 
