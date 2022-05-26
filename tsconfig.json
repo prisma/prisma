@@ -17,5 +17,5 @@
       "@prisma/engines-version": ["../engines-wrapper/packages/engines-version/src"]
     }
   },
-  "exclude": ["**/dist", "**/build", "**/node_modules"]
+  "exclude": ["**/dist", "**/build", "**/node_modules", "**/packages"]
 }
