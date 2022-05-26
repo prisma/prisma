@@ -206,7 +206,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
   upsert: {
     body: (ctx) => dedent`
       Create or update one ${ctx.name}.
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create a ${ctx.name}.
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create '${ctx.name}'.
       @example
       // Update or create '${ctx.name}'
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
