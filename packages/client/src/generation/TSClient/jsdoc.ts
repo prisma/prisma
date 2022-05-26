@@ -93,7 +93,7 @@ export const JSDocs: JSDocsType = {
       })
     `,
     fields: {
-      data: (name) => `The data needed to create a ${name}.`,
+      data: (name) => `The data needed to create '${name}'.`,
     },
   },
   createMany: {
