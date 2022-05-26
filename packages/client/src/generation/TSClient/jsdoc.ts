@@ -132,7 +132,7 @@ export const JSDocs: JSDocsType = {
     body: (ctx) => dedent`
       Find the first ${ctx.name} that matches the filter.
       ${undefinedNote}
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.name}
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find '${ctx.name}'
       @example
       // Get one ${ctx.name}
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
