@@ -208,7 +208,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
       Create or update one ${ctx.name}.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to update or create a ${ctx.name}.
       @example
-      // Update or create a ${ctx.name}
+      // Update or create '${ctx.name}'
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
         create: {
           // ... data to create a ${ctx.name}
