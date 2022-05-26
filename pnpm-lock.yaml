@@ -223,6 +223,7 @@ importers:
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
+      '@types/faker': 5.5.1
       '@types/jest': 27.5.0
       '@types/js-levenshtein': 1.1.1
       '@types/mssql': 7.1.5
@@ -234,6 +235,7 @@ importers:
       decimal.js: 10.3.1
       esbuild: 0.14.38
       execa: 5.1.1
+      faker: 5.5.1
       flat-map-polyfill: 0.3.8
       fs-extra: 10.1.0
       fs-monkey: 1.0.3
@@ -284,6 +286,7 @@ importers:
       '@swc/jest': 0.2.21_@swc+core@1.2.182
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
+      '@types/faker': 5.5.1
       '@types/jest': 27.5.0
       '@types/js-levenshtein': 1.1.1
       '@types/mssql': 7.1.5
@@ -295,6 +298,7 @@ importers:
       decimal.js: 10.3.1
       esbuild: 0.14.38
       execa: 5.1.1
+      faker: 5.5.1
       flat-map-polyfill: 0.3.8
       fs-extra: 10.1.0
       fs-monkey: 1.0.3
@@ -2052,6 +2056,10 @@ packages:
 
   /@types/estree/0.0.51:
     resolution: {integrity: sha512-CuPgU6f3eT/XgKKPqKd/gLZV1Xmvf1a2R5POBOGQa6uv82xpls89HU5zKeVoyR8XzHd1RGNOlQlvUe3CFkjWNQ==}
+    dev: true
+
+  /@types/faker/5.5.1:
+    resolution: {integrity: sha512-JXGjV76oEUZUOSAr3bP5txETYoq0XDOQA8BpOz8Wc3EuvfF7sUVquf/EvM3aphuVKuVaYDSDu523/mAHnqrcvg==}
     dev: true
 
   /@types/fs-extra/9.0.13:
@@ -4076,6 +4084,10 @@ packages:
     engines: {'0': node >=0.6.0}
     dev: true
 
+  /faker/5.5.1:
+    resolution: {integrity: sha512-JCFXcVesClQ6RlSWmBMFQmGDAZq6hjbJAFgKALx31uPaQC6p3SWT2ojaJGD8bMQri+8VNqDOkI2F8QC+ABvZng==}
+    dev: true
+
   /fast-deep-equal/3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
     dev: true
@@ -5146,7 +5158,7 @@ packages:
       pretty-format: 28.1.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.7.0_aacea2e2ceb2eedb541abadde39d7eb4
+      ts-node: 10.7.0_846947f995cad05039d329998167cccd
     transitivePeerDependencies:
       - supports-color
     dev: true
