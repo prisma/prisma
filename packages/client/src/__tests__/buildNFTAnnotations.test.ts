@@ -84,7 +84,8 @@ describe('binary', () => {
 describe('dataproxy', () => {
   it('generates no annotations', () => {
     const annotations = buildNFTAnnotations(
-      ClientEngineType.DataProxy,
+      true,
+      ClientEngineType.Library,
       ['debian-openssl-1.1.x', 'darwin', 'windows'],
       'out',
     )
