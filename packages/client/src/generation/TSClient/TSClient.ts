@@ -96,8 +96,8 @@ export class TSClient implements Generatable {
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(engineType)}
-${buildDirname(engineType, relativeOutdir, runtimeDir)}
+${buildRequirePath(dataProxy)}
+${buildDirname(dataProxy, relativeOutdir, runtimeDir)}
 /**
  * Enums
  */
