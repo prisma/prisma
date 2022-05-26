@@ -25,7 +25,7 @@ type JSDocsType = {
   [action in DMMF.ModelAction]: {
     body: (ctx: JSDocMethodBodyCtx) => string
     fields: {
-      [field: string]: (singular: string) => string
+      [field: string]: (name: string) => string
     }
   }
 }
