@@ -82,7 +82,7 @@ export const JSDocs: JSDocsType = {
   },
   create: {
     body: (ctx) => dedent`
-      Create a ${ctx.name}.
+      Create '${ctx.name}'.
       @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to create '${ctx.name}'.
       @example
       // Create one ${ctx.name}
