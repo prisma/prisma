@@ -116,32 +116,29 @@ describe('generator', () => {
         skipDownload: true,
       })
     } catch (e) {
-      const snapshot = `
-Get DMMF: Schema parsing
-error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-  -->  schema.prisma:10
-   | 
- 9 | 
-10 | model public {
-11 |   id Int @id
-12 | }
-   | 
-error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
-  -->  schema.prisma:14
-   | 
-13 | 
-14 | model return {
-15 |   id Int @id
-16 | }
-   | 
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        Get DMMF: Schema parsing
+        error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+          -->  schema.prisma:10
+           | 
+         9 | 
+        10 | model public {
+        11 |   id Int @id
+        12 | }
+           | 
+        error: Error validating model "return": The model name \`return\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
+          -->  schema.prisma:14
+           | 
+        13 | 
+        14 | model return {
+        15 |   id Int @id
+        16 | }
+           | 
 
-Validation Error Count: 2
-`
-      if (process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary') {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(snapshot + '\n')
-      } else {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(snapshot)
-      }
+        Validation Error Count: 2
+
+        Prisma CLI Version : 0.0.0
+      `)
     }
   })
 
