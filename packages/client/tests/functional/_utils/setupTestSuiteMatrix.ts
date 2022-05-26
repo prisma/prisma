@@ -1,8 +1,13 @@
-import { getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
+import { Providers } from './providers'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
+
+export type MatrixOptions = {
+  optIn: `${Providers}`[]
+}
 
 /**
  * How does this work from a high level? What steps?
@@ -35,11 +40,56 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  *
  * @param tests where you write your tests
  */
-function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void) {
+function setupTestSuiteMatrix(
+  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  options?: MatrixOptions,
+) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteTable = getTestSuiteTable(suiteMeta)
+  const suiteConfig = getTestSuiteConfigs(suiteMeta)
+  const suiteTable = getTestSuiteTable(suiteMeta, suiteConfig)
   const forceInlineSnapshot = process.argv.includes('-u')
+  const suiteConfigProviders = suiteConfig.map(({ provider }) => provider)
+
+  if (options?.optIn?.length) {
+    const missingProviders = options.optIn
+      .map((opt) => {
+        const isIncluded = suiteConfigProviders.includes(opt)
+        if (isIncluded) {
+          return false
+        }
+
+        return opt
+      })
+      .filter(Boolean)
+
+    if (missingProviders.length) {
+      throw new Error(
+        `Test: '${suiteMeta.testDirName}' optIn provided: '${options.optIn.join(
+          ', ',
+        )}' and is missing providers '${missingProviders.join(', ')}' optIn using options.optIn`,
+      )
+    }
+  } else {
+    const missingProviders = Object.values(Providers)
+      .map((p) => {
+        const isIncluded = suiteConfigProviders.includes(p.toString())
+        if (isIncluded) {
+          return false
+        }
+
+        return p.toString()
+      })
+      .filter(Boolean)
+
+    if (missingProviders.length) {
+      throw new Error(
+        `Test: '${suiteMeta.testDirName}' is missing providers '${missingProviders.join(
+          ', ',
+        )}' optIn using options.optIn`,
+      )
+    }
+  }
 
   ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
     const [suiteName, suiteConfig] = suiteEntry
