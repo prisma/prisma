@@ -115,7 +115,7 @@ export const JSDocs: JSDocsType = {
   findUnique: {
     body: (ctx) => dedent`
       Returns ${ctx.name} that matches the filter or null if nothing is found
-      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.name}
+      @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find '${ctx.name}'
       @example
       // Get one ${ctx.name}
       const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
