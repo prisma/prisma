@@ -2128,7 +2128,7 @@ export namespace Prisma {
   export interface PostDelegate<GlobalRejectSettings> {
     /**
      * Returns Post that matches the filter or null if nothing is found
-     * @param {PostFindUniqueArgs} args - Arguments to find a Post
+     * @param {PostFindUniqueArgs} args - Arguments to find 'Post'
      * @example
      * // Get one Post
      * const post = await prisma.post.findUnique({
@@ -2145,7 +2145,7 @@ export namespace Prisma {
      * Find the first Post that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {PostFindFirstArgs} args - Arguments to find a Post
+     * @param {PostFindFirstArgs} args - Arguments to find 'Post'
      * @example
      * // Get one Post
      * const post = await prisma.post.findFirst({
@@ -2159,7 +2159,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null >, Prisma__PostClient<PostGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'Post' that matches the filter.
+     * Find zero or more 'Post' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {PostFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -2178,13 +2178,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<Post>>, PrismaPromise<Array<PostGetPayload<T>>>>
 
     /**
-     * Create a Post.
-     * @param {PostCreateArgs} args - Arguments to create a Post.
+     * Create 'Post'.
+     * @param {PostCreateArgs} args - Arguments to create 'Post'.
      * @example
      * // Create one Post
      * const Post = await prisma.post.create({
      *   data: {
-     *     // ... data to create a Post
+     *     // ... data to create 'Post'
      *   }
      * })
     **/
@@ -2277,12 +2277,12 @@ export namespace Prisma {
 
     /**
      * Create or update one Post.
-     * @param {PostUpsertArgs} args - Arguments to update or create a Post.
+     * @param {PostUpsertArgs} args - Arguments to update or create 'Post'.
      * @example
-     * // Update or create a Post
+     * // Update or create 'Post'
      * const post = await prisma.post.upsert({
      *   create: {
-     *     // ... data to create a Post
+     *     // ... data to create 'Post'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -2560,7 +2560,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a Post.
+     * Sets the position for searching for 'Post'.
      * 
     **/
     cursor?: PostWhereUniqueInput
@@ -2654,7 +2654,7 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
-     * The data needed to create a Post.
+     * The data needed to create 'Post'.
      * 
     **/
     data: XOR<PostCreateInput, PostUncheckedCreateInput>
@@ -2688,7 +2688,7 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
-     * The data needed to update a Post.
+     * The data needed to update 'Post'.
      * 
     **/
     data: XOR<PostUpdateInput, PostUncheckedUpdateInput>
@@ -3170,7 +3170,7 @@ export namespace Prisma {
   export interface UserDelegate<GlobalRejectSettings> {
     /**
      * Returns User that matches the filter or null if nothing is found
-     * @param {UserFindUniqueArgs} args - Arguments to find a User
+     * @param {UserFindUniqueArgs} args - Arguments to find 'User'
      * @example
      * // Get one User
      * const user = await prisma.user.findUnique({
@@ -3187,7 +3187,7 @@ export namespace Prisma {
      * Find the first User that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindFirstArgs} args - Arguments to find a User
+     * @param {UserFindFirstArgs} args - Arguments to find 'User'
      * @example
      * // Get one User
      * const user = await prisma.user.findFirst({
@@ -3201,7 +3201,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'User' that matches the filter.
+     * Find zero or more 'User' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {UserFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -3220,13 +3220,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<User>>, PrismaPromise<Array<UserGetPayload<T>>>>
 
     /**
-     * Create a User.
-     * @param {UserCreateArgs} args - Arguments to create a User.
+     * Create 'User'.
+     * @param {UserCreateArgs} args - Arguments to create 'User'.
      * @example
      * // Create one User
      * const User = await prisma.user.create({
      *   data: {
-     *     // ... data to create a User
+     *     // ... data to create 'User'
      *   }
      * })
     **/
@@ -3319,12 +3319,12 @@ export namespace Prisma {
 
     /**
      * Create or update one User.
-     * @param {UserUpsertArgs} args - Arguments to update or create a User.
+     * @param {UserUpsertArgs} args - Arguments to update or create 'User'.
      * @example
-     * // Update or create a User
+     * // Update or create 'User'
      * const user = await prisma.user.upsert({
      *   create: {
-     *     // ... data to create a User
+     *     // ... data to create 'User'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -3604,7 +3604,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a User.
+     * Sets the position for searching for 'User'.
      * 
     **/
     cursor?: UserWhereUniqueInput
@@ -3698,7 +3698,7 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
-     * The data needed to create a User.
+     * The data needed to create 'User'.
      * 
     **/
     data: XOR<UserCreateInput, UserUncheckedCreateInput>
@@ -3732,7 +3732,7 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
-     * The data needed to update a User.
+     * The data needed to update 'User'.
      * 
     **/
     data: XOR<UserUpdateInput, UserUncheckedUpdateInput>
@@ -4093,7 +4093,7 @@ export namespace Prisma {
   export interface EmbedHolderDelegate<GlobalRejectSettings> {
     /**
      * Returns EmbedHolder that matches the filter or null if nothing is found
-     * @param {EmbedHolderFindUniqueArgs} args - Arguments to find a EmbedHolder
+     * @param {EmbedHolderFindUniqueArgs} args - Arguments to find 'EmbedHolder'
      * @example
      * // Get one EmbedHolder
      * const embedHolder = await prisma.embedHolder.findUnique({
@@ -4110,7 +4110,7 @@ export namespace Prisma {
      * Find the first EmbedHolder that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {EmbedHolderFindFirstArgs} args - Arguments to find a EmbedHolder
+     * @param {EmbedHolderFindFirstArgs} args - Arguments to find 'EmbedHolder'
      * @example
      * // Get one EmbedHolder
      * const embedHolder = await prisma.embedHolder.findFirst({
@@ -4124,7 +4124,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>> : CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null >, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'EmbedHolder' that matches the filter.
+     * Find zero or more 'EmbedHolder' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {EmbedHolderFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -4143,13 +4143,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<EmbedHolder>>, PrismaPromise<Array<EmbedHolderGetPayload<T>>>>
 
     /**
-     * Create a EmbedHolder.
-     * @param {EmbedHolderCreateArgs} args - Arguments to create a EmbedHolder.
+     * Create 'EmbedHolder'.
+     * @param {EmbedHolderCreateArgs} args - Arguments to create 'EmbedHolder'.
      * @example
      * // Create one EmbedHolder
      * const EmbedHolder = await prisma.embedHolder.create({
      *   data: {
-     *     // ... data to create a EmbedHolder
+     *     // ... data to create 'EmbedHolder'
      *   }
      * })
     **/
@@ -4242,12 +4242,12 @@ export namespace Prisma {
 
     /**
      * Create or update one EmbedHolder.
-     * @param {EmbedHolderUpsertArgs} args - Arguments to update or create a EmbedHolder.
+     * @param {EmbedHolderUpsertArgs} args - Arguments to update or create 'EmbedHolder'.
      * @example
-     * // Update or create a EmbedHolder
+     * // Update or create 'EmbedHolder'
      * const embedHolder = await prisma.embedHolder.upsert({
      *   create: {
-     *     // ... data to create a EmbedHolder
+     *     // ... data to create 'EmbedHolder'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -4531,7 +4531,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a EmbedHolder.
+     * Sets the position for searching for 'EmbedHolder'.
      * 
     **/
     cursor?: EmbedHolderWhereUniqueInput
@@ -4625,7 +4625,7 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
-     * The data needed to create a EmbedHolder.
+     * The data needed to create 'EmbedHolder'.
      * 
     **/
     data: XOR<EmbedHolderCreateInput, EmbedHolderUncheckedCreateInput>
@@ -4659,7 +4659,7 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
-     * The data needed to update a EmbedHolder.
+     * The data needed to update 'EmbedHolder'.
      * 
     **/
     data: XOR<EmbedHolderUpdateInput, EmbedHolderUncheckedUpdateInput>
@@ -5125,7 +5125,7 @@ export namespace Prisma {
   export interface MDelegate<GlobalRejectSettings> {
     /**
      * Returns M that matches the filter or null if nothing is found
-     * @param {MFindUniqueArgs} args - Arguments to find a M
+     * @param {MFindUniqueArgs} args - Arguments to find 'M'
      * @example
      * // Get one M
      * const m = await prisma.m.findUnique({
@@ -5142,7 +5142,7 @@ export namespace Prisma {
      * Find the first M that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {MFindFirstArgs} args - Arguments to find a M
+     * @param {MFindFirstArgs} args - Arguments to find 'M'
      * @example
      * // Get one M
      * const m = await prisma.m.findFirst({
@@ -5156,7 +5156,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null >, Prisma__MClient<MGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'M' that matches the filter.
+     * Find zero or more 'M' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {MFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -5175,13 +5175,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<M>>, PrismaPromise<Array<MGetPayload<T>>>>
 
     /**
-     * Create a M.
-     * @param {MCreateArgs} args - Arguments to create a M.
+     * Create 'M'.
+     * @param {MCreateArgs} args - Arguments to create 'M'.
      * @example
      * // Create one M
      * const M = await prisma.m.create({
      *   data: {
-     *     // ... data to create a M
+     *     // ... data to create 'M'
      *   }
      * })
     **/
@@ -5274,12 +5274,12 @@ export namespace Prisma {
 
     /**
      * Create or update one M.
-     * @param {MUpsertArgs} args - Arguments to update or create a M.
+     * @param {MUpsertArgs} args - Arguments to update or create 'M'.
      * @example
-     * // Update or create a M
+     * // Update or create 'M'
      * const m = await prisma.m.upsert({
      *   create: {
-     *     // ... data to create a M
+     *     // ... data to create 'M'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -5557,7 +5557,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a M.
+     * Sets the position for searching for 'M'.
      * 
     **/
     cursor?: MWhereUniqueInput
@@ -5651,7 +5651,7 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
-     * The data needed to create a M.
+     * The data needed to create 'M'.
      * 
     **/
     data: XOR<MCreateInput, MUncheckedCreateInput>
@@ -5685,7 +5685,7 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
-     * The data needed to update a M.
+     * The data needed to update 'M'.
      * 
     **/
     data: XOR<MUpdateInput, MUncheckedUpdateInput>
@@ -6151,7 +6151,7 @@ export namespace Prisma {
   export interface NDelegate<GlobalRejectSettings> {
     /**
      * Returns N that matches the filter or null if nothing is found
-     * @param {NFindUniqueArgs} args - Arguments to find a N
+     * @param {NFindUniqueArgs} args - Arguments to find 'N'
      * @example
      * // Get one N
      * const n = await prisma.n.findUnique({
@@ -6168,7 +6168,7 @@ export namespace Prisma {
      * Find the first N that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {NFindFirstArgs} args - Arguments to find a N
+     * @param {NFindFirstArgs} args - Arguments to find 'N'
      * @example
      * // Get one N
      * const n = await prisma.n.findFirst({
@@ -6182,7 +6182,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null >, Prisma__NClient<NGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'N' that matches the filter.
+     * Find zero or more 'N' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {NFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -6201,13 +6201,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<N>>, PrismaPromise<Array<NGetPayload<T>>>>
 
     /**
-     * Create a N.
-     * @param {NCreateArgs} args - Arguments to create a N.
+     * Create 'N'.
+     * @param {NCreateArgs} args - Arguments to create 'N'.
      * @example
      * // Create one N
      * const N = await prisma.n.create({
      *   data: {
-     *     // ... data to create a N
+     *     // ... data to create 'N'
      *   }
      * })
     **/
@@ -6300,12 +6300,12 @@ export namespace Prisma {
 
     /**
      * Create or update one N.
-     * @param {NUpsertArgs} args - Arguments to update or create a N.
+     * @param {NUpsertArgs} args - Arguments to update or create 'N'.
      * @example
-     * // Update or create a N
+     * // Update or create 'N'
      * const n = await prisma.n.upsert({
      *   create: {
-     *     // ... data to create a N
+     *     // ... data to create 'N'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -6583,7 +6583,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a N.
+     * Sets the position for searching for 'N'.
      * 
     **/
     cursor?: NWhereUniqueInput
@@ -6677,7 +6677,7 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
-     * The data needed to create a N.
+     * The data needed to create 'N'.
      * 
     **/
     data: XOR<NCreateInput, NUncheckedCreateInput>
@@ -6711,7 +6711,7 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
-     * The data needed to update a N.
+     * The data needed to update 'N'.
      * 
     **/
     data: XOR<NUpdateInput, NUncheckedUpdateInput>
@@ -7173,7 +7173,7 @@ export namespace Prisma {
   export interface OneOptionalDelegate<GlobalRejectSettings> {
     /**
      * Returns OneOptional that matches the filter or null if nothing is found
-     * @param {OneOptionalFindUniqueArgs} args - Arguments to find a OneOptional
+     * @param {OneOptionalFindUniqueArgs} args - Arguments to find 'OneOptional'
      * @example
      * // Get one OneOptional
      * const oneOptional = await prisma.oneOptional.findUnique({
@@ -7190,7 +7190,7 @@ export namespace Prisma {
      * Find the first OneOptional that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OneOptionalFindFirstArgs} args - Arguments to find a OneOptional
+     * @param {OneOptionalFindFirstArgs} args - Arguments to find 'OneOptional'
      * @example
      * // Get one OneOptional
      * const oneOptional = await prisma.oneOptional.findFirst({
@@ -7204,7 +7204,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'OneOptional' that matches the filter.
+     * Find zero or more 'OneOptional' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {OneOptionalFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -7223,13 +7223,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<OneOptional>>, PrismaPromise<Array<OneOptionalGetPayload<T>>>>
 
     /**
-     * Create a OneOptional.
-     * @param {OneOptionalCreateArgs} args - Arguments to create a OneOptional.
+     * Create 'OneOptional'.
+     * @param {OneOptionalCreateArgs} args - Arguments to create 'OneOptional'.
      * @example
      * // Create one OneOptional
      * const OneOptional = await prisma.oneOptional.create({
      *   data: {
-     *     // ... data to create a OneOptional
+     *     // ... data to create 'OneOptional'
      *   }
      * })
     **/
@@ -7322,12 +7322,12 @@ export namespace Prisma {
 
     /**
      * Create or update one OneOptional.
-     * @param {OneOptionalUpsertArgs} args - Arguments to update or create a OneOptional.
+     * @param {OneOptionalUpsertArgs} args - Arguments to update or create 'OneOptional'.
      * @example
-     * // Update or create a OneOptional
+     * // Update or create 'OneOptional'
      * const oneOptional = await prisma.oneOptional.upsert({
      *   create: {
-     *     // ... data to create a OneOptional
+     *     // ... data to create 'OneOptional'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -7605,7 +7605,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a OneOptional.
+     * Sets the position for searching for 'OneOptional'.
      * 
     **/
     cursor?: OneOptionalWhereUniqueInput
@@ -7699,7 +7699,7 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
-     * The data needed to create a OneOptional.
+     * The data needed to create 'OneOptional'.
      * 
     **/
     data: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
@@ -7733,7 +7733,7 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
-     * The data needed to update a OneOptional.
+     * The data needed to update 'OneOptional'.
      * 
     **/
     data: XOR<OneOptionalUpdateInput, OneOptionalUncheckedUpdateInput>
@@ -8199,7 +8199,7 @@ export namespace Prisma {
   export interface ManyRequiredDelegate<GlobalRejectSettings> {
     /**
      * Returns ManyRequired that matches the filter or null if nothing is found
-     * @param {ManyRequiredFindUniqueArgs} args - Arguments to find a ManyRequired
+     * @param {ManyRequiredFindUniqueArgs} args - Arguments to find 'ManyRequired'
      * @example
      * // Get one ManyRequired
      * const manyRequired = await prisma.manyRequired.findUnique({
@@ -8216,7 +8216,7 @@ export namespace Prisma {
      * Find the first ManyRequired that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {ManyRequiredFindFirstArgs} args - Arguments to find a ManyRequired
+     * @param {ManyRequiredFindFirstArgs} args - Arguments to find 'ManyRequired'
      * @example
      * // Get one ManyRequired
      * const manyRequired = await prisma.manyRequired.findFirst({
@@ -8230,7 +8230,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'ManyRequired' that matches the filter.
+     * Find zero or more 'ManyRequired' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {ManyRequiredFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -8249,13 +8249,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<ManyRequired>>, PrismaPromise<Array<ManyRequiredGetPayload<T>>>>
 
     /**
-     * Create a ManyRequired.
-     * @param {ManyRequiredCreateArgs} args - Arguments to create a ManyRequired.
+     * Create 'ManyRequired'.
+     * @param {ManyRequiredCreateArgs} args - Arguments to create 'ManyRequired'.
      * @example
      * // Create one ManyRequired
      * const ManyRequired = await prisma.manyRequired.create({
      *   data: {
-     *     // ... data to create a ManyRequired
+     *     // ... data to create 'ManyRequired'
      *   }
      * })
     **/
@@ -8348,12 +8348,12 @@ export namespace Prisma {
 
     /**
      * Create or update one ManyRequired.
-     * @param {ManyRequiredUpsertArgs} args - Arguments to update or create a ManyRequired.
+     * @param {ManyRequiredUpsertArgs} args - Arguments to update or create 'ManyRequired'.
      * @example
-     * // Update or create a ManyRequired
+     * // Update or create 'ManyRequired'
      * const manyRequired = await prisma.manyRequired.upsert({
      *   create: {
-     *     // ... data to create a ManyRequired
+     *     // ... data to create 'ManyRequired'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -8631,7 +8631,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a ManyRequired.
+     * Sets the position for searching for 'ManyRequired'.
      * 
     **/
     cursor?: ManyRequiredWhereUniqueInput
@@ -8725,7 +8725,7 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
-     * The data needed to create a ManyRequired.
+     * The data needed to create 'ManyRequired'.
      * 
     **/
     data: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
@@ -8759,7 +8759,7 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
-     * The data needed to update a ManyRequired.
+     * The data needed to update 'ManyRequired'.
      * 
     **/
     data: XOR<ManyRequiredUpdateInput, ManyRequiredUncheckedUpdateInput>
@@ -9225,7 +9225,7 @@ export namespace Prisma {
   export interface OptionalSide1Delegate<GlobalRejectSettings> {
     /**
      * Returns OptionalSide1 that matches the filter or null if nothing is found
-     * @param {OptionalSide1FindUniqueArgs} args - Arguments to find a OptionalSide1
+     * @param {OptionalSide1FindUniqueArgs} args - Arguments to find 'OptionalSide1'
      * @example
      * // Get one OptionalSide1
      * const optionalSide1 = await prisma.optionalSide1.findUnique({
@@ -9242,7 +9242,7 @@ export namespace Prisma {
      * Find the first OptionalSide1 that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide1FindFirstArgs} args - Arguments to find a OptionalSide1
+     * @param {OptionalSide1FindFirstArgs} args - Arguments to find 'OptionalSide1'
      * @example
      * // Get one OptionalSide1
      * const optionalSide1 = await prisma.optionalSide1.findFirst({
@@ -9256,7 +9256,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>
 
     /**
-     * Find zero or more 'OptionalSide1' that matches the filter.
+     * Find zero or more 'OptionalSide1' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide1FindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -9275,13 +9275,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<OptionalSide1>>, PrismaPromise<Array<OptionalSide1GetPayload<T>>>>
 
     /**
-     * Create a OptionalSide1.
-     * @param {OptionalSide1CreateArgs} args - Arguments to create a OptionalSide1.
+     * Create 'OptionalSide1'.
+     * @param {OptionalSide1CreateArgs} args - Arguments to create 'OptionalSide1'.
      * @example
      * // Create one OptionalSide1
      * const OptionalSide1 = await prisma.optionalSide1.create({
      *   data: {
-     *     // ... data to create a OptionalSide1
+     *     // ... data to create 'OptionalSide1'
      *   }
      * })
     **/
@@ -9374,12 +9374,12 @@ export namespace Prisma {
 
     /**
      * Create or update one OptionalSide1.
-     * @param {OptionalSide1UpsertArgs} args - Arguments to update or create a OptionalSide1.
+     * @param {OptionalSide1UpsertArgs} args - Arguments to update or create 'OptionalSide1'.
      * @example
-     * // Update or create a OptionalSide1
+     * // Update or create 'OptionalSide1'
      * const optionalSide1 = await prisma.optionalSide1.upsert({
      *   create: {
-     *     // ... data to create a OptionalSide1
+     *     // ... data to create 'OptionalSide1'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -9657,7 +9657,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a OptionalSide1.
+     * Sets the position for searching for 'OptionalSide1'.
      * 
     **/
     cursor?: OptionalSide1WhereUniqueInput
@@ -9751,7 +9751,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
-     * The data needed to create a OptionalSide1.
+     * The data needed to create 'OptionalSide1'.
      * 
     **/
     data: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
@@ -9785,7 +9785,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
-     * The data needed to update a OptionalSide1.
+     * The data needed to update 'OptionalSide1'.
      * 
     **/
     data: XOR<OptionalSide1UpdateInput, OptionalSide1UncheckedUpdateInput>
@@ -10243,7 +10243,7 @@ export namespace Prisma {
   export interface OptionalSide2Delegate<GlobalRejectSettings> {
     /**
      * Returns OptionalSide2 that matches the filter or null if nothing is found
-     * @param {OptionalSide2FindUniqueArgs} args - Arguments to find a OptionalSide2
+     * @param {OptionalSide2FindUniqueArgs} args - Arguments to find 'OptionalSide2'
      * @example
      * // Get one OptionalSide2
      * const optionalSide2 = await prisma.optionalSide2.findUnique({
@@ -10260,7 +10260,7 @@ export namespace Prisma {
      * Find the first OptionalSide2 that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide2FindFirstArgs} args - Arguments to find a OptionalSide2
+     * @param {OptionalSide2FindFirstArgs} args - Arguments to find 'OptionalSide2'
      * @example
      * // Get one OptionalSide2
      * const optionalSide2 = await prisma.optionalSide2.findFirst({
@@ -10274,7 +10274,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>
 
     /**
-     * Find zero or more 'OptionalSide2' that matches the filter.
+     * Find zero or more 'OptionalSide2' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {OptionalSide2FindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -10293,13 +10293,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<OptionalSide2>>, PrismaPromise<Array<OptionalSide2GetPayload<T>>>>
 
     /**
-     * Create a OptionalSide2.
-     * @param {OptionalSide2CreateArgs} args - Arguments to create a OptionalSide2.
+     * Create 'OptionalSide2'.
+     * @param {OptionalSide2CreateArgs} args - Arguments to create 'OptionalSide2'.
      * @example
      * // Create one OptionalSide2
      * const OptionalSide2 = await prisma.optionalSide2.create({
      *   data: {
-     *     // ... data to create a OptionalSide2
+     *     // ... data to create 'OptionalSide2'
      *   }
      * })
     **/
@@ -10392,12 +10392,12 @@ export namespace Prisma {
 
     /**
      * Create or update one OptionalSide2.
-     * @param {OptionalSide2UpsertArgs} args - Arguments to update or create a OptionalSide2.
+     * @param {OptionalSide2UpsertArgs} args - Arguments to update or create 'OptionalSide2'.
      * @example
-     * // Update or create a OptionalSide2
+     * // Update or create 'OptionalSide2'
      * const optionalSide2 = await prisma.optionalSide2.upsert({
      *   create: {
-     *     // ... data to create a OptionalSide2
+     *     // ... data to create 'OptionalSide2'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -10675,7 +10675,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a OptionalSide2.
+     * Sets the position for searching for 'OptionalSide2'.
      * 
     **/
     cursor?: OptionalSide2WhereUniqueInput
@@ -10769,7 +10769,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
-     * The data needed to create a OptionalSide2.
+     * The data needed to create 'OptionalSide2'.
      * 
     **/
     data: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
@@ -10803,7 +10803,7 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
-     * The data needed to update a OptionalSide2.
+     * The data needed to update 'OptionalSide2'.
      * 
     **/
     data: XOR<OptionalSide2UpdateInput, OptionalSide2UncheckedUpdateInput>
@@ -11201,7 +11201,7 @@ export namespace Prisma {
   export interface ADelegate<GlobalRejectSettings> {
     /**
      * Returns A that matches the filter or null if nothing is found
-     * @param {AFindUniqueArgs} args - Arguments to find a A
+     * @param {AFindUniqueArgs} args - Arguments to find 'A'
      * @example
      * // Get one A
      * const a = await prisma.a.findUnique({
@@ -11218,7 +11218,7 @@ export namespace Prisma {
      * Find the first A that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {AFindFirstArgs} args - Arguments to find a A
+     * @param {AFindFirstArgs} args - Arguments to find 'A'
      * @example
      * // Get one A
      * const a = await prisma.a.findFirst({
@@ -11232,7 +11232,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null >, Prisma__AClient<AGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'A' that matches the filter.
+     * Find zero or more 'A' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {AFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -11251,13 +11251,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<A>>, PrismaPromise<Array<AGetPayload<T>>>>
 
     /**
-     * Create a A.
-     * @param {ACreateArgs} args - Arguments to create a A.
+     * Create 'A'.
+     * @param {ACreateArgs} args - Arguments to create 'A'.
      * @example
      * // Create one A
      * const A = await prisma.a.create({
      *   data: {
-     *     // ... data to create a A
+     *     // ... data to create 'A'
      *   }
      * })
     **/
@@ -11350,12 +11350,12 @@ export namespace Prisma {
 
     /**
      * Create or update one A.
-     * @param {AUpsertArgs} args - Arguments to update or create a A.
+     * @param {AUpsertArgs} args - Arguments to update or create 'A'.
      * @example
-     * // Update or create a A
+     * // Update or create 'A'
      * const a = await prisma.a.upsert({
      *   create: {
-     *     // ... data to create a A
+     *     // ... data to create 'A'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -11622,7 +11622,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a A.
+     * Sets the position for searching for 'A'.
      * 
     **/
     cursor?: AWhereUniqueInput
@@ -11706,7 +11706,7 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
-     * The data needed to create a A.
+     * The data needed to create 'A'.
      * 
     **/
     data: XOR<ACreateInput, AUncheckedCreateInput>
@@ -11735,7 +11735,7 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
-     * The data needed to update a A.
+     * The data needed to update 'A'.
      * 
     **/
     data: XOR<AUpdateInput, AUncheckedUpdateInput>
@@ -12090,7 +12090,7 @@ export namespace Prisma {
   export interface BDelegate<GlobalRejectSettings> {
     /**
      * Returns B that matches the filter or null if nothing is found
-     * @param {BFindUniqueArgs} args - Arguments to find a B
+     * @param {BFindUniqueArgs} args - Arguments to find 'B'
      * @example
      * // Get one B
      * const b = await prisma.b.findUnique({
@@ -12107,7 +12107,7 @@ export namespace Prisma {
      * Find the first B that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {BFindFirstArgs} args - Arguments to find a B
+     * @param {BFindFirstArgs} args - Arguments to find 'B'
      * @example
      * // Get one B
      * const b = await prisma.b.findFirst({
@@ -12121,7 +12121,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null >, Prisma__BClient<BGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'B' that matches the filter.
+     * Find zero or more 'B' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {BFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -12140,13 +12140,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<B>>, PrismaPromise<Array<BGetPayload<T>>>>
 
     /**
-     * Create a B.
-     * @param {BCreateArgs} args - Arguments to create a B.
+     * Create 'B'.
+     * @param {BCreateArgs} args - Arguments to create 'B'.
      * @example
      * // Create one B
      * const B = await prisma.b.create({
      *   data: {
-     *     // ... data to create a B
+     *     // ... data to create 'B'
      *   }
      * })
     **/
@@ -12239,12 +12239,12 @@ export namespace Prisma {
 
     /**
      * Create or update one B.
-     * @param {BUpsertArgs} args - Arguments to update or create a B.
+     * @param {BUpsertArgs} args - Arguments to update or create 'B'.
      * @example
-     * // Update or create a B
+     * // Update or create 'B'
      * const b = await prisma.b.upsert({
      *   create: {
-     *     // ... data to create a B
+     *     // ... data to create 'B'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -12511,7 +12511,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a B.
+     * Sets the position for searching for 'B'.
      * 
     **/
     cursor?: BWhereUniqueInput
@@ -12595,7 +12595,7 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
-     * The data needed to create a B.
+     * The data needed to create 'B'.
      * 
     **/
     data: XOR<BCreateInput, BUncheckedCreateInput>
@@ -12624,7 +12624,7 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
-     * The data needed to update a B.
+     * The data needed to update 'B'.
      * 
     **/
     data: XOR<BUpdateInput, BUncheckedUpdateInput>
@@ -12973,7 +12973,7 @@ export namespace Prisma {
   export interface CDelegate<GlobalRejectSettings> {
     /**
      * Returns C that matches the filter or null if nothing is found
-     * @param {CFindUniqueArgs} args - Arguments to find a C
+     * @param {CFindUniqueArgs} args - Arguments to find 'C'
      * @example
      * // Get one C
      * const c = await prisma.c.findUnique({
@@ -12990,7 +12990,7 @@ export namespace Prisma {
      * Find the first C that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {CFindFirstArgs} args - Arguments to find a C
+     * @param {CFindFirstArgs} args - Arguments to find 'C'
      * @example
      * // Get one C
      * const c = await prisma.c.findFirst({
@@ -13004,7 +13004,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null >, Prisma__CClient<CGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'C' that matches the filter.
+     * Find zero or more 'C' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {CFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -13023,13 +13023,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<C>>, PrismaPromise<Array<CGetPayload<T>>>>
 
     /**
-     * Create a C.
-     * @param {CCreateArgs} args - Arguments to create a C.
+     * Create 'C'.
+     * @param {CCreateArgs} args - Arguments to create 'C'.
      * @example
      * // Create one C
      * const C = await prisma.c.create({
      *   data: {
-     *     // ... data to create a C
+     *     // ... data to create 'C'
      *   }
      * })
     **/
@@ -13122,12 +13122,12 @@ export namespace Prisma {
 
     /**
      * Create or update one C.
-     * @param {CUpsertArgs} args - Arguments to update or create a C.
+     * @param {CUpsertArgs} args - Arguments to update or create 'C'.
      * @example
-     * // Update or create a C
+     * // Update or create 'C'
      * const c = await prisma.c.upsert({
      *   create: {
-     *     // ... data to create a C
+     *     // ... data to create 'C'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -13394,7 +13394,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a C.
+     * Sets the position for searching for 'C'.
      * 
     **/
     cursor?: CWhereUniqueInput
@@ -13478,7 +13478,7 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
-     * The data needed to create a C.
+     * The data needed to create 'C'.
      * 
     **/
     data: XOR<CCreateInput, CUncheckedCreateInput>
@@ -13507,7 +13507,7 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
-     * The data needed to update a C.
+     * The data needed to update 'C'.
      * 
     **/
     data: XOR<CUpdateInput, CUncheckedUpdateInput>
@@ -13840,7 +13840,7 @@ export namespace Prisma {
   export interface DDelegate<GlobalRejectSettings> {
     /**
      * Returns D that matches the filter or null if nothing is found
-     * @param {DFindUniqueArgs} args - Arguments to find a D
+     * @param {DFindUniqueArgs} args - Arguments to find 'D'
      * @example
      * // Get one D
      * const d = await prisma.d.findUnique({
@@ -13857,7 +13857,7 @@ export namespace Prisma {
      * Find the first D that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {DFindFirstArgs} args - Arguments to find a D
+     * @param {DFindFirstArgs} args - Arguments to find 'D'
      * @example
      * // Get one D
      * const d = await prisma.d.findFirst({
@@ -13871,7 +13871,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null >, Prisma__DClient<DGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'D' that matches the filter.
+     * Find zero or more 'D' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {DFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -13890,13 +13890,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<D>>, PrismaPromise<Array<DGetPayload<T>>>>
 
     /**
-     * Create a D.
-     * @param {DCreateArgs} args - Arguments to create a D.
+     * Create 'D'.
+     * @param {DCreateArgs} args - Arguments to create 'D'.
      * @example
      * // Create one D
      * const D = await prisma.d.create({
      *   data: {
-     *     // ... data to create a D
+     *     // ... data to create 'D'
      *   }
      * })
     **/
@@ -13989,12 +13989,12 @@ export namespace Prisma {
 
     /**
      * Create or update one D.
-     * @param {DUpsertArgs} args - Arguments to update or create a D.
+     * @param {DUpsertArgs} args - Arguments to update or create 'D'.
      * @example
-     * // Update or create a D
+     * // Update or create 'D'
      * const d = await prisma.d.upsert({
      *   create: {
-     *     // ... data to create a D
+     *     // ... data to create 'D'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -14261,7 +14261,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a D.
+     * Sets the position for searching for 'D'.
      * 
     **/
     cursor?: DWhereUniqueInput
@@ -14345,7 +14345,7 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
-     * The data needed to create a D.
+     * The data needed to create 'D'.
      * 
     **/
     data: XOR<DCreateInput, DUncheckedCreateInput>
@@ -14374,7 +14374,7 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
-     * The data needed to update a D.
+     * The data needed to update 'D'.
      * 
     **/
     data: XOR<DUpdateInput, DUncheckedUpdateInput>
@@ -14699,7 +14699,7 @@ export namespace Prisma {
   export interface EDelegate<GlobalRejectSettings> {
     /**
      * Returns E that matches the filter or null if nothing is found
-     * @param {EFindUniqueArgs} args - Arguments to find a E
+     * @param {EFindUniqueArgs} args - Arguments to find 'E'
      * @example
      * // Get one E
      * const e = await prisma.e.findUnique({
@@ -14716,7 +14716,7 @@ export namespace Prisma {
      * Find the first E that matches the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
-     * @param {EFindFirstArgs} args - Arguments to find a E
+     * @param {EFindFirstArgs} args - Arguments to find 'E'
      * @example
      * // Get one E
      * const e = await prisma.e.findFirst({
@@ -14730,7 +14730,7 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null >, Prisma__EClient<EGetPayload<T> | null >>
 
     /**
-     * Find zero or more 'E' that matches the filter.
+     * Find zero or more 'E' that match the filter.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
      * @param {EFindManyArgs=} args - Arguments to filter and select certain fields only.
@@ -14749,13 +14749,13 @@ export namespace Prisma {
     ): CheckSelect<T, PrismaPromise<Array<E>>, PrismaPromise<Array<EGetPayload<T>>>>
 
     /**
-     * Create a E.
-     * @param {ECreateArgs} args - Arguments to create a E.
+     * Create 'E'.
+     * @param {ECreateArgs} args - Arguments to create 'E'.
      * @example
      * // Create one E
      * const E = await prisma.e.create({
      *   data: {
-     *     // ... data to create a E
+     *     // ... data to create 'E'
      *   }
      * })
     **/
@@ -14848,12 +14848,12 @@ export namespace Prisma {
 
     /**
      * Create or update one E.
-     * @param {EUpsertArgs} args - Arguments to update or create a E.
+     * @param {EUpsertArgs} args - Arguments to update or create 'E'.
      * @example
-     * // Update or create a E
+     * // Update or create 'E'
      * const e = await prisma.e.upsert({
      *   create: {
-     *     // ... data to create a E
+     *     // ... data to create 'E'
      *   },
      *   update: {
      *     // ... in case it already exists, update
@@ -15120,7 +15120,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
-     * Sets the position for searching for a E.
+     * Sets the position for searching for 'E'.
      * 
     **/
     cursor?: EWhereUniqueInput
@@ -15204,7 +15204,7 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
-     * The data needed to create a E.
+     * The data needed to create 'E'.
      * 
     **/
     data: XOR<ECreateInput, EUncheckedCreateInput>
@@ -15233,7 +15233,7 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
-     * The data needed to update a E.
+     * The data needed to update 'E'.
      * 
     **/
     data: XOR<EUpdateInput, EUncheckedUpdateInput>
