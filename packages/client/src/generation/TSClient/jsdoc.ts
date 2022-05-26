@@ -160,7 +160,7 @@ const resultsWith${capitalize(ctx.firstScalar.name)}Only = await ${ctx.method}({
         : ''
 
       return dedent`
-        Find zero or more '${ctx.name}' that matches the filter.
+        Find zero or more '${ctx.name}' that match the filter.
         ${undefinedNote}
         @param {${getModelArgName(
           ctx.model.name,
