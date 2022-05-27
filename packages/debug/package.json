@@ -20,7 +20,7 @@
   "devDependencies": {
     "@types/jest": "27.5.0",
     "@types/node": "12.20.51",
-    "esbuild": "0.14.38",
+    "esbuild": "0.14.39",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",
     "ts-jest": "28.0.2",
