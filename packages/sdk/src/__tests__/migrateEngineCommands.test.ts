@@ -1,12 +1,7 @@
 import tempy from 'tempy'
 
 import { credentialsToUri, uriToCredentials } from '../convertCredentials'
-import {
-  canConnectToDatabase,
-  createDatabase,
-  dropDatabase,
-  execaCommand,
-} from '../migrateEngineCommands'
+import { canConnectToDatabase, createDatabase, dropDatabase, execaCommand } from '../migrateEngineCommands'
 
 if (process.env.CI) {
   // 5s is often not enough for the "postgresql - create database" test on macOS CI.

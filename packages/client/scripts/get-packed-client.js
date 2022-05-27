@@ -9,4 +9,4 @@ async function main() {
   console.log(`Saving packed client to ${target}`)
 }
 
-main()
+void main()

@@ -41,7 +41,7 @@
     "jest-junit": "13.2.0",
     "mock-stdin": "1.0.0",
     "ts-node": "10.8.0",
-    "typescript": "4.6.4",
+    "typescript": "4.7.2",
     "yarn": "1.22.18"
   },
   "dependencies": {

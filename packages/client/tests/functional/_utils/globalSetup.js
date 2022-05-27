@@ -1,5 +1,5 @@
-import glob from 'globby'
 import fs from 'fs-extra'
+import glob from 'globby'
 
 module.exports = () => {
   // we clear up all the files before we run the tests that are not type tests

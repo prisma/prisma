@@ -2,8 +2,10 @@ const fs = require('fs')
 const path = require('path')
 const pkgUp = require('pkg-up')
 const Debug = require('debug')
+
 const debug = Debug('prisma:install')
 const pkg = require('../package.json')
+
 const pkgName = pkg.name
 
 // if we are in a Now context, ensure that `prisma generate` is in the postinstall hook

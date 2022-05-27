@@ -220,7 +220,7 @@ async function ensureEmptyDotPrisma() {
   }
 }
 
-async function makeDir(input) {
+function makeDir(input) {
   const make = async (pth) => {
     try {
       await mkdir(pth)
