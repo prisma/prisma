@@ -19,5 +19,5 @@
 
     "emitDeclarationOnly": true
   },
-  "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
+  "exclude": ["**/dist", "**/build", "**/node_modules", "**/__tests__", "**/tests"]
 }
