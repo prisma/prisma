@@ -1,4 +1,4 @@
-import type { DMMF } from '@prisma/generator-helper'
+import { DMMF } from '@prisma/generator-helper'
 
 const dmmf: DMMF.Document = {
   datamodel: {
