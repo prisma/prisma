@@ -43,7 +43,17 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
     }
   }
 
-  if (isArrayBufferLike(parameter) || ArrayBuffer.isView(parameter)) {
+  if (ArrayBuffer.isView(parameter)) {
+    const { buffer, byteOffset, byteLength } = parameter
+    const arrayBuffer = buffer.slice(byteOffset, byteOffset + byteLength)
+
+    return {
+      prisma__type: 'bytes',
+      prisma__value: Buffer.from(arrayBuffer).toString('base64'),
+    }
+  }
+
+  if (isArrayBufferLike(parameter)) {
     return {
       prisma__type: 'bytes',
       prisma__value: Buffer.from(parameter).toString('base64'),
