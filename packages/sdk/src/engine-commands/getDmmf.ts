@@ -135,7 +135,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
       debug('unserialized dmmf result ready')
       return pipe(
         E.tryCatch(
-          () => JSON.parse(result) as DMMF.Document,
+          () => JSON.parse(result as string) as DMMF.Document,
           (e) => ({
             type: 'parse-json' as const,
             reason: 'Unable to parse JSON',

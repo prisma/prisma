@@ -45,7 +45,7 @@ export class GetConfigError extends Error {
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
-  const data: ConfigMetaFormat = await match(cliEngineBinaryType)
+  const data = await match(cliEngineBinaryType)
     .with(BinaryType.libqueryEngine, () => {
       return getConfigNodeAPI(options)
     })
@@ -53,7 +53,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
       return getConfigBinary(options)
     })
     .exhaustive()
-  return data
+  return data as ConfigMetaFormat
 }
 
 async function getConfigNodeAPI(options: GetConfigOptions) {
