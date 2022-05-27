@@ -3,5 +3,8 @@
   "compilerOptions": {
     "outDir": "dist"
   },
-  "include": ["src"]
+  "include": ["src"],
+  // to not copy local engines to dist
+  // so npm doesn't publish them
+  "exclude": ["src/get-generators/engines"]
 }

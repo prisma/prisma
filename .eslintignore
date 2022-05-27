@@ -7,7 +7,6 @@ byline.ts
 prism.ts
 charm.ts
 pnpm-lock.yaml
-.eslintrc.js
 
 # client
 packages/client/generator-build/
