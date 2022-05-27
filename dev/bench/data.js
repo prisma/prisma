@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1653645439310,
+  "lastUpdate": 1653646150985,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -102078,6 +102078,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.09,
             "range": "±2.30%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "596a26f90cada29c674d2596ec5403b1b41b5fb7",
+          "message": "chore(deps): update devdependencies (non-major) (#13401)\n\nCo-authored-by: Renovate Bot <bot@renovateapp.com>\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\nCo-authored-by: Pierre-Antoine Mills <pierreantoine.urvoy@gmail.com>",
+          "timestamp": "2022-05-27T10:03:33Z",
+          "tree_id": "ad834e03862d45255748c44aa41d431754823f38",
+          "url": "https://github.com/prisma/prisma/commit/596a26f90cada29c674d2596ec5403b1b41b5fb7"
+        },
+        "date": 1653646144306,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±3.91%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.08,
+            "range": "±3.28%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
