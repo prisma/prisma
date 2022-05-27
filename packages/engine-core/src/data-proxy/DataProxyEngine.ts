@@ -1,5 +1,6 @@
 import EventEmitter from 'events'
 
+import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
@@ -12,8 +13,6 @@ import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 import { request } from './utils/request'
-// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
-// TODO this is an issue that we cannot share types from the client to other packages
 
 const MAX_RETRIES = 10
 
@@ -21,7 +20,7 @@ export class DataProxyEngine extends Engine {
   private pushPromise: Promise<void>
   private inlineSchema: string
   private inlineSchemaHash: string
-  private inlineDatasources: any
+  private inlineDatasources: InlineDatasources
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k: string]: string }
@@ -219,7 +218,7 @@ export class DataProxyEngine extends Engine {
     const mainDatasource = this.inlineDatasources[mainDatasourceName]
     const mainDatasourceURL = mainDatasource?.url.value
     const mainDatasourceEnv = mainDatasource?.url.fromEnvVar
-    const loadedEnvURL = this.env[mainDatasourceEnv]
+    const loadedEnvURL = mainDatasourceEnv && this.env[mainDatasourceEnv]
     const dataProxyURL = mainDatasourceURL ?? loadedEnvURL
 
     let url: URL
