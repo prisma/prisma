@@ -747,7 +747,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
+  test.skip('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
