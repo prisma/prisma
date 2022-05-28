@@ -203,6 +203,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" at "something.cockroachlabs.cloud:26257"
     `)

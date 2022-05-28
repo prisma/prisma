@@ -1,6 +1,6 @@
 datasource my_db {
   provider = "cockroachdb"
-  url      = env("FROM_DOTENV_FILE")
+  url      = env("FROM_DOTENV_FILE_COCKROACH")
 }
 
 model Blog {
