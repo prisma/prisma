@@ -20,6 +20,26 @@ exports[`SQL Server schema only with shadowdb 2`] = `Array []`;
 
 exports[`SQL Server schema only with shadowdb 3`] = `Array []`;
 
+exports[`cockroachdb create first migration 3`] = `Array []`;
+
+exports[`cockroachdb create first migration 4`] = `Array []`;
+
+exports[`cockroachdb draft migration and apply (--name) 5`] = `Array []`;
+
+exports[`cockroachdb draft migration and apply (--name) 6`] = `Array []`;
+
+exports[`cockroachdb existingdb: create first migration 3`] = `Array []`;
+
+exports[`cockroachdb existingdb: create first migration 4`] = `Array []`;
+
+exports[`cockroachdb schema only 2`] = `Array []`;
+
+exports[`cockroachdb schema only 3`] = `Array []`;
+
+exports[`cockroachdb schema only with shadowdb 2`] = `Array []`;
+
+exports[`cockroachdb schema only with shadowdb 3`] = `Array []`;
+
 exports[`mysql create first migration 3`] = `Array []`;
 
 exports[`mysql create first migration 4`] = `Array []`;

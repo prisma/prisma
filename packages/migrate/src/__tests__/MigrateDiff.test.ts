@@ -2,6 +2,7 @@ import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import stripAnsi from 'strip-ansi'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
+import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -132,18 +133,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                        [+] Added tables
-                                                                                                          - Post
-                                                                                                          - Profile
-                                                                                                          - User
-                                                                                                          - _Migration
+                                                                                                                [+] Added tables
+                                                                                                                  - Post
+                                                                                                                  - Profile
+                                                                                                                  - User
+                                                                                                                  - _Migration
 
-                                                                                                        [*] Changed the \`Profile\` table
-                                                                                                          [+] Added unique index on columns (userId)
+                                                                                                                [*] Changed the \`Profile\` table
+                                                                                                                  [+] Added unique index on columns (userId)
 
-                                                                                                        [*] Changed the \`User\` table
-                                                                                                          [+] Added unique index on columns (email)
-                                                                              `)
+                                                                                                                [*] Changed the \`User\` table
+                                                                                                                  [+] Added unique index on columns (email)
+                                                                                    `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -160,9 +161,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                        [+] Added tables
-                                                                                                          - Blog
-                                                                              `)
+                                                                                                                [+] Added tables
+                                                                                                                  - Blog
+                                                                                    `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -189,9 +190,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                        [-] Removed tables
-                                                                                                          - Blog
-                                                                              `)
+                                                                                                                [-] Removed tables
+                                                                                                                  - Blog
+                                                                                    `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -236,9 +237,9 @@ describe('migrate diff', () => {
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                            [-] Removed tables
-                                                              - Blog
-                                                `)
+                                                                      [-] Removed tables
+                                                                        - Blog
+                                                        `)
 
         expect(mockExit).toHaveBeenCalledTimes(1)
         expect(mockExit).toHaveBeenCalledWith(2)
@@ -328,6 +329,84 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Rendering to a script is not supported on MongoDB.
 
+
+            `)
+    })
+  })
+
+  describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+    const connectionString = (
+      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
+    ).replace('tests-migrate', 'tests-migrate-diff')
+
+    const setupParams = {
+      connectionString,
+      dirname: '',
+    }
+
+    beforeAll(async () => {
+      await setupCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    afterAll(async () => {
+      await tearDownCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      const result = MigrateDiff.new().parse([
+        '--from-url',
+        connectionString,
+        '--to-schema-datamodel=./prisma/schema.prisma',
+        '--script',
+      ])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        -- CreateTable
+        CREATE TABLE "Blog" (
+            "id" INT4 NOT NULL,
+            "viewCount20" INT4 NOT NULL,
+
+            CONSTRAINT "Blog_pkey" PRIMARY KEY ("id")
+        );
+      `)
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should use env var from .env file with --from-schema-datasource', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      const result = MigrateDiff.new().parse([
+        '--from-schema-datasource=./prisma/using-dotenv.prisma',
+        '--to-schema-datamodel=./prisma/schema.prisma',
+      ])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
+
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`26257\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
+
+            `)
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
+      ctx.fixture('introspection/sqlite')
+
+      const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              Error in migration engine.
+              Reason: [/some/rust/path:0:0] Missing native type in postgres_renderer::render_column_type()
+
+              Please create an issue with your \`schema.prisma\` at
+              https://github.com/prisma/prisma/issues/new
 
             `)
     })
@@ -489,6 +568,7 @@ describe('migrate diff', () => {
       })
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlserver')
 
