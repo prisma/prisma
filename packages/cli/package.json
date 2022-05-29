@@ -68,14 +68,14 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.15.0-9.0c364ac42b7e78faad00640efb007598192fa511",
+    "@prisma/fetch-engine": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.15.0-9.0c364ac42b7e78faad00640efb007598192fa511",
+    "@prisma/get-platform": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.460.0",
     "@prisma/studio-server": "0.460.0",
-    "@swc/core": "1.2.182",
+    "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
@@ -86,7 +86,7 @@
     "checkpoint-client": "1.1.21",
     "debug": "4.3.4",
     "dotenv": "16.0.1",
-    "esbuild": "0.14.38",
+    "esbuild": "0.14.39",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
     "fs-extra": "10.1.0",
@@ -120,7 +120,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.15.0-9.0c364ac42b7e78faad00640efb007598192fa511"
+    "@prisma/engines": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7"
   },
   "sideEffects": false
 }
