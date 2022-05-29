@@ -4,15 +4,12 @@ export default defineMatrix(() => [
   [
     {
       provider: 'mysql',
-      providerFeatures: '',
     },
     {
       provider: 'postgresql',
-      providerFeatures: '',
     },
     {
       provider: 'mongodb',
-      providerFeatures: '',
     },
   ],
   [
