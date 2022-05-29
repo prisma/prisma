@@ -25,7 +25,7 @@ importers:
       eslint-config-prettier: 8.5.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-import: 2.26.0
-      eslint-plugin-jest: 26.1.5
+      eslint-plugin-jest: 26.4.5
       eslint-plugin-prettier: 4.0.0
       eslint-plugin-simple-import-sort: 7.0.0
       eventemitter3: 4.0.7
@@ -78,8 +78,8 @@ importers:
       eslint: 8.16.0
       eslint-config-prettier: 8.5.0_eslint@8.16.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.16.0
-      eslint-plugin-import: 2.26.0_eslint@8.16.0
-      eslint-plugin-jest: 26.1.5_98134cd9017fbefa9ea2b9974889936b
+      eslint-plugin-import: 2.26.0_344a44770e94ca865603797fb8acf8d9
+      eslint-plugin-jest: 26.4.5_98134cd9017fbefa9ea2b9974889936b
       eslint-plugin-prettier: 4.0.0_4fe3201cd09a8826bbd8050f2348cb2f
       eslint-plugin-simple-import-sort: 7.0.0_eslint@8.16.0
       eventemitter3: 4.0.7
@@ -128,7 +128,7 @@ importers:
       '@swc/jest': 0.2.21
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/rimraf': 3.0.2
       '@types/ws': 8.5.3
       chalk: 4.1.2
@@ -169,12 +169,12 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/sdk': link:../sdk
       '@prisma/studio': 0.460.0
-      '@prisma/studio-server': 0.460.0
+      '@prisma/studio-server': 0.460.0_839d6f5e1e290969a8d17594ebaffe12
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/rimraf': 3.0.2
       '@types/ws': 8.5.3
       chalk: 4.1.2
@@ -223,7 +223,7 @@ importers:
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/js-levenshtein': 1.1.1
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
@@ -262,7 +262,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 28.0.2
+      ts-jest: 28.0.3
       ts-node: 10.8.0
       tsd: 0.20.0
       typescript: 4.6.4
@@ -284,7 +284,7 @@ importers:
       '@swc/jest': 0.2.21_@swc+core@1.2.189
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/js-levenshtein': 1.1.1
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
@@ -323,7 +323,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 28.0.2_4b64d571ac00c66b9e5d68f759c4b1f6
+      ts-jest: 28.0.3_e71260e0c4b55e769c41552301564a42
       ts-node: 10.8.0_3cdb71b94d2a6cc4d8c2886aba95be1a
       tsd: 0.20.0
       typescript: 4.6.4
@@ -331,26 +331,26 @@ importers:
   packages/debug:
     specifiers:
       '@types/debug': 4.1.7
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       debug: 4.3.4
       esbuild: 0.14.39
       jest: 28.1.0
       jest-junit: 13.2.0
       strip-ansi: 6.0.1
-      ts-jest: 28.0.2
+      ts-jest: 28.0.3
       typescript: 4.6.4
     dependencies:
       '@types/debug': 4.1.7
       debug: 4.3.4
       strip-ansi: 6.0.1
     devDependencies:
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       esbuild: 0.14.39
       jest: 28.1.0_80331e7c78f897d3241777ad7e421929
       jest-junit: 13.2.0
-      ts-jest: 28.0.2_4b64d571ac00c66b9e5d68f759c4b1f6
+      ts-jest: 28.0.3_e71260e0c4b55e769c41552301564a42
       typescript: 4.6.4
 
   packages/engine-core:
@@ -361,7 +361,7 @@ importers:
       '@prisma/get-platform': 3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 16.11.34
       chalk: 4.1.2
       esbuild: 0.14.39
@@ -391,7 +391,7 @@ importers:
     devDependencies:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 16.11.34
       esbuild: 0.14.39
       jest: 28.1.0_2d01977b9c347b93a5ff4504c0e75b05
@@ -404,7 +404,7 @@ importers:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
       '@types/cross-spawn': 6.0.2
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       chalk: 4.1.2
       cross-spawn: 7.0.3
@@ -421,7 +421,7 @@ importers:
     devDependencies:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       esbuild: 0.14.39
       jest: 28.1.0_80331e7c78f897d3241777ad7e421929
@@ -435,7 +435,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
@@ -462,7 +462,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
@@ -495,7 +495,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
       '@types/prompts': 2.0.14
@@ -546,7 +546,7 @@ importers:
       '@prisma/sdk': link:../sdk
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
       '@types/prompts': 2.0.14
@@ -593,7 +593,7 @@ importers:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       '@types/resolve': 1.20.2
       '@types/shell-quote': 1.7.1
@@ -694,7 +694,7 @@ importers:
     devDependencies:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.0
+      '@types/jest': 27.5.1
       '@types/node': 12.20.51
       '@types/resolve': 1.20.2
       '@types/shell-quote': 1.7.1
@@ -1045,6 +1045,8 @@ packages:
     resolution: {integrity: sha512-rL50YcEuHbbauAFAysNsJA4/f89fGTOBRNs9P81sniKnKAr4xULe5AecolcsKbi88xu0ByWYDj/S1AJ3FSFuSQ==}
     engines: {node: '>=6.0.0'}
     hasBin: true
+    dependencies:
+      '@babel/types': 7.18.2
     dev: true
 
   /@babel/plugin-syntax-async-generators/7.8.4_@babel+core@7.18.2:
@@ -1690,34 +1692,38 @@ packages:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.460.0:
+  /@prisma/studio-pcw/0.460.0_839d6f5e1e290969a8d17594ebaffe12:
     resolution: {integrity: sha512-i6jOgdkiy5hmWEJm6LMfKp5PX5IIbatN5km0UqXKQP1ZY2m67KmFyqtlkTcTJZjbeuDN3ekJJoY0SmOacNexkQ==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/sdk': '*'
     dependencies:
+      '@prisma/client': link:packages/client
+      '@prisma/sdk': link:packages/sdk
       debug: 4.3.3
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.460.0:
+  /@prisma/studio-server/0.460.0_839d6f5e1e290969a8d17594ebaffe12:
     resolution: {integrity: sha512-2tXT9Xz6XMEwwb0b43lK2OPBg4mdP1SHNH5xaGl5ucF6Lt6CAHiCq8lyC/2BrwPWGEaCmQ2+QCuOAW/YNUcPGg==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
+      '@prisma/sdk': link:packages/sdk
       '@prisma/studio': 0.460.0
       '@prisma/studio-common': 0.460.0
-      '@prisma/studio-pcw': 0.460.0
+      '@prisma/studio-pcw': 0.460.0_839d6f5e1e290969a8d17594ebaffe12
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -2098,13 +2104,6 @@ packages:
     resolution: {integrity: sha512-c3mAZEuK0lvBp8tmuL74XRKn1+y2dcwOUpH7x4WrF6gk1GIgiluDRgMYQtw2OFcBvAJWlt6ASU3tSqxp0Uu0Aw==}
     dependencies:
       '@types/istanbul-lib-report': 3.0.0
-    dev: true
-
-  /@types/jest/27.5.0:
-    resolution: {integrity: sha512-9RBFx7r4k+msyj/arpfaa0WOOEcaAZNmN+j80KFbFCoSqCJGHTz7YMAMGQW9Xmqm5w6l5c25vbSjMwlikJi5+g==}
-    dependencies:
-      jest-matcher-utils: 27.5.1
-      pretty-format: 27.5.1
     dev: true
 
   /@types/jest/27.5.1:
@@ -2773,6 +2772,8 @@ packages:
       qs: 6.9.6
       raw-body: 2.4.2
       type-is: 1.6.18
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /brace-expansion/1.1.11:
@@ -2873,6 +2874,8 @@ packages:
       ssri: 8.0.1
       tar: 6.1.11
       unique-filename: 1.1.1
+    transitivePeerDependencies:
+      - bluebird
     dev: true
     optional: true
 
@@ -3184,12 +3187,22 @@ packages:
 
   /debug/2.6.9:
     resolution: {integrity: sha512-bC7ElrdJaJnPbAP+1EotYvqZsb3ecl5wi6Bfi6BJTUcNowp6cvspg0jXznRTKDjm/E7AdgFBVeAPVMNcKGsHMA==}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
     dependencies:
       ms: 2.0.0
     dev: true
 
   /debug/3.2.7:
     resolution: {integrity: sha512-CFjzYYAi4ThfiQvizrFQevTTXHtnCqWfe7x1AhgEscTz6ZbLbfoLRLPugTQyBth6f8ZERVUSyWHFD/7Wu4t1XQ==}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
     dependencies:
       ms: 2.1.3
     dev: true
@@ -3954,14 +3967,34 @@ packages:
     dependencies:
       debug: 3.2.7
       resolve: 1.22.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
-  /eslint-module-utils/2.7.3:
+  /eslint-module-utils/2.7.3_c9cc5f32dab671e1b62056e60e7ea1db:
     resolution: {integrity: sha512-088JEC7O3lDZM9xGe0RerkOMd0EjFl+Yvd1jPWIkMT5u3H9+HC34mWWPnqPrN13gieT9pBOO+Qt07Nb/6TresQ==}
     engines: {node: '>=4'}
+    peerDependencies:
+      '@typescript-eslint/parser': '*'
+      eslint-import-resolver-node: '*'
+      eslint-import-resolver-typescript: '*'
+      eslint-import-resolver-webpack: '*'
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
+      eslint-import-resolver-node:
+        optional: true
+      eslint-import-resolver-typescript:
+        optional: true
+      eslint-import-resolver-webpack:
+        optional: true
     dependencies:
+      '@typescript-eslint/parser': 5.26.0_eslint@8.16.0+typescript@4.6.4
       debug: 3.2.7
+      eslint-import-resolver-node: 0.3.6
       find-up: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /eslint-plugin-eslint-comments/3.2.0_eslint@8.16.0:
@@ -3975,19 +4008,24 @@ packages:
       ignore: 5.2.0
     dev: true
 
-  /eslint-plugin-import/2.26.0_eslint@8.16.0:
+  /eslint-plugin-import/2.26.0_344a44770e94ca865603797fb8acf8d9:
     resolution: {integrity: sha512-hYfi3FXaM8WPLf4S1cikh/r4IxnO6zrhZbEGz2b660EJRbuxgpDS5gkCuYgGWg2xxh2rBuIr4Pvhve/7c31koA==}
     engines: {node: '>=4'}
     peerDependencies:
+      '@typescript-eslint/parser': '*'
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
     dependencies:
+      '@typescript-eslint/parser': 5.26.0_eslint@8.16.0+typescript@4.6.4
       array-includes: 3.1.5
       array.prototype.flat: 1.3.0
       debug: 2.6.9
       doctrine: 2.1.0
       eslint: 8.16.0
       eslint-import-resolver-node: 0.3.6
-      eslint-module-utils: 2.7.3
+      eslint-module-utils: 2.7.3_c9cc5f32dab671e1b62056e60e7ea1db
       has: 1.0.3
       is-core-module: 2.9.0
       is-glob: 4.0.3
@@ -3995,10 +4033,14 @@ packages:
       object.values: 1.1.5
       resolve: 1.22.0
       tsconfig-paths: 3.14.1
+    transitivePeerDependencies:
+      - eslint-import-resolver-typescript
+      - eslint-import-resolver-webpack
+      - supports-color
     dev: true
 
-  /eslint-plugin-jest/26.1.5_98134cd9017fbefa9ea2b9974889936b:
-    resolution: {integrity: sha512-su89aDuljL9bTjEufTXmKUMSFe2kZUL9bi7+woq+C2ukHZordhtfPm4Vg+tdioHBaKf8v3/FXW9uV0ksqhYGFw==}
+  /eslint-plugin-jest/26.4.5_98134cd9017fbefa9ea2b9974889936b:
+    resolution: {integrity: sha512-jGPKXoV7v21gvt2QivCPuN1c2RePxJ9XnYQjucioAZhMTXrJ0y48QhP7UOpgNs/sj0Lns2NKRvoAjnyXDCfqbw==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^5.0.0
@@ -4248,6 +4290,8 @@ packages:
       type-is: 1.6.18
       utils-merge: 1.0.1
       vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /extsprintf/1.4.1:
@@ -4319,6 +4363,8 @@ packages:
       parseurl: 1.3.3
       statuses: 1.5.0
       unpipe: 1.0.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /find-cache-dir/3.3.2:
@@ -6195,6 +6241,7 @@ packages:
       socks-proxy-agent: 6.2.0
       ssri: 8.0.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
     optional: true
@@ -6495,6 +6542,7 @@ packages:
       tar: 6.1.11
       which: 2.0.2
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
     optional: true
@@ -6964,6 +7012,11 @@ packages:
 
   /promise-inflight/1.0.1:
     resolution: {integrity: sha1-mEcocL8igTL8vdhoEputEsPAKeM=}
+    peerDependencies:
+      bluebird: '*'
+    peerDependenciesMeta:
+      bluebird:
+        optional: true
     dev: true
     optional: true
 
@@ -7301,6 +7354,8 @@ packages:
       on-finished: 2.3.0
       range-parser: 1.2.1
       statuses: 1.5.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /serve-static/1.14.2:
@@ -7311,6 +7366,8 @@ packages:
       escape-html: 1.0.3
       parseurl: 1.3.3
       send: 0.17.2
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /set-blocking/2.0.0:
@@ -7468,6 +7525,7 @@ packages:
     dependencies:
       sqlite3: 5.0.8
     transitivePeerDependencies:
+      - bluebird
       - encoding
       - supports-color
     dev: true
@@ -7485,6 +7543,7 @@ packages:
     optionalDependencies:
       node-gyp: 8.4.1
     transitivePeerDependencies:
+      - bluebird
       - encoding
       - supports-color
     dev: true
@@ -7814,41 +7873,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /ts-jest/28.0.2_4b64d571ac00c66b9e5d68f759c4b1f6:
-    resolution: {integrity: sha512-IOZMb3D0gx6IHO9ywPgiQxJ3Zl4ECylEFwoVpENB55aTn5sdO0Ptyx/7noNBxAaUff708RqQL4XBNxxOVjY0vQ==}
-    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
-    hasBin: true
-    peerDependencies:
-      '@babel/core': '>=7.0.0-beta.0 <8'
-      '@types/jest': ^27.0.0
-      babel-jest: ^28.0.0
-      esbuild: '*'
-      jest: ^28.0.0
-      typescript: '>=4.3'
-    peerDependenciesMeta:
-      '@babel/core':
-        optional: true
-      '@types/jest':
-        optional: true
-      babel-jest:
-        optional: true
-      esbuild:
-        optional: true
-    dependencies:
-      '@types/jest': 27.5.0
-      bs-logger: 0.2.6
-      esbuild: 0.14.39
-      fast-json-stable-stringify: 2.1.0
-      jest: 28.1.0_80331e7c78f897d3241777ad7e421929
-      jest-util: 28.1.0
-      json5: 2.2.1
-      lodash.memoize: 4.1.2
-      make-error: 1.3.6
-      semver: 7.3.7
-      typescript: 4.6.4
-      yargs-parser: 20.2.9
-    dev: true
-
   /ts-jest/28.0.3_4d8893f9486e8b979abeeb42490b926c:
     resolution: {integrity: sha512-HzgbEDQ2KgVtDmpXToqAcKTyGHdHsG23i/iUjfxji92G5eT09S1m9UHZd7csF0Bfgh9txM4JzwHnv7r1waFPlw==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
@@ -7881,6 +7905,41 @@ packages:
       make-error: 1.3.6
       semver: 7.3.7
       typescript: 4.7.2
+      yargs-parser: 20.2.9
+    dev: true
+
+  /ts-jest/28.0.3_e71260e0c4b55e769c41552301564a42:
+    resolution: {integrity: sha512-HzgbEDQ2KgVtDmpXToqAcKTyGHdHsG23i/iUjfxji92G5eT09S1m9UHZd7csF0Bfgh9txM4JzwHnv7r1waFPlw==}
+    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
+    peerDependencies:
+      '@babel/core': '>=7.0.0-beta.0 <8'
+      '@types/jest': ^27.0.0
+      babel-jest: ^28.0.0
+      esbuild: '*'
+      jest: ^28.0.0
+      typescript: '>=4.3'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      '@types/jest':
+        optional: true
+      babel-jest:
+        optional: true
+      esbuild:
+        optional: true
+    dependencies:
+      '@types/jest': 27.5.1
+      bs-logger: 0.2.6
+      esbuild: 0.14.39
+      fast-json-stable-stringify: 2.1.0
+      jest: 28.1.0_80331e7c78f897d3241777ad7e421929
+      jest-util: 28.1.0
+      json5: 2.2.1
+      lodash.memoize: 4.1.2
+      make-error: 1.3.6
+      semver: 7.3.7
+      typescript: 4.6.4
       yargs-parser: 20.2.9
     dev: true
 

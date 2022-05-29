@@ -31,7 +31,7 @@
   "devDependencies": {
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
-    "@types/jest": "27.5.0",
+    "@types/jest": "27.5.1",
     "@types/node": "12.20.51",
     "@types/resolve": "1.20.2",
     "@types/shell-quote": "1.7.1",
