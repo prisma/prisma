@@ -1,4 +1,3 @@
-import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
@@ -14,7 +13,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
     }
     
     model Entry {
-      id     ${idForProvider(provider)}
+      id Int @id @default(autoincrement())      
       binary Bytes
     }
   `
