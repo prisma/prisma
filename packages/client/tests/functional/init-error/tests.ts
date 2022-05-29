@@ -15,11 +15,11 @@ testMatrix.setupTestSuite(
         await prisma.$connect()
       } catch (error) {
         const e = error as PrismaClientInitializationError
-        expect(e.errorCode).toBeTruthy()
+        expect(e.constructor.name).toEqual('PrismaClientInitializationError')
+        expect(e.errorCode).toEqual('P1001')
         expect(e.clientVersion).toBeTruthy()
         expect(e.message).toBeTruthy()
         expect(e.name).toBeTruthy()
-        expect(e.clientVersion).toBeTruthy()
       } finally {
         await prisma.$disconnect()
       }
