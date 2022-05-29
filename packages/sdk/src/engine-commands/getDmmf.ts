@@ -11,6 +11,7 @@ import fs from 'fs'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
+import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
   loadNodeAPILibrary,
@@ -40,7 +41,7 @@ export type GetDMMFOptions = {
 
 export class GetDmmfError extends Error {
   constructor(message: string, public readonly _error?: Error) {
-    super(chalk.redBright.bold('Get DMMF: ') + message)
+    super(addVersionDetailsToErrorMessage(`${chalk.redBright.bold('Get DMMF: ')}${message}`))
   }
 }
 
@@ -366,7 +367,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
-          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
+          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}`
           const message = addMissingOpenSSLInfo(defaultMessage)
           return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message, e.error)
         }),
