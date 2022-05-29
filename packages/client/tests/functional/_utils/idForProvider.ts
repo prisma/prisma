@@ -1,9 +1,9 @@
-export interface IOptions {
+export interface Options {
   includeDefault: boolean
 }
 
-export function idForProvider(provider: string, options: IOptions = { includeDefault: true }): string {
-  const strs: string[] = ['String @id']
+export function idForProvider(provider: string, options: Options = { includeDefault: true }): string {
+  const strs = ['String @id']
 
   switch (provider) {
     case 'mongodb':
