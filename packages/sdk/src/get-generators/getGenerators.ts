@@ -50,6 +50,7 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
+  dataProxy?: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -68,6 +69,7 @@ export async function getGenerators({
   overrideGenerators,
   skipDownload,
   binaryPathsOverride,
+  dataProxy,
 }: GetGeneratorOptions): Promise<Generator[]> {
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
@@ -205,6 +207,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
+          dataProxy,
         }
 
         // we set the options here a bit later after instantiating the Generator,
