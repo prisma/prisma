@@ -237,13 +237,17 @@ export interface GetPrismaClientConfig {
   inlineSchema?: string
 
   /**
-   * The contents of the env saved into a special object
+   * A special env object jus for the data proxy edge runtime.
+   * Allows bundlers to inject their own env variables (Vercel).
+   * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy
    */
-  inlineEnv?: LoadedEnv
+  injectableEdgeEnv?: LoadedEnv
 
   /**
-   * The contents of the datasource url saved in a string
+   * The contents of the datasource url saved in a string.
+   * This can either be an env var name or connection string.
+   * It is needed by the client to connect to the Data Proxy.
    * @remarks only used for the purpose of data proxy
    */
   inlineDatasources?: InlineDatasources
@@ -417,8 +421,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          // we attempt to load env with fs -> attempt inline env -> default
-          env: loadedEnv ? loadedEnv.parsed : config.inlineEnv?.parsed ?? {},
+          // we attempt to load env with fs -> attempt edge env -> default
+          env: loadedEnv?.parsed ?? config.injectableEdgeEnv?.parsed ?? {},
           flags: [],
           clientVersion: config.clientVersion,
           previewFeatures: mapPreviewFeatures(this._previewFeatures),

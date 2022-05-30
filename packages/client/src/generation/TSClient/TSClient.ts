@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType, getEnvPaths } from '@prisma/sdk'
+import { getClientEngineType, getEnvPaths } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -11,8 +11,8 @@ import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { buildDirname } from '../utils/buildDirname'
 import { buildDMMF } from '../utils/buildDMMF'
+import { buildInjectableEdgeEnv as buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
-import { buildInlineEnv } from '../utils/buildInlineEnv'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
@@ -123,9 +123,9 @@ ${buildDMMF(dataProxy, this.dmmfString)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${buildInlineDatasource(dataProxy, datasources)}
 ${await buildInlineSchema(dataProxy, schemaPath)}
-${buildInlineEnv(dataProxy, datasources, envPaths)}
+${buildInlineDatasource(dataProxy, datasources)}
+${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
