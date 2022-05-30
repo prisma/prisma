@@ -14,7 +14,7 @@ export type InlineDatasources = {
  * @param internalDatasources
  * @returns
  */
-export function buildInlineDatasource(dataProxy: boolean, internalDatasources: InternalDatasource[]) {
+export function buildInlineDatasource(dataProxy: boolean | undefined, internalDatasources: InternalDatasource[]) {
   if (dataProxy === true) {
     const datasources = internalToInlineDatasources(internalDatasources)
 

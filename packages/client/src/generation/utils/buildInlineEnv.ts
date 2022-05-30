@@ -20,7 +20,7 @@ type LoadedEnv = {
  * @param envPaths
  * @returns
  */
-export function buildInlineEnv(dataProxy: boolean, datasources: InternalDatasource[], envPaths: EnvPaths) {
+export function buildInlineEnv(dataProxy: boolean | undefined, datasources: InternalDatasource[], envPaths: EnvPaths) {
   if (dataProxy === true) {
     const envVarNames = getSelectedEnvVarNames(datasources)
     const loadedEnv = loadSelectedEnvVars(envPaths, envVarNames)

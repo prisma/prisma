@@ -96,8 +96,8 @@ export class TSClient implements Generatable {
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(engineType === ClientEngineType.DataProxy)}
-${buildDirname(!!dataProxy, relativeOutdir, runtimeDir)}
+${buildRequirePath(dataProxy)}
+${buildDirname(dataProxy, relativeOutdir, runtimeDir)}
 /**
  * Enums
  */
@@ -115,7 +115,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(!!dataProxy, this.dmmfString)}
+${buildDMMF(dataProxy, this.dmmfString)}
 
 /**
  * Create the Client
@@ -123,14 +123,14 @@ ${buildDMMF(!!dataProxy, this.dmmfString)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${buildInlineDatasource(!!dataProxy, datasources)}
-${await buildInlineSchema(!!dataProxy, schemaPath)}
-${buildInlineEnv(!!dataProxy, datasources, envPaths)}
-${buildWarnEnvConflicts(!!dataProxy, runtimeDir, runtimeName)}
+${buildInlineDatasource(dataProxy, datasources)}
+${await buildInlineSchema(dataProxy, schemaPath)}
+${buildInlineEnv(dataProxy, datasources, envPaths)}
+${buildWarnEnvConflicts(dataProxy, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(!!dataProxy, engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
   }

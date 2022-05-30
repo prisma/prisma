@@ -747,7 +747,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test.skip('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
+  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
@@ -766,13 +766,8 @@ describe('getGenerators', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        The dataProxy and interactiveTransactions Preview Features can not be enabled at the same time.
-        Remove interactiveTransactions from previewFeatures, for example:
-
-        generator client {
-            provider = \\"prisma-client-js\\"
-            previewFeatures = [\\"dataProxy\\"]
-        }
+        interactiveTransactions preview feature is not yet available with --data-proxy.
+        Please remove interactiveTransactions from the previewFeatures in your schema.
 
         More information in our documentation:
         https://pris.ly/d/data-proxy

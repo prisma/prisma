@@ -3,7 +3,7 @@
  * @param dataProxy
  * @returns
  */
-export function buildRequirePath(dataProxy: boolean) {
+export function buildRequirePath(dataProxy: boolean | undefined) {
   if (dataProxy === true) return ''
 
   return `

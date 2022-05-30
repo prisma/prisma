@@ -237,12 +237,9 @@ export class DataProxyEngine extends Engine {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError(
-        'Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the `dataProxy` from the `previewFeatures` in your schema and ensure that `PRISMA_CLIENT_ENGINE_TYPE` environment variable is not set to `dataproxy`.',
-        {
-          clientVersion: this.clientVersion,
-        },
-      )
+      throw new InvalidDatasourceError('Datasource URL must use prisma:// protocol when --data-proxy is used', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     const apiKey = searchParams.get('api_key')

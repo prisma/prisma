@@ -7,7 +7,7 @@ import path from 'path'
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(dataProxy: boolean, relativeOutdir: string, runtimeDir: string) {
+export function buildDirname(dataProxy: boolean | undefined, relativeOutdir: string, runtimeDir: string) {
   if (dataProxy === true) {
     return buildDirnameDefault()
   }

@@ -7,7 +7,7 @@ import lzString from 'lz-string'
  * @param dmmf
  * @returns
  */
-export function buildDMMF(dataProxy: boolean, dmmf: string) {
+export function buildDMMF(dataProxy: boolean | undefined, dmmf: string) {
   if (dataProxy === true) {
     return buildCompressedDMMF(dmmf)
   }

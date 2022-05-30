@@ -16,7 +16,7 @@ import { map } from '../../../../../helpers/blaze/map'
  * @returns
  */
 export function buildNFTAnnotations(
-  dataProxy: boolean,
+  dataProxy: boolean | undefined,
   engineType: ClientEngineType,
   platforms: Platform[] | undefined,
   relativeOutdir: string,

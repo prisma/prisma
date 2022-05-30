@@ -6,7 +6,7 @@
  * @param runtimeName
  * @returns
  */
-export function buildWarnEnvConflicts(dataProxy: boolean, runtimeDir: string, runtimeName: string) {
+export function buildWarnEnvConflicts(dataProxy: boolean | undefined, runtimeDir: string, runtimeName: string) {
   if (dataProxy === true) return ''
 
   return `
