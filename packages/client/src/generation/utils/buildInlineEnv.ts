@@ -1,5 +1,5 @@
 import type { EnvPaths } from '@prisma/sdk'
-import { ClientEngineType, tryLoadEnvs } from '@prisma/sdk'
+import { tryLoadEnvs } from '@prisma/sdk'
 
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 
@@ -15,17 +15,13 @@ type LoadedEnv = {
  * `fs`, `process.env`, and .env file loading are not available. The inline env
  * is the default fallback when `tryLoadEnvs` wasn't called by the client.
  * @see {@link declareInlineEnv}
- * @param clientEngineType
+ * @param dataProxy
  * @param datasources
  * @param envPaths
  * @returns
  */
-export function buildInlineEnv(
-  clientEngineType: ClientEngineType,
-  datasources: InternalDatasource[],
-  envPaths: EnvPaths,
-) {
-  if (clientEngineType === ClientEngineType.DataProxy) {
+export function buildInlineEnv(dataProxy: boolean, datasources: InternalDatasource[], envPaths: EnvPaths) {
+  if (dataProxy === true) {
     const envVarNames = getSelectedEnvVarNames(datasources)
     const loadedEnv = loadSelectedEnvVars(envPaths, envVarNames)
 

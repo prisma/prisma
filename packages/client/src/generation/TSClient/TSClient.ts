@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType, getEnvPaths } from '@prisma/sdk'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -63,6 +63,7 @@ export class TSClient implements Generatable {
       runtimeDir,
       runtimeName,
       datasources,
+      dataProxy,
     } = this.options
     const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
@@ -95,8 +96,8 @@ export class TSClient implements Generatable {
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(engineType)}
-${buildDirname(engineType, relativeOutdir, runtimeDir)}
+${buildRequirePath(engineType === ClientEngineType.DataProxy)}
+${buildDirname(!!dataProxy, relativeOutdir, runtimeDir)}
 /**
  * Enums
  */
@@ -114,7 +115,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(engineType, this.dmmfString)}
+${buildDMMF(!!dataProxy, this.dmmfString)}
 
 /**
  * Create the Client
@@ -122,14 +123,14 @@ ${buildDMMF(engineType, this.dmmfString)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${buildInlineDatasource(engineType, datasources)}
-${await buildInlineSchema(engineType, schemaPath)}
-${buildInlineEnv(engineType, datasources, envPaths)}
-${buildWarnEnvConflicts(engineType, runtimeDir, runtimeName)}
+${buildInlineDatasource(!!dataProxy, datasources)}
+${await buildInlineSchema(!!dataProxy, schemaPath)}
+${buildInlineEnv(!!dataProxy, datasources, envPaths)}
+${buildWarnEnvConflicts(!!dataProxy, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
-${buildNFTAnnotations(engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(!!dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
   }

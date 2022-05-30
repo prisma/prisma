@@ -457,8 +457,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
     }
+
     private getEngine(): Engine {
-      if (this._clientEngineType === ClientEngineType.Library) {
+      if (this._dataProxy === true) {
+        return new DataProxyEngine(this._engineConfig)
+      } else if (this._clientEngineType === ClientEngineType.Library) {
         return (
           // this is for tree-shaking for esbuild
           globalThis.NOT_PRISMA_DATA_PROXY && new LibraryEngine(this._engineConfig)
@@ -468,9 +471,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           // this is for tree-shaking for esbuild
           globalThis.NOT_PRISMA_DATA_PROXY && new BinaryEngine(this._engineConfig)
         )
-      } else {
-        return new DataProxyEngine(this._engineConfig)
       }
+
+      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
     }
 
     /**

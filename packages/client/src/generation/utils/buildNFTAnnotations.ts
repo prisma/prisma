@@ -16,10 +16,14 @@ import { map } from '../../../../../helpers/blaze/map'
  * @returns
  */
 export function buildNFTAnnotations(
+  dataProxy: boolean,
   engineType: ClientEngineType,
   platforms: Platform[] | undefined,
   relativeOutdir: string,
 ) {
+  // We don't want to bundle engines when `--data-proxy` is enabled
+  if (dataProxy === true) return ''
+
   if (platforms === undefined) {
     // TODO: should we still build the schema annotations in this case?
     // Or, even better, make platforms non-nullable in TSClientOptions to avoid this check.
@@ -95,7 +99,9 @@ function buildNFTEngineAnnotation(engineType: ClientEngineType, platform: Platfo
  * @returns
  */
 function buildNFTSchemaAnnotation(engineType: ClientEngineType, relativeOutdir: string) {
-  if (engineType === ClientEngineType.DataProxy) return ''
+  if (engineType === ClientEngineType.Library || engineType === ClientEngineType.Binary) {
+    return buildNFTAnnotation('schema.prisma', relativeOutdir)
+  }
 
-  return buildNFTAnnotation('schema.prisma', relativeOutdir)
+  return undefined
 }

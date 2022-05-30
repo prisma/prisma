@@ -1,19 +1,18 @@
-import { ClientEngineType } from '@prisma/sdk'
 import path from 'path'
 
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
- * @param clientEngineType
+ * @param dataProxy
  * @param relativeOutdir
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir: string, runtimeDir: string) {
-  if (clientEngineType !== ClientEngineType.DataProxy) {
-    return buildDirnameFind(relativeOutdir, runtimeDir)
+export function buildDirname(dataProxy: boolean, relativeOutdir: string, runtimeDir: string) {
+  if (dataProxy === true) {
+    return buildDirnameDefault()
   }
 
-  return buildDirnameDefault()
+  return buildDirnameFind(relativeOutdir, runtimeDir)
 }
 
 /**

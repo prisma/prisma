@@ -1,15 +1,14 @@
-import { ClientEngineType } from '@prisma/sdk'
 import lzString from 'lz-string'
 
 /**
  * Creates the necessary declarations to embed the generated DMMF into the
  * generated client. It compresses the DMMF for the data proxy engine.
- * @param engineType
+ * @param dataProxy
  * @param dmmf
  * @returns
  */
-export function buildDMMF(engineType: ClientEngineType, dmmf: string) {
-  if (engineType === ClientEngineType.DataProxy) {
+export function buildDMMF(dataProxy: boolean, dmmf: string) {
+  if (dataProxy === true) {
     return buildCompressedDMMF(dmmf)
   }
 
