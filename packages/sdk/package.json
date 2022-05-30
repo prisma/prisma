@@ -31,7 +31,7 @@
   "devDependencies": {
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
-    "@types/jest": "27.5.0",
+    "@types/jest": "27.5.1",
     "@types/node": "12.20.51",
     "@types/resolve": "1.20.2",
     "@types/shell-quote": "1.7.1",
@@ -67,6 +67,8 @@
     "globby": "11.1.0",
     "has-yarn": "2.1.0",
     "is-ci": "3.0.1",
+    "is-windows": "^1.0.2",
+    "is-wsl": "^2.2.0",
     "make-dir": "3.1.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.6.7",

@@ -33,7 +33,7 @@
   "devDependencies": {
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
-    "@types/jest": "27.5.0",
+    "@types/jest": "27.5.1",
     "@types/node": "12.20.51",
     "esbuild": "0.14.39",
     "jest": "28.1.0",
