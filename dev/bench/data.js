@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1653912754070,
+  "lastUpdate": 1653934816762,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -102474,6 +102474,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.07,
             "range": "±2.22%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6c8d6f1f8a20a55a5db7bb121e390873c00da5fb",
+          "message": "test(client): Case for internal engine port (#13277)\n\n* test: add ground coverage for issue 12507\r\n\r\n* refactor: simplify wating for the callback\r\n\r\n* refactor: remove ts-comments\r\n\r\n* fix: add higher timeout for the two engine test\r\n\r\n* refactor/test: timeout and clearTimers\r\n\r\n* refactor/fix: consume the error inside cb\r\n\r\n* Update packages/client/tests/functional/reuse-binary-engine/tests.ts\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\n* fix: dont test internal port when using lib engine\r\n\r\n* refactor: use new test setup\r\n\r\n* Update packages/client/tests/functional/reuse-binary-engine/tests.ts\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\n* Update packages/client/tests/functional/reuse-binary-engine/tests.ts\r\n\r\n* refactor: *\r\n\r\n* types: ignore right place add import\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-05-30T19:15:07+01:00",
+          "tree_id": "bb65db3d72b2562a686b271477bc53096e6f20c5",
+          "url": "https://github.com/prisma/prisma/commit/6c8d6f1f8a20a55a5db7bb121e390873c00da5fb"
+        },
+        "date": 1653934809454,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.45,
+            "range": "±4.27%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.08,
+            "range": "±5.18%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
