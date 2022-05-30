@@ -58,7 +58,6 @@ export interface BuildClientResult {
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
-  datamodel,
   schemaDir = process.cwd(),
   runtimeDir = '@prisma/client/runtime',
   runtimeName = 'index',
@@ -71,6 +70,7 @@ export async function buildClient({
   clientVersion,
   projectRoot,
   activeProvider,
+  dataProxy,
 }: GenerateClientOptions): Promise<BuildClientResult> {
   const document = getPrismaClientDMMF(dmmf)
   const clientEngineType = getClientEngineType(generator!)
@@ -91,6 +91,7 @@ export async function buildClient({
     engineVersion,
     projectRoot: projectRoot!,
     activeProvider,
+    dataProxy,
   })
 
   const fileMap = {
@@ -147,6 +148,7 @@ export async function generateClient({
   clientVersion,
   engineVersion,
   activeProvider,
+  dataProxy,
 }: GenerateClientOptions): Promise<void> {
   const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
   const clientEngineType = getClientEngineType(generator!)
@@ -178,6 +180,7 @@ export async function generateClient({
     engineVersion,
     projectRoot,
     activeProvider,
+    dataProxy,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)

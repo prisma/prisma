@@ -225,6 +225,13 @@ export interface GetPrismaClientConfig {
   activeProvider: string
 
   /**
+   * True when `--data-proxy` is passed to `prisma generate`
+   * If enabled, we disregard the generator config engineType.
+   * It means that `--data-proxy` binds you to the Data Proxy.
+   */
+  dataProxy?: boolean
+
+  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
@@ -308,7 +315,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _clientEngineType: ClientEngineType
-    private _hooks?: Hooks //
+    private _hooks?: Hooks
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
       generators: GeneratorConfig[]
@@ -318,6 +325,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
+    private _dataProxy: boolean
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -327,6 +335,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
+      this._dataProxy = config.dataProxy ?? false
       this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:

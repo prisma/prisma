@@ -42,6 +42,7 @@ export interface TSClientOptions {
   schemaDir: string
   outputDir: string
   activeProvider: string
+  dataProxy?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -86,6 +87,7 @@ export class TSClient implements Generatable {
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
+      dataProxy: this.options.dataProxy,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
