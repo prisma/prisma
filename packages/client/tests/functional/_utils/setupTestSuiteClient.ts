@@ -23,11 +23,11 @@ import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 export async function setupTestSuiteClient({
   suiteMeta,
   suiteConfig,
-  skipDBSetup,
+  skipDb,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: TestSuiteConfig
-  skipDBSetup?: boolean
+  skipDb?: boolean
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig)
@@ -39,7 +39,7 @@ export async function setupTestSuiteClient({
   await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
-  if (!skipDBSetup) {
+  if (!skipDb) {
     await setupTestSuiteDatabase(suiteMeta, suiteConfig)
   }
 

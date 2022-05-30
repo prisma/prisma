@@ -5,8 +5,7 @@ import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
 export type MatrixOptions = {
-  skipDBSetup?: boolean
-  skipDBTeardown?: boolean
+  skipDb?: boolean
 }
 
 /**
@@ -65,7 +64,7 @@ function setupTestSuiteMatrix(
           (globalThis['loaded'] = await setupTestSuiteClient({
             suiteMeta,
             suiteConfig,
-            skipDBSetup: options?.skipDBSetup,
+            skipDb: options?.skipDb,
           })),
       )
       beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
@@ -74,7 +73,7 @@ function setupTestSuiteMatrix(
 
       // we disconnect and drop the database, clean up the env, and global vars
       afterAll(async () => await globalThis['prisma']?.$disconnect())
-      afterAll(async () => !options?.skipDBTeardown && (await dropTestSuiteDatabase(suiteMeta, suiteConfig)))
+      afterAll(async () => !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig)))
       afterAll(() => (process.env = originalEnv))
       afterAll(() => delete globalThis['loaded'])
       afterAll(() => delete globalThis['prisma'])

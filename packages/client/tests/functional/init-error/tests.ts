@@ -7,8 +7,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    // an example of how to query with the preloaded client
-    test('should assert that the error has the listed properties on the type', async () => {
+    test('should assert that the error has the listed properties', async () => {
       expect.assertions(5)
 
       try {
@@ -25,5 +24,5 @@ testMatrix.setupTestSuite(
       }
     })
   },
-  { skipDBSetup: true, skipDBTeardown: true }, // So we can maually call connect for this test
+  { skipDb: true }, // So we can maually call connect for this test
 )
