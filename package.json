@@ -53,7 +53,7 @@
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-jest": "26.1.5",
+    "eslint-plugin-jest": "26.4.5",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-simple-import-sort": "7.0.0",
     "eventemitter3": "4.0.7",
@@ -83,7 +83,7 @@
     "ts-node": "10.8.0",
     "ts-toolbelt": "9.6.0",
     "tty-browserify": "0.0.1",
-    "typescript": "4.6.4",
+    "typescript": "4.7.2",
     "util": "0.12.4"
   },
   "lint-staged": {
