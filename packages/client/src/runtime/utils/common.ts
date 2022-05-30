@@ -5,6 +5,7 @@ import leven from 'js-levenshtein'
 
 import type { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
+import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
   [key: string]: T
@@ -71,7 +72,7 @@ export const GraphQLScalarToJSTypeTable = {
   UUID: 'string',
   Json: 'JsonValue',
   Bytes: 'Buffer',
-  Decimal: ['Decimal', 'number', 'string'],
+  Decimal: ['Decimal', 'DecimalJsLike', 'number', 'string'],
   BigInt: ['bigint', 'number'],
 }
 
@@ -117,6 +118,10 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.SchemaE
 
   // https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L4499
   if (Decimal.isDecimal(value)) {
+    return 'Decimal'
+  }
+
+  if (potentialType === 'Decimal' && isDecimalJsLike(value)) {
     return 'Decimal'
   }
 

@@ -74,7 +74,7 @@ describe('generatorHandler', () => {
   // TODO: Windows: this test fails with ENOENT even though the .cmd file is there and can be run manually.
   testIf(process.platform !== 'win32')('parsing error', async () => {
     const generator = new GeneratorProcess(getExecutable('invalid-executable'))
-    await expect(() => generator.init()).rejects.toThrow(`Cannot find module 'ms-node/register'`)
+    await expect(() => generator.init()).rejects.toThrow('Cannot find module')
   })
 
   test('minimal-executable', async () => {

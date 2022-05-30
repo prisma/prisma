@@ -869,6 +869,8 @@ export namespace Prisma {
    */
   export import Decimal = runtime.Decimal
 
+  export type DecimalJsLike = runtime.DecimalJsLike
+
   /**
    * Prisma Client JS version: local
    * Query Engine version: local
@@ -1392,6 +1394,7 @@ export namespace Prisma {
     | 'aggregate'
     | 'count'
     | 'runCommandRaw'
+    | 'findRaw'
 
   /**
    * These options are being passed in to the middleware as "params"
@@ -14553,8 +14556,8 @@ export namespace Prisma {
     id?: StringFilter | string
     float?: FloatFilter | number
     dFloat?: FloatFilter | number
-    decFloat?: DecimalFilter | Decimal | number | string
-    numFloat?: DecimalFilter | Decimal | number | string
+    decFloat?: DecimalFilter | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalFilter | Decimal | DecimalJsLike | number | string
   }
 
   export type BOrderByWithRelationInput = {
@@ -14589,8 +14592,8 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter | string
     float?: FloatWithAggregatesFilter | number
     dFloat?: FloatWithAggregatesFilter | number
-    decFloat?: DecimalWithAggregatesFilter | Decimal | number | string
-    numFloat?: DecimalWithAggregatesFilter | Decimal | number | string
+    decFloat?: DecimalWithAggregatesFilter | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalWithAggregatesFilter | Decimal | DecimalJsLike | number | string
   }
 
   export type CWhereInput = {
@@ -15685,56 +15688,56 @@ export namespace Prisma {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
+    decFloat: Decimal | DecimalJsLike | number | string
+    numFloat: Decimal | DecimalJsLike | number | string
   }
 
   export type BUncheckedCreateInput = {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
+    decFloat: Decimal | DecimalJsLike | number | string
+    numFloat: Decimal | DecimalJsLike | number | string
   }
 
   export type BUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
   export type BUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
   export type BCreateManyInput = {
     id?: string
     float: number
     dFloat: number
-    decFloat: Decimal | number | string
-    numFloat: Decimal | number | string
+    decFloat: Decimal | DecimalJsLike | number | string
+    numFloat: Decimal | DecimalJsLike | number | string
   }
 
   export type BUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
   export type BUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     float?: FloatFieldUpdateOperationsInput | number
     dFloat?: FloatFieldUpdateOperationsInput | number
-    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
-    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | number | string
+    decFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalFieldUpdateOperationsInput | Decimal | DecimalJsLike | number | string
   }
 
   export type CCreateInput = {
@@ -16884,14 +16887,14 @@ export namespace Prisma {
   }
 
   export type DecimalFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalFilter | Decimal | number | string
+    equals?: Decimal | DecimalJsLike | number | string
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | DecimalJsLike | number | string
+    lte?: Decimal | DecimalJsLike | number | string
+    gt?: Decimal | DecimalJsLike | number | string
+    gte?: Decimal | DecimalJsLike | number | string
+    not?: NestedDecimalFilter | Decimal | DecimalJsLike | number | string
   }
 
   export type BCountOrderByAggregateInput = {
@@ -16933,14 +16936,14 @@ export namespace Prisma {
   }
 
   export type DecimalWithAggregatesFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
+    equals?: Decimal | DecimalJsLike | number | string
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | DecimalJsLike | number | string
+    lte?: Decimal | DecimalJsLike | number | string
+    gt?: Decimal | DecimalJsLike | number | string
+    gte?: Decimal | DecimalJsLike | number | string
+    not?: NestedDecimalWithAggregatesFilter | Decimal | DecimalJsLike | number | string
     _count?: NestedIntFilter
     _avg?: NestedDecimalFilter
     _sum?: NestedDecimalFilter
@@ -17346,11 +17349,11 @@ export namespace Prisma {
   }
 
   export type DecimalFieldUpdateOperationsInput = {
-    set?: Decimal | number | string
-    increment?: Decimal | number | string
-    decrement?: Decimal | number | string
-    multiply?: Decimal | number | string
-    divide?: Decimal | number | string
+    set?: Decimal | DecimalJsLike | number | string
+    increment?: Decimal | DecimalJsLike | number | string
+    decrement?: Decimal | DecimalJsLike | number | string
+    multiply?: Decimal | DecimalJsLike | number | string
+    divide?: Decimal | DecimalJsLike | number | string
   }
 
   export type BytesFieldUpdateOperationsInput = {
@@ -17684,25 +17687,25 @@ export namespace Prisma {
   }
 
   export type NestedDecimalFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalFilter | Decimal | number | string
+    equals?: Decimal | DecimalJsLike | number | string
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | DecimalJsLike | number | string
+    lte?: Decimal | DecimalJsLike | number | string
+    gt?: Decimal | DecimalJsLike | number | string
+    gte?: Decimal | DecimalJsLike | number | string
+    not?: NestedDecimalFilter | Decimal | DecimalJsLike | number | string
   }
 
   export type NestedDecimalWithAggregatesFilter = {
-    equals?: Decimal | number | string
-    in?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<number> | Enumerable<string>
-    lt?: Decimal | number | string
-    lte?: Decimal | number | string
-    gt?: Decimal | number | string
-    gte?: Decimal | number | string
-    not?: NestedDecimalWithAggregatesFilter | Decimal | number | string
+    equals?: Decimal | DecimalJsLike | number | string
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    lt?: Decimal | DecimalJsLike | number | string
+    lte?: Decimal | DecimalJsLike | number | string
+    gt?: Decimal | DecimalJsLike | number | string
+    gte?: Decimal | DecimalJsLike | number | string
+    not?: NestedDecimalWithAggregatesFilter | Decimal | DecimalJsLike | number | string
     _count?: NestedIntFilter
     _avg?: NestedDecimalFilter
     _sum?: NestedDecimalFilter

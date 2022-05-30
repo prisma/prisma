@@ -20,23 +20,6 @@ import { isError } from 'util'
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
-  // add preview flag
-  if (provider === 'cockroachdb') {
-    return `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["${provider}"]
-}
-
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URL")
-}
-`
-  }
-
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -59,7 +42,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -115,7 +98,7 @@ export class Init implements Command {
   }
 
   private static help = format(`
-  Setup a new Prisma project
+  Set up a new Prisma project
     
   ${chalk.bold('Usage')}
 
@@ -128,13 +111,13 @@ export class Init implements Command {
 
   ${chalk.bold('Examples')}
 
-  Setup a new Prisma project with PostgreSQL (default)
+  Set up a new Prisma project with PostgreSQL (default)
     ${chalk.dim('$')} prisma init
 
-  Setup a new Prisma project and specify MySQL as the datasource provider to use
+  Set up a new Prisma project and specify MySQL as the datasource provider to use
     ${chalk.dim('$')} prisma init --datasource-provider mysql
   
-  Setup a new Prisma project and specify the url that will be used
+  Set up a new Prisma project and specify the url that will be used
     ${chalk.dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
@@ -308,7 +291,7 @@ export class Init implements Command {
             'schema.prisma',
           )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')}, ${chalk.green(
             'sqlite',
-          )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green('cockroachdb')} (Preview).`,
+          )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green('cockroachdb')}.`,
         )
       }
 

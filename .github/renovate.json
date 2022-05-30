@@ -3,7 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting"],
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln"],
+  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",
@@ -12,6 +12,9 @@
     "@prisma/fetch-engine",
     "@prisma/get-platform"
   ],
+  "constraints": {
+    "pnpm": "6"
+  },
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -102,6 +105,12 @@
       "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "react-prisma peerDependencies: react >=17",
+      "paths": ["packages/react-prisma/**"],
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "widen"
     }
   ]
 }

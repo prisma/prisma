@@ -25,6 +25,7 @@ import {
   unionBy,
   wrapWithList,
 } from './utils/common'
+import { isDecimalJsLike, stringifyDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
@@ -635,8 +636,8 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     return 'null'
   }
 
-  if (Decimal.isDecimal(value)) {
-    return value.toString()
+  if (Decimal.isDecimal(value) || (inputType?.type === 'Decimal' && isDecimalJsLike(value))) {
+    return stringifyDecimalJsLike(value)
   }
 
   if (inputType?.location === 'enumTypes' && typeof value === 'string') {
@@ -1129,7 +1130,7 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if ((graphQLType === 'List<Int>' || graphQLType === 'List<Float>') && expectedType === 'List<Decimal>') {
+  if (isValidDecimalListInput(graphQLType, value) && expectedType === 'List<Decimal>') {
     return true
   }
 
@@ -1183,8 +1184,7 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
   }
 
   // to match all strings which are valid decimals
-  // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L115
-  if (graphQLType === 'String' && expectedType === 'Decimal' && /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value)) {
+  if (graphQLType === 'String' && expectedType === 'Decimal' && isDecimalString(value)) {
     return true
   }
 
@@ -1196,6 +1196,19 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
 }
 
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
+
+function isValidDecimalListInput(graphQLType: string, value: any[]): boolean {
+  return (
+    graphQLType === 'List<Int>' ||
+    graphQLType === 'List<Float>' ||
+    (graphQLType === 'List<String>' && value.every(isDecimalString))
+  )
+}
+
+function isDecimalString(value: string): boolean {
+  // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L116
+  return /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value)
+}
 
 function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   /**

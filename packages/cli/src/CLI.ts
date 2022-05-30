@@ -102,7 +102,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Commands')}
 
-                init   Setup Prisma for your app
+                init   Set up Prisma for your app
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
              migrate   Migrate your database
@@ -115,7 +115,7 @@ export class CLI implements Command {
 
     ${chalk.bold('Examples')}
 
-      Setup a new Prisma project
+      Set up a new Prisma project
       ${chalk.dim('$')} prisma init
 
       Generate artifacts (e.g. Prisma Client)

@@ -317,11 +317,11 @@ describe('interactive transactions', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                                                                                                                                                        Invalid \`prisma.executeRaw()\` invocation:
+            Invalid \`prisma.$executeRaw()\` invocation:
 
 
-                                                                                                                                                                          Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
-                                                                                                                                            `)
+              Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
+          `)
 
     const users = await prisma.user.findMany()
 

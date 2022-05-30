@@ -2,6 +2,7 @@ import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/sdk
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -42,7 +43,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: Windows: fails with
+  // TODO (https://github.com/prisma/prisma/issues/13077): Windows: fails with
   // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
   //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
   //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
@@ -58,8 +59,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('basic introspection with invalid --url', async () => {
-    ctx.fixture('introspection/sqlite')
+  test('basic introspection with invalid --url if schema is unspecified', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'invalidstring'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol invalidstring:`)
@@ -491,6 +491,121 @@ describe('postgresql', () => {
   })
 })
 
+describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  const defaultParams = {
+    connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
+  }
+
+  async function testSetup(setupDirname = 'cockroachdb', options = { withFixture: false }) {
+    const baseDirname = path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection')
+    const setupParams = {
+      ...defaultParams,
+      dirname: path.join(baseDirname, setupDirname),
+    }
+
+    await setupCockroach(setupParams).catch((e) => {
+      console.error(e)
+    })
+
+    if (options.withFixture) {
+      ctx.fixture(`introspection/${setupDirname}`)
+    }
+  }
+
+  beforeAll(async () => {
+    await tearDownCockroach(defaultParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownCockroach(defaultParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  test('basic introspection (with cockroachdb schema)', async () => {
+    await testSetup('cockroachdb', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection (with cockroachdb schema, cockroachdb native types)', async () => {
+    await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection (with postgresql schema)', async () => {
+    await testSetup('cockroachdb-with-postgresql-provider', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection (with postgresql schema, cockroachdb native types)', async () => {
+    await testSetup('nativeTypes-cockroachdb-with-postgresql-provider', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection (no schema) --url', async () => {
+    await testSetup('cockroachdb')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
+  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
+  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+  testIf(process.platform !== 'win32')('basic introspection (with cockroach schema) --url ', async () => {
+    await testSetup('cockroachdb', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
+  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
+  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+  testIf(process.platform !== 'win32')(
+    'basic introspection (with cockroach schema, cockroachdb native types) --url ',
+    async () => {
+      await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    },
+  )
+})
+
 describe('mysql', () => {
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests',
@@ -570,6 +685,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     })
   })
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlserver')
     const introspect = new DbPull()
@@ -582,6 +699,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // describeIf is making eslint not happy about the names
+  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', JDBC_URI])

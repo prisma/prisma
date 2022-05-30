@@ -1,6 +1,6 @@
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import type { Command } from '@prisma/sdk'
-import { arg, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/sdk'
+import { arg, ErrorArea, format, formatms, formatSchema, getDMMF, HelpError, RustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import fs from 'fs'
 import os from 'os'
@@ -54,15 +54,32 @@ Or specify a Prisma schema path
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    let output = await formatSchema({
-      schemaPath,
-    })
+    let output: string | undefined
+
+    try {
+      output = await formatSchema({
+        schemaPath,
+      })
+    } catch (err) {
+      if (err.exitCode === 101 || err.stderr?.includes('panicked at')) {
+        throw new RustPanic(
+          /* message */ err.shortMessage,
+          /* rustStack */ err.stack,
+          /* request */ 'format',
+          ErrorArea.FMT_CLI,
+          schemaPath,
+          /* schema */ undefined,
+        )
+      }
+
+      throw err
+    }
 
     await getDMMF({
       datamodel: output,
     })
 
-    output = output.trimEnd() + os.EOL
+    output = output?.trimEnd() + os.EOL
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
