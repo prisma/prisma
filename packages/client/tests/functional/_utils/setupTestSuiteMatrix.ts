@@ -72,7 +72,7 @@ function setupTestSuiteMatrix(
       beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
 
       // we disconnect and drop the database, clean up the env, and global vars
-      afterAll(async () => await globalThis['prisma']?.$disconnect())
+      afterAll(async () => !options?.skipDb && (await globalThis['prisma']?.$disconnect()))
       afterAll(async () => !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig)))
       afterAll(() => (process.env = originalEnv))
       afterAll(() => delete globalThis['loaded'])
