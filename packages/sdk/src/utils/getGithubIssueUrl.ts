@@ -1,4 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
+import isWindows from 'is-windows'
+import isWSL from 'is-wsl'
 import newGithubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
@@ -71,7 +73,15 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
       title: options.title ?? '',
       body: issueTemplate(platform, options),
     })
-    await open(url)
+
+    /**
+     * This is a workaround for a quirky `open` behavior.
+     * - `await open(url)` correctly opens the browser, returns the control to Node.js and let it exit the process normally.
+     * - `await open(url, { wait: true })` achieves the same on Windows and WSL. Without `{ wait: true }`, `open` would not
+     *   return the control to the Node.js process, which would result in the prisma cli being stuck.
+     */
+    const shouldOpenWait = isWindows() || isWSL
+    await open(url, { wait: shouldOpenWait })
   }
 }
 
