@@ -67,10 +67,7 @@ async function main() {
     // in the postinstall hook
   }
 
-  // initializes the ./node_modules/.prisma/client folder with the default index(-browser).js/index.d.ts,
-  // which define a `PrismaClient` class stub that throws an error if instantiated before the `prisma generate`
-  // command is successfully executed.
-  await ensureEmptyDotPrisma()
+  await createDefaultGeneratedThrowFiles()
 
   // TODO: consider using the `which` package
   const localPath = getLocalPackagePath()
@@ -197,30 +194,46 @@ function run(cmd, params, cwd = process.cwd()) {
   })
 }
 
-async function ensureEmptyDotPrisma() {
+/**
+ * Copies our default "throw" files into the default generation folder. These
+ * files are dummy and informative because they just throw an error to let the
+ * user know that they have forgotten to run `prisma generate`.
+ */
+async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
     await makeDir(dotPrismaClientDir)
-    const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultIndexBrowserJSPath = path.join(dotPrismaClientDir, 'index-browser.js')
-    const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
+    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
+    const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
 
-    if (!fs.existsSync(defaultIndexJsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.js'), defaultIndexJsPath)
-    }
-    if (!fs.existsSync(defaultIndexBrowserJSPath)) {
-      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultIndexBrowserJSPath)
+    if (!fs.existsSync(defaultNodeIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
     }
 
-    if (!fs.existsSync(defaultIndexDTSPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultIndexDTSPath)
+    if (!fs.existsSync(defaultEdgeIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
+    }
+
+    if (!fs.existsSync(defaultBrowserIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+    }
+
+    if (!fs.existsSync(defaultNodeIndexDtsPath)) {
+      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
+    }
+
+    if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
+      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
     }
   } catch (e) {
     console.error(e)
   }
 }
 
-async function makeDir(input) {
+function makeDir(input) {
   const make = async (pth) => {
     try {
       await mkdir(pth)

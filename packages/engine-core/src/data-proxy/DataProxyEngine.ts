@@ -1,6 +1,3 @@
-/// <reference lib="webworker" />
-// TODO: this is a problem because it propagates everywhere
-
 import EventEmitter from 'events'
 
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'

@@ -53,7 +53,7 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFHelper(klona(options.document))
   }
 
-  public async toJS(): Promise<string> {
+  public async toJS(edge?: boolean): Promise<string> {
     const {
       platforms,
       generator,
@@ -126,7 +126,7 @@ config.dirname = dirname
 ${buildInlineDatasource(dataProxy, datasources)}
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineEnv(dataProxy, datasources, envPaths)}
-${buildWarnEnvConflicts(dataProxy, runtimeDir, runtimeName)}
+${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)

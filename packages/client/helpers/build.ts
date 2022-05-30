@@ -6,15 +6,13 @@ import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
 // we define the config for runtime
-const runtimeBuildConfig: BuildOptions = {
+const nodeRuntimeBuildConfig: BuildOptions = {
   name: 'runtime',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/index',
   bundle: true,
   define: {
-    'globalThis.NOT_PRISMA_DATA_PROXY': 'true',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
+    NOT_EDGE_CLIENT: 'true',
   },
 }
 
@@ -28,18 +26,16 @@ const browserBuildConfig: BuildOptions = {
 }
 
 // we define the config for proxy
-const proxyBuildConfig: BuildOptions = {
-  name: 'proxy',
+const edgeRuntimeBuildConfig: BuildOptions = {
+  name: 'edge',
   entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/proxy',
+  outfile: 'runtime/edge',
   bundle: true,
   minify: true,
   legalComments: 'none',
   define: {
     // that helps us to tree-shake unused things out
-    'globalThis.NOT_PRISMA_DATA_PROXY': 'false',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
+    NOT_EDGE_CLIENT: 'false',
   },
   plugins: [
     fillPlugin({
@@ -115,10 +111,10 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
   }
 }
 
-void build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig, proxyBuildConfig]).then(() => {
+void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
   if (process.env.DEV !== 'true') {
     bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/proxy')
+    bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/edge')
     bundleTypeDefinitions('declaration/client/src/runtime/index-browser', 'runtime/index-browser')
   }
 })

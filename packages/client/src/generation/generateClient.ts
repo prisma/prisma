@@ -13,8 +13,7 @@ import { promisify } from 'util'
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
-import { JS, TS, TSClient } from './TSClient'
-import { BrowserJS } from './TSClient/Generatable'
+import { BrowserJS, JS, TS, TSClient } from './TSClient'
 
 const remove = promisify(fs.unlink)
 const writeFile = promisify(fs.writeFile)
@@ -37,7 +36,6 @@ export interface GenerateClientOptions {
   schemaDir?: string
   transpile?: boolean
   runtimeDir?: string
-  runtimeName?: string
   outputDir: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
@@ -60,7 +58,6 @@ export interface BuildClientResult {
 export async function buildClient({
   schemaDir = process.cwd(),
   runtimeDir = '@prisma/client/runtime',
-  runtimeName = 'index',
   binaryPaths,
   outputDir,
   generator,
@@ -72,19 +69,18 @@ export async function buildClient({
   activeProvider,
   dataProxy,
 }: GenerateClientOptions): Promise<BuildClientResult> {
+  // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
   const clientEngineType = getClientEngineType(generator!)
-
-  const client = new TSClient({
+  const tsClientOptions = {
     document,
     runtimeDir,
-    runtimeName,
-    datasources: datasources,
+    datasources,
     generator,
     platforms:
       clientEngineType === ClientEngineType.Library
-        ? (Object.keys(binaryPaths.libqueryEngine!) as Platform[])
-        : (Object.keys(binaryPaths.queryEngine!) as Platform[]),
+        ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as Platform[])
+        : (Object.keys(binaryPaths.queryEngine ?? {}) as Platform[]),
     schemaDir,
     outputDir,
     clientVersion,
@@ -92,17 +88,28 @@ export async function buildClient({
     projectRoot: projectRoot!,
     activeProvider,
     dataProxy,
-  })
+  }
 
+  // we don't force data proxy for Node, but we do for Edge because it can only work with it
+  const nodeTsClient = new TSClient({ ...tsClientOptions, runtimeName: 'index' })
+  const edgeTsClient = new TSClient({ ...tsClientOptions, runtimeName: 'edge', dataProxy: true })
+
+  // we generate the default client that is meant to work on Node
   const fileMap = {
-    'index.d.ts': await TS(client),
-    'index.js': await JS(client),
-    'index-browser.js': await BrowserJS(client),
+    'index.js': await JS(nodeTsClient, false),
+    'index.d.ts': await TS(nodeTsClient),
+    'index-browser.js': await BrowserJS(nodeTsClient),
+  }
+
+  // we only generate the Edge client if `--data-proxy` is passed
+  if (dataProxy === true) {
+    fileMap['edge.js'] = await JS(edgeTsClient, true)
+    fileMap['edge.d.ts'] = await TS(edgeTsClient)
   }
 
   return {
-    fileMap,
-    prismaClientDmmf: document,
+    fileMap, // a map of file names to their contents
+    prismaClientDmmf: document, // the DMMF document
   }
 }
 
@@ -138,7 +145,6 @@ export async function generateClient({
   outputDir,
   transpile,
   runtimeDir,
-  runtimeName,
   generator,
   dmmf,
   datasources,
@@ -154,11 +160,6 @@ export async function generateClient({
   const clientEngineType = getClientEngineType(generator!)
   runtimeDir = runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
 
-  // we make sure that we point to the right engine build
-  if (dataProxy === true) {
-    runtimeName = 'proxy'
-  }
-
   const finalOutputDir = useDotPrisma ? await getDotPrismaDir(outputDir) : outputDir
 
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
@@ -170,7 +171,6 @@ export async function generateClient({
     schemaDir,
     transpile,
     runtimeDir: runtimeDir,
-    runtimeName,
     outputDir: finalOutputDir,
     generator,
     dmmf,

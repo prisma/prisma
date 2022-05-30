@@ -46,14 +46,16 @@ export type Request = {
 function getRequestInfo(requests: Request[]) {
   const txId = requests[0].transactionId
   const inTx = requests[0].runInTransaction
-  const headers = requests[0].headers
+  const headers = requests[0].headers ?? {}
 
   // if the tx has a number for an id, then it's a regular batch tx
   const _inTx = typeof txId === 'number' && inTx ? true : undefined
   // if the tx has a string for id, it's an interactive transaction
   const _txId = typeof txId === 'string' && inTx ? txId : undefined
 
-  return { inTx: _inTx, headers: { transactionId: _txId, ...headers } }
+  if (_txId !== undefined) headers.transactionId = _txId
+
+  return { inTx: _inTx, headers }
 }
 
 export class RequestHandler {
