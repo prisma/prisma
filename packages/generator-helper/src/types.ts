@@ -76,6 +76,7 @@ export type BinaryPaths = {
   prismaFmt?: { [binaryTarget: string]: string }
 }
 
+/** The options passed to the generator implementations */
 export type GeneratorOptions = {
   generator: GeneratorConfig
   // TODO: what is otherGenerators for?

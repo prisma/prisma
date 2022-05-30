@@ -1,8 +1,9 @@
 import type { ConfigMetaFormat } from '../../../engine-commands'
+import type { GetGeneratorOptions } from '../../getGenerators'
 import { forbiddenTransactionsWithProxyFlagMessage } from './forbiddenTransactionsWithProxyFlagMessage'
 import { proxyFeatureFlagMissingMessage } from './proxyFeatureFlagMissingMessage'
 
-export function checkFeatureFlags(config: ConfigMetaFormat) {
+export function checkFeatureFlags(config: ConfigMetaFormat, options: GetGeneratorOptions) {
   checkProxyFeatureFlag(config)
   checkForbiddenTransactionsWithProxyFlag(config)
 }

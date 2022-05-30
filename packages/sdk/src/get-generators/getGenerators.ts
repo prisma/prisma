@@ -59,18 +59,20 @@ export type GetGeneratorOptions = {
  * @param schemaPath Path to schema.prisma
  * @param aliases Aliases like `prisma-client-js` -> `node_modules/@prisma/client/generator-build/index.js`
  */
-export async function getGenerators({
-  schemaPath,
-  providerAliases: aliases, // do you get the pun?
-  version,
-  cliVersion,
-  printDownloadProgress,
-  baseDir = path.dirname(schemaPath),
-  overrideGenerators,
-  skipDownload,
-  binaryPathsOverride,
-  dataProxy,
-}: GetGeneratorOptions): Promise<Generator[]> {
+export async function getGenerators(options: GetGeneratorOptions): Promise<Generator[]> {
+  const {
+    schemaPath,
+    providerAliases: aliases, // do you get the pun?
+    version,
+    cliVersion,
+    printDownloadProgress,
+    baseDir = path.dirname(schemaPath),
+    overrideGenerators,
+    skipDownload,
+    binaryPathsOverride,
+    dataProxy,
+  } = options
+
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
   }
@@ -139,7 +141,7 @@ export async function getGenerators({
     throw new Error(missingModelMessage)
   }
 
-  checkFeatureFlags(config)
+  checkFeatureFlags(config, options)
 
   const generatorConfigs = overrideGenerators || config.generators
 

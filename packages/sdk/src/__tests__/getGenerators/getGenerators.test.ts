@@ -761,6 +761,7 @@ describe('getGenerators', () => {
         schemaPath: path.join(__dirname, 'proxy-and-interactiveTransactions-client-js.prisma'),
         providerAliases: aliases,
         skipDownload: true,
+        dataProxy: true,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`

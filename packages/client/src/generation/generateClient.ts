@@ -48,6 +48,7 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
+  dataProxy?: boolean
 }
 
 export interface BuildClientResult {
