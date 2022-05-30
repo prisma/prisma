@@ -207,7 +207,7 @@ importers:
 
   packages/client:
     specifiers:
-      '@faker-js/faker': ^7.1.0
+      '@faker-js/faker': 6.3.1
       '@jest/test-sequencer': 28.1.0
       '@microsoft/api-extractor': 7.24.1
       '@opentelemetry/api': 1.1.0
@@ -270,7 +270,7 @@ importers:
     dependencies:
       '@prisma/engines-version': 3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7
     devDependencies:
-      '@faker-js/faker': 7.1.0
+      '@faker-js/faker': 6.3.1
       '@jest/test-sequencer': 28.1.0
       '@microsoft/api-extractor': 7.24.1
       '@opentelemetry/api': 1.1.0
@@ -1233,8 +1233,8 @@ packages:
       - supports-color
     dev: true
 
-  /@faker-js/faker/7.1.0:
-    resolution: {integrity: sha512-G+EvE29QUd9/6GTrwA/TK2AiN79W4ZG6kyJqj2RAqUqEd8A8ICnjA3Rj3F2IaaA+sq6WJzs4lh8GJJRDG1UH7A==}
+  /@faker-js/faker/6.3.1:
+    resolution: {integrity: sha512-8YXBE2ZcU/pImVOHX7MWrSR/X5up7t6rPWZlk34RwZEcdr3ua6X+32pSd6XuOQRN+vbuvYNfA6iey8NbrjuMFQ==}
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: true
 
@@ -5450,7 +5450,7 @@ packages:
       pretty-format: 28.1.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.8.0_6b27bdda513397a05be5d4c70869feb3
+      ts-node: 10.8.0_1aa268a46eceb241409bb825192c75ab
     transitivePeerDependencies:
       - supports-color
     dev: true
