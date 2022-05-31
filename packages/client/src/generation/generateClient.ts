@@ -272,7 +272,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile) {
+  if (transpile === true && dataProxy !== true) {
     if (process.env.NETLIFY) {
       await makeDir('/tmp/prisma-engines')
     }
