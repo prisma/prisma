@@ -436,9 +436,9 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
   const useDefaultOutdir = testMode ? !runtimeDirs : !generator?.isCustomOutput
 
   const _runtimeDirs = {
-    // if we have an override, use it but if not then use the defaults
-    node: runtimeDirs?.node || useDefaultOutdir ? '@prisma/client/runtime' : './runtime',
-    edge: runtimeDirs?.edge || useDefaultOutdir ? '@prisma/client/runtime' : '../runtime',
+    // if we have an override we use it, but if not then use the defaults
+    node: runtimeDirs?.node || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
+    edge: runtimeDirs?.edge || (useDefaultOutdir ? '@prisma/client/runtime' : '../runtime'),
   }
 
   const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir
