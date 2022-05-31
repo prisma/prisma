@@ -8,6 +8,7 @@ import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
 import pkgUp from 'pkg-up'
+import type { O } from 'ts-toolbelt'
 import { promisify } from 'util'
 
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
@@ -35,7 +36,7 @@ export interface GenerateClientOptions {
   datamodelPath: string
   schemaDir?: string
   transpile?: boolean
-  runtimeDir?: string
+  runtimeDirs?: { node: string; edge: string }
   outputDir: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
@@ -56,8 +57,8 @@ export interface BuildClientResult {
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
-  schemaDir = process.cwd(),
-  runtimeDir = '@prisma/client/runtime',
+  schemaDir,
+  runtimeDirs,
   binaryPaths,
   outputDir,
   generator,
@@ -68,13 +69,12 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
-}: GenerateClientOptions): Promise<BuildClientResult> {
+}: O.Required<GenerateClientOptions, 'schemaDir' | 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
   const clientEngineType = getClientEngineType(generator!)
   const tsClientOptions = {
     document,
-    runtimeDir,
     datasources,
     generator,
     platforms:
@@ -90,21 +90,51 @@ export async function buildClient({
     dataProxy,
   }
 
-  // we don't force data proxy for Node, but we do for Edge because it can only work with it
-  const nodeTsClient = new TSClient({ ...tsClientOptions, runtimeName: 'index' })
-  const edgeTsClient = new TSClient({ ...tsClientOptions, runtimeName: 'edge', dataProxy: true })
+  // we create a regular client that is fit for Node.js
+  const nodeTsClient = new TSClient({
+    ...tsClientOptions,
+    runtimeName: 'index',
+    runtimeDir: runtimeDirs.node,
+  })
+
+  // we create a client that is fit for edge runtimes
+  const edgeTsClient = new TSClient({
+    ...tsClientOptions,
+    dataProxy: true, // edge only works w/ data proxy
+    runtimeName: 'edge',
+    runtimeDir: runtimeDirs.edge,
+  })
+
+  const fileMap = {} // we will store the generated contents here
 
   // we generate the default client that is meant to work on Node
-  const fileMap = {
-    'index.js': await JS(nodeTsClient, false),
-    'index.d.ts': await TS(nodeTsClient),
-    'index-browser.js': await BrowserJS(nodeTsClient),
-  }
+  fileMap['index.js'] = await JS(nodeTsClient, false)
+  fileMap['index.d.ts'] = await TS(nodeTsClient)
+  fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
+  fileMap['package.json'] = JSON.stringify(
+    {
+      name: '.prisma/client',
+      main: 'index.js',
+      types: 'index.d.ts',
+      browser: 'index-browser.js',
+    },
+    null,
+    2,
+  )
 
-  // we only generate the Edge client if `--data-proxy` is passed
+  // we only generate the edge client if `--data-proxy` is passed
   if (dataProxy === true) {
-    fileMap['edge.js'] = await JS(edgeTsClient, true)
-    fileMap['edge.d.ts'] = await TS(edgeTsClient)
+    fileMap[path.join('edge', 'index.js')] = await JS(edgeTsClient, true)
+    fileMap[path.join('edge', 'package.json')] = JSON.stringify(
+      {
+        name: '.prisma/client/edge',
+        main: 'index.js',
+        types: '../index.d.ts',
+        browser: '../index-browser.js',
+      },
+      null,
+      2,
+    )
   }
 
   return {
@@ -114,7 +144,7 @@ export async function buildClient({
 }
 
 // TODO: explore why we have a special case for excluding pnpm
-async function getDotPrismaDir(outputDir: string): Promise<string> {
+async function getDefaultOutdir(outputDir: string): Promise<string> {
   if (outputDir.endsWith('node_modules/@prisma/client')) {
     return path.join(outputDir, '../../.prisma/client')
   }
@@ -138,39 +168,34 @@ async function getDotPrismaDir(outputDir: string): Promise<string> {
   return path.join(outputDir, '../../.prisma/client')
 }
 
-export async function generateClient({
-  datamodel,
-  datamodelPath,
-  schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
-  outputDir,
-  transpile,
-  runtimeDir,
-  generator,
-  dmmf,
-  datasources,
-  binaryPaths,
-  testMode,
-  copyRuntime,
-  clientVersion,
-  engineVersion,
-  activeProvider,
-  dataProxy,
-}: GenerateClientOptions): Promise<void> {
-  const useDotPrisma = testMode ? !runtimeDir : !generator?.isCustomOutput
+export async function generateClient(options: GenerateClientOptions): Promise<void> {
+  const {
+    datamodel,
+    datamodelPath,
+    schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
+    outputDir,
+    transpile,
+    generator,
+    dmmf,
+    datasources,
+    binaryPaths,
+    testMode,
+    copyRuntime,
+    clientVersion,
+    engineVersion,
+    activeProvider,
+    dataProxy,
+  } = options
+
   const clientEngineType = getClientEngineType(generator!)
-  runtimeDir = runtimeDir || (useDotPrisma ? '@prisma/client/runtime' : './runtime')
-
-  const finalOutputDir = useDotPrisma ? await getDotPrismaDir(outputDir) : outputDir
-
-  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
-  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
+  const { runtimeDirs, finalOutputDir, projectRoot } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
     datamodelPath,
     schemaDir,
     transpile,
-    runtimeDir: runtimeDir,
+    runtimeDirs,
     outputDir: finalOutputDir,
     generator,
     dmmf,
@@ -200,7 +225,11 @@ export async function generateClient({
   }
 
   await makeDir(finalOutputDir)
+  await makeDir(path.join(finalOutputDir, 'edge'))
   await makeDir(path.join(outputDir, 'runtime'))
+  // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
+  // outputDir:       /home/millsp/Work/prisma/packages/client
+  // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
 
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
@@ -242,6 +271,7 @@ export async function generateClient({
       }\` in the \`binaryPaths\` object.`,
     )
   }
+
   if (transpile) {
     if (process.env.NETLIFY) {
       await makeDir('/tmp/prisma-engines')
@@ -290,19 +320,6 @@ export async function generateClient({
   if (datamodelPath !== datamodelTargetPath) {
     await copyFile(datamodelPath, datamodelTargetPath)
   }
-
-  const packageJsonTargetPath = path.join(finalOutputDir, 'package.json')
-  const pkgJson = JSON.stringify(
-    {
-      name: '.prisma/client',
-      main: 'index.js',
-      types: 'index.d.ts',
-      browser: 'index-browser.js',
-    },
-    null,
-    2,
-  )
-  await writeFile(packageJsonTargetPath, pkgJson)
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
@@ -406,4 +423,32 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
   }
 
   return errorArray.length > 0 ? errorArray : null
+}
+
+/**
+ * Get all the directories involved in the generation process.
+ *
+ * @param useDefaultOutdir if we are generating to the default output
+ * @param runtimeDirs overrides for the runtime directories
+ * @returns
+ */
+async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }: GenerateClientOptions) {
+  const useDefaultOutdir = testMode ? !runtimeDirs : !generator?.isCustomOutput
+
+  const _runtimeDirs = {
+    // if we have an override, use it but if not then use the defaults
+    node: runtimeDirs?.node || useDefaultOutdir ? '@prisma/client/runtime' : './runtime',
+    edge: runtimeDirs?.edge || useDefaultOutdir ? '@prisma/client/runtime' : '../runtime',
+  }
+
+  const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir
+
+  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
+  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
+
+  return {
+    runtimeDirs: _runtimeDirs,
+    finalOutputDir,
+    projectRoot,
+  }
 }
