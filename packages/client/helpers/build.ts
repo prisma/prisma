@@ -12,7 +12,7 @@ const nodeRuntimeBuildConfig: BuildOptions = {
   outfile: 'runtime/index',
   bundle: true,
   define: {
-    NOT_EDGE_CLIENT: 'true',
+    NODE_CLIENT: 'true',
   },
 }
 
@@ -35,7 +35,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   legalComments: 'none',
   define: {
     // that helps us to tree-shake unused things out
-    NOT_EDGE_CLIENT: 'false',
+    NODE_CLIENT: 'false',
   },
   plugins: [
     fillPlugin({

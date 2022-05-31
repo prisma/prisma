@@ -42,11 +42,11 @@ const ALTER_RE = /^(\s*alter\s)/i
 
 declare global {
   // eslint-disable-next-line no-var
-  var NOT_EDGE_CLIENT: true
+  var NODE_CLIENT: true
 }
 
 // used by esbuild for tree-shaking
-globalThis.NOT_EDGE_CLIENT = true
+globalThis.NODE_CLIENT = true
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
@@ -347,7 +347,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
 
-      const loadedEnv = NOT_EDGE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+      const loadedEnv = NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -465,9 +465,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       if (this._dataProxy === true) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library) {
-        return NOT_EDGE_CLIENT && new LibraryEngine(this._engineConfig)
+        return NODE_CLIENT && new LibraryEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Binary) {
-        return NOT_EDGE_CLIENT && new BinaryEngine(this._engineConfig)
+        return NODE_CLIENT && new BinaryEngine(this._engineConfig)
       }
 
       throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
@@ -1019,7 +1019,7 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        if (NOT_EDGE_CLIENT) {
+        if (NODE_CLIENT) {
           // https://github.com/prisma/prisma/issues/3148 not for the data proxy
           return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
             return runInChildSpan('request', internalParams.otelCtx, () => consumer(params))
