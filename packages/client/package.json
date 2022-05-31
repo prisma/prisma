@@ -87,6 +87,7 @@
     "decimal.js": "10.3.1",
     "esbuild": "0.14.39",
     "execa": "5.1.1",
+    "expect-type": "0.13.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "10.1.0",
     "fs-monkey": "1.0.3",
