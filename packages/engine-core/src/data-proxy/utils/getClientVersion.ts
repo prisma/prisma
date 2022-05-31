@@ -17,7 +17,7 @@ export function getClientVersion(config: EngineConfig): string {
     debug(`Client version: "${dataproxyClientVersionFromEnvVar}" from PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION env var.`)
     return dataproxyClientVersionFromEnvVar
   } else if (config.clientVersion) {
-    const [version, suffix] = config.clientVersion.split('-') ?? []
+    const [version, suffix] = config.clientVersion.split('-')
     debug(`Client version: "${version}" from config.clientVersion.`)
 
     // we expect the version to match the pattern major.minor.patch
