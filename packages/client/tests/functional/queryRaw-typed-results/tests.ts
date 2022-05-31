@@ -9,7 +9,7 @@ testMatrix.setupTestSuite(
   (suiteConfig) => {
     test('simple expression', async () => {
       const result = (await prisma.$queryRaw`SELECT 1 + 1`) as Array<Record<string, unknown>>
-      expect(Object.values(result[0])[0]).toEqual(2)
+      expect(Number(Object.values(result[0])[0])).toEqual(2)
     })
 
     test('query model with multiple types', async () => {
@@ -63,5 +63,13 @@ testMatrix.setupTestSuite(
       }
     })
   },
-  { optIn: ['sqlite', 'postgresql'] },
+  {
+    optOut: {
+      from: ['mongodb', 'mysql'],
+      reason: `
+        $queryRaw only works on SQL based providers
+        mySql You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
+      `,
+    },
+  },
 )

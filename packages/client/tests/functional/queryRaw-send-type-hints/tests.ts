@@ -75,5 +75,10 @@ testMatrix.setupTestSuite(
       expect(record?.binary).toEqual(Buffer.from('hello'))
     })
   },
-  { optIn: ['sqlite', 'postgresql', 'mysql'] },
+  {
+    optOut: {
+      from: ['mongodb', 'cockroachdb'],
+      reason: '$queryRaw only works on SQL based providers',
+    },
+  },
 )

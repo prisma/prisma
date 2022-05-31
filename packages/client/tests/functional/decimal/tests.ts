@@ -57,5 +57,10 @@ testMatrix.setupTestSuite(
       expect(String(result?.money)).toBe('12.5')
     })
   },
-  { optIn: ['sqlite', 'postgresql', 'mysql'] },
+  {
+    optOut: {
+      from: ['mongodb'],
+      reason: 'Mongodb connector does not support the Decimal type.',
+    },
+  },
 )

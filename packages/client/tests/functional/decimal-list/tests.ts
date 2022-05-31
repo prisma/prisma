@@ -29,5 +29,13 @@ setupTestSuiteMatrix(
       })
     })
   },
-  { optIn: ['postgresql'] },
+  {
+    optOut: {
+      from: ['mongodb', 'mysql', 'sqlite'],
+      reason: `
+        Mongodb connector does not support the Decimal type. 
+        Mysql & Sqlite connectors do not support lists of primitive types.
+      `,
+    },
+  },
 )

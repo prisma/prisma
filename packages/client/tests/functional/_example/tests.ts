@@ -51,7 +51,12 @@ testMatrix.setupTestSuite(
       expect(schemaString).toContain('model')
     })
   },
-  // Use to optIn to a select few providers
-  // - otherwize the suite will require all providers.
-  // { optIn: ['sqlite', 'mongodb'] },
+  // Use to optOut to optout from testing selected providers
+  // - otherwize the suite will require all providers to be specified.
+  // {
+  //   optOut: {
+  //     from: ['sqlite', 'mongodb'],
+  //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
+  //   },
+  // },
 )

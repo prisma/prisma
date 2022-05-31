@@ -6,7 +6,10 @@ import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
 export type MatrixOptions = {
-  optIn: `${Providers}`[]
+  optOut: {
+    from: `${Providers}`[]
+    reason: string
+  }
 }
 
 /**
@@ -51,44 +54,26 @@ function setupTestSuiteMatrix(
   const forceInlineSnapshot = process.argv.includes('-u')
   const suiteConfigProviders = suiteConfig.map(({ provider }) => provider)
 
-  if (options?.optIn?.length) {
-    const missingProviders = options.optIn
-      .map((opt) => {
-        const isIncluded = suiteConfigProviders.includes(opt)
-        if (isIncluded) {
-          return false
-        }
+  const missingProviders = Object.values(Providers)
+    .map((p) => {
+      const isIncluded = suiteConfigProviders.includes(p.toString())
 
-        return opt
-      })
-      .filter(Boolean)
+      if (isIncluded) {
+        return false
+      }
 
-    if (missingProviders.length) {
-      throw new Error(
-        `Test: '${suiteMeta.testDirName}' optIn provided: '${options.optIn.join(
-          ', ',
-        )}' and is missing providers '${missingProviders.join(', ')}' optIn using options.optIn`,
-      )
-    }
-  } else {
-    const missingProviders = Object.values(Providers)
-      .map((p) => {
-        const isIncluded = suiteConfigProviders.includes(p.toString())
-        if (isIncluded) {
-          return false
-        }
+      const isOptOut = (options?.optOut?.from || []).includes(p.toString() as Providers)
 
-        return p.toString()
-      })
-      .filter(Boolean)
+      return !isOptOut ? p.toString() : false
+    })
+    .filter(Boolean)
 
-    if (missingProviders.length) {
-      throw new Error(
-        `Test: '${suiteMeta.testDirName}' is missing providers '${missingProviders.join(
-          ', ',
-        )}' optIn using options.optIn`,
-      )
-    }
+  if (missingProviders.length) {
+    throw new Error(
+      `Test: '${suiteMeta.testDirName}' is missing providers '${missingProviders
+        .map((x) => `'${x}'`)
+        .join(', ')}' out out using options.optOut`,
+    )
   }
 
   ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
