@@ -8,6 +8,7 @@ import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
+import sql from 'sql-template-tag'
 import * as sqlTemplateTag from 'sql-template-tag'
 
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
@@ -576,7 +577,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
+            const queryInstance = sql(query, ...values)
 
             queryString = queryInstance.sql
             parameters = {
@@ -588,7 +589,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
           case 'cockroachdb':
           case 'postgresql': {
-            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
+            const queryInstance = sql(query, ...values)
 
             queryString = queryInstance.text
             checkAlter(queryString, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
@@ -749,7 +750,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
+            const queryInstance = sql(query, ...values)
 
             queryString = queryInstance.sql
             parameters = {
@@ -761,7 +762,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
           case 'cockroachdb':
           case 'postgresql': {
-            const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
+            const queryInstance = sql(query as any, ...values)
 
             queryString = queryInstance.text
             parameters = {
@@ -772,7 +773,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           }
 
           case 'sqlserver': {
-            const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
+            const queryInstance = sql(query as any, ...values)
 
             queryString = mssqlPreparedStatement(queryInstance.strings)
             parameters = {
