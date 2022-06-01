@@ -259,7 +259,7 @@ export class DataProxyEngine extends Engine {
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(options: EngineMetricsOptions): Promise<Metrics> | Promise<string> {
-    throw new NotImplementedYetError('Metric are not yet supported', {
+    throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
       clientVersion: this.clientVersion,
     })
   }
