@@ -35,7 +35,7 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
 
   await generateClient({
     datamodel: schema,
-    datamodelPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
+    schemaPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: config.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),

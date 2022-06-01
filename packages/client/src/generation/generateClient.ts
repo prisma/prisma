@@ -33,8 +33,7 @@ export class DenylistError extends Error {
 export interface GenerateClientOptions {
   projectRoot?: string
   datamodel: string
-  datamodelPath: string
-  schemaDir?: string
+  schemaPath: string
   transpile?: boolean
   runtimeDirs?: { node: string; edge: string }
   outputDir: string
@@ -57,7 +56,7 @@ export interface BuildClientResult {
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function buildClient({
-  schemaDir,
+  schemaPath,
   runtimeDirs,
   binaryPaths,
   outputDir,
@@ -69,7 +68,7 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
-}: O.Required<GenerateClientOptions, 'schemaDir' | 'runtimeDirs'>): Promise<BuildClientResult> {
+}: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
   const clientEngineType = getClientEngineType(generator!)
@@ -81,7 +80,7 @@ export async function buildClient({
       clientEngineType === ClientEngineType.Library
         ? (Object.keys(binaryPaths.libqueryEngine ?? {}) as Platform[])
         : (Object.keys(binaryPaths.queryEngine ?? {}) as Platform[]),
-    schemaDir,
+    schemaPath,
     outputDir,
     clientVersion,
     engineVersion,
@@ -171,8 +170,7 @@ async function getDefaultOutdir(outputDir: string): Promise<string> {
 export async function generateClient(options: GenerateClientOptions): Promise<void> {
   const {
     datamodel,
-    datamodelPath,
-    schemaDir = datamodelPath ? path.dirname(datamodelPath) : process.cwd(),
+    schemaPath,
     outputDir,
     transpile,
     generator,
@@ -192,8 +190,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
-    datamodelPath,
-    schemaDir,
+    schemaPath,
     transpile,
     runtimeDirs,
     outputDir: finalOutputDir,
@@ -213,7 +210,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   if (denylistsErrors) {
     let message = `${chalk.redBright.bold(
       'Error: ',
-    )}The schema at "${datamodelPath}" contains reserved keywords.\n       Rename the following items:`
+    )}The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
 
     for (const error of denylistsErrors) {
       message += '\n         - ' + error.message
@@ -316,9 +313,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     }
   }
 
-  const datamodelTargetPath = path.join(finalOutputDir, 'schema.prisma')
-  if (datamodelPath !== datamodelTargetPath) {
-    await copyFile(datamodelPath, datamodelTargetPath)
+  const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
+  if (schemaPath !== schemaTargetPath) {
+    await copyFile(schemaPath, schemaTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
@@ -436,7 +433,7 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
   const useDefaultOutdir = testMode ? !runtimeDirs : !generator?.isCustomOutput
 
   const _runtimeDirs = {
-    // if we have an override we use it, but if not then use the defaults
+    // if we have an override, we use it, but if not then use the defaults
     node: runtimeDirs?.node || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
     edge: runtimeDirs?.edge || (useDefaultOutdir ? '@prisma/client/runtime' : '../runtime'),
   }
