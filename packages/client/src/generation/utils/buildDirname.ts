@@ -2,13 +2,13 @@ import path from 'path'
 
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
- * @param dataProxy
+ * @param edge
  * @param relativeOutdir
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(dataProxy: boolean | undefined, relativeOutdir: string, runtimeDir: string) {
-  if (dataProxy === true) {
+export function buildDirname(edge: boolean | undefined, relativeOutdir: string, runtimeDir: string) {
+  if (edge === true) {
     return buildDirnameDefault()
   }
 
