@@ -1,8 +1,9 @@
-import { IncomingMessage } from 'http'
+import type { IncomingMessage } from 'http'
 import type Https from 'https'
 import type { RequestInit, Response } from 'node-fetch'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
+import { NetworkError } from '../errors/NetworkError'
 import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
@@ -18,13 +19,20 @@ declare let fetch: typeof nodeFetch
  * @param options
  * @returns
  */
-export async function request(url: string, options: RequestOptions = {}): Promise<RequestResponse> {
+export async function request(
+  url: string,
+  options: RequestOptions & { clientVersion: string },
+): Promise<RequestResponse> {
   const jsRuntimeName = getJSRuntimeName()
 
-  if (jsRuntimeName === 'browser') {
-    return fetch(url, options)
-  } else {
-    return nodeFetch(url, options)
+  try {
+    if (jsRuntimeName === 'browser') {
+      return await fetch(url, options)
+    } else {
+      return await nodeFetch(url, options)
+    }
+  } catch (e) {
+    throw new NetworkError({ clientVersion: options.clientVersion })
   }
 }
 

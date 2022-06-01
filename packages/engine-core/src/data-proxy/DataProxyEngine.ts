@@ -18,7 +18,6 @@ import { request } from './utils/request'
 const MAX_RETRIES = 10
 
 export class DataProxyEngine extends Engine {
-  private pushPromise: Promise<void>
   private inlineSchema: string
   private inlineSchemaHash: string
   private inlineDatasources: any
@@ -48,24 +47,6 @@ export class DataProxyEngine extends Engine {
     this.remoteClientVersion = getClientVersion(this.config)
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
-
-    // hack for Cloudflare
-    // That's because we instantiate the client outside of the request handler. This essentially prevents immediate execution of the promise.
-    // Removing this will produce the following error
-    // [Error] Some functionality, such as asynchronous I/O, timeouts, and generating random values, can only be performed while handling a request.
-    const promise = Promise.resolve()
-    this.pushPromise = promise.then(() => this.pushSchema())
-  }
-
-  private async pushSchema() {
-    const response = await request(this.url('schema'), {
-      method: 'GET',
-      headers: this.headers,
-    })
-
-    if (response.status === 404) {
-      await this.uploadSchema()
-    }
   }
 
   version() {
@@ -108,6 +89,7 @@ export class DataProxyEngine extends Engine {
       method: 'PUT',
       headers: this.headers,
       body: this.inlineSchema,
+      clientVersion: this.clientVersion,
     })
 
     const err = await responseToError(response, this.clientVersion)
@@ -144,8 +126,6 @@ export class DataProxyEngine extends Engine {
   }
 
   private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    await this.pushPromise
-
     try {
       this.logEmitter.emit('info', {
         message: `Calling ${this.url('graphql')} (n=${attempt})`,
@@ -155,21 +135,20 @@ export class DataProxyEngine extends Engine {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
+        clientVersion: this.clientVersion,
       })
 
-      const err = await responseToError(response, this.clientVersion)
+      const e = await responseToError(response, this.clientVersion)
 
-      if (err instanceof SchemaMissingError) {
+      if (e instanceof SchemaMissingError) {
         await this.uploadSchema()
         throw new ForcedRetryError({
           clientVersion: this.clientVersion,
-          cause: err,
+          cause: e,
         })
       }
 
-      if (err) {
-        throw err
-      }
+      if (e) throw e
 
       const data = await response.json()
 
@@ -180,22 +159,18 @@ export class DataProxyEngine extends Engine {
       }
 
       return data
-    } catch (err) {
+    } catch (e) {
       this.logEmitter.emit('error', {
-        message: `Error while querying: ${err.message ?? '(unknown)'}`,
+        message: `Error while querying: ${e.message ?? '(unknown)'}`,
       })
 
-      if (!(err instanceof DataProxyError)) {
-        throw err
-      }
-      if (!err.isRetryable) {
-        throw err
-      }
+      if (!(e instanceof DataProxyError)) throw e
+      if (!e.isRetryable) throw e
       if (attempt >= MAX_RETRIES) {
-        if (err instanceof ForcedRetryError) {
-          throw err.cause
+        if (e instanceof ForcedRetryError) {
+          throw e.cause
         } else {
-          throw err
+          throw e
         }
       }
 
