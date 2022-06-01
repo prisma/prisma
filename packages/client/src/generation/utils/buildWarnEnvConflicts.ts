@@ -6,7 +6,7 @@
  * @param runtimeName
  * @returns
  */
-export function buildWarnEnvConflicts(edge: boolean | undefined, runtimeDir: string, runtimeName: string) {
+export function buildWarnEnvConflicts(edge: boolean, runtimeDir: string, runtimeName: string) {
   if (edge === true) return ''
 
   return `

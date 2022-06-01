@@ -42,7 +42,7 @@ export interface TSClientOptions {
   schemaPath: string
   outputDir: string
   activeProvider: string
-  dataProxy?: boolean
+  dataProxy: boolean
 }
 
 export class TSClient implements Generatable {
@@ -53,7 +53,7 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFHelper(klona(options.document))
   }
 
-  public async toJS(edge?: boolean): Promise<string> {
+  public async toJS(edge = false): Promise<string> {
     const {
       platforms,
       generator,

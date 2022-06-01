@@ -16,7 +16,7 @@ type LoadedEnv = {
  * @param datasources
  * @returns
  */
-export function buildInjectableEdgeEnv(edge: boolean | undefined, datasources: InternalDatasource[]) {
+export function buildInjectableEdgeEnv(edge: boolean, datasources: InternalDatasource[]) {
   if (edge === true) {
     const envVarNames = getSelectedEnvVarNames(datasources)
     const loadedEnv = getEmptyEnvObjectForVars(envVarNames)

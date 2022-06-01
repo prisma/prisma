@@ -7,7 +7,7 @@ import path from 'path'
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(edge: boolean | undefined, relativeOutdir: string, runtimeDir: string) {
+export function buildDirname(edge: boolean, relativeOutdir: string, runtimeDir: string) {
   if (edge === true) {
     return buildDirnameDefault()
   }
