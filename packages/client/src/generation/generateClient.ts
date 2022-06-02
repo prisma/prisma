@@ -222,8 +222,12 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   await makeDir(finalOutputDir)
-  await makeDir(path.join(finalOutputDir, 'edge'))
   await makeDir(path.join(outputDir, 'runtime'))
+
+  if (dataProxy === true) {
+    await makeDir(path.join(finalOutputDir, 'edge'))
+  }
+
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
   // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
