@@ -128,7 +128,7 @@ importers:
       '@swc/jest': 0.2.21
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/rimraf': 3.0.2
       '@types/ws': 8.5.3
       chalk: 4.1.2
@@ -174,7 +174,7 @@ importers:
       '@swc/jest': 0.2.21_@swc+core@1.2.189
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/rimraf': 3.0.2
       '@types/ws': 8.5.3
       chalk: 4.1.2
@@ -223,7 +223,7 @@ importers:
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/js-levenshtein': 1.1.1
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
@@ -284,7 +284,7 @@ importers:
       '@swc/jest': 0.2.21_@swc+core@1.2.189
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/js-levenshtein': 1.1.1
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
@@ -323,7 +323,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 28.0.3_93d4a4a36dfa174b5e58da7cf72a13e3
+      ts-jest: 28.0.3_8dc6099ce4070a1ba7137284c0a7dca3
       ts-node: 10.8.0_1aa268a46eceb241409bb825192c75ab
       tsd: 0.20.0
       typescript: 4.7.2
@@ -331,7 +331,7 @@ importers:
   packages/debug:
     specifiers:
       '@types/debug': 4.1.7
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       debug: 4.3.4
       esbuild: 0.14.39
@@ -345,12 +345,12 @@ importers:
       debug: 4.3.4
       strip-ansi: 6.0.1
     devDependencies:
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       esbuild: 0.14.39
       jest: 28.1.0_80331e7c78f897d3241777ad7e421929
       jest-junit: 13.2.0
-      ts-jest: 28.0.3_93d4a4a36dfa174b5e58da7cf72a13e3
+      ts-jest: 28.0.3_8dc6099ce4070a1ba7137284c0a7dca3
       typescript: 4.7.2
 
   packages/engine-core:
@@ -361,7 +361,7 @@ importers:
       '@prisma/get-platform': 3.15.0-21.7fbd9965484ec56d2c496b4a8d5f882d4cbe614e
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 16.11.34
       chalk: 4.1.2
       esbuild: 0.14.39
@@ -391,7 +391,7 @@ importers:
     devDependencies:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 16.11.34
       esbuild: 0.14.39
       jest: 28.1.0_2d01977b9c347b93a5ff4504c0e75b05
@@ -404,7 +404,7 @@ importers:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
       '@types/cross-spawn': 6.0.2
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       chalk: 4.1.2
       cross-spawn: 7.0.3
@@ -421,7 +421,7 @@ importers:
     devDependencies:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       esbuild: 0.14.39
       jest: 28.1.0_80331e7c78f897d3241777ad7e421929
@@ -435,7 +435,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
@@ -462,7 +462,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/mssql': 7.1.5
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
@@ -495,7 +495,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
       '@types/prompts': 2.0.14
@@ -546,7 +546,7 @@ importers:
       '@prisma/sdk': link:../sdk
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       '@types/pg': 8.6.5
       '@types/prompts': 2.0.14
@@ -593,7 +593,7 @@ importers:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       '@types/resolve': 1.20.2
       '@types/shell-quote': 1.7.1
@@ -694,7 +694,7 @@ importers:
     devDependencies:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       '@types/node': 12.20.51
       '@types/resolve': 1.20.2
       '@types/shell-quote': 1.7.1
@@ -2108,6 +2108,13 @@ packages:
 
   /@types/jest/27.5.1:
     resolution: {integrity: sha512-fUy7YRpT+rHXto1YlL+J9rs0uLGyiqVt3ZOTQR+4ROc47yNl8WLdVLgUloBRhOxP1PZvguHl44T3H0wAWxahYQ==}
+    dependencies:
+      jest-matcher-utils: 27.5.1
+      pretty-format: 27.5.1
+    dev: true
+
+  /@types/jest/28.1.0:
+    resolution: {integrity: sha512-ITfF6JJIl9zbEi2k6NmhNE/BiDqfsI/ceqfvdaWaPbcrCpYyyRq4KtDQIWh6vQUru6SqwppODiom/Zhid+np6A==}
     dependencies:
       jest-matcher-utils: 27.5.1
       pretty-format: 27.5.1
@@ -7908,7 +7915,7 @@ packages:
       yargs-parser: 20.2.9
     dev: true
 
-  /ts-jest/28.0.3_93d4a4a36dfa174b5e58da7cf72a13e3:
+  /ts-jest/28.0.3_8dc6099ce4070a1ba7137284c0a7dca3:
     resolution: {integrity: sha512-HzgbEDQ2KgVtDmpXToqAcKTyGHdHsG23i/iUjfxji92G5eT09S1m9UHZd7csF0Bfgh9txM4JzwHnv7r1waFPlw==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
     hasBin: true
@@ -7929,7 +7936,7 @@ packages:
       esbuild:
         optional: true
     dependencies:
-      '@types/jest': 27.5.1
+      '@types/jest': 28.1.0
       bs-logger: 0.2.6
       esbuild: 0.14.39
       fast-json-stable-stringify: 2.1.0
