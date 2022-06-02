@@ -1,11 +1,10 @@
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(
-  ({ provider, engineType }) => /* Prisma */ `
+  ({ provider }) => /* Prisma */ `
 
   generator client {
     provider = "prisma-client-js"
-    engineType = "${engineType}"
     previewFeatures = ["metrics"]
   }
   

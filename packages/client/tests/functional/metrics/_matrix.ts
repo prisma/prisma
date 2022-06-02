@@ -6,12 +6,4 @@ export default defineMatrix(() => [
       provider: 'sqlite',
     },
   ],
-  [
-    {
-      engineType: 'library',
-    },
-    {
-      engineType: 'binary',
-    },
-  ],
 ])
