@@ -1,7 +1,8 @@
-import { getConfig, getSchemaPath, link } from '@prisma/sdk'
-import { loadEnvFile } from '@prisma/sdk/dist/utils/loadEnvFile'
 import chalk from 'chalk'
 import { O } from 'ts-toolbelt'
+
+import { getConfig, getSchemaPath, link } from '..'
+import { loadEnvFile } from '../utils/loadEnvFile'
 
 /**
  * These are the cli args that we check the data proxy for. If in use
