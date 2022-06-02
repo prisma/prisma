@@ -1,6 +1,7 @@
-import type { Command, IntrospectionSchemaVersion, IntrospectionWarnings } from '@prisma/sdk'
 import {
   arg,
+  checkUnsupportedDataProxy,
+  Command,
   createSpinner,
   drawBox,
   format,
@@ -11,6 +12,8 @@ import {
   getSchemaPath,
   HelpError,
   IntrospectionEngine,
+  IntrospectionSchemaVersion,
+  IntrospectionWarnings,
   link,
   loadEnvFile,
   protocolToConnectorType,
@@ -100,6 +103,8 @@ Set composite types introspection depth to 2 levels
     if (args instanceof Error) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('db pull', args, true)
 
     if (args['--help']) {
       return this.help()
