@@ -1095,6 +1095,7 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
   async metrics(options: MetricsOptionsPrometheus): Promise<string>
   async metrics({ format, globalLabels }: EngineMetricsOptions): Promise<string | Metrics> {
+    await this.start()
     const parseResponse = format === 'json'
     const response = await this.connection.post<string | Metrics>(
       `/metrics?format=${encodeURIComponent(format)}`,
