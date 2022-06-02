@@ -246,6 +246,13 @@ export type TruthyKeys<T> = {
 export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
 
 /**
+ * Include the key as type T if C is truthy, properly handling the ambiguous case where C is boolean.
+ * 
+ * The strange use of objects is to avoid unsoundness in TS' handling of unions in type parameters (boolean being interpreted as false | true).
+ */
+export type IncludeIf<C, T> = {type: C} extends {type: false | undefined | null} ? never : {type: C} extends {type: true} ? T : {type: C} extends {type: boolean} ? T | undefined : T;
+
+/**
  * Subset
  * @desc From \`T\` pick properties that exist in \`U\`. Simple version of Intersection
  */

@@ -51,10 +51,10 @@ ${indent(
   relations
     .map(
       (f) =>
-        `P extends '${f.name}' ? ${this.wrapType(
+        `P extends '${f.name}' ? IncludeIf<S['${projection}'][P], ${this.wrapType(
           f,
           `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]>`,
-        )} :`,
+        )}> :`,
     )
     .join('\n'),
   6,
