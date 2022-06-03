@@ -237,7 +237,7 @@ export interface GetPrismaClientConfig {
   inlineSchema?: string
 
   /**
-   * A special env object jus for the data proxy edge runtime.
+   * A special env object just for the data proxy edge runtime.
    * Allows bundlers to inject their own env variables (Vercel).
    * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy

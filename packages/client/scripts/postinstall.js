@@ -203,8 +203,8 @@ async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
     const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
     const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
     await makeDir(dotPrismaClientDir)
 
     const dotPrismaClientEdgeDir = path.join(dotPrismaClientDir, 'edge')
