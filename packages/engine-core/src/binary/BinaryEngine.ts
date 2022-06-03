@@ -29,6 +29,7 @@ import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageW
 import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
@@ -546,7 +547,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = ['--enable-raw-queries', ...this.flags, ...additionalFlag]
+        const flags = ['--enable-raw-queries', '--enable-metrics', ...this.flags, ...additionalFlag]
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
@@ -1089,6 +1090,20 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
     }
 
     return false
+  }
+
+  async metrics(options: MetricsOptionsJson): Promise<Metrics>
+  async metrics(options: MetricsOptionsPrometheus): Promise<string>
+  async metrics({ format, globalLabels }: EngineMetricsOptions): Promise<string | Metrics> {
+    await this.start()
+    const parseResponse = format === 'json'
+    const response = await this.connection.post<string | Metrics>(
+      `/metrics?format=${encodeURIComponent(format)}`,
+      JSON.stringify(globalLabels),
+      null,
+      parseResponse,
+    )
+    return response.data
   }
 }
 

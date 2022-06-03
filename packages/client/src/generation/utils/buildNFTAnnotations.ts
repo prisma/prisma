@@ -103,5 +103,5 @@ function buildNFTSchemaAnnotation(engineType: ClientEngineType, relativeOutdir: 
     return buildNFTAnnotation('schema.prisma', relativeOutdir)
   }
 
-  return undefined
+  return ''
 }
