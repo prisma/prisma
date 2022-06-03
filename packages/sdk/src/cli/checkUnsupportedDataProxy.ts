@@ -9,10 +9,12 @@ import { loadEnvFile } from '../utils/loadEnvFile'
  * These are the cli args that we check the data proxy for. If in use
  */
 const checkedArgs = {
+  // Directly contain connection string
   '--url': true,
   '--to-url': true,
   '--from-url': true,
   '--shadow-database-url': true,
+  // Contain path to schema file with connection string (directly or via env var)
   '--schema': true,
   '--from-schema-datamodel': true,
   '--to-schema-datamodel': true,
@@ -26,10 +28,13 @@ type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
  * @returns
  */
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-${chalk.green(`prisma ${command}`)} command is not yet available with ${chalk.green('prisma://')}.
+Using the Data Proxy (connection URL starting with protocol ${chalk.green(
+  'prisma://',
+)}) is not supported for this CLI command ${chalk.green(
+  `prisma ${command}`,
+)} yet. Please use a direct connection to your database for now.
 
-More information in our documentation:
-${link('https://pris.ly/d/data-proxy')}
+More information about Data Proxy: ${link('https://pris.ly/d/data-proxy-cli')}
 `
 
 /**
