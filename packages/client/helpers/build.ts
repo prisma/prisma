@@ -13,6 +13,8 @@ const nodeRuntimeBuildConfig: BuildOptions = {
   bundle: true,
   define: {
     NODE_CLIENT: 'true',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
   },
 }
 
@@ -36,6 +38,8 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
   },
   plugins: [
     fillPlugin({
