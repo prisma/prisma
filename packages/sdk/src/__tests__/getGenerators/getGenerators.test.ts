@@ -781,8 +781,7 @@ describe('getGenerators', () => {
         interactiveTransactions preview feature is not yet available with --data-proxy.
         Please remove interactiveTransactions from the previewFeatures in your schema.
 
-        More information in our documentation:
-        https://pris.ly/d/data-proxy
+        More information about Data Proxy: https://pris.ly/d/data-proxy
         "
       `)
     }
