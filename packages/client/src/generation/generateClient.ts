@@ -129,7 +129,7 @@ export async function buildClient({
         name: '.prisma/client/edge',
         main: 'index.js',
         types: '../index.d.ts',
-        browser: '../index-browser.js',
+        browser: 'index.js',
       },
       null,
       2,
