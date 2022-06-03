@@ -66,17 +66,17 @@
     "@opentelemetry/api": "1.1.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
-    "@prisma/fetch-engine": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
+    "@prisma/engines": "3.15.0-25.85b689a79df86c0da0e3676d1c001c946c2d903c",
+    "@prisma/fetch-engine": "3.15.0-25.85b689a79df86c0da0e3676d1c001c946c2d903c",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
+    "@prisma/get-platform": "3.15.0-25.85b689a79df86c0da0e3676d1c001c946c2d903c",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "27.5.1",
+    "@types/jest": "28.1.0",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.5",
     "@types/node": "12.20.51",
@@ -87,6 +87,7 @@
     "decimal.js": "10.3.1",
     "esbuild": "0.14.39",
     "execa": "5.1.1",
+    "expect-type": "0.13.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "10.1.0",
     "fs-monkey": "1.0.3",
@@ -129,7 +130,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7"
+    "@prisma/engines-version": "3.15.0-25.85b689a79df86c0da0e3676d1c001c946c2d903c"
   },
   "sideEffects": false
 }
