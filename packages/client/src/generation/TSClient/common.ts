@@ -66,9 +66,9 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = 'DbNull'
-Prisma.JsonNull = 'JsonNull'
-Prisma.AnyNull = 'AnyNull'
+Prisma.DbNull = Symbol.for('DbNull')
+Prisma.JsonNull = Symbol.for('JsonNull')
+Prisma.AnyNull = Symbol.for('AnyNull')
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
@@ -189,21 +189,21 @@ export type InputJsonValue = string | number | boolean | InputJsonObject | Input
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull: 'DbNull'
+export const DbNull: unique symbol
 
 /**
  * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull: 'JsonNull'
+export const JsonNull: unique symbol
 
 /**
  * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull: 'AnyNull'
+export const AnyNull: unique symbol
 
 type SelectAndInclude = {
   select: any
