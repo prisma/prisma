@@ -99,8 +99,8 @@ describe('sqlite', () => {
 
       Already in sync, no schema change or pending migration was found.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('invalid schema', async () => {
@@ -126,8 +126,8 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Prisma schema loaded from prisma/invalid.prisma`,
     )
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('first migration (--name)', async () => {
@@ -153,8 +153,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   //
@@ -194,8 +194,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('first migration --name --force', async () => {
@@ -222,8 +222,8 @@ describe('sqlite', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-  //   expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+  //   expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+  //   expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   // })
 
   it('snapshot of sql', async () => {
@@ -285,8 +285,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('draft migration with empty schema (prompt)', async () => {
@@ -311,8 +311,8 @@ describe('sqlite', () => {
       SQLite database dev.db created at file:dev.db
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('draft migration and apply (--name)', async () => {
@@ -349,8 +349,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('transition-db-push-migrate (prompt reset yes)', async () => {
@@ -389,8 +389,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('transition-db-push-migrate (prompt reset no)', async () => {
@@ -422,8 +422,8 @@ describe('sqlite', () => {
 
       Reset cancelled.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(mockExit).toBeCalledWith(0)
   })
 
@@ -454,8 +454,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('removed applied migration and unapplied empty draft', async () => {
@@ -501,8 +501,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('broken migration should fail', async () => {
@@ -522,8 +522,8 @@ describe('sqlite', () => {
       SQLite database dev.db created at file:dev.db
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('existingdb: has a failed migration', async () => {
@@ -542,8 +542,8 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('existing-db-1-migration edit migration with broken sql', async () => {
@@ -572,8 +572,8 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unapplied draft', async () => {
@@ -595,8 +595,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unapplied draft + 1 schema change', async () => {
@@ -626,8 +626,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unexecutable schema change', async () => {
@@ -650,8 +650,8 @@ describe('sqlite', () => {
 
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unexecutable schema change with --create-only should succeed', async () => {
@@ -669,8 +669,8 @@ describe('sqlite', () => {
 
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 warning from schema change (prompt yes)', async () => {
@@ -701,7 +701,7 @@ describe('sqlite', () => {
 
                                                                                                                                                                                                                                                                                                                           • You are about to drop the \`Blog\` table, which is not empty (2 rows).
                                                                                                                                                                                                                 `)
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 warning from schema change (prompt no)', async () => {
@@ -723,7 +723,7 @@ describe('sqlite', () => {
 
                                                                                                                                                                                                                                                                                                                           • You are about to drop the \`Blog\` table, which is not empty (2 rows).
                                                                                                                                                                                                                 `)
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('provider array should fail', async () => {
@@ -748,7 +748,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Prisma schema loaded from prisma/provider-array.prisma`,
     )
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -782,8 +782,8 @@ describe('sqlite', () => {
       🌱  The seed command has been executed.
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('one seed file --skip-seed', async () => {
@@ -810,8 +810,8 @@ describe('sqlite', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 
   it('one broken seed.js file', async () => {
@@ -842,7 +842,7 @@ describe('sqlite', () => {
       Running seed command \`node prisma/seed.js\` ...
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occured while running the seed command:`)
   })
 
@@ -894,8 +894,8 @@ describe('sqlite', () => {
       SQLite database dev.db created at file:./dev.db
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -933,8 +933,8 @@ describe('postgresql', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
@@ -957,8 +957,8 @@ describe('postgresql', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
@@ -996,8 +996,8 @@ describe('postgresql', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('create first migration with nativeTypes', async () => {
@@ -1043,8 +1043,8 @@ describe('postgresql', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-  //   expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
   it('draft migration and apply (--name)', async () => {
@@ -1082,8 +1082,8 @@ describe('postgresql', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: create first migration', async () => {
@@ -1106,8 +1106,8 @@ describe('postgresql', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('real-world-grading-app: compare snapshot', async () => {
@@ -1126,11 +1126,11 @@ describe('postgresql', () => {
   //         └─ migration.sql
   //   `)
 
-  //   expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-  //   expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   //   expect(
   //     fs.read(`prisma/${fs.list('prisma/migrations')![0]}/migration.sql`),
-  //   ).toMatchSnapshot()
+  //   ).toEqual([])
   // })
 })
 
@@ -1169,8 +1169,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
@@ -1194,8 +1194,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
@@ -1234,8 +1234,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // eslint-disable-next-line jest/no-identical-title
@@ -1298,8 +1298,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // eslint-disable-next-line jest/no-identical-title
@@ -1323,8 +1323,8 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -1362,8 +1362,8 @@ describe('mysql', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
@@ -1385,8 +1385,8 @@ describe('mysql', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
@@ -1422,8 +1422,8 @@ describe('mysql', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('create first migration with nativeTypes', async () => {
@@ -1470,8 +1470,8 @@ describe('mysql', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-  //   expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
   it('draft migration and apply (--name)', async () => {
@@ -1507,8 +1507,8 @@ describe('mysql', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: create first migration', async () => {
@@ -1530,8 +1530,8 @@ describe('mysql', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -1584,8 +1584,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
     const result = MigrateDev.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db" - SQL Server
@@ -1608,8 +1608,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
     const result = MigrateDev.new().parse(['--schema=./prisma/shadowdb.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db" - SQL Server
@@ -1646,8 +1646,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // it('create first migration with nativeTypes', async () => {
@@ -1694,8 +1694,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   //         └─ migration.sql
 
   //   `)
-  //   expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-  //   expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  //   expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+  //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
   // eslint-disable-next-line jest/no-identical-title
@@ -1732,8 +1732,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   // eslint-disable-next-line jest/no-identical-title
@@ -1756,7 +1756,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
       Your database is now in sync with your schema.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
