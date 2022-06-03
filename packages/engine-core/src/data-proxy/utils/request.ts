@@ -3,7 +3,7 @@ import type Https from 'https'
 import type { RequestInit, Response } from 'node-fetch'
 import type { O } from 'ts-toolbelt'
 
-import { NetworkError } from '../errors/NetworkError'
+import { RequestError } from '../errors/NetworkError'
 import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
@@ -23,6 +23,7 @@ export async function request(
   url: string,
   options: RequestOptions & { clientVersion: string },
 ): Promise<RequestResponse> {
+  const clientVersion = options.clientVersion
   const jsRuntimeName = getJSRuntimeName()
 
   try {
@@ -32,7 +33,8 @@ export async function request(
       return await nodeFetch(url, options)
     }
   } catch (e) {
-    throw new NetworkError({ clientVersion: options.clientVersion })
+    const message = e.message ?? 'Unknown error'
+    throw new RequestError(message, { clientVersion })
   }
 }
 
