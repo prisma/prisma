@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import { version as engineVersion } from '@prisma/engines/package.json'
 
 import type { EngineConfig } from '../../common/Engine'
@@ -6,13 +7,9 @@ import { request } from './request'
 
 const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const prismaNpm = 'https://registry.npmjs.org/prisma'
+const debug = Debug('prisma:client:dataproxyEngine')
 
-/**
- * Determine the client version to be sent to the DataProxy
- * @param config
- * @returns
- */
-export function getClientVersion(config: EngineConfig) {
+function _getClientVersion(config: EngineConfig) {
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides
@@ -28,7 +25,7 @@ export function getClientVersion(config: EngineConfig) {
   }
 
   // if it's an integration version, we resolve its data proxy
-  if (suffix === 'integration' && semverRegex.test(version)) {
+  if (suffix === 'integration' || clientVersion === '0.0.0') {
     return (async () => {
       // we infer the data proxy version from the engine version
       const [version] = engineVersion.split('-') ?? []
@@ -51,4 +48,17 @@ export function getClientVersion(config: EngineConfig) {
   throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Prisma Data Proxy.', {
     clientVersion,
   })
+}
+
+/**
+ * Determine the client version to be sent to the DataProxy
+ * @param config
+ * @returns
+ */
+export async function getClientVersion(config: EngineConfig) {
+  const version = await _getClientVersion(config)
+
+  debug('version', version)
+
+  return version
 }
