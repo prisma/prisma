@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import fs from 'fs'
 import { O } from 'ts-toolbelt'
 
 import { getConfig, getSchemaPath, link } from '..'
@@ -38,13 +39,12 @@ ${link('https://pris.ly/d/data-proxy')}
  * @param implicitSchema if this command implicitly loads a schema
  */
 async function _checkUnsupportedDataProxy(command: string, args: Args, implicitSchema: boolean) {
-  const argList = Object.entries(args)
-
   // when the schema can be implicit, we use its default location
   if (implicitSchema === true) {
     args['--schema'] = (await getSchemaPath(args['--schema'])) ?? undefined
   }
 
+  const argList = Object.entries(args)
   for (const [argName, argValue] of argList) {
     // for all the args that represent an url ensure data proxy isn't used
     if (argName.includes('url') && argValue.includes('prisma://')) {
@@ -56,7 +56,8 @@ async function _checkUnsupportedDataProxy(command: string, args: Args, implicitS
     if (argName.includes('schema')) {
       loadEnvFile(argValue, false)
 
-      const config = await getConfig({ datamodel: argValue })
+      const datamodel = await fs.promises.readFile(argValue, 'utf-8')
+      const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
       const urlFromValue = config.datasources[0]?.url.value
       const urlEnvVarName = config.datasources[0]?.url.fromEnvVar
       const urlEnvVarValue = urlEnvVarName ? process.env[urlEnvVarName] : undefined
