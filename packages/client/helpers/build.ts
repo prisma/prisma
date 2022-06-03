@@ -25,7 +25,7 @@ const browserBuildConfig: BuildOptions = {
   bundle: true,
 }
 
-// we define the config for proxy
+// we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
   entryPoints: ['src/runtime/index.ts'],
