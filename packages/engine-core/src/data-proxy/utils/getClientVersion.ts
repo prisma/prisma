@@ -27,7 +27,7 @@ export function getClientVersion(config: EngineConfig) {
     return version
   }
 
-  // then it's an integration version, we resolve its data proxy
+  // if it's an integration version, we resolve its data proxy
   if (suffix === 'integration' && semverRegex.test(version)) {
     return (async () => {
       // we infer the data proxy version from the engine version
@@ -41,10 +41,9 @@ export function getClientVersion(config: EngineConfig) {
       const published = `${major}.${parseInt(minor) - 1}.x`
 
       // we don't know what `x` is, so we query the registry
-      const resolvedPublishedVersion = `${prismaNpm}/${published}`
-      const data = (await request(resolvedPublishedVersion, { clientVersion })).json()
+      const res = await request(`${prismaNpm}/${published}`, { clientVersion })
 
-      return ((await data)['version'] as string) ?? 'undefined'
+      return ((await res.json())['version'] as string) ?? 'undefined'
     })() // <-- this is just creating a promise via an iife
   }
 
