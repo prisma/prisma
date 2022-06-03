@@ -234,6 +234,7 @@ importers:
       decimal.js: 10.3.1
       esbuild: 0.14.39
       execa: 5.1.1
+      expect-type: 0.13.0
       flat-map-polyfill: 0.3.8
       fs-extra: 10.1.0
       fs-monkey: 1.0.3
@@ -295,6 +296,7 @@ importers:
       decimal.js: 10.3.1
       esbuild: 0.14.39
       execa: 5.1.1
+      expect-type: 0.13.0
       flat-map-polyfill: 0.3.8
       fs-extra: 10.1.0
       fs-monkey: 1.0.3
@@ -4252,6 +4254,10 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
+  /expect-type/0.13.0:
+    resolution: {integrity: sha512-CclevazQfrqo8EvbLPmP7osnb1SZXkw47XPPvUUpeMz4HuGzDltE7CaIt3RLyT9UQrwVK/LDn+KVcC0hcgjgDg==}
+    dev: true
+
   /expect/28.1.0:
     resolution: {integrity: sha512-qFXKl8Pmxk8TBGfaFKRtcQjfXEnKAs+dmlxdwvukJZorwrAabT7M3h8oLOG01I2utEhkmUTi17CHaPBovZsKdw==}
     engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
@@ -5450,7 +5456,7 @@ packages:
       pretty-format: 28.1.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.8.0_6b27bdda513397a05be5d4c70869feb3
+      ts-node: 10.8.0_1aa268a46eceb241409bb825192c75ab
     transitivePeerDependencies:
       - supports-color
     dev: true
