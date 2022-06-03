@@ -1,7 +1,11 @@
+import { version as engineVersion } from '@prisma/engines/package.json'
+
 import type { EngineConfig } from '../../common/Engine'
 import { NotImplementedYetError } from '../errors/NotImplementedYetError'
+import { request } from './request'
 
 const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
+const prismaNpm = 'https://registry.npmjs.org/prisma'
 
 /**
  * Determine the client version to be sent to the DataProxy
@@ -9,26 +13,43 @@ const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
  * @returns
  */
 export function getClientVersion(config: EngineConfig) {
+  const clientVersion = config.clientVersion ?? 'unknown'
+
   // internal override for testing and manual version overrides
   if (process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION) {
     return process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION
   }
 
-  const [version, suffix] = config.clientVersion?.split('-') ?? []
+  const [version, suffix] = clientVersion?.split('-') ?? []
 
   // we expect the version to match the pattern major.minor.patch
   if (suffix === undefined && semverRegex.test(version)) {
     return version
   }
 
-  // then it must be an integration version, so we use its parent
+  // then it's an integration version, we resolve its data proxy
   if (suffix === 'integration' && semverRegex.test(version)) {
-    const [major, minor] = version.split('.')
-    return `${major}.${parseInt(minor) - 1}.${0}`
+    return (async () => {
+      // we infer the data proxy version from the engine version
+      const [version] = engineVersion.split('-') ?? []
+      const [major, minor, patch] = version.split('.')
+
+      // if a patch has happened, then we return that version
+      if (patch !== '0') return `${major}.${minor}.${patch}`
+
+      // if not, we know that the minor must be minus with 1
+      const published = `${major}.${parseInt(minor) - 1}.x`
+
+      // we don't know what `x` is, so we query the registry
+      const resolvedPublishedVersion = `${prismaNpm}/${published}`
+      const data = (await request(resolvedPublishedVersion, { clientVersion })).json()
+
+      return ((await data)['version'] as string) ?? 'undefined'
+    })() // <-- this is just creating a promise via an iife
   }
 
   // nothing matched, meaning that the provided version is invalid
   throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Prisma Data Proxy.', {
-    clientVersion: config.clientVersion ?? 'undefined',
+    clientVersion,
   })
 }
