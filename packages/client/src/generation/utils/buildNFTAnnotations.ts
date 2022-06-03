@@ -35,10 +35,11 @@ export function buildNFTAnnotations(
   }
 
   const engineAnnotations = map(platforms, (platform) => {
-    return buildNFTEngineAnnotation(engineType, platform, relativeOutdir)
+    const engineFilename = getQueryEngineFilename(engineType, platform)
+    return engineFilename ? buildNFTAnnotation(engineFilename, relativeOutdir) : ''
   }).join('\n')
 
-  const schemaAnnotations = buildNFTSchemaAnnotation(engineType, relativeOutdir)
+  const schemaAnnotations = buildNFTAnnotation('schema.prisma', relativeOutdir)
 
   return `${engineAnnotations}${schemaAnnotations}`
 }
@@ -75,33 +76,4 @@ function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
   return `
 path.join(__dirname, ${JSON.stringify(fileName)});
 path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
-}
-
-/**
- * Build an annotation for the prisma client engine files
- * @param engineType
- * @param platform
- * @param relativeOutdir
- * @returns
- */
-function buildNFTEngineAnnotation(engineType: ClientEngineType, platform: Platform, relativeOutdir: string) {
-  const engineFilename = getQueryEngineFilename(engineType, platform)
-
-  if (engineFilename === undefined) return ''
-
-  return buildNFTAnnotation(engineFilename, relativeOutdir)
-}
-
-/**
- * Build an annotation for the prisma schema files
- * @param engineType
- * @param relativeOutdir
- * @returns
- */
-function buildNFTSchemaAnnotation(engineType: ClientEngineType, relativeOutdir: string) {
-  if (engineType === ClientEngineType.Library || engineType === ClientEngineType.Binary) {
-    return buildNFTAnnotation('schema.prisma', relativeOutdir)
-  }
-
-  return ''
 }
