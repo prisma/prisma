@@ -78,5 +78,5 @@ async function _checkUnsupportedDataProxy(command: string, args: Args, implicitS
 export async function checkUnsupportedDataProxy(command: string, args: Args, implicitSchema: boolean) {
   try {
     await _checkUnsupportedDataProxy(command, args, implicitSchema)
-  } catch (_) {}
+  } catch {}
 }
