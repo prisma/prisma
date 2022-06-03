@@ -86,7 +86,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage): Reque
  * @returns
  */
 async function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestResponse> {
-  const https: typeof Https = await globalThis[['e', 'v', 'a', 'l'].join('')](`import('https')`)
+  const https: typeof Https = include('https')
   const httpsOptions = buildOptions(options)
   const incomingData = [] as Buffer[]
 
@@ -103,3 +103,6 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
     request.end() // flush & send
   })
 }
+
+// trick to obfuscate require from bundlers, useful for Vercel Edge
+const include = typeof require !== 'undefined' ? require : () => {}
