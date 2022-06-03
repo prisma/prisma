@@ -43,7 +43,7 @@ More information about Data Proxy: ${link('https://pris.ly/d/data-proxy-cli')}
  * @param args the cli command arguments
  * @param implicitSchema if this command implicitly loads a schema
  */
-async function _checkUnsupportedDataProxy(command: string, args: Args, implicitSchema: boolean) {
+async function checkUnsupportedDataProxyMessage(command: string, args: Args, implicitSchema: boolean) {
   // when the schema can be implicit, we use its default location
   if (implicitSchema === true) {
     args['--schema'] = (await getSchemaPath(args['--schema'])) ?? undefined
@@ -53,8 +53,7 @@ async function _checkUnsupportedDataProxy(command: string, args: Args, implicitS
   for (const [argName, argValue] of argList) {
     // for all the args that represent an url ensure data proxy isn't used
     if (argName.includes('url') && argValue.includes('prisma://')) {
-      console.error(forbiddenCmdWithDataProxyFlagMessage(command))
-      process.exit(1)
+      return forbiddenCmdWithDataProxyFlagMessage(command)
     }
 
     // for all the args that represent a schema path ensure data proxy isn't used
@@ -68,15 +67,16 @@ async function _checkUnsupportedDataProxy(command: string, args: Args, implicitS
       const urlEnvVarValue = urlEnvVarName ? process.env[urlEnvVarName] : undefined
 
       if ((urlFromValue ?? urlEnvVarValue)?.startsWith('prisma://')) {
-        console.error(forbiddenCmdWithDataProxyFlagMessage(command))
-        process.exit(1)
+        return forbiddenCmdWithDataProxyFlagMessage(command)
       }
     }
   }
+
+  return undefined
 }
 
 export async function checkUnsupportedDataProxy(command: string, args: Args, implicitSchema: boolean) {
-  try {
-    await _checkUnsupportedDataProxy(command, args, implicitSchema)
-  } catch {}
+  const message = await checkUnsupportedDataProxyMessage(command, args, implicitSchema).catch(() => undefined)
+
+  if (message) throw new Error(message)
 }
