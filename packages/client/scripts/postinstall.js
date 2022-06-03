@@ -197,7 +197,9 @@ function run(cmd, params, cwd = process.cwd()) {
 /**
  * Copies our default "throw" files into the default generation folder. These
  * files are dummy and informative because they just throw an error to let the
- * user know that they have forgotten to run `prisma generate`.
+ * user know that they have forgotten to run `prisma generate` or that they
+ * don't have a a schema file yet. We only add these files at the default
+ * location `node_modules/.prisma/client`.
  */
 async function createDefaultGeneratedThrowFiles() {
   try {
