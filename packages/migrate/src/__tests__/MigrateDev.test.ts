@@ -651,7 +651,7 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('existingdb: 1 unexecutable schema change with --create-only should succeed', async () => {
@@ -670,7 +670,7 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
   })
 
   it('existingdb: 1 warning from schema change (prompt yes)', async () => {
