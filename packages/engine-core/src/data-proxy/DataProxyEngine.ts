@@ -24,7 +24,7 @@ export class DataProxyEngine extends Engine {
   private inlineDatasources: any
   private config: EngineConfig
   private logEmitter: EventEmitter
-  private env: { [k: string]: string }
+  private env: { [k in string]?: string }
 
   private clientVersion: string
   private remoteClientVersion: string | Promise<string>
@@ -35,7 +35,7 @@ export class DataProxyEngine extends Engine {
     super()
 
     this.config = config
-    this.env = this.config.env ?? {}
+    this.env = { ...process.env, ...this.config.env }
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
