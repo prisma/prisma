@@ -47,7 +47,7 @@ declare global {
 }
 
 // used by esbuild for tree-shaking
-globalThis.NODE_CLIENT = true
+typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
