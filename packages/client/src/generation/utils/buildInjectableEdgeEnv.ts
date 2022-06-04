@@ -50,7 +50,7 @@ function declareInjectableEdgeEnv(datasources: InternalDatasource[]) {
       // for cloudflare workers, an env var is a global js variable
       const cfwEnv = `typeof global !== 'undefined' && global['${key}']`
       // for vercel edge functions, it's injected statically at build
-      const vercelEnv = `process.env['${key}']`
+      const vercelEnv = `process.env.${key}`
 
       return `${cfwEnv} || ${vercelEnv} || undefined`
     },

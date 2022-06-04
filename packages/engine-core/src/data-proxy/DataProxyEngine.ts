@@ -18,6 +18,9 @@ import { request } from './utils/request'
 
 const MAX_RETRIES = 10
 
+// to defer the execution of promises in the constructor
+const P = Promise.resolve()
+
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
   private inlineSchemaHash: string
@@ -35,7 +38,7 @@ export class DataProxyEngine extends Engine {
     super()
 
     this.config = config
-    this.env = { ...process.env, ...this.config.env }
+    this.env = { ...this.config.env, ...process.env }
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
@@ -45,7 +48,7 @@ export class DataProxyEngine extends Engine {
     this.logEmitter.on('error', () => {})
 
     const [host, apiKey] = this.extractHostAndApiKey()
-    this.remoteClientVersion = getClientVersion(this.config)
+    this.remoteClientVersion = P.then(() => getClientVersion(this.config))
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
   }
