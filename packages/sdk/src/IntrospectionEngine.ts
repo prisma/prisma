@@ -71,7 +71,7 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsRelationsReintro
   | IntrospectionWarningsMongoMultipleTypes
   | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
-  | IntrospectionWarningsMongoFieldsWithUnkownTypes
+  | IntrospectionWarningsMongoFieldsWithUnknownTypes
   | IntrospectionWarningsMongoFieldsWithEmptyNames
 
 type AffectedModel = { model: string }
@@ -204,7 +204,7 @@ interface IntrospectionWarningsMongoFieldsPointingToAnEmptyType extends Introspe
   code: 102
   affected: AffectedModelOrCompositeTypeAndField[]
 }
-interface IntrospectionWarningsMongoFieldsWithUnkownTypes extends IntrospectionWarning {
+interface IntrospectionWarningsMongoFieldsWithUnknownTypes extends IntrospectionWarning {
   code: 103
   affected: AffectedModelOrCompositeTypeAndField[]
 }
