@@ -201,6 +201,13 @@ export class DataProxyEngine extends Engine {
     const loadedEnvURL = this.env[mainDatasourceEnv]
     const dataProxyURL = mainDatasourceURL ?? loadedEnvURL
 
+    console.log(`[${process.env.VERCEL_DATA_PROXY_URL}]`)
+    console.log(this.inlineDatasources)
+    console.log(mainDatasourceName)
+    console.log(this.env)
+    console.log(this.config.env)
+    console.log(process.env)
+
     let url: URL
     try {
       url = new URL(dataProxyURL ?? '')
