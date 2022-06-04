@@ -123,17 +123,8 @@ export async function buildClient({
 
   // we only generate the edge client if `--data-proxy` is passed
   if (dataProxy === true) {
-    fileMap[path.join('edge', 'index.js')] = await JS(edgeTsClient, true)
-    fileMap[path.join('edge', 'package.json')] = JSON.stringify(
-      {
-        name: '.prisma/client/edge',
-        main: 'index.js',
-        types: '../index.d.ts',
-        browser: 'index.js',
-      },
-      null,
-      2,
-    )
+    fileMap[path.join('edge.js')] = await JS(edgeTsClient, true)
+    fileMap[path.join('edge.d.ts')] = await TS(edgeTsClient)
   }
 
   return {
@@ -223,11 +214,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
-
-  if (dataProxy === true) {
-    await makeDir(path.join(finalOutputDir, 'edge'))
-  }
-
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
   // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
