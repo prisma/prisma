@@ -6,6 +6,7 @@ import EventEmitter from 'events'
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -237,9 +238,12 @@ export class DataProxyEngine extends Engine {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the `dataProxy` from the `previewFeatures` in your schema and ensure that `PRISMA_CLIENT_ENGINE_TYPE` environment variable is not set to `dataproxy`.', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError(
+        'Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the `dataProxy` from the `previewFeatures` in your schema and ensure that `PRISMA_CLIENT_ENGINE_TYPE` environment variable is not set to `dataproxy`.',
+        {
+          clientVersion: this.clientVersion,
+        },
+      )
     }
 
     const apiKey = searchParams.get('api_key')
@@ -250,5 +254,13 @@ export class DataProxyEngine extends Engine {
     }
 
     return [host, apiKey]
+  }
+
+  metrics(options: MetricsOptionsJson): Promise<Metrics>
+  metrics(options: MetricsOptionsPrometheus): Promise<string>
+  metrics(options: EngineMetricsOptions): Promise<Metrics> | Promise<string> {
+    throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
+      clientVersion: this.clientVersion,
+    })
   }
 }

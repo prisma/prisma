@@ -19,12 +19,12 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
+    "@prisma/engines-version": "3.15.0-28.436b66b7726f12400ec41433029e49d8c97f72f2",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
-    "@types/jest": "27.5.0",
+    "@types/jest": "28.1.0",
     "@types/node": "12.20.51",
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
@@ -36,7 +36,7 @@
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "tempy": "1.0.1",
-    "typescript": "4.6.4"
+    "typescript": "4.7.2"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
+    "@prisma/get-platform": "3.15.0-28.436b66b7726f12400ec41433029e49d8c97f72f2",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
