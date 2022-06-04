@@ -5,6 +5,9 @@ import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
+const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+
 // we define the config for runtime
 const nodeRuntimeBuildConfig: BuildOptions = {
   name: 'runtime',
@@ -43,9 +46,12 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     fillPlugin({
-      // these would fail at runtime anyways
+      // we remove eval and Function for vercel
       eval: { define: 'undefined' },
-      Function: { define: 'undefined' },
+      Function: {
+        define: 'fn',
+        inject: functionPolyfillPath,
+      },
 
       // TODO no tree shaking on wrapper pkgs
       '@prisma/get-platform': { contents: '' },
