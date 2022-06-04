@@ -43,6 +43,10 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   },
   plugins: [
     fillPlugin({
+      // these would fail at runtime anyways
+      eval: { define: 'undefined' },
+      Function: { define: 'undefined' },
+
       // TODO no tree shaking on wrapper pkgs
       '@prisma/get-platform': { contents: '' },
       // removes un-needed code out of `chalk`
