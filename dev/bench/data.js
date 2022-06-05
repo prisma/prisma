@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1654381964767,
+  "lastUpdate": 1654439638346,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -103530,6 +103530,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.06,
             "range": "±8.52%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6ba097ff0da1e59300daf9b04c7c135f01751087",
+          "message": "ci: added support for additional cockroachdb tests (#13537)\n\n* ci: added support for additional cockroachdb tests\r\n\r\n* migrate: added new cockroachdb tests for db execute, migrate dev, migrate diff\r\n\r\n* migrate: fixed race env write in tests\r\n\r\n* migrate: removed empty snapshots\r\n\r\n* migrate: recovered non-empty test\r\n\r\n* migrate: fix ci",
+          "timestamp": "2022-06-05T16:28:42+02:00",
+          "tree_id": "4a04d6cb94da50930e8cab361fa1aff010584eff",
+          "url": "https://github.com/prisma/prisma/commit/6ba097ff0da1e59300daf9b04c7c135f01751087"
+        },
+        "date": 1654439631654,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.42,
+            "range": "±4.21%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.07,
+            "range": "±1.60%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
