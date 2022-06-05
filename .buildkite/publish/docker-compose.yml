@@ -21,7 +21,7 @@ services:
       - TEST_MYSQL_ISOLATED_URI=mysql://root:root@mysql_isolated:3306/tests
       # MariaDB
       - TEST_MARIADB_BASE_URI=mysql://root:root@mariadb:3306
-      - TEST_MARIADB_URI=mysql://root:roogt@mariadb:3306/tests
+      - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
       # SQL Server
       - TEST_MSSQL_URI=mssql://SA:Pr1sm4_Pr1sm4@mssql:1433/master
       - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
