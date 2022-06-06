@@ -10,6 +10,7 @@ import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
 
+import { Sql } from '../../../cli/prisma-client/runtime'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -670,8 +671,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @param values
      * @returns
      */
-    $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise((txId, lock, otelCtx) => {
+    $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql | Sql, ...values: any[]) {
+      return createPrismaPromise(async (txId, lock, otelCtx): Promise<unknown> => {
+        const isInstanceOfSQL = query.constructor.name === 'Sql'
+        if (isInstanceOfSQL && (query as Sql).sql === '') {
+          return null
+        }
+
         if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
           return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
         }
