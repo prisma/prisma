@@ -6,6 +6,7 @@ import EventEmitter from 'events'
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -253,5 +254,13 @@ export class DataProxyEngine extends Engine {
     }
 
     return [host, apiKey]
+  }
+
+  metrics(options: MetricsOptionsJson): Promise<Metrics>
+  metrics(options: MetricsOptionsPrometheus): Promise<string>
+  metrics(options: EngineMetricsOptions): Promise<Metrics> | Promise<string> {
+    throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
+      clientVersion: this.clientVersion,
+    })
   }
 }
