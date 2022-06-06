@@ -9,9 +9,11 @@ type InjectableEnv = {
 /**
  * Builds an injectable environment for the data proxy edge client. It's useful
  * because it is designed to run in browser-like environments where things like
- * `fs`, `process.env`, and .env file loading are not available. It is the place
- * where we make collect the env vars for the edge client. To understand this
- * better, take a look at the generated code in the edge client.
+ * `fs`, `process.env`, and .env file loading are not available. That means env
+ * vars are represented as a global variable or injected at build time. This is
+ * the glue code to make this work with our existing env var loading logic. It
+ * is the place where we make collect the env vars for the edge client. To
+ * understand this better, take a look at the generated code in the edge client.
  * @see {@link declareInjectableEdgeEnv}
  * @param edge
  * @param datasources
@@ -31,34 +33,25 @@ export function buildInjectableEdgeEnv(edge: boolean, datasources: InternalDatas
  * @param datasources to find env vars in
  */
 function declareInjectableEdgeEnv(datasources: InternalDatasource[]) {
+  // we create a base env with empty values for env names
+  const injectableEdgeEnv: InjectableEnv = { parsed: {} }
   const envVarNames = getSelectedEnvVarNames(datasources)
 
-  const injectableEdgeEnv: InjectableEnv = { parsed: {} }
-
-  // we create a base env with empty values for env names
   for (const envVarName of envVarNames) {
-    injectableEdgeEnv.parsed[envVarName] = undefined
+    // for cloudflare workers, an env var is a global js variable
+    const cfwEnv = `typeof global !== 'undefined' && global['${envVarName}']`
+    // for vercel edge functions, it's injected statically at build
+    const vercelEnv = `process.env.${envVarName}`
+
+    injectableEdgeEnv.parsed[envVarName] = `${cfwEnv} || ${vercelEnv} || undefined`
   }
 
-  // abuse a custom replacer to create the injectable env
-  const injectableEdgeEnvDeclaration = JSON.stringify(
-    injectableEdgeEnv,
-    (key, value) => {
-      if (key === '') return value
-      if (key === 'parsed') return value
-
-      // for cloudflare workers, an env var is a global js variable
-      const cfwEnv = `typeof global !== 'undefined' && global['${key}']`
-      // for vercel edge functions, it's injected statically at build
-      const vercelEnv = `process.env.${key}`
-
-      return `${cfwEnv} || ${vercelEnv} || undefined`
-    },
-    2,
-  ).replace(/"/g, '') // remove quotes to make code
+  // we make it json then remove the quotes to turn it into "code"
+  const injectableEdgeEnvJson = JSON.stringify(injectableEdgeEnv, null, 2)
+  const injectableEdgeEnvCode = injectableEdgeEnvJson.replace(/"/g, '')
 
   return `
-config.injectableEdgeEnv = ${injectableEdgeEnvDeclaration}`
+config.injectableEdgeEnv = ${injectableEdgeEnvCode}`
 }
 
 /**
