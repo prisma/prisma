@@ -14,6 +14,7 @@ import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPan
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
   QueryEngineBatchRequest,
@@ -613,6 +614,17 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
 
     return printGeneratorConfig(fixedGenerator)
+  }
+
+  async metrics(options: MetricsOptionsJson): Promise<Metrics>
+  async metrics(options: MetricsOptionsPrometheus): Promise<string>
+  async metrics(options: EngineMetricsOptions): Promise<Metrics | string> {
+    await this.start()
+    const responseString = await this.engine!.metrics(JSON.stringify(options))
+    if (options.format === 'prometheus') {
+      return responseString
+    }
+    return this.parseEngineResponse(responseString)
   }
 }
 
