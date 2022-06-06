@@ -61,7 +61,8 @@
     "edge.d.ts",
     "index.js",
     "index.d.ts",
-    "index-browser.js"
+    "index-browser.js",
+    "dist"
   ],
   "devDependencies": {
     "@jest/test-sequencer": "28.1.0",
