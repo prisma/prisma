@@ -133,7 +133,10 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
   }
-  public toTS(): string {
+  public toTS(edge = false): string {
+    // edge exports the same ts definitions as the index
+    if (edge === true) return `export * from './index'`
+
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
       this.options.datasources,
