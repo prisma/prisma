@@ -1,36 +1,34 @@
-// @ts-check
-const childProcess = require('child_process')
-const { promisify } = require('util')
-const fs = require('fs')
-const path = require('path')
-const c = require('./colors')
+import Debug from '@prisma/debug'
+import chalk from 'chalk'
+import childProcess from 'child_process'
+import fs from 'fs'
+import path from 'path'
+import { promisify } from 'util'
+
+import { defaultBrowserIndex } from '../generation/defaults/defaultBrowserIndex'
+import { defaultEdgeIndex } from '../generation/defaults/defaultEdgeIndex'
+import { defaultIndexDts } from '../generation/defaults/defaultIndexDts'
+import { defaultNodeIndex } from '../generation/defaults/defaultNodeIndex'
 
 const exec = promisify(childProcess.exec)
-const copyFile = promisify(fs.copyFile)
+const writeFile = promisify(fs.writeFile)
 const mkdir = promisify(fs.mkdir)
 const stat = promisify(fs.stat)
+const debug = Debug('prisma:postinstall')
 
-function debug(message, ...optionalParams) {
-  if (process.env.DEBUG && process.env.DEBUG === 'prisma:postinstall') {
-    console.log(message, ...optionalParams)
-  }
-}
 /**
- * Adds `package.json` to the end of a path if it doesn't already exist'
- * @param {string} pth
+ * Adds `package.json` to the end of a path if it doesn't already exist'.
  */
-function addPackageJSON(pth) {
+function addPackageJSON(pth: string) {
   if (pth.endsWith('package.json')) return pth
   return path.join(pth, 'package.json')
 }
 
 /**
- * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and returns the directory of the package
- * @param {string} startPath - Path to Start At
- * @param {number} limit - Find Up limit
- * @returns {string | null}
+ * Looks up for a `package.json` which is not `@prisma/cli` or `prisma` and
+ * returns the directory of the package.
  */
-function findPackageRoot(startPath, limit = 10) {
+function findPackageRoot(startPath: string | null, limit = 10) {
   if (!startPath || !fs.existsSync(startPath)) return null
   let currentPath = startPath
   // Limit traversal
@@ -105,7 +103,7 @@ async function main() {
 
   if (!localPath && !installedGlobally) {
     console.error(
-      `${c.yellow(
+      `${chalk.yellow(
         'warning',
       )} In order to use "@prisma/client", please install Prisma CLI. You can install it with "npm add -D prisma".`,
     )
@@ -137,12 +135,16 @@ async function isInstalledGlobally() {
     if (result.stdout.includes('@prisma/client')) {
       return true
     } else {
-      console.error(`${c.yellow('warning')} You still have the ${c.bold('prisma')} cli (Prisma 1) installed globally.
-Please uninstall it with either ${c.green('npm remove -g prisma')} or ${c.green('yarn global remove prisma')}.`)
+      console.error(`${chalk.yellow('warning')} You still have the ${chalk.bold(
+        'prisma',
+      )} cli (Prisma 1) installed globally.
+Please uninstall it with either ${chalk.green('npm remove -g prisma')} or ${chalk.green('yarn global remove prisma')}.`)
     }
   } catch (e) {
     return false
   }
+
+  return undefined
 }
 
 if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
@@ -151,12 +153,14 @@ if (!process.env.PRISMA_SKIP_POSTINSTALL_GENERATE) {
       if (e.stderr) {
         if (e.stderr.includes(`Can't find schema.prisma`)) {
           console.error(
-            `${c.yellow('warning')} @prisma/client needs a ${c.bold('schema.prisma')} to function, but couldn't find it.
-        Please either create one manually or use ${c.bold('prisma init')}.
-        Once you created it, run ${c.bold('prisma generate')}.
-        To keep Prisma related things separate, we recommend creating it in a subfolder called ${c.underline(
+            `${chalk.yellow('warning')} @prisma/client needs a ${chalk.bold(
+              'schema.prisma',
+            )} to function, but couldn't find it.
+        Please either create one manually or use ${chalk.bold('prisma init')}.
+        Once you created it, run ${chalk.bold('prisma generate')}.
+        To keep Prisma related things separate, we recommend creating it in a subfolder called ${chalk.underline(
           './prisma',
-        )} like so: ${c.underline('./prisma/schema.prisma')}\n`,
+        )} like so: ${chalk.underline('./prisma/schema.prisma')}\n`,
           )
         } else {
           console.error(e.stderr)
@@ -179,11 +183,11 @@ function run(cmd, params, cwd = process.cwd()) {
 
   return new Promise((resolve, reject) => {
     child.on('close', () => {
-      resolve()
+      resolve(undefined)
     })
     child.on('exit', (code) => {
       if (code === 0) {
-        resolve()
+        resolve(undefined)
       } else {
         reject(code)
       }
@@ -212,23 +216,23 @@ async function createDefaultGeneratedThrowFiles() {
     await makeDir(dotPrismaClientDir)
 
     if (!fs.existsSync(defaultNodeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
+      await writeFile(defaultNodeIndexPath, defaultNodeIndex)
     }
 
     if (!fs.existsSync(defaultBrowserIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+      await writeFile(defaultBrowserIndexPath, defaultBrowserIndex)
     }
 
     if (!fs.existsSync(defaultNodeIndexDtsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
+      await writeFile(defaultNodeIndexDtsPath, defaultIndexDts)
     }
 
     if (!fs.existsSync(defaultEdgeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
+      await writeFile(defaultEdgeIndexPath, defaultEdgeIndex)
     }
 
     if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
+      await writeFile(defaultEdgeIndexDtsPath, defaultIndexDts)
     }
   } catch (e) {
     console.error(e)
@@ -236,7 +240,7 @@ async function createDefaultGeneratedThrowFiles() {
 }
 
 // TODO: can this be replaced some utility eg. mkdir
-function makeDir(input) {
+function makeDir(input: string) {
   const make = async (pth) => {
     try {
       await mkdir(pth)
@@ -284,7 +288,7 @@ function makeDir(input) {
  * This information is just necessary for telemetry.
  * This get's passed in to Generate, which then automatically get's propagated to telemetry.
  */
-function getPostInstallTrigger() {
+export function getPostInstallTrigger() {
   /*
   npm_config_argv` is not officially documented so here are our research notes 
 
@@ -345,7 +349,7 @@ function getPostInstallTrigger() {
 /**
  * Wrap double quotes around the given string.
  */
-function doubleQuote(x) {
+function doubleQuote(x: string) {
   return `"${x}"`
 }
 
@@ -366,8 +370,8 @@ function getPackageManagerName() {
 /**
  * Parse package manager name from useragent. If parsing fails, `null` is returned.
  */
-function parsePackageManagerName(userAgent) {
-  let packageManager = null
+function parsePackageManagerName(userAgent?: string) {
+  let packageManager: string | null = null
 
   // example: 'yarn/1.22.4 npm/? node/v13.11.0 darwin x64'
   // References:
@@ -383,16 +387,7 @@ function parsePackageManagerName(userAgent) {
   return packageManager
 }
 
-// prettier-ignore
-const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
-// prettier-ignore
-const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
-// prettier-ignore
-const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'
-
-// expose for testing
-
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR
-exports.UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR = UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR
-exports.getPostInstallTrigger = getPostInstallTrigger
+export const UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER__ENVAR_MISSING'
+export const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR = 'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_PARSE_ERROR'
+export const UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR =
+  'UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR'

@@ -13,6 +13,7 @@ generated-dmmf.ts
 packages/client/generator-build/
 packages/client/declaration/
 packages/client/runtime/
+packages/client/scripts/
 packages/client/src/__tests__/types/
 
 # cli
