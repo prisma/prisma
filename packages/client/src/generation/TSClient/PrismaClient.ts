@@ -4,6 +4,7 @@ import indent from 'indent-string'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
@@ -98,6 +99,26 @@ function executeRawDefinition(this: PrismaClientClass) {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;`
+}
+
+function metricDefinition(this: PrismaClientClass) {
+  if (!this.generator?.previewFeatures.includes('metrics')) {
+    return ''
+  }
+
+  return `
+  /**
+   * Gives access to the client metrics in json or prometheus format.
+   * 
+   * @example
+   * \`\`\`
+   * const metrics = await prisma.$metrics.json()
+   * // or
+   * const metrics = await prisma.$metrics.prometheus()
+   * \`\`\`
+   */
+  readonly $metrics: runtime.${runtimeImport('MetricsClient')};
+  `
 }
 
 function runCommandRawDefinition(this: PrismaClientClass) {
@@ -213,6 +234,7 @@ ${[
   batchingTransactionDefinition.bind(this)(),
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
+  metricDefinition.bind(this)(),
 ]
   .join('\n')
   .trim()}
