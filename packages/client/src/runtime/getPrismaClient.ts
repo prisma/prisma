@@ -12,6 +12,7 @@ import * as sqlTemplateTag from 'sql-template-tag'
 
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
+import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type { PrismaPromise } from './core/request/PrismaPromise'
@@ -285,6 +286,7 @@ export interface Client {
   _engineConfig: EngineConfig
   _clientVersion: string
   _errorFormat: ErrorFormat
+  readonly $metrics: MetricsClient
   $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>)
   $on(eventType: EngineEventType, callback: (event: any) => void)
   $connect()
@@ -308,6 +310,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientVersion: string
     _errorFormat: ErrorFormat
     _clientEngineType: ClientEngineType
+    private _metrics: MetricsClient
     private _hooks?: Hooks //
     private _getConfigPromise?: Promise<{
       datasources: DataSource[]
@@ -438,6 +441,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             }
           }
         }
+
+        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -1121,6 +1126,15 @@ new PrismaClient({
         transactionId,
         unpacker,
       })
+    }
+
+    get $metrics(): MetricsClient {
+      if (!this._hasPreviewFlag('metrics')) {
+        throw new PrismaClientValidationError(
+          '`metrics` preview feature must be enabled in order to access metrics API',
+        )
+      }
+      return this._metrics
     }
 
     /**

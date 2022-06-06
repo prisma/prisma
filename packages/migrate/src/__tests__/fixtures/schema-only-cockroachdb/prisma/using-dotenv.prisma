@@ -1,6 +1,6 @@
-datasource db {
+datasource my_db {
   provider = "cockroachdb"
-  url      = env("TEST_COCKROACH_URI_MIGRATE")
+  url      = env("FROM_DOTENV_FILE_COCKROACH")
 }
 
 model Blog {
