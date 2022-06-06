@@ -124,7 +124,7 @@ export async function buildClient({
   // we only generate the edge client if `--data-proxy` is passed
   if (dataProxy === true) {
     fileMap[path.join('edge.js')] = await JS(edgeTsClient, true)
-    fileMap[path.join('edge.d.ts')] = await TS(edgeTsClient)
+    fileMap[path.join('edge.d.ts')] = await TS(edgeTsClient, true)
   }
 
   return {
