@@ -73,6 +73,14 @@ const generatorBuildConfig: BuildOptions = {
   bundle: true,
 }
 
+// we define the config for postinstall
+const postinstallBuildConfig: BuildOptions = {
+  name: 'postinstall',
+  entryPoints: ['src/scripts/postinstall.ts'],
+  outfile: 'scripts/postinstall',
+  bundle: true,
+}
+
 /**
  * Bundle all type definitions by using the API Extractor from RushStack
  * @param filename the source d.ts to bundle
@@ -125,7 +133,13 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
   }
 }
 
-void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
+void build([
+  generatorBuildConfig,
+  nodeRuntimeBuildConfig,
+  browserBuildConfig,
+  edgeRuntimeBuildConfig,
+  postinstallBuildConfig,
+]).then(() => {
   if (process.env.DEV !== 'true') {
     bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/index')
     bundleTypeDefinitions('declaration/client/src/runtime/index-browser', 'runtime/index-browser')

@@ -13,6 +13,8 @@ import { promisify } from 'util'
 
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import type { Dictionary } from '../runtime/utils/common'
+import { defaultEdgeIndex } from './defaults/defaultEdgeIndex'
+import { defaultIndexDts } from './defaults/defaultIndexDts'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 
@@ -110,6 +112,8 @@ export async function buildClient({
   fileMap['index.js'] = await JS(nodeTsClient, false)
   fileMap['index.d.ts'] = await TS(nodeTsClient)
   fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
+  fileMap['edge.js'] = defaultEdgeIndex
+  fileMap['edge.d.ts'] = defaultIndexDts
   fileMap['package.json'] = JSON.stringify(
     {
       name: '.prisma/client',
@@ -212,6 +216,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
+  await deleteOutputDir(finalOutputDir)
   await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
@@ -438,4 +443,17 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
     finalOutputDir,
     projectRoot,
   }
+}
+
+/**
+ * Attempts to delete the output directory.
+ * @param finalOutputDir
+ */
+async function deleteOutputDir(finalOutputDir: string) {
+  try {
+    // we want to make sure that if we delete, we delete the right directory
+    if (require(`${finalOutputDir}/package.json`).name === '.prisma/client') {
+      await fs.promises.rmdir(finalOutputDir, { recursive: true })
+    }
+  } catch {}
 }

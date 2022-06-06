@@ -1,13 +1,13 @@
+import { files as clientPkgFiles } from '@prisma/client/package.json'
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
-import { copy } from 'fs-extra'
+import { copy, pathExists } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
 import { promisify } from 'util'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
-import { run } from '../../../helpers/compile/run'
 
 const copyFile = promisify(fs.copyFile)
 
@@ -20,10 +20,8 @@ const cliLifecyclePlugin: esbuild.Plugin = {
     // we only do this for the first one of the builds
     if (build.initialOptions?.format === 'esm') return
 
-    build.onStart(async () => {
-      // provide a copy of the client for studio to work
-      await run('node -r esbuild-register ./helpers/copy-prisma-client.ts')
-    })
+    // provide a copy of the client for studio to work
+    build.onStart(copyPrismaClient)
 
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
@@ -97,4 +95,22 @@ function replaceFirstLine(filename: string, line: string) {
       callback: resolve,
     })
   })
+}
+
+async function copyPrismaClient() {
+  // that's where we want to copy the local client for @prisma/studio
+  const clientCopyPath = path.join(__dirname, '..', 'prisma-client')
+  const clientPath = path.dirname(require.resolve('@prisma/client'))
+
+  // we compute the paths of the files that would get npm published
+  const clientFiles = clientPkgFiles.map((file) => path.join(clientPath, file))
+
+  // we copy each file that we found in pkg to a new destination
+  for (const file of clientFiles) {
+    const dest = path.join(clientCopyPath, path.basename(file))
+
+    if ((await pathExists(file)) === true) {
+      await copy(file, dest, { recursive: true, overwrite: true })
+    }
+  }
 }
