@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
       } catch (error) {
         expect(error.constructor.name).toEqual('PrismaClientInitializationError')
       } finally {
-        await prisma.$disconnect()
+        prisma.$disconnect().catch(() => undefined)
       }
     })
   },
