@@ -32,6 +32,8 @@ services:
       - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongodb_migrate:27017/tests-migrate?authSource=admin
       # CockroachDB
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/tests
+      - TEST_COCKROACH_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate
+      - TEST_COCKROACH_SHADOWDB_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate-shadowdb
       # Other vars
       - BUILDKITE
       - BUILDKITE_PARALLEL_JOB
@@ -75,7 +77,7 @@ services:
       - '5435:5432'
 
   cockroachdb:
-    image: prismagraphql/cockroachdb-custom:22.1.0-beta.5
+    image: prismagraphql/cockroachdb-custom:22.1.0
     restart: always
     command: start-single-node --insecure
     ports:

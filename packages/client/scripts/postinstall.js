@@ -220,7 +220,8 @@ async function ensureEmptyDotPrisma() {
   }
 }
 
-async function makeDir(input) {
+// TODO: can this be replaced some utility eg. mkdir
+function makeDir(input) {
   const make = async (pth) => {
     try {
       await mkdir(pth)
@@ -310,18 +311,18 @@ function getPostInstallTrigger() {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original_arr = npm_config_argv.original
+  const npm_config_argv_original_arr = npm_config_argv.original
 
-  if (!Array.isArray(npm_config_arv_original_arr)) {
+  if (!Array.isArray(npm_config_argv_original_arr)) {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original = npm_config_arv_original_arr.filter((arg) => arg !== '').join(' ')
+  const npm_config_argv_original = npm_config_argv_original_arr.filter((arg) => arg !== '').join(' ')
 
   const command =
-    npm_config_arv_original === ''
+    npm_config_argv_original === ''
       ? getPackageManagerName()
-      : [getPackageManagerName(), npm_config_arv_original].join(' ')
+      : [getPackageManagerName(), npm_config_argv_original].join(' ')
 
   return command
 }
