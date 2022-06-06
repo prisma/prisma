@@ -9,14 +9,14 @@ testMatrix.setupTestSuite(
   (suiteConfig) => {
     test('Buffer ($queryRaw)', async () => {
       if (suiteConfig['provider'] === 'mysql') {
-        await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES (1, ${Buffer.from('hello')})`
+        await prisma.$queryRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('1', ${Buffer.from('hello')})`
       } else {
-        await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES (1, ${Buffer.from('hello')})`
+        await prisma.$queryRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('1', ${Buffer.from('hello')})`
       }
 
       const record = await prisma.entry.findUnique({
         where: {
-          id: 1,
+          id: '1',
         },
       })
 
@@ -25,14 +25,14 @@ testMatrix.setupTestSuite(
 
     test('Buffer ($executeRaw)', async () => {
       if (suiteConfig['provider'] === 'mysql') {
-        await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES (2, ${Buffer.from('hello')})`
+        await prisma.$executeRaw`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('2', ${Buffer.from('hello')})`
       } else {
-        await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES (2, ${Buffer.from('hello')})`
+        await prisma.$executeRaw`INSERT INTO "Entry" ("id", "binary") VALUES ('2', ${Buffer.from('hello')})`
       }
 
       const record = await prisma.entry.findUnique({
         where: {
-          id: 2,
+          id: '2',
         },
       })
 
@@ -42,15 +42,15 @@ testMatrix.setupTestSuite(
     test('Buffer ($queryRaw + Prisma.sql)', async () => {
       if (suiteConfig['provider'] === 'mysql') {
         await prisma.$queryRaw(
-          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES (3, ${Buffer.from('hello')})`,
+          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('3', ${Buffer.from('hello')})`,
         )
       } else {
-        await prisma.$queryRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES (3, ${Buffer.from('hello')})`)
+        await prisma.$queryRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('3', ${Buffer.from('hello')})`)
       }
 
       const record = await prisma.entry.findUnique({
         where: {
-          id: 3,
+          id: '3',
         },
       })
 
@@ -60,15 +60,15 @@ testMatrix.setupTestSuite(
     test('Buffer ($executeRaw + Prisma.sql)', async () => {
       if (suiteConfig['provider'] === 'mysql') {
         await prisma.$executeRaw(
-          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES (4, ${Buffer.from('hello')})`,
+          Prisma.sql`INSERT INTO \`Entry\` (\`id\`, \`binary\`) VALUES ('4', ${Buffer.from('hello')})`,
         )
       } else {
-        await prisma.$executeRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES (4, ${Buffer.from('hello')})`)
+        await prisma.$executeRaw(Prisma.sql`INSERT INTO "Entry" ("id", "binary") VALUES ('4', ${Buffer.from('hello')})`)
       }
 
       const record = await prisma.entry.findUnique({
         where: {
-          id: 4,
+          id: '4',
         },
       })
 
@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'cockroachdb'],
+      from: ['mongodb'],
       reason: '$queryRaw only works on SQL based providers',
     },
   },

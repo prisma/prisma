@@ -1,3 +1,5 @@
+import { idForProvider } from '../../_utils/idForProvider'
+
 export default ({ provider, previewFeatures }) => {
   return /* Prisma */ `
   generator client {
@@ -11,7 +13,7 @@ export default ({ provider, previewFeatures }) => {
   }
   
   model Entry {
-    id     Int @id @default(autoincrement())
+    id     ${idForProvider(provider)}
     binary Bytes
   }
   `
