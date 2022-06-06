@@ -2,7 +2,6 @@
 /declaration
 /generator-build
 /runtime
-/scripts
 
 pnpm-lock.yaml
 *.tsbuildinfo

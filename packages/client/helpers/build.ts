@@ -77,7 +77,7 @@ const generatorBuildConfig: BuildOptions = {
 const postinstallBuildConfig: BuildOptions = {
   name: 'postinstall',
   entryPoints: ['src/scripts/postinstall.ts'],
-  outfile: 'scripts/postinstall',
+  outfile: 'dist/scripts/postinstall',
   bundle: true,
 }
 
