@@ -1,7 +1,7 @@
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { setupTestSuiteMatrix, TestSuiteMeta } from './setupTestSuiteMatrix'
+import { MatrixOptions, setupTestSuiteMatrix, TestSuiteMeta } from './setupTestSuiteMatrix'
 
 type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT[number][number]>
 
@@ -15,8 +15,10 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
    * @param tests tests factory function. Receives all matrix parameters, used for this suite as a moment
    * and generic suite metadata as an arguments
    */
-  setupTestSuite(tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta) => void): void
-
+  setupTestSuite(
+    tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta) => void,
+    options?: MatrixOptions,
+  ): void
   /**
    * Function for defining test schema. Must be used in your `prisma/_schema.ts`. Return value
    * of this function should be used as a default export of that module.
