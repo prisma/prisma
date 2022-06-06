@@ -1,16 +1,9 @@
+import { checkMissingProviders, MatrixOptions } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
-import { Providers } from './providers'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
-
-export type MatrixOptions = {
-  optOut: {
-    from: `${Providers}`[]
-    reason: string
-  }
-}
 
 /**
  * How does this work from a high level? What steps?
@@ -52,30 +45,11 @@ function setupTestSuiteMatrix(
   const suiteConfig = getTestSuiteConfigs(suiteMeta)
   const suiteTable = getTestSuiteTable(suiteMeta, suiteConfig)
   const forceInlineSnapshot = process.argv.includes('-u')
-  const suiteConfigProviders = suiteConfig.map(({ provider }) => provider)
-
-  const missingProviders = Object.values(Providers)
-    .map((p) => {
-      const isIncluded = suiteConfigProviders.includes(p.toString())
-
-      if (isIncluded) {
-        return false
-      }
-
-      const isOptOut = (options?.optOut?.from || []).includes(p.toString() as Providers)
-
-      return !isOptOut ? p.toString() : false
-    })
-    .filter(Boolean)
-
-  if (missingProviders.length) {
-    throw new Error(
-      `Test: '${suiteMeta.testDirName}' is missing providers '${missingProviders
-        .map((x) => `'${x}'`)
-        .join(', ')}' out out using options.optOut`,
-    )
-  }
-
+  checkMissingProviders({
+    suiteConfig,
+    suiteMeta,
+    options,
+  })
   ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
     const [suiteName, suiteConfig] = suiteEntry
 
