@@ -1,5 +1,6 @@
-import testMatrix from './_matrix'
 import { expectTypeOf } from 'expect-type'
+
+import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient

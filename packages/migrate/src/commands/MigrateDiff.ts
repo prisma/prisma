@@ -1,6 +1,15 @@
 import Debug from '@prisma/debug'
-import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, link, loadEnvFile, logger } from '@prisma/sdk'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  HelpError,
+  isError,
+  link,
+  loadEnvFile,
+  logger,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 
@@ -143,6 +152,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('migrate diff', args, false)
 
     if (args['--help']) {
       return this.help()
