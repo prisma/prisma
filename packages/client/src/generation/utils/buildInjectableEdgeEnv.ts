@@ -1,6 +1,6 @@
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 
-type LoadedEnv = {
+type InjectableEnv = {
   parsed: {
     [x: string]: string | undefined
   }
@@ -9,8 +9,11 @@ type LoadedEnv = {
 /**
  * Builds an injectable environment for the data proxy edge client. It's useful
  * because it is designed to run in browser-like environments where things like
- * `fs`, `process.env`, and .env file loading are not available. The injectable
- * env is the default fallback when `tryLoadEnvs` wasn't called by the client.
+ * `fs`, `process.env`, and .env file loading are not available. That means env
+ * vars are represented as a global variable or injected at build time. This is
+ * the glue code to make this work with our existing env var loading logic. It
+ * is the place where we make collect the env vars for the edge client. To
+ * understand this better, take a look at the generated code in the edge client.
  * @see {@link declareInjectableEdgeEnv}
  * @param edge
  * @param datasources
@@ -18,13 +21,37 @@ type LoadedEnv = {
  */
 export function buildInjectableEdgeEnv(edge: boolean, datasources: InternalDatasource[]) {
   if (edge === true) {
-    const envVarNames = getSelectedEnvVarNames(datasources)
-    const loadedEnv = getEmptyEnvObjectForVars(envVarNames)
-
-    return declareInjectableEdgeEnv(loadedEnv)
+    return declareInjectableEdgeEnv(datasources)
   }
 
   return ``
+}
+
+/**
+ * Creates the necessary declarations to embed env vars directly inside of the
+ * generated client. We abuse a custom `JSON.stringify` to generate the code.
+ * @param datasources to find env vars in
+ */
+function declareInjectableEdgeEnv(datasources: InternalDatasource[]) {
+  // we create a base env with empty values for env names
+  const injectableEdgeEnv: InjectableEnv = { parsed: {} }
+  const envVarNames = getSelectedEnvVarNames(datasources)
+
+  for (const envVarName of envVarNames) {
+    // for cloudflare workers, an env var is a global js variable
+    const cfwEnv = `typeof global !== 'undefined' && global['${envVarName}']`
+    // for vercel edge functions, it's injected statically at build
+    const vercelEnv = `process.env.${envVarName}`
+
+    injectableEdgeEnv.parsed[envVarName] = `${cfwEnv} || ${vercelEnv} || undefined`
+  }
+
+  // we make it json then remove the quotes to turn it into "code"
+  const injectableEdgeEnvJson = JSON.stringify(injectableEdgeEnv, null, 2)
+  const injectableEdgeEnvCode = injectableEdgeEnvJson.replace(/"/g, '')
+
+  return `
+config.injectableEdgeEnv = ${injectableEdgeEnvCode}`
 }
 
 /**
@@ -41,58 +68,4 @@ function getSelectedEnvVarNames(datasources: InternalDatasource[]) {
 
     return acc
   }, [] as string[])
-}
-
-/**
- * Like `tryLoadEnvs` but we only retain a subset of the env vars that will be
- * used in the case of the data proxy client. And we discard the `message` prop.
- * @param envVarNames to be selected from the load
- * @returns
- */
-function getEmptyEnvObjectForVars(envVarNames: string[]) {
-  const selectedEnv: LoadedEnv = { parsed: {} }
-
-  for (const envVarName of envVarNames) {
-    /** note that we willingly keep `undefined` values because
-     * we need that later in {@link declareInjectableEdgeEnv} **/
-    selectedEnv.parsed[envVarName] = undefined
-  }
-
-  return selectedEnv
-}
-
-/**
- * Creates the necessary declarations to embed env vars directly inside of the
- * generated client. We abuse a custom `JSON.stringify` replacer to transform
- * {@link loadedEnv} into a piece of code. The goal of this is to take that and
- * generate a new object which re-prioritizes the loading of the environment.
- *
- * By generating an output with `${key} || process.env.${key} || '${value}'` it
- * would yield something like `DB_URL || process.env.DB_URL || undefined`:
- * - For Cloudflare Workers `DB_URL` will be the first to be found (runtime)
- *   - `process.env.DB_URL` will be undefined
- * - For Vercel `process.env.DB_URL` is replaced by webpack by a value
- *   - `DB_URL` will be undefined at anytime
- * - If none of them were provided, we fallback to the default `undefined`
- * @param loadedEnv
- */
-function declareInjectableEdgeEnv(loadedEnv: LoadedEnv) {
-  // abuse a custom replacer to create the injectable env
-  const injectableEdgeEnvDeclaration = JSON.stringify(
-    loadedEnv,
-    (key, value) => {
-      if (key === '') return value
-      if (key === 'parsed') return value
-
-      const cfwEnv = `typeof global !== 'undefined' && global['${key}']`
-      const vercelEnv = `process.env['${key}']`
-      const dotEnv = value ? `'${value}'` : 'undefined'
-
-      return `${cfwEnv} || ${vercelEnv} || ${dotEnv}`
-    },
-    2,
-  ).replace(/"/g, '') // remove quotes to make code
-
-  return `
-config.injectableEdgeEnv = ${injectableEdgeEnvDeclaration}`
 }

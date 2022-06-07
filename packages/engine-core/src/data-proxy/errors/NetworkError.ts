@@ -2,13 +2,13 @@ import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
 import { setRetryable } from './utils/setRetryable'
 
-export interface NetworkErrorInfo extends DataProxyErrorInfo {}
+export interface RequestErrorInfo extends DataProxyErrorInfo {}
 
-export class NetworkError extends DataProxyError {
-  public name = 'NetworkError'
+export class RequestError extends DataProxyError {
+  public name = 'RequestError'
   public code = 'P5010'
 
-  constructor(info: NetworkErrorInfo) {
-    super('Cannot fetch data from service', setRetryable(info, true))
+  constructor(message: string, info: RequestErrorInfo) {
+    super(`Cannot fetch data from service:\n${message}`, setRetryable(info, true))
   }
 }
