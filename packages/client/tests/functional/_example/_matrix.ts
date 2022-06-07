@@ -19,7 +19,7 @@ export default defineMatrix(() => [
     },
     {
       provider: 'cockroachdb',
-      id: 'Int @id @default(sequence())',
+      id: 'BigInt @id @default(autoincrement())',
       providerFeatures: '',
     },
     {

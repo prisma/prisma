@@ -1,14 +1,33 @@
-const sqlId = 'String @id @default(uuid())'
-const cockroachId = 'String @id @default(cuid())'
-const mongoDbId = 'String @id @default(auto()) @map("_id") @db.ObjectId'
+export interface Options {
+  includeDefault: boolean
+}
 
-export function idForProvider(provider: string): string {
+export function idForProvider(provider: string, options: Options = { includeDefault: true }): string {
+  const strs = ['String @id']
+
   switch (provider) {
-    case 'cockroachdb':
-      return cockroachId
     case 'mongodb':
-      return mongoDbId
+      if (options.includeDefault) {
+        strs.push('@default(auto())')
+      }
+
+      strs.push('@map("_id") @db.ObjectId')
+
+      break
+    case 'cockroachdb':
+      if (options.includeDefault) {
+        strs.push('@default(cuid())')
+      }
+
+      break
+
     default:
-      return sqlId
+      if (options.includeDefault) {
+        strs.push('@default(uuid())')
+      }
+
+      break
   }
+
+  return strs.join(' ')
 }
