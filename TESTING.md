@@ -119,7 +119,7 @@ In case you want to test the actually generated client, have a look at the `inte
 ## How to trigger artificial panics
 
 Sometimes it may be useful to trigger a panic in the Rust binaries or libraries used by Prisma under the hood.
-Most of the Rust artifacts are shipped as binaries, whereas others (like `query-engine`) are shipped both as a library (by default) and as a binary (on demand).
+Most of the Rust artifacts are shipped as binaries, whereas `query-engine` is shipped both as a library (by default) and as a binary (on demand).
 To change the default Rust artifacts' type used under the hood, you can set the `PRISMA_CLI_QUERY_ENGINE_TYPE` environment variable to either `library` or `binary`.
 
 ### Setup
