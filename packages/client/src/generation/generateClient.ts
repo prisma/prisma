@@ -123,17 +123,8 @@ export async function buildClient({
 
   // we only generate the edge client if `--data-proxy` is passed
   if (dataProxy === true) {
-    fileMap[path.join('edge', 'index.js')] = await JS(edgeTsClient, true)
-    fileMap[path.join('edge', 'package.json')] = JSON.stringify(
-      {
-        name: '.prisma/client/edge',
-        main: 'index.js',
-        types: '../index.d.ts',
-        browser: '../index-browser.js',
-      },
-      null,
-      2,
-    )
+    fileMap['edge.js'] = await JS(edgeTsClient, true)
+    fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
   }
 
   return {
@@ -222,7 +213,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   await makeDir(finalOutputDir)
-  await makeDir(path.join(finalOutputDir, 'edge'))
   await makeDir(path.join(outputDir, 'runtime'))
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
@@ -435,7 +425,7 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
   const _runtimeDirs = {
     // if we have an override, we use it, but if not then use the defaults
     node: runtimeDirs?.node || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
-    edge: runtimeDirs?.edge || (useDefaultOutdir ? '@prisma/client/runtime' : '../runtime'),
+    edge: runtimeDirs?.edge || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
   }
 
   const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir

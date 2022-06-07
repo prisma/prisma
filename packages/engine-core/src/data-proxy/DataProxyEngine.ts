@@ -18,16 +18,19 @@ import { request } from './utils/request'
 
 const MAX_RETRIES = 10
 
+// to defer the execution of promises in the constructor
+const P = Promise.resolve()
+
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
   private inlineSchemaHash: string
   private inlineDatasources: any
   private config: EngineConfig
   private logEmitter: EventEmitter
-  private env: { [k: string]: string }
+  private env: { [k in string]?: string }
 
   private clientVersion: string
-  private remoteClientVersion: string
+  private remoteClientVersion: Promise<string>
   private headers: { Authorization: string }
   private host: string
 
@@ -35,7 +38,7 @@ export class DataProxyEngine extends Engine {
     super()
 
     this.config = config
-    this.env = this.config.env ?? {}
+    this.env = { ...this.config.env, ...process.env }
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
@@ -45,7 +48,7 @@ export class DataProxyEngine extends Engine {
     this.logEmitter.on('error', () => {})
 
     const [host, apiKey] = this.extractHostAndApiKey()
-    this.remoteClientVersion = getClientVersion(this.config)
+    this.remoteClientVersion = P.then(() => getClientVersion(this.config))
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
   }
@@ -69,8 +72,8 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  private url(s: string) {
-    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
+  private async url(s: string) {
+    return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
   // TODO: looks like activeProvider is the only thing
@@ -86,7 +89,7 @@ export class DataProxyEngine extends Engine {
   }
 
   private async uploadSchema() {
-    const response = await request(this.url('schema'), {
+    const response = await request(await this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
       body: this.inlineSchema,
@@ -129,10 +132,10 @@ export class DataProxyEngine extends Engine {
   private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
     try {
       this.logEmitter.emit('info', {
-        message: `Calling ${this.url('graphql')} (n=${attempt})`,
+        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
       })
 
-      const response = await request(this.url('graphql'), {
+      const response = await request(await this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
