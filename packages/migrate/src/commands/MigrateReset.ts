@@ -166,6 +166,10 @@ The following migration(s) have been applied:\n\n${chalk(
         const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
         if (successfulSeeding) {
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
+        } else {
+          process.exit(1)
+          // For snapshot test, because exit() is mocked
+          return ``
         }
       } else {
         // Only used to help users to set up their seeds from old way to new package.json config
