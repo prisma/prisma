@@ -76,6 +76,7 @@ export type BinaryPaths = {
   prismaFmt?: { [binaryTarget: string]: string }
 }
 
+/** The options passed to the generator implementations */
 export type GeneratorOptions = {
   generator: GeneratorConfig
   // TODO: what is otherGenerators for?
@@ -88,6 +89,7 @@ export type GeneratorOptions = {
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
   binaryPaths?: BinaryPaths
+  dataProxy: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'

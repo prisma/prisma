@@ -5,11 +5,6 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-if (getClientEngineType() === ClientEngineType.DataProxy) {
-  // eslint-disable-next-line no-global-assign
-  test = test.skip
-}
-
 test('custom engine binary path (internal API)', async () => {
   await generateTestClient()
 
