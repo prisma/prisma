@@ -50,6 +50,7 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
+  dataProxy: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -58,17 +59,20 @@ export type GetGeneratorOptions = {
  * @param schemaPath Path to schema.prisma
  * @param aliases Aliases like `prisma-client-js` -> `node_modules/@prisma/client/generator-build/index.js`
  */
-export async function getGenerators({
-  schemaPath,
-  providerAliases: aliases, // do you get the pun?
-  version,
-  cliVersion,
-  printDownloadProgress,
-  baseDir = path.dirname(schemaPath),
-  overrideGenerators,
-  skipDownload,
-  binaryPathsOverride,
-}: GetGeneratorOptions): Promise<Generator[]> {
+export async function getGenerators(options: GetGeneratorOptions): Promise<Generator[]> {
+  const {
+    schemaPath,
+    providerAliases: aliases, // do you get the pun?
+    version,
+    cliVersion,
+    printDownloadProgress,
+    baseDir = path.dirname(schemaPath),
+    overrideGenerators,
+    skipDownload,
+    binaryPathsOverride,
+    dataProxy,
+  } = options
+
   if (!schemaPath) {
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
   }
@@ -137,7 +141,7 @@ export async function getGenerators({
     throw new Error(missingModelMessage)
   }
 
-  checkFeatureFlags(config)
+  checkFeatureFlags(config, options)
 
   const generatorConfigs = overrideGenerators || config.generators
 
@@ -205,6 +209,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
+          dataProxy,
         }
 
         // we set the options here a bit later after instantiating the Generator,

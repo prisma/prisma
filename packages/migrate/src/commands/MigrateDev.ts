@@ -1,7 +1,8 @@
 import Debug from '@prisma/debug'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   getConfig,
@@ -89,6 +90,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('migrate dev', args, true)
 
     if (args['--help']) {
       return this.help()
