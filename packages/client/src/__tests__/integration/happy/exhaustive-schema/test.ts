@@ -5,7 +5,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
-testIf(Boolean(process.env.TEST_SKIP_EXHAUSTIVE))('exhaustive-schema', async () => {
+testIf(!process.env.TEST_SKIP_EXHAUSTIVE)('exhaustive-schema', async () => {
   await generateTestClient()
 
   const generatedTypeScript = fs.readFileSync(path.join(__dirname, './node_modules/.prisma/client/index.d.ts'), 'utf-8')
