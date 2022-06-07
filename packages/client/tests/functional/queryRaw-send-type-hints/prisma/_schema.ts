@@ -13,7 +13,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
     }
     
     model Entry {
-      id Int @id @default(autoincrement())      
+      id     Int @id @default(autoincrement())
       binary Bytes
     }
   `
