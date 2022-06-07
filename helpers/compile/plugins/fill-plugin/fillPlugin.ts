@@ -191,14 +191,14 @@ const fillPlugin = (
       process: {
         inject: path.join(__dirname, 'fillers', 'process.ts'),
       },
-      global: {
-        define: '{}',
-      },
-      globalThis: {
-        define: '{}',
-      },
 
       // not needed
+      // global: {
+      //   define: '{}',
+      // },
+      // globalThis: {
+      //   define: '{}',
+      // },
       // console: { },
       // __dirname: { },
       // __filename: { },

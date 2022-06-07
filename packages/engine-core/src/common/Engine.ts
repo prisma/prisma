@@ -56,7 +56,7 @@ export interface EngineConfig {
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
-  env?: Record<string, string>
+  env: Record<string, string>
   flags?: string[]
   clientVersion?: string
   previewFeatures?: string[]

@@ -48,9 +48,10 @@ ${chalk.bold('Usage')}
 
 ${chalk.bold('Options')}
 
-  -h, --help   Display this help message
-    --schema   Custom path to your Prisma schema
-     --watch   Watch the Prisma schema and rerun after a change
+    -h, --help   Display this help message
+      --schema   Custom path to your Prisma schema
+  --data-proxy   Enable the Data Proxy in the Prisma Client
+       --watch   Watch the Prisma schema and rerun after a change
 
 ${chalk.bold('Examples')}
 
@@ -101,6 +102,7 @@ ${chalk.bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
+      '--data-proxy': Boolean,
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
@@ -136,6 +138,7 @@ ${chalk.bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
+        dataProxy: !!args['--data-proxy'],
       })
 
       if (!generators || generators.length === 0) {
@@ -258,6 +261,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
+              dataProxy: !!args['--data-proxy'],
             })
 
             if (!generatorsWatch || generatorsWatch.length === 0) {
