@@ -57,6 +57,8 @@
     "runtime",
     "scripts",
     "generator-build",
+    "edge.js",
+    "edge.d.ts",
     "index.js",
     "index.d.ts",
     "index-browser.js"
