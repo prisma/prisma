@@ -1,5 +1,6 @@
 import * as lzString from 'lz-string'
 
+export { MetricsClient } from './core/metrics/MetricsClient'
 export { DMMFHelper as DMMFClass } from './dmmf'
 export { DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'
