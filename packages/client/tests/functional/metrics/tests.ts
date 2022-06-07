@@ -110,8 +110,11 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb'],
-      reason: 'Metrics dont work for mongodb',
+      from: ['mongodb', 'cockroachdb'],
+      reason: `
+        Metrics dont work for mongodb
+        Cockroach db metrics dont work?
+      `,
     },
   },
 )
