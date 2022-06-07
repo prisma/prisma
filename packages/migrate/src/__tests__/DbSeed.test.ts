@@ -1,6 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/sdk'
 import execa from 'execa'
-import fs from 'fs-jetpack'
 
 import { DbSeed } from '../commands/DbSeed'
 
@@ -30,7 +29,7 @@ describeIf(process.platform !== 'win32')('seed', () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
     ctx.fixture('seed-sqlite-js')
-    fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
+    ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
 
     const result = DbSeed.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
