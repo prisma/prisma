@@ -11,7 +11,7 @@ export class PrismaClientRustError extends Error {
   constructor({ clientVersion, log, error }: PrismaClientRustErrorArgs) {
     if (log) {
       const backtrace = getBacktraceFromLog(log)
-      super(backtrace ?? 'Unkown error')
+      super(backtrace ?? 'Unknown error')
     } else if (error) {
       const backtrace = getBacktraceFromRustError(error)
       super(backtrace)
