@@ -18,11 +18,6 @@ export default defineMatrix(() => [
       providerFeatures: '',
     },
     {
-      provider: 'cockroachdb',
-      id: 'Int @id @default(sequence())',
-      providerFeatures: '',
-    },
-    {
       provider: 'mongodb',
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
       providerFeatures: '"mongoDb", ',
