@@ -50,7 +50,7 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-  dataProxy?: boolean
+  dataProxy: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a

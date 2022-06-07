@@ -1,6 +1,6 @@
 import type { ConfigMetaFormat } from '../../../engine-commands'
 import { GetGeneratorOptions } from '../../getGenerators'
-import { forbiddenItxWithDataProxyFlagMessage } from './forbiddenItxWithProxyFlagMessage'
+import { forbiddenPreviewFeatureWithDataProxyFlagMessage } from './forbiddenItxWithProxyFlagMessage'
 
 /**
  * Check feature flags and preview features
@@ -12,16 +12,18 @@ export function checkFeatureFlags(config: ConfigMetaFormat, options: GetGenerato
 }
 
 function checkForbiddenItxWithDataProxyFlag(config: ConfigMetaFormat, options: GetGeneratorOptions) {
-  if (
-    options.dataProxy === true &&
+  options.dataProxy === true &&
     config.generators.some((generatorConfig) => {
-      return generatorConfig.previewFeatures.some(
-        (feature) => feature.toLocaleLowerCase() === 'interactiveTransactions'.toLocaleLowerCase(),
-      )
+      return generatorConfig.previewFeatures.some((feature) => {
+        if (feature.toLocaleLowerCase() === 'metrics'.toLocaleLowerCase()) {
+          throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('metrics'))
+        }
+
+        if (feature.toLocaleLowerCase() === 'interactiveTransactions'.toLocaleLowerCase()) {
+          throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('interactiveTransactions'))
+        }
+      })
     })
-  ) {
-    throw new Error(forbiddenItxWithDataProxyFlagMessage)
-  }
 }
 
 /* Example
