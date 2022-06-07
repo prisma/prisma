@@ -25,7 +25,7 @@ async function _getClientVersion(config: EngineConfig) {
   }
 
   // if it's an integration version, we resolve its data proxy
-  if (suffix === 'integration' || suffix === 'dev' || clientVersion === '0.0.0') {
+  if (suffix === 'integration' || suffix?.startsWith('dev') || clientVersion === '0.0.0') {
     // we infer the data proxy version from the engine version
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
