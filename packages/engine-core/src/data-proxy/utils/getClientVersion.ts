@@ -9,7 +9,7 @@ const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const prismaNpm = 'https://registry.npmjs.org/prisma'
 const debug = Debug('prisma:client:dataproxyEngine')
 
-function _getClientVersion(config: EngineConfig) {
+async function _getClientVersion(config: EngineConfig) {
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides
@@ -26,22 +26,20 @@ function _getClientVersion(config: EngineConfig) {
 
   // if it's an integration version, we resolve its data proxy
   if (suffix === 'integration' || clientVersion === '0.0.0') {
-    return (async () => {
-      // we infer the data proxy version from the engine version
-      const [version] = engineVersion.split('-') ?? []
-      const [major, minor, patch] = version.split('.')
+    // we infer the data proxy version from the engine version
+    const [version] = engineVersion.split('-') ?? []
+    const [major, minor, patch] = version.split('.')
 
-      // if a patch has happened, then we return that version
-      if (patch !== '0') return `${major}.${minor}.${patch}`
+    // if a patch has happened, then we return that version
+    if (patch !== '0') return `${major}.${minor}.${patch}`
 
-      // if not, we know that the minor must be minus with 1
-      const published = `${major}.${parseInt(minor) - 1}.x`
+    // if not, we know that the minor must be minus with 1
+    const published = `${major}.${parseInt(minor) - 1}.x`
 
-      // we don't know what `x` is, so we query the registry
-      const res = await request(`${prismaNpm}/${published}`, { clientVersion })
+    // we don't know what `x` is, so we query the registry
+    const res = await request(`${prismaNpm}/${published}`, { clientVersion })
 
-      return ((await res.json())['version'] as string) ?? 'undefined'
-    })() // <-- this is just creating a promise via an iife
+    return ((await res.json())['version'] as string) ?? 'undefined'
   }
 
   // nothing matched, meaning that the provided version is invalid

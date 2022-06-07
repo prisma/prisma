@@ -30,7 +30,7 @@ export class DataProxyEngine extends Engine {
   private env: { [k in string]?: string }
 
   private clientVersion: string
-  private remoteClientVersion: string | Promise<string>
+  private remoteClientVersion: Promise<string>
   private headers: { Authorization: string }
   private host: string
 
