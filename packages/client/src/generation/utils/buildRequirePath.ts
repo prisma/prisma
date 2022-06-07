@@ -1,10 +1,10 @@
 /**
  * Builds a require statement for `path`.
- * @param dataProxy
+ * @param edge
  * @returns
  */
-export function buildRequirePath(dataProxy: boolean | undefined) {
-  if (dataProxy === true) return ''
+export function buildRequirePath(edge: boolean) {
+  if (edge === true) return ''
 
   return `
   const path = require('path')`

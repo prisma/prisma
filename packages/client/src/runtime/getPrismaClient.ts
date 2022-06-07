@@ -47,7 +47,7 @@ declare global {
 }
 
 // used by esbuild for tree-shaking
-globalThis.NODE_CLIENT = true
+typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
@@ -229,7 +229,7 @@ export interface GetPrismaClientConfig {
    * If enabled, we disregard the generator config engineType.
    * It means that `--data-proxy` binds you to the Data Proxy.
    */
-  dataProxy?: boolean
+  dataProxy: boolean
 
   /**
    * The contents of the schema encoded into a string
@@ -341,7 +341,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
-      this._dataProxy = config.dataProxy ?? false
+      this._dataProxy = config.dataProxy
       this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:

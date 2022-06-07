@@ -40,7 +40,7 @@ if (process.argv[1] === __filename) {
 
       return generateClient({
         datamodel: options.datamodel,
-        datamodelPath: options.schemaPath,
+        schemaPath: options.schemaPath,
         binaryPaths: options.binaryPaths!,
         datasources: options.datasources,
         outputDir,

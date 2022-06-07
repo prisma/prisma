@@ -5,6 +5,9 @@ import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
+const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+
 // we define the config for runtime
 const nodeRuntimeBuildConfig: BuildOptions = {
   name: 'runtime',
@@ -13,6 +16,8 @@ const nodeRuntimeBuildConfig: BuildOptions = {
   bundle: true,
   define: {
     NODE_CLIENT: 'true',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
   },
 }
 
@@ -36,9 +41,18 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
+    // that fixes an issue with lz-string umd builds
+    'define.amd': 'false',
   },
   plugins: [
     fillPlugin({
+      // we remove eval and Function for vercel
+      eval: { define: 'undefined' },
+      Function: {
+        define: 'fn',
+        inject: functionPolyfillPath,
+      },
+
       // TODO no tree shaking on wrapper pkgs
       '@prisma/get-platform': { contents: '' },
       // removes un-needed code out of `chalk`

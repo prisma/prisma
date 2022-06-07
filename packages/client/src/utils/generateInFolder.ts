@@ -133,16 +133,16 @@ export async function generateInFolder({
     dmmf,
     ...config,
     outputDir,
-    schemaDir: path.dirname(schemaPath),
     runtimeDirs,
     transpile,
     testMode: true,
-    datamodelPath: schemaPath,
+    schemaPath,
     copyRuntime: false,
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
+    dataProxy: !!process.env.DATA_PROXY,
   })
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)

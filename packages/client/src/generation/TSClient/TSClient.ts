@@ -39,10 +39,10 @@ export interface TSClientOptions {
   generator?: GeneratorConfig
   platforms?: Platform[] // TODO: consider making it non-nullable
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
-  schemaDir: string
+  schemaPath: string
   outputDir: string
   activeProvider: string
-  dataProxy?: boolean
+  dataProxy: boolean
 }
 
 export class TSClient implements Generatable {
@@ -53,19 +53,18 @@ export class TSClient implements Generatable {
     this.dmmf = new DMMFHelper(klona(options.document))
   }
 
-  public async toJS(edge?: boolean): Promise<string> {
+  public async toJS(edge = false): Promise<string> {
     const {
       platforms,
       generator,
       sqliteDatasourceOverrides,
       outputDir,
-      schemaDir,
+      schemaPath,
       runtimeDir,
       runtimeName,
       datasources,
       dataProxy,
     } = this.options
-    const schemaPath = path.join(schemaDir, 'schema.prisma')
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -83,7 +82,7 @@ export class TSClient implements Generatable {
       generator,
       relativeEnvPaths,
       sqliteDatasourceOverrides,
-      relativePath: path.relative(outputDir, schemaDir),
+      relativePath: path.relative(outputDir, path.dirname(schemaPath)),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
@@ -96,8 +95,8 @@ export class TSClient implements Generatable {
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(dataProxy)}
-${buildDirname(dataProxy, relativeOutdir, runtimeDir)}
+${buildRequirePath(edge)}
+${buildDirname(edge, relativeOutdir, runtimeDir)}
 /**
  * Enums
  */
@@ -134,7 +133,10 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
   }
-  public toTS(): string {
+  public toTS(edge = false): string {
+    // edge exports the same ts definitions as the index
+    if (edge === true) return `export * from './index'`
+
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
       this.options.datasources,
@@ -142,7 +144,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       this.options.browser,
       this.options.generator,
       this.options.sqliteDatasourceOverrides,
-      this.options.schemaDir,
+      path.dirname(this.options.schemaPath),
     )
 
     const collector = new ExportCollector()

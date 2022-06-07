@@ -1,8 +1,9 @@
-import { IncomingMessage } from 'http'
+import type { IncomingMessage } from 'http'
 import type Https from 'https'
 import type { RequestInit, Response } from 'node-fetch'
-import { O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
+import { RequestError } from '../errors/NetworkError'
 import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
@@ -18,13 +19,22 @@ declare let fetch: typeof nodeFetch
  * @param options
  * @returns
  */
-export async function request(url: string, options: RequestOptions = {}): Promise<RequestResponse> {
+export async function request(
+  url: string,
+  options: RequestOptions & { clientVersion: string },
+): Promise<RequestResponse> {
+  const clientVersion = options.clientVersion
   const jsRuntimeName = getJSRuntimeName()
 
-  if (jsRuntimeName === 'browser') {
-    return fetch(url, options)
-  } else {
-    return nodeFetch(url, options)
+  try {
+    if (jsRuntimeName === 'browser') {
+      return await fetch(url, options)
+    } else {
+      return await nodeFetch(url, options)
+    }
+  } catch (e) {
+    const message = e.message ?? 'Unknown error'
+    throw new RequestError(message, { clientVersion })
   }
 }
 
@@ -76,7 +86,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage): Reque
  * @returns
  */
 async function nodeFetch(url: string, options: RequestOptions = {}): Promise<RequestResponse> {
-  const https: typeof Https = await globalThis[['e', 'v', 'a', 'l'].join('')](`import('https')`)
+  const https: typeof Https = include('https')
   const httpsOptions = buildOptions(options)
   const incomingData = [] as Buffer[]
 
@@ -93,3 +103,6 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
     request.end() // flush & send
   })
 }
+
+// trick to obfuscate require from bundlers, useful for Vercel Edge
+const include = typeof require !== 'undefined' ? require : () => {}

@@ -197,7 +197,9 @@ function run(cmd, params, cwd = process.cwd()) {
 /**
  * Copies our default "throw" files into the default generation folder. These
  * files are dummy and informative because they just throw an error to let the
- * user know that they have forgotten to run `prisma generate`.
+ * user know that they have forgotten to run `prisma generate` or that they
+ * don't have a a schema file yet. We only add these files at the default
+ * location `node_modules/.prisma/client`.
  */
 async function createDefaultGeneratedThrowFiles() {
   try {
@@ -205,12 +207,9 @@ async function createDefaultGeneratedThrowFiles() {
     const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
     const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
     const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
+    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
+    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
     await makeDir(dotPrismaClientDir)
-
-    const dotPrismaClientEdgeDir = path.join(dotPrismaClientDir, 'edge')
-    const defaultEdgeIndexPath = path.join(dotPrismaClientEdgeDir, 'index.js')
-    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientEdgeDir, 'index.d.ts')
-    await makeDir(dotPrismaClientEdgeDir)
 
     if (!fs.existsSync(defaultNodeIndexPath)) {
       await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)

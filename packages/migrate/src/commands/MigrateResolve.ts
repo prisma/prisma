@@ -1,5 +1,14 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getCommandWithExecutor, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getCommandWithExecutor,
+  HelpError,
+  isError,
+  link,
+  loadEnvFile,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 
 import { Migrate } from '../Migrate'
@@ -66,6 +75,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('migrate resolve', args, true)
 
     if (args['--help']) {
       return this.help()
