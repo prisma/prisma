@@ -167,7 +167,7 @@ const watch =
     const restartWatcher = createWatcher(['./src/**/*'], config)
 
     // triggers quick rebuild on file change
-    const onChange = debounce(async () => {
+    const fastRebuild = debounce(async () => {
       const timeBefore = Date.now()
 
       // we handle possible rebuild exceptions
@@ -183,7 +183,7 @@ const watch =
     }, 10)
 
     // triggers a full rebuild on added file
-    const onAdd = debounce(async () => {
+    const fullRebuild = debounce(async () => {
       void changeWatcher.close() // stop all
 
       // only one watcher will do this task
@@ -193,8 +193,9 @@ const watch =
       }
     }, 10)
 
-    changeWatcher.on('change', onChange)
-    restartWatcher.once('add', onAdd)
+    changeWatcher.on('change', fastRebuild)
+    restartWatcher.once('add', fullRebuild)
+    restartWatcher.once('unlink', fullRebuild)
 
     return undefined
   }

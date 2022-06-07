@@ -1,5 +1,11 @@
 module.exports = {
   preset: 'ts-jest',
+  globals: {
+    'ts-jest': {
+      tsconfig: 'tsconfig.json',
+      isolatedModules: true,
+    },
+  },
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
