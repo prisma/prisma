@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(() => {
 
     const response = await prisma.user.update({
       where: {
-        id: user.id,
+        id: user?.id as string,
       },
       select: {
         email: true,
@@ -71,7 +71,7 @@ testMatrix.setupTestSuite(() => {
 
     const response = await prisma.user.update({
       where: {
-        id: user.id,
+        id: user?.id as string,
       },
       select: {
         id: true,
@@ -88,14 +88,14 @@ testMatrix.setupTestSuite(() => {
       data: {
         posts: {
           connect: {
-            id: post.id,
+            id: post?.id as string,
           },
         },
       },
     })
 
     expect(response).toMatchObject({
-      ...user,
+      ...(user || {}),
       posts: [post],
     })
   })
@@ -135,7 +135,7 @@ testMatrix.setupTestSuite(() => {
 
     const response = await prisma.user.update({
       where: {
-        id: user.id,
+        id: user?.id as string,
       },
       select: {
         id: true,
@@ -152,7 +152,7 @@ testMatrix.setupTestSuite(() => {
       data: {
         posts: {
           disconnect: {
-            id: user.posts[0].id,
+            id: (user?.posts || [])[0]?.id as string,
           },
         },
       },
@@ -210,7 +210,7 @@ testMatrix.setupTestSuite(() => {
 
     const response = await prisma.user.update({
       where: {
-        id: user.id,
+        id: user?.id as string,
       },
       select: {
         email: true,
