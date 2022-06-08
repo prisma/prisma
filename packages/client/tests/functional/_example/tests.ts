@@ -52,7 +52,7 @@ testMatrix.setupTestSuite(
     })
   },
   // Use to optOut to optout from testing selected providers
-  // - otherwize the suite will require all providers to be specified.
+  // otherwise the suite will require all providers to be specified.
   // {
   //   optOut: {
   //     from: ['sqlite', 'mongodb'],
