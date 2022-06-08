@@ -1,14 +1,8 @@
 import { getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
 import { Providers } from './providers'
+import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
-
-export type MatrixOptions = {
-  optOut: {
-    from: `${Providers}`[]
-    reason: string
-  }
-}
 
 /**
  * Ensure that we are not forgetting to add a provider to the matrix unless we
