@@ -50,7 +50,7 @@ env:
 jobs:
   detect_jobs_to_run:
     name: Detect jobs to run
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2004
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
     steps:
@@ -69,7 +69,7 @@ jobs:
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
     continue-on-error: true
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2004
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
       - uses: fkirc/skip-duplicate-actions@v4.0.0
@@ -79,7 +79,7 @@ jobs:
   #
   lint:
     timeout-minutes: 7
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2004
 
     steps:
       - uses: actions/checkout@v3
@@ -124,7 +124,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-latest]
+        os: [buildjet-2vcpu-ubuntu-2004]
         node: [12, 16]
 
     steps:
@@ -181,7 +181,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2004
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -227,7 +227,7 @@ jobs:
   #
   integration-tests:
     timeout-minutes: 20
-    runs-on: ubuntu-latest
+    runs-on: buildjet-2vcpu-ubuntu-2004
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
@@ -300,7 +300,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-latest]
+        os: [buildjet-2vcpu-ubuntu-2004]
         node: [12, 16]
 
     steps:
@@ -362,7 +362,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-latest]
+        os: [buildjet-2vcpu-ubuntu-2004]
         node: [12, 16]
 
     steps:
@@ -433,7 +433,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-latest]
+        os: [buildjet-2vcpu-ubuntu-2004]
         node: [12, 16]
 
     steps:
@@ -488,7 +488,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest]
+        os: [buildjet-2vcpu-ubuntu-2004]
         node: [12, 16]
 
     steps:
