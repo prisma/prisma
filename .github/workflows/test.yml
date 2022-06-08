@@ -86,12 +86,12 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
-          node-version: '12'
+          node-version: '16'
 
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
       # Matchers are added in setup-node
@@ -125,7 +125,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -142,7 +142,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -192,14 +192,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12]
+        node: [16]
 
     steps:
       - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -239,7 +239,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        node: [12]
+        node: [16]
 
     steps:
       - uses: actions/checkout@v3
@@ -256,7 +256,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -304,7 +304,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -321,7 +321,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -366,7 +366,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -383,7 +383,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -437,7 +437,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -452,7 +452,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -492,14 +492,14 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -607,7 +607,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:
@@ -778,7 +778,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: latest
 
       - uses: actions/setup-node@v3
         with:

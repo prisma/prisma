@@ -120,7 +120,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "28.0.3",
+    "ts-jest": "28.0.4",
     "ts-node": "10.8.0",
     "tsd": "0.20.0",
     "typescript": "4.7.2",
