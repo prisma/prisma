@@ -20,8 +20,8 @@
   "devDependencies": {
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
-    "@types/jest": "27.5.1",
-    "@types/node": "16.11.34",
+    "@types/jest": "28.1.0",
+    "@types/node": "16.11.39",
     "esbuild": "0.14.39",
     "jest": "28.1.0",
     "jest-junit": "13.2.0",
@@ -35,9 +35,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
+    "@prisma/engines": "3.16.0-1.ba04c9d7b0303933a7344192dcdb6f6ab18a34a2",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.15.0-11.1c05d2fd02981d04d5367319e82f44e1c44ec0b7",
+    "@prisma/get-platform": "3.16.0-1.ba04c9d7b0303933a7344192dcdb6f6ab18a34a2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",

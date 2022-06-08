@@ -1,11 +1,9 @@
-/// <reference lib="webworker" />
-// TODO: this is a problem because it propagates everywhere
-
 import EventEmitter from 'events'
 
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -20,17 +18,19 @@ import { request } from './utils/request'
 
 const MAX_RETRIES = 10
 
+// to defer the execution of promises in the constructor
+const P = Promise.resolve()
+
 export class DataProxyEngine extends Engine {
-  private pushPromise: Promise<void>
   private inlineSchema: string
   private inlineSchemaHash: string
   private inlineDatasources: any
   private config: EngineConfig
   private logEmitter: EventEmitter
-  private env: { [k: string]: string }
+  private env: { [k in string]?: string }
 
   private clientVersion: string
-  private remoteClientVersion: string
+  private remoteClientVersion: Promise<string>
   private headers: { Authorization: string }
   private host: string
 
@@ -38,7 +38,7 @@ export class DataProxyEngine extends Engine {
     super()
 
     this.config = config
-    this.env = this.config.env ?? {}
+    this.env = { ...this.config.env, ...process.env }
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
@@ -48,27 +48,9 @@ export class DataProxyEngine extends Engine {
     this.logEmitter.on('error', () => {})
 
     const [host, apiKey] = this.extractHostAndApiKey()
-    this.remoteClientVersion = getClientVersion(this.config)
+    this.remoteClientVersion = P.then(() => getClientVersion(this.config))
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
-
-    // hack for Cloudflare
-    // That's because we instantiate the client outside of the request handler. This essentially prevents immediate execution of the promise.
-    // Removing this will produce the following error
-    // [Error] Some functionality, such as asynchronous I/O, timeouts, and generating random values, can only be performed while handling a request.
-    const promise = Promise.resolve()
-    this.pushPromise = promise.then(() => this.pushSchema())
-  }
-
-  private async pushSchema() {
-    const response = await request(this.url('schema'), {
-      method: 'GET',
-      headers: this.headers,
-    })
-
-    if (response.status === 404) {
-      await this.uploadSchema()
-    }
   }
 
   version() {
@@ -90,8 +72,8 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  private url(s: string) {
-    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
+  private async url(s: string) {
+    return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
   // TODO: looks like activeProvider is the only thing
@@ -107,10 +89,11 @@ export class DataProxyEngine extends Engine {
   }
 
   private async uploadSchema() {
-    const response = await request(this.url('schema'), {
+    const response = await request(await this.url('schema'), {
       method: 'PUT',
       headers: this.headers,
       body: this.inlineSchema,
+      clientVersion: this.clientVersion,
     })
 
     const err = await responseToError(response, this.clientVersion)
@@ -147,32 +130,29 @@ export class DataProxyEngine extends Engine {
   }
 
   private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    await this.pushPromise
-
     try {
       this.logEmitter.emit('info', {
-        message: `Calling ${this.url('graphql')} (n=${attempt})`,
+        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
       })
 
-      const response = await request(this.url('graphql'), {
+      const response = await request(await this.url('graphql'), {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
+        clientVersion: this.clientVersion,
       })
 
-      const err = await responseToError(response, this.clientVersion)
+      const e = await responseToError(response, this.clientVersion)
 
-      if (err instanceof SchemaMissingError) {
+      if (e instanceof SchemaMissingError) {
         await this.uploadSchema()
         throw new ForcedRetryError({
           clientVersion: this.clientVersion,
-          cause: err,
+          cause: e,
         })
       }
 
-      if (err) {
-        throw err
-      }
+      if (e) throw e
 
       const data = await response.json()
 
@@ -183,22 +163,18 @@ export class DataProxyEngine extends Engine {
       }
 
       return data
-    } catch (err) {
+    } catch (e) {
       this.logEmitter.emit('error', {
-        message: `Error while querying: ${err.message ?? '(unknown)'}`,
+        message: `Error while querying: ${e.message ?? '(unknown)'}`,
       })
 
-      if (!(err instanceof DataProxyError)) {
-        throw err
-      }
-      if (!err.isRetryable) {
-        throw err
-      }
+      if (!(e instanceof DataProxyError)) throw e
+      if (!e.isRetryable) throw e
       if (attempt >= MAX_RETRIES) {
-        if (err instanceof ForcedRetryError) {
-          throw err.cause
+        if (e instanceof ForcedRetryError) {
+          throw e.cause
         } else {
-          throw err
+          throw e
         }
       }
 
@@ -237,12 +213,9 @@ export class DataProxyEngine extends Engine {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError(
-        'Datasource URL should use prisma:// protocol. If you are not using the Data Proxy, remove the `dataProxy` from the `previewFeatures` in your schema and ensure that `PRISMA_CLIENT_ENGINE_TYPE` environment variable is not set to `dataproxy`.',
-        {
-          clientVersion: this.clientVersion,
-        },
-      )
+      throw new InvalidDatasourceError('Datasource URL must use prisma:// protocol when --data-proxy is used', {
+        clientVersion: this.clientVersion,
+      })
     }
 
     const apiKey = searchParams.get('api_key')
@@ -253,5 +226,13 @@ export class DataProxyEngine extends Engine {
     }
 
     return [host, apiKey]
+  }
+
+  metrics(options: MetricsOptionsJson): Promise<Metrics>
+  metrics(options: MetricsOptionsPrometheus): Promise<string>
+  metrics(options: EngineMetricsOptions): Promise<Metrics> | Promise<string> {
+    throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
+      clientVersion: this.clientVersion,
+    })
   }
 }

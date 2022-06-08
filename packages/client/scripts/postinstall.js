@@ -67,10 +67,7 @@ async function main() {
     // in the postinstall hook
   }
 
-  // initializes the ./node_modules/.prisma/client folder with the default index(-browser).js/index.d.ts,
-  // which define a `PrismaClient` class stub that throws an error if instantiated before the `prisma generate`
-  // command is successfully executed.
-  await ensureEmptyDotPrisma()
+  await createDefaultGeneratedThrowFiles()
 
   // TODO: consider using the `which` package
   const localPath = getLocalPackagePath()
@@ -197,30 +194,49 @@ function run(cmd, params, cwd = process.cwd()) {
   })
 }
 
-async function ensureEmptyDotPrisma() {
+/**
+ * Copies our default "throw" files into the default generation folder. These
+ * files are dummy and informative because they just throw an error to let the
+ * user know that they have forgotten to run `prisma generate` or that they
+ * don't have a a schema file yet. We only add these files at the default
+ * location `node_modules/.prisma/client`.
+ */
+async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
+    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
+    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
+    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
     await makeDir(dotPrismaClientDir)
-    const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultIndexBrowserJSPath = path.join(dotPrismaClientDir, 'index-browser.js')
-    const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
 
-    if (!fs.existsSync(defaultIndexJsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.js'), defaultIndexJsPath)
-    }
-    if (!fs.existsSync(defaultIndexBrowserJSPath)) {
-      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultIndexBrowserJSPath)
+    if (!fs.existsSync(defaultNodeIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
     }
 
-    if (!fs.existsSync(defaultIndexDTSPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultIndexDTSPath)
+    if (!fs.existsSync(defaultBrowserIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+    }
+
+    if (!fs.existsSync(defaultNodeIndexDtsPath)) {
+      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
+    }
+
+    if (!fs.existsSync(defaultEdgeIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
+    }
+
+    if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
+      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
     }
   } catch (e) {
     console.error(e)
   }
 }
 
-async function makeDir(input) {
+// TODO: can this be replaced some utility eg. mkdir
+function makeDir(input) {
   const make = async (pth) => {
     try {
       await mkdir(pth)
@@ -310,18 +326,18 @@ function getPostInstallTrigger() {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original_arr = npm_config_argv.original
+  const npm_config_argv_original_arr = npm_config_argv.original
 
-  if (!Array.isArray(npm_config_arv_original_arr)) {
+  if (!Array.isArray(npm_config_argv_original_arr)) {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original = npm_config_arv_original_arr.filter((arg) => arg !== '').join(' ')
+  const npm_config_argv_original = npm_config_argv_original_arr.filter((arg) => arg !== '').join(' ')
 
   const command =
-    npm_config_arv_original === ''
+    npm_config_argv_original === ''
       ? getPackageManagerName()
-      : [getPackageManagerName(), npm_config_arv_original].join(' ')
+      : [getPackageManagerName(), npm_config_argv_original].join(' ')
 
   return command
 }

@@ -1,5 +1,6 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
+import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 // import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
@@ -29,6 +30,9 @@ export abstract class Engine {
   abstract transaction(action: 'start', options?: Transaction.Options): Promise<Transaction.Info>
   abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
   abstract transaction(action: 'rollback', info: Transaction.Info): Promise<void>
+
+  abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
+  abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
@@ -52,7 +56,7 @@ export interface EngineConfig {
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
-  env?: Record<string, string>
+  env: Record<string, string>
   flags?: string[]
   clientVersion?: string
   previewFeatures?: string[]
