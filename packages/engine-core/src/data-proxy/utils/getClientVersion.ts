@@ -30,16 +30,19 @@ async function _getClientVersion(config: EngineConfig) {
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
 
-    // if a patch has happened, then we return that version
-    if (patch !== '0') return `${major}.${minor}.${patch}`
-
-    // if not, we know that the minor must be minus with 1
-    const published = `${major}.${parseInt(minor) - 1}.x`
+    let publishedVersion: string
+    // if a patch has or will happen, we return that version
+    if (patch !== '0') {
+      publishedVersion = `${major}.${minor}.x`
+    } else {
+      // if not, we know that the minor must be minus with 1
+      publishedVersion = `${major}.${parseInt(minor) - 1}.x`
+    }
 
     // we don't know what `x` is, so we query the registry
-    const res = await request(`${prismaNpm}/${published}`, { clientVersion })
+    const res = await request(`${prismaNpm}/${publishedVersion}`, { clientVersion })
 
-    return ((await res.json())['version'] as string) ?? 'undefined'
+    return ((await res.json())['version'] as string) ?? 'unknown'
   }
 
   // nothing matched, meaning that the provided version is invalid
