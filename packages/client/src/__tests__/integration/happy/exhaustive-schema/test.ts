@@ -3,6 +3,11 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+if (isMacOrWindowsCI) {
+  jest.setTimeout(80_000)
+}
+
 test('exhaustive-schema', async () => {
   await generateTestClient()
 
@@ -14,4 +19,4 @@ test('exhaustive-schema', async () => {
 
   expect(generatedTypeScript).toMatchSnapshot('generatedTypeScript')
   expect(generatedBrowserJS).toMatchSnapshot('generatedBrowserJS')
-}, 80000)
+})
