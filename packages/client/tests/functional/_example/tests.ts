@@ -51,8 +51,8 @@ testMatrix.setupTestSuite(
       expect(schemaString).toContain('model')
     })
   },
-  // Use to optOut to optout from testing selected providers
-  // - otherwize the suite will require all providers to be specified.
+  // Use `optOut` to opt out from testing the default selected providers
+  // otherwise the suite will require all providers to be specified.
   // {
   //   optOut: {
   //     from: ['sqlite', 'mongodb'],
