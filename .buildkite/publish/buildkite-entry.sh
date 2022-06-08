@@ -31,11 +31,11 @@ echo $UPDATE_STUDIO # TODO can we to remove this?
 # `Bind for 0.0.0.0:27017 failed: port is already allocated`
 DOCKER_IDS=$(docker ps -q)
 echo $DOCKER_IDS
-if [ -v ${DOCKER_IDS} ]; then
+if [ -z "$DOCKER_IDS" ]; then
   echo "Did not find a docker instance running. We're good!"
 else
-  echo "Found docker instance(s) running. Let's stop them!"
-  docker kill $DOCKER_IDS
+  echo "Found docker instance(s) running. Let's remove them!"
+  docker rm --force -v $DOCKER_IDS
 fi
 
 # if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ] || [ $UPDATE_STUDIO ]; then
