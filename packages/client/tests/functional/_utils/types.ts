@@ -1,7 +1,7 @@
 import { Providers } from './providers'
 
 export type MatrixOptions = {
-  optOut: {
+  optOut?: {
     from: `${Providers}`[]
     reason: string
   }
