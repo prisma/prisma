@@ -5,6 +5,10 @@ import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
+export type MatrixOptions = {
+  skipDb?: boolean
+}
+
 /**
  * How does this work from a high level? What steps?
  * 1. You create a file that uses `setupTestSuiteMatrix`
@@ -61,14 +65,21 @@ function setupTestSuiteMatrix(
     describe(suiteName, () => {
       // we inject modified env vars, and make the client available as globals
       beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
-      beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
+      beforeAll(
+        async () =>
+          (globalThis['loaded'] = await setupTestSuiteClient({
+            suiteMeta,
+            suiteConfig,
+            skipDb: options?.skipDb,
+          })),
+      )
       beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
       beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
       beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
 
       // we disconnect and drop the database, clean up the env, and global vars
-      afterAll(async () => await globalThis['prisma']?.$disconnect())
-      afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+      afterAll(async () => !options?.skipDb && (await globalThis['prisma']?.$disconnect()))
+      afterAll(async () => !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig)))
       afterAll(() => (process.env = originalEnv))
       afterAll(() => delete globalThis['loaded'])
       afterAll(() => delete globalThis['prisma'])

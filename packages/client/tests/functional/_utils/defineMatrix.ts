@@ -2,7 +2,7 @@ import { U } from 'ts-toolbelt'
 
 import { MatrixOptions } from './checkMissingProviders'
 import { TestSuiteMatrix } from './getTestSuiteInfo'
-import { setupTestSuiteMatrix, TestSuiteMeta } from './setupTestSuiteMatrix'
+import { MatrixOptions, setupTestSuiteMatrix, TestSuiteMeta } from './setupTestSuiteMatrix'
 
 type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT[number][number]>
 
