@@ -1,6 +1,26 @@
-const sqlId = 'String @id @default(uuid())'
-const mongoDbId = 'String @id @default(auto()) @map("_id") @db.ObjectId'
+export interface Options {
+  includeDefault: boolean
+}
 
-export function idForProvider(provider: string): string {
-  return provider === 'mongodb' ? mongoDbId : sqlId
+export function idForProvider(provider: string, options: Options = { includeDefault: true }): string {
+  const strs = ['String @id']
+
+  switch (provider) {
+    case 'mongodb':
+      if (options.includeDefault) {
+        strs.push('@default(auto())')
+      }
+
+      strs.push('@map("_id") @db.ObjectId')
+
+      break
+    default:
+      if (options.includeDefault) {
+        strs.push('@default(uuid())')
+      }
+
+      break
+  }
+
+  return strs.join(' ')
 }

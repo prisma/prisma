@@ -1,17 +1,16 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
 import type { Platform } from '@prisma/get-platform'
-import { getNodeAPIName, getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
-import path from 'path'
 
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
@@ -29,9 +28,8 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { fixBinaryTargets } from '../common/utils/util'
-import type { Library, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -54,6 +52,7 @@ export class LibraryEngine extends Engine {
   private executingQueryPromise?: Promise<any>
   private config: EngineConfig
   private QueryEngineConstructor?: QueryEngineConstructor
+  private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
@@ -71,7 +70,7 @@ export class LibraryEngine extends Engine {
     version: string
   }
 
-  constructor(config: EngineConfig) {
+  constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
 
     this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
@@ -79,9 +78,11 @@ export class LibraryEngine extends Engine {
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
+    this.libraryLoader = loader
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', (e) => {
       // to prevent unhandled error events
+      // TODO: should we actually handle them instead of silently swallowing?
     })
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
@@ -181,59 +182,31 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   private async loadEngine(): Promise<void> {
-    if (!this.libQueryEnginePath) {
-      this.libQueryEnginePath = await this.getLibQueryEnginePath()
-    }
-    debug(`loadEngine using ${this.libQueryEnginePath}`)
     if (!this.engine) {
       if (!this.QueryEngineConstructor) {
-        try {
-          // this require needs to be resolved at runtime, tell webpack to ignore it
-          this.library = eval('require')(this.libQueryEnginePath) as Library
-          this.QueryEngineConstructor = this.library.QueryEngine
-        } catch (e) {
-          if (fs.existsSync(this.libQueryEnginePath)) {
-            if (this.libQueryEnginePath.endsWith('.node')) {
-              throw new PrismaClientInitializationError(
-                `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt`,
-                this.config.clientVersion!,
-              )
-            } else {
-              throw new PrismaClientInitializationError(
-                `Expected an Node-API Library but received ${chalk.dim(this.libQueryEnginePath)}`,
-                this.config.clientVersion!,
-              )
-            }
-          } else {
-            throw new PrismaClientInitializationError(
-              `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, It does not exist`,
-              this.config.clientVersion!,
-            )
-          }
-        }
+        this.library = await this.libraryLoader.loadLibrary()
+        this.QueryEngineConstructor = this.library.QueryEngine
       }
-      if (this.QueryEngineConstructor) {
-        try {
-          this.engine = new this.QueryEngineConstructor(
-            {
-              datamodel: this.datamodel,
-              env: process.env,
-              logQueries: this.config.logQueries ?? false,
-              ignoreEnvVarErrors: false,
-              datasourceOverrides: this.datasourceOverrides,
-              logLevel: this.logLevel,
-              configDir: this.config.cwd!,
-            },
-            (err, log) => this.logger(err, log),
-          )
-        } catch (_e) {
-          const e = _e as Error
-          const error = this.parseInitError(e.message)
-          if (typeof error === 'string') {
-            throw e
-          } else {
-            throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-          }
+      try {
+        this.engine = new this.QueryEngineConstructor(
+          {
+            datamodel: this.datamodel,
+            env: process.env,
+            logQueries: this.config.logQueries ?? false,
+            ignoreEnvVarErrors: false,
+            datasourceOverrides: this.datasourceOverrides,
+            logLevel: this.logLevel,
+            configDir: this.config.cwd!,
+          },
+          (err, log) => this.logger(err, log),
+        )
+      } catch (_e) {
+        const e = _e as Error
+        const error = this.parseInitError(e.message)
+        if (typeof error === 'string') {
+          throw e
+        } else {
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
         }
       }
     }
@@ -423,7 +396,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
       if (data.errors) {
         if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+          throw this.buildQueryError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
@@ -435,6 +408,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     } catch (e: any) {
       if (e instanceof PrismaClientInitializationError) {
         throw e
+      }
+      if (e.code === 'GenericFailure' && e.message?.startsWith('PANIC:')) {
+        throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(e.message), this.config.clientVersion!)
       }
       const error = this.parseRequestError(e.message)
       if (typeof error === 'string') {
@@ -465,7 +441,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     if (data.errors) {
       if (data.errors.length === 1) {
-        throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        throw this.buildQueryError(data.errors[0])
       }
       // this case should not happen, as the query engine only returns one error
       throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
@@ -475,7 +451,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     if (Array.isArray(batchResult)) {
       return batchResult.map((result) => {
         if (result.errors) {
-          return this.loggerRustPanic ?? prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+          return this.loggerRustPanic ?? this.buildQueryError(data.errors[0])
         }
         return {
           data: result,
@@ -490,130 +466,15 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  private async resolveEnginePath(): Promise<{
-    enginePath: string
-    searchedLocations: string[]
-  }> {
-    const searchedLocations: string[] = []
-    let enginePath
-    if (this.libQueryEnginePath) {
-      return { enginePath: this.libQueryEnginePath, searchedLocations }
+  private buildQueryError(error: RequestError) {
+    if (error.user_facing_error.is_panic) {
+      return new PrismaClientRustPanicError(
+        this.getErrorMessageWithLink(error.user_facing_error.message),
+        this.config.clientVersion!,
+      )
     }
 
-    this.platform = this.platform ?? (await getPlatform())
-
-    // TODO Why special case dependent on file name?
-    if (__filename.includes('LibraryEngine')) {
-      enginePath = path.join(getEnginesPath(), getNodeAPIName(this.platform, 'fs'))
-      return { enginePath, searchedLocations }
-    }
-    const searchLocations: string[] = [
-      eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
-      this.config.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
-      path.join(eval('__dirname'), '..'), // parentDirName
-      path.dirname(this.config.datamodelPath), // Datamodel Dir
-      this.config.cwd, //cwdPath
-      '/tmp/prisma-engines',
-    ]
-
-    if (this.config.dirname) {
-      searchLocations.push(this.config.dirname)
-    }
-
-    for (const location of searchLocations) {
-      searchedLocations.push(location)
-      debug(`Searching for Query Engine Library in ${location}`)
-      enginePath = path.join(location, getNodeAPIName(this.platform, 'fs'))
-      if (fs.existsSync(enginePath)) {
-        return { enginePath, searchedLocations }
-      }
-    }
-    enginePath = path.join(__dirname, getNodeAPIName(this.platform, 'fs'))
-
-    return { enginePath: enginePath ?? '', searchedLocations }
-  }
-
-  private async getLibQueryEnginePath(): Promise<string> {
-    // TODO Document ENV VAR
-    const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
-    if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
-      return libPath
-    }
-    this.platform = this.platform ?? (await getPlatform())
-    const { enginePath, searchedLocations } = await this.resolveEnginePath()
-    // If path to query engine doesn't exist, throw
-    if (!fs.existsSync(enginePath)) {
-      const incorrectPinnedPlatformErrorStr = this.platform
-        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.platform}`)}\n`
-        : ''
-      // TODO Improve search engine logic possibly using findSync
-      let errorText = `Query engine library for current platform "${chalk.bold(
-        this.platform,
-      )}" could not be found.${incorrectPinnedPlatformErrorStr}
-This probably happens, because you built Prisma Client on a different platform.
-(Prisma Client looked in "${chalk.underline(enginePath)}")
-
-Searched Locations:
-
-${searchedLocations
-  .map((f) => {
-    let msg = `  ${f}`
-    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
-      const dir = fs.readdirSync(f)
-      msg += dir.map((d) => `    ${d}`).join('\n')
-    }
-    return msg
-  })
-  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
-      // The generator should always be there during normal usage
-      if (this.config.generator) {
-        // The user already added it, but it still doesn't work 🤷‍♀️
-        // That means, that some build system just deleted the files 🤔
-        this.platform = this.platform ?? (await getPlatform())
-        if (
-          this.config.generator.binaryTargets.find((object) => object.value === this.platform!) ||
-          this.config.generator.binaryTargets.find((object) => object.value === 'native')
-        ) {
-          errorText += `
-You already added the platform${
-            this.config.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.config.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t.value)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
-in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
-but something went wrong. That's suboptimal.
-
-Please create an issue at https://github.com/prisma/prisma/issues/new`
-          errorText += ``
-        } else {
-          // If they didn't even have the current running platform in the schema.prisma file, it's easy
-          // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
-            'binaryTargets',
-          )}" attribute in the "${chalk.underline('generator')}" block in the "schema.prisma" file:
-${chalk.greenBright(this.getFixedGenerator())}
-
-Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
-Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
-        }
-      } else {
-        errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
-      }
-
-      throw new PrismaClientInitializationError(errorText, this.config.clientVersion!)
-    }
-    this.platform = this.platform ?? (await getPlatform())
-    return enginePath
-  }
-
-  // TODO Fixed as in "not broken" or fixed as in "written down"? If any of these, why and how and where?
-  private getFixedGenerator(): string {
-    const fixedGenerator = {
-      ...this.config.generator!,
-      binaryTargets: fixBinaryTargets(this.config.generator!.binaryTargets, this.platform!),
-    }
-
-    return printGeneratorConfig(fixedGenerator)
+    return prismaGraphQLToJSError(error, this.config.clientVersion!)
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>

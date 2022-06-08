@@ -23,7 +23,8 @@ function formatVersion(generator: Generator): string | undefined {
 
   if (generator.getProvider() === 'prisma-client-js') {
     const engineType = getClientEngineType(generator.config)
-    return version ? `${version} | ${engineType}` : engineType
+    const engineMode = generator.options?.dataProxy ? 'dataproxy' : engineType
+    return version ? `${version} | ${engineMode}` : engineMode
   }
 
   return version
