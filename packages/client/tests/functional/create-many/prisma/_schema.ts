@@ -14,7 +14,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
     }
     
     model User {
-      id ${idForProvider(provider)}
+      id    ${idForProvider(provider)}
       email String  @unique
       name  String?
       posts Post[]
