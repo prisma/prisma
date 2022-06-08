@@ -1,3 +1,4 @@
+export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getPrismaConfigFromPackageJson,

@@ -1,12 +1,12 @@
-import type { Command } from '@prisma/sdk'
 import {
   arg,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   getSchemaPath,
   HelpError,
   isError,
-  link,
   loadEnvFile,
   logger,
 } from '@prisma/sdk'
@@ -99,6 +99,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('db execute', args, !args['--url'])
 
     if (args['--help']) {
       return this.help()

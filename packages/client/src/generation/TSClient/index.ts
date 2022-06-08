@@ -2,7 +2,7 @@ import 'flat-map-polyfill' // unfortunately needed as it's not properly polyfill
 
 export { ArgsType, MinimalArgsType } from './Args'
 export { Enum } from './Enum'
-export { JS, TS } from './Generatable'
+export { BrowserJS, JS, TS } from './Generatable'
 export { InputField, InputType } from './Input'
 export { Model, ModelDelegate } from './Model'
 export { OutputField, OutputType } from './Output'

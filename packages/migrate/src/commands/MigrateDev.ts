@@ -1,7 +1,8 @@
 import Debug from '@prisma/debug'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   getConfig,
@@ -89,6 +90,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('migrate dev', args, true)
 
     if (args['--help']) {
       return this.help()
@@ -327,6 +330,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
           if (successfulSeeding) {
             console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {
+            // TODO: Should we exit 1 here like in db seed and migrate reset?
             console.info() // empty line
           }
         } else {

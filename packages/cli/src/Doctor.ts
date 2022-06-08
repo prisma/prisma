@@ -1,9 +1,10 @@
 import type { DMMF } from '@prisma/generator-helper'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
   canConnectToDatabase,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getConfig,
   getDMMF,
@@ -63,6 +64,8 @@ ${chalk.bold('Examples')}
     if (args instanceof Error) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('doctor', args, true)
 
     if (args['--help']) {
       return this.help()
