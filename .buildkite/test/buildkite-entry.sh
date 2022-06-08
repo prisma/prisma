@@ -25,6 +25,10 @@ set -ex
 echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
 
+# Make sure docker instances are stopped to avoid the following flaky errors
+# `Bind for 0.0.0.0:27017 failed: port is already allocated`
+docker kill $(docker ps -q)
+
 # if [ $CHANGED_COUNT -gt 0 ]; then
   buildkite-agent pipeline upload .buildkite/test/test.yml
 # else

@@ -27,6 +27,10 @@ echo $BUILDKITE_TAG
 echo $BUILDKITE_SOURCE
 echo $UPDATE_STUDIO # TODO can we to remove this?
 
+# Make sure docker instances are stopped to avoid the following flaky errors
+# `Bind for 0.0.0.0:27017 failed: port is already allocated`
+docker kill $(docker ps -q)
+
 # if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ] || [ $UPDATE_STUDIO ]; then
   buildkite-agent pipeline upload .buildkite/publish/publish.yml
 # else
