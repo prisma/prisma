@@ -32,7 +32,7 @@
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
     "@types/jest": "28.1.0",
-    "@types/node": "12.20.51",
+    "@types/node": "12.20.55",
     "@types/resolve": "1.20.2",
     "@types/shell-quote": "1.7.1",
     "@types/tar": "6.1.1",
