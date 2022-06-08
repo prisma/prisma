@@ -573,7 +573,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.setError(json)
               if (this.engineStartDeferred) {
-                const err = new PrismaClientInitializationError(json.message, this.clientVersion!)
+                const err = new PrismaClientInitializationError(json.message, this.clientVersion!, json.error_code)
                 this.engineStartDeferred.reject(err)
               }
             }
