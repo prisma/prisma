@@ -14,4 +14,4 @@ test('exhaustive-schema', async () => {
 
   expect(generatedTypeScript).toMatchSnapshot('generatedTypeScript')
   expect(generatedBrowserJS).toMatchSnapshot('generatedBrowserJS')
-})
+}, 80000)
