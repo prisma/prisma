@@ -20,5 +20,7 @@ module.exports = {
         titleTemplate: '{title}',
       },
     ],
+    'buildkite-test-collector/jest/reporter',
   ],
+  testLocationInResults: true,
 }

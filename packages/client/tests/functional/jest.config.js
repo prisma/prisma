@@ -19,6 +19,7 @@ module.exports = {
         titleTemplate: '{title}',
       },
     ],
+    'buildkite-test-collector/jest/reporter',
   ],
   globalSetup: './_utils/globalSetup.js',
   snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
@@ -43,4 +44,5 @@ module.exports = {
    * See https://github.com/facebook/jest/issues/11617
    */
   maxWorkers: 1,
+  testLocationInResults: true,
 }
