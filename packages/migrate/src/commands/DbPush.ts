@@ -10,6 +10,7 @@ import {
   isError,
   loadEnvFile,
   logger,
+  safeProtocolToConnectorType,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
@@ -248,10 +249,17 @@ ${chalk.bold.redBright('All data will be lost.')}
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       console.info(`\nThe database is already in sync with the Prisma schema.`)
     } else {
+      const migrationTimeMessage = `Done in ${formatms(Date.now() - before)}`
+      const rocketEmoji = process.platform === 'win32' ? '' : '🚀  '
+      const migrationSuccessStdMessage = 'Your database is now in sync with your schema.'
+      const migrationSuccessMongoMessage = 'Your database is now in sync with your indexes.'
+
+      const provider = safeProtocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
+
       console.info(
-        `\n${
-          process.platform === 'win32' ? '' : '🚀  '
-        }Your database is now in sync with your schema. Done in ${formatms(Date.now() - before)}`,
+        `\n${rocketEmoji}${
+          provider === 'mongodb' ? migrationSuccessMongoMessage : migrationSuccessStdMessage
+        } ${migrationTimeMessage}`,
       )
     }
 
