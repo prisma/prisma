@@ -1,7 +1,6 @@
 import { enginesVersion } from '@prisma/engines'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
+import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
 import { StudioServer } from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'
@@ -74,6 +73,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('studio', args, true)
 
     if (args['--help']) {
       return this.help()

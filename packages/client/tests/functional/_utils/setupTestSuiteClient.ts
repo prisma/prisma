@@ -20,7 +20,15 @@ import type { TestSuiteMeta } from './setupTestSuiteMatrix'
  * @param suiteConfig
  * @returns loaded client module
  */
-export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteClient({
+  suiteMeta,
+  suiteConfig,
+  skipDb,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: TestSuiteConfig
+  skipDb?: boolean
+}) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig)
   const schema = await getTestSuiteSchema(suiteMeta, suiteConfig)
@@ -31,11 +39,13 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
   await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
-  await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+  if (!skipDb) {
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+  }
 
   await generateClient({
     datamodel: schema,
-    datamodelPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
+    schemaPath: getTestSuiteSchemaPath(suiteMeta, suiteConfig),
     binaryPaths: { libqueryEngine: {}, queryEngine: {} },
     datasources: config.datasources,
     outputDir: path.join(suiteFolderPath, 'node_modules/@prisma/client'),
@@ -48,8 +58,12 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
     testMode: true,
     activeProvider: suiteConfig['provider'],
     // Change \\ to / for windows support
-    runtimeDir: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
+    runtimeDirs: {
+      node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
+      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
+    },
     projectRoot: suiteFolderPath,
+    dataProxy: !!process.env.DATA_PROXY,
   })
 
   return require(path.join(suiteFolderPath, 'node_modules/@prisma/client'))

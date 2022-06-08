@@ -1,8 +1,9 @@
 import type { ConnectorType } from '@prisma/generator-helper'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
   canConnectToDatabase,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   HelpError,
@@ -133,6 +134,8 @@ export class Init implements Command {
     if (isError(args) || args['--help']) {
       return this.help()
     }
+
+    await checkUnsupportedDataProxy('init', args, false)
 
     /**
      * Validation
