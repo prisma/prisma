@@ -6,7 +6,6 @@ import { NotImplementedYetError } from '../errors/NotImplementedYetError'
 import { request } from './request'
 
 const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
-const prismaNpm = 'https://registry.npmjs.org/prisma'
 const debug = Debug('prisma:client:dataproxyEngine')
 
 async function _getClientVersion(config: EngineConfig) {
@@ -25,24 +24,16 @@ async function _getClientVersion(config: EngineConfig) {
   }
 
   // if it's an integration version, we resolve its data proxy
-  if (suffix === 'integration' || suffix?.startsWith('dev') || clientVersion === '0.0.0') {
+  if (suffix !== undefined || clientVersion === '0.0.0') {
     // we infer the data proxy version from the engine version
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
 
-    let publishedVersion: string
-    // if a patch has or will happen, we return that version
-    if (patch !== '0') {
-      publishedVersion = `${major}.${minor}.x`
-    } else {
-      // if not, we know that the minor must be minus with 1
-      publishedVersion = `${major}.${parseInt(minor) - 1}.x`
-    }
+    // we will get the latest existing version for this engine
+    const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)
+    const res = await request(pkgURL, { clientVersion })
 
-    // we don't know what `x` is, so we query the registry
-    const res = await request(`${prismaNpm}/${publishedVersion}`, { clientVersion })
-
-    return ((await res.json())['version'] as string) ?? 'unknown'
+    return (await res.json())['version'] as string
   }
 
   // nothing matched, meaning that the provided version is invalid
@@ -62,4 +53,17 @@ export async function getClientVersion(config: EngineConfig) {
   debug('version', version)
 
   return version
+}
+
+/**
+ * We use unpkg.com to resolve the version of the data proxy. We chose this over
+ * registry.npmjs.com because they cache their queries/responses so it is fast.
+ * Moreover, unpkg.com is able to support comparison operators like `<=1.0.0`.
+ * For us, that means we can provide a version that is too high (not published),
+ * and it will be able to resolve to the closest existing (published) version.
+ * @param version
+ * @returns
+ */
+function prismaPkgURL(version: string) {
+  return `https://unpkg.com/prisma@${version}/package.json`
 }
