@@ -10,13 +10,13 @@ generator client {
 model Person {
   id    String @id @default(cuid())
   name  String
-  sales Sale[] @relation("PersonsOnSale", references: [id])
+  sales Sale[] @relation("PersonsOnSale")
 }
 
 model Sale {
   id           String   @id @default(cuid())
-  resaleId     String?
+  resaleId     String?  @unique
   resale       Sale?    @relation("Resale", fields: [resaleId], references: [id])
   originalSale Sale?    @relation("Resale")
-  persons      Person[] @relation("PersonsOnSale", references: [id])
+  persons      Person[] @relation("PersonsOnSale")
 }
