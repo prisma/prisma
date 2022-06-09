@@ -4,7 +4,6 @@ set -ex
 
 curl \
   -X POST \
-  --fail-with-body \
   -H "Authorization: Token token=\"$BUILDKITE_ANALYTICS_TOKEN\"" \
   -F "data=@$1" \
   -F "format=junit" \
