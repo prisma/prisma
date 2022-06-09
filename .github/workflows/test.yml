@@ -172,13 +172,24 @@ jobs:
           TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
           TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
           NODE_OPTIONS: '--max-old-space-size=8096'
-          BUILDKITE_ANALYTICS_TOKEN: ${{ secrets.BUILDKITE_ANALYTICS_TOKEN }}
 
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+      - run: bash .github/workflows/scripts/upload-buildkite-junit.sh packages/client/junit.xml
+        env:
+          CI: true
+          BUILDKITE_ANALYTICS_TOKEN: ${{ secrets.BUILDKITE_ANALYTICS_TOKEN }}
+          GITHUB_ACTION: ${{ github.action }}
+          GITHUB_RUN_NUMBER: ${{ github.run_number }}
+          GITHUB_RUN_ATTEMPT: ${{ github.run_attempt }}
+          GITHUB_REF: ${{ github.ref }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
 
   #
   # CLIENT (types tests only)
