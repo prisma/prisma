@@ -1,3 +1,4 @@
+import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(
@@ -14,7 +15,7 @@ export default testMatrix.setupSchema(
   }
   
   model User {
-    id    Int @id @default(autoincrement())
+    id    ${idForProvider(provider)}
     email String
   }
 

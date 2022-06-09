@@ -29,7 +29,7 @@ describe('execaCommand', () => {
 
 describe('canConnectToDatabase', () => {
   test('sqlite - can', async () => {
-    await expect(canConnectToDatabase('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(true)
+    await expect(canConnectToDatabase('file:./introspection/blog.db', __dirname)).resolves.toEqual(true)
   })
 
   test('sqlite - cannot', async () => {
@@ -57,15 +57,15 @@ describe('canConnectToDatabase', () => {
 
 describe('createDatabase', () => {
   test('sqlite - already exists', async () => {
-    await expect(createDatabase('sqlite:./introspection/blog.db', __dirname)).resolves.toEqual(false)
+    await expect(createDatabase('file:./introspection/blog.db', __dirname)).resolves.toEqual(false)
   })
 
   test('sqlite - file does not exists', async () => {
-    await expect(createDatabase('sqlite:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
+    await expect(createDatabase('file:./doesnotexist.db', tempy.directory())).resolves.toEqual(true)
   })
 
   test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    await expect(createDatabase('sqlite:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(
+    await expect(createDatabase('file:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Migration engine exited."`,
     )
   })
