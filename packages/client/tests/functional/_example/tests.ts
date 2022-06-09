@@ -6,14 +6,15 @@ import testMatrix from './_matrix'
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
-  // an example of how to query with the preloaded client
-  test('findMany', async () => {
-    await prisma.user.findMany()
-  })
+testMatrix.setupTestSuite(
+  (suiteConfig, suiteMeta) => {
+    // an example of how to query with the preloaded client
+    test('findMany', async () => {
+      await prisma.user.findMany()
+    })
 
-  test('suiteConfig', () => {
-    /* 
+    test('suiteConfig', () => {
+      /* 
       {
         provider: 'sqlite',
         id: 'Int @id @default(autoincrement())',
@@ -22,11 +23,11 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       }
     */
 
-    expect(typeof suiteConfig.provider).toEqual('string')
-  })
+      expect(typeof suiteConfig.provider).toEqual('string')
+    })
 
-  test('suiteMeta', () => {
-    /* 
+    test('suiteMeta', () => {
+      /* 
       {
         testPath: './code/prisma/packages/client/tests/functional/_example/tests.ts',
         testDir: './code/prisma/packages/client/tests/functional/_example',
@@ -38,15 +39,24 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       }
     */
 
-    expect(typeof suiteMeta.testPath).toEqual('string')
-    expect(suiteMeta.testFileName).toEqual(path.basename(__filename))
-  })
+      expect(typeof suiteMeta.testPath).toEqual('string')
+      expect(suiteMeta.testFileName).toEqual(path.basename(__filename))
+    })
 
-  test('getTestSuiteSchema', async () => {
-    const schemaString = await getTestSuiteSchema(suiteMeta, suiteConfig)
+    test('getTestSuiteSchema', async () => {
+      const schemaString = await getTestSuiteSchema(suiteMeta, suiteConfig)
 
-    expect(schemaString).toContain('generator')
-    expect(schemaString).toContain('datasource')
-    expect(schemaString).toContain('model')
-  })
-})
+      expect(schemaString).toContain('generator')
+      expect(schemaString).toContain('datasource')
+      expect(schemaString).toContain('model')
+    })
+  },
+  // Use `optOut` to opt out from testing the default selected providers
+  // otherwise the suite will require all providers to be specified.
+  // {
+  //   optOut: {
+  //     from: ['sqlite', 'mongodb'],
+  //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
+  //   },
+  // },
+)
