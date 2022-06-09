@@ -13,4 +13,4 @@ FROM mcr.microsoft.com/vscode/devcontainers/typescript-node:0-${VARIANT}
 # RUN su node -c "source /usr/local/share/nvm/nvm.sh && nvm install ${EXTRA_NODE_VERSION}"
 
 # To install more global node packages
-RUN su node -c "npm install -g pnpm@6 ts-node"
+RUN su node -c "npm install -g pnpm ts-node"
