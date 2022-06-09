@@ -41,11 +41,10 @@ const white = (str) => WHITE_BRIGHT + str + RESET
 export function main() {
   const nodeVersions = process.version.split('.')
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
-  const nodeMinorVersion = parseInt(nodeVersions[1])
-  if (nodeMajorVersion < 12 || (nodeMajorVersion === 12 && nodeMinorVersion < 6)) {
+  if (nodeMajorVersion < 14) {
     console.error(
       drawBox({
-        str: `Prisma only supports Node.js >= 12.6`,
+        str: `Prisma only supports Node.js >= 14`,
         verticalPadding: 1,
         horizontalPadding: 3,
       }),
