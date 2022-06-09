@@ -147,7 +147,7 @@ async function branchExists(dir: string, branch: string): Promise<boolean> {
   return exists
 }
 
-async function getPrismaCommitFromPackageJsonViaNpmRegistry(npmVersion: string): Promise<{ prisma: string }> {
+function getPrismaCommitFromPackageJsonViaNpmRegistry(npmVersion: string): Promise<{ prisma: string }> {
   return fetch(`https://registry.npmjs.org/prisma/${npmVersion}`, {
     headers: {
       accept: 'application/json',
