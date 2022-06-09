@@ -3,7 +3,7 @@
 set -ex
 
 # Install pnpm
-npm i --silent -g pnpm --unsafe-perm # TODO: is this unsafe-perm needed?
+npm i --silent -g pnpm@6 --unsafe-perm # TODO: is this unsafe-perm needed?
 
 # Install packages
 pnpm i
