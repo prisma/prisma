@@ -12,7 +12,7 @@ const debug = Debug('prisma:getVersion')
 
 const MAX_BUFFER = 1_000_000_000
 
-export async function getVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
+export async function getBinaryVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
     binaryName = getCliQueryEngineBinaryType()
   }
