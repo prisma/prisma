@@ -23,16 +23,14 @@ async function _getClientVersion(config: EngineConfig) {
     return version
   }
 
-  // if it's an integration or dev version
-  // we need to resolve the closest version that is rolled out on Data Proxy infra
-  // if not queries would fail because that version is not available (we are missing automated deployments of these on Data Proxy infra)
-  // So we resolve with the closest previous version published on npm 
+  // if it is an integration or dev version, we resolve its dataproxy
+  // for this we infer the data proxy version from the engine version
   if (suffix !== undefined || clientVersion === '0.0.0') {
-    // we infer the data proxy version from the engine version
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
 
-    // we will get the latest existing version for this engine
+    // to ensure that the data proxy exists, we check if it's published
+    // we resolve with the closest or previous version published on npm
     const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)
     const res = await request(pkgURL, { clientVersion })
 
