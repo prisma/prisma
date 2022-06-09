@@ -23,7 +23,10 @@ async function _getClientVersion(config: EngineConfig) {
     return version
   }
 
-  // if it's an integration version, we resolve its data proxy
+  // if it's an integration or dev version
+  // we need to resolve the closest version that is rolled out on Data Proxy infra
+  // if not queries would fail because that version is not available (we are missing automated deployments of these on Data Proxy infra)
+  // So we resolve with the closest previous version published on npm 
   if (suffix !== undefined || clientVersion === '0.0.0') {
     // we infer the data proxy version from the engine version
     const [version] = engineVersion.split('-') ?? []
