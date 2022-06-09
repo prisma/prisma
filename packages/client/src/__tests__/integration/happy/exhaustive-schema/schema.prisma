@@ -107,10 +107,11 @@ model ManyRequired {
 }
 
 model OptionalSide1 {
-  id   Int            @id @default(autoincrement())
-  opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
+  id Int @id @default(autoincrement())
 
-  optionalSide2Id Int?
+  optionalSide2Id Int?           @unique
+  opti            OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
+
   int             Int
   optionalInt     Int?
   float           Float
