@@ -16,7 +16,7 @@ model Article {
 
 model Link {
   id        Int      @id
-  articleId Int
+  articleId Int      @unique
   article   Article  @relation(fields: [articleId], references: [id])
   postedAt  DateTime
 }
