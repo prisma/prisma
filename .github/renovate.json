@@ -4,7 +4,6 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
-  "schedule": ["after 9pm, before 8:00am"],
   "schedule": [
     "after 9pm",
     "before 8am"
