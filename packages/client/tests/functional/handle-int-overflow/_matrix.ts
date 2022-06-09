@@ -9,15 +9,10 @@ export default defineMatrix(() => [
       provider: 'postgresql',
     },
     {
-      provider: 'cockroachdb',
-    },
-  ],
-  [
-    {
-      previewFeatures: '',
+      provider: 'mysql',
     },
     {
-      previewFeatures: '"improvedQueryRaw"',
+      provider: 'mongodb',
     },
   ],
 ])

@@ -1,12 +1,10 @@
-import { getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
+import { checkMissingProviders } from './checkMissingProviders'
+import { getTestSuiteConfigs, getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
-
-export type MatrixOptions = {
-  skipDb?: boolean
-}
 
 /**
  * How does this work from a high level? What steps?
@@ -45,9 +43,14 @@ function setupTestSuiteMatrix(
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteTable = getTestSuiteTable(suiteMeta)
+  const suiteConfig = getTestSuiteConfigs(suiteMeta)
+  const suiteTable = getTestSuiteTable(suiteMeta, suiteConfig)
   const forceInlineSnapshot = process.argv.includes('-u')
-
+  checkMissingProviders({
+    suiteConfig,
+    suiteMeta,
+    options,
+  })
   ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
     const [suiteName, suiteConfig] = suiteEntry
 
