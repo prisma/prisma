@@ -35,8 +35,19 @@ async function _getClientVersion(config: EngineConfig) {
     // we resolve with the closest or previous version published on npm
     const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)
     const res = await request(pkgURL, { clientVersion })
-
-    return (await res.json())['version'] as string
+    
+    const bodyAsText = await res.text()
+    debug('body fetched from unpkg.com: ', bodyAsText)
+    
+    let bodyAsJson
+    try {
+      bodyAsJson = JSON.parse(bodyAsText)
+    } catch (e) {
+      console.error('JSON.parse error: body fetched from unpkg.com: ', bodyAsText)
+      throw e
+    }
+    
+    return bodyAsJson['version'] as string
   }
 
   // nothing matched, meaning that the provided version is invalid
