@@ -4,9 +4,9 @@
   "name": "Node.js & TypeScript",
   "build": {
     "dockerfile": "Dockerfile",
-    // Update 'VARIANT' to pick a Node version: 12, 14, 16
+    // Update 'VARIANT' to pick a Node version: 14, 16, 18
     "args": {
-      "VARIANT": "14"
+      "VARIANT": "16"
     }
   },
 

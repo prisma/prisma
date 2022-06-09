@@ -24,7 +24,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.6"
+    "node": ">=14"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -69,10 +69,10 @@
     "@opentelemetry/api": "1.1.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.16.0-7.24a869423481c8cd431a064e5c84f5a58778e574",
-    "@prisma/fetch-engine": "3.16.0-7.24a869423481c8cd431a064e5c84f5a58778e574",
+    "@prisma/engines": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
+    "@prisma/fetch-engine": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-7.24a869423481c8cd431a064e5c84f5a58778e574",
+    "@prisma/get-platform": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.189",
@@ -120,7 +120,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "28.0.3",
+    "ts-jest": "28.0.4",
     "ts-node": "10.8.0",
     "tsd": "0.20.0",
     "typescript": "4.7.2",
@@ -136,7 +136,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.16.0-7.24a869423481c8cd431a064e5c84f5a58778e574"
+    "@prisma/engines-version": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643"
   },
   "sideEffects": false
 }

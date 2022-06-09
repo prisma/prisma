@@ -9,8 +9,8 @@
     "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "engines": {
-    "node": ">=12.6",
-    "pnpm": ">=6.14.1"
+    "node": ">=14",
+    "pnpm": ">=6.14.1 <7"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
