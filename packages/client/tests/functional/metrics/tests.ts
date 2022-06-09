@@ -5,7 +5,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 // @ts-ignore this is just for type checks
 declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite(({ provider }) => {
   describe('empty', () => {
     test('does not crash before client is connected', async () => {
       await expect(prisma.$metrics.prometheus()).resolves.not.toThrow()
@@ -29,13 +29,15 @@ testMatrix.setupTestSuite(() => {
 
       expect(metrics).toContain('query_total_operations')
       expect(metrics).toContain('query_total_queries')
-      expect(metrics).toContain('pool_active_connections')
-      expect(metrics).toContain('pool_active_connections')
-      expect(metrics).toContain('pool_idle_connections')
-      expect(metrics).toContain('pool_wait_count')
       expect(metrics).toContain('query_active_transactions')
-      expect(metrics).toContain('pool_wait_duration_ms_bucket')
       expect(metrics).toContain('query_total_elapsed_time_ms_bucket')
+
+      if (provider !== 'mongodb') {
+        expect(metrics).toContain('pool_wait_duration_ms_bucket')
+        expect(metrics).toContain('pool_active_connections')
+        expect(metrics).toContain('pool_idle_connections')
+        expect(metrics).toContain('pool_wait_count')
+      }
     })
 
     test('includes global labels in prometheus format', async () => {
