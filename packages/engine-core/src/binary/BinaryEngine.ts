@@ -4,7 +4,7 @@ import type { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import type { ChildProcessByStdio } from 'child_process'
+import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
@@ -309,7 +309,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   private handlePanic(): void {
-    this.child?.kill()
+    if (this.child) {
+      this.stopPromise = killProcessAndWait(this.child)
+    }
     if (this.currentRequestPromise?.cancel) {
       this.currentRequestPromise.cancel()
     }
@@ -1176,4 +1178,11 @@ function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Incomi
 
     return acc
   }, {} as IncomingHttpHeaders)
+}
+
+function killProcessAndWait(childProcess: ChildProcess): Promise<void> {
+  return new Promise((resolve) => {
+    childProcess.once('exit', resolve)
+    childProcess.kill()
+  })
 }
