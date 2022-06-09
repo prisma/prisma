@@ -37,9 +37,15 @@ export type GetConfigOptions = {
   retry?: number
   ignoreEnvVarErrors?: boolean
 }
+
 export class GetConfigError extends Error {
   constructor(message: string, public readonly _error?: Error) {
-    super(addVersionDetailsToErrorMessage(`${chalk.redBright.bold('Get config: ')}${message}`))
+    super(
+      addVersionDetailsToErrorMessage(
+        `${chalk.redBright.bold('Get config: ')}${message}
+${chalk.red.bold('Details: ')}${_error?.message || _error}`,
+      ),
+    )
   }
 }
 

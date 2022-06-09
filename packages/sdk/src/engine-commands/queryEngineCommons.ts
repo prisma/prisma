@@ -77,7 +77,7 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
       () => load<NodeAPILibraryTypes.Library>(queryEnginePath),
       (e) => ({
         type: 'connection-error' as const,
-        reason: 'Unable to establish a connection to query-engine-node-api library',
+        reason: `Unable to establish a connection to query-engine-node-api library. Have you tried installing 'openssl'?`,
         error: e as Error,
       }),
     ),

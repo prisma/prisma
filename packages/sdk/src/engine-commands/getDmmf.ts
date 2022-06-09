@@ -41,7 +41,12 @@ export type GetDMMFOptions = {
 
 export class GetDmmfError extends Error {
   constructor(message: string, public readonly _error?: Error) {
-    super(addVersionDetailsToErrorMessage(`${chalk.redBright.bold('Get DMMF: ')}${message}`))
+    super(
+      addVersionDetailsToErrorMessage(
+        `${chalk.redBright.bold('Get DMMF: ')}${message}
+${chalk.red.bold('Details: ')}${_error?.message || _error}`,
+      ),
+    )
   }
 }
 
