@@ -46,6 +46,8 @@ on:
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  # To hide "Update available 0.0.0 -> x.x.x"
+  PRISMA_HIDE_UPDATE_MESSAGE: true
 
 jobs:
   detect_jobs_to_run:
