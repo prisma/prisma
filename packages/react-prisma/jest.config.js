@@ -1,6 +1,6 @@
 module.exports = {
   transform: {
-    '^.+\\.ts$': '@swc/jest',
+    '^.+\\.[jt]s$': '@swc/jest',
   },
   transformIgnorePatterns: [],
   testEnvironment: 'node',
