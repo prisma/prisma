@@ -77,8 +77,8 @@ In the `prisma/prisma` repository we have a few places where you can write tests
 - **`client`**
   - `src/__tests__/*.test.ts` - Unit tests
   - `test/functional` - New functional tests setup
-  - `src/__tests__/integration/happy/**` - Legacy integration tests for the happy path. Please, write functional test instead.
-  - `src/__tests__/integration/errors/**` - Legacy integration tests for error cases. Please write functional test instead.
+  - `src/__tests__/integration/happy/**` - Legacy integration tests for the happy path. Please, write functional tests instead.
+  - `src/__tests__/integration/errors/**` - Legacy integration tests for error cases. Please write functional tests instead.
   - `src/__tests__/types/**` - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
