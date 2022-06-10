@@ -81,7 +81,7 @@
     "@types/debug": "4.1.7",
     "@types/jest": "28.1.1",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "7.1.5",
+    "@types/mssql": "8.0.2",
     "@types/node": "12.20.55",
     "@types/pg": "8.6.5",
     "@types/yeoman-generator": "^5.2.10",
