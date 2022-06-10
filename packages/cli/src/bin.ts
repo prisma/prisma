@@ -21,6 +21,7 @@ import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, is
 import chalk from 'chalk'
 import path from 'path'
 
+import { version } from '../package.json'
 import { CLI } from './CLI'
 import { Dev } from './Dev'
 import { Doctor } from './Doctor'
@@ -42,9 +43,6 @@ import { detectPrisma1 } from './utils/detectPrisma1'
 import { printUpdateMessage } from './utils/printUpdateMessage'
 import { Validate } from './Validate'
 import { Version } from './Version'
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
-const packageJson = require('../package.json')
 
 const commandArray = process.argv.slice(2)
 
@@ -165,7 +163,7 @@ async function main(): Promise<number> {
     isPrismaInstalledGlobally,
     schemaPath: args['--schema'],
     telemetryInformation: args['--telemetry-information'],
-    version: packageJson.version,
+    version: version,
   })
   // if the result is cached and CLI outdated, show the `Update available` message
   const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
@@ -204,7 +202,7 @@ if (eval('require.main === module')) {
 
 function handleIndividualError(error: Error): void {
   if (isRustPanic(error)) {
-    handlePanic(error, packageJson.version, enginesVersion, redactedCommandAsString)
+    handlePanic(error, version, enginesVersion, redactedCommandAsString)
       .catch((e) => {
         if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)

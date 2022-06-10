@@ -8,6 +8,7 @@ module.exports = {
     '!(**/.generated/**)',
   ],
   transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
+  transformIgnorePatterns: [],
   reporters: [
     'default',
     [

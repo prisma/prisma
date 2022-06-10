@@ -7,7 +7,7 @@ import getPort from 'get-port'
 import open from 'open'
 import path from 'path'
 
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+import { version } from '../package.json'
 
 export class Studio implements Command {
   public instance?: StudioServer
@@ -101,7 +101,7 @@ ${chalk.bold('Examples')}
         },
       },
       versions: {
-        prisma: packageJson.version,
+        prisma: version,
         queryEngine: enginesVersion,
       },
     })

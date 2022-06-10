@@ -5,6 +5,7 @@ import { enginesVersion } from '@prisma/engines-version'
 import { handlePanic, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 
+import { version } from '../package.json'
 import { CLI } from './CLI'
 import { DbCommand } from './commands/DbCommand'
 import { DbExecute } from './commands/DbExecute'
@@ -28,8 +29,6 @@ process.on('unhandledRejection', (e, promise) => {
 })
 
 const commandArray = process.argv.slice(2)
-
-const packageJson = eval(`require('../package.json')`)
 
 /**
  * Main function
@@ -82,7 +81,7 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, enginesVersion, commandArray.join(' '))
+      handlePanic(error, version, enginesVersion, commandArray.join(' '))
         .catch((e) => {
           if (Debug.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)

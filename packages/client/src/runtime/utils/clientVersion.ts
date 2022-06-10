@@ -1,1 +1,1 @@
-export const clientVersion = require('../../../package.json').version
+export { version as clientVersion } from '../../../package.json'

@@ -20,9 +20,8 @@ import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 
+import packageJson from '../package.json'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
-
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 interface BinaryInfo {
   path: string
@@ -93,7 +92,7 @@ export class Version implements Command {
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
-      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
+      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()!],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 

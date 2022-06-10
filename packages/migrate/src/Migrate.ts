@@ -6,12 +6,12 @@ import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 
+import { version } from '../package.json'
 import { MigrateEngine } from './MigrateEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
 const debug = Debug('prisma:migrate')
-const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: MigrateEngine
@@ -154,7 +154,7 @@ export class Migrate {
       schemaPath: this.schemaPath,
       printDownloadProgress: true,
       version: enginesVersion,
-      cliVersion: packageJson.version,
+      cliVersion: version,
       dataProxy: false,
     })
 

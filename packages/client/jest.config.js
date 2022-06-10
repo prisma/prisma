@@ -1,11 +1,8 @@
 module.exports = {
-  preset: 'ts-jest',
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-      isolatedModules: true,
-    },
+  transform: {
+    '^.+\\.(j|t)s$': '@swc/jest',
   },
+  transformIgnorePatterns: [],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],

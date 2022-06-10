@@ -2,6 +2,7 @@ module.exports = {
   transform: {
     '^.+\\.ts$': '@swc/jest',
   },
+  transformIgnorePatterns: [],
   testEnvironment: 'node',
   testMatch: ['**/src/__tests__/**/*.test.ts'],
   collectCoverage: process.env.CI ? true : false,

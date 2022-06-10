@@ -1,4 +1,6 @@
 import chalk from 'chalk'
+import fs from 'fs'
+import path from 'path'
 import * as stackTraceParser from 'stacktrace-parser'
 
 import { highlightTS } from '../highlight/highlight'
@@ -92,10 +94,9 @@ function parseStack({
 
   if (process.env.NODE_ENV !== 'production' && trace && trace.file && trace.lineNumber && trace.column) {
     const lineNumber = trace.lineNumber
-    const printedFileName = renderPathRelative ? require('path').relative(process.cwd(), trace.file) : trace.file
+    const printedFileName = renderPathRelative ? path.relative(process.cwd(), trace.file) : trace.file
     const start = Math.max(0, lineNumber - 4)
 
-    const fs = require('fs')
     const exists = fs.existsSync(trace.file)
     if (exists) {
       const file = fs.readFileSync(trace.file, 'utf-8')

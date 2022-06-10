@@ -26,10 +26,9 @@ import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+import { version } from '../package.json'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
-
-const pkg = eval(`require('../package.json')`)
 
 /**
  * $ prisma generate
@@ -85,7 +84,7 @@ ${chalk.bold('Examples')}
         // This is an error received when the the client < 2.20 and the cli  >= 2.20, This was caused by a breaking change in the generators
         if (err.message.includes('outputDir.endsWith is not a function')) {
           message.push(
-            `This combination of Prisma CLI (>= 2.20) and Prisma Client (< 2.20) is not supported. Please update \`@prisma/client\` to ${pkg.version}   \n\n`,
+            `This combination of Prisma CLI (>= 2.20) and Prisma Client (< 2.20) is not supported. Please update \`@prisma/client\` to ${version}   \n\n`,
           )
         } else {
           message.push(`${err.message}\n\n`)
@@ -137,7 +136,7 @@ ${chalk.bold('Examples')}
         schemaPath,
         printDownloadProgress: !watchMode,
         version: enginesVersion,
-        cliVersion: pkg.version,
+        cliVersion: version,
         dataProxy: !!args['--data-proxy'],
       })
 
@@ -219,10 +218,10 @@ Please run \`prisma generate\` manually.`
 ${breakingChangesMessage}`
           : ''
 
-        const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
+        const versionsOutOfSync = clientGeneratorVersion && version !== clientGeneratorVersion
         const versionsWarning =
           versionsOutOfSync && logger.should.warn
-            ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${pkg.version}`)} and ${chalk.bold(
+            ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${version}`)} and ${chalk.bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
@@ -260,7 +259,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               schemaPath,
               printDownloadProgress: !watchMode,
               version: enginesVersion,
-              cliVersion: pkg.version,
+              cliVersion: version,
               dataProxy: !!args['--data-proxy'],
             })
 
