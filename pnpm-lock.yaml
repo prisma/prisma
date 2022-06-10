@@ -227,7 +227,7 @@ importers:
       '@types/debug': 4.1.7
       '@types/jest': 28.1.1
       '@types/js-levenshtein': 1.1.1
-      '@types/mssql': 7.1.5
+      '@types/mssql': 8.0.2
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
       '@types/yeoman-generator': ^5.2.10
@@ -292,7 +292,7 @@ importers:
       '@types/debug': 4.1.7
       '@types/jest': 28.1.1
       '@types/js-levenshtein': 1.1.1
-      '@types/mssql': 7.1.5
+      '@types/mssql': 8.0.2
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
       '@types/yeoman-generator': 5.2.10
@@ -446,7 +446,7 @@ importers:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21
       '@types/jest': 28.1.1
-      '@types/mssql': 7.1.5
+      '@types/mssql': 8.0.2
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
       '@types/sqlite3': 3.1.8
@@ -473,7 +473,7 @@ importers:
       '@swc/core': 1.2.189
       '@swc/jest': 0.2.21_@swc+core@1.2.189
       '@types/jest': 28.1.1
-      '@types/mssql': 7.1.5
+      '@types/mssql': 8.0.2
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
       '@types/sqlite3': 3.1.8
@@ -2464,8 +2464,8 @@ packages:
   /@types/ms/0.7.31:
     resolution: {integrity: sha512-iiUgKzV9AuaEkZqkOLDIvlQiL6ltuZd9tGcW3gwpnX8JbuiuhFlEGmmFXEXkN50Cvq7Os88IY2v0dkDqXYWVgA==}
 
-  /@types/mssql/7.1.5:
-    resolution: {integrity: sha512-+I/4wNTUlZVxWSDo8BBo3Hw7aAKvmH+0JiovF3aW7NqjOvZZNa1xeqyjp7BBiktZx1wiV/ZKAxi21viAR53vjQ==}
+  /@types/mssql/8.0.2:
+    resolution: {integrity: sha512-O/voOSC/U1SZSX0oS0B7cvbyjMF3Qrd3Yi+QHx7yIhsxv8HT2MKjuZovn3sgd3WvFQfs0kKvyTUx++p9RGxepw==}
     dependencies:
       '@types/node': 17.0.35
       '@types/tedious': 4.0.7
