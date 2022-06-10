@@ -11,6 +11,12 @@ export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
+type TestPlanEntry = {
+  name: string
+  skip: boolean
+  suiteConfig: Record<string, string>
+}
+
 /**
  * Get the generated test suite name, used for the folder name.
  * @param suiteMeta
@@ -104,17 +110,43 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
 }
 
 /**
- * Get a jest-compatible test suite table from the test suite configs.
+ * Get a test plan from a list of suite configs. Test plan tells what the name of
+ * the tests are, what are their config and whether or not they should be executed or skipped
  * @param suiteMeta
  * @returns [test-suite-title: string, test-suite-config: object]
  */
-export function getTestSuiteTable(
+export function getTestSuitePlan(
   suiteMeta: TestSuiteMeta,
   suiteConfig: {
     [x: string]: string
   }[],
-) {
-  return map(suiteConfig, (suiteConfig) => [getTestSuiteFullName(suiteMeta, suiteConfig), suiteConfig] as const)
+): TestPlanEntry[] {
+  const updateSnapshots = process.env.UPDATE_SNAPSHOTS
+  const providers = process.env.ONLY_TEST_PROVIDERS?.split(',')
+
+  return suiteConfig.map((config, configIndex) => {
+    const name = getTestSuiteFullName(suiteMeta, config)
+    const provider = config['provider'].toLocaleLowerCase()
+
+    let skip = false
+    if (updateSnapshots === 'inline' && configIndex > 0) {
+      // when updating inline snapshots, we have to run a  single suite only -
+      // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
+      skip = true
+    } else if (updateSnapshots === 'external' && configIndex === 0) {
+      // when updating external snapshots, we assume that inline snapshots update was run just before it - so
+      // there is no reason to re-run the first suite
+      skip = true
+    } else if (providers && !providers.includes(provider)) {
+      skip = true
+    }
+
+    return {
+      name,
+      skip,
+      suiteConfig: config,
+    }
+  })
 }
 
 /**
