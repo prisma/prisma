@@ -1,5 +1,4 @@
 import { arg } from '@prisma/sdk'
-import path from 'path'
 
 import { Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
@@ -19,8 +18,7 @@ const args = arg(
   true,
 )
 
-const configPath = path.resolve(__dirname, '..', '..', 'tests', 'functional', 'jest.config.js')
-let jestCli = new JestCli(['--config', configPath])
+let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
 
 if (args['--provider']) {
   const providers = args['--provider'] as Providers[]
