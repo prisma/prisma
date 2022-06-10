@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-const { generatorHandler } = require('../generatorHandler')
+const { generatorHandler } = require('../../dist/generatorHandler')
 
 generatorHandler({
   async onGenerate() {
     console.log('Logging in onGenerate should be fine')
-    await new Promise(r => {
+    await new Promise((r) => {
       setTimeout(r, 100)
     })
   },

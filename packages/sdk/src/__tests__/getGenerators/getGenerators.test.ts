@@ -23,6 +23,8 @@ let generatorPath = path.join(__dirname, 'generator')
 
 if (process.platform === 'win32') {
   generatorPath += '.cmd'
+} else {
+  generatorPath += '.js'
 }
 
 describe('getGenerators', () => {

@@ -1,2 +1,2 @@
 @ECHO off
-node "%~dp0\generator" %*
+node "%~dp0\generator.js" %*

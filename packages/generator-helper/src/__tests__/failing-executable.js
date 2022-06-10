@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const { generatorHandler } = require('../generatorHandler')
+const { generatorHandler } = require('../../dist/generatorHandler')
 
 generatorHandler({
   async onGenerate() {

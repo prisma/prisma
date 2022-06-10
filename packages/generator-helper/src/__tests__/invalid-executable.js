@@ -3,7 +3,7 @@
 // let's provoke this to fail by requiring an unexisting module
 require('modulethatdoesnotexist/something')
 
-const { generatorHandler } = require('../generatorHandler')
+const { generatorHandler } = require('../../dist/generatorHandler')
 
 generatorHandler({
   async onGenerate() {

@@ -48,6 +48,7 @@ const stubOptions: GeneratorOptions = {
   otherGenerators: [],
   schemaPath: '',
   version: 'latest',
+  dataProxy: false,
 }
 
 function getExecutable(name: string): string {
@@ -55,7 +56,7 @@ function getExecutable(name: string): string {
   if (process.platform === 'win32') {
     fullName += '.cmd'
   }
-  return fullName
+  return `${fullName}.js`
 }
 
 describe('generatorHandler', () => {

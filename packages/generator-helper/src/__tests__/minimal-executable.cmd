@@ -1,2 +1,2 @@
 @ECHO off
-node "%~dp0\minimal-executable" %*
+node "%~dp0\minimal-executable.js" %*
