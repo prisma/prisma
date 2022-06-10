@@ -1,6 +1,8 @@
-import { getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
+import { checkMissingProviders } from './checkMissingProviders'
+import { getTestSuiteConfigs, getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
@@ -35,12 +37,20 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  *
  * @param tests where you write your tests
  */
-function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void) {
+function setupTestSuiteMatrix(
+  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  options?: MatrixOptions,
+) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteTable = getTestSuiteTable(suiteMeta)
+  const suiteConfig = getTestSuiteConfigs(suiteMeta)
+  const suiteTable = getTestSuiteTable(suiteMeta, suiteConfig)
   const forceInlineSnapshot = process.argv.includes('-u')
-
+  checkMissingProviders({
+    suiteConfig,
+    suiteMeta,
+    options,
+  })
   ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
     const [suiteName, suiteConfig] = suiteEntry
 
@@ -52,14 +62,21 @@ function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: T
     describe(suiteName, () => {
       // we inject modified env vars, and make the client available as globals
       beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
-      beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
+      beforeAll(
+        async () =>
+          (globalThis['loaded'] = await setupTestSuiteClient({
+            suiteMeta,
+            suiteConfig,
+            skipDb: options?.skipDb,
+          })),
+      )
       beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
       beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
       beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
 
       // we disconnect and drop the database, clean up the env, and global vars
-      afterAll(async () => await globalThis['prisma']?.$disconnect())
-      afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+      afterAll(async () => !options?.skipDb && (await globalThis['prisma']?.$disconnect()))
+      afterAll(async () => !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig)))
       afterAll(() => (process.env = originalEnv))
       afterAll(() => delete globalThis['loaded'])
       afterAll(() => delete globalThis['prisma'])

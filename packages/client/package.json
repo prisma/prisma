@@ -24,7 +24,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.6"
+    "node": ">=14"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -64,22 +64,22 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@jest/test-sequencer": "28.1.0",
+    "@jest/test-sequencer": "28.1.1",
     "@microsoft/api-extractor": "7.24.1",
     "@opentelemetry/api": "1.1.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.16.0-3.22436bd007b1203600887b86874988576ef6f8ff",
-    "@prisma/fetch-engine": "3.16.0-3.22436bd007b1203600887b86874988576ef6f8ff",
+    "@prisma/engines": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
+    "@prisma/fetch-engine": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-3.22436bd007b1203600887b86874988576ef6f8ff",
+    "@prisma/get-platform": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@swc/core": "1.2.189",
     "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "28.1.0",
+    "@types/jest": "28.1.1",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "7.1.5",
     "@types/node": "12.20.55",
@@ -100,7 +100,7 @@
     "indent-string": "4.0.0",
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
-    "jest": "28.1.0",
+    "jest": "28.1.1",
     "jest-junit": "13.2.0",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.5",
@@ -120,7 +120,7 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "28.0.3",
+    "ts-jest": "28.0.4",
     "ts-node": "10.8.0",
     "tsd": "0.20.0",
     "typescript": "4.7.2",
@@ -136,7 +136,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.16.0-3.22436bd007b1203600887b86874988576ef6f8ff"
+    "@prisma/engines-version": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643"
   },
   "sideEffects": false
 }

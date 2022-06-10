@@ -9,8 +9,8 @@
     "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "engines": {
-    "node": ">=12.6",
-    "pnpm": ">=6.14.1"
+    "node": ">=14",
+    "pnpm": ">=6.14.1 <7"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
@@ -54,7 +54,7 @@
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-jest": "26.4.6",
+    "eslint-plugin-jest": "26.5.3",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-simple-import-sort": "7.0.0",
     "eventemitter3": "4.0.7",

@@ -91,7 +91,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
-          node-version: '12'
+          node-version: '16'
 
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
       # Matchers are added in setup-node
@@ -125,7 +125,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [buildjet-4vcpu-ubuntu-2004]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -168,6 +168,9 @@ jobs:
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
           TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+          TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+          TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
+          TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
           NODE_OPTIONS: '--max-old-space-size=8096'
 
       - uses: codecov/codecov-action@v3
@@ -189,7 +192,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12]
+        node: [16]
 
     steps:
       - uses: actions/checkout@v3
@@ -236,7 +239,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        node: [12]
+        node: [16]
 
     steps:
       - uses: actions/checkout@v3
@@ -301,7 +304,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [buildjet-4vcpu-ubuntu-2004]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -363,7 +366,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [buildjet-4vcpu-ubuntu-2004]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -434,7 +437,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [buildjet-4vcpu-ubuntu-2004]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -488,8 +491,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [buildjet-4vcpu-ubuntu-2004]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
