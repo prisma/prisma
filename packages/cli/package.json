@@ -68,25 +68,25 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
+    "@prisma/fetch-engine": "3.16.0-10.f1713a428895ef1063715294c57993d848796a4c",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643",
+    "@prisma/get-platform": "3.16.0-10.f1713a428895ef1063715294c57993d848796a4c",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
     "@prisma/studio": "0.462.0",
     "@prisma/studio-server": "0.462.0",
-    "@swc/core": "1.2.189",
+    "@swc/core": "1.2.197",
     "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "28.1.0",
+    "@types/jest": "28.1.1",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.5.3",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
     "debug": "4.3.4",
     "dotenv": "16.0.1",
-    "esbuild": "0.14.39",
+    "esbuild": "0.14.43",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
     "fs-extra": "10.1.0",
@@ -94,7 +94,7 @@
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "28.1.0",
+    "jest": "28.1.1",
     "jest-junit": "13.2.0",
     "line-replace": "2.0.1",
     "log-update": "4.0.0",
@@ -107,8 +107,8 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
-    "ts-pattern": "4.0.2",
-    "typescript": "4.7.2"
+    "ts-pattern": "4.0.3",
+    "typescript": "4.7.3"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -120,7 +120,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.16.0-8.21b5f322ad1c14a1b28b18e805330f02df46f643"
+    "@prisma/engines": "3.16.0-10.f1713a428895ef1063715294c57993d848796a4c"
   },
   "sideEffects": false
 }
