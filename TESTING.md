@@ -282,7 +282,7 @@ testMatrix.setupTestSuite(
 )
 ```
 
-This tests will run for every permutation of the parameters from the matrix. Each suite will start with a clean already set up database, generated and initialized client, available via `prisma` global. After suite is finished, database will be dropped and client instance will disconnect automatically.
+This test will run for every permutation of the parameters from the matrix. Each suite will start with a clean already set up database, generated and initialized client, available via `prisma` global. After suite is finished, database will be dropped and client instance will disconnect automatically.
 
 ### Running functional tests
 
