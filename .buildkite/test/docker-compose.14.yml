@@ -43,6 +43,8 @@ services:
       - PATCH_BRANCH
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma test"
+      # To hide "Update available 0.0.0 -> x.x.x"
+      - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
     depends_on:
       - postgres
