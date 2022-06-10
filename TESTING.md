@@ -150,7 +150,7 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 
 ## Functional tests for the client
 
-Functional tests in the client package are testing that all aspects of client and query engine work correctly. They strive to be as close as possible to the way client will be used in real project: they generate an actual client, talk to real databases, perform the type checks and generally test the client through its public API.
+Functional tests in the client package are testing that all aspects of client and query engine work correctly. They strive to be as close as possible to the way client will be used in real project: they generate an actual client, talk to a real database, perform the type checks and generally test the client through its public API.
 
 ### Creating new functional test
 
