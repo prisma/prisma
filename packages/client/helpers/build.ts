@@ -127,7 +127,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
 
 void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
   if (process.env.DEV !== 'true') {
-    bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/client/src/runtime/index-browser', 'runtime/index-browser')
+    bundleTypeDefinitions('declaration/src/runtime/index', 'runtime/index')
+    bundleTypeDefinitions('declaration/src/runtime/index-browser', 'runtime/index-browser')
   }
 })

@@ -26,6 +26,7 @@ import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+// @ts-ignore because it's out of src and typescript will complain
 import { version } from '../package.json'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'

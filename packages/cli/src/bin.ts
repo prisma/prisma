@@ -21,6 +21,7 @@ import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, is
 import chalk from 'chalk'
 import path from 'path'
 
+// @ts-ignore because it's out of src and typescript will complain
 import { version } from '../package.json'
 import { CLI } from './CLI'
 import { Dev } from './Dev'

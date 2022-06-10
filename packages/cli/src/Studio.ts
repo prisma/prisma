@@ -7,6 +7,7 @@ import getPort from 'get-port'
 import open from 'open'
 import path from 'path'
 
+// @ts-ignore because it's out of src and typescript will complain
 import { version } from '../package.json'
 
 export class Studio implements Command {

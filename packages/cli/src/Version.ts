@@ -20,6 +20,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 
+// @ts-ignore because it's out of src and typescript will complain
 import packageJson from '../package.json'
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 

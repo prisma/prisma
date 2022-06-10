@@ -13,7 +13,7 @@ export const tscPlugin: esbuild.Plugin = {
     if (process.env.DEV === 'true') return
 
     build.onStart(async () => {
-      await run(`tsc --build ${options.tsconfig}`)
+      await run(`tsc --project ${options.tsconfig} --paths null`)
     })
   },
 }

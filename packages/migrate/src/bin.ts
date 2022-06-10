@@ -5,6 +5,7 @@ import { enginesVersion } from '@prisma/engines-version'
 import { handlePanic, HelpError, isError } from '@prisma/sdk'
 import chalk from 'chalk'
 
+// @ts-ignore because it's out of src and typescript will complain
 import { version } from '../package.json'
 import { CLI } from './CLI'
 import { DbCommand } from './commands/DbCommand'

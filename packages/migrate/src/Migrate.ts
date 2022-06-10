@@ -6,6 +6,7 @@ import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 
+// @ts-ignore because it's out of src and typescript will complain
 import { version } from '../package.json'
 import { MigrateEngine } from './MigrateEngine'
 import type { EngineArgs, EngineResults } from './types'
