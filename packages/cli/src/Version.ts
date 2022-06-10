@@ -1,14 +1,15 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
   BinaryType,
+  Command,
   engineEnvVarMap,
   format,
   formatTable,
   getBinaryVersion,
   getConfig,
+  getEnginesMetaInfo,
   getSchema,
   getSchemaPath,
   HelpError,
@@ -19,6 +20,7 @@ import {
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -74,11 +76,28 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-    const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
-    const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
-    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
-    const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
+
+    const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
+
+    const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
+      return match(engineMetaInfo)
+        .with({ 'query-engine': P.select() }, (currEngineInfo) => {
+          return [
+            `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
+            currEngineInfo,
+          ]
+        })
+        .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
+          return ['Migration Engine', currEngineInfo]
+        })
+        .with({ 'introspection-engine': P.select() }, (currEngineInfo) => {
+          return ['Introspection Engine', currEngineInfo]
+        })
+        .with({ 'format-binary': P.select() }, (currEngineInfo) => {
+          return ['Format Binary', currEngineInfo]
+        })
+        .exhaustive()
+    })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -86,16 +105,16 @@ export class Version implements Command {
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
-      [
-        `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
-        this.printBinaryInfo(queryEngine),
-      ],
-      ['Migration Engine', this.printBinaryInfo(migrationEngine)],
-      ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
-      ['Format Binary', this.printBinaryInfo(fmtBinary)],
+
+      ...enginesRows,
+
       ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
+
+    if (enginesMetaInfoErrors.length > 0) {
+      enginesMetaInfoErrors.forEach((e) => console.error(e))
+    }
 
     const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
