@@ -100,7 +100,8 @@
     },
     {
       "groupName": "sql-template-tag",
-      "packageNames": ["sql-template-tag"]
+      "packageNames": ["sql-template-tag"],
+      "updateTypes": ["patch", "minor"]
     },
     {
       "groupName": "node-fetch",
