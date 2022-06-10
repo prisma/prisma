@@ -99,6 +99,10 @@
       "matchPackagePatterns": [".*jest.*"]
     },
     {
+      "groupName": "sql-template-tag",
+      "packageNames": ["sql-template-tag"]
+    },
+    {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
       "packageNames": ["node-fetch"]
