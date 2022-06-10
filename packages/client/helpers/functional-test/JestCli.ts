@@ -1,7 +1,8 @@
 import execa from 'execa'
 import path from 'path'
 
-const jestPath = path.resolve(__dirname, '..', '..', 'node_modules', '.bin', 'jest')
+const packageRoot = path.resolve(__dirname, '..', '..')
+const jestPath = path.join(packageRoot, 'node_modules', '.bin', 'jest')
 export class JestCli {
   private args: string[]
   private env: Record<string, string>
@@ -23,6 +24,7 @@ export class JestCli {
     execa.sync(jestPath, this.args, {
       env: this.env,
       stdio: 'inherit',
+      cwd: packageRoot,
     })
   }
 }
