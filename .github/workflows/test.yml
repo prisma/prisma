@@ -491,6 +491,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
 
     steps:
