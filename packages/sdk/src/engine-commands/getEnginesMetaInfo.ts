@@ -42,18 +42,18 @@ export type BinaryInfoMatrix = BinaryMatrix<EngineInfo>
 export async function getEnginesMetaInfo() {
   const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
-  const engineData = [
+  const engines = [
     {
       name: 'query-engine' as const,
       type: cliQueryEngineBinaryType,
     },
     {
-      name: 'introspection-engine' as const,
-      type: BinaryType.introspectionEngine,
-    },
-    {
       name: 'migration-engine' as const,
       type: BinaryType.migrationEngine,
+    },
+    {
+      name: 'introspection-engine' as const,
+      type: BinaryType.introspectionEngine,
     },
     {
       name: 'format-binary' as const,
@@ -61,23 +61,37 @@ export async function getEnginesMetaInfo() {
     },
   ] as const
 
-  const enginePromises = engineData.map(({ name, type }) => {
+  /**
+   * Resolve `resolveEngine` promises (that can never fail) and forward a reference to
+   * the engine name in the promise result.
+   */
+  const enginePromises = engines.map(({ name, type }) => {
     const promise = resolveEngine(type)()
     return promise.then((result) => [name, result])
   })
-
   const engineMatrix: BinaryInfoMatrix = await Promise.all(enginePromises).then(Object.fromEntries)
 
-  const engineDataAcc = engineData.map(({ name }) => {
+  const engineDataAcc = engines.map(({ name }) => {
     const [engineInfo, errors] = getEnginesInfo(engineMatrix[name])
     return [{ [name]: engineInfo } as { [name in keyof BinaryInfoMatrix]: string }, errors] as const
   })
-  const engineMetaInfo = engineDataAcc.map((arr) => arr[0])
-  const enginesMetaInfoErrors = engineDataAcc.flatMap((arr) => arr[1])
+
+  // map each engine to its version
+  const engineMetaInfo: {
+    'query-engine': string
+    'migration-engine': string
+    'introspection-engine': string
+    'format-binary': string
+  }[] = engineDataAcc.map((arr) => arr[0])
+
+  // keep track of any error that has occurred, if any
+  const enginesMetaInfoErrors: Error[] = engineDataAcc.flatMap((arr) => arr[1])
+
   return [engineMetaInfo, enginesMetaInfoErrors] as const
 }
 
-export function getEnginesInfo(enginesInfo: EngineInfo) {
+export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error[]] {
+  // if the engine is not found, or the version cannot be retrieved, keep track of the resulting errors.
   const errors = [] as Error[]
 
   const resolved = match(enginesInfo)
@@ -122,6 +136,9 @@ export function resolveEngine(binaryName: BinaryType): T.Task<EngineInfo> {
   const pathFromEnv = process.env[envVar]
 
   if (pathFromEnv && fs.existsSync(pathFromEnv)) {
+    /**
+     * Extract EngineInfo from a library engine
+     */
     const rest = { libraryPath: O.fromNullable(pathFromEnv), fromEnvVar: O.fromNullable(envVar) }
     const engineInfoLibraryTask = pipe(
       safeGetBinaryVersion(pathFromEnv, binaryName),
@@ -133,6 +150,9 @@ export function resolveEngine(binaryName: BinaryType): T.Task<EngineInfo> {
     return engineInfoLibraryTask
   }
 
+  /**
+   * Extract EngineInfo from a binary engine
+   */
   const engineInfoBinaryTask: T.Task<EngineInfoBinary> = pipe(
     safeResolveBinary(binaryName),
     TE.matchEW(
