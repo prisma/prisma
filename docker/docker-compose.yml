@@ -24,7 +24,7 @@ services:
       - '5435:5432'
 
   cockroachdb:
-    image: prismagraphql/cockroachdb-custom:22.1.0-beta.5
+    image: prismagraphql/cockroachdb-custom:22.1.0
     restart: always
     command: start-single-node --insecure
     ports:

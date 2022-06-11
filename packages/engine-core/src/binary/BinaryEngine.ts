@@ -4,7 +4,7 @@ import type { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import type { ChildProcessByStdio } from 'child_process'
+import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
@@ -29,6 +29,7 @@ import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageW
 import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
@@ -308,7 +309,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   private handlePanic(): void {
-    this.child?.kill()
+    if (this.child) {
+      this.stopPromise = killProcessAndWait(this.child)
+    }
     if (this.currentRequestPromise?.cancel) {
       this.currentRequestPromise.cancel()
     }
@@ -546,7 +549,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = ['--enable-raw-queries', ...this.flags, ...additionalFlag]
+        const flags = ['--enable-raw-queries', '--enable-metrics', ...this.flags, ...additionalFlag]
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
@@ -572,7 +575,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.setError(json)
               if (this.engineStartDeferred) {
-                const err = new PrismaClientInitializationError(json.message, this.clientVersion!)
+                const err = new PrismaClientInitializationError(json.message, this.clientVersion!, json.error_code)
                 this.engineStartDeferred.reject(err)
               }
             }
@@ -1090,6 +1093,20 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
 
     return false
   }
+
+  async metrics(options: MetricsOptionsJson): Promise<Metrics>
+  async metrics(options: MetricsOptionsPrometheus): Promise<string>
+  async metrics({ format, globalLabels }: EngineMetricsOptions): Promise<string | Metrics> {
+    await this.start()
+    const parseResponse = format === 'json'
+    const response = await this.connection.post<string | Metrics>(
+      `/metrics?format=${encodeURIComponent(format)}`,
+      JSON.stringify(globalLabels),
+      null,
+      parseResponse,
+    )
+    return response.data
+  }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
@@ -1161,4 +1178,11 @@ function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Incomi
 
     return acc
   }, {} as IncomingHttpHeaders)
+}
+
+function killProcessAndWait(childProcess: ChildProcess): Promise<void> {
+  return new Promise((resolve) => {
+    childProcess.once('exit', resolve)
+    childProcess.kill()
+  })
 }

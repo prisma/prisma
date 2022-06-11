@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   app:
-    image: node:12-buster
+    image: node:14-buster
     volumes:
       - ../../:/app
     working_dir: /app
@@ -32,6 +32,8 @@ services:
       - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongodb_migrate:27017/tests-migrate?authSource=admin
       # CockroachDB
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/tests
+      - TEST_COCKROACH_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate
+      - TEST_COCKROACH_SHADOWDB_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate-shadowdb
       # Other vars !\ If not defined, they cannot be accessed
       # TODO: do an env var cleanup?
       - NPM_TOKEN
@@ -50,6 +52,8 @@ services:
       - DRY_RUN
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
+      # To hide "Update available 0.0.0 -> x.x.x"
+      - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
       - SLACK_RELEASE_FEED_WEBHOOK
     depends_on:
@@ -85,7 +89,7 @@ services:
       - '5435:5432'
 
   cockroachdb:
-    image: prismagraphql/cockroachdb-custom:22.1.0-beta.5
+    image: prismagraphql/cockroachdb-custom:22.1.0
     restart: always
     command: start-single-node --insecure
     ports:
@@ -115,7 +119,7 @@ services:
       - '3307:3306'
 
   mariadb:
-    image: mariadb:10
+    image: mariadb:10.7.3
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root

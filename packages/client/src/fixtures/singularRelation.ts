@@ -11,13 +11,13 @@ generator client {
 }
 
 model Location {
-  id Int @id
-  companyId Int
-  company Company @relation(fields: companyId, references: id)
+  id        Int     @id
+  companyId Int     @unique
+  company   Company @relation(fields: companyId, references: id)
 }
 
 model Company {
-  id Int @id
+  id       Int       @id
   location Location?
 }
 `

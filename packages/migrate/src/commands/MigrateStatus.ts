@@ -1,6 +1,14 @@
 import Debug from '@prisma/debug'
-import type { Command } from '@prisma/sdk'
-import { arg, format, getCommandWithExecutor, HelpError, isError, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getCommandWithExecutor,
+  HelpError,
+  isError,
+  loadEnvFile,
+} from '@prisma/sdk'
 import chalk from 'chalk'
 
 import { Migrate } from '../Migrate'
@@ -57,6 +65,8 @@ Check the status of your database migrations
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('migrate status', args, true)
 
     if (args['--help']) {
       return this.help()

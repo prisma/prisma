@@ -16,10 +16,15 @@ export type QueryEngineInstance = {
   startTransaction(options: string, trace: string): Promise<string>
   commitTransaction(id: string, trace: string): Promise<string>
   rollbackTransaction(id: string, trace: string): Promise<string>
+  metrics(options: string): Promise<string>
 }
 
 export interface QueryEngineConstructor {
   new (config: QueryEngineConfig, logger: (err: string, log: string) => void): QueryEngineInstance
+}
+
+export interface LibraryLoader {
+  loadLibrary(): Promise<Library>
 }
 
 // Main

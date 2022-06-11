@@ -1,3 +1,4 @@
+export { checkUnsupportedDataProxy } from './cli/checkUnsupportedDataProxy'
 export { getGeneratorSuccessMessage } from './cli/getGeneratorSuccessMessage'
 export {
   getPrismaConfigFromPackageJson,
@@ -49,9 +50,11 @@ export type { DatabaseCredentials } from './types'
 export { drawBox } from './utils/drawBox'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 export { formatms } from './utils/formatms'
+export { formatTable } from './utils/formatTable'
 export { getCommandWithExecutor } from './utils/getCommandWithExecutor'
 export type { EnvPaths } from './utils/getEnvPaths'
 export { getEnvPaths } from './utils/getEnvPaths'
+export { version } from './utils/getVersion'
 export { handlePanic } from './utils/handlePanic'
 export { isCi } from './utils/isCi'
 export { isCurrentBinInstalledGlobally } from './utils/isCurrentBinInstalledGlobally'

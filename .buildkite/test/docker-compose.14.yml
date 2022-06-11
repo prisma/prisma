@@ -32,6 +32,8 @@ services:
       - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongodb_migrate:27017/tests-migrate?authSource=admin
       # CockroachDB
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/tests
+      - TEST_COCKROACH_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate
+      - TEST_COCKROACH_SHADOWDB_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate-shadowdb
       # Other vars
       - BUILDKITE
       - BUILDKITE_PARALLEL_JOB
@@ -41,6 +43,8 @@ services:
       - PATCH_BRANCH
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma test"
+      # To hide "Update available 0.0.0 -> x.x.x"
+      - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
     depends_on:
       - postgres
@@ -75,7 +79,7 @@ services:
       - '5435:5432'
 
   cockroachdb:
-    image: prismagraphql/cockroachdb-custom:22.1.0-beta.5
+    image: prismagraphql/cockroachdb-custom:22.1.0
     restart: always
     command: start-single-node --insecure
     ports:
@@ -105,7 +109,7 @@ services:
       - '3307:3306'
 
   mariadb:
-    image: mariadb:10
+    image: mariadb:10.7.3
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root

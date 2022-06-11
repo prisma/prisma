@@ -1,17 +1,16 @@
 import Debug from '@prisma/debug'
-import { getProxyAgent } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
 import * as checkpoint from 'checkpoint-client'
 import fs from 'fs'
 import globby from 'globby'
-import fetch from 'node-fetch'
 import os from 'os'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
+import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } from './errorReporting'
 import { IntrospectionEngine } from './IntrospectionEngine'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
@@ -79,8 +78,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       dbVersion: dbVersion,
     }
 
-    // TODO: What is the exports doing here? A jest thing?
-    const signedUrl = await exports.createErrorReport(params)
+    const signedUrl = await createErrorReport(params)
 
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)
@@ -103,17 +101,6 @@ function getCommand(): string {
     return 'db pull'
   }
   return process.argv.slice(2).join(' ')
-}
-
-async function uploadZip(zip: Buffer, url: string): Promise<any> {
-  return await fetch(url, {
-    method: 'PUT',
-    agent: getProxyAgent(url) as any,
-    headers: {
-      'Content-Length': String(zip.byteLength),
-    },
-    body: zip,
-  })
 }
 
 async function makeErrorZip(error: RustPanic): Promise<Buffer> {
@@ -162,70 +149,4 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
       reject(err)
     })
   })
-}
-
-export interface CreateErrorReportInput {
-  area: ErrorArea
-  binaryVersion: string
-  cliVersion: string
-  command: string
-  jsStackTrace: string
-  kind: ErrorKind
-  liftRequest?: string
-  operatingSystem: string
-  platform: string
-  rustStackTrace: string
-  schemaFile?: string
-  fingerprint?: string
-  sqlDump?: string
-  dbVersion?: string
-}
-
-export enum ErrorKind {
-  JS_ERROR = 'JS_ERROR',
-  RUST_PANIC = 'RUST_PANIC',
-}
-
-export async function createErrorReport(data: CreateErrorReportInput): Promise<string> {
-  const result = await request(
-    `mutation ($data: CreateErrorReportInput!) {
-    createErrorReport(data: $data)
-  }`,
-    { data },
-  )
-  return result.createErrorReport
-}
-
-export async function makeErrorReportCompleted(signedUrl: string): Promise<number> {
-  const result = await request(
-    `mutation ($signedUrl: String!) {
-  markErrorReportCompleted(signedUrl: $signedUrl)
-}`,
-    { signedUrl },
-  )
-  return result.markErrorReportCompleted
-}
-
-async function request(query: string, variables: any): Promise<any> {
-  const url = 'https://error-reports.prisma.sh/'
-  const body = JSON.stringify({
-    query,
-    variables,
-  })
-  return await fetch(url, {
-    method: 'POST',
-    agent: getProxyAgent(url) as any,
-    body,
-    headers: {
-      Accept: 'application/json',
-      'Content-Type': 'application/json',
-    },
-  })
-    .then((res) => res.json())
-    .then((res) => {
-      if (res.errors) {
-        throw new Error(JSON.stringify(res.errors))
-      }
-      return res.data
-    })
 }
