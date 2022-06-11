@@ -47,9 +47,8 @@ export interface TSClientOptions {
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
-  protected readonly dmmfString: string
+
   constructor(protected readonly options: TSClientOptions) {
-    this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFHelper(klona(options.document))
   }
 
@@ -114,7 +113,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(dataProxy, this.dmmfString)}
+${buildDMMF(dataProxy, this.options.document)}
 
 /**
  * Create the Client

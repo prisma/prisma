@@ -10,6 +10,7 @@ import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
 
+import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -18,7 +19,7 @@ import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type { PrismaPromise } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { getCallSite } from './core/utils/getCallSite'
-import { DMMFHelper } from './dmmf'
+import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -38,6 +39,7 @@ import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
+const P = Promise.resolve()
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -209,7 +211,7 @@ export type LogEvent = {
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
 export interface GetPrismaClientConfig {
-  document: DMMF.Document
+  document: Omit<DMMF.Document, 'schema'>
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
@@ -288,7 +290,8 @@ const TX_ID = Symbol.for('prisma.client.transaction.id')
 export interface Client {
   /** Only via tx proxy */
   [TX_ID]?: string
-  _dmmf: DMMFHelper
+  _baseDmmf: BaseDMMFHelper
+  _dmmf?: DMMFHelper
   _engine: Engine
   _fetcher: RequestHandler
   _connectionPromise?: Promise<any>
@@ -311,7 +314,8 @@ export interface Client {
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient implements Client {
-    _dmmf: DMMFHelper
+    _baseDmmf: BaseDMMFHelper
+    _dmmf?: DMMFHelper
     _engine: Engine
     _fetcher: RequestHandler
     _connectionPromise?: Promise<any>
@@ -401,7 +405,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._dmmf = new DMMFHelper(config.document)
+        this._baseDmmf = new BaseDMMFHelper(config.document)
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
 
@@ -546,12 +550,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     /**
      * Disconnect from the database
      */
-    $disconnect() {
+    async $disconnect() {
       try {
-        return this._engine.stop()
+        await this._engine.stop()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
+      } finally {
+        this._dmmf = undefined
       }
     }
 
@@ -1053,6 +1059,12 @@ new PrismaClient({
       lock,
       unpacker,
     }: InternalRequestParams) {
+      if (this._dmmf === undefined) {
+        this._dmmf = await this._engine.getDmmf().then((dmmf) => {
+          return new DMMFHelper(getPrismaClientDMMF(dmmf))
+        })
+      }
+
       let rootField: string | undefined
       const operation = actionOperationMap[action]
 

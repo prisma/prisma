@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import type { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
+import type { ConnectorType, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -90,6 +90,7 @@ export class BinaryEngine extends Engine {
   private lastRustError?: RustError
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
+  private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
   private dirname?: string
@@ -837,6 +838,26 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     const env = await this.getEngineEnvVars()
 
     const result = await execa(prismaPath, ['cli', 'get-config'], {
+      env: omit(env, ['PORT']),
+      cwd: this.cwd,
+    })
+
+    return JSON.parse(result.stdout)
+  }
+
+  async getDmmf(): Promise<DMMF.Document> {
+    if (!this.getDmmfPromise) {
+      this.getDmmfPromise = this._getDmmf()
+    }
+    return this.getDmmfPromise
+  }
+
+  private async _getDmmf(): Promise<DMMF.Document> {
+    const prismaPath = await this.getPrismaPath()
+
+    const env = await this.getEngineEnvVars()
+
+    const result = await execa(prismaPath, ['cli', 'dmmf'], {
       env: omit(env, ['PORT']),
       cwd: this.cwd,
     })

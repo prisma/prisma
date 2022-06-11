@@ -29,12 +29,12 @@ export function applyModels<C extends Client>(client: C) {
       }
 
       // creates a new model proxy on the fly and caches it
-      if (client._dmmf.modelMap[dmmfModelName] !== undefined) {
+      if (client._baseDmmf.modelMap[dmmfModelName] !== undefined) {
         return (modelCache[dmmfModelName] = applyModel(client, dmmfModelName))
       }
 
       // above silently failed if model name is lower cased
-      if (client._dmmf.modelMap[prop] !== undefined) {
+      if (client._baseDmmf.modelMap[prop] !== undefined) {
         return (modelCache[dmmfModelName] = applyModel(client, prop))
       }
     },
@@ -44,5 +44,5 @@ export function applyModels<C extends Client>(client: C) {
 
 // the only accessible fields are the ones that are models
 function getOwnKeys(client: Client) {
-  return [...Object.keys(client._dmmf.modelMap).map(dmmfToJSModelName), ...Object.keys(client)]
+  return [...Object.keys(client._baseDmmf.modelMap).map(dmmfToJSModelName), ...Object.keys(client)]
 }
