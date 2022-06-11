@@ -1,4 +1,7 @@
+import { DMMF } from '@prisma/generator-helper'
 import lzString from 'lz-string'
+
+import { escapeJson } from '../TSClient/helpers'
 
 /**
  * Creates the necessary declarations to embed the generated DMMF into the
@@ -7,12 +10,15 @@ import lzString from 'lz-string'
  * @param dmmf
  * @returns
  */
-export function buildDMMF(dataProxy: boolean | undefined, dmmf: string) {
+export function buildDMMF(dataProxy: boolean | undefined, dmmf: DMMF.Document) {
   if (dataProxy === true) {
-    return buildCompressedDMMF(dmmf)
+    const dmmfString = escapeJson(JSON.stringify(dmmf))
+    return buildCompressedDMMF(dmmfString)
   }
 
-  return buildUncompressedDMMF(dmmf)
+  const { datamodel, mappings } = dmmf
+  const dmmfString = escapeJson(JSON.stringify({ datamodel, mappings }))
+  return buildUncompressedDMMF(dmmfString)
 }
 
 /**

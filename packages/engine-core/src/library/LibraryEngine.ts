@@ -1,4 +1,5 @@
 import Debug from '@prisma/debug'
+import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -91,10 +92,11 @@ export class LibraryEngine extends Engine {
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    initHooks()
+    initHooks(this)
     engines.push(this)
     this.checkForTooManyEngines()
   }
+
   private checkForTooManyEngines() {
     if (engines.length >= 10) {
       const runningEngines = engines.filter((e) => e.engine)
@@ -105,6 +107,7 @@ export class LibraryEngine extends Engine {
       }
     }
   }
+
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
@@ -357,13 +360,21 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  getConfig(): Promise<ConfigMetaFormat> {
+  async getConfig(): Promise<ConfigMetaFormat> {
+    await this.libraryInstantiationPromise
+
     return this.library!.getConfig({
       datamodel: this.datamodel,
       datasourceOverrides: this.datasourceOverrides,
       ignoreEnvVarErrors: true,
       env: process.env,
     })
+  }
+
+  async getDmmf(): Promise<DMMF.Document> {
+    await this.libraryInstantiationPromise
+
+    return JSON.parse(await this.library!.dmmf(this.datamodel))
   }
 
   version(): string {
@@ -489,14 +500,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 }
 
-function hookProcess(handler: string, exit = false) {
+function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
-    for (const engine of engines) {
-      await engine.runBeforeExit()
-    }
-    engines.splice(0, engines.length)
     // only exit, if only we are listening
+    await engine.runBeforeExit()
+
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
       process.exit()
@@ -504,13 +513,13 @@ function hookProcess(handler: string, exit = false) {
   })
 }
 let hooksInitialized = false
-function initHooks() {
+function initHooks(engine: LibraryEngine) {
   if (!hooksInitialized) {
-    hookProcess('beforeExit')
-    hookProcess('exit')
-    hookProcess('SIGINT', true)
-    hookProcess('SIGUSR2', true)
-    hookProcess('SIGTERM', true)
+    hookProcess(engine, 'beforeExit')
+    hookProcess(engine, 'exit')
+    hookProcess(engine, 'SIGINT', true)
+    hookProcess(engine, 'SIGUSR2', true)
+    hookProcess(engine, 'SIGTERM', true)
     hooksInitialized = true
   }
 }
