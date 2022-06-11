@@ -9,6 +9,7 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
+import { O } from 'ts-toolbelt'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
@@ -211,7 +212,7 @@ export type LogEvent = {
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
 export interface GetPrismaClientConfig {
-  document: Omit<DMMF.Document, 'schema'>
+  document: O.Optional<DMMF.Document, 'schema'>
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
@@ -406,6 +407,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._baseDmmf = new BaseDMMFHelper(config.document)
+
+        if (this._dataProxy) {
+          // the data proxy can't get the dmmf from the engine
+          // so the generated client always has the full dmmf
+          const rawDmmf = config.document as DMMF.Document
+          this._dmmf = new DMMFHelper(rawDmmf)
+        }
 
         this._previewFeatures = config.generator?.previewFeatures ?? []
 
@@ -1060,6 +1068,7 @@ new PrismaClient({
       unpacker,
     }: InternalRequestParams) {
       if (this._dmmf === undefined) {
+        // we retrieve the dmmf from the engine into the helper
         this._dmmf = await this._engine.getDmmf().then((dmmf) => {
           return new DMMFHelper(getPrismaClientDMMF(dmmf))
         })
@@ -1074,7 +1083,7 @@ new PrismaClient({
 
       let mapping
       if (model !== undefined) {
-        mapping = this._dmmf.mappingsMap[model]
+        mapping = this._dmmf?.mappingsMap[model]
         if (mapping === undefined) {
           throw new Error(`Could not find mapping for model ${model}`)
         }
@@ -1086,7 +1095,7 @@ new PrismaClient({
         throw new Error(`Invalid operation ${operation} for action ${action}`)
       }
 
-      const field = this._dmmf.rootFieldMap[rootField!]
+      const field = this._dmmf?.rootFieldMap[rootField!]
 
       if (field === undefined) {
         throw new Error(
