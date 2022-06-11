@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
         expect(e.constructor.name).toEqual('PrismaClientInitializationError')
         expect(e.errorCode).toEqual('P1001')
       } finally {
-        prisma.$disconnect().catch(() => {})
+        await prisma.$disconnect().catch(() => {})
       }
     })
   },

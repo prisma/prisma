@@ -14,5 +14,5 @@ test('missing-column', async () => {
           → 6   await expect(client.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(
             The column \`main.User.name\` does not exist in the current database.
         `)
-  client.$disconnect()
+  await client.$disconnect()
 })

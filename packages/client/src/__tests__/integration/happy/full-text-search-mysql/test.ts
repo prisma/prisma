@@ -25,8 +25,8 @@ describe('full-text-search (mysql)', () => {
       connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
-    await generateTestClient(__dirname)
-    const { PrismaClient } = await require('./node_modules/@prisma/client')
+    await generateTestClient()
+    const { PrismaClient } = require('./node_modules/@prisma/client')
 
     prisma = new PrismaClient()
 

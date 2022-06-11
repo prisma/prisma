@@ -39,5 +39,5 @@ test('restart', async () => {
     ]
   `)
 
-  db.$disconnect()
+  await db.$disconnect()
 })

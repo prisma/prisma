@@ -16,7 +16,7 @@ test('too-many-instances-of-prisma-client warning', async () => {
   }
 
   for (const client of clients) {
-    client.$disconnect()
+    await client.$disconnect()
   }
 
   expect(warnings).toMatchInlineSnapshot(`

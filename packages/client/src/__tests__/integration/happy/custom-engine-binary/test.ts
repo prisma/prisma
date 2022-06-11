@@ -43,5 +43,5 @@ test('custom engine binary path (internal API)', async () => {
   const users = await prisma.user.findMany()
   expect(users).toEqual([])
 
-  prisma.$disconnect()
+  await prisma.$disconnect()
 })

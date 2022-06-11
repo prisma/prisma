@@ -156,5 +156,5 @@ test('blog', async () => {
   })
   expect(relationWhereNotNull).toEqual([])
 
-  db.$disconnect()
+  await db.$disconnect()
 })

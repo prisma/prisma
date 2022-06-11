@@ -11,8 +11,8 @@ describe('count', () => {
     prisma = new PrismaClient()
   })
 
-  afterEach(() => {
-    prisma.$disconnect()
+  afterEach(async () => {
+    await prisma.$disconnect()
   })
 
   test('simple', async () => {

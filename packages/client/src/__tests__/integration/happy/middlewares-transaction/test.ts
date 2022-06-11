@@ -30,6 +30,6 @@ describe('middleware and transaction', () => {
 
     await prisma.user.deleteMany()
 
-    prisma.$disconnect()
+    await prisma.$disconnect()
   })
 })

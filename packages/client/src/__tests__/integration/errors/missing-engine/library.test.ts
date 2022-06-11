@@ -33,15 +33,7 @@ test('missing-engine: library', async () => {
   await expect(async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-          Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-engine/library.test.ts:0:0
-
-            31 })
-            32 
-            33 await expect(async () => {
-          → 34   await prisma.user.findMany(
-            Query engine library for current platform "TEST_PLATFORM" could not be found.
+          Query engine library for current platform "TEST_PLATFORM" could not be found.
           You incorrectly pinned it to TEST_PLATFORM
 
           This probably happens, because you built Prisma Client on a different platform.

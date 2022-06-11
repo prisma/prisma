@@ -33,5 +33,5 @@ test('error-link', async () => {
 
         `)
 
-  db.$disconnect()
+  await db.$disconnect()
 })

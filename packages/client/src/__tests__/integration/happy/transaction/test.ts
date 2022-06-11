@@ -106,5 +106,5 @@ test('transaction', async () => {
   const users = await db.user.findMany()
   assert.equal(users.length, 1)
 
-  db.$disconnect()
+  await db.$disconnect()
 })
