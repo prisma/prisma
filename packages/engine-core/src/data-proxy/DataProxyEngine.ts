@@ -1,3 +1,4 @@
+import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
 import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
@@ -86,6 +87,12 @@ export class DataProxyEngine extends Engine {
         },
       ],
     } as GetConfigResult)
+  }
+
+  getDmmf(): Promise<DMMF.Document> {
+    throw new NotImplementedYetError('getDmmf is not yet supported', {
+      clientVersion: this.clientVersion,
+    })
   }
 
   private async uploadSchema() {
