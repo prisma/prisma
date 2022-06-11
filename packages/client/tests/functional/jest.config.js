@@ -8,7 +8,7 @@ module.exports = {
     '!(**/.generated/**)',
   ],
   transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
-  transformIgnorePatterns: [],
+  transformIgnorePatterns: ['.prisma/client/', '@prisma/client/'],
   reporters: [
     'default',
     [

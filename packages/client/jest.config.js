@@ -1,8 +1,15 @@
 module.exports = {
   transform: {
-    '^.+\\.(j|t)s$': '@swc/jest',
+    '^.+\\.(j|t)s$': [
+      '@swc/jest',
+      {
+        jsc: {
+          target: 'es2020',
+        },
+      },
+    ],
   },
-  transformIgnorePatterns: [],
+  transformIgnorePatterns: ['.prisma/client/', '@prisma/client/'],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
