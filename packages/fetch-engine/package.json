@@ -1,0 +1,58 @@
+{
+  "name": "@prisma/fetch-engine",
+  "version": "0.0.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "license": "Apache-2.0",
+  "author": "Tim Suchanek <suchanek@prisma.io>",
+  "homepage": "https://www.prisma.io",
+  "repository": "git@github.com:prisma/prisma.git",
+  "maintainers": [
+    "Tim Suchanek <suchanek@prisma.io>",
+    "Joël Galeran <galeran@prisma.io>",
+    "William Luke <luke@prisma.io>"
+  ],
+  "bugs": "https://github.com/prisma/prisma/issues",
+  "devDependencies": {
+    "@prisma/engines-version": "3.16.0-11.99ac5a5c95ba2f5308d84fc30a7110f606182d92",
+    "@types/jest": "27.5.2",
+    "@types/node": "16.11.39",
+    "@types/node-fetch": "2.6.1",
+    "@types/progress": "2.0.5",
+    "del": "6.1.1",
+    "jest": "27.5.1",
+    "strip-ansi": "6.0.1",
+    "ts-jest": "27.1.5",
+    "typescript": "4.7.3"
+  },
+  "dependencies": {
+    "@prisma/debug": "workspace:*",
+    "@prisma/get-platform": "workspace:*",
+    "chalk": "4.1.2",
+    "execa": "5.1.1",
+    "find-cache-dir": "3.3.2",
+    "hasha": "5.2.2",
+    "http-proxy-agent": "5.0.0",
+    "https-proxy-agent": "5.0.1",
+    "make-dir": "3.1.0",
+    "node-fetch": "2.6.7",
+    "p-filter": "2.1.0",
+    "p-map": "4.0.0",
+    "p-retry": "4.6.2",
+    "progress": "2.0.3",
+    "rimraf": "3.0.2",
+    "temp-dir": "2.0.0",
+    "tempy": "1.0.1"
+  },
+  "scripts": {
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "test": "jest",
+    "prepublishOnly": "pnpm run build"
+  },
+  "files": [
+    "README.md",
+    "dist"
+  ],
+  "sideEffects": false
+}

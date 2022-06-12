@@ -11,7 +11,10 @@
       "@prisma/engine-core": ["./packages/engine-core/src"],
       "@prisma/engine-core/dist/*": ["./packages/engine-core/src/*"],
       "@prisma/debug": ["./packages/debug/src"],
-      "prisma": ["./packages/cli/src"]
+      "prisma": ["./packages/cli/src"],
+      "@prisma/get-platform": ["./packages/get-platform/src"],
+      "@prisma/fetch-engine": ["./packages/fetch-engine/src"],
+      "@prisma/engines": ["./packages/engines/src"]
     }
   }
 }

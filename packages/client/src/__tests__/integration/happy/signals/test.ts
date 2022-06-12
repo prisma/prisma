@@ -22,7 +22,7 @@ async function waitMessageOnStdout(child: ExecaChildProcess): Promise<string> {
   return message.toString().trim()
 }
 
-describe('signals that should terminate the process', () => {
+describe.skip('signals that should terminate the process', () => {
   test('SIGINT', async () => {
     const child = spawnChild()
     expect(await waitMessageOnStdout(child)).toBe(READY_MESSAGE)
@@ -45,7 +45,7 @@ describe('signals that should terminate the process', () => {
   })
 })
 
-describe('Node.js debugger signal', () => {
+describe.skip('Node.js debugger signal', () => {
   testIf(userSignalsSupportedByOperatingSystem)('SIGUSR1', async () => {
     const child = spawnChild()
     expect(await waitMessageOnStdout(child)).toBe(READY_MESSAGE)

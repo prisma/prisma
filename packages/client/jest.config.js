@@ -1,13 +1,11 @@
 module.exports = {
-  preset: 'ts-jest',
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-      isolatedModules: true,
-    },
+  transform: {
+    '^.+\\.(j|t)s$': './transformer.js',
   },
+  transformIgnorePatterns: ['@prisma/client', '.prisma/client'],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
+  coverageProvider: 'v8',
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   modulePathIgnorePatterns: [
