@@ -1,13 +1,6 @@
 module.exports = {
   transform: {
-    '^.+\\.(j|t)s$': [
-      '@swc/jest',
-      {
-        jsc: {
-          target: 'es2020',
-        },
-      },
-    ],
+    '^.+\\.(j|t)s$': './transform.js',
   },
   transformIgnorePatterns: ['.prisma/client/', '@prisma/client/'],
   testEnvironment: 'node',

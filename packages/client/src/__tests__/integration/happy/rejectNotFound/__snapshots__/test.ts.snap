@@ -1,10 +1,14 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`rejectOnNotFound | constructor=customError | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
+
 exports[`rejectOnNotFound | constructor=customError | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=customError | findFirst=true 1`] = `No User found`;
 
 exports[`rejectOnNotFound | constructor=customError | findFirst=undefined 1`] = `Constructor Custom Error`;
+
+exports[`rejectOnNotFound | constructor=customError | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=customError | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
@@ -12,11 +16,15 @@ exports[`rejectOnNotFound | constructor=customError | findUnique=true 1`] = `No 
 
 exports[`rejectOnNotFound | constructor=customError | findUnique=undefined 1`] = `Constructor Custom Error`;
 
+exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
+
 exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findFirst=true 1`] = `No User found`;
 
 exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findFirst=undefined 1`] = `Constructor Custom Error on findFirst:User`;
+
+exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
@@ -24,11 +32,15 @@ exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findUniqu
 
 exports[`rejectOnNotFound | constructor=customErrorPerActionPerModel | findUnique=undefined 1`] = `Constructor Thunk on findUnique:User`;
 
+exports[`rejectOnNotFound | constructor=errorPerAction | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
+
 exports[`rejectOnNotFound | constructor=errorPerAction | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=errorPerAction | findFirst=true 1`] = `No User found`;
 
 exports[`rejectOnNotFound | constructor=errorPerAction | findFirst=undefined 1`] = `Constructor Error on findFirst`;
+
+exports[`rejectOnNotFound | constructor=errorPerAction | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=errorPerAction | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
@@ -36,21 +48,31 @@ exports[`rejectOnNotFound | constructor=errorPerAction | findUnique=true 1`] = `
 
 exports[`rejectOnNotFound | constructor=errorPerAction | findUnique=undefined 1`] = `Constructor Error on findUnique`;
 
+exports[`rejectOnNotFound | constructor=false | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
+
 exports[`rejectOnNotFound | constructor=false | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=false | findFirst=true 1`] = `No User found`;
+
+exports[`rejectOnNotFound | constructor=false | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=false | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=false | findUnique=true 1`] = `No User found`;
 
+exports[`rejectOnNotFound | constructor=falsePerAction | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
+
 exports[`rejectOnNotFound | constructor=falsePerAction | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=falsePerAction | findFirst=true 1`] = `No User found`;
 
+exports[`rejectOnNotFound | constructor=falsePerAction | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
+
 exports[`rejectOnNotFound | constructor=falsePerAction | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=falsePerAction | findUnique=true 1`] = `No User found`;
+
+exports[`rejectOnNotFound | constructor=true | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=true | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
@@ -58,11 +80,15 @@ exports[`rejectOnNotFound | constructor=true | findFirst=true 1`] = `No User fou
 
 exports[`rejectOnNotFound | constructor=true | findFirst=undefined 1`] = `No User found`;
 
+exports[`rejectOnNotFound | constructor=true | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
+
 exports[`rejectOnNotFound | constructor=true | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=true | findUnique=true 1`] = `No User found`;
 
 exports[`rejectOnNotFound | constructor=true | findUnique=undefined 1`] = `No User found`;
+
+exports[`rejectOnNotFound | constructor=truePerAction | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=truePerAction | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
@@ -70,15 +96,21 @@ exports[`rejectOnNotFound | constructor=truePerAction | findFirst=true 1`] = `No
 
 exports[`rejectOnNotFound | constructor=truePerAction | findFirst=undefined 1`] = `No User found`;
 
+exports[`rejectOnNotFound | constructor=truePerAction | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
+
 exports[`rejectOnNotFound | constructor=truePerAction | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=truePerAction | findUnique=true 1`] = `No User found`;
 
 exports[`rejectOnNotFound | constructor=truePerAction | findUnique=undefined 1`] = `No User found`;
 
+exports[`rejectOnNotFound | constructor=undefined | findFirst=() => new Error("FindFirst Custom Error") 1`] = `FindFirst Custom Error`;
+
 exports[`rejectOnNotFound | constructor=undefined | findFirst=()=>new Error('FindFirst Custom Error') 1`] = `FindFirst Custom Error`;
 
 exports[`rejectOnNotFound | constructor=undefined | findFirst=true 1`] = `No User found`;
+
+exports[`rejectOnNotFound | constructor=undefined | findUnique=() => new Error("FindUnique Custom Error") 1`] = `FindUnique Custom Error`;
 
 exports[`rejectOnNotFound | constructor=undefined | findUnique=()=>new Error('FindUnique Custom Error') 1`] = `FindUnique Custom Error`;
 
