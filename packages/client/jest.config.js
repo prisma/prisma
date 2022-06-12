@@ -44,4 +44,5 @@ module.exports = {
       },
     ],
   ],
+  maxWorkers: process.env.CI ? 4 : 0,
 }
