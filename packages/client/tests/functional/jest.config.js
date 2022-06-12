@@ -7,7 +7,10 @@ module.exports = {
     '!(**/_schema.ts)',
     '!(**/.generated/**)',
   ],
-  transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
+  transform: {
+    '^.+\\.(m?j|t)s$': '@swc/jest',
+  },
+  transformIgnorePatterns: ['@prisma'],
   reporters: [
     'default',
     [

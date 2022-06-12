@@ -1,7 +1,8 @@
 module.exports = {
   transform: {
-    '^.+\\.ts$': '@swc/jest',
+    '^.+\\.(m?j|t)s$': '@swc/jest',
   },
+  transformIgnorePatterns: ['@prisma'],
   testEnvironment: 'node',
   testMatch: ['**/src/__tests__/**/*.test.ts'],
   collectCoverage: process.env.CI ? true : false,

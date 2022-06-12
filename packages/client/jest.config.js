@@ -1,11 +1,10 @@
 module.exports = {
   transform: {
-    '^.+\\.(j|t)s$': './transformer.js',
+    '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: ['@prisma/client', '.prisma/client'],
+  transformIgnorePatterns: ['@prisma', '\\.prisma'],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
-  coverageProvider: 'v8',
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   modulePathIgnorePatterns: [
@@ -44,5 +43,4 @@ module.exports = {
       },
     ],
   ],
-  maxWorkers: process.env.CI ? 4 : 0,
 }

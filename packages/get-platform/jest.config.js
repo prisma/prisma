@@ -1,5 +1,8 @@
 module.exports = {
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.(m?j|t)s$': '@swc/jest',
+  },
+  transformIgnorePatterns: ['@prisma'],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],

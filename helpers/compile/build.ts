@@ -37,7 +37,7 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  target: 'es2018',
+  target: 'es2020',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
