@@ -88,7 +88,7 @@ testMatrix.setupTestSuite(() => {
       data: {
         posts: {
           connect: {
-            id: post?.id as string,
+            id: post!.id,
           },
         },
       },
