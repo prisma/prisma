@@ -66,5 +66,5 @@ export async function getClientVersion(config: EngineConfig) {
  * @returns
  */
 function prismaPkgURL(version: string) {
-  return `https://unpkg.com/prisma@${version}/package.json`
+  return encodeURI(`https://unpkg.com/prisma@${version}/package.json`)
 }

@@ -50,6 +50,11 @@ testMatrix.setupTestSuite(
       expect(schemaString).toContain('datasource')
       expect(schemaString).toContain('model')
     })
+
+    testIf(suiteConfig.provider !== 'mongodb')('conditional @ts-test-if', async () => {
+      // @ts-test-if: provider !== 'mongodb'
+      await prisma.$queryRaw`SELECT 1;`
+    })
   },
   // Use `optOut` to opt out from testing the default selected providers
   // otherwise the suite will require all providers to be specified.
