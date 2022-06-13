@@ -193,7 +193,7 @@ export default defineMatrix(() => [
 ])
 ```
 
-If matrix has multiple dimensions, test suites will be generated for all permutations of the parameters. For example. following matrix:
+If the matrix has multiple dimensions, test suites will be generated for all permutations of the parameters. For example, the following matrix:
 
 ```ts
 import { defineMatrix } from '../_utils/defineMatrix'
