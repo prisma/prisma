@@ -4,8 +4,6 @@ importers:
 
   .:
     specifiers:
-      '@jest/create-cache-key-function': ^28.1.1
-      '@jest/globals': ^28.1.1
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.1
@@ -61,8 +59,6 @@ importers:
       typescript: 4.7.3
       util: 0.12.4
     devDependencies:
-      '@jest/create-cache-key-function': 28.1.1
-      '@jest/globals': 28.1.1
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.1
@@ -213,6 +209,7 @@ importers:
 
   packages/client:
     specifiers:
+      '@jest/create-cache-key-function': ^28.1.1
       '@jest/test-sequencer': 28.1.1
       '@microsoft/api-extractor': 7.25.0
       '@opentelemetry/api': 1.1.0
@@ -280,6 +277,7 @@ importers:
     dependencies:
       '@prisma/engines-version': 3.16.0-11.99ac5a5c95ba2f5308d84fc30a7110f606182d92
     devDependencies:
+      '@jest/create-cache-key-function': 28.1.1
       '@jest/test-sequencer': 28.1.1
       '@microsoft/api-extractor': 7.25.0
       '@opentelemetry/api': 1.1.0
@@ -2217,7 +2215,6 @@ packages:
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
-      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -7143,7 +7140,7 @@ packages:
       pretty-format: 28.1.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.8.1_bcf64bfc0181a2074089203b2f83e649
+      ts-node: 10.8.1_4b6f1a3cbcae7475db077e32af0f29eb
     transitivePeerDependencies:
       - supports-color
     dev: true
