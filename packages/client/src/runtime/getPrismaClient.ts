@@ -686,7 +686,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           return null
         }
 
-        if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
+        if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
         }
 
