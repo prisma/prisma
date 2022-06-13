@@ -7,8 +7,6 @@ declare let Prisma: import('@prisma/client').Prisma
 
 testMatrix.setupTestSuite(() => {
   test('should not throw when using Prisma.empty inside $executeRaw', async () => {
-    expect.assertions(1)
-
     const result = await prisma.$executeRaw(Prisma.empty)
 
     expect(result).toEqual(null)
