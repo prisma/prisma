@@ -46,6 +46,8 @@ on:
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
+  # To hide "Update available 0.0.0 -> x.x.x"
+  PRISMA_HIDE_UPDATE_MESSAGE: true
 
 jobs:
   detect_jobs_to_run:
@@ -91,7 +93,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
-          node-version: '12'
+          node-version: '16'
 
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
       # Matchers are added in setup-node
@@ -124,11 +126,17 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-latest]
-        node: [12, 16]
+        os: [buildjet-4vcpu-ubuntu-2004]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set CLI Engine Type
         run: |
@@ -184,7 +192,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 15
-    runs-on: ubuntu-latest
+    runs-on: buildjet-4vcpu-ubuntu-2004
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -192,7 +200,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [12]
+        node: [16]
 
     steps:
       - uses: actions/checkout@v3
@@ -239,10 +247,16 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        node: [12]
+        node: [16]
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Set CLI Engine Type
         run: |
@@ -304,10 +318,16 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
@@ -366,10 +386,16 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
@@ -437,7 +463,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -492,7 +518,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest]
-        node: [12, 16]
+        node: [16, 18]
 
     steps:
       - uses: actions/checkout@v3
@@ -555,13 +581,13 @@ jobs:
           name: generator-helper-${{ matrix.os }}
 
   #
-  # Run (almost) all tests on macOS and Windows.
+  # Run all tests on macOS and Windows.
   #
   # Unlike the other jobs, this job doesn't use Docker (and thus skips some
   # tests that require dependencies not easily installable without Docker).
   #
-  # It also runs most tests for different packages sequentially (except client,
-  # see below) to prevent the combinatorial explosion of the number of parallel jobs,
+  # It also runs most tests for different packages sequentially
+  # to prevent the combinatorial explosion of the number of parallel jobs,
   # to minimize the number of times we need to install MySQL using the package manager
   # (PostgreSQL and MongoDB are provided by GitHub Actions out of the box), and
   # minimize the time spent waiting for a free runner.
@@ -576,7 +602,8 @@ jobs:
         contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') ||
-        contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-')
+        contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') ||
+        contains(needs.detect_jobs_to_run.outputs.jobs, '-client-')
       }}
 
     strategy:
@@ -636,6 +663,24 @@ jobs:
           files: ./packages/sdk/src/__tests__/coverage/clover.xml
           flags: sdk,${{ matrix.os }},${{ matrix.queryEngine }}
           name: sdk-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+      - name: Test packages/client
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        run: pnpm run test-notypes -- --testTimeout=40000
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        with:
+          files: ./packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/migrate
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
@@ -731,93 +776,6 @@ jobs:
           account: 17219288
           repository: 192925833
           path: packages
-          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
-
-      - uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
-          path: packages/*/junit.xml
-
-  #
-  # Run Client tests on macOS and Windows. (Reasoning see above)
-  #
-  no-docker-client:
-    timeout-minutes: 40
-    runs-on: ${{ matrix.os }}
-
-    needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-latest, windows-latest]
-        node: [16]
-        queryEngine: ['library', 'binary']
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Prerequisites
-        shell: bash
-        run: |
-          echo "TEST_SKIP_MSSQL=true" >> $GITHUB_ENV
-          echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
-          echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
-          echo "TEST_MONGO_URI_MIGRATE=mongodb://localhost:27017/tests-migrate" >> $GITHUB_ENV
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-
-      - name: Set up PostgreSQL
-        run: bash .github/workflows/scripts/setup-postgres.sh
-
-      - name: Set up MySQL
-        run: bash .github/workflows/scripts/setup-mysql.sh
-
-      - uses: pnpm/action-setup@v2.2.2
-        with:
-          version: 6
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - name: Test packages/client
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes -- --testTimeout=40000
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
-
-      - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        with:
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
-
-      - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where where we have access to secrets.
-        # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
-        uses: Workshop64/buildpulse-action@main
-        with:
-          account: 17219288
-          repository: 192925833
-          path: packages/client
           key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 

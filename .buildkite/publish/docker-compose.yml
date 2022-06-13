@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   app:
-    image: node:12-buster
+    image: node:14-buster
     volumes:
       - ../../:/app
     working_dir: /app
@@ -52,6 +52,8 @@ services:
       - DRY_RUN
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
+      # To hide "Update available 0.0.0 -> x.x.x"
+      - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
       - SLACK_RELEASE_FEED_WEBHOOK
     depends_on:
