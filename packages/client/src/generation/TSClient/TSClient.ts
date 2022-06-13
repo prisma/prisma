@@ -26,7 +26,6 @@ import { ExportCollector } from './helpers'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
-import { Symbols } from './Symbols'
 
 export interface TSClientOptions {
   projectRoot: string
