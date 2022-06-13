@@ -71,7 +71,7 @@ testMatrix.setupTestSuite(() => {
 
     const response = await prisma.user.update({
       where: {
-        id: user?.id as string,
+        id: user!.id,
       },
       select: {
         id: true,
