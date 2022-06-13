@@ -116,6 +116,37 @@ The `integration/happy/minimal` test is always a good start if you just want to 
 
 In case you want to test the actually generated client, have a look at the `integration/happy/blog` test as an example.
 
+## How to trigger artificial panics
+
+Sometimes it may be useful to trigger a panic in the Rust binaries or libraries used by Prisma under the hood.
+Most of the Rust artifacts are shipped as binaries, whereas `query-engine` is shipped both as a library (by default) and as a binary (on demand).
+To change the default Rust artifacts' type used under the hood, you can set the `PRISMA_CLI_QUERY_ENGINE_TYPE` environment variable to either `library` or `binary`.
+
+### Setup
+
+- `mkdir artificial-panics && cd artificial-panics`
+- `npx prisma init --datasource-provider sqlite`
+
+### Trigger panic in Migration Engine
+
+- run `FORCE_PANIC_MIGRATION_ENGINE=1 npx prisma migrate dev`
+
+### Trigger panic in Introspection Engine
+
+- run `FORCE_PANIC_INTROSPECTION_ENGINE=1 npx prisma db pull`
+
+### Trigger panic in Formatter
+
+- run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
+
+### Trigger panic in Query Engine - Get DMMF
+
+- run `FORCE_PANIC_QUERY_ENGINE_GET_DMMF=1 npx prisma validate`
+
+### Trigger panic in Query Engine - Get Config
+
+- run `FORCE_PANIC_QUERY_ENGINE_GET_CONFIG=1 npx prisma validate`
+
 ## CI - Continuous Integration
 
 By creating a Pull Request the following pipelines will be triggered
