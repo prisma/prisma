@@ -66,9 +66,9 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = Symbol.for('DbNull')
-Prisma.JsonNull = Symbol.for('JsonNull')
-Prisma.AnyNull = Symbol.for('AnyNull')
+Prisma.DbNull = Symbol('DbNull')
+Prisma.JsonNull = Symbol('JsonNull')
+Prisma.AnyNull = Symbol('AnyNull')
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
