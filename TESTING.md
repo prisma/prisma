@@ -174,7 +174,7 @@ Test consists of the 3 files:
 
 `_matrix.ts` file defines parameters for generating test suites. It can have as many parameters as necessary, but at minimum, it should define at least one provider.
 
-This matrix defines 2 test suites: one for SQLite provider and one for MongoDB, while also providing a corresponding ID string for each provider:
+This example matrix defines 2 test suites: one for the SQLite provider and one for MongoDB, while also providing a corresponding ID string for each provider:
 
 ```ts
 import { defineMatrix } from '../_utils/defineMatrix'
