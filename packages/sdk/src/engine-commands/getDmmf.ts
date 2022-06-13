@@ -39,14 +39,43 @@ export type GetDMMFOptions = {
   previewFeatures?: string[]
 }
 
+type GetDmmfErrorInit = {
+  // e.g., `Schema parsing - Error while interacting with query-engine-node-api library`
+  reason: string
+
+  // e.g., Error validating model "public": The model name \`public\` is invalid.
+  message: string
+} & (
+  | {
+      readonly _tag: 'parsed'
+
+      // e.g., `P1012`
+      errorCode?: string
+    }
+  | {
+      readonly _tag: 'unparsed'
+    }
+)
+
 export class GetDmmfError extends Error {
-  constructor(message: string, public readonly _error?: Error) {
-    super(
-      addVersionDetailsToErrorMessage(
-        `${chalk.redBright.bold('Get DMMF: ')}${message}
-${chalk.red.bold('Details: ')}${_error?.message || _error}`,
-      ),
-    )
+  constructor(params: GetDmmfErrorInit) {
+    const headline = chalk.redBright.bold('Get DMMF: ')
+
+    const constructedErrorMessage = match(params)
+      .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
+        const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
+        return `${reason}
+${errorCodeMessage}
+${message}`
+      })
+      .with({ _tag: 'unparsed' }, ({ message, reason }) => {
+        const detailsHeader = chalk.red.bold('Details:')
+        return `${reason}
+${detailsHeader}${message}`
+      })
+      .exhaustive()
+
+    super(addVersionDetailsToErrorMessage(`${headline}${constructedErrorMessage}`))
   }
 }
 
@@ -78,7 +107,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
     debugErrorType(e)
-    throw new GetDmmfError(e.reason, e.error)
+    throw new GetDmmfError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
   }
   const { queryEnginePath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
@@ -175,7 +204,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
           () => JSON.parse(errorOutput),
           () => {
             debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
-            return new GetDmmfError(errorOutput, e.error)
+            return new GetDmmfError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
@@ -193,7 +222,14 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
           }
 
           const defaultMessage = addMissingOpenSSLInfo(errorOutputAsJSON.message)
-          return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + defaultMessage, e.error)
+          const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
+
+          return new GetDmmfError({
+            _tag: 'parsed',
+            message: defaultMessage,
+            reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+            errorCode,
+          })
         }),
         E.getOrElseW(identity),
       )
@@ -202,7 +238,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
     })
     .otherwise((e) => {
       debugErrorType(e)
-      return new GetDmmfError(e.reason, e.error)
+      return new GetDmmfError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
     })
 
   throw error
@@ -219,7 +255,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
     debugErrorType(e)
-    throw new GetDmmfError(e.reason, e.error)
+    throw new GetDmmfError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
@@ -368,13 +404,18 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           () => JSON.parse(errorOutput),
           () => {
             debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
-            return new GetDmmfError(errorOutput, e.error)
+            return new GetDmmfError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
-          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}`
-          const message = addMissingOpenSSLInfo(defaultMessage)
-          return new GetDmmfError(chalk.redBright.bold('Schema parsing\n') + message, e.error)
+          const defaultMessage = addMissingOpenSSLInfo(`${chalk.redBright(errorOutputAsJSON.message)}`)
+          const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
+          return new GetDmmfError({
+            _tag: 'parsed',
+            message: defaultMessage,
+            reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+            errorCode,
+          })
         }),
         E.getOrElse(identity),
       )
@@ -384,7 +425,11 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     .with({ type: 'parse-json' }, (e) => {
       debugErrorType(e)
       const message = `Problem while parsing the query engine response at ${queryEnginePath}. ${e.result.stdout}\n${e.error?.stack}`
-      const error = new GetDmmfError(chalk.redBright.bold('JSON parsing\n') + message, e.error)
+      const error = new GetDmmfError({
+        _tag: 'unparsed',
+        message: message,
+        reason: `${chalk.redBright.bold('JSON parsing')} - ${e.reason}\n`,
+      })
       return E.right(error)
     })
     .with({ type: 'retry' }, (e) => {
