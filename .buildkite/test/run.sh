@@ -16,10 +16,11 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
 fi
 
 # Install pnpm
-npm i --silent -g pnpm@6 --unsafe-perm # TODO: is this unsafe-perm needed?
+npm i --silent -g pnpm@6 --unsafe-perm
+# --usafe-perm to allow install scripts
 
 # Install packages
-pnpm i
+pnpm i --unsafe-perm
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
