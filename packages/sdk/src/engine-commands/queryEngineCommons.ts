@@ -6,6 +6,7 @@ import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import tmpWrite from 'temp-write'
+import { match } from 'ts-pattern'
 
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
@@ -75,11 +76,24 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
   return pipe(
     E.tryCatch(
       () => load<NodeAPILibraryTypes.Library>(queryEnginePath),
-      (e) => ({
-        type: 'connection-error' as const,
-        reason: `Unable to establish a connection to query-engine-node-api library. Have you tried installing 'openssl'?`,
-        error: e as Error,
-      }),
+      (e) => {
+        const error = e as Error
+        const defaultErrorMessage = `Unable to establish a connection to query-engine-node-api library.`
+        const proposedErrorFixMessage = match(error.message)
+          .when(
+            (errMessage) => errMessage.includes('openssl'),
+            () => {
+              return ` Have you tried installing 'openssl'?`
+            },
+          )
+          .otherwise(() => '')
+        const reason = `${defaultErrorMessage}${proposedErrorFixMessage}`
+        return {
+          type: 'connection-error' as const,
+          reason,
+          error,
+        }
+      },
     ),
     TE.fromEither,
     TE.map((NodeAPIQueryEngineLibrary) => ({ NodeAPIQueryEngineLibrary })),
