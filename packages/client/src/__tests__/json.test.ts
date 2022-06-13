@@ -94,6 +94,23 @@ describeIf(process.platform !== 'win32')('json', () => {
       select: {
         where: {
           json: {
+            equals: Symbol('JsonNull'),
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyOptionalUser',
+    })
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+
+  test('should not consider "JsonNull" string an enum value', () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
             equals: 'JsonNull',
           },
         },
