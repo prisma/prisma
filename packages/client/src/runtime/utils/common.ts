@@ -185,7 +185,7 @@ export function isValidEnumValue(value: any, inputType?: DMMF.SchemaArgInputType
   }
 
   if (inputType?.namespace === 'prisma' && symbolEnums.includes(enumType.name)) {
-    if (typeof value !== 'symbol' || !Symbol.keyFor(value)) {
+    if (typeof value !== 'symbol' || !value.description) {
       return false
     }
     return enumType.values.includes(value.description)
