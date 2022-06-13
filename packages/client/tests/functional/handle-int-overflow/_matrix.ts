@@ -14,8 +14,5 @@ export default defineMatrix(() => [
     {
       provider: 'mongodb',
     },
-    {
-      provider: 'cockroachdb',
-    },
   ],
 ])

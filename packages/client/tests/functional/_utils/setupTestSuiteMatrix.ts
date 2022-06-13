@@ -6,6 +6,10 @@ import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
+export type MatrixOptions = {
+  skipDb?: boolean
+}
+
 /**
  * How does this work from a high level? What steps?
  * 1. You create a file that uses `setupTestSuiteMatrix`
