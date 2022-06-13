@@ -117,7 +117,8 @@ describe('generator', () => {
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing
+        Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+        Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
            | 

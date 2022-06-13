@@ -348,7 +348,8 @@ describe('dmmf', () => {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing
+        Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+        Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14
            | 
