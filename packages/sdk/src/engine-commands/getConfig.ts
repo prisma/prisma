@@ -38,14 +38,43 @@ export type GetConfigOptions = {
   ignoreEnvVarErrors?: boolean
 }
 
+type GetConfigErrorInit = {
+  // e.g., `Schema parsing - Error while interacting with query-engine-node-api library`
+  reason: string
+
+  // e.g., Error validating model "public": The model name \`public\` is invalid.
+  message: string
+} & (
+  | {
+      readonly _tag: 'parsed'
+
+      // e.g., `P1012`
+      errorCode?: string
+    }
+  | {
+      readonly _tag: 'unparsed'
+    }
+)
+
 export class GetConfigError extends Error {
-  constructor(message: string, public readonly _error?: Error) {
-    super(
-      addVersionDetailsToErrorMessage(
-        `${chalk.redBright.bold('Get config: ')}${message}
-${chalk.red.bold('Details: ')}${_error?.message || _error}`,
-      ),
-    )
+  constructor(params: GetConfigErrorInit) {
+    const headline = chalk.redBright.bold('Get Config: ')
+
+    const constructedErrorMessage = match(params)
+      .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
+        const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
+        return `${reason}
+${errorCodeMessage}
+${message}`
+      })
+      .with({ _tag: 'unparsed' }, ({ message, reason }) => {
+        const detailsHeader = chalk.red.bold('Details:')
+        return `${reason}
+${detailsHeader}${message}`
+      })
+      .exhaustive()
+
+    super(addVersionDetailsToErrorMessage(`${headline}${constructedErrorMessage}`))
   }
 }
 
@@ -73,7 +102,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
     debugErrorType(e)
-    throw new GetConfigError(e.reason, e.error)
+    throw new GetConfigError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
   }
   const { queryEnginePath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Node-API Library) at: ${queryEnginePath}`)
@@ -135,7 +164,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
           () => JSON.parse(errorOutput),
           () => {
             debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
-            return new GetConfigError(errorOutput, e.error)
+            return new GetConfigError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
@@ -159,7 +188,10 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
             .otherwise((error: any) => {
               return chalk.redBright(`${error.error_code}\n\n`) + error
             })
-          return new GetConfigError(message, e.error)
+
+          const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
+
+          return new GetConfigError({ _tag: 'parsed', message, reason: e.reason, errorCode })
         }),
         E.getOrElseW(identity),
       )
@@ -168,7 +200,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
     })
     .otherwise((e) => {
       debugErrorType(e)
-      return new GetConfigError(e.reason, e.error)
+      return new GetConfigError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
     })
 
   throw error
@@ -185,7 +217,7 @@ async function getConfigBinary(options: GetConfigOptions) {
   if (E.isLeft(preliminaryEither)) {
     const { left: e } = preliminaryEither
     debugErrorType(e)
-    throw new GetConfigError(e.reason, e.error)
+    throw new GetConfigError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
   }
   const { queryEnginePath, tempDatamodelPath } = preliminaryEither.right
   debug(`Using CLI Query Engine (Binary) at: ${queryEnginePath}`)
@@ -293,23 +325,31 @@ async function getConfigBinary(options: GetConfigOptions) {
           () => JSON.parse(errorOutput),
           () => {
             debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
-            return new GetConfigError(errorOutput, e.error)
+            return new GetConfigError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
           const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
-          const message = match(errorOutputAsJSON)
-            .with({ error_code: 'P1012' }, (error) => {
-              return chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + defaultMessage
+          const getConfigErrorInit = match(errorOutputAsJSON)
+            .with({ error_code: 'P1012' }, (eJSON) => {
+              return {
+                reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+                errorCode: eJSON.error_code,
+              }
             })
-            .with({ error_code: P.string }, (error) => {
-              return chalk.redBright(`${error.error_code}\n\n`) + defaultMessage
+            .with({ error_code: P.string }, (eJSON) => {
+              return {
+                reason: e.reason,
+                errorCode: eJSON.error_code,
+              }
             })
             .otherwise(() => {
-              return defaultMessage
+              return {
+                reason: e.reason,
+              }
             })
 
-          return new GetConfigError(message, e.error)
+          return new GetConfigError({ _tag: 'parsed', message: defaultMessage, ...getConfigErrorInit })
         }),
         E.getOrElse(identity),
       )
@@ -317,7 +357,7 @@ async function getConfigBinary(options: GetConfigOptions) {
     })
     .otherwise((e) => {
       debugErrorType(e)
-      return new GetConfigError(e.reason, e.error)
+      return new GetConfigError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
     })
 
   throw error
