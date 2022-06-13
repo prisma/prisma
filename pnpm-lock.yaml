@@ -418,6 +418,7 @@ importers:
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.21
+      '@types/jest': 28.1.1
       '@types/node': 16.11.39
       execa: 5.1.1
       jest: 27.5.1
@@ -429,6 +430,7 @@ importers:
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.21_@swc+core@1.2.197
+      '@types/jest': 28.1.1
       '@types/node': 16.11.39
       execa: 5.1.1
       jest: 27.5.1_ts-node@10.8.1
