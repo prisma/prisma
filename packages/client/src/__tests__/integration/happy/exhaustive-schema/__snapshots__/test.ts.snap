@@ -68,9 +68,9 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = 'DbNull'
-Prisma.JsonNull = 'JsonNull'
-Prisma.AnyNull = 'AnyNull'
+Prisma.DbNull = Symbol('DbNull')
+Prisma.JsonNull = Symbol('JsonNull')
+Prisma.AnyNull = Symbol('AnyNull')
 
 /**
  * Enums
@@ -255,12 +255,12 @@ exports.Prisma.SortOrder = makeEnum({
 });
 
 exports.Prisma.JsonNullValueInput = makeEnum({
-  JsonNull: 'JsonNull'
+  JsonNull: Prisma.JsonNull
 });
 
 exports.Prisma.NullableJsonNullValueInput = makeEnum({
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull'
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 });
 
 exports.Prisma.QueryMode = makeEnum({
@@ -269,9 +269,9 @@ exports.Prisma.QueryMode = makeEnum({
 });
 
 exports.Prisma.JsonNullValueFilter = makeEnum({
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull',
-  AnyNull: 'AnyNull'
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 });
 exports.ABeautifulEnum = makeEnum({
   A: 'A',
@@ -944,21 +944,21 @@ export namespace Prisma {
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const DbNull: 'DbNull'
+  export const DbNull: unique symbol
 
   /**
    * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const JsonNull: 'JsonNull'
+  export const JsonNull: unique symbol
 
   /**
    * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const AnyNull: 'AnyNull'
+  export const AnyNull: unique symbol
 
   type SelectAndInclude = {
     select: any
@@ -14578,15 +14578,15 @@ export namespace Prisma {
 
 
   export const JsonNullValueInput: {
-    JsonNull: 'JsonNull'
+    JsonNull: typeof JsonNull
   };
 
   export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const NullableJsonNullValueInput: {
-    DbNull: 'DbNull',
-    JsonNull: 'JsonNull'
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
@@ -14601,9 +14601,9 @@ export namespace Prisma {
 
 
   export const JsonNullValueFilter: {
-    DbNull: 'DbNull',
-    JsonNull: 'JsonNull',
-    AnyNull: 'AnyNull'
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
   };
 
   export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
