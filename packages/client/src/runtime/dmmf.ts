@@ -5,6 +5,11 @@ import { applyMixins } from './utils/applyMixins'
 import type { Dictionary } from './utils/common'
 import { keyBy, ScalarTypeTable } from './utils/common'
 
+/**
+ * List of Prisma enums that must use symbols instead of strings as their values.
+ */
+export const symbolEnums = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
+
 class DMMFDatamodelHelper implements Pick<DMMF.Document, 'datamodel'> {
   datamodel: DMMF.Datamodel
   datamodelEnumMap: Dictionary<DMMF.DatamodelEnum>

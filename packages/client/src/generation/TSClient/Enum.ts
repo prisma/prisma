@@ -1,14 +1,10 @@
 import indent from 'indent-string'
 
+import { symbolEnums } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import type { ExportCollector } from './helpers'
-
-/**
- * List of Prisma enums that must use symbols instead of strings as their values.
- */
-const symbolEnums = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
 
 export class Enum implements Generatable {
   constructor(

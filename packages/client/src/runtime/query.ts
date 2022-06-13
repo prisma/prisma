@@ -1096,7 +1096,7 @@ function getInvalidTypeArg(
 function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): boolean {
   const { type, isList } = inputType
   const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
-  const graphQLType = getGraphQLType(value, type)
+  const graphQLType = getGraphQLType(value, inputType)
 
   if (graphQLType === expectedType) {
     return true
@@ -1500,7 +1500,7 @@ function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DM
   if (hasCorrectScalarType(value, arg, inputType)) {
     return new Arg({
       key,
-      value,
+      value: typeof value === 'symbol' ? value.description : value,
       isEnum: inputType.location === 'enumTypes',
       schemaArg: arg,
       inputType,
