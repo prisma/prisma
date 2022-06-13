@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(response).toMatchObject({
-      ...(user || {}),
+      ...user,
       posts: [post],
     })
   })
