@@ -1,6 +1,7 @@
 import { idForProvider } from '../../_utils/idForProvider'
+import testMatrix from '../_matrix'
 
-export default ({ provider }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
@@ -15,4 +16,4 @@ export default ({ provider }) => {
     id ${idForProvider(provider)}
   }
   `
-}
+})
