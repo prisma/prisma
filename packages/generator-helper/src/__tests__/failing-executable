@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 
-const { generatorHandler } = require('../generatorHandler')
+require('@swc-node/register')
+
+const { generatorHandler } = require('../generatorHandler.ts')
 
 generatorHandler({
   async onGenerate() {
