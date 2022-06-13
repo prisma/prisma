@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-require('ts-node/register')
-
 const { generatorHandler } = require('../generatorHandler')
 
 generatorHandler({
