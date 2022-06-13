@@ -71,7 +71,7 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
 function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
     json: () => JSON.parse(Buffer.concat(incomingData).toString()),
-    ok: response.statusCode! >= 200 && response.statusCode! < 300,
+    ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
   }
@@ -89,18 +89,29 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
   const https: typeof Https = include('https')
   const httpsOptions = buildOptions(options)
   const incomingData = [] as Buffer[]
+  const { origin } = new URL(url)
 
   return new Promise((resolve, reject) => {
     // we execute the https request and build a fetch response out of it
     const request = https.request(url, httpsOptions, (response) => {
+      // eslint-disable-next-line prettier/prettier
+      const { statusCode, headers: { location } } = response
+
+      if (statusCode! >= 301 && statusCode! <= 399 && location) {
+        if (location.startsWith('http') === false) {
+          resolve(nodeFetch(`${origin}${location}`, options))
+        } else {
+          resolve(nodeFetch(location, options))
+        }
+      }
+
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
       response.on('end', () => resolve(buildResponse(incomingData, response)))
       response.on('error', reject)
     })
 
     request.on('error', reject) // handle errors
-    request.write(options.body ?? '') // http body data
-    request.end() // flush & send
+    request.end(options.body ?? '') // flush & send
   })
 }
 
