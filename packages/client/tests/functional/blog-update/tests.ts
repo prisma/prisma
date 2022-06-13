@@ -71,7 +71,7 @@ testMatrix.setupTestSuite(() => {
 
     const response = await prisma.user.update({
       where: {
-        id: user?.id as string,
+        id: user!.id,
       },
       select: {
         id: true,
@@ -88,14 +88,14 @@ testMatrix.setupTestSuite(() => {
       data: {
         posts: {
           connect: {
-            id: post?.id as string,
+            id: post!.id,
           },
         },
       },
     })
 
     expect(response).toMatchObject({
-      ...(user || {}),
+      ...user,
       posts: [post],
     })
   })
@@ -152,7 +152,7 @@ testMatrix.setupTestSuite(() => {
       data: {
         posts: {
           disconnect: {
-            id: (user?.posts || [])[0]?.id as string,
+            id: user!.posts![0]!.id ,
           },
         },
       },
