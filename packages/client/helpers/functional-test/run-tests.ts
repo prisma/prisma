@@ -18,7 +18,7 @@ const args = arg(
   true,
 )
 
-let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
+let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js'])
 
 if (args['--provider']) {
   const providers = args['--provider'] as Providers[]
@@ -29,6 +29,7 @@ if (args['--provider']) {
   }
   jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
 }
+
 const codeTestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
 
 try {

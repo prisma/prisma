@@ -1,5 +1,6 @@
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta, getTestSuitePlan, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { MatrixOptions } from './types'
@@ -52,10 +53,6 @@ function setupTestSuiteMatrix(
   })
   for (const { name, suiteConfig, skip } of testPlan) {
     const describeFn = skip ? describe.skip : describe
-    // we don't run tests for some providers that we want to skip on the CI
-    if (suiteConfig['provider']?.toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) continue
-    if (suiteConfig['provider']?.toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) continue
-    if (suiteConfig['provider']?.toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) continue
 
     describeFn(name, () => {
       // we inject modified env vars, and make the client available as globals
