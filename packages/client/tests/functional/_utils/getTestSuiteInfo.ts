@@ -108,11 +108,13 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
  * @param suiteMeta
  * @returns [test-suite-title: string, test-suite-config: object]
  */
-export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
-  return map(
-    getTestSuiteConfigs(suiteMeta),
-    (suiteConfig) => [getTestSuiteFullName(suiteMeta, suiteConfig), suiteConfig] as const,
-  )
+export function getTestSuiteTable(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: {
+    [x: string]: string
+  }[],
+) {
+  return map(suiteConfig, (suiteConfig) => [getTestSuiteFullName(suiteMeta, suiteConfig), suiteConfig] as const)
 }
 
 /**

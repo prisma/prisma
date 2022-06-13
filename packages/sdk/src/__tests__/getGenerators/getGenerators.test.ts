@@ -37,6 +37,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       providerAliases: aliases,
+      dataProxy: false,
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
@@ -119,6 +120,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets.prisma'),
       providerAliases: aliases,
+      dataProxy: false,
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
@@ -209,6 +211,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
+      dataProxy: false,
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
@@ -299,6 +302,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
+      dataProxy: false,
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
@@ -389,6 +393,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
+      dataProxy: false,
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
@@ -486,6 +491,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema-binaryTargets-env-var.prisma'),
       providerAliases: aliases,
+      dataProxy: false,
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
@@ -583,6 +589,7 @@ describe('getGenerators', () => {
       binaryPathsOverride: {
         queryEngine: queryEnginePath,
       },
+      dataProxy: false,
     })
 
     const options = generators.map((g) => g.options?.binaryPaths)
@@ -609,6 +616,7 @@ describe('getGenerators', () => {
       getGenerators({
         schemaPath: path.join(__dirname, 'invalid-platforms-schema.prisma'),
         providerAliases: aliases,
+        dataProxy: false,
       }),
     ).rejects.toThrow('deprecated')
   })
@@ -625,6 +633,7 @@ describe('getGenerators', () => {
       getGenerators({
         schemaPath: path.join(__dirname, 'invalid-binary-target-schema.prisma'),
         providerAliases: aliases,
+        dataProxy: false,
       }),
     ).rejects.toThrow('Unknown')
 
@@ -647,6 +656,7 @@ describe('getGenerators', () => {
       await getGenerators({
         schemaPath: path.join(__dirname, 'missing-datasource-schema.prisma'),
         providerAliases: aliases,
+        dataProxy: false,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -684,6 +694,7 @@ describe('getGenerators', () => {
       await getGenerators({
         schemaPath: path.join(__dirname, 'missing-models-sqlite-schema.prisma'),
         providerAliases: aliases,
+        dataProxy: false,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -722,6 +733,7 @@ describe('getGenerators', () => {
       await getGenerators({
         schemaPath: path.join(__dirname, 'missing-models-mongodb-schema.prisma'),
         providerAliases: aliases,
+        dataProxy: false,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -747,7 +759,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test.skip('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
+  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
@@ -761,20 +773,15 @@ describe('getGenerators', () => {
         schemaPath: path.join(__dirname, 'proxy-and-interactiveTransactions-client-js.prisma'),
         providerAliases: aliases,
         skipDownload: true,
+        dataProxy: true,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        The dataProxy and interactiveTransactions Preview Features can not be enabled at the same time.
-        Remove interactiveTransactions from previewFeatures, for example:
+        interactiveTransactions preview feature is not yet available with --data-proxy.
+        Please remove interactiveTransactions from the previewFeatures in your schema.
 
-        generator client {
-            provider = \\"prisma-client-js\\"
-            previewFeatures = [\\"dataProxy\\"]
-        }
-
-        More information in our documentation:
-        https://pris.ly/d/data-proxy
+        More information about Data Proxy: https://pris.ly/d/data-proxy
         "
       `)
     }
