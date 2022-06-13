@@ -1,11 +1,11 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/sdk'
 import makeDir from 'make-dir'
 import path from 'path'
 
-const packageJson = require('../../../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+import packageJson from '../../../package.json'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
@@ -47,7 +47,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, `x.x.x.${version}`)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, version)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -90,7 +90,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, `x.x.x.${version}`)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, version)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -113,12 +113,11 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   // replace engine version hash
-  const currentEngineVersion = versionOverride ?? packageJson.dependencies['@prisma/engines']
-  const currentEngineCommit = currentEngineVersion.split('.').pop().split('-').pop()
-  const defaultEngineVersion = packageJson.dependencies['@prisma/engines']
-  const defaultEngineHash = defaultEngineVersion.split('.').pop()
-  str = str.replace(new RegExp(defaultEngineHash, 'g'), 'ENGINE_VERSION')
-  str = str.replace(new RegExp(currentEngineCommit, 'g'), 'ENGINE_VERSION')
+  const defaultEngineVersion = enginesVersion
+  const currentEngineVersion = versionOverride ?? enginesVersion
+  str = str.replace(new RegExp(currentEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp(defaultEngineVersion, 'g'), 'ENGINE_VERSION')
+  str = str.replace(new RegExp('workspace:\\*', 'g'), 'ENGINE_VERSION')
 
   // replace studio version
   str = str.replace(packageJson.devDependencies['@prisma/studio-server'], 'STUDIO_VERSION')
