@@ -174,7 +174,7 @@ Test consists of the 3 files:
 
 `_matrix.ts` file defines parameters for generating test suites. It can have as many parameters as necessary, but at minimum, it should define at least one provider.
 
-This example matrix defines 2 test suites: one for the SQLite provider and one for MongoDB, while also providing a corresponding ID string for each provider:
+This example matrix defines 2 test suites: one for the SQLite provider and one for MongoDB, while also providing some test data to use later for both providers:
 
 ```ts
 import { defineMatrix } from '../_utils/defineMatrix'
@@ -183,11 +183,11 @@ export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
-      id: 'Int @id @default(autoincrement())',
+      testEmail: 'sqlite-user@example.com',
     },
     {
       provider: 'mongodb',
-      id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
+      testEmail: 'mongo-user@example.com',
     },
   ],
 ])
@@ -267,8 +267,15 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    test('findMany', async () => {
-      await prisma.user.findMany()
+    test('create', async () => {
+      await prisma.user.create({
+        data: {
+          // `testEmail` was defined in the example matrix before
+          // you can also use a constant here if you don't need
+          // unique email per provider
+          email: suiteConfig.testEmail,
+        },
+      })
     })
   },
   {
@@ -282,7 +289,7 @@ testMatrix.setupTestSuite(
 )
 ```
 
-This test will run for every permutation of the parameters from the matrix. Each suite will start with a clean already set up database, generated and initialized client, available via `prisma` global. After suite is finished, database will be dropped and client instance will disconnect automatically.
+This test will run for every permutation of the parameters from the matrix. Currently used combination is available via `suiteConfig` parameter. Each suite will start with a clean already set up database, generated and initialized client, available via `prisma` global. After suite is finished, database will be dropped and client instance will disconnect automatically.
 
 ### Running functional tests
 
