@@ -29,6 +29,7 @@ import { RequestHandler } from './RequestHandler'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
+import { isSql } from './utils/isSQL'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
 import { runInChildSpan } from './utils/otel/runInChildSpan'
@@ -681,8 +682,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise(async (txId, lock, otelCtx): Promise<unknown> => {
-        const isInstanceOfSQL = query.constructor.name === 'Sql'
-        if (isInstanceOfSQL && (query as { sql: string }).sql === '') {
+        if (isSql(query) && query.sql === '') {
           return null
         }
 
@@ -861,7 +861,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise((txId, lock, otelCtx) => {
+      return createPrismaPromise(async (txId, lock, otelCtx): Promise<unknown> => {
+        if (isSql(query) && query.sql === '') {
+          return null
+        }
+
         if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
           return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
         }
