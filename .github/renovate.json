@@ -4,6 +4,7 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
+  "schedule": ["after 9pm", "before 8am"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",
@@ -93,6 +94,11 @@
       "groupName": "Jest",
       "automerge": "true",
       "matchPackagePatterns": [".*jest.*"]
+    },
+    {
+      "groupName": "sql-template-tag",
+      "packageNames": ["sql-template-tag"],
+      "updateTypes": ["patch", "minor"]
     },
     {
       "groupName": "node-fetch",
