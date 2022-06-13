@@ -417,9 +417,7 @@ export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
   return (
     typeof type === 'object' &&
     type !== null &&
-    type.name &&
     typeof type.name === 'string' &&
-    type.values &&
     Array.isArray(type.values)
   )
 }
