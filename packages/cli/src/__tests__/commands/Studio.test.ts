@@ -7,7 +7,7 @@ import { Studio } from '../../Studio'
 
 const STUDIO_TEST_PORT = 5678
 
-async function sendRequest(message: any): Promise<any> {
+function sendRequest(message: any): Promise<any> {
   return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
     method: 'POST',
     headers: {
