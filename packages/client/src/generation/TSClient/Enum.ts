@@ -4,7 +4,11 @@ import type { DMMF } from '../../runtime/dmmf-types'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import type { ExportCollector } from './helpers'
-import { symbolEnums } from './Symbols'
+
+/**
+ * List of Prisma enums that must use symbols instead of strings as their values.
+ */
+const symbolEnums = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
 
 export class Enum implements Generatable {
   constructor(
@@ -29,7 +33,7 @@ ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_
   }
 
   private getValueJS(value: string): string {
-    return this.isSymbolEnum() ? `Prisma.Symbols.${value}` : `'${value}'`
+    return this.isSymbolEnum() ? `Prisma.${value}` : `'${value}'`
   }
 
   public toTS(): string {
@@ -43,6 +47,6 @@ export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
   }
 
   private getValueTS(value: string): string {
-    return this.isSymbolEnum() ? `Symbols.${value}` : `'${value}'`
+    return this.isSymbolEnum() ? `typeof ${value}` : `'${value}'`
   }
 }
