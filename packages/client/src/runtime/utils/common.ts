@@ -85,6 +85,7 @@ export const JSTypeToGraphQLType = {
   string: 'String',
   boolean: 'Boolean',
   object: 'Json',
+  symbol: 'Symbol',
 }
 
 export function stringifyGraphQLType(type: string | DMMF.InputType | DMMF.SchemaEnum) {

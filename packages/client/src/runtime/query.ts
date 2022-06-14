@@ -1075,7 +1075,7 @@ function getInvalidTypeArg(
 ): Arg {
   const arrg = new Arg({
     key,
-    value,
+    value: getSerializableValue(value),
     isEnum: bestFittingType.location === 'enumTypes',
     inputType: bestFittingType,
     error: {
@@ -1106,7 +1106,7 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if (expectedType === 'Json') {
+  if (expectedType === 'Json' && graphQLType !== 'Symbol') {
     return true
   }
 
@@ -1500,13 +1500,20 @@ function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DM
   if (hasCorrectScalarType(value, arg, inputType)) {
     return new Arg({
       key,
-      value: typeof value === 'symbol' ? value.description : value,
+      value: getSerializableValue(value),
       isEnum: inputType.location === 'enumTypes',
       schemaArg: arg,
       inputType,
     })
   }
   return getInvalidTypeArg(key, value, arg, inputType)
+}
+
+function getSerializableValue(value: any): any {
+  if (typeof value === 'symbol') {
+    return value.description
+  }
+  return value
 }
 
 function objectToArgs(
