@@ -229,17 +229,17 @@ class DMMFSchemaHelper implements Pick<DMMF.Document, 'schema'> {
 export interface BaseDMMFHelper extends DMMFDatamodelHelper, DMMFMappingsHelper {}
 export class BaseDMMFHelper {
   constructor(dmmf: Omit<DMMF.Document, 'schema'>) {
-    applyMixins(DMMFHelper, [DMMFDatamodelHelper, DMMFMappingsHelper])
-
     return Object.assign(this, new DMMFDatamodelHelper(dmmf), new DMMFMappingsHelper(dmmf))
   }
 }
 
+applyMixins(BaseDMMFHelper, [DMMFDatamodelHelper, DMMFMappingsHelper])
+
 export interface DMMFHelper extends BaseDMMFHelper, DMMFSchemaHelper {}
 export class DMMFHelper {
   constructor(dmmf: DMMF.Document) {
-    applyMixins(DMMFHelper, [BaseDMMFHelper, DMMFSchemaHelper])
-
     return Object.assign(this, new BaseDMMFHelper(dmmf), new DMMFSchemaHelper(dmmf))
   }
 }
+
+applyMixins(DMMFHelper, [BaseDMMFHelper, DMMFSchemaHelper])
