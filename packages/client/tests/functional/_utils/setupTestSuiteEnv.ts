@@ -22,14 +22,9 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
   // we copy the minimum amount of files needed for the test suite
-  await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
-  await copyPreprocessed(
-    path.join(suiteMeta.testDir, suiteMeta.testFileName),
-    path.join(suiteFolder, suiteMeta.testFileName),
-    suiteConfig,
-  )
-  await copyPreprocessed(path.join(suiteMeta.testDir, '_matrix.ts'), path.join(suiteFolder, '_matrix.ts'), suiteConfig)
-  await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
+  await fs.copy(path.join(suiteMeta.testRoot, 'prisma'), path.join(suiteFolder, 'prisma'))
+  await fs.mkdir(path.join(suiteFolder, suiteMeta.rootRelativeTestDir), { recursive: true })
+  await copyPreprocessed(suiteMeta.testPath, path.join(suiteFolder, suiteMeta.rootRelativeTestPath), suiteConfig)
 }
 
 async function copyPreprocessed(from: string, to: string, suiteConfig: TestSuiteConfig): Promise<void> {
@@ -37,12 +32,14 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: TestSuite
   const contents = await fs.readFile(from, 'utf8')
   const newContents = contents
     .replace(/'..\//g, "'../../../")
+    .replace(/'.\//g, "'../../")
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
       if (!evaluateMagicComment(condition, suiteConfig)) {
         return '// @ts-expect-error'
       }
       return match
     })
+
   await fs.writeFile(to, newContents, 'utf8')
 }
 
