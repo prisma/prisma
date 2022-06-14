@@ -28,7 +28,7 @@ export async function setupTestSuiteClient({
   suiteMeta: TestSuiteMeta
   suiteConfig: TestSuiteConfig
   skipDb?: boolean
-}) {
+}): Promise<{ loaded: unknown; downloadPath: string }> {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig)
   const schema = await getTestSuiteSchema(suiteMeta, suiteConfig)
@@ -36,7 +36,7 @@ export async function setupTestSuiteClient({
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
 
-  await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
+  const downloadPath = await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
@@ -66,5 +66,10 @@ export async function setupTestSuiteClient({
     dataProxy: !!process.env.DATA_PROXY,
   })
 
-  return require(path.join(suiteFolderPath, 'node_modules/@prisma/client'))
+  const loaded = require(path.join(suiteFolderPath, 'node_modules/@prisma/client'))
+
+  return {
+    loaded,
+    downloadPath,
+  }
 }

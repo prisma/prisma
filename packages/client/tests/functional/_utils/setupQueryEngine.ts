@@ -13,7 +13,7 @@ import path from 'path'
  * @param clientEngineType
  * @param platform
  */
-export async function setupQueryEngine(clientEngineType: ClientEngineType, platform: Platform) {
+export async function setupQueryEngine(clientEngineType: ClientEngineType, platform: Platform): Promise<string> {
   const engineDownloadDir = path.join(__dirname, '..', '..', '..')
   const queryEngineLibraryPath = path.join(engineDownloadDir, getNodeAPIName(platform, 'fs'))
   const queryEngineBinaryPath = path.join(
@@ -26,6 +26,8 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType, platf
   } else if (clientEngineType === ClientEngineType.Binary && !(await fs.pathExists(queryEngineBinaryPath))) {
     await download({ binaries: { 'query-engine': engineDownloadDir }, version: enginesVersion })
   }
+
+  return ClientEngineType.Library ? queryEngineLibraryPath : queryEngineBinaryPath
 }
 
 // TODO this might be duplicated in a few places, find a common place
