@@ -866,7 +866,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           return null
         }
 
-        if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
+        if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
         }
 
