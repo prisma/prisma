@@ -1113,7 +1113,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     const result = introspect.parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-            You can explicitely ignore and override your current local schema file with prisma db pull --force
+            You can explicitly ignore and override your current local schema file with prisma db pull --force
             Some information will be lost (relations, comments, mapped fields, @ignore...), follow https://github.com/prisma/prisma/issues/9585 for more info.
           `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
