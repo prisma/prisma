@@ -56,7 +56,6 @@ for (const uri of notIdenticalUris) {
 describe('safeProtocolToConnectorType', () => {
   test('sqlite', () => {
     expect(safeProtocolToConnectorType('file:')).toEqual('sqlite')
-    expect(safeProtocolToConnectorType('sqlite:')).toEqual('sqlite')
   })
 
   test('mongodb', () => {
