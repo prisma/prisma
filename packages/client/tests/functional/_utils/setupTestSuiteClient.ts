@@ -56,7 +56,7 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     transpile: false,
     testMode: true,
-    activeProvider: suiteConfig['provider'],
+    activeProvider: suiteConfig['provider'] as string,
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
