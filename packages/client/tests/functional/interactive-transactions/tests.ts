@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
-  jest.setTimeout(20_000)
+  jest.setTimeout(30_000)
 
   beforeEach(async () => {
     await prisma.user.deleteMany()
@@ -402,7 +402,7 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Makes sure that the engine does not deadlock
    */
   test('high concurrency', async () => {
-    jest.setTimeout(20_000)
+    jest.setTimeout(30_000)
 
     await prisma.user.create({
       data: {
