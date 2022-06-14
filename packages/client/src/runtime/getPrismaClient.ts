@@ -1068,10 +1068,8 @@ new PrismaClient({
       unpacker,
     }: InternalRequestParams) {
       if (this._dmmf === undefined) {
-        // we retrieve the dmmf from the engine into the helper
-        this._dmmf = await this._engine.getDmmf().then((dmmf) => {
-          return new DMMFHelper(getPrismaClientDMMF(dmmf))
-        })
+        const dmmf = await this._engine.getDmmf()
+        this._dmmf = new DMMFHelper(getPrismaClientDMMF(dmmf))
       }
 
       let rootField: string | undefined
