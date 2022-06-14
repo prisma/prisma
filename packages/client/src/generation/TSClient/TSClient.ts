@@ -264,7 +264,7 @@ export type BatchPayload = {
 /**
  * DMMF
  */
-export const dmmf: runtime.DMMF.Document;
+export const dmmf: Pick<runtime.DMMF.Document, 'datamodel' | 'mappings'>;
 `,
   2,
 )}}`
