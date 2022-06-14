@@ -3,8 +3,9 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 
-import { DMMFHelper, symbolEnums } from '../dmmf'
+import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
+import { symbolEnumNames } from '../symbol-enums'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
@@ -184,7 +185,7 @@ export function isValidEnumValue(value: any, inputType?: DMMF.SchemaArgInputType
     return false
   }
 
-  if (inputType?.namespace === 'prisma' && symbolEnums.includes(enumType.name)) {
+  if (inputType?.namespace === 'prisma' && symbolEnumNames.includes(enumType.name)) {
     if (typeof value !== 'symbol' || !value.description) {
       return false
     }
@@ -414,10 +415,5 @@ export function isGroupByOutputName(type: string): boolean {
 }
 
 export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
-  return (
-    typeof type === 'object' &&
-    type !== null &&
-    typeof type.name === 'string' &&
-    Array.isArray(type.values)
-  )
+  return typeof type === 'object' && type !== null && typeof type.name === 'string' && Array.isArray(type.values)
 }
