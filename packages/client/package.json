@@ -64,7 +64,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@faker-js/faker": "6.3.1",
+    "@faker-js/faker": "7.2.0",
     "@jest/test-sequencer": "28.1.1",
     "@microsoft/api-extractor": "7.25.0",
     "@opentelemetry/api": "1.1.0",
