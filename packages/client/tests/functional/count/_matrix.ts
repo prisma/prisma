@@ -4,18 +4,23 @@ export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
-    },
-    {
-      provider: 'mongodb',
+      foreignKeyId: 'String?',
     },
     {
       provider: 'postgresql',
+      foreignKeyId: 'String?',
     },
     {
       provider: 'mysql',
+      foreignKeyId: 'String?',
     },
     {
       provider: 'cockroachdb',
+      foreignKeyId: 'String?',
+    },
+    {
+      provider: 'mongodb',
+      foreignKeyId: 'String @db.ObjectId',
     },
   ],
 ])

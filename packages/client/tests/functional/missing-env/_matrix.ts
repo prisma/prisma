@@ -4,11 +4,18 @@ export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
-      id: 'Int @id @default(autoincrement())',
     },
     {
       provider: 'mongodb',
-      id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
+    },
+    {
+      provider: 'postgresql',
+    },
+    {
+      provider: 'mysql',
+    },
+    {
+      provider: 'cockroachdb',
     },
   ],
 ])

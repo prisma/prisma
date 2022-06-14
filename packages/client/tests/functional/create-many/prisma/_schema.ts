@@ -9,11 +9,21 @@ export default testMatrix.setupSchema(({ provider }) => {
     
     datasource db {
       provider = "${provider}"
-      url      = env("DATABASE_URI")
+      url      = env("DATABASE_URI_${provider}")
     }
     
     model User {
+      id    ${idForProvider(provider)}
+      email String  @unique
+      name  String?
+      posts Post[]
+    }
+
+    model Post {
       id ${idForProvider(provider)}
+      title String
+      user   User   @relation(fields: [userId], references: [id])
+      userId String
     }
   `
 })
