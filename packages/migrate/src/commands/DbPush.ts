@@ -252,7 +252,7 @@ ${chalk.bold.redBright('All data will be lost.')}
       const migrationTimeMessage = `Done in ${formatms(Date.now() - before)}`
       const rocketEmoji = process.platform === 'win32' ? '' : '🚀  '
       const migrationSuccessStdMessage = 'Your database is now in sync with your schema.'
-      const migrationSuccessMongoMessage = 'Your database is now in sync with your indexes.'
+      const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
       const provider = safeProtocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
 
