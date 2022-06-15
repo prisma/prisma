@@ -138,7 +138,7 @@ ${chalk.bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
-        dataProxy: !!args['--data-proxy'],
+        dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_CLI_GENERATE_DATAPROXY,
       })
 
       if (!generators || generators.length === 0) {
@@ -261,7 +261,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
-              dataProxy: !!args['--data-proxy'],
+              dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_CLI_GENERATE_DATAPROXY,
             })
 
             if (!generatorsWatch || generatorsWatch.length === 0) {
