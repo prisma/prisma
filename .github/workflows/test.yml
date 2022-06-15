@@ -683,7 +683,7 @@ jobs:
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes -- --testTimeout=40000
+        run: pnpm run test-notypes -- --testTimeout=40000 && pnpm run test:functional --  --jest-args='--testTimeout=40000' --no-types
         working-directory: packages/client
         env:
           CI: true

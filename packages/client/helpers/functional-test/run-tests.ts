@@ -5,20 +5,19 @@ import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
 
-const args = arg(
-  process.argv.slice(2),
-  {
-    '-u': Boolean,
-    '--no-types': Boolean,
-    '--types-only': Boolean,
-    '--provider': [String],
-    '-p': '--provider',
-  },
-  true,
-  true,
-)
+const args = arg(process.argv.slice(2), {
+  '-u': Boolean,
+  '--no-types': Boolean,
+  '--jest-args': String,
+  '--types-only': Boolean,
+  '--provider': [String],
+  '-p': '--provider',
+})
 
-let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js'])
+const jestArgs = args['--jest-args']?.split(/\s+/) ?? []
+const jestPositionalArgs = args['_'] ?? []
+
+let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js', ...jestArgs])
 
 if (args['--provider']) {
   const providers = args['--provider'] as Providers[]
@@ -34,12 +33,12 @@ const codeTestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
 
 try {
   if (args['-u']) {
-    const snapshotUpdate = codeTestCli.withArgs(['-u']).withArgs(args['_'])
+    const snapshotUpdate = codeTestCli.withArgs(['-u']).withArgs(jestPositionalArgs)
     snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'inline' }).run()
     snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
   } else {
     if (!args['--types-only']) {
-      codeTestCli.withArgs(['--']).withArgs(args['_']).run()
+      codeTestCli.withArgs(['--']).withArgs(jestPositionalArgs).run()
     }
 
     if (!args['--no-types']) {
