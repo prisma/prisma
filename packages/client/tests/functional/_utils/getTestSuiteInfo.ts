@@ -104,18 +104,6 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
 }
 
 /**
- * Get a jest-compatible test suite table from the test suite configs.
- * @param suiteMeta
- * @returns [test-suite-title: string, test-suite-config: object]
- */
-export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
-  return map(
-    getTestSuiteConfigs(suiteMeta),
-    (suiteConfig) => [getTestSuiteFullName(suiteMeta, suiteConfig), suiteConfig] as const,
-  )
-}
-
-/**
  * Inflate the base schema with a test suite config, used for schema generation.
  * @param suiteMeta
  * @param suiteConfig

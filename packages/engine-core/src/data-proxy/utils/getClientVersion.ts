@@ -6,7 +6,6 @@ import { NotImplementedYetError } from '../errors/NotImplementedYetError'
 import { request } from './request'
 
 const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
-const prismaNpm = 'https://registry.npmjs.org/prisma'
 const debug = Debug('prisma:client:dataproxyEngine')
 
 async function _getClientVersion(config: EngineConfig) {
@@ -24,22 +23,18 @@ async function _getClientVersion(config: EngineConfig) {
     return version
   }
 
-  // if it's an integration version, we resolve its data proxy
-  if (suffix === 'integration' || suffix?.startsWith('dev') || clientVersion === '0.0.0') {
-    // we infer the data proxy version from the engine version
+  // if it is an integration or dev version, we resolve its dataproxy
+  // for this we infer the data proxy version from the engine version
+  if (suffix !== undefined || clientVersion === '0.0.0') {
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
 
-    // if a patch has happened, then we return that version
-    if (patch !== '0') return `${major}.${minor}.${patch}`
+    // to ensure that the data proxy exists, we check if it's published
+    // we resolve with the closest or previous version published on npm
+    const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)
+    const res = await request(pkgURL, { clientVersion })
 
-    // if not, we know that the minor must be minus with 1
-    const published = `${major}.${parseInt(minor) - 1}.x`
-
-    // we don't know what `x` is, so we query the registry
-    const res = await request(`${prismaNpm}/${published}`, { clientVersion })
-
-    return ((await res.json())['version'] as string) ?? 'undefined'
+    return (await res.json())['version'] as string
   }
 
   // nothing matched, meaning that the provided version is invalid
@@ -59,4 +54,17 @@ export async function getClientVersion(config: EngineConfig) {
   debug('version', version)
 
   return version
+}
+
+/**
+ * We use unpkg.com to resolve the version of the data proxy. We chose this over
+ * registry.npmjs.com because they cache their queries/responses so it is fast.
+ * Moreover, unpkg.com is able to support comparison operators like `<=1.0.0`.
+ * For us, that means we can provide a version that is too high (not published),
+ * and it will be able to resolve to the closest existing (published) version.
+ * @param version
+ * @returns
+ */
+function prismaPkgURL(version: string) {
+  return encodeURI(`https://unpkg.com/prisma@${version}/package.json`)
 }

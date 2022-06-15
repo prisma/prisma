@@ -1,6 +1,9 @@
-import { getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
+import { checkMissingProviders } from './checkMissingProviders'
+import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
@@ -35,40 +38,51 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  *
  * @param tests where you write your tests
  */
-function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void) {
+function setupTestSuiteMatrix(
+  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  options?: MatrixOptions,
+) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteTable = getTestSuiteTable(suiteMeta)
-  const forceInlineSnapshot = process.argv.includes('-u')
+  const suiteConfig = getTestSuiteConfigs(suiteMeta)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfig)
+  checkMissingProviders({
+    suiteConfig,
+    suiteMeta,
+    options,
+  })
+  for (const { name, suiteConfig, skip } of testPlan) {
+    const describeFn = skip ? describe.skip : describe
 
-  ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
-    const [suiteName, suiteConfig] = suiteEntry
-
-    // we don't run tests for some providers that we want to skip on the CI
-    if (suiteConfig['provider']?.toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) return
-    if (suiteConfig['provider']?.toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) return
-    if (suiteConfig['provider']?.toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) return
-
-    describe(suiteName, () => {
+    describeFn(name, () => {
       // we inject modified env vars, and make the client available as globals
-      beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
-      beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
-      beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
-      beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
-      beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
+      beforeAll(async () => {
+        process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
 
-      // we disconnect and drop the database, clean up the env, and global vars
-      afterAll(async () => await globalThis['prisma']?.$disconnect())
-      afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
-      afterAll(() => (process.env = originalEnv))
-      afterAll(() => delete globalThis['loaded'])
-      afterAll(() => delete globalThis['prisma'])
-      afterAll(() => delete globalThis['Prisma'])
-      afterAll(() => delete globalThis['PrismaClient'])
+        globalThis['loaded'] = await setupTestSuiteClient({
+          suiteMeta,
+          suiteConfig,
+          skipDb: options?.skipDb,
+        })
+
+        globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()
+        globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']
+        globalThis['Prisma'] = (await global['loaded'])['Prisma']
+      })
+
+      afterAll(async () => {
+        !options?.skipDb && (await globalThis['prisma']?.$disconnect())
+        !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+        process.env = originalEnv
+        delete globalThis['loaded']
+        delete globalThis['prisma']
+        delete globalThis['Prisma']
+        delete globalThis['PrismaClient']
+      })
 
       tests(suiteConfig, suiteMeta)
     })
-  })
+  }
 }
 
 export { setupTestSuiteMatrix }

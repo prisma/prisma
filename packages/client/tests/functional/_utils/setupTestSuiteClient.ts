@@ -20,7 +20,15 @@ import type { TestSuiteMeta } from './setupTestSuiteMatrix'
  * @param suiteConfig
  * @returns loaded client module
  */
-export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteClient({
+  suiteMeta,
+  suiteConfig,
+  skipDb,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: TestSuiteConfig
+  skipDb?: boolean
+}) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig)
   const schema = await getTestSuiteSchema(suiteMeta, suiteConfig)
@@ -31,7 +39,9 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
   await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
-  await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+  if (!skipDb) {
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+  }
 
   await generateClient({
     datamodel: schema,
@@ -46,7 +56,7 @@ export async function setupTestSuiteClient(suiteMeta: TestSuiteMeta, suiteConfig
     clientVersion: '0.0.0',
     transpile: false,
     testMode: true,
-    activeProvider: suiteConfig['provider'],
+    activeProvider: suiteConfig['provider'] as string,
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),

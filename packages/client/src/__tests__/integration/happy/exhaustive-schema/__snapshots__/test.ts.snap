@@ -7699,8 +7699,8 @@ export namespace Prisma {
 
   export type OptionalSide1Select = {
     id?: boolean
-    opti?: boolean | OptionalSide2Args
     optionalSide2Id?: boolean
+    opti?: boolean | OptionalSide2Args
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -14323,8 +14323,8 @@ export namespace Prisma {
     OR?: Enumerable<OptionalSide1WhereInput>
     NOT?: Enumerable<OptionalSide1WhereInput>
     id?: IntFilter | number
-    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
     optionalSide2Id?: IntNullableFilter | number | null
+    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -14341,8 +14341,8 @@ export namespace Prisma {
 
   export type OptionalSide1OrderByWithRelationInput = {
     id?: SortOrder
-    opti?: OptionalSide2OrderByWithRelationInput
     optionalSide2Id?: SortOrder
+    opti?: OptionalSide2OrderByWithRelationInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder

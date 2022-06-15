@@ -1,6 +1,7 @@
 import crypto from 'crypto'
 import fs from 'fs-extra'
 import path from 'path'
+import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
@@ -18,19 +19,45 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
 
   // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
-  await copyWithImportsAdjust(
+  await copyPreprocessed(
     path.join(suiteMeta.testDir, suiteMeta.testFileName),
     path.join(suiteFolder, suiteMeta.testFileName),
+    suiteConfig,
   )
-  await copyWithImportsAdjust(path.join(suiteMeta.testDir, '_matrix.ts'), path.join(suiteFolder, '_matrix.ts'))
+  await copyPreprocessed(path.join(suiteMeta.testDir, '_matrix.ts'), path.join(suiteFolder, '_matrix.ts'), suiteConfig)
   await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
 }
 
-async function copyWithImportsAdjust(from: string, to: string): Promise<void> {
+async function copyPreprocessed(from: string, to: string, suiteConfig: TestSuiteConfig): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
-  const newContents = contents.replace(/'..\//g, "'../../../")
+  const newContents = contents
+    .replace(/'..\//g, "'../../../")
+    .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
+      if (!evaluateMagicComment(condition, suiteConfig)) {
+        return '// @ts-expect-error'
+      }
+      return match
+    })
   await fs.writeFile(to, newContents, 'utf8')
+}
+
+/**
+ * Evaluates the condition from @ts-test-if magic comment as
+ * a JS expression.
+ * All properties from suite config are available as variables
+ * within the expression.
+ *
+ * @param conditionFromComment
+ * @param suiteConfig
+ * @returns
+ */
+function evaluateMagicComment(conditionFromComment: string, suiteConfig: TestSuiteConfig): boolean {
+  const script = new Script(conditionFromComment)
+  const value = script.runInNewContext({
+    ...suiteConfig,
+  })
+  return Boolean(value)
 }
 
 /**
@@ -50,7 +77,11 @@ export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteDatabase(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: TestSuiteConfig,
+  errors: Error[] = [],
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -58,7 +89,13 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
+    errors.push(e as Error)
+
+    if (errors.length > 2) {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+    } else {
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+    }
   }
 }
 
@@ -67,7 +104,11 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function dropTestSuiteDatabase(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: TestSuiteConfig,
+  errors: Error[] = [],
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -75,7 +116,13 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await dropTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
+    errors.push(e as Error)
+
+    if (errors.length > 2) {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+    } else {
+      await dropTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+    }
   }
 }
 

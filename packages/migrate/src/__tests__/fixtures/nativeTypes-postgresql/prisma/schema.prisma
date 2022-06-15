@@ -73,13 +73,13 @@ model relation_target {
   id                        Int                        @id
   name                      String
   //
-  WAFT_id                   Int?
+  WAFT_id                   Int?                       @unique
   with_all_field_types      with_all_field_types?      @relation("WAFT_RT", fields: [WAFT_id], references: [id])
   //
-  WOFT_id                   Int?
+  WOFT_id                   Int?                       @unique
   with_optional_field_types with_optional_field_types? @relation("WOFT_RT", fields: [WOFT_id], references: [id])
   // WART
-  WART_id                   Int?
+  WART_id                   Int?                       @unique
   with_all_relation_types   with_all_relation_types?   @relation("WART_RT", fields: [WART_id], references: [id])
 }
 
@@ -119,21 +119,21 @@ model with_id_and_unique {
 model with_unique {
   id                      Int                      @unique
   name                    String
-  WART_id                 Int?
+  WART_id                 Int?                     @unique                 
   with_all_relation_types with_all_relation_types? @relation("WART_WU", fields: [WART_id], references: [id])
 }
 
 model with_multiple_unique {
   id                      Int                      @unique
   name                    String                   @unique
-  WART_id                 Int?
+  WART_id                 Int?                     @unique
   with_all_relation_types with_all_relation_types? @relation("WART_WMU", fields: [WART_id], references: [id])
 }
 
 model with_compound_id {
   id                      Int
   name                    String
-  WART_id                 Int?
+  WART_id                 Int?                     @unique
   with_all_relation_types with_all_relation_types? @relation("WART_WCI", fields: [WART_id], references: [id])
 
   @@id([id, name])
@@ -142,7 +142,7 @@ model with_compound_id {
 model with_compound_unique {
   id                      Int
   name                    String
-  WART_id                 Int?
+  WART_id                 Int?                     @unique
   with_all_relation_types with_all_relation_types? @relation("WART_WCU", fields: [WART_id], references: [id])
 
   @@unique([id, name])

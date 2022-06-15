@@ -3,7 +3,7 @@ steps:
     parallelism: 2
     timeout_in_minutes: 25
     plugins:
-      - docker-compose#v3.8.0:
+      - docker-compose#v3.9.0:
           config: .buildkite/test/docker-compose.14.yml
           run: app
 

@@ -122,9 +122,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     // weird conditionals here
     if (uri.pathname.startsWith('file:')) {
       database = uri.pathname.slice(5)
-    }
-    if (uri.pathname.startsWith('sqlite:')) {
-      database = uri.pathname.slice(7)
     } else {
       // here it's only the file name?
       database = path.basename(uri.pathname)
@@ -174,7 +171,7 @@ function databaseTypeToProtocol(databaseType: ConnectorType) {
     case 'mongodb':
       return 'mongodb:'
     case 'sqlite':
-      return 'sqlite:'
+      return 'file:'
     case 'sqlserver':
       return 'sqlserver:'
     case 'jdbc:sqlserver':
@@ -200,7 +197,6 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
     case 'mysql:':
       return 'mysql'
     case 'file:':
-    case 'sqlite:':
       return 'sqlite'
     case 'sqlserver:':
     case 'jdbc:sqlserver:':

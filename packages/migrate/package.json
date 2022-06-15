@@ -19,24 +19,24 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.16.0-2.dac6d7ed5a3f203ae2cd08833373d088df38e2c9",
+    "@prisma/engines-version": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@swc/core": "1.2.189",
+    "@swc/core": "1.2.197",
     "@swc/jest": "0.2.21",
-    "@types/jest": "28.1.0",
+    "@types/jest": "28.1.1",
     "@types/node": "12.20.55",
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",
     "@types/sqlite3": "3.1.8",
-    "esbuild": "0.14.39",
+    "esbuild": "0.14.43",
     "fs-jetpack": "4.3.1",
-    "jest": "28.1.0",
+    "jest": "28.1.1",
     "jest-junit": "13.2.0",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "tempy": "1.0.1",
-    "typescript": "4.7.2"
+    "typescript": "4.7.3"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "3.16.0-2.dac6d7ed5a3f203ae2cd08833373d088df38e2c9",
+    "@prisma/get-platform": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",
@@ -53,7 +53,7 @@
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
     "mariadb": "3.0.0",
-    "mssql": "8.1.0",
+    "mssql": "8.1.2",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
