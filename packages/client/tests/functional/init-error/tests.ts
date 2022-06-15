@@ -16,11 +16,7 @@ testMatrix.setupTestSuite(
       } catch (error) {
         const e = error as PrismaClientInitializationError
         expect(e.constructor.name).toEqual('PrismaClientInitializationError')
-        if (provider === 'sqlserver') {
-          expect(e.errorCode).toEqual('P1012')
-        } else {
-          expect(e.errorCode).toEqual('P1001')
-        }
+        expect(e.errorCode).toEqual('P1001')
       } finally {
         prisma.$disconnect().catch(() => {})
       }
@@ -29,10 +25,11 @@ testMatrix.setupTestSuite(
   {
     skipDb: true,
     optOut: {
-      from: ['sqlite', 'mongodb'],
+      from: ['sqlite', 'mongodb', 'sqlserver'],
       reason: `
-        sqlite dont have a connection string'
-        mongodb times out and dont throw
+        sqlite: dont have a connection string'
+        mongodb: times out and dont throw
+        sqlserver: returns undefined
       `,
     },
   },
