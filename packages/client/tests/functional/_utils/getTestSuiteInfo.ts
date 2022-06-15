@@ -22,17 +22,11 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  name += ` (${suiteConfig['provider']})`
+  const suiteParams = Object.entries(suiteConfig)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(', ')
 
-  name += ` (`
-  if (suiteConfig['providerFeatures']) {
-    name += `${suiteConfig['providerFeatures']}`
-  }
-
-  if (suiteConfig['previewFeatures']) {
-    name += `${suiteConfig['previewFeatures']}`
-  }
-  name += `)`
+  name += ` (${suiteParams})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')
