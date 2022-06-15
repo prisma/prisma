@@ -7,7 +7,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     test('should assert that the error has the correct errorCode', async () => {
       expect.assertions(2)
 
@@ -16,7 +16,11 @@ testMatrix.setupTestSuite(
       } catch (error) {
         const e = error as PrismaClientInitializationError
         expect(e.constructor.name).toEqual('PrismaClientInitializationError')
-        expect(e.errorCode).toEqual('P1001')
+        if (provider === 'sqlserver') {
+          expect(e.errorCode).toEqual('P1012')
+        } else {
+          expect(e.errorCode).toEqual('P1001')
+        }
       } finally {
         prisma.$disconnect().catch(() => {})
       }

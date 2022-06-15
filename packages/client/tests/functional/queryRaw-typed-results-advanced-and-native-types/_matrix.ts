@@ -8,9 +8,6 @@ export default defineMatrix(() => [
     {
       provider: 'cockroachdb',
     },
-    {
-      provider: 'sqlserver',
-    },
   ],
   [
     {
