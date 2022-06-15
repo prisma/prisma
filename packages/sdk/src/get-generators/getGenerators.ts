@@ -11,11 +11,13 @@ import fs from 'fs'
 import pMap from 'p-map'
 import path from 'path'
 
+import { defaultEnv, defaultURL } from '../../../cli/src/Init'
 import { getConfig, getDMMF } from '..'
 import { Generator } from '../Generator'
 import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
 import { predefinedGeneratorResolvers } from '../predefinedGeneratorResolvers'
 import { resolveOutput } from '../resolveOutput'
+import { defaultDatasource } from '../utils/defaultDatasource'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
 import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
@@ -119,6 +121,13 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (config.datasources.length === 0) {
     throw new Error(missingDatasource)
   }
+
+  config.datasources.forEach((datasource) => {
+    // If the value is one of the defaults, let's print a warning to the user
+    if (parseEnvValue(datasource.url) === defaultURL(datasource.provider)) {
+      console.info(defaultDatasource)
+    }
+  })
 
   printConfigWarnings(config.warnings)
 
