@@ -77,7 +77,11 @@ export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteDatabase(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: TestSuiteConfig,
+  errors: Error[] = [],
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -85,7 +89,13 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
+    errors.push(e as Error)
+
+    if (errors.length > 2) {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+    } else {
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+    }
   }
 }
 
@@ -94,7 +104,11 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function dropTestSuiteDatabase(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: TestSuiteConfig,
+  errors: Error[] = [],
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -102,7 +116,13 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await dropTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
+    errors.push(e as Error)
+
+    if (errors.length > 2) {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+    } else {
+      await dropTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+    }
   }
 }
 
