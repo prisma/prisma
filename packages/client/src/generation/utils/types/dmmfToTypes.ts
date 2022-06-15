@@ -15,8 +15,9 @@ export function dmmfToTypes(document: DMMF.Document) {
     engineVersion: '',
     runtimeDir: '',
     runtimeName: '',
-    schemaDir: '',
+    schemaPath: '',
     outputDir: '',
     activeProvider: '',
+    dataProxy: false,
   }).toTS()
 }
