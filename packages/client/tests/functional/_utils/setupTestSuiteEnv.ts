@@ -77,11 +77,7 @@ export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteDatabase(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: TestSuiteConfig,
-  errors: Error[] = [],
-) {
+export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -89,13 +85,7 @@ export async function setupTestSuiteDatabase(
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    errors.push(e as Error)
-
-    if (errors.length > 2) {
-      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
-    } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
-    }
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
   }
 }
 
@@ -104,11 +94,7 @@ export async function setupTestSuiteDatabase(
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function dropTestSuiteDatabase(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: TestSuiteConfig,
-  errors: Error[] = [],
-) {
+export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -116,13 +102,7 @@ export async function dropTestSuiteDatabase(
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    errors.push(e as Error)
-
-    if (errors.length > 2) {
-      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
-    } else {
-      await dropTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
-    }
+    await dropTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
   }
 }
 
