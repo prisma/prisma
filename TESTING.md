@@ -76,8 +76,9 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - Tests for `prisma studio`, `prisma version`, `prisma format`, `prisma generate`, `prisma doctor`, loading .env files, testing the built cli
 - **`client`**
   - `src/__tests__/*.test.ts` - Unit tests
-  - `src/__tests__/integration/happy/**` - Integration tests for the happy path
-  - `src/__tests__/integration/errors/**` - Integration tests for error cases
+  - `test/functional` - New functional tests setup
+  - `src/__tests__/integration/happy/**` - Legacy integration tests for the happy path. Please, write functional tests instead.
+  - `src/__tests__/integration/errors/**` - Legacy integration tests for error cases. Please write functional tests instead.
   - `src/__tests__/types/**` - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
@@ -104,7 +105,7 @@ In the `prisma/prisma` repository we have a few places where you can write tests
     - postgresql
     - sqlite
   - While these tests also test the client itself, they're rather just our base to make sure that basic query engine functionality actually works in the Prisma Client
-  - When you want to test very specific queries for a new feature, you can write an integration test in the `client` package, as that's usually easier
+  - When you want to test very specific queries for a new feature, you can write a functional test in the `client` package, as that's usually easier
 
 ## So you just got a reproduction for the client
 
@@ -146,6 +147,170 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 ### Trigger panic in Query Engine - Get Config
 
 - run `FORCE_PANIC_QUERY_ENGINE_GET_CONFIG=1 npx prisma validate`
+
+## Functional tests for the client
+
+Functional tests in the client package are testing that all aspects of client and query engine work correctly. They strive to be as close as possible to the way client will be used in real project: they generate an actual client, talk to a real database, perform the type checks and generally test the client through its public API.
+
+### Creating new functional test
+
+To create new test, run following command
+
+```
+pnpm new-test
+```
+
+You'll then be asked for the name of your test and list of providers you want to run this test on. If you opt out of testing any of the providers, you'll also have to specify the reason. New test will be created under `test/functional/<name of the test>` directory.
+
+### Structure of the functional test
+
+Test consists of the 3 files:
+
+- test matrix `_matrix.ts`
+- schema template `prisma/_schema.ts`
+- test suite `tests.ts`
+
+#### Test matrix
+
+`_matrix.ts` file defines parameters for generating test suites. It can have as many parameters as necessary, but at minimum, it should define at least one provider.
+
+This example matrix defines 2 test suites: one for the SQLite provider and one for MongoDB, while also providing some test data to use later for both providers:
+
+```ts
+import { defineMatrix } from '../_utils/defineMatrix'
+
+export default defineMatrix(() => [
+  [
+    {
+      provider: 'sqlite',
+      testEmail: 'sqlite-user@example.com',
+    },
+    {
+      provider: 'mongodb',
+      testEmail: 'mongo-user@example.com',
+    },
+  ],
+])
+```
+
+If the matrix has multiple dimensions, test suites will be generated for all permutations of the parameters. For example, the following matrix:
+
+```ts
+import { defineMatrix } from '../_utils/defineMatrix'
+
+export default defineMatrix(() => [
+  [
+    {
+      provider: 'sqlite',
+    },
+    {
+      provider: 'postgresql',
+    },
+  ],
+  [
+    {
+      providerFeatures: '',
+    },
+
+    {
+      providerFeatures: 'improvedQueryRaw',
+    },
+  ],
+])
+```
+
+Will generate following test suites:
+
+- `{ provider: 'sqlite', providerFeatures: '' }`
+- `{ provider: 'sqlite', providerFeatures: 'improvedQueryRaw' }`
+- `{ provider: 'postgresql', providerFeatures: '' }`
+- `{ provider: 'postgresql', providerFeatures: 'improvedQueryRaw' }`
+
+#### Schema template
+
+`prisma/_schema.ts` will be used for generating an actual schema for the test suite:
+
+```ts
+import { idForProvider } from '../../_utils/idForProvider'
+import testMatrix from '../_matrix'
+
+export default testMatrix.setupSchema(({ provider }) => {
+  return /* Prisma */ `
+    generator client {
+      provider = "prisma-client-js"
+    }
+    
+    datasource db {
+      provider = "${provider}"
+      url      = env("DATABASE_URI_${provider}")
+    }
+    
+    model User {
+      id ${idForProvider(provider)}
+    }
+  `
+})
+```
+
+`setupSchema` callback receives all parameters from the matrix for a particular test suite as an argument.
+`idForProvider` is a helper function which returns a correct primary key definition for each of the supported providers.
+
+#### Test suite
+
+`tests.ts` contains actual tests for the suite:
+
+```ts
+import testMatrix from './_matrix'
+
+// @ts-ignore at the moment this is necessary for typechecks
+declare let prisma: import('@prisma/client').PrismaClient
+
+testMatrix.setupTestSuite(
+  (suiteConfig, suiteMeta) => {
+    test('create', async () => {
+      await prisma.user.create({
+        data: {
+          // `testEmail` was defined in the example matrix before
+          // you can also use a constant here if you don't need
+          // unique email per provider
+          email: suiteConfig.testEmail,
+        },
+      })
+    })
+  },
+  {
+    optOut: {
+      // if you are skipping tests for certain providers, you
+      // have to list them here and specify the reason
+      from: ['mongodb'],
+      reason: 'The test is for SQL databases only',
+    },
+  },
+)
+```
+
+This test will run for every permutation of the parameters from the matrix. Currently used combination is available via `suiteConfig` parameter. Each suite will start with a clean already set up database, generated and initialized client, available via `prisma` global. After suite is finished, database will be dropped and client instance will disconnect automatically.
+
+### Running functional tests
+
+- `pnpm test:functional:code` generates and runs the test suites, defined by test matrix. It does no typechecking, but prepares all necessary files for it.
+- `pnpm test:functional:types` runs typechecking on all the suites, generated by `pnpm test:functional:code` command. If it reports any errors, you might want to examine generated test suite under `tests/functional/<your test name>/.generated` directory to get a better diagnostic.
+- `pnpm test:functional` will run tests and perform type checks.
+
+### Conditionally skipping type tests
+
+Sometimes different test matrix parameters will generate different TS types so, and as a result,
+correct code for one suite config won't pass type checks for a different one. In that case, you
+can use `@ts-test-if` magical comment to conditionally skip type checks. For example:
+
+```ts
+// @ts-test-if: provider !== 'mongodb'
+prisma.$queryRaw`...`
+```
+
+If JS expression, following `@ts-test-if:` evaluates to truthy value, `@ts-expect-error` will be
+inserted in its place during the generation. All parameters from the test matrix can be used within that
+expression.
 
 ## CI - Continuous Integration
 
