@@ -267,7 +267,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 28.0.4
+      ts-jest: 28.0.5
       ts-node: 10.8.1
       tsd: 0.21.0
       typescript: 4.7.3
@@ -333,7 +333,7 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-jest: 28.0.4_39d28abc242f9a15cc88f7055fcff9cf
+      ts-jest: 28.0.5_39d28abc242f9a15cc88f7055fcff9cf
       ts-node: 10.8.1_14ed91d4cae65ba3a6cb0c7a4eb17a8c
       tsd: 0.21.0
       typescript: 4.7.3
@@ -350,7 +350,7 @@ importers:
       jest: 28.1.1
       jest-junit: 13.2.0
       strip-ansi: 6.0.1
-      ts-jest: 28.0.4
+      ts-jest: 28.0.5
       typescript: 4.7.3
     dependencies:
       '@types/debug': 4.1.7
@@ -362,7 +362,7 @@ importers:
       esbuild: 0.14.43
       jest: 28.1.1_a5b25d55d781dfd07953d982482d1e24
       jest-junit: 13.2.0
-      ts-jest: 28.0.4_39d28abc242f9a15cc88f7055fcff9cf
+      ts-jest: 28.0.5_39d28abc242f9a15cc88f7055fcff9cf
       typescript: 4.7.3
 
   packages/engine-core:
@@ -10553,7 +10553,7 @@ packages:
       bs-logger: 0.2.6
       esbuild: 0.14.43
       fast-json-stable-stringify: 2.1.0
-      jest: 28.1.1_a5b25d55d781dfd07953d982482d1e24
+      jest: 28.1.1_95eb64644dab78c367cc7b86e0c9c062
       jest-util: 28.1.1
       json5: 2.2.1
       lodash.memoize: 4.1.2
@@ -10561,6 +10561,37 @@ packages:
       semver: 7.3.7
       typescript: 4.7.3
       yargs-parser: 20.2.9
+    dev: true
+
+  /ts-jest/28.0.5_39d28abc242f9a15cc88f7055fcff9cf:
+    resolution: {integrity: sha512-Sx9FyP9pCY7pUzQpy4FgRZf2bhHY3za576HMKJFs+OnQ9jS96Du5vNsDKkyedQkik+sEabbKAnCliv9BEsHZgQ==}
+    engines: {node: ^12.13.0 || ^14.15.0 || ^16.10.0 || >=17.0.0}
+    hasBin: true
+    peerDependencies:
+      '@babel/core': '>=7.0.0-beta.0 <8'
+      babel-jest: ^28.0.0
+      esbuild: '*'
+      jest: ^28.0.0
+      typescript: '>=4.3'
+    peerDependenciesMeta:
+      '@babel/core':
+        optional: true
+      babel-jest:
+        optional: true
+      esbuild:
+        optional: true
+    dependencies:
+      bs-logger: 0.2.6
+      esbuild: 0.14.43
+      fast-json-stable-stringify: 2.1.0
+      jest: 28.1.1_a5b25d55d781dfd07953d982482d1e24
+      jest-util: 28.1.1
+      json5: 2.2.1
+      lodash.memoize: 4.1.2
+      make-error: 1.3.6
+      semver: 7.3.7
+      typescript: 4.7.3
+      yargs-parser: 21.0.1
     dev: true
 
   /ts-node/10.8.1_14ed91d4cae65ba3a6cb0c7a4eb17a8c:
