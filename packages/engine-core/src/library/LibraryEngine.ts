@@ -4,6 +4,7 @@ import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform
 import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
+import { parentPort } from 'worker_threads'
 
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
@@ -276,8 +277,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return str
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
+  on(event: EngineEventType, listener: (args?: any) => void): void {
+    if (parentPort !== undefined) {
+      this.logEmitter.on(event, (data?: any) => {
+        parentPort?.postMessage({ event, data })
+      })
+    } else if (event === 'beforeExit') {
       this.beforeExitListener = listener
     } else {
       this.logEmitter.on(event, listener)
@@ -393,6 +398,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
+
+      // parentPort?.postMessage(data)
 
       if (data.errors) {
         if (data.errors.length === 1) {

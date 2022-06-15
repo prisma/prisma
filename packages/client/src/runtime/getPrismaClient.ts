@@ -1,7 +1,15 @@
 import type { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
-import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
+import {
+  BinaryEngine,
+  DataProxyEngine,
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  LibraryEngine,
+  WorkerEngine,
+} from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { ClientEngineType, getClientEngineType, logger, mapPreviewFeatures, tryLoadEnvs } from '@prisma/sdk'
 import type { LoadedEnv } from '@prisma/sdk/dist/utils/tryLoadEnvs'
@@ -470,7 +478,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       if (this._dataProxy === true) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library) {
-        return NODE_CLIENT && new LibraryEngine(this._engineConfig)
+        return NODE_CLIENT && new WorkerEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Binary) {
         return NODE_CLIENT && new BinaryEngine(this._engineConfig)
       }
