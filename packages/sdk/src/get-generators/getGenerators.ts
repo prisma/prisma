@@ -11,7 +11,7 @@ import fs from 'fs'
 import pMap from 'p-map'
 import path from 'path'
 
-import { defaultEnv, defaultURL } from '../../../cli/src/Init'
+import { defaultURL } from '../../../cli/src/Init'
 import { getConfig, getDMMF } from '..'
 import { Generator } from '../Generator'
 import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
