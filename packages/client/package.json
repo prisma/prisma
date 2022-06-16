@@ -43,9 +43,9 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
-    "test:functional": "pnpm run test:functional:code && pnpm run test:functional:types",
-    "test:functional:code": "jest --verbose --config=tests/functional/jest.config.js --testPathIgnorePatterns typescript --",
-    "test:functional:types": "jest --verbose --config=tests/functional/jest.config.js -- typescript",
+    "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
+    "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
+    "test:functional:types": "node -r esbuild-register helpers/functional-test/run-tests.ts --types-only",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
@@ -64,7 +64,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@jest/create-cache-key-function": "^28.1.1",
+    "@faker-js/faker": "7.2.0",
     "@jest/test-sequencer": "28.1.1",
     "@microsoft/api-extractor": "7.25.0",
     "@opentelemetry/api": "1.1.0",
@@ -76,7 +76,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@swc/core": "1.2.197",
+    "@swc/core": "1.2.203",
     "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
@@ -121,9 +121,9 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "28.0.4",
+    "ts-jest": "28.0.5",
     "ts-node": "10.8.1",
-    "tsd": "0.20.0",
+    "tsd": "0.21.0",
     "typescript": "4.7.3",
     "uuid": "^8.3.2",
     "yeoman-generator": "^5.6.1",
@@ -138,7 +138,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.16.0-11.99ac5a5c95ba2f5308d84fc30a7110f606182d92"
+    "@prisma/engines-version": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c"
   },
   "sideEffects": false
 }

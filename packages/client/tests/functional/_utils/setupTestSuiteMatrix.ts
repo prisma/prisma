@@ -1,5 +1,6 @@
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { MatrixOptions } from './types'
@@ -44,48 +45,44 @@ function setupTestSuiteMatrix(
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
   const suiteConfig = getTestSuiteConfigs(suiteMeta)
-  const suiteTable = getTestSuiteTable(suiteMeta, suiteConfig)
-  const forceInlineSnapshot = process.argv.includes('-u')
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfig)
   checkMissingProviders({
     suiteConfig,
     suiteMeta,
     options,
   })
-  ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
-    const [suiteName, suiteConfig] = suiteEntry
+  for (const { name, suiteConfig, skip } of testPlan) {
+    const describeFn = skip ? describe.skip : describe
 
-    // we don't run tests for some providers that we want to skip on the CI
-    if (suiteConfig['provider']?.toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) return
-    if (suiteConfig['provider']?.toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) return
-    if (suiteConfig['provider']?.toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) return
-
-    describe(suiteName, () => {
+    describeFn(name, () => {
       // we inject modified env vars, and make the client available as globals
-      beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
-      beforeAll(
-        async () =>
-          (globalThis['loaded'] = await setupTestSuiteClient({
-            suiteMeta,
-            suiteConfig,
-            skipDb: options?.skipDb,
-          })),
-      )
-      beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
-      beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
-      beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
+      beforeAll(async () => {
+        process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
 
-      // we disconnect and drop the database, clean up the env, and global vars
-      afterAll(async () => !options?.skipDb && (await globalThis['prisma']?.$disconnect()))
-      afterAll(async () => !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig)))
-      afterAll(() => (process.env = originalEnv))
-      afterAll(() => delete globalThis['loaded'])
-      afterAll(() => delete globalThis['prisma'])
-      afterAll(() => delete globalThis['Prisma'])
-      afterAll(() => delete globalThis['PrismaClient'])
+        globalThis['loaded'] = await setupTestSuiteClient({
+          suiteMeta,
+          suiteConfig,
+          skipDb: options?.skipDb,
+        })
+
+        globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()
+        globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']
+        globalThis['Prisma'] = (await global['loaded'])['Prisma']
+      })
+
+      afterAll(async () => {
+        !options?.skipDb && (await globalThis['prisma']?.$disconnect())
+        !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+        process.env = originalEnv
+        delete globalThis['loaded']
+        delete globalThis['prisma']
+        delete globalThis['Prisma']
+        delete globalThis['PrismaClient']
+      })
 
       tests(suiteConfig, suiteMeta)
     })
-  })
+  }
 }
 
 export { setupTestSuiteMatrix }
