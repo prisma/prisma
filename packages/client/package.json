@@ -42,11 +42,11 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "jest --verbose",
+    "test": "",
     "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "node -r esbuild-register helpers/functional-test/run-tests.ts --types-only",
-    "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
+    "test-notypes": "",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
