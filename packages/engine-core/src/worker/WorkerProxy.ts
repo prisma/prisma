@@ -73,8 +73,12 @@ export abstract class WorkerProxy<C> {
         this.worker.postMessage({ id, action, data })
         this.resultResolvers[id] = { resolve, reject }
       })
-        .then((v) => (hooks?.onResolve ? hooks.onResolve(v) : v))
-        .catch((e) => (hooks?.onReject ? hooks.onReject(e) : e))
+        .then((v) => {
+          return hooks?.onResolve ? hooks?.onResolve(v) : v
+        })
+        .catch((e) => {
+          throw hooks?.onReject ? hooks?.onReject(e) : e
+        })
     }
   }
 }
