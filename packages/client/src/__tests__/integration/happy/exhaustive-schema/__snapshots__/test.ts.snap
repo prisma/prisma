@@ -1881,7 +1881,7 @@ export namespace Prisma {
 
   export interface PostDelegate<GlobalRejectSettings> {
     /**
-     * Returns Post that matches the filter or null if nothing is found
+     * Returns `Post` that matches the filter or null if nothing is found
      * @param {PostFindUniqueArgs} args - Arguments to find 'Post'
      * @example
      * // Get one Post
