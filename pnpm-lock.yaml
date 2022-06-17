@@ -575,7 +575,7 @@ importers:
   packages/react-prisma:
     specifiers:
       '@prisma/client': workspace:*
-      '@types/jest': 27.5.2
+      '@types/jest': 28.1.2
       '@types/node': 16.11.41
       esbuild: 0.14.43
       jest: 28.1.1
@@ -585,7 +585,7 @@ importers:
       typescript: 4.7.3
     devDependencies:
       '@prisma/client': link:../client
-      '@types/jest': 27.5.2
+      '@types/jest': 28.1.2
       '@types/node': 16.11.41
       esbuild: 0.14.43
       jest: 28.1.1_74bd5344295ff274a1213531fe16bbb0
@@ -2404,18 +2404,18 @@ packages:
       '@types/istanbul-lib-report': 3.0.0
     dev: true
 
-  /@types/jest/27.5.2:
-    resolution: {integrity: sha512-mpT8LJJ4CMeeahobofYWIjFo0xonRS/HfxnVEPMPFSQdGUt1uHCnoPT7Zhb+sjDU2wz0oKV0OLUR0WzrHNgfeA==}
-    dependencies:
-      jest-matcher-utils: 27.5.1
-      pretty-format: 27.5.1
-    dev: true
-
   /@types/jest/28.1.1:
     resolution: {integrity: sha512-C2p7yqleUKtCkVjlOur9BWVA4HgUQmEj/HWCt5WzZ5mLXrWnyIfl0wGuArc+kBXsy0ZZfLp+7dywB4HtSVYGVA==}
     dependencies:
       jest-matcher-utils: 27.5.1
       pretty-format: 27.5.1
+    dev: true
+
+  /@types/jest/28.1.2:
+    resolution: {integrity: sha512-5dNM7mMuIrCtNJsFfvUO/5xCrG8swuT2c7ND+sl3XwlwxJf3k7e7o+PRvcFN/iIm8XhCqHqxLOj9yutDDOJoRg==}
+    dependencies:
+      jest-matcher-utils: 28.1.1
+      pretty-format: 28.1.1
     dev: true
 
   /@types/js-levenshtein/1.1.1:
