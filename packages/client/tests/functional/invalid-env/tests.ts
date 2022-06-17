@@ -10,7 +10,7 @@ testMatrix.setupTestSuite(
       Object.assign(process.env, env)
     })
 
-    test('test should throw PrismaClientInitializationError because invalid env', async () => {
+    test('PrismaClientInitializationError for invalid env', async () => {
       expect.assertions(1)
 
       try {
