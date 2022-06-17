@@ -152,7 +152,7 @@ testMatrix.setupTestSuite(() => {
       data: {
         posts: {
           disconnect: {
-            id: user!.posts![0]!.id ,
+            id: user!.posts![0]!.id,
           },
         },
       },
