@@ -3,6 +3,7 @@ import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
+import { constants } from 'os'
 import path from 'path'
 
 import { EngineConfig } from '../common/Engine'
@@ -29,8 +30,10 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
-      // this require needs to be resolved at runtime, tell webpack to ignore it
-      return eval('require')(this.libQueryEnginePath) as Library
+      const mod = { exports: {} }
+      // @ts-ignore
+      process.dlopen(mod, this.libQueryEnginePath, constants.dlopen.RTLD_NOW)
+      return mod.exports as Library
     } catch (e) {
       if (fs.existsSync(this.libQueryEnginePath)) {
         if (this.libQueryEnginePath.endsWith('.node')) {
