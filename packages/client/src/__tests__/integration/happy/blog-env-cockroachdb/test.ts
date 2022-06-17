@@ -70,12 +70,12 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
 
   test('can perform $queryRawUnsafe', async () => {
     const rawQuery = await prisma.$queryRawUnsafe('SELECT 1')
-    expect(rawQuery[0]['?column?']).toBe(1)
+    expect(rawQuery[0]['?column?']).toBe(BigInt('1'))
   })
 
   test('can perform $queryRaw', async () => {
     const rawQuery = await prisma.$queryRaw`SELECT 1`
-    expect(rawQuery[0]['?column?']).toBe(1)
+    expect(rawQuery[0]['?column?']).toBe(BigInt('1'))
   })
 
   test('Can do find query with client', async () => {
