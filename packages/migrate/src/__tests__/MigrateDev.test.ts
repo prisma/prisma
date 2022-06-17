@@ -26,10 +26,8 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('common libra
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Get Config: Error while interacting with query-engine-node-api library
+            Get Config: Schema Parsing - Error while interacting with query-engine-node-api library
             Error code: P1012
-            Schema Parsing P1012
-
             error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
               -->  schema.prisma:10
                | 
@@ -57,10 +55,8 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('common libra
     const result = MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Get Config: Error while interacting with query-engine-node-api library
+            Get Config: Schema Parsing - Error while interacting with query-engine-node-api library
             Error code: P1012
-            Schema Parsing P1012
-
             error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
               -->  schema.prisma:2
                | 
@@ -87,10 +83,8 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary')('common binary
     ctx.fixture('schema-only-sqlite')
     const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Get Config: Error while interacting with query-engine binary
+            Get Config: Schema Parsing - Error while interacting with query-engine binary
             Error code: P1012
-            Schema Parsing P1012
-
             error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
               -->  schema.prisma:10
                | 
@@ -118,10 +112,8 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary')('common binary
     const result = MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
 
     await expect(result).rejects.toMatchInlineSnapshot(`
-            Get Config: Error while interacting with query-engine binary
+            Get Config: Schema Parsing - Error while interacting with query-engine binary
             Error code: P1012
-            Schema Parsing P1012
-
             error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
               -->  schema.prisma:2
                | 
