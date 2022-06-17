@@ -5,7 +5,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    test('test should throw PrismaClientInitializationError because missing env', async () => {
+    test('PrismaClientInitializationError for missing env', async () => {
       expect.assertions(1)
 
       try {
