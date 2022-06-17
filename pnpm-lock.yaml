@@ -122,8 +122,8 @@ importers:
       '@prisma/fetch-engine': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
+      '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
-      '@prisma/sdk': workspace:*
       '@prisma/studio': 0.463.0
       '@prisma/studio-server': 0.463.0
       '@swc/core': 1.2.203
@@ -168,10 +168,10 @@ importers:
       '@prisma/fetch-engine': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
+      '@prisma/internals': link:../sdk
       '@prisma/migrate': link:../migrate
-      '@prisma/sdk': link:../sdk
       '@prisma/studio': 0.463.0
-      '@prisma/studio-server': 0.463.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-server': 0.463.0_@prisma+client@packages+client
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21_@swc+core@1.2.203
       '@types/debug': 4.1.7
@@ -220,8 +220,8 @@ importers:
       '@prisma/fetch-engine': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
+      '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
-      '@prisma/sdk': workspace:*
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
@@ -286,8 +286,8 @@ importers:
       '@prisma/fetch-engine': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
+      '@prisma/internals': link:../sdk
       '@prisma/migrate': link:../migrate
-      '@prisma/sdk': link:../sdk
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21_@swc+core@1.2.203
       '@timsuchanek/copy': 1.4.5
@@ -443,7 +443,7 @@ importers:
 
   packages/integration-tests:
     specifiers:
-      '@prisma/sdk': workspace:*
+      '@prisma/internals': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21
@@ -470,7 +470,7 @@ importers:
       typescript: 4.7.3
       verror: 1.10.1
     devDependencies:
-      '@prisma/sdk': link:../sdk
+      '@prisma/internals': link:../sdk
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21_@swc+core@1.2.203
@@ -503,7 +503,7 @@ importers:
       '@prisma/engines-version': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
-      '@prisma/sdk': workspace:*
+      '@prisma/internals': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21
@@ -555,7 +555,7 @@ importers:
     devDependencies:
       '@prisma/engines-version': 3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c
       '@prisma/generator-helper': link:../generator-helper
-      '@prisma/sdk': link:../sdk
+      '@prisma/internals': link:../sdk
       '@swc/core': 1.2.203
       '@swc/jest': 0.2.21_@swc+core@1.2.203
       '@types/jest': 28.1.1
@@ -1966,7 +1966,7 @@ packages:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.463.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-pcw/0.463.0_@prisma+client@packages+client:
     resolution: {integrity: sha512-Qi3r82lvI4rdxl54Lrr43XiiUBRARVVlyZ+6VFk7PrQ9j9d0dY74oexyRw9apUzuRFgU9XW48q3ZZvGSsyCeGg==}
     engines: {node: '>= 12'}
     peerDependencies:
@@ -1974,23 +1974,21 @@ packages:
       '@prisma/sdk': '*'
     dependencies:
       '@prisma/client': link:packages/client
-      '@prisma/sdk': link:packages/sdk
       debug: 4.3.3
       lodash: 4.17.21
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.463.0_839d6f5e1e290969a8d17594ebaffe12:
+  /@prisma/studio-server/0.463.0_@prisma+client@packages+client:
     resolution: {integrity: sha512-CefHzFZzGEHEG5eoRijDo5DLJfSEjDqMhH+QBLgNvaDTARKoaZnzBjvzy61jaF3iN8/qt/ugh1rU/9l+g9fImg==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/sdk': '*'
     dependencies:
-      '@prisma/sdk': link:packages/sdk
       '@prisma/studio': 0.463.0
       '@prisma/studio-common': 0.463.0
-      '@prisma/studio-pcw': 0.463.0_839d6f5e1e290969a8d17594ebaffe12
+      '@prisma/studio-pcw': 0.463.0_@prisma+client@packages+client
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
