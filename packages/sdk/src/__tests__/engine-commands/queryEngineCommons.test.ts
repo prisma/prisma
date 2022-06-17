@@ -5,7 +5,9 @@ import { loadNodeAPILibrary } from '../../engine-commands/queryEngineCommons'
 import { resolveBinary } from '../../resolveBinary'
 import * as loadUtils from '../../utils/load'
 
-describe('loadNodeAPILibrary', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('loadNodeAPILibrary', () => {
   it('error path', async () => {
     const spyLoadTag = 'error-load'
     const spyLoad = jest.spyOn(loadUtils, 'load').mockImplementation((id: string) => {
