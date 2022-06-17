@@ -229,7 +229,7 @@ export interface GetPrismaClientConfig {
    * If enabled, we disregard the generator config engineType.
    * It means that `--data-proxy` binds you to the Data Proxy.
    */
-  dataProxy: boolean
+  dataProxy?: boolean
 
   /**
    * The contents of the schema encoded into a string
