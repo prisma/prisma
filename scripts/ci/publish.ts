@@ -1029,7 +1029,7 @@ async function publishPackages(
           await writeToPkgJson(pkgDir, (pkg) => {
             pkg.name = `@prisma/internals`
           })
-          await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+          await run(pkgDir, `pnpm publish --access public --no-git-checks --tag ${tag}`, dryRun)
         }
       }
     }
