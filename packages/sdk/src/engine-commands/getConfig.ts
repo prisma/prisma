@@ -46,6 +46,7 @@ type GetConfigErrorInit = {
   message: string
 } & (
   | {
+      // parsed as JSON
       readonly _tag: 'parsed'
 
       // e.g., `P1012`
