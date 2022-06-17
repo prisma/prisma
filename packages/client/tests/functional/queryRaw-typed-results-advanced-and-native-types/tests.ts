@@ -48,11 +48,12 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'mysql', 'sqlite'],
+      from: ['mongodb', 'mysql', 'sqlite', 'sqlserver'],
       reason: `
         $queryRaw only works on SQL based providers
-        mySql You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
-        sqlite The current connector does not support lists of primitive types
+        mySql: You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
+        sqlite: The current connector does not support lists of primitive types
+        sqlserver: The current connector does not support the Json type.
       `,
     },
   },
