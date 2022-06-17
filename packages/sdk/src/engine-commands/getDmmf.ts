@@ -53,6 +53,7 @@ type GetDmmfErrorInit = {
       errorCode?: string
     }
   | {
+      // text
       readonly _tag: 'unparsed'
     }
 )
