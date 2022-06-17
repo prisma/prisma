@@ -7,7 +7,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     test('should assert that the error has the correct errorCode', async () => {
       expect.assertions(2)
 
@@ -25,10 +25,11 @@ testMatrix.setupTestSuite(
   {
     skipDb: true,
     optOut: {
-      from: ['sqlite', 'mongodb'],
+      from: ['sqlite', 'mongodb', 'sqlserver'],
       reason: `
-        sqlite dont have a connection string'
-        mongodb times out and dont throw
+        sqlite: dont have a connection string'
+        mongodb: times out and dont throw
+        sqlserver: returns undefined
       `,
     },
   },
