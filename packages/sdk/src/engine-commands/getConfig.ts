@@ -53,6 +53,7 @@ type GetConfigErrorInit = {
       errorCode?: string
     }
   | {
+      // text
       readonly _tag: 'unparsed'
     }
 )
