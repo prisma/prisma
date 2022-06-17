@@ -18,6 +18,11 @@ export default defineMatrix(() => [
       providerFeatures: '',
     },
     {
+      provider: 'sqlserver',
+      id: 'Int @id @default(autoincrement())',
+      providerFeatures: '',
+    },
+    {
       provider: 'cockroachdb',
       id: 'BigInt @id @default(autoincrement())',
       providerFeatures: '',

@@ -15,6 +15,10 @@ export default defineMatrix(() => [
       foreignKeyId: 'String?',
     },
     {
+      provider: 'sqlserver',
+      foreignKeyId: 'String?',
+    },
+    {
       provider: 'cockroachdb',
       foreignKeyId: 'String?',
     },
