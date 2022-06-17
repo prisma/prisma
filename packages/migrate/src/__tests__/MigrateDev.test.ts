@@ -20,6 +20,128 @@ process.env.GITHUB_ACTIONS = '1'
 // Disable generate
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('common library', () => {
+  // eslint-disable-next-line jest/no-identical-title
+  it('invalid schema', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Get Config: Error while interacting with query-engine-node-api library
+            Error code: P1012
+            Schema Parsing P1012
+
+            error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
+              -->  schema.prisma:10
+               | 
+             9 | }
+            10 | model Blog {
+            11 | 
+               | 
+
+            Validation Error Count: 1
+
+
+            Prisma CLI Version : 0.0.0
+          `)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/invalid.prisma`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  })
+
+  // eslint-disable-next-line jest/no-identical-title
+  it('provider array should fail', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
+
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Get Config: Error while interacting with query-engine-node-api library
+            Error code: P1012
+            Schema Parsing P1012
+
+            error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
+              -->  schema.prisma:2
+               | 
+             1 | datasource my_db {
+             2 |     provider = ["postgresql", "sqlite"]
+               | 
+
+            Validation Error Count: 1
+
+
+            Prisma CLI Version : 0.0.0
+          `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/provider-array.prisma`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary')('common binary', () => {
+  // eslint-disable-next-line jest/no-identical-title
+  it('invalid schema', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Get Config: Error while interacting with query-engine binary
+            Error code: P1012
+            Schema Parsing P1012
+
+            error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
+              -->  schema.prisma:10
+               | 
+             9 | }
+            10 | model Blog {
+            11 | 
+               | 
+
+            Validation Error Count: 1
+
+
+            Prisma CLI Version : 0.0.0
+          `)
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/invalid.prisma`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  })
+
+  // eslint-disable-next-line jest/no-identical-title
+  it('provider array should fail', async () => {
+    ctx.fixture('schema-only-sqlite')
+    const result = MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
+
+    await expect(result).rejects.toMatchInlineSnapshot(`
+            Get Config: Error while interacting with query-engine binary
+            Error code: P1012
+            Schema Parsing P1012
+
+            error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
+              -->  schema.prisma:2
+               | 
+             1 | datasource my_db {
+             2 |     provider = ["postgresql", "sqlite"]
+               | 
+
+            Validation Error Count: 1
+
+
+            Prisma CLI Version : 0.0.0
+          `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/provider-array.prisma`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
 describe('common', () => {
   it('wrong flag', async () => {
     const commandInstance = MigrateDev.new()
@@ -99,35 +221,6 @@ describe('sqlite', () => {
 
       Already in sync, no schema change or pending migration was found.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-  })
-
-  it('invalid schema', async () => {
-    ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Get Config: Error while interacting with query-engine-node-api library
-            Error code: P1012
-            Schema Parsing P1012
-
-            error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
-              -->  schema.prisma:10
-               | 
-             9 | }
-            10 | model Blog {
-            11 | 
-               | 
-
-            Validation Error Count: 1
-
-
-            Prisma CLI Version : 0.0.0
-          `)
-
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Prisma schema loaded from prisma/invalid.prisma`,
-    )
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
@@ -726,34 +819,6 @@ describe('sqlite', () => {
                                                                                                                                                                                                                                                                                                                                       • You are about to drop the \`Blog\` table, which is not empty (2 rows).
                                                                                                                                                                                                                         `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-  })
-
-  it('provider array should fail', async () => {
-    ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
-
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Get Config: Error while interacting with query-engine-node-api library
-            Error code: P1012
-            Schema Parsing P1012
-
-            error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
-              -->  schema.prisma:2
-               | 
-             1 | datasource my_db {
-             2 |     provider = ["postgresql", "sqlite"]
-               | 
-
-            Validation Error Count: 1
-
-
-            Prisma CLI Version : 0.0.0
-          `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Prisma schema loaded from prisma/provider-array.prisma`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   // TODO: Windows: snapshot test fails because of emoji.
