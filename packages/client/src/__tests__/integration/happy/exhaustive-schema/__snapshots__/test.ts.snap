@@ -1920,7 +1920,7 @@ export namespace Prisma {
      * @example
      * // Get all 'Post'
      * const results = await prisma.post.findMany()
-     *         
+     *
      * // Get first 10 'Post'
      * const results = await prisma.post.findMany({ take: 10 })
      * 
