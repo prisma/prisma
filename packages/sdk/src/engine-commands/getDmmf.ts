@@ -47,6 +47,7 @@ type GetDmmfErrorInit = {
   message: string
 } & (
   | {
+      // JSON
       readonly _tag: 'parsed'
 
       // e.g., `P1012`
