@@ -1,0 +1,60 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`context basic 1`] = `
+Object {
+  action: findMany,
+  args: undefined,
+  context: undefined,
+  dataPath: Array [],
+  model: User,
+  runInTransaction: false,
+}
+`;
+
+exports[`context findMany 1`] = `
+Object {
+  action: findMany,
+  args: Object {
+    where: Object {
+      id: Object {
+        in: Array [
+          1,
+          2,
+        ],
+      },
+    },
+  },
+  context: Object {
+    test: test,
+  },
+  dataPath: Array [],
+  model: User,
+  runInTransaction: false,
+}
+`;
+
+exports[`context findFirst 1`] = `
+Object {
+  action: findFirst,
+  args: Object {
+    select: Object {
+      id: true,
+      name: true,
+    },
+    where: Object {
+      email: test@example.com,
+      name: test,
+    },
+  },
+  context: Object {
+    test: Object {
+      test: Object {
+        test: test,
+      },
+    },
+  },
+  dataPath: Array [],
+  model: User,
+  runInTransaction: false,
+}
+`;

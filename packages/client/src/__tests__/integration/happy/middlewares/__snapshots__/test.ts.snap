@@ -4,6 +4,7 @@ exports[`middleware basic 1`] = `
 Object {
   action: findMany,
   args: undefined,
+  context: undefined,
   dataPath: Array [],
   model: User,
   runInTransaction: false,
@@ -14,6 +15,7 @@ exports[`middleware basic 2`] = `
 Object {
   action: findMany,
   args: undefined,
+  context: undefined,
   dataPath: Array [],
   model: Post,
   runInTransaction: false,

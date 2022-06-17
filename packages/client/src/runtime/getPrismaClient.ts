@@ -1005,6 +1005,7 @@ new PrismaClient({
           runInTransaction: internalParams.runInTransaction,
           action: internalParams.action,
           model: internalParams.model,
+          context: internalParams.context,
         }
 
         let index = -1

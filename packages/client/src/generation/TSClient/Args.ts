@@ -1,7 +1,7 @@
 import indent from 'indent-string'
 
 import { DMMF } from '../../runtime/dmmf-types'
-import { getIncludeName, getModelArgName, getSelectName } from '../utils'
+import { getContextName, getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import type { ExportCollector } from './helpers'
@@ -86,6 +86,23 @@ export class ArgsType implements Generatable {
         comment: `Throw an Error if a ${name} can't be found`,
       })
     }
+
+    const contextName = getContextName(name)
+    this.collector?.addSymbol(contextName)
+    bothArgsOptional.push({
+      name: 'context',
+      isRequired: false,
+      isNullable: false,
+      inputTypes: [
+        {
+          type: 'JsonObject',
+          location: 'scalar',
+          isList: false,
+        },
+      ],
+      comment: `Sets the context for ${name}`,
+    })
+
     bothArgsOptional.push(...args)
 
     const modelArgName = getModelArgName(name, action)

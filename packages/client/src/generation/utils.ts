@@ -81,6 +81,10 @@ export function getAggregateScalarGetName(modelName: string): string {
   return `Get${capitalize(modelName)}AggregateScalarType`
 }
 
+export function getContextName(modelName: string): string {
+  return `${modelName}Context`
+}
+
 export function getIncludeName(modelName: string): string {
   return `${modelName}Include`
 }
