@@ -16,4 +16,4 @@ const workerBuildConfig: BuildOptions = {
   bundle: true,
 }
 
-void build([{ name: 'default' }, workerBuildConfig, workerBuildConfig_])
+void build([{ name: 'default' }, workerBuildConfig])
