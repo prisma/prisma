@@ -2,6 +2,8 @@ import stripAnsi from 'strip-ansi'
 
 import { getDMMF } from '../generation/getDMMF'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 describe('dmmf', () => {
   test('dmmf enum filter mysql', async () => {
     const datamodel = `
@@ -324,7 +326,10 @@ describe('dmmf', () => {
       }
     `)
   })
+})
 
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('dmmf library', () => {
+  // eslint-disable-next-line jest/no-identical-title
   test('dmmf enum should fail on sqlite', async () => {
     const datamodel = `
       datasource db {
@@ -349,6 +354,51 @@ describe('dmmf', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+        Error code: P1012
+        error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
+          -->  schema.prisma:14
+           | 
+        13 | 
+        14 |       enum PostKind {
+        15 |         NICE
+        16 |         AWESOME
+        17 |       }
+           | 
+
+        Validation Error Count: 1
+
+        Prisma CLI Version : 0.0.0
+      `)
+    }
+  })
+})
+
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary')('dmmf binary', () => {
+  // eslint-disable-next-line jest/no-identical-title
+  test('dmmf enum should fail on sqlite', async () => {
+    const datamodel = `
+      datasource db {
+        provider = "sqlite"
+        url      = "file:./dev.db"
+      }
+
+      model User {
+        id Int @id @default(autoincrement())
+        name String
+        email String @unique
+        kind PostKind
+      }
+
+      enum PostKind {
+        NICE
+        AWESOME
+      }`
+
+    try {
+      await getDMMF({ datamodel })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        Get DMMF: Schema parsing - Error while interacting with query-engine binary
         Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14
