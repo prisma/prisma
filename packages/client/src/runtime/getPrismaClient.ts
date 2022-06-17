@@ -331,7 +331,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
-    private _dataProxy: boolean
+    private _dataProxy?: boolean
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
