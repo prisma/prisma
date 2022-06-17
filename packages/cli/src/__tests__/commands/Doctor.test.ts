@@ -35,7 +35,7 @@ it('should fail when db is empty', async () => {
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
           P4001
 
-          The introspected database was empty: file:dev.db
+          The introspected database was empty.
 
         `)
 })
