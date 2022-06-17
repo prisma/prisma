@@ -1027,11 +1027,19 @@ async function publishPackages(
         // We need to have it published to be able to do the renaming planned for Prisma 4
         if (pkgName === '@prisma/sdk') {
           if (!dryRun) {
+            // change package name
             await writeToPkgJson(pkgDir, (pkg) => {
               pkg.name = `@prisma/internals`
             })
           }
+          // publish
           await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag} --access public`, dryRun)
+          if (!dryRun) {
+            // revert
+            await writeToPkgJson(pkgDir, (pkg) => {
+              pkg.name = `@prisma/sdk`
+            })
+          }
         }
       }
     }
