@@ -3,7 +3,7 @@ module.exports = {
     '^.+\\.ts$': '@swc/jest',
   },
   testEnvironment: 'node',
-  testMatch: ['**/src/__tests__/**/*.test.ts'],
+  testMatch: ['**/src/**/*.test.ts'],
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
