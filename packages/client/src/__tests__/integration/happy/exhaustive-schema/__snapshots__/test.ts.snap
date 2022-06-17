@@ -1754,7 +1754,7 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
-     * Count returned 'Post'
+     * Count returned `Post`
     **/
     _count?: true | PostCountAggregateInputType
     /**
