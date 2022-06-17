@@ -185,7 +185,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
 
           const message = match(errorOutputAsJSON)
             .with({ error_code: 'P1012' }, (error: Record<string, string>) => {
-              return chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n'
+              return chalk.redBright(`Schema parsing ${error.error_code}\n\n`) + error.message + '\n'
             })
             .otherwise((error: any) => {
               return chalk.redBright(`${error.error_code}\n\n`) + error
@@ -193,7 +193,12 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
 
           const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
 
-          return new GetConfigError({ _tag: 'parsed', message, reason: e.reason, errorCode })
+          return new GetConfigError({
+            _tag: 'parsed',
+            message: errorOutputAsJSON.message,
+            reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+            errorCode,
+          })
         }),
         E.getOrElseW(identity),
       )
