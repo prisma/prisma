@@ -13,7 +13,11 @@ if (process.env.CI) {
   jest.setTimeout(100_000)
 }
 
-describe('generator', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(
+  process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library' || process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === undefined,
+)('generator', () => {
   test('minimal', async () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
