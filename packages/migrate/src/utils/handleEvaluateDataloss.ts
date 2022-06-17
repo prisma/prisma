@@ -1,4 +1,4 @@
-import { getCommandWithExecutor } from '@prisma/sdk'
+import { getCommandWithExecutor } from '@prisma/internals'
 import chalk from 'chalk'
 
 import type { MigrationFeedback } from '../types'

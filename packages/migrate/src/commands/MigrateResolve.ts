@@ -8,7 +8,7 @@ import {
   isError,
   link,
   loadEnvFile,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 
 import { Migrate } from '../Migrate'

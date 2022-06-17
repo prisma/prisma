@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
+import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import chalk from 'chalk'
 
 import { Migrate } from '../Migrate'

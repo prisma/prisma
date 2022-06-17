@@ -1,6 +1,6 @@
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
-import { ClientEngineType } from '@prisma/sdk'
+import { ClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { map } from '../../../../../helpers/blaze/map'

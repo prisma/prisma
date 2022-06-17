@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'

@@ -1,5 +1,5 @@
-import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, unknownCommand } from '@prisma/sdk'
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import chalk from 'chalk'
 
 export class DbCommand implements Command {

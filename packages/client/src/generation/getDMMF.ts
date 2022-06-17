@@ -1,6 +1,6 @@
 import type { DMMF } from '@prisma/generator-helper'
-import type { GetDMMFOptions } from '@prisma/sdk'
-import { getDMMF as getRawDMMF } from '@prisma/sdk'
+import type { GetDMMFOptions } from '@prisma/internals'
+import { getDMMF as getRawDMMF } from '@prisma/internals'
 
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'

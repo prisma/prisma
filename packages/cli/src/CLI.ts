@@ -1,6 +1,6 @@
 import { ensureBinariesExist } from '@prisma/engines'
-import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/sdk'
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import chalk from 'chalk'
 
 import { Version } from './Version'
