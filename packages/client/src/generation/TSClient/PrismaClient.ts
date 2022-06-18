@@ -334,8 +334,6 @@ export type Hooks = {
   beforeRequest?: (options: { query: string, path: string[], rootField?: string, typeName?: string, document: any }) => any
 }
 
-export type ContextType = JsonObject
-
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
 export type LogDefinition = {
