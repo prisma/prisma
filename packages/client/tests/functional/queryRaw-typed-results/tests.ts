@@ -43,10 +43,12 @@ testMatrix.setupTestSuite(
         },
       ])
 
+      const floatField = (testModel as { float: unknown }[])[0].float
+
       if (suiteConfig['provider'] === 'sqlite') {
-        expect(testModel[0].float).toEqual(new Prisma.Decimal('0.125'))
+        expect(floatField).toEqual(new Prisma.Decimal('0.125'))
       } else {
-        expect(testModel[0].float).toEqual(0.125)
+        expect(floatField).toEqual(0.125)
       }
     })
   },
