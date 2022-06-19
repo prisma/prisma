@@ -90,6 +90,7 @@ export class DataProxyEngine extends Engine {
   }
 
   getDmmf(): Promise<DMMF.Document> {
+    // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
     throw new NotImplementedYetError('getDmmf is not yet supported', {
       clientVersion: this.clientVersion,
     })
