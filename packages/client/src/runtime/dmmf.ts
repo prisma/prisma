@@ -1,5 +1,6 @@
 import type { DMMF } from '@prisma/generator-helper'
 
+import { BundledDMMF } from './dmmf-types'
 import { applyMixins } from './utils/applyMixins'
 import type { Dictionary } from './utils/common'
 import { keyBy, ScalarTypeTable } from './utils/common'
@@ -228,7 +229,7 @@ class DMMFSchemaHelper implements Pick<DMMF.Document, 'schema'> {
 
 export interface BaseDMMFHelper extends DMMFDatamodelHelper, DMMFMappingsHelper {}
 export class BaseDMMFHelper {
-  constructor(dmmf: Omit<DMMF.Document, 'schema'>) {
+  constructor(dmmf: BundledDMMF) {
     return Object.assign(this, new DMMFDatamodelHelper(dmmf), new DMMFMappingsHelper(dmmf))
   }
 }
