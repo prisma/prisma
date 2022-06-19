@@ -9,12 +9,4 @@ export default defineMatrix(() => [
       provider: 'cockroachdb',
     },
   ],
-  [
-    {
-      previewFeatures: '',
-    },
-    {
-      previewFeatures: '"improvedQueryRaw"',
-    },
-  ],
 ])

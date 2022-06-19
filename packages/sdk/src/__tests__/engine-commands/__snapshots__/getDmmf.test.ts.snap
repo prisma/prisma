@@ -12496,7 +12496,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserUpdateOneRequiredWithoutPostsInput",
+                  "type": "UserUpdateOneRequiredWithoutPostsNestedInput",
                 },
               ],
               "isNullable": false,
@@ -12934,7 +12934,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUpdateManyWithoutAuthorInput",
+                  "type": "PostUpdateManyWithoutAuthorNestedInput",
                 },
               ],
               "isNullable": false,
@@ -12992,7 +12992,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedUpdateManyWithoutAuthorInput",
+                  "type": "PostUncheckedUpdateManyWithoutAuthorNestedInput",
                 },
               ],
               "isNullable": false,
@@ -16139,7 +16139,7 @@ Object {
               "name": "update",
             },
           ],
-          "name": "UserUpdateOneRequiredWithoutPostsInput",
+          "name": "UserUpdateOneRequiredWithoutPostsNestedInput",
         },
         Object {
           "constraints": Object {
@@ -16587,7 +16587,7 @@ Object {
               "name": "deleteMany",
             },
           ],
-          "name": "PostUpdateManyWithoutAuthorInput",
+          "name": "PostUpdateManyWithoutAuthorNestedInput",
         },
         Object {
           "constraints": Object {
@@ -16811,7 +16811,7 @@ Object {
               "name": "deleteMany",
             },
           ],
-          "name": "PostUncheckedUpdateManyWithoutAuthorInput",
+          "name": "PostUncheckedUpdateManyWithoutAuthorNestedInput",
         },
         Object {
           "constraints": Object {
@@ -22880,7 +22880,7 @@ Object {
 
 exports[`getDMMF big schema 1`] = `132028293`;
 
-exports[`getDMMF chinook introspected schema 1`] = `883934`;
+exports[`getDMMF chinook introspected schema 1`] = `884636`;
 
 exports[`getDMMF simple model, mongodb 1`] = `
 Object {
