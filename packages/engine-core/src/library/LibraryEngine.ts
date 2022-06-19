@@ -92,7 +92,7 @@ export class LibraryEngine extends Engine {
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    initHooks(this)
+    initHooks()
     engines.push(this)
     this.checkForTooManyEngines()
   }
@@ -500,12 +500,14 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 }
 
-function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
+function hookProcess(handler: string, exit = false) {
   process.once(handler as any, async () => {
     debug(`hookProcess received: ${handler}`)
+    for (const engine of engines) {
+      await engine.runBeforeExit()
+    }
+    engines.splice(0, engines.length)
     // only exit, if only we are listening
-    await engine.runBeforeExit()
-
     // if there is another listener, that other listener is responsible
     if (exit && process.listenerCount(handler) === 0) {
       process.exit()
@@ -513,13 +515,13 @@ function hookProcess(engine: LibraryEngine, handler: string, exit = false) {
   })
 }
 let hooksInitialized = false
-function initHooks(engine: LibraryEngine) {
+function initHooks() {
   if (!hooksInitialized) {
-    hookProcess(engine, 'beforeExit')
-    hookProcess(engine, 'exit')
-    hookProcess(engine, 'SIGINT', true)
-    hookProcess(engine, 'SIGUSR2', true)
-    hookProcess(engine, 'SIGTERM', true)
+    hookProcess('beforeExit')
+    hookProcess('exit')
+    hookProcess('SIGINT', true)
+    hookProcess('SIGUSR2', true)
+    hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
 }
