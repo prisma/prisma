@@ -640,7 +640,7 @@ importers:
       prompts: 2.4.2
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
-      resolve: 1.22.0
+      resolve: 1.22.1
       rimraf: 3.0.2
       shell-quote: 1.7.3
       string-width: 4.2.3
@@ -690,7 +690,7 @@ importers:
       prompts: 2.4.2
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
-      resolve: 1.22.0
+      resolve: 1.22.1
       rimraf: 3.0.2
       shell-quote: 1.7.3
       string-width: 4.2.3
@@ -8261,7 +8261,7 @@ packages:
     resolution: {integrity: sha512-/5CMN3T0R4XTj4DcGaexo+roZSdSFW/0AOOTROrjxzCG1wrWXEsGbRKevjlIL+ZDE4sZlJr5ED4YW0yqmkK+eA==}
     dependencies:
       hosted-git-info: 2.8.9
-      resolve: 1.22.0
+      resolve: 1.22.1
       semver: 5.7.1
       validate-npm-package-license: 3.0.4
 
@@ -9566,6 +9566,15 @@ packages:
 
   /resolve/1.22.0:
     resolution: {integrity: sha512-Hhtrw0nLeSrFQ7phPp4OOcVjLPIeMnRlr5mcnVuMe7M/7eBn98A3hmFRLoFo3DLZkivSYwhRUJTyPyWAk56WLw==}
+    hasBin: true
+    dependencies:
+      is-core-module: 2.9.0
+      path-parse: 1.0.7
+      supports-preserve-symlinks-flag: 1.0.0
+    dev: true
+
+  /resolve/1.22.1:
+    resolution: {integrity: sha512-nBpuuYuY5jFsli/JIs1oldw6fOQCBioohqWZg/2hiaOybXOft4lonv85uDOKXdf8rhyK159cxU5cDcK/NKk8zw==}
     hasBin: true
     dependencies:
       is-core-module: 2.9.0
