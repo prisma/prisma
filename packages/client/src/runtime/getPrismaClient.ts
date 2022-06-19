@@ -40,7 +40,6 @@ import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
-const P = Promise.resolve()
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
