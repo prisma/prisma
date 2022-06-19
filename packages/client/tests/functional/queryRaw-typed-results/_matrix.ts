@@ -15,12 +15,4 @@ export default defineMatrix(() => [
       provider: 'sqlserver',
     },
   ],
-  [
-    {
-      previewFeatures: '',
-    },
-    {
-      previewFeatures: '"improvedQueryRaw"',
-    },
-  ],
 ])
