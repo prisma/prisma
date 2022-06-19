@@ -13,7 +13,6 @@ import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
 
-let library: Library | undefined // does not load twice in the same process
 export class DefaultLibraryLoader implements LibraryLoader {
   private config: EngineConfig
   private libQueryEnginePath: string | null = null
@@ -31,7 +30,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
       // this require needs to be resolved at runtime, tell webpack to ignore it
-      return (library = library ?? (eval('require')(this.libQueryEnginePath) as Library))
+      return eval('require')(this.libQueryEnginePath) as Library)
     } catch (e) {
       if (fs.existsSync(this.libQueryEnginePath)) {
         if (this.libQueryEnginePath.endsWith('.node')) {
