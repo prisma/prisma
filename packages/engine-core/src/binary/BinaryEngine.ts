@@ -857,7 +857,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     const env = await this.getEngineEnvVars()
 
-    const result = await execa(prismaPath, ['cli', 'dmmf'], {
+    const result = await execa(prismaPath, ['--enable-raw-queries', 'cli', 'dmmf'], {
       env: omit(env, ['PORT']),
       cwd: this.cwd,
     })
