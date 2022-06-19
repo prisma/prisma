@@ -5,7 +5,8 @@ import { escapeJson } from '../TSClient/helpers'
 
 /**
  * Creates the necessary declarations to embed the generated DMMF into the
- * generated client. It compresses the DMMF for the data proxy engine.
+ * generated client. It compresses the DMMF for the data proxy engine. For
+ * data proxy, the full DMMF is exported, otherwise `schema` is removed.
  * @param dataProxy
  * @param dmmf
  * @returns
