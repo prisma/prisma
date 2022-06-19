@@ -30,7 +30,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
       // this require needs to be resolved at runtime, tell webpack to ignore it
-      return eval('require')(this.libQueryEnginePath) as Library)
+      return eval('require')(this.libQueryEnginePath) as Library
     } catch (e) {
       if (fs.existsSync(this.libQueryEnginePath)) {
         if (this.libQueryEnginePath.endsWith('.node')) {
