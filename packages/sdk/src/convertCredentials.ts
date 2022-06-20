@@ -205,19 +205,3 @@ export function protocolToConnectorType(protocol: string): ConnectorType {
 
   throw new Error(`Unknown protocol ${protocol}`)
 }
-
-/**
- * Convert a protocol to the equivalent database connector type.
- * Returns `undefined` if the protocol is not recognized.
- * @param protocol e.g., 'postgres:'
- */
-export function safeProtocolToConnectorType(protocol: string): ConnectorType | undefined {
-  const provider = pipe(
-    E.tryCatch(
-      () => protocolToConnectorType(protocol),
-      (_) => undefined,
-    ),
-    E.toUnion,
-  )
-  return provider
-}

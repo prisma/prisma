@@ -1,4 +1,4 @@
-import { credentialsToUri, safeProtocolToConnectorType, uriToCredentials } from '../convertCredentials'
+import { credentialsToUri, uriToCredentials } from '../convertCredentials'
 
 const uris = [
   'file:',
@@ -52,31 +52,3 @@ for (const uri of notIdenticalUris) {
     expect(uriFromCredentials).toMatchSnapshot()
   })
 }
-
-describe('safeProtocolToConnectorType', () => {
-  test('sqlite', () => {
-    expect(safeProtocolToConnectorType('file:')).toEqual('sqlite')
-  })
-
-  test('mongodb', () => {
-    expect(safeProtocolToConnectorType('mongodb:')).toEqual('mongodb')
-  })
-
-  test('postgresql', () => {
-    expect(safeProtocolToConnectorType('postgres:')).toEqual('postgresql')
-    expect(safeProtocolToConnectorType('postgresql:')).toEqual('postgresql')
-  })
-
-  test('mysql', () => {
-    expect(safeProtocolToConnectorType('mysql:')).toEqual('mysql')
-  })
-
-  test('sqlserver', () => {
-    expect(safeProtocolToConnectorType('sqlserver:')).toEqual('sqlserver')
-    expect(safeProtocolToConnectorType('jdbc:sqlserver:')).toEqual('sqlserver')
-  })
-
-  test('unsupported', () => {
-    expect(safeProtocolToConnectorType('unsupported:')).toEqual(undefined)
-  })
-})

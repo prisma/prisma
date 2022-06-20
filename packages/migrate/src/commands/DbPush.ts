@@ -10,7 +10,7 @@ import {
   isError,
   loadEnvFile,
   logger,
-  safeProtocolToConnectorType,
+  protocolToConnectorType,
 } from '@prisma/sdk'
 import chalk from 'chalk'
 import prompt from 'prompts'
@@ -254,7 +254,8 @@ ${chalk.bold.redBright('All data will be lost.')}
       const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
-      const provider = safeProtocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
+      // this is safe, as if the protocol was unknown, we would have already exited the program with an error
+      const provider = protocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
 
       console.info(
         `\n${rocketEmoji}${
