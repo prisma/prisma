@@ -387,6 +387,7 @@ export type MiddlewareParams = {
   model?: ModelName
   action: PrismaAction
   args: any
+  context: JsonObject
   dataPath: string[]
   runInTransaction: boolean
 }
