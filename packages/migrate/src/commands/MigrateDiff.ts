@@ -9,7 +9,7 @@ import {
   link,
   loadEnvFile,
   logger,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import path from 'path'
 

@@ -1,4 +1,4 @@
-import { link } from '@prisma/sdk'
+import { link } from '@prisma/internals'
 import chalk from 'chalk'
 
 export const breakingChangesMessage = `${chalk.yellow.bold('warn')} Prisma 2.12.0 has breaking changes.

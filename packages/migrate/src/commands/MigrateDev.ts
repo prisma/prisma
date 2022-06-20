@@ -12,7 +12,7 @@ import {
   isCi,
   isError,
   loadEnvFile,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import prompt from 'prompts'

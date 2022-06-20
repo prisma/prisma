@@ -1,4 +1,4 @@
-import { getSchemaPath, logger } from '@prisma/sdk'
+import { getSchemaPath, logger } from '@prisma/internals'
 import chalk from 'chalk'
 import path from 'path'
 

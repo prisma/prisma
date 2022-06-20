@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/sdk'
+import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'

@@ -2,7 +2,7 @@
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { handlePanic, HelpError, isError } from '@prisma/sdk'
+import { handlePanic, HelpError, isError } from '@prisma/internals'
 import chalk from 'chalk'
 
 import { CLI } from './CLI'

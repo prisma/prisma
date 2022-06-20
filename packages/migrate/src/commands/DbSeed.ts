@@ -1,4 +1,4 @@
-import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/sdk'
+import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
 import chalk from 'chalk'
 
 import {

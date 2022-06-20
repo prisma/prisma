@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
