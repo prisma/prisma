@@ -1,5 +1,5 @@
-import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, logger, unknownCommand } from '@prisma/sdk'
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, logger, unknownCommand } from '@prisma/internals'
 import chalk from 'chalk'
 
 /**

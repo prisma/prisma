@@ -1,6 +1,6 @@
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import type { Command } from '@prisma/sdk'
-import { arg, format, getConfig, getDMMF, HelpError, loadEnvFile } from '@prisma/sdk'
+import type { Command } from '@prisma/internals'
+import { arg, format, getConfig, getDMMF, HelpError, loadEnvFile } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 

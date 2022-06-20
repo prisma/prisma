@@ -12,9 +12,9 @@
     "directory": "packages/integration-tests"
   },
   "devDependencies": {
-    "@prisma/sdk": "workspace:*",
+    "@prisma/internals": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.2.197",
+    "@swc/core": "1.2.203",
     "@swc/jest": "0.2.21",
     "@types/jest": "28.1.1",
     "@types/mssql": "8.0.2",

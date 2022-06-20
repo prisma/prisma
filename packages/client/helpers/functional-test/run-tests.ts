@@ -1,4 +1,4 @@
-import { arg } from '@prisma/sdk'
+import { arg } from '@prisma/internals'
 
 import { Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'

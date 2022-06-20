@@ -1,4 +1,4 @@
-import { getClientEngineType, getConfig, getPlatform, parseEnvValue } from '@prisma/sdk'
+import { getClientEngineType, getConfig, getPlatform, parseEnvValue } from '@prisma/internals'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'

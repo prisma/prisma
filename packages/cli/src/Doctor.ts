@@ -13,7 +13,7 @@ import {
   keyBy,
   loadEnvFile,
   pick,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
