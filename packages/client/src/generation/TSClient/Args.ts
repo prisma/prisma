@@ -1,5 +1,6 @@
 import indent from 'indent-string'
 
+import { ClientModelAction } from '../../runtime/clientActions'
 import { DMMF } from '../../runtime/dmmf-types'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
@@ -12,7 +13,7 @@ export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
-    protected readonly action?: DMMF.ModelAction,
+    protected readonly action?: ClientModelAction,
     protected readonly collector?: ExportCollector,
   ) {}
   public toTS(): string {
@@ -72,6 +73,7 @@ export class ArgsType implements Generatable {
     }
     const addRejectOnNotFound = action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst
     if (addRejectOnNotFound) {
+      const replacement = action === DMMF.ModelAction.findFirst ? 'findFirstOrThrow' : 'findUniqueOrThrow'
       bothArgsOptional.push({
         name: 'rejectOnNotFound',
         isRequired: false,
@@ -83,6 +85,11 @@ export class ArgsType implements Generatable {
             isList: false,
           },
         ],
+        deprecation: {
+          sinceVersion: '4.0.0',
+          reason: `Use \`${replacement}\` method instead`,
+          plannedRemovalVersion: '5.0.0',
+        },
         comment: `Throw an Error if a ${name} can't be found`,
       })
     }

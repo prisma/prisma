@@ -290,7 +290,8 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 export interface PrismaClientOptions {
   /**
    * Configure findUnique/findFirst to throw an error if the query returns null. 
-   *  * @example
+   * @deprecated since 4.0.0. Use \`findUniqueOrThrow\`/\`findFirstOrThrow\` methods instead.
+   * @example
    * \`\`\`
    * // Reject on both findUnique/findFirst
    * rejectOnNotFound: true
