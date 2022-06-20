@@ -6,21 +6,19 @@ export default defineMatrix(() => [
       provider: 'sqlite',
     },
     {
+      provider: 'mongodb',
+    },
+    {
       provider: 'postgresql',
+    },
+    {
+      provider: 'mysql',
     },
     {
       provider: 'cockroachdb',
     },
     {
       provider: 'sqlserver',
-    },
-  ],
-  [
-    {
-      previewFeatures: '',
-    },
-    {
-      previewFeatures: '"improvedQueryRaw"',
     },
   ],
 ])
