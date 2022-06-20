@@ -252,9 +252,9 @@ List of directories in the monorepo
 - engine-core
 - generator-helper
 - integration-tests
+- internals
 - migrate
 - react-prisma
-- internals
 
 ## Legal
 
