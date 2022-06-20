@@ -1,4 +1,4 @@
-import { jestContext } from '@prisma/sdk'
+import { jestContext } from '@prisma/internals'
 
 import { redactCommandArray, SENSITIVE_CLI_OPTIONS, tryToReadDataFromSchema } from '../utils/checkpoint'
 

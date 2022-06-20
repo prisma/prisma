@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
-import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
 
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { generateClient } from './generateClient'

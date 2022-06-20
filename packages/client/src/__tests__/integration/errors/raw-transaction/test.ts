@@ -18,7 +18,7 @@ test('raw-transaction: queryRaw', async () => {
     Array [
       Array [
         Object {
-          1: 1,
+          1: 1n,
         },
       ],
     ]

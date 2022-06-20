@@ -18,7 +18,7 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
   Platform,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'

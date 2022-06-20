@@ -1,4 +1,4 @@
-import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/sdk'
+import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/internals'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
