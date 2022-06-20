@@ -72,7 +72,7 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_MSSQL: 'sqlserver',
   TEST_SKIP_COCKROACHDB: 'cockroachdb',
   TEST_SKIP_POSTGRESQL: 'postgresql',
-  TEST_SKIP_SQLITE: 'sqlite'
+  TEST_SKIP_SQLITE: 'sqlite',
 }
 
 function getExcludedProviders() {

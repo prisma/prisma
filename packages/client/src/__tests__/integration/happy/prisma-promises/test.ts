@@ -22,7 +22,7 @@ describe('prisma promises', () => {
     expect(queryRaw).toMatchInlineSnapshot(`
       Array [
         Object {
-          1: 1,
+          1: 1n,
         },
       ]
     `)
@@ -53,7 +53,7 @@ describe('prisma promises', () => {
     expect(queryRaw).toMatchInlineSnapshot(`
         Array [
           Object {
-            1: 1,
+            1: 1n,
           },
         ]
       `)
