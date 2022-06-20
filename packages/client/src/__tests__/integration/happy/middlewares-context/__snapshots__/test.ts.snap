@@ -25,7 +25,7 @@ Object {
     },
   },
   context: Object {
-    test: test,
+    cache: 500,
   },
   dataPath: Array [],
   model: User,
@@ -33,7 +33,7 @@ Object {
 }
 `;
 
-exports[`context findFirst 1`] = `
+exports[`context middleware pipeline 1`] = `
 Object {
   action: findFirst,
   args: Object {

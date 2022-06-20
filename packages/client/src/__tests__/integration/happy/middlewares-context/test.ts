@@ -33,18 +33,19 @@ describe('context', () => {
         },
       },
       context: {
-        test: 'test',
+        cache: 500,
       },
     })
 
     await db.$disconnect()
   })
 
-  test('findFirst', async () => {
+  test('middleware pipeline', async () => {
     const PrismaClient = await getTestClient()
 
     const db = new PrismaClient()
 
+    db.$use((params, next) => next(params))
     db.$use((params, next) => {
       expect(params).toMatchSnapshot()
       return next(params)
