@@ -4,7 +4,7 @@ import path from 'path'
 
 import { NoSchemaFoundError } from './errors'
 
-// TODO move NoSchemaFoundError to sdk and this too
+// TODO move NoSchemaFoundError to `@prisma/internals` and this too
 // then replace the 2 hardcoded errors to NoSchemaFoundError in
 // https://github.com/prisma/prisma/blob/bbdf1c23653a77b0b5bf7d62efd243dcebea018b/packages/sdk/src/cli/getSchema.ts#L383:L383
 
