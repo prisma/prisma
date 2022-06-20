@@ -33,7 +33,7 @@ flags:
     carryforward: true
     paths:
       - packages/migrate/
-  sdk:
+  internals:
     carryforward: true
     paths:
-      - packages/sdk/
+      - packages/internals/

@@ -162,7 +162,7 @@ export class BinaryEngine extends Engine {
     initHooks()
 
     // See also warnOnDeprecatedFeatureFlag at
-    // https://github.com/prisma/prisma/blob/main/packages/sdk/src/engine-commands/getDmmf.ts#L179
+    // https://github.com/prisma/prisma/blob/9e5cc5bfb9ef0eb8251ab85a56302e835f607711/packages/sdk/src/engine-commands/getDmmf.ts#L179
     const removedFlags = [
       'middlewares',
       'aggregateApi',

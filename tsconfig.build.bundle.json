@@ -4,8 +4,8 @@
   "compilerOptions": {
     "paths": {
       "@prisma/client": ["./packages/client/src"],
-      "@prisma/internals": ["./packages/sdk/src"],
-      "@prisma/internals/dist/*": ["./packages/sdk/src/*"],
+      "@prisma/internals": ["./packages/internals/src"],
+      "@prisma/internals/dist/*": ["./packages/internals/src/*"],
       "@prisma/migrate": ["./packages/migrate/src"],
       "@prisma/generator-helper": ["./packages/generator-helper/src"],
       "@prisma/engine-core": ["./packages/engine-core/src"],
