@@ -69,9 +69,20 @@ Invalid \`prisma.user()\` invocation:
 
 {}
 
-Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`select\`? Available args:
+Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`lt\`? Available args:
 type JsonFilter {
   equals?: JsonNullValueFilter | Json
+  path?: List<String>
+  string_contains?: String
+  string_starts_with?: String
+  string_ends_with?: String
+  array_contains?: Json | Null
+  array_starts_with?: Json | Null
+  array_ends_with?: Json | Null
+  lt?: Json
+  lte?: Json
+  gt?: Json
+  gte?: Json
   not?: JsonNullValueFilter | Json
 }
 
