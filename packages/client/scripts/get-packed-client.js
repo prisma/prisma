@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const path = require('path')
-const { getPackedPackage } = require('@prisma/sdk')
+const { getPackedPackage } = require('@prisma/internals')
 
 async function main() {
   const target = path.join(process.cwd(), './node_modules/@prisma/client')

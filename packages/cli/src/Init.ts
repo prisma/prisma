@@ -10,7 +10,7 @@ import {
   link,
   logger,
   protocolToConnectorType,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'

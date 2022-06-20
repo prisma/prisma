@@ -21,7 +21,7 @@
   "devDependencies": {
     "@prisma/engines-version": "3.16.0-27.ecc28382188709d8b410cc9fc3c0be034db93b6e",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/sdk": "workspace:*",
+    "@prisma/internals": "workspace:*",
     "@swc/core": "1.2.203",
     "@swc/jest": "0.2.21",
     "@types/jest": "28.1.1",
@@ -40,7 +40,7 @@
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",
-    "@prisma/sdk": "*"
+    "@prisma/internals": "*"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",

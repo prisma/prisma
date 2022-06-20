@@ -8,7 +8,7 @@ import {
   mapPreviewFeatures,
   parseEnvValue,
   printConfigWarnings,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
