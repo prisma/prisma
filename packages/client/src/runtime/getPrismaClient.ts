@@ -229,7 +229,7 @@ export interface GetPrismaClientConfig {
    * If enabled, we disregard the generator config engineType.
    * It means that `--data-proxy` binds you to the Data Proxy.
    */
-  dataProxy?: boolean
+  dataProxy: boolean
 
   /**
    * The contents of the schema encoded into a string
@@ -331,7 +331,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _activeProvider: string
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
-    private _dataProxy?: boolean
+    private _dataProxy: boolean
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
