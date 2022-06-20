@@ -70,10 +70,10 @@
     "@opentelemetry/api": "1.1.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.16.0-29.05f78075a09b379b6adeb808266ba27e475c468f",
-    "@prisma/fetch-engine": "3.16.0-29.05f78075a09b379b6adeb808266ba27e475c468f",
+    "@prisma/engines": "3.16.0-30.p4-scalar-list-defaults-2e8e65fe37f001b54f3af80cd1bffabe5990435a",
+    "@prisma/fetch-engine": "3.16.0-30.p4-scalar-list-defaults-2e8e65fe37f001b54f3af80cd1bffabe5990435a",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-29.05f78075a09b379b6adeb808266ba27e475c468f",
+    "@prisma/get-platform": "3.16.0-30.p4-scalar-list-defaults-2e8e65fe37f001b54f3af80cd1bffabe5990435a",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@swc/core": "1.2.203",
@@ -137,7 +137,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.16.0-29.05f78075a09b379b6adeb808266ba27e475c468f"
+    "@prisma/engines-version": "3.16.0-30.p4-scalar-list-defaults-2e8e65fe37f001b54f3af80cd1bffabe5990435a"
   },
   "sideEffects": false
 }
