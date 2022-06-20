@@ -1,6 +1,4 @@
 import type { ConnectorType } from '@prisma/generator-helper'
-import * as E from 'fp-ts/Either'
-import { pipe } from 'fp-ts/lib/function'
 import path from 'path'
 import * as NodeURL from 'url'
 
