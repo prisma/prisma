@@ -4,4 +4,5 @@ export enum Providers {
   MYSQL = 'mysql',
   MONGODB = 'mongodb',
   COCKROACHDB = 'cockroachdb',
+  SQLSERVER = 'sqlserver',
 }

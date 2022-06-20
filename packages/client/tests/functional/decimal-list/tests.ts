@@ -31,10 +31,11 @@ setupTestSuiteMatrix(
   },
   {
     optOut: {
-      from: ['mongodb', 'mysql', 'sqlite'],
+      from: ['mongodb', 'mysql', 'sqlite', 'sqlserver'],
       reason: `
-        Mongodb connector does not support the Decimal type. 
-        Mysql & Sqlite connectors do not support lists of primitive types.
+        mongodb: connector does not support the Decimal type. 
+        mysql & sqlite: connectors do not support lists of primitive types.
+        sqlserver: Field "decimals" in model "User" can't be a list. The current connector does not support lists of primitive types.
       `,
     },
   },

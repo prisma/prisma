@@ -70,13 +70,13 @@
     "@opentelemetry/api": "1.1.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c",
-    "@prisma/fetch-engine": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c",
+    "@prisma/engines": "3.16.0-26.3622c439d4f1003b166d4d931543a09a4f0a9869",
+    "@prisma/fetch-engine": "3.16.0-26.3622c439d4f1003b166d4d931543a09a4f0a9869",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c",
+    "@prisma/get-platform": "3.16.0-26.3622c439d4f1003b166d4d931543a09a4f0a9869",
     "@prisma/migrate": "workspace:*",
     "@prisma/sdk": "workspace:*",
-    "@swc/core": "1.2.197",
+    "@swc/core": "1.2.203",
     "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
@@ -121,9 +121,9 @@
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "28.0.4",
+    "ts-jest": "28.0.5",
     "ts-node": "10.8.1",
-    "tsd": "0.20.0",
+    "tsd": "0.21.0",
     "typescript": "4.7.3",
     "yeoman-generator": "^5.6.1",
     "yo": "^4.3.0"
@@ -137,7 +137,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.16.0-14.4908cf1dde73491641a0a47fe5f3bebd2430350c"
+    "@prisma/engines-version": "3.16.0-26.3622c439d4f1003b166d4d931543a09a4f0a9869"
   },
   "sideEffects": false
 }

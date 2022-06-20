@@ -12,15 +12,10 @@ export default defineMatrix(() => [
       provider: 'mysql',
     },
     {
+      provider: 'sqlserver',
+    },
+    {
       provider: 'cockroachdb',
-    },
-  ],
-  [
-    {
-      previewFeatures: '',
-    },
-    {
-      previewFeatures: '"improvedQueryRaw"',
     },
   ],
 ])
