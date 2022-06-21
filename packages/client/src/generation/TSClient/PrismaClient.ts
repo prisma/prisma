@@ -287,6 +287,14 @@ export type HasReject<
   : IsReject<GlobalRejectSettings>
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
+export type RejectOnNotFoundField = {
+  /**
+   * Throw an Error if query returns no results
+   * @deprecated since 4.0.0: use \`findFirstOrThrow\` or \`findUniqueOrThrow\` method instead
+   */
+  rejectOnNotFound?: RejectOnNotFound
+}
+
 export interface PrismaClientOptions {
   /**
    * Configure findUnique/findFirst to throw an error if the query returns null. 
