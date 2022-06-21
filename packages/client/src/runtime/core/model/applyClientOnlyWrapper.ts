@@ -2,6 +2,7 @@ import { assertNever } from '@prisma/internals'
 
 import { ClientOnlyModelAction } from '../../clientActions'
 import { InternalRequestParams } from '../../getPrismaClient'
+import { PrismaClientValidationError } from '../../query'
 import { printStack } from '../../utils/printStack'
 import { NotFoundError } from '../../utils/rejectOnNotFound'
 
@@ -26,7 +27,7 @@ function applyOrThrowWrapper(jsModelName: string, requestCallback: RequestCallba
         originalMethod: requestParams.clientMethod,
         callsite: requestParams.callsite,
       })
-      throw new TypeError(`${stack}\n'rejectOnNotFound' option is not supported`)
+      throw new PrismaClientValidationError(`${stack}\n'rejectOnNotFound' option is not supported`)
     }
     const result = await requestCallback(requestParams)
     if (result === null || result === undefined) {
