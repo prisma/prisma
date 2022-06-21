@@ -68,9 +68,9 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.16.0-34.4123f3fa0ceb8c583a9094914ec20ab68b530685",
+    "@prisma/fetch-engine": "3.16.0-35.07e95d5172e374c1c8fbe85f23b94978c53a6502",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-34.4123f3fa0ceb8c583a9094914ec20ab68b530685",
+    "@prisma/get-platform": "3.16.0-35.07e95d5172e374c1c8fbe85f23b94978c53a6502",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/studio": "0.464.0",
@@ -120,7 +120,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.16.0-34.4123f3fa0ceb8c583a9094914ec20ab68b530685"
+    "@prisma/engines": "3.16.0-35.07e95d5172e374c1c8fbe85f23b94978c53a6502"
   },
   "sideEffects": false
 }
