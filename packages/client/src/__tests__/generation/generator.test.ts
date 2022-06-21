@@ -1,4 +1,11 @@
-import { ClientEngineType, getClientEngineType, getGenerator, getPackedPackage, parseEnvValue } from '@prisma/internals'
+import {
+  ClientEngineType,
+  getClientEngineType,
+  getGenerator,
+  getPackedPackage,
+  parseEnvValue,
+  serializeQueryEngineName,
+} from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -13,11 +20,7 @@ if (process.env.CI) {
   jest.setTimeout(100_000)
 }
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
-describeIf(
-  process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library' || process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === undefined,
-)('generator', () => {
+describe('generator', () => {
   test('minimal', async () => {
     const prismaClientTarget = path.join(__dirname, './node_modules/@prisma/client')
     // Make sure, that nothing is cached.
@@ -120,8 +123,8 @@ describeIf(
         skipDownload: true,
       })
     } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+      expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
+        Get DMMF: Schema parsing - Error while interacting with query-engine-NORMALIZED library
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
