@@ -3,10 +3,13 @@ iwr -useb 'https://get.scoop.sh' -outfile 'scoopinstaller.ps1'
 
 scoop install mysql
 
-$DefaultsFile = Join-Path $PSScriptRoot "my.ini"
-$ScoopDefaultsFile = Join-Path (Resolve-Path ~).Path "scoop\apps\mysql\current\my.ini"
+# $DefaultsFile = Join-Path $PSScriptRoot "my.ini"
+# $ScoopDefaultsFile = Join-Path (Resolve-Path ~).Path "scoop\apps\mysql\current\my.ini"
 
-Add-Content $DefaultsFile "!include $ScoopDefaultsFile"
+# Add-Content $DefaultsFile "!include $ScoopDefaultsFile"
+# Add-Content $DefaultsFile "[mysqld]"
+# Add-Content $DefaultsFile "lower_case_table_names=2"
+$DefaultsFile = Join-Path (Resolve-Path ~).Path "scoop\apps\mysql\current\my.ini"
 Add-Content $DefaultsFile "[mysqld]"
 Add-Content $DefaultsFile "lower_case_table_names=2"
 mysqld --defaults-file="$DefaultsFile" --validate-config
