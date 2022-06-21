@@ -39,7 +39,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
   // we construct a proxy that acts as the model interface
   return new Proxy(baseObject, {
-    get(target, prop: string, receiver): F.Return<ModelAction> | undefined {
+    get(target, prop: string): F.Return<ModelAction> | undefined {
       // only allow actions that are valid and available for this model
       if (prop in target || typeof prop === 'symbol') return target[prop]
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
