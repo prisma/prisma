@@ -18,6 +18,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
 
+// To avoid the loading spinner locally
+process.env.CI = 'true'
+
 describe('common/sqlite', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
