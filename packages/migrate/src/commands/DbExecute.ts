@@ -9,7 +9,7 @@ import {
   isError,
   loadEnvFile,
   logger,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import getStdin from 'get-stdin'

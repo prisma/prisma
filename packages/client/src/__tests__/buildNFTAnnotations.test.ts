@@ -1,4 +1,4 @@
-import { ClientEngineType } from '@prisma/sdk'
+import { ClientEngineType } from '@prisma/internals'
 
 import { buildNFTAnnotations } from '../generation/utils/buildNFTAnnotations'
 

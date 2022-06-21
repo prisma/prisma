@@ -313,14 +313,14 @@ jobs:
           name: integration-tests-${{ matrix.node }}-${{ matrix.queryEngine }}
 
   #
-  # SDK
+  # `@prisma/internals`
   #
-  sdk:
+  internals:
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
 
     strategy:
       fail-fast: false
@@ -368,7 +368,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        working-directory: packages/sdk
+        working-directory: packages/internals
         env:
           CI: true
           SKIP_GIT: true
@@ -380,9 +380,9 @@ jobs:
 
       - uses: codecov/codecov-action@v3
         with:
-          files: ./packages/sdk/src/__tests__/coverage/clover.xml
-          flags: sdk,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: sdk-${{ matrix.os }}-${{ matrix.queryEngine }}
+          files: ./packages/internals/src/__tests__/coverage/clover.xml
+          flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
   # MIGRATE
@@ -617,7 +617,7 @@ jobs:
     if: |
       ${{
         contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') ||
-        contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') ||
+        contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') ||
         contains(needs.detect_jobs_to_run.outputs.jobs, '-client-')
@@ -664,22 +664,22 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - name: Test packages/sdk
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
+      - name: Test packages/internals
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
         run: pnpm run test -- --testTimeout=40000
-        working-directory: packages/sdk
+        working-directory: packages/internals
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/sdk/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/internals/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-sdk-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
         with:
-          files: ./packages/sdk/src/__tests__/coverage/clover.xml
-          flags: sdk,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: sdk-${{ matrix.os }}-${{ matrix.queryEngine }}
+          files: ./packages/internals/src/__tests__/coverage/clover.xml
+          flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}

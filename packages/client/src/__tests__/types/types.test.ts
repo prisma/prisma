@@ -1,4 +1,4 @@
-import { getPackedPackage } from '@prisma/sdk'
+import { getPackedPackage } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'

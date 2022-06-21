@@ -1,4 +1,4 @@
-import { getClientEngineType, jestConsoleContext, jestContext } from '@prisma/sdk'
+import { getClientEngineType, jestConsoleContext, jestContext } from '@prisma/internals'
 import path from 'path'
 
 import { Generate } from '../../Generate'

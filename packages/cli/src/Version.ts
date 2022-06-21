@@ -1,6 +1,6 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
-import type { Command } from '@prisma/sdk'
+import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
@@ -15,7 +15,7 @@ import {
   isError,
   loadEnvFile,
   resolveBinary,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'

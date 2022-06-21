@@ -1,6 +1,6 @@
 const path = require('path')
 const globalDirs = require('global-dirs')
-const { drawBox } = require('@prisma/sdk/dist/utils/drawBox')
+const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
 
 const BOLD = '\u001b[1m'

@@ -68,19 +68,19 @@ test('blog', async () => {
 
   // Test queryRaw(string)
   const rawQuery = await db.$queryRawUnsafe('SELECT 1')
-  expect(rawQuery[0]['1']).toBe(1)
+  expect(rawQuery[0]['1']).toBe(BigInt('1'))
 
   // Test queryRaw(string, values)
   const rawQueryWithValues = await db.$queryRawUnsafe('SELECT $1 AS name, $2 AS id', 'Alice', 42)
 
   expect(rawQueryWithValues[0]).toEqual({
     name: 'Alice',
-    id: 42,
+    id: BigInt('42'),
   })
 
   // Test queryRaw``
   const rawQueryTemplate = await db.$queryRaw`SELECT 1`
-  expect(rawQueryTemplate[0]['1']).toBe(1)
+  expect(rawQueryTemplate[0]['1']).toBe(BigInt('1'))
 
   // Test queryRaw`` with ${param}
   const rawQueryTemplateWithParams = await db.$queryRaw`SELECT * FROM User WHERE name = ${'Alice'}`

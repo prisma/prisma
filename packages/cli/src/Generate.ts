@@ -1,5 +1,4 @@
 import { enginesVersion } from '@prisma/engines'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import {
   arg,
   Command,
@@ -18,7 +17,8 @@ import {
   missingGeneratorMessage,
   parseEnvValue,
   Platform,
-} from '@prisma/sdk'
+} from '@prisma/internals'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
