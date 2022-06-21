@@ -68,7 +68,7 @@ ${new PayloadType(outputType, false).toTS()}
 ${/*new CountDelegate(outputType, this.dmmf, this.generator).toTS()*/ ''}
 
 // Custom InputTypes
-${this.argsTypes.map(TS).join('\n')}
+${this.argsTypes.map((gen) => TS(gen)).join('\n')}
 `
   }
 }
