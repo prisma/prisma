@@ -27,6 +27,18 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
   await copyPreprocessed(suiteMeta.testPath, path.join(suiteFolder, suiteMeta.rootRelativeTestPath), suiteConfig)
 }
 
+/**
+ * Copies test file into generated subdirectory and pre-processes it
+ * in the following way:
+ *
+ * 1. Adjusts relative imports so they'll work from generated subfolder
+ * 2. Evaluates @ts-test-if magic comments and replaces them with @ts-expect-error
+ * if necessary
+ *
+ * @param from
+ * @param to
+ * @param suiteConfig
+ */
 async function copyPreprocessed(from: string, to: string, suiteConfig: TestSuiteConfig): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
