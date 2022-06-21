@@ -12,6 +12,5 @@ scoop install mysql
 $DefaultsFile = Join-Path (Resolve-Path ~).Path "scoop\apps\mysql\current\my.ini"
 Add-Content $DefaultsFile "[mysqld]"
 Add-Content $DefaultsFile "lower_case_table_names=2"
-mysqld --defaults-file="$DefaultsFile" --validate-config
 mysqld --install MySQL --defaults-file="$DefaultsFile"
 sc start MySQL
