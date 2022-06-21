@@ -78,7 +78,7 @@ datasource db {
 model Post {
   id        String    @id
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
   published Boolean   @default(false)
   title     String
   content   String?
@@ -117,7 +117,7 @@ datasource db {
 model Post {
   id        String    @id
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
   published Boolean   @default(false)
   title     String
   content   String?
@@ -194,7 +194,7 @@ datasource db {
 model Post {
   id        String    @id
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
   published Boolean   @default(false)
   title     String
   content   String?
@@ -271,7 +271,7 @@ datasource db {
 model Post {
   id        String    @id
   createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00':::TIMESTAMP"))
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
   published Boolean   @default(false)
   title     String
   content   String?
