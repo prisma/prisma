@@ -1067,7 +1067,7 @@ new PrismaClient({
       unpacker,
     }: InternalRequestParams) {
       if (this._dmmf === undefined) {
-        const dmmf = await this._getDMMF({ clientMethod, callsite })
+        const dmmf = await this._getDmmf({ clientMethod, callsite })
         this._dmmf = new DMMFHelper(getPrismaClientDMMF(dmmf))
       }
 
@@ -1154,7 +1154,7 @@ new PrismaClient({
       })
     }
 
-    private async _getDMMF(params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) {
+    private async _getDmmf(params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) {
       try {
         return await this._engine.getDmmf()
       } catch (error) {
