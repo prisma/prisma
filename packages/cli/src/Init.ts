@@ -262,7 +262,7 @@ export class Init implements Command {
         warnings.push(
           `${chalk.yellow(
             'warn',
-          )} You already have a .gitignore file. Don't forget to add `.env` in it to not commit any private information.`,
+          )} You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
         )
       } else {
         console.error('Failed to write .gitignore file, reason: ', e)
