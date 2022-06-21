@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1654599336497,
+  "lastUpdate": 1655813508059,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -103734,6 +103734,72 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 9.4,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 3.1,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3e3a427879735b4d334617dbf9cf174d05cff34b",
+          "message": "fix(client): ts-error in benchmark (#13928)\n\n* fix: ts-error\r\n\r\n* fix: add single arg to count.ts",
+          "timestamp": "2022-06-21T13:05:58+01:00",
+          "tree_id": "62ca1f459904c2a3880a969c44eb386f28e62a10",
+          "url": "https://github.com/prisma/prisma/commit/3e3a427879735b4d334617dbf9cf174d05cff34b"
+        },
+        "date": 1655813501282,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±4.13%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.07,
+            "range": "±5.33%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.2,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
