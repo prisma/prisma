@@ -6,7 +6,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 declare let Prisma: typeof import('@prisma/client').Prisma
 
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
+  () => {
     test('simple expression', async () => {
       const result = (await prisma.$queryRaw`SELECT 1 + 1`) as Array<Record<string, unknown>>
       expect(Number(Object.values(result[0])[0])).toEqual(2)
@@ -35,21 +35,13 @@ testMatrix.setupTestSuite(
           string: 'str',
           int: 42,
           bInt: BigInt('12345'),
-          float: expect.anything(), // checked below
+          float: 0.125,
           bytes: Buffer.from([1, 2, 3]),
           bool: true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: new Prisma.Decimal('0.0625'),
         },
       ])
-
-      const floatField = (testModel as { float: unknown }[])[0].float
-
-      if (suiteConfig['provider'] === 'sqlite') {
-        expect(floatField).toEqual(new Prisma.Decimal('0.125'))
-      } else {
-        expect(floatField).toEqual(0.125)
-      }
     })
   },
   {
