@@ -2,7 +2,7 @@ import * as lzString from 'lz-string'
 
 export { MetricsClient } from './core/metrics/MetricsClient'
 export { DMMFHelper as DMMFClass } from './dmmf'
-export { type BundledDMMF, DMMF } from './dmmf-types'
+export { type BaseDMMF, DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'

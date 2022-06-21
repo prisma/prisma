@@ -264,7 +264,7 @@ export type BatchPayload = {
 /**
  * DMMF
  */
-export const dmmf: runtime.BundledDMMF
+export const dmmf: runtime.BaseDMMF
 `,
   2,
 )}}`
