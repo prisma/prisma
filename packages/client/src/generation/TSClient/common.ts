@@ -29,7 +29,8 @@ const {
   join,
   raw,
   Decimal,
-  DecimalJsLike
+  DecimalJsLike,
+  enumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -189,21 +190,21 @@ export type InputJsonValue = string | number | boolean | InputJsonObject | Input
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull: unique symbol
+export const DbNull: runtime.enumValues.DbNull
 
 /**
  * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull: unique symbol
+export const JsonNull: runtime.enumValues.JsonNull
 
 /**
  * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull: unique symbol
+export const AnyNull: runtime.enumValues.AnyNull
 
 type SelectAndInclude = {
   select: any
