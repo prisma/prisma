@@ -244,17 +244,17 @@ List of types:
 - test: Adding missing or correcting existing tests
 - chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
 
-List of packages:
+List of directories in the monorepo
 
 - cli
 - client
 - debug
 - engine-core
 - generator-helper
+- integration-tests
+- internals
 - migrate
 - react-prisma
-- sdk
-- tests
 
 ## Legal
 
