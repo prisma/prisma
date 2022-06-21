@@ -183,14 +183,6 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
             return panic
           }
 
-          const message = match(errorOutputAsJSON)
-            .with({ error_code: 'P1012' }, (error: Record<string, string>) => {
-              return chalk.redBright(`Schema parsing ${error.error_code}\n\n`) + error.message + '\n'
-            })
-            .otherwise((error: any) => {
-              return chalk.redBright(`${error.error_code}\n\n`) + error
-            })
-
           const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
 
           return new GetConfigError({
@@ -336,7 +328,7 @@ async function getConfigBinary(options: GetConfigOptions) {
           },
         ),
         E.map((errorOutputAsJSON: Record<string, string>) => {
-          const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
+          const defaultMessage = chalk.redBright(errorOutputAsJSON.message)
           const getConfigErrorInit = match(errorOutputAsJSON)
             .with({ error_code: 'P1012' }, (eJSON) => {
               return {
