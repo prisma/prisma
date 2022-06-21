@@ -14,4 +14,4 @@ async function main() {
   fs.writeFileSync(path.join(__dirname, '../package.json'), JSON.stringify(pkg, null, 2))
 }
 
-main()
+void main()

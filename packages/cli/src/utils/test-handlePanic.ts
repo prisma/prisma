@@ -1,4 +1,4 @@
-import { handlePanic, IntrospectionEngine } from '@prisma/sdk'
+import { handlePanic, IntrospectionEngine } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
