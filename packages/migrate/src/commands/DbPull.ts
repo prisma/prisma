@@ -17,7 +17,7 @@ import {
   link,
   loadEnvFile,
   protocolToConnectorType,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'

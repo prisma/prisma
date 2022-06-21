@@ -1,4 +1,4 @@
-import type { DMMF } from '@prisma/generator-helper'
+import { DMMF } from '@prisma/generator-helper'
 
 const dmmf: DMMF.Document = {
   datamodel: {
@@ -1214,7 +1214,7 @@ const dmmf: DMMF.Document = {
                   isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
-                  type: 'UserUpdateOneRequiredWithoutPostsInput',
+                  type: 'UserUpdateOneRequiredWithoutPostsNestedInput',
                 },
               ],
               isNullable: false,
@@ -1634,7 +1634,7 @@ const dmmf: DMMF.Document = {
                   isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
-                  type: 'PostUpdateManyWithoutAuthorInput',
+                  type: 'PostUpdateManyWithoutAuthorNestedInput',
                 },
               ],
               isNullable: false,
@@ -1692,7 +1692,7 @@ const dmmf: DMMF.Document = {
                   isList: false,
                   location: 'inputObjectTypes',
                   namespace: 'prisma',
-                  type: 'PostUncheckedUpdateManyWithoutAuthorInput',
+                  type: 'PostUncheckedUpdateManyWithoutAuthorNestedInput',
                 },
               ],
               isNullable: false,
@@ -3215,7 +3215,7 @@ const dmmf: DMMF.Document = {
               name: 'update',
             },
           ],
-          name: 'UserUpdateOneRequiredWithoutPostsInput',
+          name: 'UserUpdateOneRequiredWithoutPostsNestedInput',
         },
         {
           constraints: {
@@ -3732,7 +3732,7 @@ const dmmf: DMMF.Document = {
               name: 'deleteMany',
             },
           ],
-          name: 'PostUpdateManyWithoutAuthorInput',
+          name: 'PostUpdateManyWithoutAuthorNestedInput',
         },
         {
           constraints: {
@@ -3956,7 +3956,7 @@ const dmmf: DMMF.Document = {
               name: 'deleteMany',
             },
           ],
-          name: 'PostUncheckedUpdateManyWithoutAuthorInput',
+          name: 'PostUncheckedUpdateManyWithoutAuthorNestedInput',
         },
         {
           constraints: {

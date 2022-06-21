@@ -1,5 +1,5 @@
-import type { DatabaseCredentials } from '@prisma/sdk'
-import { canConnectToDatabase, createDatabase, getConfig, getSchema, getSchemaDir, uriToCredentials } from '@prisma/sdk'
+import type { DatabaseCredentials } from '@prisma/internals'
+import { canConnectToDatabase, createDatabase, getConfig, getSchema, getSchemaDir, uriToCredentials } from '@prisma/internals'
 import chalk from 'chalk'
 import type execa from 'execa'
 import prompt from 'prompts'

@@ -58,10 +58,10 @@ You can always check out the test of our "exhaustive schema", where we test the 
 pnpm run test exhaustive
 ```
 
-Usually, dmmf changes are also visible in the tests of the sdk:
+Usually, dmmf changes are also visible in the tests of the `@prisma/internals` package:
 
 ```bash
-cd ./packages/sdk
+cd ./packages/internal
 pnpm run test
 ```
 

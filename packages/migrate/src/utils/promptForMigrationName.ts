@@ -1,4 +1,4 @@
-import { isCi } from '@prisma/sdk'
+import { isCi } from '@prisma/internals'
 import slugify from '@sindresorhus/slugify'
 import { prompt } from 'prompts'
 
