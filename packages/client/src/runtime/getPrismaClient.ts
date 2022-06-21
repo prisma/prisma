@@ -1067,7 +1067,7 @@ new PrismaClient({
       unpacker,
     }: InternalRequestParams) {
       if (this._dmmf === undefined) {
-        const dmmf = await this._engine.getDmmf()
+        const dmmf = await this._getDMMF({ clientMethod, callsite })
         this._dmmf = new DMMFHelper(getPrismaClientDMMF(dmmf))
       }
 
@@ -1145,7 +1145,6 @@ new PrismaClient({
         isList,
         rootField: rootField!,
         callsite,
-        showColors: this._errorFormat === 'pretty',
         args,
         engineHook: this._middlewares.engine.get(0),
         runInTransaction,
@@ -1153,6 +1152,14 @@ new PrismaClient({
         transactionId,
         unpacker,
       })
+    }
+
+    private async _getDMMF(params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) {
+      try {
+        return await this._engine.getDmmf()
+      } catch (error) {
+        this._fetcher.handleRequestError({ ...params, error })
+      }
     }
 
     get $metrics(): MetricsClient {
