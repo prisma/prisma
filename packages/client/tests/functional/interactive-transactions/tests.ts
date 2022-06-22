@@ -197,7 +197,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/tests/functional/interactive-transactions/tests.ts:0:0
+            /client/tests/functional/interactive-transactions/tests.ts:190:41
 
               187 })
               188 

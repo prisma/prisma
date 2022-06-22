@@ -45,9 +45,7 @@ function normalizeGithubLinks(str) {
 }
 
 function normalizeTsClientStackTrace(str) {
-  return str
-    .replace(/([/\\]client[/\\]src[/\\]__tests__[/\\].*test.ts)(:\d*:\d*)/, '$1:0:0')
-    .replace(/([/\\]client[/\\]tests[/\\]functional[/\\].*\.ts)(:\d*:\d*)/, '$1:0:0')
+  return str.replace(/([/\\]client[/\\]src[/\\]__tests__[/\\].*test.ts)(:\d*:\d*)/, '$1:0:0')
 }
 
 function removePlatforms(str) {
