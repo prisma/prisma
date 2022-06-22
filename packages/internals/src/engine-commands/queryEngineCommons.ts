@@ -83,7 +83,7 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
           .when(
             (errMessage) => errMessage.includes('openssl'),
             () => {
-              return ` Have you tried installing 'openssl'?`
+              return ` It seems there is a problem with your OpenSSL installation!`
             },
           )
           .otherwise(() => '')

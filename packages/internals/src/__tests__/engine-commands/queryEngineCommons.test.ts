@@ -45,7 +45,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('loadNodeAPIL
       if (E.isLeft(result)) {
         expect(result.left.type).toEqual('connection-error')
         expect(result.left.reason).toEqual(
-          `Unable to establish a connection to query-engine-node-api library. Have you tried installing 'openssl'?`,
+          `Unable to establish a connection to query-engine-node-api library. It seems there is a problem with your OpenSSL installation!`,
         )
         expect(result.left.error).toBeTruthy()
       }
