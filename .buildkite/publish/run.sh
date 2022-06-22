@@ -3,7 +3,7 @@
 set -ex
 
 # Install pnpm
-npm i --silent -g pnpm@6 --unsafe-perm
+npm i --silent -g pnpm@7 --unsafe-perm
 # --usafe-perm to allow install scripts
 
 # Install packages
