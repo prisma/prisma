@@ -39,7 +39,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
 
   test('throws if record was not found', async () => {
     const record = prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } })
-    await expect(record).rejects.toThrowErrorMatchingInlineSnapshot(`No user found`)
+    await expect(record).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
   })
 
   // TODO: it actually does not work this way, but neither does `rejectOnNotFound`.
@@ -64,7 +64,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       await prisma.user.findUniqueOrThrow({ where: { email: nonExistingEmail } })
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No user found`)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
 
     const record = await prisma.user.findUnique({ where: { email: newEmail } })
     expect(record).toBeNull()
@@ -91,14 +91,14 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
 
     await expect(record).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
-            /client/tests/functional/findUniqueOrThrow/tests.ts:86:32
+                                    Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+                                    /client/tests/functional/findUniqueOrThrow/tests.ts:86:32
 
-               83 })
-               84 
-               85 test('does not accept rejectOnNotFound option', async () => {
-            →  86   const record = prisma.user.findUniqueOrThrow(
-            'rejectOnNotFound' option is not supported
-          `)
+                                       83 })
+                                       84 
+                                       85 test('does not accept rejectOnNotFound option', async () => {
+                                    →  86   const record = prisma.user.findUniqueOrThrow(
+                                    'rejectOnNotFound' option is not supported
+                              `)
   })
 })
