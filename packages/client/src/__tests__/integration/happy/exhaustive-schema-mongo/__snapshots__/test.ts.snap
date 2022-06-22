@@ -1308,14 +1308,6 @@ export namespace Prisma {
     : IsReject<GlobalRejectSettings>
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
-  export type RejectOnNotFoundField = {
-    /**
-     * Throw an Error if query returns no results
-     * @deprecated since 4.0.0: use \`findFirstOrThrow\` or \`findUniqueOrThrow\` method instead
-     */
-    rejectOnNotFound?: RejectOnNotFound
-  }
-
   export interface PrismaClientOptions {
     /**
      * Configure findUnique/findFirst to throw an error if the query returns null. 
@@ -2574,7 +2566,13 @@ export namespace Prisma {
   /**
    * Post: findUnique
    */
-  export type PostFindUniqueArgs = PostFindUniqueArgsBase & RejectOnNotFoundField
+  export interface PostFindUniqueArgs extends PostFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -2636,7 +2634,13 @@ export namespace Prisma {
   /**
    * Post: findFirst
    */
-  export type PostFindFirstArgs = PostFindFirstArgsBase & RejectOnNotFoundField
+  export interface PostFindFirstArgs extends PostFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -3672,7 +3676,13 @@ export namespace Prisma {
   /**
    * User: findUnique
    */
-  export type UserFindUniqueArgs = UserFindUniqueArgsBase & RejectOnNotFoundField
+  export interface UserFindUniqueArgs extends UserFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -3734,7 +3744,13 @@ export namespace Prisma {
   /**
    * User: findFirst
    */
-  export type UserFindFirstArgs = UserFindFirstArgsBase & RejectOnNotFoundField
+  export interface UserFindFirstArgs extends UserFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -4653,7 +4669,13 @@ export namespace Prisma {
   /**
    * EmbedHolder: findUnique
    */
-  export type EmbedHolderFindUniqueArgs = EmbedHolderFindUniqueArgsBase & RejectOnNotFoundField
+  export interface EmbedHolderFindUniqueArgs extends EmbedHolderFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -4715,7 +4737,13 @@ export namespace Prisma {
   /**
    * EmbedHolder: findFirst
    */
-  export type EmbedHolderFindFirstArgs = EmbedHolderFindFirstArgsBase & RejectOnNotFoundField
+  export interface EmbedHolderFindFirstArgs extends EmbedHolderFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -5733,7 +5761,13 @@ export namespace Prisma {
   /**
    * M: findUnique
    */
-  export type MFindUniqueArgs = MFindUniqueArgsBase & RejectOnNotFoundField
+  export interface MFindUniqueArgs extends MFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -5795,7 +5829,13 @@ export namespace Prisma {
   /**
    * M: findFirst
    */
-  export type MFindFirstArgs = MFindFirstArgsBase & RejectOnNotFoundField
+  export interface MFindFirstArgs extends MFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -6813,7 +6853,13 @@ export namespace Prisma {
   /**
    * N: findUnique
    */
-  export type NFindUniqueArgs = NFindUniqueArgsBase & RejectOnNotFoundField
+  export interface NFindUniqueArgs extends NFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -6875,7 +6921,13 @@ export namespace Prisma {
   /**
    * N: findFirst
    */
-  export type NFindFirstArgs = NFindFirstArgsBase & RejectOnNotFoundField
+  export interface NFindFirstArgs extends NFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -7889,7 +7941,13 @@ export namespace Prisma {
   /**
    * OneOptional: findUnique
    */
-  export type OneOptionalFindUniqueArgs = OneOptionalFindUniqueArgsBase & RejectOnNotFoundField
+  export interface OneOptionalFindUniqueArgs extends OneOptionalFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -7951,7 +8009,13 @@ export namespace Prisma {
   /**
    * OneOptional: findFirst
    */
-  export type OneOptionalFindFirstArgs = OneOptionalFindFirstArgsBase & RejectOnNotFoundField
+  export interface OneOptionalFindFirstArgs extends OneOptionalFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -8969,7 +9033,13 @@ export namespace Prisma {
   /**
    * ManyRequired: findUnique
    */
-  export type ManyRequiredFindUniqueArgs = ManyRequiredFindUniqueArgsBase & RejectOnNotFoundField
+  export interface ManyRequiredFindUniqueArgs extends ManyRequiredFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -9031,7 +9101,13 @@ export namespace Prisma {
   /**
    * ManyRequired: findFirst
    */
-  export type ManyRequiredFindFirstArgs = ManyRequiredFindFirstArgsBase & RejectOnNotFoundField
+  export interface ManyRequiredFindFirstArgs extends ManyRequiredFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -10049,7 +10125,13 @@ export namespace Prisma {
   /**
    * OptionalSide1: findUnique
    */
-  export type OptionalSide1FindUniqueArgs = OptionalSide1FindUniqueArgsBase & RejectOnNotFoundField
+  export interface OptionalSide1FindUniqueArgs extends OptionalSide1FindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -10111,7 +10193,13 @@ export namespace Prisma {
   /**
    * OptionalSide1: findFirst
    */
-  export type OptionalSide1FindFirstArgs = OptionalSide1FindFirstArgsBase & RejectOnNotFoundField
+  export interface OptionalSide1FindFirstArgs extends OptionalSide1FindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -11121,7 +11209,13 @@ export namespace Prisma {
   /**
    * OptionalSide2: findUnique
    */
-  export type OptionalSide2FindUniqueArgs = OptionalSide2FindUniqueArgsBase & RejectOnNotFoundField
+  export interface OptionalSide2FindUniqueArgs extends OptionalSide2FindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -11183,7 +11277,13 @@ export namespace Prisma {
   /**
    * OptionalSide2: findFirst
    */
-  export type OptionalSide2FindFirstArgs = OptionalSide2FindFirstArgsBase & RejectOnNotFoundField
+  export interface OptionalSide2FindFirstArgs extends OptionalSide2FindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -12127,7 +12227,13 @@ export namespace Prisma {
   /**
    * A: findUnique
    */
-  export type AFindUniqueArgs = AFindUniqueArgsBase & RejectOnNotFoundField
+  export interface AFindUniqueArgs extends AFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -12184,7 +12290,13 @@ export namespace Prisma {
   /**
    * A: findFirst
    */
-  export type AFindFirstArgs = AFindFirstArgsBase & RejectOnNotFoundField
+  export interface AFindFirstArgs extends AFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -13070,7 +13182,13 @@ export namespace Prisma {
   /**
    * B: findUnique
    */
-  export type BFindUniqueArgs = BFindUniqueArgsBase & RejectOnNotFoundField
+  export interface BFindUniqueArgs extends BFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -13127,7 +13245,13 @@ export namespace Prisma {
   /**
    * B: findFirst
    */
-  export type BFindFirstArgs = BFindFirstArgsBase & RejectOnNotFoundField
+  export interface BFindFirstArgs extends BFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -14007,7 +14131,13 @@ export namespace Prisma {
   /**
    * C: findUnique
    */
-  export type CFindUniqueArgs = CFindUniqueArgsBase & RejectOnNotFoundField
+  export interface CFindUniqueArgs extends CFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -14064,7 +14194,13 @@ export namespace Prisma {
   /**
    * C: findFirst
    */
-  export type CFindFirstArgs = CFindFirstArgsBase & RejectOnNotFoundField
+  export interface CFindFirstArgs extends CFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -14928,7 +15064,13 @@ export namespace Prisma {
   /**
    * D: findUnique
    */
-  export type DFindUniqueArgs = DFindUniqueArgsBase & RejectOnNotFoundField
+  export interface DFindUniqueArgs extends DFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -14985,7 +15127,13 @@ export namespace Prisma {
   /**
    * D: findFirst
    */
-  export type DFindFirstArgs = DFindFirstArgsBase & RejectOnNotFoundField
+  export interface DFindFirstArgs extends DFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -15841,7 +15989,13 @@ export namespace Prisma {
   /**
    * E: findUnique
    */
-  export type EFindUniqueArgs = EFindUniqueArgsBase & RejectOnNotFoundField
+  export interface EFindUniqueArgs extends EFindUniqueArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findUniqueOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
@@ -15898,7 +16052,13 @@ export namespace Prisma {
   /**
    * E: findFirst
    */
-  export type EFindFirstArgs = EFindFirstArgsBase & RejectOnNotFoundField
+  export interface EFindFirstArgs extends EFindFirstArgsBase {
+   /**
+    * Throw an Error if query returns no results
+    * @deprecated since 4.0.0: use \`findFirstOrThrow\` method instead
+    */
+    rejectOnNotFound?: RejectOnNotFound
+  }
       
 
   /**
