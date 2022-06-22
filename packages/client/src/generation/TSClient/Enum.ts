@@ -17,7 +17,7 @@ export class Enum implements Generatable {
     }
   }
 
-  private isSymbolEnum(): boolean {
+  private isObjectEnum(): boolean {
     return this.useNamespace && objectEnumNames.includes(this.type.name)
   }
 
@@ -29,7 +29,7 @@ ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_
   }
 
   private getValueJS(value: string): string {
-    return this.isSymbolEnum() ? `Prisma.${value}` : `'${value}'`
+    return this.isObjectEnum() ? `Prisma.${value}` : `'${value}'`
   }
 
   public toTS(): string {
@@ -43,6 +43,6 @@ export type ${type.name} = (typeof ${type.name})[keyof typeof ${type.name}]\n`
   }
 
   private getValueTS(value: string): string {
-    return this.isSymbolEnum() ? `typeof ${value}` : `'${value}'`
+    return this.isObjectEnum() ? `typeof ${value}` : `'${value}'`
   }
 }
