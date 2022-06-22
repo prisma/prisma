@@ -681,16 +681,16 @@ jobs:
       #     flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
       #     name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
-      - name: Test packages/client
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes -- --testTimeout=40000 && pnpm run test:functional --  --jest-args='--testTimeout=40000' --no-types
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
-          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+      # - name: Test packages/client/notypes
+      #   if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+      #   run: pnpm run test-notypes -- --testTimeout=40000
+      #   working-directory: packages/client
+      #   env:
+      #     CI: true
+      #     SKIP_GIT: true
+      #     GITHUB_CONTEXT: ${{ toJson(github) }}
+      #     NODE_OPTIONS: '--max-old-space-size=8096'
+      #     JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       # - uses: codecov/codecov-action@v3
       #   if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -698,6 +698,17 @@ jobs:
       #     files: ./packages/client/src/__tests__/coverage/clover.xml
       #     flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
       #     name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+      - name: Test packages/client/functional
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        run: pnpm run test:functional --  --jest-args='--testTimeout=40000' --no-types
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          NODE_OPTIONS: '--max-old-space-size=8096'
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       # - name: Test packages/migrate
       #   if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
