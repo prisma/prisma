@@ -36,36 +36,36 @@ testMatrix.setupTestSuite(
         })
         expect(data.json).toBe(null)
       })
-    })
 
-    test('DbNull', async () => {
-      await expect(
-        prisma.requiredJsonField.create({
-          data: {
-            // @ts-expect-error
-            json: Prisma.DbNull,
-          },
-        }),
-      ).rejects.toThrowErrorMatchingInlineSnapshot(`
+      test('DbNull', async () => {
+        await expect(
+          prisma.requiredJsonField.create({
+            data: {
+              // @ts-expect-error
+              json: Prisma.DbNull,
+            },
+          }),
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-              Invalid \`prisma.requiredJsonField.create()\` invocation in
-              /client/tests/functional/json-null-symbols/tests.ts:43:34
+                Invalid \`prisma.requiredJsonField.create()\` invocation in
+                /client/tests/functional/json-null-symbols/tests.ts:42:36
 
-                40 
-                41 test('DbNull', async () => {
-                42   await expect(
-              → 43     prisma.requiredJsonField.create({
-                         data: {
-                           json: Prisma.DbNull
-                                 ~~~~~~~~~~~~~
-                         }
-                       })
+                  39 
+                  40 test('DbNull', async () => {
+                  41   await expect(
+                → 42     prisma.requiredJsonField.create({
+                           data: {
+                             json: Prisma.DbNull
+                                   ~~~~~~~~~~~~~
+                           }
+                         })
 
-              Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a enumTypes.
-              → Possible values: JsonNullValueInput.JsonNull
+                Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a enumTypes.
+                → Possible values: JsonNullValueInput.JsonNull
 
 
-            `)
+              `)
+      })
     })
   },
   {
