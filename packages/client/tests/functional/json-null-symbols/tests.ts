@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(
               → 43     prisma.requiredJsonField.create({
                          data: {
                            json: Prisma.DbNull
-                           ~~~~~~~~~~~~~~~
+                                 ~~~~~~~~~~~~~
                          }
                        })
 

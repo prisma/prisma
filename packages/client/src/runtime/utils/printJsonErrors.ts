@@ -1,6 +1,7 @@
 import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
 
+import { ObjectEnumValue } from '../symbol-enums'
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 
@@ -86,7 +87,7 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
           const keyScribbles = keyError ? chalk.redBright('~'.repeat(keyLength)) : ' '.repeat(keyLength)
 
           const valueLength = valueError ? getValueLength(indent, key, value, stringifiedValue) : 0
-          const hideValueScribbles = Boolean(valueError && typeof value === 'object' && value !== null)
+          const hideValueScribbles = valueError && isRenderedAsObject(value)
           const valueScribbles = valueError ? '  ' + chalk.redBright('~'.repeat(valueLength)) : ''
 
           // Either insert both keyScribles and valueScribbles in one line
@@ -115,11 +116,15 @@ function getValueLength(indent: string, key: string, value: any, stringifiedValu
     return value.length + 2 // +2 for the quotes
   }
 
-  if (typeof value === 'object') {
+  if (isRenderedAsObject(value)) {
     return Math.abs(getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length)
   }
 
   return String(value).length
+}
+
+function isRenderedAsObject(value: any) {
+  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue)
 }
 
 function getLongestLine(str: string): number {
