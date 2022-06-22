@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 
 import { getDMMF } from '../generation/getDMMF'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { DMMFClass, makeDocument, objectEnumValues, transformDocument } from '../runtime'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
@@ -94,7 +94,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       select: {
         where: {
           json: {
-            equals: Symbol('JsonNull'),
+            equals: objectEnumValues.instances.JsonNull,
           },
         },
       },
