@@ -869,7 +869,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise(async (txId, lock, otelCtx): Promise<unknown> => {
+      return createPrismaPromise((txId, lock, otelCtx) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
         }
