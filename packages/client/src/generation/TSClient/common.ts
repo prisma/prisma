@@ -545,7 +545,7 @@ function buildNullClass(name: string) {
 * 
 * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
 */
-declare class ${name} {
+class ${name} {
   private ${name}: never
   private constructor()
 }`
