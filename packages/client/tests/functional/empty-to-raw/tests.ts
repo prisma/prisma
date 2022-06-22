@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
           break
 
         default:
-          throw new Error('invalid prodiver')
+          throw new Error('invalid provider')
       }
     })
   },
