@@ -76,6 +76,7 @@ function parseStack({
   const stack = stackTraceParser.parse(callsite)
   // TODO: more resilient logic to check that it's not relative to cwd
   const trace = stack.find((t) => {
+    console.log({ file: t.file, methodName: t.methodName })
     // Here we are trying to find the location in the users code which caused the error
     return (
       t.file &&
@@ -89,6 +90,8 @@ function parseStack({
       t.methodName.split('.').length < 4
     )
   })
+
+  console.log({ trace })
 
   if (process.env.NODE_ENV !== 'production' && trace && trace.file && trace.lineNumber && trace.column) {
     const lineNumber = trace.lineNumber
@@ -115,6 +118,7 @@ function parseStack({
       const lines = dedent(slicedFile).split('\n')
 
       const theLine = lines[lines.length - 1]
+      console.log({ theLine })
       if (!theLine || theLine.trim() === '') {
         params.callsiteStr = ':'
       } else {
