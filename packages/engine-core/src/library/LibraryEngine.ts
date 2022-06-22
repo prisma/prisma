@@ -1,4 +1,5 @@
 import Debug from '@prisma/debug'
+import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
@@ -95,6 +96,7 @@ export class LibraryEngine extends Engine {
     engines.push(this)
     this.checkForTooManyEngines()
   }
+
   private checkForTooManyEngines() {
     if (engines.length >= 10) {
       const runningEngines = engines.filter((e) => e.engine)
@@ -105,6 +107,7 @@ export class LibraryEngine extends Engine {
       }
     }
   }
+
   async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
@@ -357,13 +360,21 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  getConfig(): Promise<ConfigMetaFormat> {
+  async getConfig(): Promise<ConfigMetaFormat> {
+    await this.libraryInstantiationPromise
+
     return this.library!.getConfig({
       datamodel: this.datamodel,
       datasourceOverrides: this.datasourceOverrides,
       ignoreEnvVarErrors: true,
       env: process.env,
     })
+  }
+
+  async getDmmf(): Promise<DMMF.Document> {
+    await this.libraryInstantiationPromise
+
+    return JSON.parse(await this.library!.dmmf(this.datamodel))
   }
 
   version(): string {
