@@ -15,7 +15,8 @@ ${
   browser
     ? `
 const {
-  Decimal
+  Decimal,
+  objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
