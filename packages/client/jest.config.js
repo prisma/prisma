@@ -28,7 +28,7 @@ module.exports = {
     '.bench.ts',
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
+  snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
   testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
   reporters: [

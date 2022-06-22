@@ -1,6 +1,6 @@
 import { enginesVersion } from '@prisma/engines'
+import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/sdk'
 import { StudioServer } from '@prisma/studio-server'
 import chalk from 'chalk'
 import getPort from 'get-port'

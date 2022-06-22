@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
@@ -17,6 +17,9 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+
+// To avoid the loading spinner locally
+process.env.CI = 'true'
 
 describe('common/sqlite', () => {
   test('basic introspection', async () => {

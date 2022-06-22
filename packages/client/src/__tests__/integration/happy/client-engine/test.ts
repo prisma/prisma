@@ -1,4 +1,4 @@
-import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE } from '@prisma/sdk'
+import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE } from '@prisma/internals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'

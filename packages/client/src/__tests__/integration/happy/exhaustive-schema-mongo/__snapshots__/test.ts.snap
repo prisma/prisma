@@ -16674,7 +16674,7 @@ export namespace Prisma {
     title?: StringFieldUpdateOperationsInput | string
     content?: NullableStringFieldUpdateOperationsInput | string | null
     published?: BoolFieldUpdateOperationsInput | boolean
-    author?: UserUpdateOneRequiredWithoutPostsInput
+    author?: UserUpdateOneRequiredWithoutPostsNestedInput
   }
 
   export type PostUncheckedUpdateInput = {
@@ -16761,8 +16761,8 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    posts?: PostUpdateManyWithoutAuthorInput
-    embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserInput
+    posts?: PostUpdateManyWithoutAuthorNestedInput
+    embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -16779,7 +16779,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    posts?: PostUncheckedUpdateManyWithoutAuthorInput
+    posts?: PostUncheckedUpdateManyWithoutAuthorNestedInput
     embedHolderId?: StringFieldUpdateOperationsInput | string
   }
 
@@ -16863,7 +16863,7 @@ export namespace Prisma {
     embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
-    User?: UserUpdateManyWithoutEmbedHolderInput
+    User?: UserUpdateManyWithoutEmbedHolderNestedInput
   }
 
   export type EmbedHolderUncheckedUpdateInput = {
@@ -16873,7 +16873,7 @@ export namespace Prisma {
     embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
-    User?: UserUncheckedUpdateManyWithoutEmbedHolderInput
+    User?: UserUncheckedUpdateManyWithoutEmbedHolderNestedInput
   }
 
   export type EmbedHolderCreateManyInput = {
@@ -16942,7 +16942,7 @@ export namespace Prisma {
 
   export type MUpdateInput = {
     n_ids?: MUpdaten_idsInput | Enumerable<string>
-    n?: NUpdateManyWithoutMInput
+    n?: NUpdateManyWithoutMNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16959,7 +16959,7 @@ export namespace Prisma {
 
   export type MUncheckedUpdateInput = {
     n_ids?: MUpdaten_idsInput | Enumerable<string>
-    n?: NUncheckedUpdateManyWithoutMInput
+    n?: NUncheckedUpdateManyWithoutMNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17061,7 +17061,7 @@ export namespace Prisma {
 
   export type NUpdateInput = {
     m_ids?: NUpdatem_idsInput | Enumerable<string>
-    m?: MUpdateManyWithoutNInput
+    m?: MUpdateManyWithoutNNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17078,7 +17078,7 @@ export namespace Prisma {
 
   export type NUncheckedUpdateInput = {
     m_ids?: NUpdatem_idsInput | Enumerable<string>
-    m?: MUncheckedUpdateManyWithoutNInput
+    m?: MUncheckedUpdateManyWithoutNNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17177,7 +17177,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalUpdateInput = {
-    many?: ManyRequiredUpdateManyWithoutOneInput
+    many?: ManyRequiredUpdateManyWithoutOneNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17193,7 +17193,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalUncheckedUpdateInput = {
-    many?: ManyRequiredUncheckedUpdateManyWithoutOneInput
+    many?: ManyRequiredUncheckedUpdateManyWithoutOneNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17289,7 +17289,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUpdateInput = {
-    one?: OneOptionalUpdateOneWithoutManyInput
+    one?: OneOptionalUpdateOneWithoutManyNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17403,7 +17403,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UpdateInput = {
-    opti?: OptionalSide2UpdateOneWithoutOptiInput
+    opti?: OptionalSide2UpdateOneWithoutOptiNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17517,7 +17517,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UpdateInput = {
-    opti?: OptionalSide1UpdateOneWithoutOptiInput
+    opti?: OptionalSide1UpdateOneWithoutOptiNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -17533,7 +17533,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2UncheckedUpdateInput = {
-    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiInput
+    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -18983,7 +18983,7 @@ export namespace Prisma {
     set?: boolean
   }
 
-  export type UserUpdateOneRequiredWithoutPostsInput = {
+  export type UserUpdateOneRequiredWithoutPostsNestedInput = {
     create?: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
     connectOrCreate?: UserCreateOrConnectWithoutPostsInput
     upsert?: UserUpsertWithoutPostsInput
@@ -19059,7 +19059,7 @@ export namespace Prisma {
     unset?: boolean
   }
 
-  export type PostUpdateManyWithoutAuthorInput = {
+  export type PostUpdateManyWithoutAuthorNestedInput = {
     create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
@@ -19073,7 +19073,7 @@ export namespace Prisma {
     deleteMany?: Enumerable<PostScalarWhereInput>
   }
 
-  export type EmbedHolderUpdateOneRequiredWithoutUserInput = {
+  export type EmbedHolderUpdateOneRequiredWithoutUserNestedInput = {
     create?: XOR<EmbedHolderCreateWithoutUserInput, EmbedHolderUncheckedCreateWithoutUserInput>
     connectOrCreate?: EmbedHolderCreateOrConnectWithoutUserInput
     upsert?: EmbedHolderUpsertWithoutUserInput
@@ -19081,7 +19081,7 @@ export namespace Prisma {
     update?: XOR<EmbedHolderUpdateWithoutUserInput, EmbedHolderUncheckedUpdateWithoutUserInput>
   }
 
-  export type PostUncheckedUpdateManyWithoutAuthorInput = {
+  export type PostUncheckedUpdateManyWithoutAuthorNestedInput = {
     create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
     connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
     upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
@@ -19147,7 +19147,7 @@ export namespace Prisma {
     unset?: boolean
   }
 
-  export type UserUpdateManyWithoutEmbedHolderInput = {
+  export type UserUpdateManyWithoutEmbedHolderNestedInput = {
     create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
     connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
     upsert?: Enumerable<UserUpsertWithWhereUniqueWithoutEmbedHolderInput>
@@ -19161,7 +19161,7 @@ export namespace Prisma {
     deleteMany?: Enumerable<UserScalarWhereInput>
   }
 
-  export type UserUncheckedUpdateManyWithoutEmbedHolderInput = {
+  export type UserUncheckedUpdateManyWithoutEmbedHolderNestedInput = {
     create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
     connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
     upsert?: Enumerable<UserUpsertWithWhereUniqueWithoutEmbedHolderInput>
@@ -19196,7 +19196,7 @@ export namespace Prisma {
     push?: string | Enumerable<string>
   }
 
-  export type NUpdateManyWithoutMInput = {
+  export type NUpdateManyWithoutMNestedInput = {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
@@ -19209,7 +19209,7 @@ export namespace Prisma {
     deleteMany?: Enumerable<NScalarWhereInput>
   }
 
-  export type NUncheckedUpdateManyWithoutMInput = {
+  export type NUncheckedUpdateManyWithoutMNestedInput = {
     create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
     connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
     upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
@@ -19243,7 +19243,7 @@ export namespace Prisma {
     push?: string | Enumerable<string>
   }
 
-  export type MUpdateManyWithoutNInput = {
+  export type MUpdateManyWithoutNNestedInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
@@ -19256,7 +19256,7 @@ export namespace Prisma {
     deleteMany?: Enumerable<MScalarWhereInput>
   }
 
-  export type MUncheckedUpdateManyWithoutNInput = {
+  export type MUncheckedUpdateManyWithoutNNestedInput = {
     create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
     connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
     upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
@@ -19283,7 +19283,7 @@ export namespace Prisma {
     connect?: Enumerable<ManyRequiredWhereUniqueInput>
   }
 
-  export type ManyRequiredUpdateManyWithoutOneInput = {
+  export type ManyRequiredUpdateManyWithoutOneNestedInput = {
     create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
@@ -19297,7 +19297,7 @@ export namespace Prisma {
     deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
   }
 
-  export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
+  export type ManyRequiredUncheckedUpdateManyWithoutOneNestedInput = {
     create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
     connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
     upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
@@ -19317,7 +19317,7 @@ export namespace Prisma {
     connect?: OneOptionalWhereUniqueInput
   }
 
-  export type OneOptionalUpdateOneWithoutManyInput = {
+  export type OneOptionalUpdateOneWithoutManyNestedInput = {
     create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     upsert?: OneOptionalUpsertWithoutManyInput
@@ -19333,7 +19333,7 @@ export namespace Prisma {
     connect?: OptionalSide2WhereUniqueInput
   }
 
-  export type OptionalSide2UpdateOneWithoutOptiInput = {
+  export type OptionalSide2UpdateOneWithoutOptiNestedInput = {
     create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide2UpsertWithoutOptiInput
@@ -19355,7 +19355,7 @@ export namespace Prisma {
     connect?: OptionalSide1WhereUniqueInput
   }
 
-  export type OptionalSide1UpdateOneWithoutOptiInput = {
+  export type OptionalSide1UpdateOneWithoutOptiNestedInput = {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
@@ -19365,7 +19365,7 @@ export namespace Prisma {
     update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
-  export type OptionalSide1UncheckedUpdateOneWithoutOptiInput = {
+  export type OptionalSide1UncheckedUpdateOneWithoutOptiNestedInput = {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
@@ -19804,7 +19804,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserInput
+    embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutPostsInput = {
@@ -20577,7 +20577,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    posts?: PostUpdateManyWithoutAuthorInput
+    posts?: PostUpdateManyWithoutAuthorNestedInput
   }
 
   export type UserUncheckedUpdateWithoutEmbedHolderInput = {
@@ -20594,7 +20594,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    posts?: PostUncheckedUpdateManyWithoutAuthorInput
+    posts?: PostUncheckedUpdateManyWithoutAuthorNestedInput
   }
 
   export type UserUncheckedUpdateManyWithoutUserInput = {
@@ -20810,6 +20810,6 @@ export namespace Prisma {
   /**
    * DMMF
    */
-  export const dmmf: runtime.DMMF.Document;
+  export const dmmf: runtime.BaseDMMF
 }
 `;

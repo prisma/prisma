@@ -1,4 +1,4 @@
-import { isError } from '@prisma/sdk'
+import { isError } from '@prisma/internals'
 
 import type { Action } from '../getPrismaClient'
 

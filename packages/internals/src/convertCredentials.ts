@@ -179,6 +179,11 @@ function databaseTypeToProtocol(databaseType: ConnectorType) {
   throw new Error(`Unknown databaseType ${databaseType}`)
 }
 
+/**
+ * Convert a protocol to the equivalent database connector type.
+ * Throws an error if the protocol is not recognized.
+ * @param protocol e.g., 'postgres:'
+ */
 export function protocolToConnectorType(protocol: string): ConnectorType {
   switch (protocol) {
     case 'postgresql:':

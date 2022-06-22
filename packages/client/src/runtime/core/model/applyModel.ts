@@ -71,7 +71,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
 // the only accessible fields are the ones that are actions
 function getOwnKeys(client: Client, dmmfModelName: string) {
-  return [...Object.keys(client._dmmf.mappingsMap[dmmfModelName]), 'count'].filter(
+  return [...Object.keys(client._baseDmmf.mappingsMap[dmmfModelName]), 'count'].filter(
     (key) => !['model', 'plural'].includes(key),
   )
 }

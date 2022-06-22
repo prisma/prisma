@@ -24,7 +24,7 @@ module.exports = {
     ],
   ],
   globalSetup: './_utils/globalSetup.js',
-  snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
+  snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
   setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
   testTimeout: 10000,
   collectCoverage: process.env.CI ? true : false,

@@ -1,5 +1,5 @@
+import { createDatabase } from '@prisma/internals'
 import { Migrate } from '@prisma/migrate'
-import { createDatabase } from '@prisma/sdk'
 
 export type MigrateOptions = {
   connectionString: string

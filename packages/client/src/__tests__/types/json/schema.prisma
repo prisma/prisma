@@ -4,12 +4,10 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  output          = "@prisma/client"
-  previewFeatures = ["filterJson"]
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
 }
 
-// / User model comment
 model User {
   id    String  @id @default(uuid())
   email String  @unique

@@ -88,7 +88,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         'decimal.js',
         'sql-template-tag',
         '@opentelemetry/api',
-        '@prisma/sdk',
+        '@prisma/internals',
         '@prisma/engine-core',
         '@prisma/generator-helper',
       ],

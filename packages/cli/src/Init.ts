@@ -10,7 +10,7 @@ import {
   link,
   logger,
   protocolToConnectorType,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
@@ -262,7 +262,7 @@ export class Init implements Command {
         warnings.push(
           `${chalk.yellow(
             'warn',
-          )} You already have a .gitignore. Don't forget to exclude .env to not commit any secret.`,
+          )} You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
         )
       } else {
         console.error('Failed to write .gitignore file, reason: ', e)

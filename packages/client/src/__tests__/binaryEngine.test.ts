@@ -1,5 +1,5 @@
 import { BinaryEngine } from '@prisma/engine-core'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 describe('BinaryEngine', () => {

@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
@@ -70,7 +70,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -87,7 +87,7 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       SQLite database dev.db created at file:dev.db
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -121,7 +121,7 @@ describeIf(process.platform !== 'win32')('push', () => {
 
 
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -162,7 +162,7 @@ describeIf(process.platform !== 'win32')('push', () => {
         • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -196,7 +196,7 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -234,7 +234,7 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
