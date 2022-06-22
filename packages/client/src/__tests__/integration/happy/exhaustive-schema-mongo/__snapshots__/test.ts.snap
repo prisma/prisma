@@ -68,9 +68,15 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = Symbol('DbNull')
-Prisma.JsonNull = Symbol('JsonNull')
-Prisma.AnyNull = Symbol('AnyNull')
+Prisma.DbNull = objectEnumValues.instances.DbNull
+Prisma.JsonNull = objectEnumValues.instances.JsonNull
+Prisma.AnyNull = objectEnumValues.instances.AnyNull
+
+Prisma.NullTypes = {
+  DbNull: objectEnumValues.classes.DbNull,
+  JsonNull: objectEnumValues.classes.JsonNull,
+  AnyNull: objectEnumValues.classes.AnyNull
+}
 
 /**
  * Enums
@@ -944,25 +950,68 @@ export namespace Prisma {
   export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
 
   /**
+   * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
+   * 
+   * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+   */
+  namespace NullTypes {
+    /**
+    * Type of \`Prisma.DbNull\`.
+    * 
+    * You cannot use other instances of this class. Please use the \`Prisma.DbNull\` value.
+    * 
+    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+    */
+    class DbNull {
+      private DbNull: never
+      private constructor()
+    }
+
+    /**
+    * Type of \`Prisma.JsonNull\`.
+    * 
+    * You cannot use other instances of this class. Please use the \`Prisma.JsonNull\` value.
+    * 
+    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+    */
+    class JsonNull {
+      private JsonNull: never
+      private constructor()
+    }
+
+    /**
+    * Type of \`Prisma.AnyNull\`.
+    * 
+    * You cannot use other instances of this class. Please use the \`Prisma.AnyNull\` value.
+    * 
+    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+    */
+    class AnyNull {
+      private AnyNull: never
+      private constructor()
+    }
+  }
+
+  /**
    * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const DbNull: unique symbol
+  export const DbNull: NullTypes.DbNull
 
   /**
    * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const JsonNull: unique symbol
+  export const JsonNull: NullTypes.JsonNull
 
   /**
    * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const AnyNull: unique symbol
+  export const AnyNull: NullTypes.AnyNull
 
   type SelectAndInclude = {
     select: any
