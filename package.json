@@ -15,7 +15,7 @@
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
     "build": "ts-node scripts/setup.ts --build",
-    "watch": "pnpm -r run dev && WATCH=true pnpm -r run dev --parallel --stream",
+    "watch": "pnpm -r run dev && WATCH=true pnpm -r --parallel --stream run dev",
     "publish-all-dryrun": "ts-node scripts/ci/publish.ts --publish --dry-run",
     "publish-all": "ts-node scripts/ci/publish.ts --publish",
     "bump-engines": "ts-node scripts/bump-engines.ts",
