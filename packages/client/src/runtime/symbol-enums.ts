@@ -3,14 +3,30 @@
  */
 export const symbolEnumNames = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
 
-class EnumValue {
+export class ObjectEnumValue {
+  getTypeName() {
+    return this.constructor.name
+  }
+
   toString() {
-    return `Prisma.${this.constructor.name}`
+    return `Prisma.${this.getTypeName()}`
   }
 }
 
+export class DbNull extends ObjectEnumValue {
+  private _DbNull = true
+}
+
+export class JsonNull extends ObjectEnumValue {
+  private _JsonNull = true
+}
+
+export class AnyNull extends ObjectEnumValue {
+  private _AnyNull = true
+}
+
 export const enumValues = {
-  DbNull: new (class DbNull extends EnumValue {})(),
-  JsonNull: new (class JsonNull extends EnumValue {})(),
-  AnyNull: new (class AnyNull extends EnumValue {})(),
+  DbNull: new DbNull(),
+  JsonNull: new JsonNull(),
+  AnyNull: new AnyNull(),
 }

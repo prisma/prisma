@@ -13,6 +13,7 @@ import type {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
+import { ObjectEnumValue } from './symbol-enums'
 import {
   getGraphQLType,
   getInputTypeName,
@@ -673,7 +674,7 @@ export class Arg {
   constructor({ key, value, isEnum = false, error, schemaArg, inputType }: ArgOptions) {
     this.inputType = inputType
     this.key = key
-    this.value = value
+    this.value = value instanceof ObjectEnumValue ? value.getTypeName() : value
     this.isEnum = isEnum
     this.error = error
     this.schemaArg = schemaArg
@@ -1075,7 +1076,7 @@ function getInvalidTypeArg(
 ): Arg {
   const arrg = new Arg({
     key,
-    value: getSerializableValue(value),
+    value,
     isEnum: bestFittingType.location === 'enumTypes',
     inputType: bestFittingType,
     error: {
@@ -1106,7 +1107,7 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if (expectedType === 'Json' && graphQLType !== 'Symbol') {
+  if (expectedType === 'Json' && graphQLType !== 'Symbol' && !(value instanceof ObjectEnumValue)) {
     return true
   }
 
@@ -1500,20 +1501,13 @@ function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DM
   if (hasCorrectScalarType(value, arg, inputType)) {
     return new Arg({
       key,
-      value: getSerializableValue(value),
+      value,
       isEnum: inputType.location === 'enumTypes',
       schemaArg: arg,
       inputType,
     })
   }
   return getInvalidTypeArg(key, value, arg, inputType)
-}
-
-function getSerializableValue(value: any): any {
-  if (typeof value === 'symbol') {
-    return value.description
-  }
-  return value
 }
 
 function objectToArgs(

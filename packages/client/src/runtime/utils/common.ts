@@ -5,7 +5,7 @@ import leven from 'js-levenshtein'
 
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
-import { symbolEnumNames } from '../symbol-enums'
+import { enumValues, ObjectEnumValue, symbolEnumNames } from '../symbol-enums'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
@@ -137,6 +137,10 @@ export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType):
     return (potentialType as DMMF.SchemaEnum).name
   }
 
+  if (value instanceof ObjectEnumValue) {
+    return value.getTypeName()
+  }
+
   if (Array.isArray(value)) {
     let scalarTypes = value.reduce((acc, val) => {
       const type = getGraphQLType(val, inputType)
@@ -187,10 +191,8 @@ export function isValidEnumValue(value: any, inputType?: DMMF.SchemaArgInputType
   }
 
   if (inputType?.namespace === 'prisma' && symbolEnumNames.includes(enumType.name)) {
-    if (typeof value !== 'symbol' || !value.description) {
-      return false
-    }
-    return enumType.values.includes(value.description)
+    const name = value?.constructor.name
+    return typeof name === 'string' && enumValues[name] === value && enumType.values.includes(name)
   }
 
   return typeof value === 'string' && enumType.values.includes(value)

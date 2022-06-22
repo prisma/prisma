@@ -56,12 +56,12 @@ testMatrix.setupTestSuite(
                 42   await expect(
               → 43     prisma.requiredJsonField.create({
                          data: {
-                           json: Symbol(DbNull)
-                                 ~~~~~~~~~~~~~~
+                           json: Prisma.DbNull
+                           ~~~~~~~~~~~~~~~
                          }
                        })
 
-              Argument json: Provided value Symbol(DbNull) of type Symbol on prisma.createOneRequiredJsonField is not a enumTypes.
+              Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a enumTypes.
               → Possible values: JsonNullValueInput.JsonNull
 
 
