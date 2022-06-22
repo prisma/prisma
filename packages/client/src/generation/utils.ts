@@ -1,6 +1,8 @@
+import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
 
+import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 
@@ -103,7 +105,7 @@ export function getArgName(name: string, findMany: boolean): string {
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
-export function getModelArgName(modelName: string, action?: DMMF.ModelAction): string {
+export function getModelArgName(modelName: string, action?: ClientModelAction): string {
   if (!action) {
     return `${modelName}Args`
   }
@@ -138,6 +140,12 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
       return `${modelName}FindRawArgs`
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
+    case 'findFirstOrThrow':
+      return `${modelName}FindFirstOrThrowArgs`
+    case 'findUniqueOrThrow':
+      return `${modelName}FindUniqueOrThrowArgs`
+    default:
+      assertNever(action, 'Unknown action')
   }
 }
 
@@ -199,7 +207,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: DMMF.ModelAction
+  actionName: ActionName
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
@@ -246,6 +254,13 @@ export function getReturnType({
     return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
       name,
     )}<T>${listClose}${promiseClose}>`
+  }
+
+  if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
+    return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T>',
+      isList,
+    )}>>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
