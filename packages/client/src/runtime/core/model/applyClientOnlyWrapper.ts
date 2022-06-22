@@ -10,17 +10,17 @@ type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown
 
 export function wrapRequest(
   prop: ClientOnlyModelAction,
-  jsModelName: string,
+  dmmfModelName: string,
   requestCallback: RequestCallback,
 ): RequestCallback {
   if (prop === 'findFirstOrThrow' || prop === 'findUniqueOrThrow') {
-    return applyOrThrowWrapper(jsModelName, requestCallback)
+    return applyOrThrowWrapper(dmmfModelName, requestCallback)
   }
 
   assertNever(prop, 'Unknown wrapper name')
 }
 
-function applyOrThrowWrapper(jsModelName: string, requestCallback: RequestCallback): RequestCallback {
+function applyOrThrowWrapper(dmmfModelName: string, requestCallback: RequestCallback): RequestCallback {
   return async (requestParams) => {
     if ('rejectOnNotFound' in requestParams.args) {
       const { stack } = printStack({
@@ -31,7 +31,7 @@ function applyOrThrowWrapper(jsModelName: string, requestCallback: RequestCallba
     }
     const result = await requestCallback(requestParams)
     if (result === null || result === undefined) {
-      throw new NotFoundError(`No ${jsModelName} found`)
+      throw new NotFoundError(`No ${dmmfModelName} found`)
     }
     return result
   }

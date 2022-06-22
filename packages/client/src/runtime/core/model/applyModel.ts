@@ -47,7 +47,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
 
       let requestFn = (params: InternalRequestParams) => client._request(params)
       if (isClientOnlyAction(prop)) {
-        requestFn = wrapRequest(prop, jsModelName, requestFn)
+        requestFn = wrapRequest(prop, dmmfModelName, requestFn)
       }
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise

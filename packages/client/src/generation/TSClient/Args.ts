@@ -98,7 +98,11 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB
     modelArgName: string,
   ) {
     const baseTypeName = getBaseTypeName(name, action)
+    const replacement = action === DMMF.ModelAction.findFirst ? 'findFirstOrThrow' : 'findUniqueOrThrow'
 
+    // we have to use interface for arg type here, since as for TS 4.7.2
+    // using BaseType & { rejectOnNotFound } intersection breaks type checking for `select`
+    // option
     return `
 /**
  * ${name} base type for ${action} actions
@@ -110,7 +114,13 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB
 /**
  * ${name}: ${action}
  */
-export type ${modelArgName} = ${baseTypeName} & RejectOnNotFoundField
+export interface ${modelArgName} extends ${baseTypeName} {
+ /**
+  * Throw an Error if query returns no results
+  * @deprecated since 4.0.0: use \`${replacement}\` method instead
+  */
+  rejectOnNotFound?: RejectOnNotFound
+}
       `
   }
 
