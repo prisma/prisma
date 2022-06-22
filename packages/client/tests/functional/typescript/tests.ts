@@ -35,9 +35,16 @@ function getAllTestSuiteTypeChecks(fileNames: string[]) {
 }
 
 describe('typescript', () => {
-  const suitePaths = glob.sync('./**/.generated/**/*.ts', {
-    ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema.ts'],
-  })
+  const suitePaths = glob
+    .sync('./**/.generated/**/*.ts', {
+      ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema.ts'],
+    })
+    // global.d.ts does not really needs typechecking, but
+    // since no sources import it directly, it has to be included
+    // in the source set in order for global `describeIf` and `testIf` to
+    // be discovered
+    .concat([path.resolve(__dirname, '..', 'globals.d.ts')])
+
   const suiteChecks = getAllTestSuiteTypeChecks(suitePaths)
   const suiteTable = map(suitePaths, (path) => [getTestSuiteDisplayName(path), path])
 

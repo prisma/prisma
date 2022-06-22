@@ -1,7 +1,7 @@
 import { BinaryType } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import { ClientEngineType, getBinaryVersion, getClientEngineType } from '@prisma/internals'
 import type { Platform } from '@prisma/sdk'
-import { ClientEngineType, getBinaryVersion, getClientEngineType } from '@prisma/sdk'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'

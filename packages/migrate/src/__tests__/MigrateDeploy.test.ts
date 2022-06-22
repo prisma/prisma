@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs-jetpack'
 
 import { MigrateDeploy } from '../commands/MigrateDeploy'

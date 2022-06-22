@@ -4,10 +4,6 @@
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
-  "schedule": [
-    "after 9pm",
-    "before 8am"
-  ],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",
@@ -80,7 +76,8 @@
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
-      "updateTypes": ["patch", "minor"]
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "Studio",
@@ -96,17 +93,20 @@
     {
       "groupName": "Jest",
       "automerge": "true",
-      "matchPackagePatterns": [".*jest.*"]
+      "matchPackagePatterns": [".*jest.*"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "sql-template-tag",
       "packageNames": ["sql-template-tag"],
-      "updateTypes": ["patch", "minor"]
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
-      "packageNames": ["node-fetch"]
+      "packageNames": ["node-fetch"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "react-prisma",

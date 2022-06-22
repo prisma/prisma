@@ -17,7 +17,7 @@ import {
   link,
   loadEnvFile,
   protocolToConnectorType,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -205,7 +205,7 @@ Set composite types introspection depth to 2 levels
 
       if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-You can explicitely ignore and override your current local schema file with ${chalk.green(
+You can explicitly ignore and override your current local schema file with ${chalk.green(
           getCommandWithExecutor('prisma db pull --force'),
         )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(

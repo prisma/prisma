@@ -9,7 +9,7 @@ import {
   getDMMF,
   getPackedPackage,
   mapPreviewFeatures,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'

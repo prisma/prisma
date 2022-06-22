@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/sdk'
+import { jestConsoleContext, jestContext, loadEnvFile } from '@prisma/internals'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 

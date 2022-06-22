@@ -1,4 +1,4 @@
-import { getClientEngineType, getConfig, getPlatform, parseEnvValue } from '@prisma/sdk'
+import { getClientEngineType, getConfig, getPlatform, parseEnvValue } from '@prisma/internals'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
@@ -56,7 +56,7 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     transpile: false,
     testMode: true,
-    activeProvider: suiteConfig['provider'],
+    activeProvider: suiteConfig['provider'] as string,
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),

@@ -8,7 +8,7 @@ import {
   mapPreviewFeatures,
   parseEnvValue,
   printConfigWarnings,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
@@ -60,6 +60,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
+    dataProxy: false,
   }
 
   return getPrismaClient(options)

@@ -8,7 +8,7 @@ import {
   isCi,
   isError,
   loadEnvFile,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import prompt from 'prompts'
 

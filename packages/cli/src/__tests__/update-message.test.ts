@@ -1,6 +1,6 @@
 import 'ts-node/register'
 
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 
 import { printUpdateMessage } from '../utils/printUpdateMessage'
 

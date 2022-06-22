@@ -9,7 +9,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
-    "directory": "packages/sdk"
+    "directory": "packages/engine-core"
   },
   "maintainers": [
     "Joël Galeran <galeran@prisma.io>",
@@ -18,14 +18,14 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@swc/core": "1.2.197",
+    "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
-    "@types/jest": "28.1.1",
-    "@types/node": "16.11.39",
-    "esbuild": "0.14.43",
+    "@types/jest": "28.1.3",
+    "@types/node": "16.11.41",
+    "esbuild": "0.14.47",
     "jest": "28.1.1",
     "jest-junit": "13.2.0",
-    "typescript": "4.7.3"
+    "typescript": "4.7.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -35,9 +35,9 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines": "3.16.0-10.f1713a428895ef1063715294c57993d848796a4c",
+    "@prisma/engines": "3.16.0-38.f2024504b504be7891d64629a6c8e294cf5c31f3",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-10.f1713a428895ef1063715294c57993d848796a4c",
+    "@prisma/get-platform": "3.16.0-38.f2024504b504be7891d64629a6c8e294cf5c31f3",
     "chalk": "4.1.2",
     "execa": "5.1.1",
     "get-stream": "6.0.1",
@@ -45,7 +45,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "undici": "5.1.1"
+    "undici": "5.5.1"
   },
   "files": [
     "README.md",

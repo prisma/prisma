@@ -4,6 +4,11 @@ import path from 'path'
 import { getDMMF } from '../../../../generation/getDMMF'
 import { compileFile } from '../../../../utils/compileFile'
 
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+if (isMacOrWindowsCI) {
+  jest.setTimeout(80_000)
+}
+
 /**
  * Makes sure, that the actual dmmf value and types are in match
  */
