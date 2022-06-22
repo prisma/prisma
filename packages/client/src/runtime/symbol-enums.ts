@@ -13,17 +13,11 @@ export class ObjectEnumValue {
   }
 }
 
-export class DbNull extends ObjectEnumValue {
-  private _DbNull = true
-}
+export class DbNull extends ObjectEnumValue {}
 
-export class JsonNull extends ObjectEnumValue {
-  private _JsonNull = true
-}
+export class JsonNull extends ObjectEnumValue {}
 
-export class AnyNull extends ObjectEnumValue {
-  private _AnyNull = true
-}
+export class AnyNull extends ObjectEnumValue {}
 
 export const enumValues = {
   DbNull: new DbNull(),
