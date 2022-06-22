@@ -138,7 +138,7 @@ export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType):
   }
 
   if (value instanceof ObjectEnumValue) {
-    return value.getTypeName()
+    return value._getName()
   }
 
   if (Array.isArray(value)) {

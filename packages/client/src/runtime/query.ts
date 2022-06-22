@@ -674,7 +674,7 @@ export class Arg {
   constructor({ key, value, isEnum = false, error, schemaArg, inputType }: ArgOptions) {
     this.inputType = inputType
     this.key = key
-    this.value = value instanceof ObjectEnumValue ? value.getTypeName() : value
+    this.value = value instanceof ObjectEnumValue ? value._getName() : value
     this.isEnum = isEnum
     this.error = error
     this.schemaArg = schemaArg

@@ -4,12 +4,12 @@
 export const symbolEnumNames = ['JsonNullValueInput', 'NullableJsonNullValueInput', 'JsonNullValueFilter']
 
 export class ObjectEnumValue {
-  getTypeName() {
+  _getName() {
     return this.constructor.name
   }
 
   toString() {
-    return `Prisma.${this.getTypeName()}`
+    return `Prisma.${this._getName()}`
   }
 }
 
