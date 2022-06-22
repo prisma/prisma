@@ -1303,6 +1303,14 @@ export namespace Prisma {
     : IsReject<GlobalRejectSettings>
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
+  export type RejectOnNotFoundField = {
+    /**
+     * Throw an Error if query returns no results
+     * @deprecated since 4.0.0: use \`findFirstOrThrow\` or \`findUniqueOrThrow\` method instead
+     */
+    rejectOnNotFound?: RejectOnNotFound
+  }
+
   export interface PrismaClientOptions {
     /**
      * Configure findUnique/findFirst to throw an error if the query returns null. 
@@ -2270,9 +2278,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * Post findUnique
+   * Post base type for findUnique actions
    */
-  export type PostFindUniqueArgs = {
+  export type PostFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the Post
      * 
@@ -2283,12 +2291,6 @@ export namespace Prisma {
      * 
     **/
     include?: PostInclude | null
-    /**
-     * Throw an Error if a Post can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which Post to fetch.
      * 
@@ -2296,11 +2298,16 @@ export namespace Prisma {
     where: PostWhereUniqueInput
   }
 
+  /**
+   * Post: findUnique
+   */
+  export type PostFindUniqueArgs = PostFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * Post findFirst
+   * Post base type for findFirst actions
    */
-  export type PostFindFirstArgs = {
+  export type PostFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the Post
      * 
@@ -2311,12 +2318,6 @@ export namespace Prisma {
      * 
     **/
     include?: PostInclude | null
-    /**
-     * Throw an Error if a Post can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which Post to fetch.
      * 
@@ -2359,6 +2360,11 @@ export namespace Prisma {
     distinct?: Enumerable<PostScalarFieldEnum>
   }
 
+  /**
+   * Post: findFirst
+   */
+  export type PostFindFirstArgs = PostFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * Post findMany
@@ -2557,83 +2563,16 @@ export namespace Prisma {
 
 
   /**
-   * Post findUniqueOrThrow
+   * Post: findUniqueOrThrow
    */
-  export type PostFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the Post
-     * 
-    **/
-    select?: PostSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: PostInclude | null
-    /**
-     * Filter, which Post to fetch.
-     * 
-    **/
-    where: PostWhereUniqueInput
-  }
-
+  export type PostFindUniqueOrThrowArgs = PostFindUniqueArgsBase
+      
 
   /**
-   * Post findFirstOrThrow
+   * Post: findFirstOrThrow
    */
-  export type PostFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the Post
-     * 
-    **/
-    select?: PostSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: PostInclude | null
-    /**
-     * Filter, which Post to fetch.
-     * 
-    **/
-    where?: PostWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Posts to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<PostOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Posts.
-     * 
-    **/
-    cursor?: PostWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` Posts from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` Posts.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Posts.
-     * 
-    **/
-    distinct?: Enumerable<PostScalarFieldEnum>
-  }
-
+  export type PostFindFirstOrThrowArgs = PostFindFirstArgsBase
+      
 
   /**
    * Post without action
@@ -3367,9 +3306,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * User findUnique
+   * User base type for findUnique actions
    */
-  export type UserFindUniqueArgs = {
+  export type UserFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the User
      * 
@@ -3380,12 +3319,6 @@ export namespace Prisma {
      * 
     **/
     include?: UserInclude | null
-    /**
-     * Throw an Error if a User can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which User to fetch.
      * 
@@ -3393,11 +3326,16 @@ export namespace Prisma {
     where: UserWhereUniqueInput
   }
 
+  /**
+   * User: findUnique
+   */
+  export type UserFindUniqueArgs = UserFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * User findFirst
+   * User base type for findFirst actions
    */
-  export type UserFindFirstArgs = {
+  export type UserFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the User
      * 
@@ -3408,12 +3346,6 @@ export namespace Prisma {
      * 
     **/
     include?: UserInclude | null
-    /**
-     * Throw an Error if a User can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which User to fetch.
      * 
@@ -3456,6 +3388,11 @@ export namespace Prisma {
     distinct?: Enumerable<UserScalarFieldEnum>
   }
 
+  /**
+   * User: findFirst
+   */
+  export type UserFindFirstArgs = UserFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * User findMany
@@ -3654,83 +3591,16 @@ export namespace Prisma {
 
 
   /**
-   * User findUniqueOrThrow
+   * User: findUniqueOrThrow
    */
-  export type UserFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the User
-     * 
-    **/
-    select?: UserSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: UserInclude | null
-    /**
-     * Filter, which User to fetch.
-     * 
-    **/
-    where: UserWhereUniqueInput
-  }
-
+  export type UserFindUniqueOrThrowArgs = UserFindUniqueArgsBase
+      
 
   /**
-   * User findFirstOrThrow
+   * User: findFirstOrThrow
    */
-  export type UserFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the User
-     * 
-    **/
-    select?: UserSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: UserInclude | null
-    /**
-     * Filter, which User to fetch.
-     * 
-    **/
-    where?: UserWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of Users to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<UserOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for Users.
-     * 
-    **/
-    cursor?: UserWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` Users from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` Users.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of Users.
-     * 
-    **/
-    distinct?: Enumerable<UserScalarFieldEnum>
-  }
-
+  export type UserFindFirstOrThrowArgs = UserFindFirstArgsBase
+      
 
   /**
    * User without action
@@ -4456,9 +4326,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * M findUnique
+   * M base type for findUnique actions
    */
-  export type MFindUniqueArgs = {
+  export type MFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the M
      * 
@@ -4469,12 +4339,6 @@ export namespace Prisma {
      * 
     **/
     include?: MInclude | null
-    /**
-     * Throw an Error if a M can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which M to fetch.
      * 
@@ -4482,11 +4346,16 @@ export namespace Prisma {
     where: MWhereUniqueInput
   }
 
+  /**
+   * M: findUnique
+   */
+  export type MFindUniqueArgs = MFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * M findFirst
+   * M base type for findFirst actions
    */
-  export type MFindFirstArgs = {
+  export type MFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the M
      * 
@@ -4497,12 +4366,6 @@ export namespace Prisma {
      * 
     **/
     include?: MInclude | null
-    /**
-     * Throw an Error if a M can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which M to fetch.
      * 
@@ -4545,6 +4408,11 @@ export namespace Prisma {
     distinct?: Enumerable<MScalarFieldEnum>
   }
 
+  /**
+   * M: findFirst
+   */
+  export type MFindFirstArgs = MFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * M findMany
@@ -4743,83 +4611,16 @@ export namespace Prisma {
 
 
   /**
-   * M findUniqueOrThrow
+   * M: findUniqueOrThrow
    */
-  export type MFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the M
-     * 
-    **/
-    select?: MSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: MInclude | null
-    /**
-     * Filter, which M to fetch.
-     * 
-    **/
-    where: MWhereUniqueInput
-  }
-
+  export type MFindUniqueOrThrowArgs = MFindUniqueArgsBase
+      
 
   /**
-   * M findFirstOrThrow
+   * M: findFirstOrThrow
    */
-  export type MFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the M
-     * 
-    **/
-    select?: MSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: MInclude | null
-    /**
-     * Filter, which M to fetch.
-     * 
-    **/
-    where?: MWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of MS to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<MOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for MS.
-     * 
-    **/
-    cursor?: MWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` MS from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` MS.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of MS.
-     * 
-    **/
-    distinct?: Enumerable<MScalarFieldEnum>
-  }
-
+  export type MFindFirstOrThrowArgs = MFindFirstArgsBase
+      
 
   /**
    * M without action
@@ -5545,9 +5346,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * N findUnique
+   * N base type for findUnique actions
    */
-  export type NFindUniqueArgs = {
+  export type NFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the N
      * 
@@ -5558,12 +5359,6 @@ export namespace Prisma {
      * 
     **/
     include?: NInclude | null
-    /**
-     * Throw an Error if a N can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which N to fetch.
      * 
@@ -5571,11 +5366,16 @@ export namespace Prisma {
     where: NWhereUniqueInput
   }
 
+  /**
+   * N: findUnique
+   */
+  export type NFindUniqueArgs = NFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * N findFirst
+   * N base type for findFirst actions
    */
-  export type NFindFirstArgs = {
+  export type NFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the N
      * 
@@ -5586,12 +5386,6 @@ export namespace Prisma {
      * 
     **/
     include?: NInclude | null
-    /**
-     * Throw an Error if a N can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which N to fetch.
      * 
@@ -5634,6 +5428,11 @@ export namespace Prisma {
     distinct?: Enumerable<NScalarFieldEnum>
   }
 
+  /**
+   * N: findFirst
+   */
+  export type NFindFirstArgs = NFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * N findMany
@@ -5832,83 +5631,16 @@ export namespace Prisma {
 
 
   /**
-   * N findUniqueOrThrow
+   * N: findUniqueOrThrow
    */
-  export type NFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the N
-     * 
-    **/
-    select?: NSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: NInclude | null
-    /**
-     * Filter, which N to fetch.
-     * 
-    **/
-    where: NWhereUniqueInput
-  }
-
+  export type NFindUniqueOrThrowArgs = NFindUniqueArgsBase
+      
 
   /**
-   * N findFirstOrThrow
+   * N: findFirstOrThrow
    */
-  export type NFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the N
-     * 
-    **/
-    select?: NSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: NInclude | null
-    /**
-     * Filter, which N to fetch.
-     * 
-    **/
-    where?: NWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of NS to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<NOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for NS.
-     * 
-    **/
-    cursor?: NWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` NS from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` NS.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of NS.
-     * 
-    **/
-    distinct?: Enumerable<NScalarFieldEnum>
-  }
-
+  export type NFindFirstOrThrowArgs = NFindFirstArgsBase
+      
 
   /**
    * N without action
@@ -6634,9 +6366,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * OneOptional findUnique
+   * OneOptional base type for findUnique actions
    */
-  export type OneOptionalFindUniqueArgs = {
+  export type OneOptionalFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the OneOptional
      * 
@@ -6647,12 +6379,6 @@ export namespace Prisma {
      * 
     **/
     include?: OneOptionalInclude | null
-    /**
-     * Throw an Error if a OneOptional can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OneOptional to fetch.
      * 
@@ -6660,11 +6386,16 @@ export namespace Prisma {
     where: OneOptionalWhereUniqueInput
   }
 
+  /**
+   * OneOptional: findUnique
+   */
+  export type OneOptionalFindUniqueArgs = OneOptionalFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * OneOptional findFirst
+   * OneOptional base type for findFirst actions
    */
-  export type OneOptionalFindFirstArgs = {
+  export type OneOptionalFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the OneOptional
      * 
@@ -6675,12 +6406,6 @@ export namespace Prisma {
      * 
     **/
     include?: OneOptionalInclude | null
-    /**
-     * Throw an Error if a OneOptional can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OneOptional to fetch.
      * 
@@ -6723,6 +6448,11 @@ export namespace Prisma {
     distinct?: Enumerable<OneOptionalScalarFieldEnum>
   }
 
+  /**
+   * OneOptional: findFirst
+   */
+  export type OneOptionalFindFirstArgs = OneOptionalFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * OneOptional findMany
@@ -6921,83 +6651,16 @@ export namespace Prisma {
 
 
   /**
-   * OneOptional findUniqueOrThrow
+   * OneOptional: findUniqueOrThrow
    */
-  export type OneOptionalFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the OneOptional
-     * 
-    **/
-    select?: OneOptionalSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: OneOptionalInclude | null
-    /**
-     * Filter, which OneOptional to fetch.
-     * 
-    **/
-    where: OneOptionalWhereUniqueInput
-  }
-
+  export type OneOptionalFindUniqueOrThrowArgs = OneOptionalFindUniqueArgsBase
+      
 
   /**
-   * OneOptional findFirstOrThrow
+   * OneOptional: findFirstOrThrow
    */
-  export type OneOptionalFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the OneOptional
-     * 
-    **/
-    select?: OneOptionalSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: OneOptionalInclude | null
-    /**
-     * Filter, which OneOptional to fetch.
-     * 
-    **/
-    where?: OneOptionalWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of OneOptionals to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for OneOptionals.
-     * 
-    **/
-    cursor?: OneOptionalWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` OneOptionals from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` OneOptionals.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of OneOptionals.
-     * 
-    **/
-    distinct?: Enumerable<OneOptionalScalarFieldEnum>
-  }
-
+  export type OneOptionalFindFirstOrThrowArgs = OneOptionalFindFirstArgsBase
+      
 
   /**
    * OneOptional without action
@@ -7731,9 +7394,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * ManyRequired findUnique
+   * ManyRequired base type for findUnique actions
    */
-  export type ManyRequiredFindUniqueArgs = {
+  export type ManyRequiredFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the ManyRequired
      * 
@@ -7744,12 +7407,6 @@ export namespace Prisma {
      * 
     **/
     include?: ManyRequiredInclude | null
-    /**
-     * Throw an Error if a ManyRequired can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which ManyRequired to fetch.
      * 
@@ -7757,11 +7414,16 @@ export namespace Prisma {
     where: ManyRequiredWhereUniqueInput
   }
 
+  /**
+   * ManyRequired: findUnique
+   */
+  export type ManyRequiredFindUniqueArgs = ManyRequiredFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * ManyRequired findFirst
+   * ManyRequired base type for findFirst actions
    */
-  export type ManyRequiredFindFirstArgs = {
+  export type ManyRequiredFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the ManyRequired
      * 
@@ -7772,12 +7434,6 @@ export namespace Prisma {
      * 
     **/
     include?: ManyRequiredInclude | null
-    /**
-     * Throw an Error if a ManyRequired can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which ManyRequired to fetch.
      * 
@@ -7820,6 +7476,11 @@ export namespace Prisma {
     distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
 
+  /**
+   * ManyRequired: findFirst
+   */
+  export type ManyRequiredFindFirstArgs = ManyRequiredFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * ManyRequired findMany
@@ -8018,83 +7679,16 @@ export namespace Prisma {
 
 
   /**
-   * ManyRequired findUniqueOrThrow
+   * ManyRequired: findUniqueOrThrow
    */
-  export type ManyRequiredFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the ManyRequired
-     * 
-    **/
-    select?: ManyRequiredSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: ManyRequiredInclude | null
-    /**
-     * Filter, which ManyRequired to fetch.
-     * 
-    **/
-    where: ManyRequiredWhereUniqueInput
-  }
-
+  export type ManyRequiredFindUniqueOrThrowArgs = ManyRequiredFindUniqueArgsBase
+      
 
   /**
-   * ManyRequired findFirstOrThrow
+   * ManyRequired: findFirstOrThrow
    */
-  export type ManyRequiredFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the ManyRequired
-     * 
-    **/
-    select?: ManyRequiredSelect | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: ManyRequiredInclude | null
-    /**
-     * Filter, which ManyRequired to fetch.
-     * 
-    **/
-    where?: ManyRequiredWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of ManyRequireds to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for ManyRequireds.
-     * 
-    **/
-    cursor?: ManyRequiredWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` ManyRequireds from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` ManyRequireds.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of ManyRequireds.
-     * 
-    **/
-    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
-  }
-
+  export type ManyRequiredFindFirstOrThrowArgs = ManyRequiredFindFirstArgsBase
+      
 
   /**
    * ManyRequired without action
@@ -8828,9 +8422,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * OptionalSide1 findUnique
+   * OptionalSide1 base type for findUnique actions
    */
-  export type OptionalSide1FindUniqueArgs = {
+  export type OptionalSide1FindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the OptionalSide1
      * 
@@ -8841,12 +8435,6 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide1Include | null
-    /**
-     * Throw an Error if a OptionalSide1 can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide1 to fetch.
      * 
@@ -8854,11 +8442,16 @@ export namespace Prisma {
     where: OptionalSide1WhereUniqueInput
   }
 
+  /**
+   * OptionalSide1: findUnique
+   */
+  export type OptionalSide1FindUniqueArgs = OptionalSide1FindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * OptionalSide1 findFirst
+   * OptionalSide1 base type for findFirst actions
    */
-  export type OptionalSide1FindFirstArgs = {
+  export type OptionalSide1FindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the OptionalSide1
      * 
@@ -8869,12 +8462,6 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide1Include | null
-    /**
-     * Throw an Error if a OptionalSide1 can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide1 to fetch.
      * 
@@ -8917,6 +8504,11 @@ export namespace Prisma {
     distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
   }
 
+  /**
+   * OptionalSide1: findFirst
+   */
+  export type OptionalSide1FindFirstArgs = OptionalSide1FindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * OptionalSide1 findMany
@@ -9115,83 +8707,16 @@ export namespace Prisma {
 
 
   /**
-   * OptionalSide1 findUniqueOrThrow
+   * OptionalSide1: findUniqueOrThrow
    */
-  export type OptionalSide1FindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the OptionalSide1
-     * 
-    **/
-    select?: OptionalSide1Select | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: OptionalSide1Include | null
-    /**
-     * Filter, which OptionalSide1 to fetch.
-     * 
-    **/
-    where: OptionalSide1WhereUniqueInput
-  }
-
+  export type OptionalSide1FindUniqueOrThrowArgs = OptionalSide1FindUniqueArgsBase
+      
 
   /**
-   * OptionalSide1 findFirstOrThrow
+   * OptionalSide1: findFirstOrThrow
    */
-  export type OptionalSide1FindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the OptionalSide1
-     * 
-    **/
-    select?: OptionalSide1Select | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: OptionalSide1Include | null
-    /**
-     * Filter, which OptionalSide1 to fetch.
-     * 
-    **/
-    where?: OptionalSide1WhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of OptionalSide1s to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for OptionalSide1s.
-     * 
-    **/
-    cursor?: OptionalSide1WhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` OptionalSide1s from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` OptionalSide1s.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of OptionalSide1s.
-     * 
-    **/
-    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
-  }
-
+  export type OptionalSide1FindFirstOrThrowArgs = OptionalSide1FindFirstArgsBase
+      
 
   /**
    * OptionalSide1 without action
@@ -9913,9 +9438,9 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * OptionalSide2 findUnique
+   * OptionalSide2 base type for findUnique actions
    */
-  export type OptionalSide2FindUniqueArgs = {
+  export type OptionalSide2FindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the OptionalSide2
      * 
@@ -9926,12 +9451,6 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide2Include | null
-    /**
-     * Throw an Error if a OptionalSide2 can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide2 to fetch.
      * 
@@ -9939,11 +9458,16 @@ export namespace Prisma {
     where: OptionalSide2WhereUniqueInput
   }
 
+  /**
+   * OptionalSide2: findUnique
+   */
+  export type OptionalSide2FindUniqueArgs = OptionalSide2FindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * OptionalSide2 findFirst
+   * OptionalSide2 base type for findFirst actions
    */
-  export type OptionalSide2FindFirstArgs = {
+  export type OptionalSide2FindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the OptionalSide2
      * 
@@ -9954,12 +9478,6 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide2Include | null
-    /**
-     * Throw an Error if a OptionalSide2 can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which OptionalSide2 to fetch.
      * 
@@ -10002,6 +9520,11 @@ export namespace Prisma {
     distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
   }
 
+  /**
+   * OptionalSide2: findFirst
+   */
+  export type OptionalSide2FindFirstArgs = OptionalSide2FindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * OptionalSide2 findMany
@@ -10200,83 +9723,16 @@ export namespace Prisma {
 
 
   /**
-   * OptionalSide2 findUniqueOrThrow
+   * OptionalSide2: findUniqueOrThrow
    */
-  export type OptionalSide2FindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the OptionalSide2
-     * 
-    **/
-    select?: OptionalSide2Select | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: OptionalSide2Include | null
-    /**
-     * Filter, which OptionalSide2 to fetch.
-     * 
-    **/
-    where: OptionalSide2WhereUniqueInput
-  }
-
+  export type OptionalSide2FindUniqueOrThrowArgs = OptionalSide2FindUniqueArgsBase
+      
 
   /**
-   * OptionalSide2 findFirstOrThrow
+   * OptionalSide2: findFirstOrThrow
    */
-  export type OptionalSide2FindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the OptionalSide2
-     * 
-    **/
-    select?: OptionalSide2Select | null
-    /**
-     * Choose, which related nodes to fetch as well.
-     * 
-    **/
-    include?: OptionalSide2Include | null
-    /**
-     * Filter, which OptionalSide2 to fetch.
-     * 
-    **/
-    where?: OptionalSide2WhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of OptionalSide2s to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for OptionalSide2s.
-     * 
-    **/
-    cursor?: OptionalSide2WhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` OptionalSide2s from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` OptionalSide2s.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of OptionalSide2s.
-     * 
-    **/
-    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
-  }
-
+  export type OptionalSide2FindFirstOrThrowArgs = OptionalSide2FindFirstArgsBase
+      
 
   /**
    * OptionalSide2 without action
@@ -10969,20 +10425,14 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * A findUnique
+   * A base type for findUnique actions
    */
-  export type AFindUniqueArgs = {
+  export type AFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the A
      * 
     **/
     select?: ASelect | null
-    /**
-     * Throw an Error if a A can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which A to fetch.
      * 
@@ -10990,22 +10440,21 @@ export namespace Prisma {
     where: AWhereUniqueInput
   }
 
+  /**
+   * A: findUnique
+   */
+  export type AFindUniqueArgs = AFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * A findFirst
+   * A base type for findFirst actions
    */
-  export type AFindFirstArgs = {
+  export type AFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the A
      * 
     **/
     select?: ASelect | null
-    /**
-     * Throw an Error if a A can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which A to fetch.
      * 
@@ -11048,6 +10497,11 @@ export namespace Prisma {
     distinct?: Enumerable<AScalarFieldEnum>
   }
 
+  /**
+   * A: findFirst
+   */
+  export type AFindFirstArgs = AFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * A findMany
@@ -11221,73 +10675,16 @@ export namespace Prisma {
 
 
   /**
-   * A findUniqueOrThrow
+   * A: findUniqueOrThrow
    */
-  export type AFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the A
-     * 
-    **/
-    select?: ASelect | null
-    /**
-     * Filter, which A to fetch.
-     * 
-    **/
-    where: AWhereUniqueInput
-  }
-
+  export type AFindUniqueOrThrowArgs = AFindUniqueArgsBase
+      
 
   /**
-   * A findFirstOrThrow
+   * A: findFirstOrThrow
    */
-  export type AFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the A
-     * 
-    **/
-    select?: ASelect | null
-    /**
-     * Filter, which A to fetch.
-     * 
-    **/
-    where?: AWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of AS to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<AOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for AS.
-     * 
-    **/
-    cursor?: AWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` AS from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` AS.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of AS.
-     * 
-    **/
-    distinct?: Enumerable<AScalarFieldEnum>
-  }
-
+  export type AFindFirstOrThrowArgs = AFindFirstArgsBase
+      
 
   /**
    * A without action
@@ -11935,20 +11332,14 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * B findUnique
+   * B base type for findUnique actions
    */
-  export type BFindUniqueArgs = {
+  export type BFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the B
      * 
     **/
     select?: BSelect | null
-    /**
-     * Throw an Error if a B can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which B to fetch.
      * 
@@ -11956,22 +11347,21 @@ export namespace Prisma {
     where: BWhereUniqueInput
   }
 
+  /**
+   * B: findUnique
+   */
+  export type BFindUniqueArgs = BFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * B findFirst
+   * B base type for findFirst actions
    */
-  export type BFindFirstArgs = {
+  export type BFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the B
      * 
     **/
     select?: BSelect | null
-    /**
-     * Throw an Error if a B can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which B to fetch.
      * 
@@ -12014,6 +11404,11 @@ export namespace Prisma {
     distinct?: Enumerable<BScalarFieldEnum>
   }
 
+  /**
+   * B: findFirst
+   */
+  export type BFindFirstArgs = BFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * B findMany
@@ -12187,73 +11582,16 @@ export namespace Prisma {
 
 
   /**
-   * B findUniqueOrThrow
+   * B: findUniqueOrThrow
    */
-  export type BFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the B
-     * 
-    **/
-    select?: BSelect | null
-    /**
-     * Filter, which B to fetch.
-     * 
-    **/
-    where: BWhereUniqueInput
-  }
-
+  export type BFindUniqueOrThrowArgs = BFindUniqueArgsBase
+      
 
   /**
-   * B findFirstOrThrow
+   * B: findFirstOrThrow
    */
-  export type BFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the B
-     * 
-    **/
-    select?: BSelect | null
-    /**
-     * Filter, which B to fetch.
-     * 
-    **/
-    where?: BWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of BS to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<BOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for BS.
-     * 
-    **/
-    cursor?: BWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` BS from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` BS.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of BS.
-     * 
-    **/
-    distinct?: Enumerable<BScalarFieldEnum>
-  }
-
+  export type BFindFirstOrThrowArgs = BFindFirstArgsBase
+      
 
   /**
    * B without action
@@ -12871,20 +12209,14 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * C findUnique
+   * C base type for findUnique actions
    */
-  export type CFindUniqueArgs = {
+  export type CFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the C
      * 
     **/
     select?: CSelect | null
-    /**
-     * Throw an Error if a C can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which C to fetch.
      * 
@@ -12892,22 +12224,21 @@ export namespace Prisma {
     where: CWhereUniqueInput
   }
 
+  /**
+   * C: findUnique
+   */
+  export type CFindUniqueArgs = CFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * C findFirst
+   * C base type for findFirst actions
    */
-  export type CFindFirstArgs = {
+  export type CFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the C
      * 
     **/
     select?: CSelect | null
-    /**
-     * Throw an Error if a C can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which C to fetch.
      * 
@@ -12950,6 +12281,11 @@ export namespace Prisma {
     distinct?: Enumerable<CScalarFieldEnum>
   }
 
+  /**
+   * C: findFirst
+   */
+  export type CFindFirstArgs = CFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * C findMany
@@ -13123,73 +12459,16 @@ export namespace Prisma {
 
 
   /**
-   * C findUniqueOrThrow
+   * C: findUniqueOrThrow
    */
-  export type CFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the C
-     * 
-    **/
-    select?: CSelect | null
-    /**
-     * Filter, which C to fetch.
-     * 
-    **/
-    where: CWhereUniqueInput
-  }
-
+  export type CFindUniqueOrThrowArgs = CFindUniqueArgsBase
+      
 
   /**
-   * C findFirstOrThrow
+   * C: findFirstOrThrow
    */
-  export type CFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the C
-     * 
-    **/
-    select?: CSelect | null
-    /**
-     * Filter, which C to fetch.
-     * 
-    **/
-    where?: CWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of CS to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<COrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for CS.
-     * 
-    **/
-    cursor?: CWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` CS from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` CS.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of CS.
-     * 
-    **/
-    distinct?: Enumerable<CScalarFieldEnum>
-  }
-
+  export type CFindFirstOrThrowArgs = CFindFirstArgsBase
+      
 
   /**
    * C without action
@@ -13791,20 +13070,14 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * D findUnique
+   * D base type for findUnique actions
    */
-  export type DFindUniqueArgs = {
+  export type DFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the D
      * 
     **/
     select?: DSelect | null
-    /**
-     * Throw an Error if a D can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which D to fetch.
      * 
@@ -13812,22 +13085,21 @@ export namespace Prisma {
     where: DWhereUniqueInput
   }
 
+  /**
+   * D: findUnique
+   */
+  export type DFindUniqueArgs = DFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * D findFirst
+   * D base type for findFirst actions
    */
-  export type DFindFirstArgs = {
+  export type DFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the D
      * 
     **/
     select?: DSelect | null
-    /**
-     * Throw an Error if a D can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which D to fetch.
      * 
@@ -13870,6 +13142,11 @@ export namespace Prisma {
     distinct?: Enumerable<DScalarFieldEnum>
   }
 
+  /**
+   * D: findFirst
+   */
+  export type DFindFirstArgs = DFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * D findMany
@@ -14043,73 +13320,16 @@ export namespace Prisma {
 
 
   /**
-   * D findUniqueOrThrow
+   * D: findUniqueOrThrow
    */
-  export type DFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the D
-     * 
-    **/
-    select?: DSelect | null
-    /**
-     * Filter, which D to fetch.
-     * 
-    **/
-    where: DWhereUniqueInput
-  }
-
+  export type DFindUniqueOrThrowArgs = DFindUniqueArgsBase
+      
 
   /**
-   * D findFirstOrThrow
+   * D: findFirstOrThrow
    */
-  export type DFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the D
-     * 
-    **/
-    select?: DSelect | null
-    /**
-     * Filter, which D to fetch.
-     * 
-    **/
-    where?: DWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of DS to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<DOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for DS.
-     * 
-    **/
-    cursor?: DWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` DS from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` DS.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of DS.
-     * 
-    **/
-    distinct?: Enumerable<DScalarFieldEnum>
-  }
-
+  export type DFindFirstOrThrowArgs = DFindFirstArgsBase
+      
 
   /**
    * D without action
@@ -14703,20 +13923,14 @@ export namespace Prisma {
   // Custom InputTypes
 
   /**
-   * E findUnique
+   * E base type for findUnique actions
    */
-  export type EFindUniqueArgs = {
+  export type EFindUniqueArgsBase = {
     /**
      * Select specific fields to fetch from the E
      * 
     **/
     select?: ESelect | null
-    /**
-     * Throw an Error if a E can't be found
-     * @deprecated since 4.0.0: Use \`findUniqueOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which E to fetch.
      * 
@@ -14724,22 +13938,21 @@ export namespace Prisma {
     where: EWhereUniqueInput
   }
 
+  /**
+   * E: findUnique
+   */
+  export type EFindUniqueArgs = EFindUniqueArgsBase & RejectOnNotFoundField
+      
 
   /**
-   * E findFirst
+   * E base type for findFirst actions
    */
-  export type EFindFirstArgs = {
+  export type EFindFirstArgsBase = {
     /**
      * Select specific fields to fetch from the E
      * 
     **/
     select?: ESelect | null
-    /**
-     * Throw an Error if a E can't be found
-     * @deprecated since 4.0.0: Use \`findFirstOrThrow\` method instead
-     * 
-    **/
-    rejectOnNotFound?: RejectOnNotFound
     /**
      * Filter, which E to fetch.
      * 
@@ -14782,6 +13995,11 @@ export namespace Prisma {
     distinct?: Enumerable<EScalarFieldEnum>
   }
 
+  /**
+   * E: findFirst
+   */
+  export type EFindFirstArgs = EFindFirstArgsBase & RejectOnNotFoundField
+      
 
   /**
    * E findMany
@@ -14955,73 +14173,16 @@ export namespace Prisma {
 
 
   /**
-   * E findUniqueOrThrow
+   * E: findUniqueOrThrow
    */
-  export type EFindUniqueOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the E
-     * 
-    **/
-    select?: ESelect | null
-    /**
-     * Filter, which E to fetch.
-     * 
-    **/
-    where: EWhereUniqueInput
-  }
-
+  export type EFindUniqueOrThrowArgs = EFindUniqueArgsBase
+      
 
   /**
-   * E findFirstOrThrow
+   * E: findFirstOrThrow
    */
-  export type EFindFirstOrThrowArgs = {
-    /**
-     * Select specific fields to fetch from the E
-     * 
-    **/
-    select?: ESelect | null
-    /**
-     * Filter, which E to fetch.
-     * 
-    **/
-    where?: EWhereInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
-     * 
-     * Determine the order of ES to fetch.
-     * 
-    **/
-    orderBy?: Enumerable<EOrderByWithRelationInput>
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
-     * 
-     * Sets the position for searching for ES.
-     * 
-    **/
-    cursor?: EWhereUniqueInput
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Take \`±n\` ES from the position of the cursor.
-     * 
-    **/
-    take?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
-     * 
-     * Skip the first \`n\` ES.
-     * 
-    **/
-    skip?: number
-    /**
-     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
-     * 
-     * Filter by unique combinations of ES.
-     * 
-    **/
-    distinct?: Enumerable<EScalarFieldEnum>
-  }
-
+  export type EFindFirstOrThrowArgs = EFindFirstArgsBase
+      
 
   /**
    * E without action
