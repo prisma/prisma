@@ -34,7 +34,7 @@ else
     #  error: database "tests" does not exist
     # Test Suites: 2 failed, 8 passed, 10 total
     # https://buildkite.com/prisma/release-prisma-typescript/builds/6514
-    pnpm run test:functional --filter "@prisma/client"
+    pnpm run --filter test:functional "@prisma/client"
 fi
 
 # Disable printing with +x and return as before just after
