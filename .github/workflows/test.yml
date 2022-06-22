@@ -701,7 +701,7 @@ jobs:
 
       - name: Test packages/client/functional
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test:functional --  --jest-args='--testTimeout=40000' --no-types
+        run: pnpm run test:functional --  --jest-args='--testTimeout=40000' -p mysql --no-types interactive-transactions
         working-directory: packages/client
         env:
           CI: true
