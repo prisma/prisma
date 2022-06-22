@@ -118,10 +118,10 @@ importers:
     specifiers:
       '@prisma/client': workspace:*
       '@prisma/debug': workspace:*
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
-      '@prisma/fetch-engine': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
+      '@prisma/fetch-engine': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@prisma/studio': 0.464.0
@@ -161,13 +161,13 @@ importers:
       ts-pattern: 4.0.3
       typescript: 4.7.4
     dependencies:
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
     devDependencies:
       '@prisma/client': link:../client
       '@prisma/debug': link:../debug
-      '@prisma/fetch-engine': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/fetch-engine': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@prisma/studio': 0.464.0
@@ -215,11 +215,11 @@ importers:
       '@opentelemetry/api': 1.1.0
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
-      '@prisma/engines-version': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
-      '@prisma/fetch-engine': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
+      '@prisma/engines-version': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
+      '@prisma/fetch-engine': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@swc/core': 1.2.204
@@ -274,7 +274,7 @@ importers:
       yeoman-generator: ^5.6.1
       yo: ^4.3.0
     dependencies:
-      '@prisma/engines-version': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines-version': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
     devDependencies:
       '@faker-js/faker': 7.3.0
       '@jest/test-sequencer': 28.1.1
@@ -282,10 +282,10 @@ importers:
       '@opentelemetry/api': 1.1.0
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
-      '@prisma/fetch-engine': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
+      '@prisma/fetch-engine': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@swc/core': 1.2.204
@@ -368,9 +368,9 @@ importers:
   packages/engine-core:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21
       '@types/jest': 28.1.3
@@ -389,9 +389,9 @@ importers:
       undici: 5.5.1
     dependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       chalk: 4.1.2
       execa: 5.1.1
       get-stream: 6.0.1
@@ -501,10 +501,10 @@ importers:
     specifiers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
-      '@prisma/fetch-engine': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
+      '@prisma/fetch-engine': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
@@ -562,10 +562,10 @@ importers:
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
-      '@prisma/engines': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
-      '@prisma/fetch-engine': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
+      '@prisma/fetch-engine': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@timsuchanek/copy': 1.4.5
       archiver: 5.3.1
       arg: 5.0.2
@@ -625,9 +625,9 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines-version': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/internals': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.2.204
@@ -661,7 +661,7 @@ importers:
       typescript: 4.7.4
     dependencies:
       '@prisma/debug': link:../debug
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@sindresorhus/slugify': 1.1.2
       chalk: 4.1.2
       execa: 5.1.1
@@ -678,7 +678,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.2
     devDependencies:
-      '@prisma/engines-version': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/engines-version': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.2.204
@@ -1921,18 +1921,18 @@ packages:
     transitivePeerDependencies:
       - supports-color
 
-  /@prisma/engines-version/3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be:
-    resolution: {integrity: sha512-AlJdq8IGsuBO1H5h4ofC1+sVOkzIkbdpqiYaZI23QqQ6tUEC74p/PaTdQng0bnswTINQx8y135guMhuSJCApOQ==}
+  /@prisma/engines-version/3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808:
+    resolution: {integrity: sha512-qUgTPvXeOt1NoIAgjP3NGhIgqAKkiCIMEILdXG1NhFJliXFtER3W9iMe71uiVhOf/5S/pddGxNjBLsFmlMOylQ==}
 
-  /@prisma/engines/3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be:
-    resolution: {integrity: sha512-jvaXhKldAq9OFrSGzoilmYh2R6624pyiuXYNMGjyHKW70oNf4xWLHSwIDyVjAeDVjWu0vY3QABXr/3OOZbcVoA==}
+  /@prisma/engines/3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808:
+    resolution: {integrity: sha512-QkodHWP3+ptPEGPlixx0IV75cN7DxomQ0zJzigRKLQkkR3TuJWrpr90UhrsTpdcK1BfSYREwUvefBNMty6o/EQ==}
     requiresBuild: true
 
-  /@prisma/fetch-engine/3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be:
-    resolution: {integrity: sha512-F06hXlc0+UWe54qTpxTE/eyjKLG3vR6burL+3Bo0MdTBU2F3LDG/eTX8EI2KiTaGogDP8tTSUmbDjZo9BPF6Vw==}
+  /@prisma/fetch-engine/3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808:
+    resolution: {integrity: sha512-B+tNHrTdKMaP2RS0jhBJ6/wVW7DhR589dAycR13AeYBxPdGQxwauWsLUSw1cEhPD836WvIrmCEYZ408ukw9Pig==}
     dependencies:
       '@prisma/debug': 3.15.2
-      '@prisma/get-platform': 3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be
+      '@prisma/get-platform': 3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808
       chalk: 4.1.2
       execa: 5.1.1
       find-cache-dir: 3.3.2
@@ -1952,8 +1952,8 @@ packages:
       - encoding
       - supports-color
 
-  /@prisma/get-platform/3.16.0-39.9d98331d66d05c1c4fdbce407a32945c6eeb52be:
-    resolution: {integrity: sha512-cCSq4px3Ds8kT8DLZyrIfahzVl+g9dkElbGwS9Lj7iv8t6ZxdTH3zykDYOzQh8p8nEiIQFvAZL2CSoiE3xwjJg==}
+  /@prisma/get-platform/3.16.0-40.bd4d62f0a64bb1ef95e98b75df0ef6bcfd7ff808:
+    resolution: {integrity: sha512-kMZxbGofz6vU7qhWjQ3LjSwDZJifPMM/qMBHyViBDBVVxUKXFamth7nKJV/h2BJghxlVCrN5PEbbEL1q+rudDw==}
     dependencies:
       '@prisma/debug': 3.15.2
     transitivePeerDependencies:
