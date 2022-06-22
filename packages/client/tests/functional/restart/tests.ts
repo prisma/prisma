@@ -18,16 +18,20 @@ function waitForChildExit(child: ChildProcess): Promise<void> {
 }
 
 testMatrix.setupTestSuite(() => {
+  // @ts-ignore internal client
+  let client: PrismaClient
+
+  afterAll(() => {
+    client?.$disconnect()?.catch(() => undefined)
+  })
+
   test('should assert that PrismaClient is restarted when it goes down', async () => {
     // No child process for Node-API, so nothing that can be killed or tested
     if (getClientEngineType() === ClientEngineType.Library) {
       return
     }
 
-    // Disconnect from the injected client - we only use this to apply migrations.
-    await prisma.$disconnect()
-
-    const client = new PrismaClient()
+    client = new PrismaClient()
     await client.$connect()
 
     const username = faker.internet.userName()
@@ -51,7 +55,5 @@ testMatrix.setupTestSuite(() => {
 
     const [found2] = await client.user.findMany({ where: { username } })
     expect(found2).toBeTruthy()
-
-    client.$disconnect().catch(() => undefined)
   })
 })
