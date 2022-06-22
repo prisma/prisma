@@ -386,7 +386,7 @@ importers:
       p-retry: 4.6.2
       strip-ansi: 6.0.1
       typescript: 4.7.4
-      undici: 5.4.0
+      undici: 5.5.1
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/engines': 3.16.0-37.5f651fee76cefee532f0db5481d4048de72e2f5e
@@ -399,7 +399,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      undici: 5.4.0
+      undici: 5.5.1
     devDependencies:
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21_@swc+core@1.2.204
@@ -10735,8 +10735,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici/5.4.0:
-    resolution: {integrity: sha512-A1SRXysDg7J+mVP46jF+9cKANw0kptqSFZ8tGyL+HBiv0K1spjxPX8Z4EGu+Eu6pjClJUBdnUPlxrOafR668/g==}
+  /undici/5.5.1:
+    resolution: {integrity: sha512-MEvryPLf18HvlCbLSzCW0U00IMftKGI5udnjrQbC5D4P0Hodwffhv+iGfWuJwg16Y/TK11ZFK8i+BPVW2z/eAw==}
     engines: {node: '>=12.18'}
     dev: false
 
