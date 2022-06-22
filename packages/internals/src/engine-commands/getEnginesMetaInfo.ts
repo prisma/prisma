@@ -3,7 +3,6 @@ import { BinaryType } from '@prisma/fetch-engine'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
-import * as T from 'fp-ts/Task'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import path from 'path'
@@ -19,12 +18,13 @@ export type EngineInfoLibrary = {
 }
 
 export type EngineInfoBinaryPathError = {
-  binaryPath: E.Left<Error>
+  binaryPath: E.Either<Error, never>
 }
 
 export type EngineInfoBinaryPathSuccess = {
-  binaryPath: E.Right<string>
-} & ({ version: E.Left<Error> } | { version: E.Right<string> })
+  binaryPath: E.Either<never, string>
+  version: E.Either<Error, String>
+}
 
 export type EngineInfoBinary = EngineInfoBinaryPathError | EngineInfoBinaryPathSuccess
 
@@ -66,8 +66,7 @@ export async function getEnginesMetaInfo() {
    * the engine name in the promise result.
    */
   const enginePromises = engines.map(({ name, type }) => {
-    const promise = resolveEngine(type)()
-    return promise.then((result) => [name, result])
+    return resolveEngine(type).then((result) => [name, result])
   })
   const engineMatrix: BinaryInfoMatrix = await Promise.all(enginePromises).then(Object.fromEntries)
 
@@ -94,12 +93,15 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
   // if the engine is not found, or the version cannot be retrieved, keep track of the resulting errors.
   const errors = [] as Error[]
 
+  // compute message displayed when an engine is resolved via env vars
   const resolved = match(enginesInfo)
     .with({ fromEnvVar: P.when(O.isSome) }, (enginesInfoLibrary) => {
       return `, resolved by ${enginesInfoLibrary.fromEnvVar.value}`
     })
     .otherwise(() => '')
 
+  // compute version (git hash) of an engine, returning an error message and populating
+  // `errors` if it fails
   const version = match(enginesInfo)
     .with({ version: P.when(E.isRight) }, (engineInfo) => {
       return engineInfo.version.right
@@ -112,6 +114,8 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
       return 'E_CANNOT_RESOLVE_VERSION' as const
     })
 
+  // compute absolute path of an engine, returning an error message and populating
+  // `errors` if it fails
   const absolutePath = match(enginesInfo)
     .with({ libraryPath: P.when(O.isSome) }, (enginesInfoLibrary) => {
       return enginesInfoLibrary.libraryPath.value
@@ -128,50 +132,47 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
     })
     .exhaustive()
 
-  return [`${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`, errors] as const
+  const versionMessage = `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
+  return [versionMessage, errors] as const
 }
 
-export function resolveEngine(binaryName: BinaryType): T.Task<EngineInfo> {
+export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo> {
   const envVar = engineEnvVarMap[binaryName]
   const pathFromEnv = process.env[envVar]
+
+  const resolvedVersion: { version: E.Either<Error, string> } = await pipe(
+    safeGetBinaryVersion(pathFromEnv, binaryName),
+
+    // "wide" pattern matching, resulting in an union type of the two branches
+    TE.matchW(
+      (versionError) => ({ version: E.left(versionError) }),
+      (version) => ({ version: E.right(version) }),
+    ),
+  )()
 
   if (pathFromEnv && fs.existsSync(pathFromEnv)) {
     /**
      * Extract EngineInfo from a library engine
      */
-    const rest = { libraryPath: O.fromNullable(pathFromEnv), fromEnvVar: O.fromNullable(envVar) }
-    const engineInfoLibraryTask = pipe(
-      safeGetBinaryVersion(pathFromEnv, binaryName),
-      TE.matchW(
-        (versionError) => ({ version: E.left(versionError), ...rest }),
-        (version) => ({ version: E.right(version), ...rest }),
-      ),
-    )
-    return engineInfoLibraryTask
+    const engineInfoLibrary: EngineInfoLibrary = {
+      ...resolvedVersion,
+      libraryPath: O.fromNullable(pathFromEnv),
+      fromEnvVar: O.fromNullable(envVar),
+    }
+    return engineInfoLibrary
   }
 
   /**
    * Extract EngineInfo from a binary engine
    */
-  const engineInfoBinaryTask: T.Task<EngineInfoBinary> = pipe(
+  const engineInfoBinary: EngineInfoBinary = await pipe(
     safeResolveBinary(binaryName),
-    TE.matchEW(
-      (binaryPathError) => {
-        const result = T.of({ binaryPath: E.left(binaryPathError) })
-        return result as T.Task<EngineInfoBinaryPathError>
-      },
-      (binaryPath) => {
-        const rest = { binaryPath: E.right(binaryPath) }
-        const result = pipe(
-          safeGetBinaryVersion(pathFromEnv, binaryName),
-          TE.matchW(
-            (versionError) => ({ version: E.left(versionError), ...rest }),
-            (version) => ({ version: E.right(version), ...rest }),
-          ),
-        )
-        return result as T.Task<EngineInfoBinaryPathSuccess>
-      },
+
+    // "wide" pattern matching, resulting in an union type of the two branches
+    TE.matchW(
+      (binaryPathError) => ({ binaryPath: E.left(binaryPathError) }),
+      (binaryPath) => ({ binaryPath: E.right(binaryPath), ...resolvedVersion }),
     ),
-  )
-  return engineInfoBinaryTask
+  )()
+  return engineInfoBinary
 }

@@ -4,7 +4,6 @@ import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
-  Command,
   engineEnvVarMap,
   format,
   formatTable,
@@ -113,7 +112,12 @@ export class Version implements Command {
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
+    /**
+     * If reading Rust engines metainfo (like their git hash) failed, display the errors to stderr,
+     * and let Node.js exit naturally, but with error code 1.
+     */
     if (enginesMetaInfoErrors.length > 0) {
+      process.exitCode = 1
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
