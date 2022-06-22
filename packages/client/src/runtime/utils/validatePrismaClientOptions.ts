@@ -1,4 +1,4 @@
-import { isError } from '@prisma/sdk'
+import { isError } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'

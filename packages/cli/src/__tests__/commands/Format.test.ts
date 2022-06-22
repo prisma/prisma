@@ -1,4 +1,4 @@
-import { jestContext } from '@prisma/sdk'
+import { jestContext } from '@prisma/internals'
 import fs from 'fs-jetpack'
 
 import { Format } from '../../Format'

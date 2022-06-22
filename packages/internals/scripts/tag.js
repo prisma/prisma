@@ -1,3 +1,3 @@
 const { getLatestTag } = require('@prisma/fetch-engine')
 
-getLatestTag().then(console.log)
+void getLatestTag().then(console.log)

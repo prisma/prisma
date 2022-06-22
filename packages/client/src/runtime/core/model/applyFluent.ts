@@ -86,7 +86,7 @@ export function applyFluent(
   prevUserArgs?: UserArgs,
 ) {
   // we retrieve the model that is described from the DMMF
-  const dmmfModel = client._dmmf.modelMap[dmmfModelName]
+  const dmmfModel = client._baseDmmf.modelMap[dmmfModelName]
 
   // map[field.name] === field, basically for quick access
   const dmmfModelFieldMap = dmmfModel.fields.reduce(
@@ -126,7 +126,7 @@ export function applyFluent(
 
 // the only accessible fields are relations to be chained on
 function getOwnKeys(client: Client, dmmfModelName: string) {
-  return client._dmmf.modelMap[dmmfModelName].fields
+  return client._baseDmmf.modelMap[dmmfModelName].fields
     .filter((field) => field.kind === 'object') // relations
     .map((field) => field.name)
 }

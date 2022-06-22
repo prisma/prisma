@@ -331,7 +331,7 @@ ${new PayloadType(this.outputType!, !this.dmmf.typeMap[model.name]).toTS()}
 ${new ModelDelegate(this.outputType!, this.dmmf, this.generator).toTS()}
 
 // Custom InputTypes
-${this.argsTypes.map(TS).join('\n')}
+${this.argsTypes.map((gen) => TS(gen)).join('\n')}
 `
   }
 }
