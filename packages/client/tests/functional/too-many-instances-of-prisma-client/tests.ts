@@ -3,40 +3,34 @@ import testMatrix from './_matrix'
 // @ts-ignore this is just for type checks
 declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 
-testMatrix.setupTestSuite(
-  () => {
-    const oldConsoleWarn = console.warn
-    const warnings: any[] = []
+testMatrix.setupTestSuite(() => {
+  const oldConsoleWarn = console.warn
+  const warnings: any[] = []
+  const clients: any[] = []
 
-    beforeAll(() => {
-      console.warn = (args) => {
-        warnings.push(args)
-      }
-    })
+  beforeAll(() => {
+    jest.resetModules()
 
-    afterAll(() => {
-      console.warn = oldConsoleWarn
-    })
+    console.warn = (args) => {
+      warnings.push(args)
+    }
+  })
 
-    test('should console warn when spawning too many instances of PrismaClient', async () => {
-      const clients: any[] = []
-      for (let i = 0; i < 15; i++) {
-        const client = new PrismaClient()
-        await client.$connect()
-        clients.push(client)
-      }
+  afterAll(() => {
+    console.warn = oldConsoleWarn
+  })
 
-      for (const client of clients) {
-        client.$disconnect()
-      }
+  test('should console warn when spawning too many instances of PrismaClient', async () => {
+    for (let i = 0; i < 15; i++) {
+      const client = new PrismaClient()
+      await client.$connect()
+      clients.push(client)
+    }
 
-      expect(warnings.join('')).toContain('There are already 10 instances of Prisma Client actively running')
-    })
-  },
-  {
-    optOut: {
-      from: ['cockroachdb', 'mongodb', 'mysql', 'sqlite', 'sqlserver'],
-      reason: 'TODO - Test suite running in band causing issues running the console spy',
-    },
-  },
-)
+    for (const client of clients) {
+      client.$disconnect()
+    }
+
+    expect(warnings.join('')).toContain('There are already 10 instances of Prisma Client actively running')
+  })
+})
