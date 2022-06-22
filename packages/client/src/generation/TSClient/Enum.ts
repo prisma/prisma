@@ -1,7 +1,7 @@
 import indent from 'indent-string'
 
 import type { DMMF } from '../../runtime/dmmf-types'
-import { symbolEnumNames } from '../../runtime/symbol-enums'
+import { objectEnumNames } from '../../runtime/object-enums'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import type { ExportCollector } from './helpers'
@@ -18,7 +18,7 @@ export class Enum implements Generatable {
   }
 
   private isSymbolEnum(): boolean {
-    return this.useNamespace && symbolEnumNames.includes(this.type.name)
+    return this.useNamespace && objectEnumNames.includes(this.type.name)
   }
 
   public toJS(): string {

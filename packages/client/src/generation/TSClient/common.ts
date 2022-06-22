@@ -33,10 +33,7 @@ const {
   raw,
   Decimal,
   DecimalJsLike,
-  enumValues,
-  DbNull,
-  JsonNull,
-  AnyNull,
+  objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -73,11 +70,15 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = enumValues.DbNull
-Prisma.JsonNull = enumValues.JsonNull
-Prisma.AnyNull = enumValues.AnyNull
+Prisma.DbNull = objectEnumValues.instances.DbNull
+Prisma.JsonNull = objectEnumValues.instances.JsonNull
+Prisma.AnyNull = objectEnumValues.instances.AnyNull
 
-Prisma.NullTypes = { DbNull, JsonNull, AnyNull }
+Prisma.NullTypes = {
+  DbNull: objectEnumValues.classes.DbNull,
+  JsonNull: objectEnumValues.classes.JsonNull,
+  AnyNull: objectEnumValues.classes.AnyNull
+}
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {

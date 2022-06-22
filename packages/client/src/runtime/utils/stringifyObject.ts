@@ -1,6 +1,6 @@
 'use strict'
 
-import { ObjectEnumValue } from '../symbol-enums'
+import { ObjectEnumValue } from '../object-enums'
 
 const isRegexp = require('is-regexp')
 const isObj = require('is-obj')

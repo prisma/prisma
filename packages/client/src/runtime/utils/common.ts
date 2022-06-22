@@ -5,7 +5,7 @@ import leven from 'js-levenshtein'
 
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
-import { enumValues, ObjectEnumValue, symbolEnumNames } from '../symbol-enums'
+import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
@@ -190,9 +190,9 @@ export function isValidEnumValue(value: any, inputType?: DMMF.SchemaArgInputType
     return false
   }
 
-  if (inputType?.namespace === 'prisma' && symbolEnumNames.includes(enumType.name)) {
+  if (inputType?.namespace === 'prisma' && objectEnumNames.includes(enumType.name)) {
     const name = value?.constructor.name
-    return typeof name === 'string' && enumValues[name] === value && enumType.values.includes(name)
+    return typeof name === 'string' && objectEnumValues.instances[name] === value && enumType.values.includes(name)
   }
 
   return typeof value === 'string' && enumType.values.includes(value)

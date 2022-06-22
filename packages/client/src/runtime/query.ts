@@ -13,7 +13,7 @@ import type {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
-import { ObjectEnumValue } from './symbol-enums'
+import { ObjectEnumValue } from './object-enums'
 import {
   getGraphQLType,
   getInputTypeName,

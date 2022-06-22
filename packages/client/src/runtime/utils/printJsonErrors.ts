@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
 
-import { ObjectEnumValue } from '../symbol-enums'
+import { ObjectEnumValue } from '../object-enums'
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 
