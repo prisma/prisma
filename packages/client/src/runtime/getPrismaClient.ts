@@ -693,7 +693,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @returns
      */
     $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise(async (txId, lock, otelCtx): Promise<unknown> => {
+      return createPrismaPromise(async (txId, lock, otelCtx) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
         }
