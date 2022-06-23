@@ -67,6 +67,44 @@ testMatrix.setupTestSuite(
               `)
       })
     })
+
+    describe('properties of DbNull/JsonNull/AnyNull', () => {
+      test('instanceof checks pass', () => {
+        expect(Prisma.DbNull).toBeInstanceOf(Prisma.NullTypes.DbNull)
+        expect(Prisma.JsonNull).toBeInstanceOf(Prisma.NullTypes.JsonNull)
+        expect(Prisma.AnyNull).toBeInstanceOf(Prisma.NullTypes.AnyNull)
+      })
+
+      test('custom instances are not allowed', async () => {
+        await expect(
+          prisma.requiredJsonField.create({
+            data: {
+              // @ts-expect-error
+              json: new Prisma.NullTypes.JsonNull(),
+            },
+          }),
+        ).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+                Invalid \`prisma.requiredJsonField.create()\` invocation in
+                /client/tests/functional/json-null-symbols/tests.ts:80:36
+
+                   77 
+                   78 test('custom instances are not allowed', async () => {
+                   79   await expect(
+                →  80     prisma.requiredJsonField.create({
+                            data: {
+                              json: new Prisma.NullTypes.JsonNull()
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                            }
+                          })
+
+                Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a enumTypes.
+                → Possible values: JsonNullValueInput.JsonNull
+
+
+              `)
+      })
+    })
   },
   {
     optOut: {
