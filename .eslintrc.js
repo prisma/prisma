@@ -25,7 +25,8 @@ module.exports = {
     'plugin:jest/recommended',
   ],
   rules: {
-    'no-shadow': ['error', { hoist: 'all' }],
+    'no-shadow': 'off',
+    '@typescript-eslint/no-shadow': ['error', { hoist: 'all' }],
     'prettier/prettier': 'warn',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',

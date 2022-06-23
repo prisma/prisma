@@ -61,10 +61,10 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
       const reportId = await sendPanic(error, cliVersion, engineVersion)
       console.log(`\n${chalk.bold(`We successfully received the error report id: ${reportId}`)}`)
       console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
-    } catch (error) {
+    } catch (err) {
       const reportFailedMessage = `${chalk.bold.red('Oops. We could not send the error report.')}`
       console.log(reportFailedMessage)
-      console.error(`${chalk.gray('Error report submission failed due to: ')}`, error)
+      console.error(`${chalk.gray('Error report submission failed due to: ')}`, err)
     }
   }
 

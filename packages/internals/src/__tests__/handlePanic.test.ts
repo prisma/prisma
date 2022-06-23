@@ -22,7 +22,7 @@ const sendKeystrokes = async (io) => {
   await delay(10)
 }
 // helper function for timing
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock stdin so we can send messages to the CLI
+const delay = (ms) => new Promise((promiseResolve) => setTimeout(promiseResolve, ms)) // Mock stdin so we can send messages to the CLI
 
 const testRootDir = tempy.directory()
 
@@ -87,10 +87,10 @@ describe('handlePanic', () => {
   it('no interactive mode in CI', async () => {
     try {
       await handlePanic(error, packageJsonVersion, engineVersion, command)
-    } catch (error) {
-      error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
-      expect(JSON.stringify(error)).toMatchInlineSnapshot(
+    } catch (err) {
+      err.schemaPath = 'Some Schema Path'
+      expect(err).toMatchInlineSnapshot(`[Error: Some error message!]`)
+      expect(JSON.stringify(err)).toMatchInlineSnapshot(
         `"{\\"__typename\\":\\"RustPanic\\",\\"rustStack\\":\\"\\",\\"area\\":\\"LIFT_CLI\\",\\"schemaPath\\":\\"Some Schema Path\\"}"`,
       )
     }
@@ -98,9 +98,9 @@ describe('handlePanic', () => {
 
   it('when sendPanic fails, the user should be alerted by a reportFailedMessage', async () => {
     const cliVersion = 'test-cli-version'
-    const engineVersion = 'test-engine-version'
+    const testEngineVersion = 'test-engine-version'
     const rustStackTrace = 'test-rustStack'
-    const command = 'test-command'
+    const testCommand = 'test-command'
 
     const sendPanicTag = 'send-panic-failed'
 
@@ -125,7 +125,7 @@ describe('handlePanic', () => {
     )
 
     prompt.inject(['y']) // submit report
-    await handlePanic(rustPanic, cliVersion, engineVersion, command)
+    await handlePanic(rustPanic, cliVersion, testEngineVersion, testCommand)
 
     expect(spySendPanic).toHaveBeenCalledTimes(1)
     expect(spyWouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
