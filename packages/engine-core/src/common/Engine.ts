@@ -1,4 +1,4 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
@@ -15,6 +15,7 @@ export abstract class Engine {
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
   abstract getConfig(): Promise<GetConfigResult>
+  abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
   abstract request<T>(
     query: string,
