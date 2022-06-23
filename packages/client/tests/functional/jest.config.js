@@ -10,7 +10,7 @@ module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: ['@prisma'],
+  transformIgnorePatterns: ['node_modules', '@prisma'],
   reporters: [
     'default',
     [

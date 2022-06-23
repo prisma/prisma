@@ -2,7 +2,7 @@ module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: ['@prisma', '\\.prisma'],
+  transformIgnorePatterns: ['node_modules', '@prisma', '\\.prisma'],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
