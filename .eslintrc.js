@@ -26,7 +26,13 @@ module.exports = {
   ],
   rules: {
     'no-shadow': 'off',
-    '@typescript-eslint/no-shadow': ['error', { hoist: 'all' }],
+    '@typescript-eslint/no-shadow': [
+      'error',
+      {
+        hoist: 'all',
+        ignoreTypeValueShadow: true,
+      },
+    ],
     'prettier/prettier': 'warn',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',

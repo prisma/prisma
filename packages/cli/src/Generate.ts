@@ -1,5 +1,4 @@
 import { enginesVersion } from '@prisma/engines'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import {
   arg,
   Command,
@@ -19,6 +18,7 @@ import {
   parseEnvValue,
   Platform,
 } from '@prisma/internals'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
@@ -332,10 +332,10 @@ function getCurrentClientVersion(): string | null {
   return null
 }
 
-function replacePathSeperatorsIfNecessary(path: string): string {
+function replacePathSeperatorsIfNecessary(pathDirectory: string): string {
   const isWindows = os.platform() === 'win32'
   if (isWindows) {
-    return path.replace(/\\/g, '/')
+    return pathDirectory.replace(/\\/g, '/')
   }
-  return path
+  return pathDirectory
 }

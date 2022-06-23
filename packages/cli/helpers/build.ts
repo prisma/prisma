@@ -6,7 +6,7 @@ import path from 'path'
 import { promisify } from 'util'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
-import { build } from '../../../helpers/compile/build'
+import { build as buildCompile } from '../../../helpers/compile/build'
 import { run } from '../../../helpers/compile/run'
 
 const copyFile = promisify(fs.copyFile)
@@ -75,7 +75,7 @@ const installBuildConfig: BuildOptions = {
   minify: true,
 }
 
-void build([cliBuildConfig, preinstallBuildConfig, installBuildConfig])
+void buildCompile([cliBuildConfig, preinstallBuildConfig, installBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

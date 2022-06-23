@@ -179,7 +179,7 @@ export class Init implements Command {
     const { provider, url } = await match(args)
       .with(
         {
-          '--datasource-provider': P.when((provider): provider is string => Boolean(provider)),
+          '--datasource-provider': P.when((_provider): _provider is string => Boolean(_provider)),
         },
         (input) => {
           const providerLowercase = input['--datasource-provider'].toLowerCase()
@@ -188,18 +188,18 @@ export class Init implements Command {
               `Provider "${args['--datasource-provider']}" is invalid or not supported. Try again with "postgresql", "mysql", "sqlite", "sqlserver", "mongodb" or "cockroachdb".`,
             )
           }
-          const provider = providerLowercase as ConnectorType
-          const url = defaultURL(provider)
-          return Promise.resolve({ provider, url })
+          const _provider = providerLowercase as ConnectorType
+          const _url = defaultURL(provider)
+          return Promise.resolve({ provider: _provider, url: _url })
         },
       )
       .with(
         {
-          '--url': P.when((url): url is string => Boolean(url)),
+          '--url': P.when((urlText): urlText is string => Boolean(urlText)),
         },
         async (input) => {
-          const url = input['--url']
-          const canConnect = await canConnectToDatabase(url)
+          const urlText = input['--url']
+          const canConnect = await canConnectToDatabase(urlText)
           if (canConnect !== true) {
             const { code, message } = canConnect
 
@@ -213,8 +213,8 @@ export class Init implements Command {
             }
           }
 
-          const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
-          return { provider, url }
+          const providerName = protocolToConnectorType(`${urlText.split(':')[0]}:`)
+          return { provider: providerName, url: urlText }
         },
       )
       .otherwise(() => {

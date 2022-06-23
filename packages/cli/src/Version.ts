@@ -136,6 +136,9 @@ export class Version implements Command {
     const envVar = engineEnvVarMap[binaryName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
+      // This linting error seems like a fake positive.
+      // Not interesting to solve, as this block of code will be replaced by another PR.
+      // eslint-disable-next-line @typescript-eslint/no-shadow
       const version = await getVersion(pathFromEnv, binaryName)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
