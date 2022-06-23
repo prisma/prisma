@@ -1,16 +1,11 @@
-import execa from 'execa'
 import fs from 'fs'
-import { copy } from 'fs-extra'
-import makeDir from 'make-dir'
+import { copySync } from 'fs-extra'
 import path from 'path'
 import readPkgUp from 'read-pkg-up'
 import rimraf from 'rimraf'
-import { quote } from 'shell-quote'
-import tar from 'tar'
 import tempy from 'tempy'
 import { promisify } from 'util'
 
-import { hasYarn } from './utils/hasYarn'
 import { resolvePkg } from './utils/resolve'
 
 // why not directly use Sindre's 'del'? Because it's not ncc-able :/
@@ -23,7 +18,7 @@ export async function getPackedPackage(name: string, target?: string, packageDir
     packageDir || (await resolvePkg(name, { basedir: process.cwd() })) || (await resolvePkg(name, { basedir: target }))
 
   if (!packageDir) {
-    const pkg = await readPkgUp({
+    const pkg = readPkgUp.sync({
       cwd: target,
     })
     if (pkg && pkg.packageJson.name === name) {
@@ -49,7 +44,7 @@ export async function getPackedPackage(name: string, target?: string, packageDir
   // we copy each file that we found in pkg to a new destination
   for (const file of [...pkgFiles]) {
     const dest = path.join(tmpDir, path.basename(file))
-    await copy(file, dest, { recursive: true, overwrite: true })
+    copySync(file, dest, { recursive: true, overwrite: true })
   }
 
   return path.join(tmpDir)
