@@ -207,7 +207,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: ActionName
+  actionName: DMMF.ModelAction
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
