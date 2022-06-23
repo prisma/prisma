@@ -1,6 +1,3 @@
-import type { Context } from '@opentelemetry/api'
-import { context } from '@opentelemetry/api'
-
 import type { PrismaPromise } from './PrismaPromise'
 
 /**
@@ -13,16 +10,13 @@ import type { PrismaPromise } from './PrismaPromise'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (txId?: string | number, lock?: PromiseLike<void>, otelCtx?: Context) => PrismaPromise<unknown>,
+  callback: (txId?: string | number, lock?: PromiseLike<void>) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
-  const otelCtx = context.active() // get the context at time of creation
-  // because otel isn't able to propagate context when inside of a promise
-
   let promise: PrismaPromise<unknown> | undefined
   const _callback = (txId?: string | number, lock?: PromiseLike<void>) => {
     try {
       // we allow the callback to be executed only one time
-      return (promise ??= callback(txId, lock, otelCtx))
+      return (promise ??= callback(txId, lock))
     } catch (error) {
       // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
