@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1655981799479,
+  "lastUpdate": 1655984424845,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -104850,6 +104850,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.05,
             "range": "±5.36%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 39,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "513f3e821cfdf8ff799220e501242c66fa23656d",
+          "message": "fix(client): allow prisma.empty to $executeRaw & $queryRaw (#13656)\n\n* fix: allow prisma.empty to $executeRaw\r\n\r\n* refactor: remove sql import\r\n\r\n* refactor: remove unused expect.assertions(1)\r\n\r\n* fix/refactor: add isSQL helper and coverage for queryRaw\r\n\r\n* Update packages/client/src/runtime/getPrismaClient.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* Update packages/client/src/runtime/getPrismaClient.ts\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\n* test: add missing sqlserver\r\n\r\n* refactor: remove helpers and assert errors in use cases\r\n\r\n* Update packages/client/src/runtime/getPrismaClient.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* Update packages/client/tests/functional/empty-to-raw/tests.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* Update packages/client/src/runtime/getPrismaClient.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-06-23T13:32:27+02:00",
+          "tree_id": "69a4cf6f6bf14248fd654e7f22165109666661ae",
+          "url": "https://github.com/prisma/prisma/commit/513f3e821cfdf8ff799220e501242c66fa23656d"
+        },
+        "date": 1655984415519,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.32,
+            "range": "±4.40%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.04,
+            "range": "±1.10%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
