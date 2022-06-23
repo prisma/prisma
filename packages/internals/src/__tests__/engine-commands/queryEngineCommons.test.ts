@@ -7,7 +7,7 @@ import * as loadUtils from '../../utils/load'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('loadNodeAPILibrary', () => {
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILibrary', () => {
   it('error path', async () => {
     const spyLoadTag = 'error-load'
     const spyLoad = jest.spyOn(loadUtils, 'load').mockImplementation((id: string) => {
