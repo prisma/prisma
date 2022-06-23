@@ -15,7 +15,6 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
   export PRISMA_CLI_QUERY_ENGINE_TYPE='binary'
 fi
 
-
 # Install packages
 pnpm i
 
