@@ -16,7 +16,7 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
 fi
 
 # Install packages
-pnpm i --frozen-lockfile --offline
+pnpm i --frozen-lockfile
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
