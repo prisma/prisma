@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   app:
-    image: node:14-buster
+    build: .
     volumes:
       - ../../:/app
     working_dir: /app

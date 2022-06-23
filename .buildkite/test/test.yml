@@ -6,5 +6,29 @@ steps:
       - docker-compose#v3.9.0:
           config: .buildkite/test/docker-compose.14.yml
           run: app
+  - label: 'Client functional tests, Node 14, engine={{ matrix.engine }}, provider={{ matrix.provider }}'
+    commands:
+      - pnpm i
+      - pnpm build
+      - pnpm test:functional -- -p {{ matrix.provider}}
+    env:
+      PRISMA_CLIENT_ENGINE_TYPE: '{{ matrix.engine }}'
+    timeout_in_minutes: 35
+    matrix:
+      setup:
+        engine:
+          - binary
+          - library
+        provider:
+          - sqlite
+          - postgresql
+          - mysql
+          - mongodb
+          - cockroachdb
+          - sqlserver
+    plugins:
+      - docker-compose#v3.9.0:
+          config: .buildkite/test/docker-compose.14.yml
+          run: app
 
   - wait
