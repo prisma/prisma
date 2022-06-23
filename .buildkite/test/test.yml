@@ -8,9 +8,9 @@ steps:
           run: app
   - label: 'Client functional tests, Node 14, engine={{ matrix.engine }}, provider={{ matrix.provider }}'
     commands:
-      - pnpm i
+      - pnpm install --frozen-lockfile
       - pnpm build
-      - pnpm test:functional -- -p {{ matrix.provider}}
+      - pnpm run --filter "@prisma/client" test:functional -- -p {{ matrix.provider}}
     env:
       PRISMA_CLIENT_ENGINE_TYPE: '{{ matrix.engine }}'
     timeout_in_minutes: 35
