@@ -5,7 +5,8 @@ exports[`exhaustive-schema: generatedBrowserJS 1`] = `
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
-  Decimal
+  Decimal,
+  objectEnumValues
 } = require('@prisma/client/runtime/index-browser')
 
 
