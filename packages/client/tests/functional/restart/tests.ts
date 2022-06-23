@@ -19,11 +19,6 @@ function waitForChildExit(child: ChildProcess): Promise<void> {
 }
 
 testMatrix.setupTestSuite(() => {
-  // No child process for Node-API, so nothing that can be killed or tested
-  if (getClientEngineType() === ClientEngineType.Library) {
-    return
-  }
-
   // @ts-ignore internal
   let client: PrismaClient
 
@@ -34,6 +29,11 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('should assert that PrismaClient is restarted when it goes down', async () => {
+    // No child process for Node-API, so nothing that can be killed or tested
+    if (getClientEngineType() === ClientEngineType.Library) {
+      return
+    }
+
     client = new PrismaClient()
     await client.$connect()
 
