@@ -1,4 +1,10 @@
 steps:
+  - label: Prepare and cache docker image
+    plugins:
+      - docker-compose#v3.9.0:
+          config: .buildkite/test/docker-compose.14.yml
+          build: app
+  - wait
   - label: ':coverage: Test %n - Node 14 (Search for `BUILDKITE_PARALLEL_JOB` in test output for definition what is being tested)'
     parallelism: 2
     timeout_in_minutes: 35

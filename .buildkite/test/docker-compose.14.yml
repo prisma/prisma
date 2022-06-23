@@ -1,7 +1,9 @@
 version: '3.7'
 services:
   app:
-    build: .
+    build:
+      context: ../..
+      dockerfile: .buildkite/test/Dockerfile
     volumes:
       - ../../:/app
     working_dir: /app
