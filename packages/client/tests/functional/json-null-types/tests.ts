@@ -48,7 +48,7 @@ testMatrix.setupTestSuite(
         ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
                 Invalid \`prisma.requiredJsonField.create()\` invocation in
-                /client/tests/functional/json-null-symbols/tests.ts:42:36
+                /client/tests/functional/json-null-types/tests.ts:42:36
 
                   39 
                   40 test('DbNull', async () => {
@@ -86,7 +86,7 @@ testMatrix.setupTestSuite(
         ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
                 Invalid \`prisma.requiredJsonField.create()\` invocation in
-                /client/tests/functional/json-null-symbols/tests.ts:80:36
+                /client/tests/functional/json-null-types/tests.ts:80:36
 
                    77 
                    78 test('custom instances are not allowed', async () => {
