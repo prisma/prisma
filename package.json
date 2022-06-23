@@ -10,7 +10,7 @@
   ],
   "engines": {
     "node": ">=14",
-    "pnpm": ">=6.14.1 <8"
+    "pnpm": ">=7.3.0 <8"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
