@@ -24,13 +24,7 @@ testMatrix.setupTestSuite(
           break
 
         case 'postgresql':
-          expect(result).toEqual(0)
-          break
-
         case 'cockroachdb':
-          expect(result).toEqual(0)
-          break
-
         case 'sqlserver':
           expect(result).toEqual(0)
           break
