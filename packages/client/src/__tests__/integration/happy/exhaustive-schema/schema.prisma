@@ -193,6 +193,7 @@ model D {
   xml   String  @db.Xml
   json  Json    @db.Json
   jsonb Json    @db.JsonB
+  list  Int[]   @default([1, 2, 3])
 }
 
 model E {
