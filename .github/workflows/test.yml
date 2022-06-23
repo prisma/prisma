@@ -204,9 +204,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library']
-        os: [buildjet-4vcpu-ubuntu-2004]
-        node: [16, 18]
+        node: [18]
 
     steps:
       - uses: actions/checkout@v3
@@ -220,14 +218,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated
 
@@ -258,8 +248,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/tck/src/tests/coverage/clover.xml
-          flags: tck,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: tck-${{ matrix.os }}-${{ matrix.queryEngine }}
+          flags: tck,${{ matrix.os }}
+          name: tck-${{ matrix.os }}
 
   #
   # CLIENT (types tests only)
