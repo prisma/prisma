@@ -29,9 +29,6 @@ pnpm -v
 node -v
 npm -v
 
-# See package.json setup script
-pnpm run setup
-
 echo "Start testing..."
 # Run test for all packages
 pnpm run test
