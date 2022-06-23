@@ -191,6 +191,75 @@ jobs:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+  #
+  # TCK
+  #
+  tck:
+    timeout-minutes: 35
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-tck-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        queryEngine: ['library']
+        os: [buildjet-4vcpu-ubuntu-2004]
+        node: [16, 18]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set CLI Engine Type
+        run: |
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set Client Engine Type
+        run: |
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated
+
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 6
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: packages/tck
+        env:
+          CI: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+          NODE_OPTIONS: '--max-old-space-size=8096'
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/tck/src/tests/coverage/clover.xml
+          flags: tck,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: tck-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
   # CLIENT (types tests only)
