@@ -387,13 +387,13 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
     })
     .exhaustive()
 
-  const shouldRetry = E.isLeft(errorEither)
-  if (!shouldRetry) {
+  const shouldRetryPipeline = E.isLeft(errorEither)
+  if (!shouldRetryPipeline) {
     throw errorEither.right
   }
 
   /**
-   * Handle retries.
+   * Handle pipeline retries.
    */
   const { timeout: retryTimeout, reason: retryReason } = errorEither.left
   debug(`Waiting "${retryTimeout}" seconds before retrying...`)

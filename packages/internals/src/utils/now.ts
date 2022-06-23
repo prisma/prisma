@@ -1,10 +1,10 @@
 const prefixZero = (value: number): string => ('0' + value).slice(-2)
 
 export function now(): string {
-  const now = new Date()
-  return `${now.getFullYear()}${prefixZero(now.getMonth() + 1)}${prefixZero(now.getDate())}${prefixZero(
-    now.getHours(),
-  )}${prefixZero(now.getMinutes())}${prefixZero(now.getSeconds())}`
+  const _now = new Date()
+  return `${_now.getFullYear()}${prefixZero(_now.getMonth() + 1)}${prefixZero(_now.getDate())}${prefixZero(
+    _now.getHours(),
+  )}${prefixZero(_now.getMinutes())}${prefixZero(_now.getSeconds())}`
 }
 
 export function timestampToDate(timestamp: string): Date | undefined {

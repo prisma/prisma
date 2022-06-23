@@ -13,8 +13,8 @@ process.env.npm_config_user_agent = 'yarn/1.22.4 npm/? node/v12.18.3 darwin x64'
 
 const FIXTURE_CWD = path.resolve(fixturesPath, 'getSchema')
 
-function toUnixPath(path: string) {
-  return path.replace(/\\/g, '/')
+function toUnixPath(pathDirectory: string) {
+  return pathDirectory.replace(/\\/g, '/')
 }
 
 async function testSchemaPath(fixtureName: string, schemaPathFromArgs?: string) {

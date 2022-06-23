@@ -26,7 +26,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
         return fs.readFileSync(err.schemaPath, 'utf-8')
       })
-      .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
+      .with({ schema: P.when((schemaContent) => Boolean(schemaContent)) }, (err) => err.schema)
       .otherwise(() => undefined)
 
     const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined

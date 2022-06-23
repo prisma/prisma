@@ -147,11 +147,11 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
           }
 
           const message = match(errorOutputAsJSON)
-            .with({ error_code: 'P1012' }, (error: Record<string, string>) => {
-              return chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + error.message + '\n'
+            .with({ error_code: 'P1012' }, (err: Record<string, string>) => {
+              return chalk.redBright(`Schema Parsing ${err.error_code}\n\n`) + error.message + '\n'
             })
-            .otherwise((error: any) => {
-              return chalk.redBright(`${error.error_code}\n\n`) + error
+            .otherwise((err: any) => {
+              return chalk.redBright(`${err.error_code}\n\n`) + error
             })
           return new GetConfigError(message, e.error)
         }),
@@ -293,11 +293,11 @@ async function getConfigBinary(options: GetConfigOptions) {
         E.map((errorOutputAsJSON: Record<string, string>) => {
           const defaultMessage = `${chalk.redBright(errorOutputAsJSON.message)}\n`
           const message = match(errorOutputAsJSON)
-            .with({ error_code: 'P1012' }, (error) => {
-              return chalk.redBright(`Schema Parsing ${error.error_code}\n\n`) + defaultMessage
+            .with({ error_code: 'P1012' }, (err) => {
+              return chalk.redBright(`Schema Parsing ${err.error_code}\n\n`) + defaultMessage
             })
-            .with({ error_code: P.string }, (error) => {
-              return chalk.redBright(`${error.error_code}\n\n`) + defaultMessage
+            .with({ error_code: P.string }, (err) => {
+              return chalk.redBright(`${err.error_code}\n\n`) + defaultMessage
             })
             .otherwise(() => {
               return defaultMessage

@@ -201,7 +201,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           }
         }
 
-        const options: GeneratorOptions = {
+        const opts: GeneratorOptions = {
           datamodel,
           datasources: config.datasources,
           generator,
@@ -214,7 +214,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
 
         // we set the options here a bit later after instantiating the Generator,
         // as we need the generator manifest to resolve the `output` dir
-        generatorInstance.setOptions(options)
+        generatorInstance.setOptions(opts)
 
         runningGenerators.push(generatorInstance)
 
@@ -342,11 +342,11 @@ generator gen {
             prismaPath: generatorBinaryPaths[queryEngineType]?.[platform],
             previewFeatures,
           })
-          const options = { ...generator.options, dmmf: customDmmf }
+          const opts = { ...generator.options, dmmf: customDmmf }
           debug('generator.manifest.prettyName', generator.manifest.prettyName)
-          debug('options', options)
-          debug('options.generator.binaryTargets', options.generator.binaryTargets)
-          generator.setOptions(options)
+          debug('options', opts)
+          debug('options.generator.binaryTargets', opts.generator.binaryTargets)
+          generator.setOptions(opts)
         }
       }
     }

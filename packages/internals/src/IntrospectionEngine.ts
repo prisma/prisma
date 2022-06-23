@@ -354,7 +354,7 @@ export class IntrospectionEngine {
             // handle panics
             this.isRunning = false
             if (code === 255 && this.lastError && this.lastError.is_panic) {
-              const err = new RustPanic(
+              const errPanic = new RustPanic(
                 this.lastError.message,
                 this.lastError.backtrace,
                 this.lastRequest,
@@ -362,8 +362,8 @@ export class IntrospectionEngine {
                 /* schemaPath */ undefined,
                 /* schema */ this.lastUrl,
               )
-              this.rejectAll(err)
-              reject(err)
+              this.rejectAll(errPanic)
+              reject(errPanic)
               return
             }
             const messages = this.messages.join('\n')

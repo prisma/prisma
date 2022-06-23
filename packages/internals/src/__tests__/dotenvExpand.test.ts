@@ -286,13 +286,13 @@ describe('integration', function () {
   })
 
   it('should not write to process.env if ignoreProcessEnv is set', () => {
-    const dotenv = {
+    const testDotenv = {
       ignoreProcessEnv: true,
       parsed: {
         SHOULD_NOT_EXIST: 'testing',
       },
     }
-    const obj = dotenvExpand(dotenv).parsed!
+    const obj = dotenvExpand(testDotenv).parsed!
 
     expect(process.env.SHOULD_NOT_EXIST).toBe(undefined)
     expect(obj.SHOULD_NOT_EXIST).toBe('testing')
