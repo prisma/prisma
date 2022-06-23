@@ -32,5 +32,5 @@ testMatrix.setupTestSuite(() => {
     }
 
     expect(warnings.join('')).toContain('There are already 10 instances of Prisma Client actively running')
-  })
+  }, 20_000)
 })
