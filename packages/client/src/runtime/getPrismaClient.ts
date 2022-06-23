@@ -16,7 +16,6 @@ import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
-import { O } from 'ts-toolbelt'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
@@ -223,7 +222,7 @@ export type LogEvent = {
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
 export interface GetPrismaClientConfig {
-  document: O.Optional<DMMF.Document, 'schema'>
+  document: Omit<DMMF.Document, 'schema'>
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
