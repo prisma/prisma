@@ -20,7 +20,7 @@ export type Metric<T> = {
   description: string
 }
 
-type MetricHistogramBucket = [maxValue: number, count: number]
+export type MetricHistogramBucket = [maxValue: number, count: number]
 
 export type MetricHistogram = {
   buckets: MetricHistogramBucket[]
