@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1655976508192,
+  "lastUpdate": 1655981799479,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -104784,6 +104784,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.06,
             "range": "±1.42%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 39,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "54d6c7bbc629e33dc061a3276dda43e1467ad759",
+          "message": "test(client): port restart (#13806)\n\n* refactor/test: remove old restart test\r\n\r\n* test: add new restart test\r\n\r\n* fix: use typeof for constructor arg\r\n\r\n* test: add missing sqlserver\r\n\r\n* test: assert exit\r\n\r\n* refactor: disconnect in afterAll\r\n\r\n* fix: close listeners and use afterEach\r\n\r\n* fix: skip in correct place",
+          "timestamp": "2022-06-23T11:49:50+01:00",
+          "tree_id": "4f7b9b8add762b6c82dbc980028a2f2a79e37454",
+          "url": "https://github.com/prisma/prisma/commit/54d6c7bbc629e33dc061a3276dda43e1467ad759"
+        },
+        "date": 1655981790480,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.36,
+            "range": "±6.08%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.05,
+            "range": "±5.36%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
