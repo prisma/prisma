@@ -117,6 +117,14 @@ export import Decimal = runtime.Decimal
 export type DecimalJsLike = runtime.DecimalJsLike
 
 /**
+ * Metrics 
+ */
+export import Metrics = runtime.Metrics
+export import Metric = runtime.Metric
+export import MetricHistogram = runtime.MetricHistogram
+export import MetricHistogramBucket = runtime.MetricHistogramBucket
+
+/**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
  */
