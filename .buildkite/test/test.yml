@@ -8,7 +8,7 @@ steps:
           run: app
   - label: 'Client functional tests, Node 14, engine={{ matrix.engine }}, provider={{ matrix.provider }}'
     commands:
-      - pnpm install --frozen-lockfile --offline
+      - pnpm install --frozen-lockfile --offline --virtual-store-dir=/app-prefetch
       - pnpm build
       - pnpm run --filter "@prisma/client" test:functional -- -p {{ matrix.provider}}
     env:
