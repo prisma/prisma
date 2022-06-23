@@ -5,32 +5,35 @@ import { ChildProcess } from 'child_process'
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
-// @ts-ignore this is just for type checks
 declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 
 function waitForChildExit(child: ChildProcess): Promise<void> {
   return new Promise((resolve) => {
-    child.on('exit', () => {
+    function listener() {
       resolve()
-    })
+      child.removeListener('exit', listener)
+    }
+
+    child.on('exit', listener)
   })
 }
 
 testMatrix.setupTestSuite(() => {
-  // @ts-ignore internal client
+  // No child process for Node-API, so nothing that can be killed or tested
+  if (getClientEngineType() === ClientEngineType.Library) {
+    return
+  }
+
+  // @ts-ignore internal
   let client: PrismaClient
 
-  afterAll(() => {
-    client?.$disconnect()?.catch(() => undefined)
+  afterEach(() => {
+    if (client) {
+      client.$disconnect().catch(() => undefined)
+    }
   })
 
   test('should assert that PrismaClient is restarted when it goes down', async () => {
-    // No child process for Node-API, so nothing that can be killed or tested
-    if (getClientEngineType() === ClientEngineType.Library) {
-      return
-    }
-
     client = new PrismaClient()
     await client.$connect()
 
