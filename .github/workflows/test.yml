@@ -627,7 +627,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [18]
+        node: [16]
         queryEngine: ['library', 'binary']
 
     steps:

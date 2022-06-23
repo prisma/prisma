@@ -12,7 +12,7 @@ module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: [forceTranspile(), '@prisma'],
+  transformIgnorePatterns: [forceTranspile()],
   reporters: [
     'default',
     [
