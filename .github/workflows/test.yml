@@ -204,6 +204,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        queryEngine: ['library']
+        os: [buildjet-4vcpu-ubuntu-2004]
         node: [18]
 
     steps:
@@ -248,8 +250,8 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/tck/src/tests/coverage/clover.xml
-          flags: tck,${{ matrix.os }}
-          name: tck-${{ matrix.os }}
+          flags: tck,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: tck-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   #
   # CLIENT (types tests only)
