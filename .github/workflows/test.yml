@@ -194,12 +194,12 @@ jobs:
   #
   # TCK
   #
-  tck:
+  tck-tests:
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-tck-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-tck-tests-') }}
 
     strategy:
       fail-fast: false
@@ -247,7 +247,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - run: pnpm run test
-        working-directory: packages/tck
+        working-directory: packages/tck-tests
         env:
           CI: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
