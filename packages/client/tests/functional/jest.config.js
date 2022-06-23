@@ -1,3 +1,5 @@
+const forceTranspile = require('../../../../helpers/jest/forceTranspile')
+
 module.exports = {
   testMatch: [
     '**/*.ts',
@@ -10,7 +12,7 @@ module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: ['node_modules', '@prisma'],
+  transformIgnorePatterns: [forceTranspile(), '@prisma'],
   reporters: [
     'default',
     [
