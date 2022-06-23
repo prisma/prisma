@@ -60,7 +60,7 @@ testMatrix.setupTestSuite(
                            }
                          })
 
-                Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a enumTypes.
+                Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
                 → Possible values: JsonNullValueInput.JsonNull
 
 
@@ -98,7 +98,7 @@ testMatrix.setupTestSuite(
                             }
                           })
 
-                Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a enumTypes.
+                Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
                 → Possible values: JsonNullValueInput.JsonNull
 
 

@@ -363,7 +363,7 @@ ${errorMessages}${missingArgsLegend}\n`
           `prisma.${this.children[0].name}`,
         )} is not a ${chalk.greenBright(
           wrapWithList(
-            stringifyGraphQLType(error.requiredType.bestFittingType.location),
+            stringifyGraphQLType(error.requiredType.bestFittingType.type),
             error.requiredType.bestFittingType.isList,
           ),
         )}.
