@@ -1,5 +1,5 @@
-import { DbPull } from '@prisma/migrate'
 import { isRustPanic, jestConsoleContext, jestContext } from '@prisma/internals'
+import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'
