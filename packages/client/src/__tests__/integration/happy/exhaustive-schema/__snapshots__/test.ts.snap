@@ -5,7 +5,8 @@ exports[`exhaustive-schema: generatedBrowserJS 1`] = `
 Object.defineProperty(exports, "__esModule", { value: true });
 
 const {
-  Decimal
+  Decimal,
+  objectEnumValues
 } = require('@prisma/client/runtime/index-browser')
 
 
@@ -68,9 +69,15 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = 'DbNull'
-Prisma.JsonNull = 'JsonNull'
-Prisma.AnyNull = 'AnyNull'
+Prisma.DbNull = objectEnumValues.instances.DbNull
+Prisma.JsonNull = objectEnumValues.instances.JsonNull
+Prisma.AnyNull = objectEnumValues.instances.AnyNull
+
+Prisma.NullTypes = {
+  DbNull: objectEnumValues.classes.DbNull,
+  JsonNull: objectEnumValues.classes.JsonNull,
+  AnyNull: objectEnumValues.classes.AnyNull
+}
 
 /**
  * Enums
@@ -239,7 +246,8 @@ exports.Prisma.DScalarFieldEnum = makeEnum({
   byteA: 'byteA',
   xml: 'xml',
   json: 'json',
-  jsonb: 'jsonb'
+  jsonb: 'jsonb',
+  list: 'list'
 });
 
 exports.Prisma.EScalarFieldEnum = makeEnum({
@@ -255,12 +263,12 @@ exports.Prisma.SortOrder = makeEnum({
 });
 
 exports.Prisma.JsonNullValueInput = makeEnum({
-  JsonNull: 'JsonNull'
+  JsonNull: Prisma.JsonNull
 });
 
 exports.Prisma.NullableJsonNullValueInput = makeEnum({
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull'
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
 });
 
 exports.Prisma.QueryMode = makeEnum({
@@ -269,9 +277,9 @@ exports.Prisma.QueryMode = makeEnum({
 });
 
 exports.Prisma.JsonNullValueFilter = makeEnum({
-  DbNull: 'DbNull',
-  JsonNull: 'JsonNull',
-  AnyNull: 'AnyNull'
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
 });
 exports.ABeautifulEnum = makeEnum({
   A: 'A',
@@ -542,6 +550,7 @@ export type D = {
   xml: string
   json: Prisma.JsonValue
   jsonb: Prisma.JsonValue
+  list: number[]
 }
 
 /**
@@ -872,6 +881,14 @@ export namespace Prisma {
   export type DecimalJsLike = runtime.DecimalJsLike
 
   /**
+   * Metrics 
+   */
+  export import Metrics = runtime.Metrics
+  export import Metric = runtime.Metric
+  export import MetricHistogram = runtime.MetricHistogram
+  export import MetricHistogramBucket = runtime.MetricHistogramBucket
+
+  /**
    * Prisma Client JS version: local
    * Query Engine version: local
    */
@@ -932,25 +949,68 @@ export namespace Prisma {
   export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
 
   /**
+   * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
+   * 
+   * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+   */
+  namespace NullTypes {
+    /**
+    * Type of \`Prisma.DbNull\`.
+    * 
+    * You cannot use other instances of this class. Please use the \`Prisma.DbNull\` value.
+    * 
+    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+    */
+    class DbNull {
+      private DbNull: never
+      private constructor()
+    }
+
+    /**
+    * Type of \`Prisma.JsonNull\`.
+    * 
+    * You cannot use other instances of this class. Please use the \`Prisma.JsonNull\` value.
+    * 
+    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+    */
+    class JsonNull {
+      private JsonNull: never
+      private constructor()
+    }
+
+    /**
+    * Type of \`Prisma.AnyNull\`.
+    * 
+    * You cannot use other instances of this class. Please use the \`Prisma.AnyNull\` value.
+    * 
+    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+    */
+    class AnyNull {
+      private AnyNull: never
+      private constructor()
+    }
+  }
+
+  /**
    * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const DbNull: 'DbNull'
+  export const DbNull: NullTypes.DbNull
 
   /**
    * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const JsonNull: 'JsonNull'
+  export const JsonNull: NullTypes.JsonNull
 
   /**
    * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
    * 
    * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
    */
-  export const AnyNull: 'AnyNull'
+  export const AnyNull: NullTypes.AnyNull
 
   type SelectAndInclude = {
     select: any
@@ -12614,8 +12674,18 @@ export namespace Prisma {
 
   export type AggregateD = {
     _count: DCountAggregateOutputType | null
+    _avg: DAvgAggregateOutputType | null
+    _sum: DSumAggregateOutputType | null
     _min: DMinAggregateOutputType | null
     _max: DMaxAggregateOutputType | null
+  }
+
+  export type DAvgAggregateOutputType = {
+    list: number | null
+  }
+
+  export type DSumAggregateOutputType = {
+    list: number[] | null
   }
 
   export type DMinAggregateOutputType = {
@@ -12639,9 +12709,18 @@ export namespace Prisma {
     xml: number
     json: number
     jsonb: number
+    list: number
     _all: number
   }
 
+
+  export type DAvgAggregateInputType = {
+    list?: true
+  }
+
+  export type DSumAggregateInputType = {
+    list?: true
+  }
 
   export type DMinAggregateInputType = {
     id?: true
@@ -12664,6 +12743,7 @@ export namespace Prisma {
     xml?: true
     json?: true
     jsonb?: true
+    list?: true
     _all?: true
   }
 
@@ -12710,6 +12790,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: DAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: DSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: DMinAggregateInputType
@@ -12740,6 +12832,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: DCountAggregateInputType | true
+    _avg?: DAvgAggregateInputType
+    _sum?: DSumAggregateInputType
     _min?: DMinAggregateInputType
     _max?: DMaxAggregateInputType
   }
@@ -12752,7 +12846,10 @@ export namespace Prisma {
     xml: string
     json: JsonValue
     jsonb: JsonValue
+    list: number[]
     _count: DCountAggregateOutputType | null
+    _avg: DAvgAggregateOutputType | null
+    _sum: DSumAggregateOutputType | null
     _min: DMinAggregateOutputType | null
     _max: DMaxAggregateOutputType | null
   }
@@ -12778,6 +12875,7 @@ export namespace Prisma {
     xml?: boolean
     json?: boolean
     jsonb?: boolean
+    list?: boolean
   }
 
   export type DGetPayload<
@@ -14545,7 +14643,8 @@ export namespace Prisma {
     byteA: 'byteA',
     xml: 'xml',
     json: 'json',
-    jsonb: 'jsonb'
+    jsonb: 'jsonb',
+    list: 'list'
   };
 
   export type DScalarFieldEnum = (typeof DScalarFieldEnum)[keyof typeof DScalarFieldEnum]
@@ -14570,15 +14669,15 @@ export namespace Prisma {
 
 
   export const JsonNullValueInput: {
-    JsonNull: 'JsonNull'
+    JsonNull: typeof JsonNull
   };
 
   export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
 
 
   export const NullableJsonNullValueInput: {
-    DbNull: 'DbNull',
-    JsonNull: 'JsonNull'
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull
   };
 
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
@@ -14593,9 +14692,9 @@ export namespace Prisma {
 
 
   export const JsonNullValueFilter: {
-    DbNull: 'DbNull',
-    JsonNull: 'JsonNull',
-    AnyNull: 'AnyNull'
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
   };
 
   export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
@@ -15414,6 +15513,7 @@ export namespace Prisma {
     xml?: StringFilter | string
     json?: JsonFilter
     jsonb?: JsonFilter
+    list?: IntNullableListFilter
   }
 
   export type DOrderByWithRelationInput = {
@@ -15423,6 +15523,7 @@ export namespace Prisma {
     xml?: SortOrder
     json?: SortOrder
     jsonb?: SortOrder
+    list?: SortOrder
   }
 
   export type DWhereUniqueInput = {
@@ -15436,9 +15537,12 @@ export namespace Prisma {
     xml?: SortOrder
     json?: SortOrder
     jsonb?: SortOrder
+    list?: SortOrder
     _count?: DCountOrderByAggregateInput
+    _avg?: DAvgOrderByAggregateInput
     _max?: DMaxOrderByAggregateInput
     _min?: DMinOrderByAggregateInput
+    _sum?: DSumOrderByAggregateInput
   }
 
   export type DScalarWhereWithAggregatesInput = {
@@ -15451,6 +15555,7 @@ export namespace Prisma {
     xml?: StringWithAggregatesFilter | string
     json?: JsonWithAggregatesFilter
     jsonb?: JsonWithAggregatesFilter
+    list?: IntNullableListFilter
   }
 
   export type EWhereInput = {
@@ -16572,6 +16677,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
+    list?: DCreatelistInput | Enumerable<number>
   }
 
   export type DUncheckedCreateInput = {
@@ -16581,6 +16687,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
+    list?: DCreatelistInput | Enumerable<number>
   }
 
   export type DUpdateInput = {
@@ -16590,6 +16697,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
+    list?: DUpdatelistInput | Enumerable<number>
   }
 
   export type DUncheckedUpdateInput = {
@@ -16599,6 +16707,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
+    list?: DUpdatelistInput | Enumerable<number>
   }
 
   export type DCreateManyInput = {
@@ -16608,6 +16717,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
+    list?: DCreatelistInput | Enumerable<number>
   }
 
   export type DUpdateManyMutationInput = {
@@ -16617,6 +16727,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
+    list?: DUpdatelistInput | Enumerable<number>
   }
 
   export type DUncheckedUpdateManyInput = {
@@ -16626,6 +16737,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
+    list?: DUpdatelistInput | Enumerable<number>
   }
 
   export type ECreateInput = {
@@ -17743,6 +17855,14 @@ export namespace Prisma {
     not?: NestedBytesFilter | Buffer
   }
 
+  export type IntNullableListFilter = {
+    equals?: Enumerable<number> | null
+    has?: number | null
+    hasEvery?: Enumerable<number>
+    hasSome?: Enumerable<number>
+    isEmpty?: boolean
+  }
+
   export type DCountOrderByAggregateInput = {
     id?: SortOrder
     bool?: SortOrder
@@ -17750,6 +17870,11 @@ export namespace Prisma {
     xml?: SortOrder
     json?: SortOrder
     jsonb?: SortOrder
+    list?: SortOrder
+  }
+
+  export type DAvgOrderByAggregateInput = {
+    list?: SortOrder
   }
 
   export type DMaxOrderByAggregateInput = {
@@ -17764,6 +17889,10 @@ export namespace Prisma {
     bool?: SortOrder
     byteA?: SortOrder
     xml?: SortOrder
+  }
+
+  export type DSumOrderByAggregateInput = {
+    list?: SortOrder
   }
 
   export type BytesWithAggregatesFilter = {
@@ -18111,8 +18240,17 @@ export namespace Prisma {
     divide?: Decimal | DecimalJsLike | number | string
   }
 
+  export type DCreatelistInput = {
+    set: Enumerable<number>
+  }
+
   export type BytesFieldUpdateOperationsInput = {
     set?: Buffer
+  }
+
+  export type DUpdatelistInput = {
+    set?: Enumerable<number>
+    push?: number | Enumerable<number>
   }
 
   export type NestedIntFilter = {

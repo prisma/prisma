@@ -1,10 +1,17 @@
 import * as lzString from 'lz-string'
 
-export { MetricsClient } from './core/metrics/MetricsClient'
+export {
+  type Metric,
+  type MetricHistogram,
+  type MetricHistogramBucket,
+  type Metrics,
+  MetricsClient,
+} from './core/metrics/MetricsClient'
 export { DMMFHelper as DMMFClass } from './dmmf'
 export { type BaseDMMF, DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
+export { objectEnumValues } from './object-enums'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
 export type { DecimalJsLike } from './utils/decimalJsLike'
 export { findSync } from './utils/find'

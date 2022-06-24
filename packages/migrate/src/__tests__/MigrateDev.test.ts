@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext, serializeQueryEngineName } from '@prisma/internals'
 import fs from 'fs-jetpack'
 import path from 'path'
 import prompt from 'prompts'
@@ -21,6 +21,66 @@ process.env.GITHUB_ACTIONS = '1'
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 describe('common', () => {
+  it('invalid schema', async () => {
+    ctx.fixture('schema-only-sqlite')
+
+    try {
+      await MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
+      expect(true).toBe(false) // unreachable
+    } catch (error) {
+      expect(serializeQueryEngineName(error.message)).toMatchInlineSnapshot(`
+        Get Config: Schema parsing - Error while interacting with query-engine-NORMALIZED
+        Error code: P1012
+        error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
+          -->  schema.prisma:10
+           | 
+         9 | }
+        10 | model Blog {
+        11 | 
+           | 
+
+        Validation Error Count: 1
+
+        Prisma CLI Version : 0.0.0
+      `)
+    }
+
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/invalid.prisma`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  })
+
+  it('provider array should fail', async () => {
+    ctx.fixture('schema-only-sqlite')
+
+    try {
+      await MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
+      expect(true).toBe(false) // unreachable
+    } catch (error) {
+      expect(serializeQueryEngineName(error.message)).toMatchInlineSnapshot(`
+              Get Config: Schema parsing - Error while interacting with query-engine-NORMALIZED
+              Error code: P1012
+              error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
+                -->  schema.prisma:2
+                 | 
+               1 | datasource my_db {
+               2 |     provider = ["postgresql", "sqlite"]
+                 | 
+
+              Validation Error Count: 1
+
+              Prisma CLI Version : 0.0.0
+            `)
+    }
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Prisma schema loaded from prisma/provider-array.prisma`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
   it('wrong flag', async () => {
     const commandInstance = MigrateDev.new()
     const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
@@ -99,33 +159,6 @@ describe('sqlite', () => {
 
       Already in sync, no schema change or pending migration was found.
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-  })
-
-  it('invalid schema', async () => {
-    ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Get config: Schema Parsing P1012
-
-            error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
-              -->  schema.prisma:10
-               | 
-             9 | }
-            10 | model Blog {
-            11 | 
-               | 
-
-            Validation Error Count: 1
-
-
-            Prisma CLI Version : 0.0.0
-          `)
-
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Prisma schema loaded from prisma/invalid.prisma`,
-    )
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
@@ -636,14 +669,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -697,10 +730,10 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                        ⚠️  Warnings for the current datasource:
+                                                                                                                                                                                                                                                                                                                                                            ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                                                                                                                                                                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                                                `)
+                                                                                                                                                                                                                                                                                                                                                              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
@@ -719,37 +752,11 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                        ⚠️  Warnings for the current datasource:
+                                                                                                                                                                                                                                                                                                                                                            ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                                                                                                                                                                          • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                                                `)
+                                                                                                                                                                                                                                                                                                                                                              • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-  })
-
-  it('provider array should fail', async () => {
-    ctx.fixture('schema-only-sqlite')
-    const result = MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
-
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Get config: Schema Parsing P1012
-
-            error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
-              -->  schema.prisma:2
-               | 
-             1 | datasource my_db {
-             2 |     provider = ["postgresql", "sqlite"]
-               | 
-
-            Validation Error Count: 1
-
-
-            Prisma CLI Version : 0.0.0
-          `)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Prisma schema loaded from prisma/provider-array.prisma`,
-    )
-    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   // TODO: Windows: snapshot test fails because of emoji.

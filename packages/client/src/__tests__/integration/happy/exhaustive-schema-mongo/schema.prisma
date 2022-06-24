@@ -1,5 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -55,6 +55,7 @@ type Embed {
   embedEmbedList     EmbedEmbed[]
   requiredEmbedEmbed EmbedEmbed
   optionalEmbedEmbed EmbedEmbed?
+  scalarList         Int[]        @default([1])
 }
 
 type EmbedEmbed {
@@ -138,7 +139,7 @@ model OptionalSide1 {
   id   String         @id @default(auto()) @map("_id") @db.ObjectId
   opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
 
-  optionalSide2Id String?            @unique
+  optionalSide2Id String?         @unique
   int             Int
   optionalInt     Int?
   float           Float
@@ -191,9 +192,9 @@ model A {
 }
 
 model B {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  float    Float // @db.Real
-  dFloat   Float // @db.DoublePrecision
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  float  Float // @db.Real
+  dFloat Float // @db.DoublePrecision
 }
 
 model C {
@@ -213,6 +214,7 @@ model D {
   xml   String // @db.Xml
   json  Json // @db.Json
   jsonb Json // @db.JsonB
+  list  Int[]   @default([1, 2, 3])
 }
 
 model E {
