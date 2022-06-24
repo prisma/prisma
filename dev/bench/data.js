@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1656008166254,
+  "lastUpdate": 1656059206402,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -105048,6 +105048,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.07,
             "range": "±2.58%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 39,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8e90f8a1ca12f9b596f92bae811d9d92266aab7a",
+          "message": "feat(sdk): improved error reporting by adding detail to getConfig and getDmmf error (#13736)\n\n* sdk: improved error reporting by adding detail to getConfig and getDmmf error\r\n\r\n* sdk: added openssl fix proposal\r\n\r\n* sdk: added comments to errorHelpers\r\n\r\n* sdk: updated structured error output in getDmmf\r\n\r\n* sdk: updated structured error output in getConfig\r\n\r\n* ci: fix tests\r\n\r\n* sdk: add tests for loadNodeAPILibrary\r\n\r\n* Update packages/sdk/src/engine-commands/getConfig.ts\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* Update packages/sdk/src/engine-commands/getConfig.ts\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* Update packages/sdk/src/engine-commands/getDmmf.ts\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* Update packages/sdk/src/engine-commands/getDmmf.ts\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* ci: fix tests for getDmmf\r\n\r\n* ci: fix tests\r\n\r\n* ci: fix tests\r\n\r\n* ci: fix tests\r\n\r\n* ci: fix tests\r\n\r\n* ci: fix tests\r\n\r\n* ci: fixed getConfig tests\r\n\r\n* chore: simplified query-engine test assertions\r\n\r\n* chore: fix typo\r\n\r\n* fix: tests\r\n\r\n* internals: updated openssl error message\r\n\r\n* Update packages/internals/src/__tests__/engine-commands/queryEngineCommons.test.ts\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-06-24T10:21:22+02:00",
+          "tree_id": "d300be39f77db9b53f0d06ce6344d1f73bf1dedc",
+          "url": "https://github.com/prisma/prisma/commit/8e90f8a1ca12f9b596f92bae811d9d92266aab7a"
+        },
+        "date": 1656059200008,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.43,
+            "range": "±3.43%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.07,
+            "range": "±1.42%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
