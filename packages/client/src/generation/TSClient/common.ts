@@ -1,3 +1,6 @@
+import indent from 'indent-string'
+
+import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
 
 export const commonCodeJS = ({
@@ -12,7 +15,8 @@ ${
   browser
     ? `
 const {
-  Decimal
+  Decimal,
+  objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -29,7 +33,8 @@ const {
   join,
   raw,
   Decimal,
-  DecimalJsLike
+  DecimalJsLike,
+  objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -66,9 +71,15 @@ Prisma.validator = () => (val) => val
 /**
  * Shorthand utilities for JSON filtering
  */
-Prisma.DbNull = 'DbNull'
-Prisma.JsonNull = 'JsonNull'
-Prisma.AnyNull = 'AnyNull'
+Prisma.DbNull = objectEnumValues.instances.DbNull
+Prisma.JsonNull = objectEnumValues.instances.JsonNull
+Prisma.AnyNull = objectEnumValues.instances.AnyNull
+
+Prisma.NullTypes = {
+  DbNull: objectEnumValues.classes.DbNull,
+  JsonNull: objectEnumValues.classes.JsonNull,
+  AnyNull: objectEnumValues.classes.AnyNull
+}
 `
 
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
@@ -185,25 +196,38 @@ export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
 export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
 
 /**
+ * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
+ * 
+ * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+ */
+namespace NullTypes {
+${buildNullClass('DbNull')}
+
+${buildNullClass('JsonNull')}
+
+${buildNullClass('AnyNull')}
+}
+
+/**
  * Helper for filtering JSON entries that have \`null\` on the database (empty on the db)
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const DbNull: 'DbNull'
+export const DbNull: NullTypes.DbNull
 
 /**
  * Helper for filtering JSON entries that have JSON \`null\` values (not empty on the db)
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const JsonNull: 'JsonNull'
+export const JsonNull: NullTypes.JsonNull
 
 /**
  * Helper for filtering JSON entries that are \`Prisma.DbNull\` or \`Prisma.JsonNull\`
  * 
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
  */
-export const AnyNull: 'AnyNull'
+export const AnyNull: NullTypes.AnyNull
 
 type SelectAndInclude = {
   select: any
@@ -514,3 +538,18 @@ ${
 }
 `,
 })
+
+function buildNullClass(name: string) {
+  const source = `/**
+* Type of \`Prisma.${name}\`.
+* 
+* You cannot use other instances of this class. Please use the \`Prisma.${name}\` value.
+* 
+* @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-on-a-json-field
+*/
+class ${name} {
+  private ${name}: never
+  private constructor()
+}`
+  return indent(source, TAB_SIZE)
+}
