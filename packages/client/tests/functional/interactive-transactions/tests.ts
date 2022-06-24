@@ -10,6 +10,8 @@ declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(({ provider }) => {
+  console.log('process.version ', process.version)
+
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543

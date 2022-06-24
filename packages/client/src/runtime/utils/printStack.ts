@@ -156,8 +156,6 @@ function parseStack({
 }
 
 export const printStack = (args: ErrorArgs): PrintStackResult => {
-  console.log(args)
-
   const { callsiteStr, prevLines, functionName, afterLines, indentValue, lastErrorHeight } = parseStack(args)
 
   const introText = args.onUs
