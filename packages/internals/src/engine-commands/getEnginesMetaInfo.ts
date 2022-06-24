@@ -149,7 +149,7 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
     ),
   )()
 
-  const fromEnvVar = O.fromNullable(envVar)
+  const fromEnvVar = pathFromEnv ? O.fromNullable(envVar) : O.none
 
   /**
    * Extract EngineInfo from a binary engine
