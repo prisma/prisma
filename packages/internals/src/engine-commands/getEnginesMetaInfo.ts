@@ -4,31 +4,31 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
 import { engineEnvVarMap, safeResolveBinary } from '../resolveBinary'
 import { safeGetBinaryVersion } from './getBinaryVersion'
 
-export type EngineInfoLibrary = {
-  libraryPath: O.Option<string>
-  version: E.Either<Error, String>
+/**
+ * Both an engine binary and a library might be resolved from and environment variable indicating a path.
+ * We first try to retrieve the engines' path from an env var; if it fails, we fall back to `safeResolveBinary`.
+ * If both fail, we return an error.
+ * Even if we resolve a path, retrieving the version might fail.
+ */
+
+export type EngineInfoPathResolved = {
+  path: E.Either<never, string>
+  version: E.Either<Error, string>
+}
+
+export type EngineInfoPathNotResolved = {
+  path: E.Either<Error, never>
+}
+
+export type EngineInfo = {
   fromEnvVar: O.Option<string>
-}
-
-export type EngineInfoBinaryPathError = {
-  binaryPath: E.Either<Error, never>
-}
-
-export type EngineInfoBinaryPathSuccess = {
-  binaryPath: E.Either<never, string>
-  version: E.Either<Error, String>
-}
-
-export type EngineInfoBinary = EngineInfoBinaryPathError | EngineInfoBinaryPathSuccess
-
-export type EngineInfo = EngineInfoLibrary | EngineInfoBinary
+} & (EngineInfoPathResolved | EngineInfoPathNotResolved)
 
 export type BinaryMatrix<T> = {
   'query-engine': T
@@ -95,42 +95,39 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
 
   // compute message displayed when an engine is resolved via env vars
   const resolved = match(enginesInfo)
-    .with({ fromEnvVar: P.when(O.isSome) }, (enginesInfoLibrary) => {
-      return `, resolved by ${enginesInfoLibrary.fromEnvVar.value}`
+    .with({ fromEnvVar: P.when(O.isSome) }, (_engineInfo) => {
+      return `, resolved by ${_engineInfo.fromEnvVar.value}`
     })
     .otherwise(() => '')
-
-  // compute version (git hash) of an engine, returning an error message and populating
-  // `errors` if it fails
-  const version = match(enginesInfo)
-    .with({ version: P.when(E.isRight) }, (engineInfo) => {
-      return engineInfo.version.right
-    })
-    .with({ version: P.when(E.isLeft) }, (engineInfo) => {
-      errors.push(engineInfo.version.left)
-      return 'E_CANNOT_RESOLVE_VERSION' as const
-    })
-    .otherwise(() => {
-      return 'E_CANNOT_RESOLVE_VERSION' as const
-    })
 
   // compute absolute path of an engine, returning an error message and populating
   // `errors` if it fails
   const absolutePath = match(enginesInfo)
-    .with({ libraryPath: P.when(O.isSome) }, (enginesInfoLibrary) => {
-      return enginesInfoLibrary.libraryPath.value
+    .with({ path: P.when(E.isRight) }, (_engineInfo) => {
+      return _engineInfo.path.right
     })
-    .with({ libraryPath: P.when(O.isNone) }, (_) => {
-      return 'E_CANNOT_RESOLVE_PATH' as const
-    })
-    .with({ binaryPath: P.when(E.isRight) }, (engineInfo) => {
-      return engineInfo.binaryPath.right
-    })
-    .with({ binaryPath: P.when(E.isLeft) }, (engineInfo) => {
-      errors.push(engineInfo.binaryPath.left)
+    .with({ path: P.when(E.isLeft) }, (_engineInfo) => {
+      // the binary/library can't be found
+      errors.push(_engineInfo.path.left)
       return 'E_CANNOT_RESOLVE_PATH' as const
     })
     .exhaustive()
+
+  // compute version (git hash) of an engine, returning an error message and populating
+  // `errors` if it fails
+  const version = match(enginesInfo)
+    .with({ version: P.when(E.isRight) }, (_engineInfo) => {
+      return _engineInfo.version.right
+    })
+    .with({ version: P.when(E.isLeft) }, (_engineInfo) => {
+      // the binary/library exists, but extracting the version failed
+      errors.push(_engineInfo.version.left)
+      return 'E_CANNOT_RESOLVE_VERSION_FROM_ENGINE' as const
+    })
+    .otherwise((e) => {
+      // we can't retrieve a version from a non-existing binary/library
+      return 'E_CANNOT_RESOLVE_VERSION_NO_ENGINE' as const
+    })
 
   const versionMessage = `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   return [versionMessage, errors] as const
@@ -140,39 +137,27 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
   const envVar = engineEnvVarMap[binaryName]
   const pathFromEnv = process.env[envVar]
 
-  const resolvedVersion: { version: E.Either<Error, string> } = await pipe(
+  const version: E.Either<Error, string> = await pipe(
     safeGetBinaryVersion(pathFromEnv, binaryName),
 
     // "wide" pattern matching, resulting in an union type of the two branches
     TE.matchW(
-      (versionError) => ({ version: E.left(versionError) }),
-      (version) => ({ version: E.right(version) }),
+      (versionError) => E.left(versionError),
+      (version) => E.right(version),
     ),
   )()
-
-  if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-    /**
-     * Extract EngineInfo from a library engine
-     */
-    const engineInfoLibrary: EngineInfoLibrary = {
-      ...resolvedVersion,
-      libraryPath: O.fromNullable(pathFromEnv),
-      fromEnvVar: O.fromNullable(envVar),
-    }
-    return engineInfoLibrary
-  }
 
   /**
    * Extract EngineInfo from a binary engine
    */
-  const engineInfoBinary: EngineInfoBinary = await pipe(
-    safeResolveBinary(binaryName),
+  const engineInfo: EngineInfo = await pipe(
+    safeResolveBinary(binaryName, pathFromEnv),
 
     // "wide" pattern matching, resulting in an union type of the two branches
     TE.matchW(
-      (binaryPathError) => ({ binaryPath: E.left(binaryPathError) }),
-      (binaryPath) => ({ binaryPath: E.right(binaryPath), ...resolvedVersion }),
+      (binaryPathError) => ({ path: E.left(binaryPathError), fromEnvVar: O.fromNullable(pathFromEnv) }),
+      (binaryPath) => ({ path: E.right(binaryPath), fromEnvVar: O.fromNullable(pathFromEnv), version }),
     ),
   )()
-  return engineInfoBinary
+  return engineInfo
 }
