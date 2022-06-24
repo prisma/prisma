@@ -84,7 +84,7 @@ export namespace DMMF {
     type: string
     dbNames?: string[] | null
     hasDefaultValue: boolean
-    default?: FieldDefault | string | boolean | number
+    default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
     relationToFields?: any[]
     relationOnDelete?: string
@@ -97,6 +97,8 @@ export namespace DMMF {
     name: string
     args: any[]
   }
+
+  export type FieldDefaultScalar = string | boolean | number
 
   export interface Schema {
     rootQueryType?: string
