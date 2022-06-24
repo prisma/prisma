@@ -199,12 +199,12 @@ testMatrix.setupTestSuite(({ provider }) => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/tests/functional/interactive-transactions/tests.ts:190:41
+            /client/tests/functional/interactive-transactions/tests.ts:192:41
 
-              187 })
-              188 
-              189 const result = prisma.$transaction(async () => {
-            → 190   await transactionBoundPrisma.user.create(
+              189 })
+              190 
+              191 const result = prisma.$transaction(async () => {
+            → 192   await transactionBoundPrisma.user.create(
               Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
           `)
 
