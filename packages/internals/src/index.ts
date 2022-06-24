@@ -71,6 +71,7 @@ export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue
 export { pick } from './utils/pick'
 export { platformRegex } from './utils/platformRegex'
 export { printConfigWarnings } from './utils/printConfigWarnings'
+export { serializeQueryEngineName } from './utils/serializeQueryEngineName'
 export { createSpinner } from './utils/spinner'
 export type { Position } from './utils/trimBlocksFromSchema'
 export { trimBlocksFromSchema, trimNewLine } from './utils/trimBlocksFromSchema'
