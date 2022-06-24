@@ -1,3 +1,4 @@
+import { handlePanic, jestConsoleContext, jestContext } from '@prisma/internals'
 import {
   DbCommand,
   DbPull,
@@ -11,7 +12,6 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { handlePanic, jestConsoleContext, jestContext } from '@prisma/internals'
 
 import { CLI } from '../../CLI'
 

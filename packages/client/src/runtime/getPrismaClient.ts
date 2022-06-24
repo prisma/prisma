@@ -3,13 +3,19 @@ import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { ClientEngineType, getClientEngineType, logger, mapPreviewFeatures, tryLoadEnvs } from '@prisma/internals'
+import {
+  ClientEngineType,
+  getClientEngineType,
+  logger,
+  mapPreviewFeatures,
+  tryLoadEnvs,
+  warnOnce,
+} from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
-import { O } from 'ts-toolbelt'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
@@ -153,6 +159,11 @@ export type InternalRequestParams = {
    * code looks like
    */
   clientMethod: string // TODO what is this
+  /**
+   * Name of js model that triggered the request. Might be used
+   * for warnings or error messages
+   */
+  jsModelName?: string
   callsite?: string // TODO what is this
   /** Headers metadata that will be passed to the Engine */
   headers?: Record<string, string> // TODO what is this
@@ -211,7 +222,7 @@ export type LogEvent = {
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
 export interface GetPrismaClientConfig {
-  document: O.Optional<DMMF.Document, 'schema'>
+  document: Omit<DMMF.Document, 'schema'>
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
@@ -694,7 +705,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise((txId, lock, otelCtx) => {
-        if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
+        if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
         }
 
@@ -870,7 +881,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise((txId, lock, otelCtx) => {
-        if ((query as TemplateStringsArray).raw || (query as sqlTemplateTag.Sql).sql) {
+        if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
         }
 
@@ -1055,6 +1066,7 @@ new PrismaClient({
     private async _executeRequest({
       args,
       clientMethod,
+      jsModelName,
       dataPath,
       callsite,
       runInTransaction,
@@ -1104,6 +1116,7 @@ new PrismaClient({
       const typeName = getOutputTypeName(field.outputType.type)
 
       const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
+      warnAboutRejectOnNotFound(rejectOnNotFound, jsModelName, action)
       let document = makeDocument({
         dmmf: this._dmmf,
         rootField: rootField!,
@@ -1220,4 +1233,26 @@ function transactionProxy<T>(thing: T, txId: string): T {
       return transactionProxy(target[prop], txId)
     },
   }) as any as T
+}
+
+const rejectOnNotFoundReplacements = {
+  findUnique: 'findUniqueOrThrow',
+  findFirst: 'findFirstOrThrow',
+}
+
+function warnAboutRejectOnNotFound(
+  rejectOnNotFound: RejectOnNotFound,
+  model: string | undefined,
+  action: string,
+): void {
+  if (rejectOnNotFound) {
+    const replacementAction = rejectOnNotFoundReplacements[action]
+    const replacementCall = model ? `prisma.${model}.${replacementAction}` : `prisma.${replacementAction}`
+    const key = `rejectOnNotFound.${model ?? ''}.${action}`
+
+    warnOnce(
+      key,
+      `\`rejectOnNotFound\` option is deprecated and will be removed in Prisma 5. Please use \`${replacementCall}\` method instead`,
+    )
+  }
 }

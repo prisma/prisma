@@ -1,4 +1,4 @@
-import type { Engine, Metrics } from '@prisma/engine-core'
+import type { Engine, Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '@prisma/engine-core'
 
 export type MetricsOptions = {
   /**
@@ -35,3 +35,5 @@ export class MetricsClient {
     return this._engine.metrics({ format: 'json', ...options })
   }
 }
+
+export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics }

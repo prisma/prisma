@@ -2,6 +2,7 @@
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
+import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -17,7 +18,6 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
 import chalk from 'chalk'
 import path from 'path'
 

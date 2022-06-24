@@ -123,7 +123,8 @@ function parseStack({
         params.callsiteStr = ':'
       } else {
         // Why even all this effort? Because if a user calls the client instance "db", we want to be able to also say "db.user.findMany"
-        const prismaClientRegex = /(\S+(create|createMany|updateMany|deleteMany|update|delete|findMany|findUnique)\()/
+        const prismaClientRegex =
+          /(\S+(create|createMany|updateMany|deleteMany|update|delete|findMany|findUnique|findFirst|findUniqueOrThrow|findFirstOrThrow)\()/
         const match = prismaClientRegex.exec(theLine)
         if (!match) {
           return params
