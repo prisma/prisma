@@ -10,16 +10,24 @@ export const objectEnumNames = ['JsonNullValueInput', 'NullableJsonNullValueInpu
 const secret = Symbol()
 
 /**
+ * Emulate a private property via a WeakMap manually. Using native private
+ * properties is a breaking change for downstream users with minimal TypeScript
+ * configs, because TypeScript uses ES3 as the default target.
+ *
+ * TODO: replace this with a `#representation` private property in the
+ * `ObjectEnumValue` class and document minimal required `target` for TypeScript.
+ */
+const representations = new WeakMap<ObjectEnumValue, string>()
+
+/**
  * Base class for unique values of object-valued enums.
  */
 export abstract class ObjectEnumValue {
-  #representation: string
-
   constructor(arg?: symbol) {
     if (arg === secret) {
-      this.#representation = `Prisma.${this._getName()}`
+      representations.set(this, `Prisma.${this._getName()}`)
     } else {
-      this.#representation = `new Prisma.${this._getNamespace()}.${this._getName()}()`
+      representations.set(this, `new Prisma.${this._getNamespace()}.${this._getName()}()`)
     }
   }
 
@@ -30,7 +38,7 @@ export abstract class ObjectEnumValue {
   }
 
   toString() {
-    return this.#representation
+    return representations.get(this)!
   }
 }
 
