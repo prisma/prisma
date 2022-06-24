@@ -1,5 +1,4 @@
 import type { DMMF } from '@prisma/generator-helper'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import {
   arg,
   canConnectToDatabase,
@@ -14,6 +13,7 @@ import {
   loadEnvFile,
   pick,
 } from '@prisma/internals'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
