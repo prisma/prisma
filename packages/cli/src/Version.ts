@@ -4,10 +4,8 @@ import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
-  engineEnvVarMap,
   format,
   formatTable,
-  getBinaryVersion,
   getConfig,
   getEnginesMetaInfo,
   getSchema,
@@ -15,22 +13,13 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  resolveBinary,
 } from '@prisma/internals'
 import chalk from 'chalk'
-import fs from 'fs'
-import path from 'path'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
-
-interface BinaryInfo {
-  path: string
-  version: string
-  fromEnvVar?: string
-}
 
 /**
  * $ prisma version
@@ -149,24 +138,6 @@ export class Version implements Command {
       // console.error(e)
     }
     return []
-  }
-
-  private printBinaryInfo({ path: absolutePath, version, fromEnvVar }: BinaryInfo): string {
-    const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
-    return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
-  }
-
-  private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
-    const envVar = engineEnvVarMap[binaryName]
-    const pathFromEnv = process.env[envVar]
-    if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getBinaryVersion(pathFromEnv, binaryName)
-      return { version, path: pathFromEnv, fromEnvVar: envVar }
-    }
-
-    const binaryPath = await resolveBinary(binaryName)
-    const version = await getBinaryVersion(binaryPath, binaryName)
-    return { path: binaryPath, version }
   }
 
   public help(error?: string): string | HelpError {

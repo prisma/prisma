@@ -125,7 +125,9 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
       return 'E_CANNOT_RESOLVE_VERSION_FROM_ENGINE' as const
     })
     .otherwise((e) => {
-      // we can't retrieve a version from a non-existing binary/library
+      // we can't retrieve a version from a non-existing binary/library.
+      // This might only occur if downloading a non-default engine (e.g., the binary query-engine)
+      // fails silently.
       return 'E_CANNOT_RESOLVE_VERSION_NO_ENGINE' as const
     })
 
@@ -147,6 +149,8 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
     ),
   )()
 
+  const fromEnvVar = O.fromNullable(envVar)
+
   /**
    * Extract EngineInfo from a binary engine
    */
@@ -155,8 +159,8 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
 
     // "wide" pattern matching, resulting in an union type of the two branches
     TE.matchW(
-      (binaryPathError) => ({ path: E.left(binaryPathError), fromEnvVar: O.fromNullable(pathFromEnv) }),
-      (binaryPath) => ({ path: E.right(binaryPath), fromEnvVar: O.fromNullable(pathFromEnv), version }),
+      (binaryPathError) => ({ path: E.left(binaryPathError), fromEnvVar }),
+      (binaryPath) => ({ path: E.right(binaryPath), fromEnvVar, version }),
     ),
   )()
   return engineInfo
