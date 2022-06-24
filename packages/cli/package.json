@@ -33,7 +33,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=14.15"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
