@@ -8,7 +8,7 @@ import path from 'path'
 import { match, P } from 'ts-pattern'
 
 import { engineEnvVarMap, safeResolveBinary } from '../resolveBinary'
-import { safeGetBinaryVersion } from './getBinaryVersion'
+import { safeGetEngineVersion } from './getEngineVersion'
 
 /**
  * Both an engine binary and a library might be resolved from and environment variable indicating a path.
@@ -140,7 +140,7 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
   const pathFromEnv = process.env[envVar]
 
   const version: E.Either<Error, string> = await pipe(
-    safeGetBinaryVersion(pathFromEnv, binaryName),
+    safeGetEngineVersion(pathFromEnv, binaryName),
 
     // "wide" pattern matching, resulting in an union type of the two branches
     TE.matchW(

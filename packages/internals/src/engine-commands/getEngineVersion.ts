@@ -8,7 +8,7 @@ import * as TE from 'fp-ts/TaskEither'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
-export async function getBinaryVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
+export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
     binaryName = getCliQueryEngineBinaryType()
   }
@@ -25,9 +25,9 @@ export async function getBinaryVersion(enginePath?: string, binaryName?: BinaryT
   }
 }
 
-export function safeGetBinaryVersion(enginePath?: string, binaryName?: BinaryType): TE.TaskEither<Error, string> {
+export function safeGetEngineVersion(enginePath?: string, binaryName?: BinaryType): TE.TaskEither<Error, string> {
   return TE.tryCatch(
-    () => getBinaryVersion(enginePath, binaryName),
+    () => getEngineVersion(enginePath, binaryName),
     (error) => error as Error,
   )
 }
