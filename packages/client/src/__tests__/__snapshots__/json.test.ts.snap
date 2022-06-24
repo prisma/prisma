@@ -88,3 +88,18 @@ type JsonFilter {
 
 
 `;
+
+exports[`json should not consider "JsonNull" string an enum value 1`] = `
+query {
+  findManyOptionalUser(where: {
+    json: {
+      equals: "\\"JsonNull\\""
+    }
+  }) {
+    id
+    name
+    email
+    json
+  }
+}
+`;
