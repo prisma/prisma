@@ -22,7 +22,7 @@ import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
 import type { Generatable } from './Generatable'
-import { escapeJson, ExportCollector } from './helpers'
+import { ExportCollector } from './helpers'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
@@ -47,9 +47,8 @@ export interface TSClientOptions {
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
-  protected readonly dmmfString: string
+
   constructor(protected readonly options: TSClientOptions) {
-    this.dmmfString = escapeJson(JSON.stringify(options.document))
     this.dmmf = new DMMFHelper(klona(options.document))
   }
 
@@ -97,6 +96,7 @@ export class TSClient implements Generatable {
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
 ${buildDirname(edge, relativeOutdir, runtimeDir)}
+
 /**
  * Enums
  */
@@ -114,7 +114,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(dataProxy, this.dmmfString)}
+${buildDMMF(dataProxy, this.options.document)}
 
 /**
  * Create the Client
@@ -265,7 +265,7 @@ export type BatchPayload = {
 /**
  * DMMF
  */
-export const dmmf: runtime.DMMF.Document;
+export const dmmf: runtime.BaseDMMF
 `,
   2,
 )}}`

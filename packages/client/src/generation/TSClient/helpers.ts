@@ -1,12 +1,13 @@
 import pluralize from 'pluralize'
 
+import { ClientModelAction } from '../../runtime/clientActions'
 import { DMMF } from '../../runtime/dmmf-types'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getAggregateArgsName, getModelArgName, unique } from '../utils'
 import type { JSDocMethodBodyCtx } from './jsdoc'
 import { JSDocs } from './jsdoc'
 
-export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
+export function getMethodJSDocBody(action: ClientModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   const ctx: JSDocMethodBodyCtx = {
     singular: capitalize(mapping.model),
     plural: capitalize(mapping.plural),
@@ -21,10 +22,10 @@ export function getMethodJSDocBody(action: DMMF.ModelAction, mapping: DMMF.Model
   return jsdoc ? jsdoc : ''
 }
 
-export function getMethodJSDoc(action: DMMF.ModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
+export function getMethodJSDoc(action: ClientModelAction, mapping: DMMF.ModelMapping, model: DMMF.Model): string {
   return wrapComment(getMethodJSDocBody(action, mapping, model))
 }
-export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
+export function getGenericMethod(name: string, actionName: ClientModelAction) {
   if (actionName === 'count') {
     return ''
   }
@@ -47,7 +48,7 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
   }
   return `<T extends ${modelArgName}>`
 }
-export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
+export function getArgs(modelName: string, actionName: ClientModelAction) {
   if (actionName === 'count') {
     return `args?: Omit<${getModelArgName(modelName, DMMF.ModelAction.findMany)}, 'select' | 'include'>`
   }
@@ -61,7 +62,9 @@ export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
     actionName === DMMF.ModelAction.findMany ||
     actionName === DMMF.ModelAction.findFirst ||
     actionName === DMMF.ModelAction.deleteMany ||
-    actionName === DMMF.ModelAction.createMany
+    actionName === DMMF.ModelAction.createMany ||
+    actionName === 'findFirstOrThrow' ||
+    actionName === 'findUniqueOrThrow'
       ? '?'
       : ''
   }: SelectSubset<T, ${getModelArgName(modelName, actionName)}>`
@@ -74,7 +77,7 @@ export function wrapComment(str: string): string {
 }
 export function getArgFieldJSDoc(
   type?: DMMF.OutputType,
-  action?: DMMF.ModelAction,
+  action?: ClientModelAction,
   field?: DMMF.SchemaArg | string,
 ): string | undefined {
   if (!field || !action || !type) return

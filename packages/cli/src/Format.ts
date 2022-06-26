@@ -1,6 +1,6 @@
-import { getSchemaPathAndPrint } from '@prisma/migrate'
 import type { Command } from '@prisma/internals'
 import { arg, ErrorArea, format, formatms, formatSchema, getDMMF, HelpError, RustPanic } from '@prisma/internals'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
 import os from 'os'
