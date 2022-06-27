@@ -1,6 +1,6 @@
 # @prisma/get-platform
 
-Platform detection used for Prisma 2 binaries.
+Platform detection.
 
 ## Usage
 

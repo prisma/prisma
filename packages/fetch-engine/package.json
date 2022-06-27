@@ -6,7 +6,11 @@
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
-  "repository": "git@github.com:prisma/prisma.git",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/fetch-engine"
+  },
   "maintainers": [
     "Tim Suchanek <suchanek@prisma.io>",
     "Joël Galeran <galeran@prisma.io>",
