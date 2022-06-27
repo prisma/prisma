@@ -72,7 +72,7 @@ ${message}`
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
         const detailsHeader = chalk.red.bold('Details:')
         return `${reason}
-${detailsHeader}${message}`
+${detailsHeader} ${message}`
       })
       .exhaustive()
 
