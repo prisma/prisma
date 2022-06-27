@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1656319511134,
+  "lastUpdate": 1656320182311,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -105312,6 +105312,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.05,
             "range": "±1.67%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 39,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3718bfa2dbdc7c069de77fe07ce6cf0f624a9f15",
+          "message": "fix(sdk): avoid crash in prisma version, rename 'getVersion' -> 'getBinaryVersion' (#13737)\n\n* sdk: rename 'getVersion' -> 'getBinaryVersion'\r\n\r\n* client: rename 'getVersion' -> 'getBinaryVersion'\r\n\r\n* sdk: prevented crash in version command\r\n\r\n* sdk: reordered entries in version, added comments\r\n\r\n* Update packages/cli/src/Version.ts\r\n\r\nExit with code `1` if there have been errors while retrieving the versions of the packages",
+          "timestamp": "2022-06-27T10:50:41+02:00",
+          "tree_id": "986bb7819aed964d7687a6ecfebd2d9fcc59bd4d",
+          "url": "https://github.com/prisma/prisma/commit/3718bfa2dbdc7c069de77fe07ce6cf0f624a9f15"
+        },
+        "date": 1656320175741,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.41,
+            "range": "±3.54%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.07,
+            "range": "±2.75%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
