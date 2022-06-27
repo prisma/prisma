@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
-  jest.setTimeout(30_000)
+  jest.setTimeout(60_000)
 
   beforeEach(async () => {
     await prisma.user.deleteMany()
@@ -56,9 +56,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       await delay(6000)
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
-    )
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Transaction API error: Transaction not found.`)
 
     expect(await prisma.user.findMany()).toHaveLength(0)
   })
@@ -83,9 +81,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     )
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
-    )
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Transaction API error: Transaction not found.`)
 
     expect(await prisma.user.findMany()).toHaveLength(0)
   })
@@ -179,7 +175,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(users.length).toBe(0)
   })
 
-  test('already committed', async () => {
+  // TODO: unskip when tests are run without CLOSED_TX_CLEANUP
+  test.skip('already committed', async () => {
     let transactionBoundPrisma
     await prisma.$transaction((prisma) => {
       transactionBoundPrisma = prisma
@@ -197,13 +194,13 @@ testMatrix.setupTestSuite(({ provider }) => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
             Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/tests/functional/interactive-transactions/tests.ts:190:41
+            /client/tests/functional/interactive-transactions/tests.ts:186:41
 
-              187 })
-              188 
-              189 const result = prisma.$transaction(async () => {
-            → 190   await transactionBoundPrisma.user.create(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+              183 })
+              184 
+              185 const result = prisma.$transaction(async () => {
+            → 186   await transactionBoundPrisma.user.create(
+              Transaction API error: Transaction not found.
           `)
 
     const users = await prisma.user.findMany()
