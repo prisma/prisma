@@ -3,7 +3,6 @@ import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
-import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -79,13 +78,6 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
 - ${prismaPath2}
 - ${prismaPath3}
 - ${prismaPath4}`,
-  )
-}
-
-export function safeResolveBinary(name: BinaryType, proposedPath?: string): TE.TaskEither<Error, string> {
-  return TE.tryCatch(
-    () => resolveBinary(name, proposedPath),
-    (error) => error as Error,
   )
 }
 
