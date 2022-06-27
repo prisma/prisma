@@ -76,6 +76,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@swc-node/register": "1.5.1",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",

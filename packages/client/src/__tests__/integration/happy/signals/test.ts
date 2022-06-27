@@ -11,7 +11,7 @@ const userSignalsSupportedByOperatingSystem = process.platform !== 'win32'
 
 function spawnChild() {
   const childPath = path.join(__dirname, '__helpers__', 'client.ts')
-  return execa('node', ['-r', 'esbuild-register', childPath], {
+  return execa('node', ['-r', '@swc-node/register', childPath], {
     // Don't reject the promise if the process exits on signal.
     reject: false,
   })
@@ -22,7 +22,7 @@ async function waitMessageOnStdout(child: ExecaChildProcess): Promise<string> {
   return message.toString().trim()
 }
 
-describe.skip('signals that should terminate the process', () => {
+describe('signals that should terminate the process', () => {
   test('SIGINT', async () => {
     const child = spawnChild()
     expect(await waitMessageOnStdout(child)).toBe(READY_MESSAGE)
@@ -45,7 +45,7 @@ describe.skip('signals that should terminate the process', () => {
   })
 })
 
-describe.skip('Node.js debugger signal', () => {
+describe('Node.js debugger signal', () => {
   testIf(userSignalsSupportedByOperatingSystem)('SIGUSR1', async () => {
     const child = spawnChild()
     expect(await waitMessageOnStdout(child)).toBe(READY_MESSAGE)

@@ -222,6 +222,7 @@ importers:
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
+      '@swc-node/register': 1.5.1
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21
       '@timsuchanek/copy': 1.4.5
@@ -288,6 +289,7 @@ importers:
       '@prisma/get-platform': link:../get-platform
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
+      '@swc-node/register': 1.5.1_typescript@4.7.4
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21_@swc+core@1.2.204
       '@timsuchanek/copy': 1.4.5
