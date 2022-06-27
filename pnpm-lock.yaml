@@ -216,7 +216,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 3.16.0-46.7913709f1e48160e65e366f365c239e3017a9c2e
+      '@prisma/engines-version': 3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -275,7 +275,7 @@ importers:
       yeoman-generator: ^5.6.1
       yo: ^4.3.0
     dependencies:
-      '@prisma/engines-version': 3.16.0-46.7913709f1e48160e65e366f365c239e3017a9c2e
+      '@prisma/engines-version': 3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11
     devDependencies:
       '@faker-js/faker': 7.3.0
       '@jest/test-sequencer': 28.1.1
@@ -735,7 +735,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 3.16.0-46.7913709f1e48160e65e366f365c239e3017a9c2e
+      '@prisma/engines-version': 3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -788,7 +788,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.3
     devDependencies:
-      '@prisma/engines-version': 3.16.0-46.7913709f1e48160e65e366f365c239e3017a9c2e
+      '@prisma/engines-version': 3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.2.204
@@ -2243,6 +2243,10 @@ packages:
 
   /@prisma/engines-version/3.16.0-46.7913709f1e48160e65e366f365c239e3017a9c2e:
     resolution: {integrity: sha512-5v0x+gtis3AcqnPZMc6fsvzGA2VxeGO/VRls+adXGjOxrsYzvXwoa2xQ/9fTCMvT6qtMPESt9f7VG5X/Dqjd1g==}
+    dev: true
+
+  /@prisma/engines-version/3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11:
+    resolution: {integrity: sha512-PiZhdD624SrYEjyLboI0X7OugNbxUzDJx9v/6ldTKuqNDVUCmRH/Z00XwDi/dgM4FlqOSO+YiUsSiSKjxxG8cw==}
 
   /@prisma/studio-common/0.464.0:
     resolution: {integrity: sha512-LORqwnRVR1ZerrTGIsP/de04jhVZGNkEfr47jXJOuRkJTqChiKGOuPIphtiNCLsV/6Eeue5D8apHu+I0bzfATw==}
