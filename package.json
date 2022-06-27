@@ -9,7 +9,7 @@
     "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "engines": {
-    "node": ">=14",
+    "node": ">=14.17",
     "pnpm": ">=6.14.1 <7"
   },
   "scripts": {
