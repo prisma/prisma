@@ -1,7 +1,7 @@
 import { BinaryType } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/internals'
-import { ClientEngineType, getClientEngineType, getEngineVersion } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getVersion } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -291,8 +291,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
-        getEngineVersion(filePath, binaryName).catch(() => null),
-        getEngineVersion(target, binaryName).catch(() => null),
+        getVersion(filePath, binaryName).catch(() => null),
+        getVersion(target, binaryName).catch(() => null),
       ])
 
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
