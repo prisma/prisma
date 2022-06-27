@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1656071784228,
+  "lastUpdate": 1656319511134,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -105246,6 +105246,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.07,
             "range": "±3.49%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 9.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 39,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "7be8399d8972e9c984474f2ab4b3bfb0acb132c3",
+          "message": "fix(client): don't leak private properties to typings (#14003)\n\nThis fixes ecosystem-tests breakage:\r\n\r\n```\r\nError: node_modules/@prisma/client/runtime/index.d.ts(1214,5): error TS18028: Private identifiers are only available when targeting ECMAScript 2015 and higher.\r\n```",
+          "timestamp": "2022-06-27T10:37:44+02:00",
+          "tree_id": "65c5ebf088b5c7a4478c52cc1625cedf30f58ab3",
+          "url": "https://github.com/prisma/prisma/commit/7be8399d8972e9c984474f2ab4b3bfb0acb132c3"
+        },
+        "date": 1656319502760,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 0.32,
+            "range": "±4.92%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.05,
+            "range": "±1.67%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
