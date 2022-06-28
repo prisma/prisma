@@ -70,10 +70,10 @@
     "@opentelemetry/api": "1.1.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
-    "@prisma/engines": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11",
-    "@prisma/fetch-engine": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11",
+    "@prisma/engines": "4.1.0-1.c0cca8230bbc6279f9f3f4b46396de3d54595a23",
+    "@prisma/fetch-engine": "4.1.0-1.c0cca8230bbc6279f9f3f4b46396de3d54595a23",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11",
+    "@prisma/get-platform": "4.1.0-1.c0cca8230bbc6279f9f3f4b46396de3d54595a23",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@swc/core": "1.2.204",
@@ -137,7 +137,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11"
+    "@prisma/engines-version": "4.1.0-1.c0cca8230bbc6279f9f3f4b46396de3d54595a23"
   },
   "sideEffects": false
 }
