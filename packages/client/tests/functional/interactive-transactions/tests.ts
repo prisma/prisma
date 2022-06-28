@@ -10,8 +10,6 @@ declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(({ provider }) => {
-  console.log('process.version ', process.version)
-
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -48,19 +46,23 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Transactions should fail after the default timeout
    */
   test('timeout default', async () => {
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
+    expect.assertions(2)
+
+    try {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+
+        await delay(6000)
       })
-
-      await delay(6000)
-    })
-
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
-    )
+    } catch (error) {
+      expect(error.message).toContain(
+        `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
+      )
+    }
 
     expect(await prisma.user.findMany()).toHaveLength(0)
   })
@@ -69,25 +71,29 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Transactions should fail if they time out on `timeout`
    */
   test('timeout override', async () => {
-    const result = prisma.$transaction(
-      async (prisma) => {
-        await prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
+    expect.assertions(2)
 
-        await new Promise((res) => setTimeout(res, 600))
-      },
-      {
-        maxWait: 200,
-        timeout: 500,
-      },
-    )
+    try {
+      await prisma.$transaction(
+        async (prisma) => {
+          await prisma.user.create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
-    )
+          await new Promise((res) => setTimeout(res, 600))
+        },
+        {
+          maxWait: 200,
+          timeout: 500,
+        },
+      )
+    } catch (error) {
+      expect(error.message).toContain(
+        `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
+      )
+    }
 
     expect(await prisma.user.findMany()).toHaveLength(0)
   })
@@ -96,17 +102,21 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Transactions should fail and rollback if thrown within
    */
   test('rollback throw', async () => {
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
+    expect.assertions(2)
+
+    try {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+
+        throw new Error('you better rollback now')
       })
-
-      throw new Error('you better rollback now')
-    })
-
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`you better rollback now`)
+    } catch (error) {
+      expect(error.message).toContain(`you better rollback now`)
+    }
 
     const users = await prisma.user.findMany()
 
@@ -160,21 +170,40 @@ testMatrix.setupTestSuite(({ provider }) => {
    * If one of the query fails, all queries should cancel
    */
   test('rollback query', async () => {
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      })
+    expect.assertions(2)
 
-      await prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      })
-    })
+    try {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
 
-    await expect(result).rejects.toThrowErrorMatchingSnapshot()
+        await prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
+      })
+    } catch (error) {
+      switch (provider) {
+        case 'sqlite':
+        case 'postgresql':
+        case 'cockroachdb':
+          expect(error.message).toContain(`Unique constraint failed on the fields: (\`email\`)`)
+          break
+        case 'sqlserver':
+          expect(error.message).toContain(`Unique constraint failed on the constraint: \`dbo.User\``)
+          break
+        case 'mysql':
+        case 'mongodb':
+          expect(error.message).toContain(`Unique constraint failed on the constraint: \`User_email_key\``)
+          break
+        default:
+          throw new Error('invalid provider')
+      }
+    }
 
     const users = await prisma.user.findMany()
 
@@ -182,31 +211,27 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   test('already committed', async () => {
+    expect.assertions(2)
+
     let transactionBoundPrisma
     await prisma.$transaction((prisma) => {
       transactionBoundPrisma = prisma
       return Promise.resolve()
     })
 
-    const result = prisma.$transaction(async () => {
-      await transactionBoundPrisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
+    try {
+      await prisma.$transaction(async () => {
+        await transactionBoundPrisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        })
       })
-    })
-
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-            Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/tests/functional/interactive-transactions/tests.ts:192:41
-
-              189 })
-              190 
-              191 const result = prisma.$transaction(async () => {
-            → 192   await transactionBoundPrisma.user.create(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
-          `)
+    } catch (error) {
+      expect(error.message).toContain(
+        `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.`,
+      )
+    }
 
     const users = await prisma.user.findMany()
 
@@ -240,20 +265,39 @@ testMatrix.setupTestSuite(({ provider }) => {
    * // TODO: skipped because output differs from binary to library
    */
   testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
-    const result = prisma.$transaction([
-      prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      }),
-      prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      }),
-    ])
+    expect.assertions(2)
 
-    await expect(result).rejects.toThrowErrorMatchingSnapshot()
+    try {
+      await prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+      ])
+    } catch (error) {
+      switch (provider) {
+        case 'sqlite':
+        case 'postgresql':
+        case 'cockroachdb':
+          expect(error.message).toContain(`Unique constraint failed on the fields: (\`email\`)`)
+          break
+        case 'sqlserver':
+          expect(error.message).toContain(`Unique constraint failed on the constraint: \`dbo.User\``)
+          break
+        case 'mysql':
+        case 'mongodb':
+          expect(error.message).toContain(`Unique constraint failed on the constraint: \`User_email_key\``)
+          break
+        default:
+          throw new Error('invalid provider')
+      }
+    }
 
     const users = await prisma.user.findMany()
 
@@ -267,6 +311,8 @@ testMatrix.setupTestSuite(({ provider }) => {
   testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb')(
     'batching raw rollback',
     async () => {
+      expect.assertions(2)
+
       await prisma.user.create({
         data: {
           id: '1',
@@ -274,30 +320,66 @@ testMatrix.setupTestSuite(({ provider }) => {
         },
       })
 
-      const result =
-        provider === 'mysql'
-          ? prisma.$transaction([
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$queryRaw`DELETE FROM User`,
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-            ])
-          : prisma.$transaction([
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$queryRaw`DELETE FROM "User"`,
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              // @ts-test-if: provider !== 'mongodb'
-              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-            ])
-
-      await expect(result).rejects.toThrowErrorMatchingSnapshot()
+      try {
+        if (provider === 'mysql') {
+          await prisma.$transaction([
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$queryRaw`DELETE FROM User`,
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+          ])
+        } else {
+          await prisma.$transaction([
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$queryRaw`DELETE FROM "User"`,
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            // @ts-test-if: provider !== 'mongodb'
+            prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+          ])
+        }
+      } catch (error) {
+        switch (provider) {
+          case 'sqlite':
+            expect(error.message).toContain(
+              `Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\``,
+            )
+            break
+          case 'postgresql':
+            expect(error.message).toContain(
+              `Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\``,
+            )
+            break
+          case 'cockroachdb':
+            expect(error.message).toContain(
+              `Raw query failed. Code: \`23505\`. Message: \`Key (id)=('1') already exists.\``,
+            )
+            break
+          case 'mysql':
+            expect(error.message).toContain(
+              `Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'User.PRIMARY'`,
+            )
+            break
+          case 'sqlserver':
+            expect(error.message).toContain(
+              `Raw query failed. Code: \`2627\`. Message: \`Violation of PRIMARY KEY constraint 'User_pkey'. Cannot insert duplicate key in object 'dbo.User'. The duplicate key value is (1)`,
+            )
+            break
+          case 'mongodb':
+            expect(error.message).toContain(
+              `Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'user.PRIMARY'\``,
+            )
+            break
+          default:
+            throw new Error('invalid provider')
+        }
+      }
 
       const users = await prisma.user.findMany()
 
@@ -433,28 +515,32 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Rollback should happen even with `then` calls
    */
   test('rollback with then calls', async () => {
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user
-        .create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
-        .then()
+    expect.assertions(2)
 
-      await prisma.user
-        .create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        })
-        .then()
-        .then()
+    try {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
+          .then()
 
-      throw new Error('rollback')
-    })
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_2@website.com',
+            },
+          })
+          .then()
+          .then()
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+        throw new Error('rollback')
+      })
+    } catch (error) {
+      expect(error.message).toContain(`rollback`)
+    }
 
     const users = await prisma.user.findMany()
 
@@ -465,27 +551,31 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Rollback should happen even with `catch` calls
    */
   test('rollback with catch calls', async () => {
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user
-        .create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
-        .catch()
-      await prisma.user
-        .create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        })
-        .catch()
-        .then()
+    expect.assertions(2)
 
-      throw new Error('rollback')
-    })
+    try {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
+          .catch()
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_2@website.com',
+            },
+          })
+          .catch()
+          .then()
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+        throw new Error('rollback')
+      })
+    } catch (error) {
+      expect(error.message).toContain(`rollback`)
+    }
 
     const users = await prisma.user.findMany()
 
@@ -496,29 +586,33 @@ testMatrix.setupTestSuite(({ provider }) => {
    * Rollback should happen even with `finally` calls
    */
   test('rollback with finally calls', async () => {
-    const result = prisma.$transaction(async (prisma) => {
-      await prisma.user
-        .create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        })
-        .finally()
+    expect.assertions(2)
 
-      await prisma.user
-        .create({
-          data: {
-            email: 'user_2@website.com',
-          },
-        })
-        .then()
-        .catch()
-        .finally()
+    try {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
+          .finally()
 
-      throw new Error('rollback')
-    })
+        await prisma.user
+          .create({
+            data: {
+              email: 'user_2@website.com',
+            },
+          })
+          .then()
+          .catch()
+          .finally()
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`rollback`)
+        throw new Error('rollback')
+      })
+    } catch (error) {
+      expect(error.message).toContain(`rollback`)
+    }
 
     const users = await prisma.user.findMany()
 

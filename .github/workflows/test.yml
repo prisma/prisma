@@ -700,7 +700,7 @@ jobs:
 
       - name: Test packages/client/functional
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test:functional:code replication
+        run: pnpm run test:functional:code
         working-directory: packages/client
         env:
           CI: true
