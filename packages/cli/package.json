@@ -33,7 +33,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=14.17"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -68,13 +68,13 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.16.0-44.b49ece5df25d5e0d1d4b4e8935cc70745d7668c1",
+    "@prisma/fetch-engine": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-44.b49ece5df25d5e0d1d4b4e8935cc70745d7668c1",
+    "@prisma/get-platform": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/studio": "0.464.0",
-    "@prisma/studio-server": "0.464.0",
+    "@prisma/studio": "0.465.0",
+    "@prisma/studio-server": "0.465.0",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
@@ -120,7 +120,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.16.0-44.b49ece5df25d5e0d1d4b4e8935cc70745d7668c1"
+    "@prisma/engines": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11"
   },
   "sideEffects": false
 }

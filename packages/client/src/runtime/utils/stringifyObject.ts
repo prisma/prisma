@@ -1,4 +1,7 @@
 'use strict'
+
+import { ObjectEnumValue } from '../object-enums'
+
 const isRegexp = require('is-regexp')
 const isObj = require('is-obj')
 const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols').default
@@ -65,6 +68,7 @@ const stringifyObject = (input, options?: any, pad?: any) => {
       typeof input === 'boolean' ||
       typeof input === 'function' ||
       typeof input === 'symbol' ||
+      input instanceof ObjectEnumValue ||
       isRegexp(input)
     ) {
       return String(input)
