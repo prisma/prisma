@@ -627,7 +627,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
         node: [16]
-        queryEngine: ['library', 'binary']
+        queryEngine: ['library']
 
     steps:
       - uses: actions/checkout@v3
@@ -700,7 +700,7 @@ jobs:
 
       - name: Test packages/client/functional
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test:functional --  --jest-args='--testTimeout=40000' -p mysql --no-types interactive-transactions
+        run: pnpm run test:functional:code replication
         working-directory: packages/client
         env:
           CI: true
