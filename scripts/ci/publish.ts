@@ -1022,24 +1022,6 @@ async function publishPackages(
          *  - The branch is up-to-date.
          */
         await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
-
-        // For package `@prisma/internals` publish again as `@prisma/sdk` temporarily
-        if (pkgName === '@prisma/internals') {
-          if (!dryRun) {
-            // change package name
-            await writeToPkgJson(pkgDir, (pkg) => {
-              pkg.name = `@prisma/sdk`
-            })
-          }
-          // publish
-          await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag} --access public`, dryRun)
-          if (!dryRun) {
-            // revert
-            await writeToPkgJson(pkgDir, (pkg) => {
-              pkg.name = `@prisma/internals`
-            })
-          }
-        }
       }
     }
   }
