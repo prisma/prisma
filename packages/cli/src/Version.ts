@@ -15,6 +15,7 @@ import {
   isError,
   loadEnvFile,
   resolveBinary,
+  safeResolveBinary,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -74,6 +75,11 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+
+    // TODO: remove after integration
+    const eitherResult = await safeResolveBinary(cliQueryEngineBinaryType)()
+    console.log('eitherResult', eitherResult)
+
     const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
     // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
