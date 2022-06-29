@@ -628,7 +628,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
         node: [16]
-        queryEngine: ['library', 'binary']
+        queryEngine: ['library']
 
     steps:
       - uses: actions/checkout@v3
