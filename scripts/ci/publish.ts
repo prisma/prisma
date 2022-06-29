@@ -969,7 +969,7 @@ async function publishPackages(
         continue
       }
 
-      // @prisma/engines & @prisma/engines-version are published outside of this script
+      // @prisma/engines-version is published outside of this script
       const packagesNotToPublish = ['@prisma/engines-version']
       if (packagesNotToPublish.includes(pkgName)) {
         continue

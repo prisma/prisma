@@ -23,6 +23,8 @@ model User {
 }
 `
 
+// Skip because it cannot work anymore via @swc/jest
+// TODO: Port this test to the new functional test setup
 test.skip('dmmf types', async () => {
   const dmmf = await getDMMF({ datamodel: blog })
   const file = `import { DMMF } from '@prisma/generator-helper'
