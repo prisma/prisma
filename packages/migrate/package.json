@@ -19,7 +19,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "3.16.0-49.da41d2bb3406da22087b849f0e911199ba4fbf11",
+    "@prisma/engines-version": "4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.2.204",
@@ -32,7 +32,7 @@
     "esbuild": "0.14.47",
     "fs-jetpack": "4.3.1",
     "jest": "28.1.1",
-    "jest-junit": "13.2.0",
+    "jest-junit": "14.0.0",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "tempy": "1.0.1",
