@@ -15,11 +15,11 @@ import {
   isError,
   loadEnvFile,
   resolveBinary,
-  safeResolveBinary,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
@@ -75,10 +75,6 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-
-    // TODO: remove after integration
-    const eitherResult = await safeResolveBinary(cliQueryEngineBinaryType)()
-    console.log('eitherResult', eitherResult)
 
     const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
