@@ -129,8 +129,6 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
  * @param pathFromEnv engine path read from process.env
  */
 function isPathFromEnvValid(pathFromEnv: string | undefined): pathFromEnv is string {
-  // note: The following wouldn't infer correctly:
-  // return Boolean(pathFromEnv) && fs.existsSync(pathFromEnv)
   return !!pathFromEnv && fs.existsSync(pathFromEnv)
 }
 
