@@ -8,6 +8,7 @@ import {
   format,
   formatTable,
   getConfig,
+  getEnginesMetaInfo,
   getEngineVersion,
   getSchema,
   getSchemaPath,
@@ -75,6 +76,20 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+
+    const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
+
+    console.log('enginesMetaInfo', enginesMetaInfo)
+    console.log('enginesMetaInfoErrors', enginesMetaInfoErrors)
+
+    /**
+     * If reading Rust engines metainfo (like their git hash) failed, display the errors to stderr,
+     * and let Node.js exit naturally, but with error code 1.
+     */
+    if (enginesMetaInfoErrors.length > 0) {
+      // process.exitCode = 1
+      enginesMetaInfoErrors.forEach((e) => console.error(e))
+    }
 
     const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
