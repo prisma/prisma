@@ -110,16 +110,7 @@ export async function buildClient({
   fileMap['index.js'] = await JS(nodeTsClient, false)
   fileMap['index.d.ts'] = await TS(nodeTsClient)
   fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
-  fileMap['package.json'] = JSON.stringify(
-    {
-      name: '.prisma/client',
-      main: 'index.js',
-      types: 'index.d.ts',
-      browser: 'index-browser.js',
-    },
-    null,
-    2,
-  )
+  fileMap['package.json'] = getPackageJsonContents(generator?.isCustomOutput ?? false)
 
   // we only generate the edge client if `--data-proxy` is passed
   if (dataProxy === true) {
@@ -156,6 +147,20 @@ async function getDefaultOutdir(outputDir: string): Promise<string> {
   }
 
   return path.join(outputDir, '../../.prisma/client')
+}
+
+function getPackageJsonContents(isCustomOutput: boolean): string {
+  const content = {
+    name: 'prisma-client-generated',
+    main: 'index.js',
+    types: 'index.d.ts',
+    browser: 'index-browser.js',
+  } as Record<string, unknown>
+  if (isCustomOutput) {
+    content['private'] = true
+  }
+
+  return JSON.stringify(content, null, 2)
 }
 
 export async function generateClient(options: GenerateClientOptions): Promise<void> {
