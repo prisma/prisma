@@ -142,28 +142,38 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
    * Read the binary path, preferably from the environment, or resolving the canonical path
    * from the given `binaryName`.
    */
-  const fromEnvVar = O.fromPredicate(isPathFromEnvValid)(pathFromEnv)
 
-  const binaryPathEither: E.Either<Error, string> = await pipe(
-    fromEnvVar,
+  const pathFromEnvOption: O.Option<string> = O.fromPredicate(isPathFromEnvValid)(pathFromEnv)
+
+  const fromEnvVarOption: O.Option<string> = pipe(
+    pathFromEnvOption,
+    O.map(() => envVar),
+  )
+
+  const enginePathEither: E.Either<Error, string> = await pipe(
+    pathFromEnvOption,
     O.fold(
-      () => safeResolveBinary(binaryName, pathFromEnv),
-      (binaryPath) => TE.right(binaryPath),
+      () => safeResolveBinary(binaryName),
+      (_pathFromEnv) => TE.right(_pathFromEnv),
     ),
   )()
 
+  /**
+   * Read the version from the engine, but only if the enginePath is valid.
+   */
+
   const versionEither: E.Either<Error, string> = await pipe(
-    binaryPathEither,
+    enginePathEither,
     TE.fromEither,
-    TE.chain((binaryPath) => {
-      return safeGetEngineVersion(binaryPath, binaryName)
+    TE.chain((enginePath) => {
+      return safeGetEngineVersion(enginePath, binaryName)
     }),
   )()
 
   const engineInfo: EngineInfo = {
-    path: binaryPathEither,
+    path: enginePathEither,
     version: versionEither,
-    fromEnvVar,
+    fromEnvVar: fromEnvVarOption,
   }
 
   return engineInfo
