@@ -704,7 +704,7 @@ importers:
       '@types/node': 16.11.41
       esbuild: 0.14.47
       jest: 28.1.1
-      jest-junit: 13.2.0
+      jest-junit: 14.0.0
       react: 18.2.0
       ts-jest: 28.0.5
       typescript: 4.7.4
@@ -714,7 +714,7 @@ importers:
       '@types/node': 16.11.41
       esbuild: 0.14.47
       jest: 28.1.1_74bd5344295ff274a1213531fe16bbb0
-      jest-junit: 13.2.0
+      jest-junit: 14.0.0
       react: 18.2.0
       ts-jest: 28.0.5_10eeba5265f8ae2ffe3f402068e91b6e
       typescript: 4.7.4
@@ -6912,6 +6912,16 @@ packages:
 
   /jest-junit/13.2.0:
     resolution: {integrity: sha512-B0XNlotl1rdsvFZkFfoa19mc634+rrd8E4Sskb92Bb8MmSXeWV9XJGUyctunZS1W410uAxcyYuPUGVnbcOH8cg==}
+    engines: {node: '>=10.12.0'}
+    dependencies:
+      mkdirp: 1.0.4
+      strip-ansi: 6.0.1
+      uuid: 8.3.2
+      xml: 1.0.1
+    dev: true
+
+  /jest-junit/14.0.0:
+    resolution: {integrity: sha512-kALvBDegstTROfDGXH71UGD7k5g7593Y1wuX1wpWT+QTYcBbmtuGOA8UlAt56zo/B2eMIOcaOVEON3j0VXVa4g==}
     engines: {node: '>=10.12.0'}
     dependencies:
       mkdirp: 1.0.4
