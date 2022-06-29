@@ -32,7 +32,7 @@
     "esbuild": "0.14.47",
     "fs-jetpack": "4.3.1",
     "jest": "28.1.1",
-    "jest-junit": "13.2.0",
+    "jest-junit": "14.0.0",
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "tempy": "1.0.1",
