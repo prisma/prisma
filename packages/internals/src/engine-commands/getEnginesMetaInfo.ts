@@ -114,9 +114,9 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
       return _engineInfo.version.right
     })
     .with({ version: P.when(E.isLeft) }, (_engineInfo) => {
-      // the binary/library exists, but extracting the version failed
+      // extracting the version failed
       errors.push(_engineInfo.version.left)
-      return 'E_CANNOT_RESOLVE_VERSION_FROM_ENGINE' as const
+      return 'E_CANNOT_RESOLVE_VERSION' as const
     })
     .exhaustive()
 
