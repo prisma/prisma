@@ -102,7 +102,7 @@
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
     "jest": "28.1.1",
-    "jest-junit": "13.2.0",
+    "jest-junit": "14.0.0",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.5",
     "lz-string": "1.4.4",
