@@ -363,7 +363,7 @@ testMatrix.setupTestSuite(({ provider }) => {
             break
           case 'mysql':
             expect(error.message).toContain(
-              `Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'User.PRIMARY'`,
+              `Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'user.PRIMARY'`,
             )
             break
           case 'sqlserver':

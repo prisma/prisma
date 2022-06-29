@@ -83,22 +83,16 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   })
 
   test('does not accept rejectOnNotFound option', async () => {
-    const record = prisma.user.findFirstOrThrow({
-      where: { email: existingEmail },
-      // @ts-expect-error passing not supported option on purpose
-      rejectOnNotFound: false,
-    })
+    expect.assertions(1)
 
-    await expect(record).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-                                    Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-                                    /client/tests/functional/findFirstOrThrow/tests.ts:86:32
-
-                                       83 })
-                                       84 
-                                       85 test('does not accept rejectOnNotFound option', async () => {
-                                    →  86   const record = prisma.user.findFirstOrThrow(
-                                    'rejectOnNotFound' option is not supported
-                              `)
+    try {
+      await prisma.user.findFirstOrThrow({
+        where: { email: existingEmail },
+        // @ts-expect-error passing not supported option on purpose
+        rejectOnNotFound: false,
+      })
+    } catch (error) {
+      expect(error.message).toContain(`'rejectOnNotFound' option is not supported`)
+    }
   })
 })
