@@ -11,9 +11,6 @@ import { load } from '../utils/load'
 const MAX_BUFFER = 1_000_000_000
 
 export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
-  console.log('enginePath@getEngineVersion', enginePath)
-  console.log('binaryName@getEngineVersion', binaryName)
-
   if (!binaryName) {
     binaryName = getCliQueryEngineBinaryType()
   }

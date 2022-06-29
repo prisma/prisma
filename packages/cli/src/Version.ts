@@ -68,9 +68,6 @@ export class Version implements Command {
 
     const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
 
-    console.log('enginesMetaInfo', enginesMetaInfo)
-    console.log('enginesMetaInfoErrors', enginesMetaInfoErrors)
-
     const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
       return match(engineMetaInfo)
         .with({ 'query-engine': P.select() }, (currEngineInfo) => {
