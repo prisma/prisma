@@ -112,7 +112,8 @@ export async function buildClient({
   fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
   fileMap['package.json'] = JSON.stringify(
     {
-      name: '.prisma/client',
+      name: 'prisma-client-generated',
+      private: true,
       main: 'index.js',
       types: 'index.d.ts',
       browser: 'index-browser.js',
