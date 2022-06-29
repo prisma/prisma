@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "es2020",
+    "target": "es2018",
     "module": "commonjs",
-    "lib": ["es2020"],
+    "lib": ["es2018"],
     "esModuleInterop": true,
     "isolatedModules": true,
     "sourceMap": true,

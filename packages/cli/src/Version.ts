@@ -1,4 +1,4 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
 import {
@@ -93,7 +93,7 @@ export class Version implements Command {
       ['Migration Engine', this.printBinaryInfo(migrationEngine)],
       ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
       ['Format Binary', this.printBinaryInfo(fmtBinary)],
-      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
+      ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
 
