@@ -4,6 +4,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
 import * as TE from 'fp-ts/TaskEither'
+import fs from 'fs'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
@@ -17,18 +18,11 @@ import { safeGetEngineVersion } from './getEngineVersion'
  * Even if we resolve a path, retrieving the version might fail.
  */
 
-export type EngineInfoPathResolved = {
-  path: E.Either<never, string>
-  version: E.Either<Error, string>
-}
-
-export type EngineInfoPathNotResolved = {
-  path: E.Either<Error, never>
-}
-
 export type EngineInfo = {
   fromEnvVar: O.Option<string>
-} & (EngineInfoPathResolved | EngineInfoPathNotResolved)
+  path: E.Either<Error, string>
+  version: E.Either<Error, string>
+}
 
 export type BinaryMatrix<T> = {
   'query-engine': T
@@ -124,51 +118,53 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
       errors.push(_engineInfo.version.left)
       return 'E_CANNOT_RESOLVE_VERSION_FROM_ENGINE' as const
     })
-    .otherwise((e) => {
-      // we can't retrieve a version from a non-existing binary/library.
-      // This might only occur if downloading a non-default engine (e.g., the binary query-engine)
-      // fails silently.
-      return 'E_CANNOT_RESOLVE_VERSION_NO_ENGINE' as const
-    })
+    .exhaustive()
 
   const versionMessage = `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   return [versionMessage, errors] as const
+}
+
+/**
+ * An engine path read from the environment is valid only if it exists on disk.
+ * @param pathFromEnv engine path read from process.env
+ */
+function isPathFromEnvValid(pathFromEnv: string | undefined): pathFromEnv is string {
+  // note: The following wouldn't infer correctly:
+  // return Boolean(pathFromEnv) && fs.existsSync(pathFromEnv)
+  return !!pathFromEnv && fs.existsSync(pathFromEnv)
 }
 
 export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo> {
   const envVar = engineEnvVarMap[binaryName]
   const pathFromEnv = process.env[envVar]
 
-  const version: E.Either<Error, string> = await pipe(
-    safeGetEngineVersion(pathFromEnv, binaryName),
-
-    // "wide" pattern matching, resulting in an union type of the two branches
-    TE.matchW(
-      (versionError) => E.left(versionError),
-      (version) => E.right(version),
-    ),
-  )()
-
-  console.log('version@resolveEngine', version)
-
-  const fromEnvVar = pathFromEnv ? O.fromNullable(envVar) : O.none
-
-  console.log('fromEnvVar@resolveEngine', fromEnvVar)
-
   /**
-   * Extract EngineInfo from a binary engine
+   * Read the binary path, preferably from the environment, or resolving the canonical path
+   * from the given `binaryName`.
    */
-  const engineInfo: EngineInfo = await pipe(
-    safeResolveBinary(binaryName, pathFromEnv),
+  const fromEnvVar = O.fromPredicate(isPathFromEnvValid)(pathFromEnv)
 
-    // "wide" pattern matching, resulting in an union type of the two branches
-    TE.matchW(
-      (binaryPathError) => ({ path: E.left(binaryPathError), fromEnvVar }),
-      (binaryPath) => ({ path: E.right(binaryPath), fromEnvVar, version }),
+  const binaryPathEither: E.Either<Error, string> = await pipe(
+    fromEnvVar,
+    O.fold(
+      () => safeResolveBinary(binaryName, pathFromEnv),
+      (binaryPath) => TE.right(binaryPath),
     ),
   )()
 
-  console.log('engineInfo@resolveEngine', engineInfo)
+  const versionEither: E.Either<Error, string> = await pipe(
+    binaryPathEither,
+    TE.fromEither,
+    TE.chain((binaryPath) => {
+      return safeGetEngineVersion(binaryPath, binaryName)
+    }),
+  )()
+
+  const engineInfo: EngineInfo = {
+    path: binaryPathEither,
+    version: versionEither,
+    fromEnvVar,
+  }
 
   return engineInfo
 }

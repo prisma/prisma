@@ -12,7 +12,6 @@ import { promisify } from 'util'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
-const debug = Debug('prisma:resolveBinary')
 
 async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
