@@ -8,9 +8,9 @@ import {
   format,
   formatTable,
   getConfig,
+  getEngineVersion,
   getSchema,
   getSchemaPath,
-  getVersion,
   HelpError,
   isError,
   loadEnvFile,
@@ -136,12 +136,12 @@ export class Version implements Command {
     const envVar = engineEnvVarMap[binaryName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv, binaryName)
+      const version = await getEngineVersion(pathFromEnv, binaryName)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
     const binaryPath = await resolveBinary(binaryName)
-    const version = await getVersion(binaryPath, binaryName)
+    const version = await getEngineVersion(binaryPath, binaryName)
     return { path: binaryPath, version }
   }
 
