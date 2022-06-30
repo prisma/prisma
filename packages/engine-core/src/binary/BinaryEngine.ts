@@ -488,12 +488,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
   private getEngineEnvVars() {
     const env: any = {
       PRISMA_DML_PATH: this.datamodelPath,
-      RUST_BACKTRACE: '1',
-      RUST_LOG: 'info',
     }
 
     if (this.logQueries || this.logLevel === 'info') {
-      env.RUST_LOG = 'info'
       if (this.logQueries) {
         env.LOG_QUERIES = 'true'
       }
@@ -511,6 +508,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       ...this.env, // user-provided env vars
       ...process.env,
       ...env,
+      // use value from process.env or use default
+      RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
+      RUST_LOG: process.env.RUST_LOG ?? 'info',
     }
   }
 

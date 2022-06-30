@@ -24,7 +24,7 @@ export async function formatSchema({ schemaPath, schema }: { schemaPath?: string
 
   const options = {
     env: {
-      RUST_BACKTRACE: '1',
+      RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
       ...(showColors ? { CLICOLOR_FORCE: '1' } : {}),
     },
     maxBuffer: MAX_BUFFER,
