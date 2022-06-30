@@ -15,6 +15,7 @@ export { objectEnumValues } from './object-enums'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
 export type { DecimalJsLike } from './utils/decimalJsLike'
 export { findSync } from './utils/find'
+export { NotFoundError } from './utils/rejectOnNotFound'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export {
   Engine,
