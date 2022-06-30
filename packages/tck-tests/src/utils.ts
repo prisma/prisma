@@ -15,6 +15,10 @@ export async function setupQueryEngine() {
   const engineDownloadDir = path.join(__dirname, 'generated')
   const queryEngineLibraryPath = path.join(engineDownloadDir, getNodeAPIName(platform, 'fs'))
 
+  if (!(await fsExtra.pathExists(engineDownloadDir))) {
+    await fs.promises.mkdir(engineDownloadDir)
+  }
+
   if (!(await fsExtra.pathExists(queryEngineLibraryPath))) {
     await download({ binaries: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
   }

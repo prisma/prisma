@@ -1954,9 +1954,39 @@ packages:
   /@prisma/engines-version/4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93:
     resolution: {integrity: sha512-kBtQitqyJYnplte5pkCZH8i8w+xfSA1UKFYdOctDFslZwTD7le7OSoqM9taRrxGAV5i5vAZpvFNBOmqEXgWrTw==}
 
+  /@prisma/engines/3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503:
+    resolution: {integrity: sha512-kmYUaHf1lAWGqDJPDZAr51I+GAk78zA+QbAfWyPGU8OaERM5d2oDVwLsj+XQMJD5a19WjSCXAMZ/oh9Uh80GKA==}
+    requiresBuild: true
+    dev: true
+
   /@prisma/engines/4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93:
     resolution: {integrity: sha512-QsSumoJBJ8j/mBaEEo75Rzk+UilCtkcwaG3la0YIG/eXSn9iYU/IW1VVFAvH/bMJODBn1o5GAZxe+8JtAt7olQ==}
     requiresBuild: true
+
+  /@prisma/fetch-engine/3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503:
+    resolution: {integrity: sha512-bq5ogMJ5bT0d+7+wxdkCaR5ozkmeSAMDEF6M+5JMWEB2zl5pw15L3Q/3SdQ6xuxsfM2PgfW90ZhSoRSFTHzM3Q==}
+    dependencies:
+      '@prisma/debug': 3.15.2
+      '@prisma/get-platform': 3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503
+      chalk: 4.1.2
+      execa: 5.1.1
+      find-cache-dir: 3.3.2
+      hasha: 5.2.2
+      http-proxy-agent: 5.0.0
+      https-proxy-agent: 5.0.1
+      make-dir: 3.1.0
+      node-fetch: 2.6.7
+      p-filter: 2.1.0
+      p-map: 4.0.0
+      p-retry: 4.6.2
+      progress: 2.0.3
+      rimraf: 3.0.2
+      temp-dir: 2.0.0
+      tempy: 1.0.1
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+    dev: true
 
   /@prisma/fetch-engine/4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93:
     resolution: {integrity: sha512-2oC30UnJek2XoMiueb4yKZfnutfSlZdQkHoNdIu/824dqvwv0G6dplISRBt34Lisdd2fF6y4ZoEktWazAPiQsA==}
@@ -1981,6 +2011,14 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  /@prisma/get-platform/3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503:
+    resolution: {integrity: sha512-bGL1+i+5elyjWGUxkYPemBJA12PfitooTCiAYPWhAqhA0A7LaB8LUFTcKEOo+c0WCHBt7Z36sjZ5eJs0+T/Y1w==}
+    dependencies:
+      '@prisma/debug': 3.15.2
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
 
   /@prisma/get-platform/4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93:
     resolution: {integrity: sha512-BIlEifapIqrqG8wpY1Ess9cLkjfPrulklrdIZPcDw0+Mvk+xGYE0s7nddP7du7M5t4y6djiKSwR01lOokBkeUw==}
@@ -6938,16 +6976,6 @@ packages:
       walker: 1.0.8
     optionalDependencies:
       fsevents: 2.3.2
-    dev: true
-
-  /jest-junit/13.2.0:
-    resolution: {integrity: sha512-B0XNlotl1rdsvFZkFfoa19mc634+rrd8E4Sskb92Bb8MmSXeWV9XJGUyctunZS1W410uAxcyYuPUGVnbcOH8cg==}
-    engines: {node: '>=10.12.0'}
-    dependencies:
-      mkdirp: 1.0.4
-      strip-ansi: 6.0.1
-      uuid: 8.3.2
-      xml: 1.0.1
     dev: true
 
   /jest-junit/14.0.0:
