@@ -575,7 +575,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
-        this._dmmf = undefined
+        if (!this._dataProxy) {
+          this._dmmf = undefined
+        }
       }
     }
 
