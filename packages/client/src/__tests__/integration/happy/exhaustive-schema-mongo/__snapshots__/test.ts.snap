@@ -43,6 +43,10 @@ Prisma.PrismaClientValidationError = () => {
   throw new Error(\`PrismaClientValidationError is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
+Prisma.NotFoundError = () => {
+  throw new Error(\`NotFoundError is unable to be run in the browser.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
+)}
 Prisma.Decimal = Decimal
 
 /**
@@ -868,6 +872,7 @@ export namespace Prisma {
   export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
   export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
   export import PrismaClientValidationError = runtime.PrismaClientValidationError
+  export import NotFoundError = runtime.NotFoundError
 
   /**
    * Re-export of sql-template-tag
