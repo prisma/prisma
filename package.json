@@ -9,7 +9,7 @@
     "Alexey Orlenko <orlenko@prisma.io>"
   ],
   "engines": {
-    "node": ">=14",
+    "node": ">=14.17",
     "pnpm": ">=6.14.1 <7"
   },
   "scripts": {
@@ -64,7 +64,7 @@
     "graphviz-mit": "0.0.9",
     "husky": "8.0.1",
     "is-ci": "3.0.1",
-    "jest-junit": "13.2.0",
+    "jest-junit": "14.0.0",
     "lint-staged": "13.0.2",
     "node-fetch": "2.6.7",
     "p-map": "4.0.0",

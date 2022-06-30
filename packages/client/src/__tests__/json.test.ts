@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 
 import { getDMMF } from '../generation/getDMMF'
-import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { DMMFClass, makeDocument, objectEnumValues, transformDocument } from '../runtime'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
@@ -89,6 +89,23 @@ describeIf(process.platform !== 'win32')('json', () => {
   })
 
   test('should be able filter json null', () => {
+    const document = makeDocument({
+      dmmf,
+      select: {
+        where: {
+          json: {
+            equals: objectEnumValues.instances.JsonNull,
+          },
+        },
+      },
+      rootTypeName: 'query',
+      rootField: 'findManyOptionalUser',
+    })
+    document.validate(undefined, false, 'user', 'colorless')
+    expect(String(document)).toMatchSnapshot()
+  })
+
+  test('should not consider "JsonNull" string an enum value', () => {
     const document = makeDocument({
       dmmf,
       select: {

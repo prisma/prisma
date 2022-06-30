@@ -33,7 +33,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14"
+    "node": ">=14.17"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -68,13 +68,13 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503",
+    "@prisma/fetch-engine": "4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503",
+    "@prisma/get-platform": "4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/studio": "0.464.0",
-    "@prisma/studio-server": "0.464.0",
+    "@prisma/studio": "0.465.0",
+    "@prisma/studio-server": "0.465.0",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
     "@types/debug": "4.1.7",
@@ -95,7 +95,7 @@
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
     "jest": "28.1.1",
-    "jest-junit": "13.2.0",
+    "jest-junit": "14.0.0",
     "line-replace": "2.0.1",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
@@ -120,7 +120,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.16.0-43.81a0ee489e5f8c8ce98440028ea9050092430503"
+    "@prisma/engines": "4.1.0-2.46cd7ed225f7eb084fb5035de2e89efce45aab93"
   },
   "sideEffects": false
 }
