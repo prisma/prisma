@@ -71,116 +71,6 @@ test('introspection basic', async () => {
       \\"tables\\": [
         {
           \\"name\\": \\"Post\\",
-          \\"columns\\": [
-            {
-              \\"name\\": \\"author\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"INTEGER\\",
-                \\"family\\": \\"Int\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"content\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Nullable\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"createdAt\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"DATE\\",
-                \\"family\\": \\"DateTime\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"DbGenerated\\": \\"'1970-01-01 00:00:00'\\"
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"kind\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Nullable\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"published\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"BOOLEAN\\",
-                \\"family\\": \\"Boolean\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": false
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"title\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": \\"\\"
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"updatedAt\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"DATE\\",
-                \\"family\\": \\"DateTime\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"DbGenerated\\": \\"'1970-01-01 00:00:00'\\"
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"uuid\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            }
-          ],
           \\"indices\\": [
             {
               \\"name\\": \\"Post.uuid\\",
@@ -203,128 +93,10 @@ test('introspection basic', async () => {
               }
             ],
             \\"constraint_name\\": null
-          },
-          \\"foreign_keys\\": [
-            {
-              \\"constraint_name\\": null,
-              \\"columns\\": [
-                \\"author\\"
-              ],
-              \\"referenced_table\\": \\"User\\",
-              \\"referenced_columns\\": [
-                \\"id\\"
-              ],
-              \\"on_delete_action\\": \\"Restrict\\",
-              \\"on_update_action\\": \\"NoAction\\"
-            }
-          ]
+          }
         },
         {
           \\"name\\": \\"User\\",
-          \\"columns\\": [
-            {
-              \\"name\\": \\"age\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"INTEGER\\",
-                \\"family\\": \\"Int\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": 0
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"amount\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"REAL\\",
-                \\"family\\": \\"Float\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": 0.0
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"balance\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"REAL\\",
-                \\"family\\": \\"Float\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": 0.0
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"email\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": \\"\\"
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"id\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"INTEGER\\",
-                \\"family\\": \\"Int\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": true
-            },
-            {
-              \\"name\\": \\"name\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Nullable\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"role\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": {
-                \\"kind\\": {
-                  \\"Value\\": \\"USER\\"
-                },
-                \\"constraint_name\\": null
-              },
-              \\"auto_increment\\": false
-            }
-          ],
           \\"indices\\": [
             {
               \\"name\\": \\"User.email\\",
@@ -358,134 +130,10 @@ test('introspection basic', async () => {
               }
             ],
             \\"constraint_name\\": null
-          },
-          \\"foreign_keys\\": []
+          }
         },
         {
           \\"name\\": \\"_Migration\\",
-          \\"columns\\": [
-            {
-              \\"name\\": \\"revision\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"INTEGER\\",
-                \\"family\\": \\"Int\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": true
-            },
-            {
-              \\"name\\": \\"name\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"datamodel\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"status\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"applied\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"INTEGER\\",
-                \\"family\\": \\"Int\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"rolled_back\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"INTEGER\\",
-                \\"family\\": \\"Int\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"datamodel_steps\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"database_migration\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"errors\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"TEXT\\",
-                \\"family\\": \\"String\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"started_at\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"DATE\\",
-                \\"family\\": \\"DateTime\\",
-                \\"arity\\": \\"Required\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            },
-            {
-              \\"name\\": \\"finished_at\\",
-              \\"tpe\\": {
-                \\"full_data_type\\": \\"DATE\\",
-                \\"family\\": \\"DateTime\\",
-                \\"arity\\": \\"Nullable\\",
-                \\"native_type\\": null
-              },
-              \\"default\\": null,
-              \\"auto_increment\\": false
-            }
-          ],
           \\"indices\\": [],
           \\"primary_key\\": {
             \\"columns\\": [
@@ -496,11 +144,438 @@ test('introspection basic', async () => {
               }
             ],
             \\"constraint_name\\": null
-          },
-          \\"foreign_keys\\": []
+          }
         }
       ],
       \\"enums\\": [],
+      \\"columns\\": [
+        [
+          0,
+          {
+            \\"name\\": \\"author\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"INTEGER\\",
+              \\"family\\": \\"Int\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"content\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Nullable\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"createdAt\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"DATE\\",
+              \\"family\\": \\"DateTime\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"DbGenerated\\": \\"'1970-01-01 00:00:00'\\"
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"kind\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Nullable\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"published\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"BOOLEAN\\",
+              \\"family\\": \\"Boolean\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": false
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"title\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": \\"\\"
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"updatedAt\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"DATE\\",
+              \\"family\\": \\"DateTime\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"DbGenerated\\": \\"'1970-01-01 00:00:00'\\"
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          0,
+          {
+            \\"name\\": \\"uuid\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"age\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"INTEGER\\",
+              \\"family\\": \\"Int\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": 0
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"amount\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"REAL\\",
+              \\"family\\": \\"Float\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": 0.0
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"balance\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"REAL\\",
+              \\"family\\": \\"Float\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": 0.0
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"email\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": \\"\\"
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"id\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"INTEGER\\",
+              \\"family\\": \\"Int\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": true
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"name\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Nullable\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          1,
+          {
+            \\"name\\": \\"role\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": {
+              \\"kind\\": {
+                \\"Value\\": \\"USER\\"
+              },
+              \\"constraint_name\\": null
+            },
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"revision\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"INTEGER\\",
+              \\"family\\": \\"Int\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": true
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"name\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"datamodel\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"status\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"applied\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"INTEGER\\",
+              \\"family\\": \\"Int\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"rolled_back\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"INTEGER\\",
+              \\"family\\": \\"Int\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"datamodel_steps\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"database_migration\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"errors\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"TEXT\\",
+              \\"family\\": \\"String\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"started_at\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"DATE\\",
+              \\"family\\": \\"DateTime\\",
+              \\"arity\\": \\"Required\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ],
+        [
+          2,
+          {
+            \\"name\\": \\"finished_at\\",
+            \\"tpe\\": {
+              \\"full_data_type\\": \\"DATE\\",
+              \\"family\\": \\"DateTime\\",
+              \\"arity\\": \\"Nullable\\",
+              \\"native_type\\": null
+            },
+            \\"default\\": null,
+            \\"auto_increment\\": false
+          }
+        ]
+      ],
+      \\"foreign_keys\\": [
+        [
+          0,
+          {
+            \\"constraint_name\\": null,
+            \\"columns\\": [
+              \\"author\\"
+            ],
+            \\"referenced_table\\": 1,
+            \\"referenced_columns\\": [
+              \\"id\\"
+            ],
+            \\"on_delete_action\\": \\"Restrict\\",
+            \\"on_update_action\\": \\"NoAction\\"
+          }
+        ]
+      ],
       \\"views\\": [],
       \\"procedures\\": [],
       \\"user_defined_types\\": [],
