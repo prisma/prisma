@@ -1,3 +1,5 @@
+import type { Context } from '@opentelemetry/api'
+import { context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
@@ -1046,12 +1048,12 @@ new PrismaClient({
         if (NODE_CLIENT) {
           // https://github.com/prisma/prisma/issues/3148 not for the data proxy
           return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
-            return runInChildSpan(useOtel, 'request', () => consumer(params))
+            return runInChildSpan(useOtel, 'prisma:client', () => consumer(params))
           })
         }
 
         // we execute the middleware consumer and wrap the call for otel
-        return await runInChildSpan(useOtel, 'request', () => consumer(params))
+        return await runInChildSpan(useOtel, 'prisma:client', () => consumer(params))
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e

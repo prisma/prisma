@@ -6,6 +6,7 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
+import { createSpan, EngineSpanEvent } from '../../../client/src/runtime/utils/otel/runInChildSpan'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -221,6 +222,14 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) return
+
+    // @ts-ignore
+    if (event?.span === true) {
+      //@ts-ignore TODO: Get the type conversion correct;
+      createSpan(event as EngineSpanEvent)
+
+      return
+    }
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {

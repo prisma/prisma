@@ -17,6 +17,7 @@ import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
 
+import { createSpan, EngineSpanEvent } from '../../../client/src/runtime/utils/otel/runInChildSpan'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -550,7 +551,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = ['--enable-raw-queries', '--enable-metrics', ...this.flags, ...additionalFlag]
+        const flags = [
+          '--enable-raw-queries',
+          '--enable-metrics',
+          '--enable-open-telemetry',
+          ...this.flags,
+          ...additionalFlag,
+        ]
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
@@ -589,6 +596,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         byline(this.child.stdout).on('data', (msg) => {
           const data = String(msg)
+          // console.log('RAW', data)
           try {
             const json = JSON.parse(data)
             debug('stdout', getMessage(json))
@@ -607,6 +615,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // they could also be a RustError, which has is_panic
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
+              //@ts-ignore
+              if (json.span === true) {
+                //@ts-ignore TODO: Get the type conversion correct;
+                createSpan(json as EngineSpanEvent)
+                return
+              }
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
@@ -619,6 +633,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               this.setError(json)
             }
           } catch (e) {
+            console.log('ERR', data)
+            console.log('CATCH ERR', e)
             debug(e, data)
           }
         })

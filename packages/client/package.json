@@ -68,6 +68,7 @@
     "@jest/test-sequencer": "28.1.1",
     "@microsoft/api-extractor": "7.25.2",
     "@opentelemetry/api": "1.1.0",
+    "@opentelemetry/sdk-trace-base": "1.3.1",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "workspace:*",
