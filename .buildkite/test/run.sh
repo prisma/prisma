@@ -16,10 +16,11 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
 fi
 
 # Install pnpm
-npm i --silent -g pnpm@6 --unsafe-perm # TODO: is this unsafe-perm needed?
+npm i --silent -g pnpm@7 --unsafe-perm
+# --usafe-perm to allow install scripts
 
 # Install packages
-pnpm i
+pnpm i --unsafe-perm
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
@@ -48,4 +49,4 @@ pnpm run test
 #  error: database "tests" does not exist
 # Test Suites: 2 failed, 8 passed, 10 total
 # https://buildkite.com/prisma/release-prisma-typescript/builds/6514
-pnpm run test:functional --filter "@prisma/client"
+pnpm run --filter "@prisma/client" test:functional

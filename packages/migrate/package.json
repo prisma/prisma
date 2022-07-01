@@ -44,7 +44,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/get-platform": "4.1.0-5.e82e1a549e41aa2c572eb3d35208d12e526c3ed0",
+    "@prisma/get-platform": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
     "chalk": "4.1.2",
     "execa": "5.1.1",

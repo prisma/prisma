@@ -9,6 +9,4 @@ async function main() {
   console.log(`Saving packed client to ${target}`)
 }
 
-main().catch((e) => {
-  throw e
-})
+void main()

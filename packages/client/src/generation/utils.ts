@@ -1,8 +1,8 @@
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
-import { ClientModelAction } from '../runtime/clientActions'
 
+import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 
