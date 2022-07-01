@@ -1,4 +1,4 @@
-import { ensureBinariesExist } from '@prisma/engines'
+import { ensureEnginesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
 import chalk from 'chalk'
@@ -32,7 +32,7 @@ export class CLI implements Command {
     }
 
     if (args['--version']) {
-      await ensureBinariesExist()
+      await ensureEnginesExist()
       return Version.new().parse(argv)
     }
 
@@ -64,7 +64,7 @@ export class CLI implements Command {
     if (cmd) {
       // if we have that subcommand, let's ensure that the binary is there in case the command needs it
       if (this.ensureBinaries.includes(cmdName)) {
-        await ensureBinariesExist()
+        await ensureEnginesExist()
       }
 
       let argsForCmd: string[]

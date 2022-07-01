@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { getCliQueryEngineType } from '@prisma/engines'
 import { EngineTypeEnum } from '@prisma/fetch-engine'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
@@ -83,7 +83,7 @@ ${detailsHeader} ${message}`
 
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
-  const cliEngineBinaryType = getCliQueryEngineBinaryType()
+  const cliEngineBinaryType = getCliQueryEngineType()
   const dmmf: DMMF.Document = await match(cliEngineBinaryType)
     .with(EngineTypeEnum.libqueryEngine, () => {
       return getDmmfNodeAPI(options)

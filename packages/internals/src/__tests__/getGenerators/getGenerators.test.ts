@@ -1,4 +1,4 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { getCliQueryEngineType } from '@prisma/engines'
 import { EngineTypeEnum } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
@@ -580,7 +580,7 @@ describe('getGenerators', () => {
 
     const migrationEngine = await resolveBinary(EngineTypeEnum.migrationEngine)
 
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
+    const queryEngineBinaryType = getCliQueryEngineType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
 
     const generators = await getGenerators({

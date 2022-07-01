@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { fixBinaryTargets, getOriginalBinaryTargetsValue, printGeneratorConfig } from '@prisma/engine-core'
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
@@ -82,7 +82,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   }
   const platform = await getPlatform()
 
-  const queryEngineBinaryType = getCliQueryEngineBinaryType()
+  const queryEngineBinaryType = getCliQueryEngineType()
 
   const queryEngineType = binaryTypeToEngineType(queryEngineBinaryType)
   let prismaPath: string | undefined = binaryPathsOverride?.[queryEngineType]

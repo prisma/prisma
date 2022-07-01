@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { getCliQueryEngineType } from '@prisma/engines'
 import { EngineTypeEnum } from '@prisma/fetch-engine'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
@@ -81,7 +81,7 @@ ${detailsHeader} ${message}`
 }
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
-  const cliEngineBinaryType = getCliQueryEngineBinaryType()
+  const cliEngineBinaryType = getCliQueryEngineType()
   const data: ConfigMetaFormat = await match(cliEngineBinaryType)
     .with(EngineTypeEnum.libqueryEngine, () => {
       return getConfigNodeAPI(options)
