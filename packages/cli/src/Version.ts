@@ -3,7 +3,7 @@ import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
 import {
   arg,
-  BinaryType,
+  EngineTypeEnum,
   engineEnvVarMap,
   format,
   formatTable,
@@ -14,7 +14,7 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  resolveBinary,
+  resolveEngine,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -24,7 +24,7 @@ import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
-interface BinaryInfo {
+interface EngineInfo {
   path: string
   version: string
   fromEnvVar?: string
@@ -73,12 +73,11 @@ export class Version implements Command {
     loadEnvFile(undefined, true)
 
     const platform = await getPlatform()
-    const cliQueryEngineBinaryType = getCliQueryEngineType()
-    const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
-    const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
-    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
-    const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
+    const cliQueryEngineType = getCliQueryEngineType()
+    const introspectionEngine = await this.resolveEngine(EngineTypeEnum.introspectionEngine)
+    const migrationEngine = await this.resolveEngine(EngineTypeEnum.migrationEngine)
+    const queryEngine = await this.resolveEngine(cliQueryEngineType)
+    const fmtEngine = await this.resolveEngine(EngineTypeEnum.prismaFmt)
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -87,12 +86,12 @@ export class Version implements Command {
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
       [
-        `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
-        this.printBinaryInfo(queryEngine),
+        `Query Engine${cliQueryEngineType === EngineTypeEnum.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
+        this.printEngineInfo(queryEngine),
       ],
-      ['Migration Engine', this.printBinaryInfo(migrationEngine)],
-      ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
-      ['Format Binary', this.printBinaryInfo(fmtBinary)],
+      ['Migration Engine', this.printEngineInfo(migrationEngine)],
+      ['Introspection Engine', this.printEngineInfo(introspectionEngine)],
+      ['Format Binary', this.printEngineInfo(fmtEngine)],
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
@@ -127,22 +126,22 @@ export class Version implements Command {
     return []
   }
 
-  private printBinaryInfo({ path: absolutePath, version, fromEnvVar }: BinaryInfo): string {
+  private printEngineInfo({ path: absolutePath, version, fromEnvVar }: EngineInfo): string {
     const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
     return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
   }
 
-  private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
-    const envVar = engineEnvVarMap[binaryName]
+  private async resolveEngine(engineName: EngineTypeEnum): Promise<EngineInfo> {
+    const envVar = engineEnvVarMap[engineName]
     const pathFromEnv = process.env[envVar]
     if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getEngineVersion(pathFromEnv, binaryName)
+      const version = await getEngineVersion(pathFromEnv, engineName)
       return { version, path: pathFromEnv, fromEnvVar: envVar }
     }
 
-    const binaryPath = await resolveBinary(binaryName)
-    const version = await getEngineVersion(binaryPath, binaryName)
-    return { path: binaryPath, version }
+    const enginePath = await resolveEngine(engineName)
+    const version = await getEngineVersion(enginePath, engineName)
+    return { path: enginePath, version }
   }
 
   public help(error?: string): string | HelpError {

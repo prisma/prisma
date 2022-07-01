@@ -5,7 +5,7 @@ import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { getGenerators } from '../../get-generators/getGenerators'
-import { resolveBinary } from '../../resolveBinary'
+import { resolveEngine } from '../../resolveEngine'
 import { jestConsoleContext, jestContext } from '../../utils/jestContext'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
@@ -578,10 +578,10 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(EngineTypeEnum.migrationEngine)
+    const migrationEngine = await resolveEngine(EngineTypeEnum.migrationEngine)
 
     const queryEngineBinaryType = getCliQueryEngineType()
-    const queryEnginePath = await resolveBinary(queryEngineBinaryType)
+    const queryEnginePath = await resolveEngine(queryEngineBinaryType)
 
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),

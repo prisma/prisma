@@ -29,8 +29,8 @@ export const engineEnvVarMap = {
   [EngineTypeEnum.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
   [EngineTypeEnum.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
-export { EngineTypeEnum as BinaryType }
-export async function resolveBinary(name: EngineTypeEnum, proposedPath?: string): Promise<string> {
+export { EngineTypeEnum }
+export async function resolveEngine(name: EngineTypeEnum, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath

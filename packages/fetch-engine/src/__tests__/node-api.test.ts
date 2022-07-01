@@ -6,7 +6,7 @@ import { cleanupCache } from '../cleanupCache'
 import { download } from '../download'
 import { getFiles } from './__utils__/getFiles'
 
-const CURRENT_BINARIES_HASH = enginesVersion
+const CURRENT_ENGINES_HASH = enginesVersion
 
 jest.setTimeout(120_000)
 
@@ -43,7 +43,7 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
-      version: CURRENT_BINARIES_HASH,
+      version: CURRENT_ENGINES_HASH,
     })
 
     const files = getFiles(baseDir).map((f) => ({ ...f, size: 'X' }))

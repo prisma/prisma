@@ -2,7 +2,7 @@ import { EngineTypeEnum } from '@prisma/fetch-engine'
 import * as E from 'fp-ts/Either'
 
 import { loadNodeAPILibrary } from '../../engine-commands/queryEngineCommons'
-import { resolveBinary } from '../../resolveBinary'
+import { resolveEngine } from '../../resolveEngine'
 import * as loadUtils from '../../utils/load'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
@@ -15,7 +15,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILi
     })
 
     try {
-      const queryEnginePath = await resolveBinary(EngineTypeEnum.libqueryEngine)
+      const queryEnginePath = await resolveEngine(EngineTypeEnum.libqueryEngine)
       const result = await loadNodeAPILibrary(queryEnginePath)()
 
       expect(E.isLeft(result)).toBe(true)
@@ -37,7 +37,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILi
     })
 
     try {
-      const queryEnginePath = await resolveBinary(EngineTypeEnum.libqueryEngine)
+      const queryEnginePath = await resolveEngine(EngineTypeEnum.libqueryEngine)
       const result = await loadNodeAPILibrary(queryEnginePath)()
 
       expect(E.isLeft(result)).toBe(true)
@@ -55,7 +55,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILi
   })
 
   it('happy path', async () => {
-    const queryEnginePath = await resolveBinary(EngineTypeEnum.libqueryEngine)
+    const queryEnginePath = await resolveEngine(EngineTypeEnum.libqueryEngine)
     const result = await loadNodeAPILibrary(queryEnginePath)()
 
     expect(E.isRight(result)).toBe(true)
