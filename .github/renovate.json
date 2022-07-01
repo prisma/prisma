@@ -13,7 +13,7 @@
     "@prisma/get-platform"
   ],
   "constraints": {
-    "pnpm": "6"
+    "pnpm": "7"
   },
   "packageRules": [
     {

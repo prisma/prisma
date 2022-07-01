@@ -1,5 +1,3 @@
-import 'ts-node/register'
-
 import execa from 'execa'
 import path from 'path'
 
