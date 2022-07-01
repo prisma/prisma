@@ -24,7 +24,7 @@ Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
 `;
 
-exports[`version version with custom binaries (Node-API) 1`] = `
+exports[`version version with custom engine files (Node-API) 1`] = `
 prisma                  : 0.0.0
 @prisma/client          : Not found
 Current platform        : TEST_PLATFORM
@@ -36,7 +36,7 @@ Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
 `;
 
-exports[`version version with custom binaries 1`] = `
+exports[`version version with custom engine files 1`] = `
 prisma                : 0.0.0
 @prisma/client        : Not found
 Current platform      : TEST_PLATFORM

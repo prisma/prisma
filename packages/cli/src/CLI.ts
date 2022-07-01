@@ -9,10 +9,10 @@ import { Version } from './Version'
  * CLI command
  */
 export class CLI implements Command {
-  static new(cmds: Commands, ensureBinaries: string[]): CLI {
-    return new CLI(cmds, ensureBinaries)
+  static new(cmds: Commands, ensureEngines: string[]): CLI {
+    return new CLI(cmds, ensureEngines)
   }
-  private constructor(private readonly cmds: Commands, private readonly ensureBinaries: string[]) {}
+  private constructor(private readonly cmds: Commands, private readonly ensureEngines: string[]) {}
 
   async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
@@ -62,8 +62,8 @@ export class CLI implements Command {
 
     const cmd = this.cmds[cmdName]
     if (cmd) {
-      // if we have that subcommand, let's ensure that the binary is there in case the command needs it
-      if (this.ensureBinaries.includes(cmdName)) {
+      // if we have that subcommand, let's ensure that the engine is there in case the command needs it
+      if (this.ensureEngines.includes(cmdName)) {
         await ensureEnginesExist()
       }
 

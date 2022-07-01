@@ -592,7 +592,7 @@ describe('getGenerators', () => {
       dataProxy: false,
     })
 
-    const options = generators.map((g) => g.options?.binaryPaths)
+    const options = generators.map((g) => g.options?.enginePaths)
 
     const platform = await getPlatform()
 

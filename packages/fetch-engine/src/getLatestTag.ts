@@ -22,7 +22,7 @@ export async function getLatestTag(): Promise<any> {
   // default back to main
   let commits = await getCommits(branch)
   if ((!commits || !Array.isArray(commits)) && branch !== 'main' && !isPatchBranch(branch)) {
-    console.log(`Overwriting branch "${branch}" with "main" as it's not a branch we have binaries for`)
+    console.log(`Overwriting branch "${branch}" with "main" as it's not a branch we have engines for`)
     branch = 'main'
     commits = await getCommits(branch)
   }
@@ -39,8 +39,8 @@ export function getAllUrls(branch: string, commit: string): string[] {
   const urls: string[] = []
 
   // these are the platforms we know exists but we don't compile for.
-  // we need to exclude them here so that we don't try to download binaries for these.
-  // They are known because we don't want to block custom binary usage for them.
+  // we need to exclude them here so that we don't try to download egnines for these.
+  // They are known because we don't want to block custom engine usage for them.
   const excludedPlatforms = [
     'freebsd',
     'arm',

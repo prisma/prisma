@@ -21,7 +21,7 @@ describe('version', () => {
   })
 
   testIf(useNodeAPI)(
-    'version with custom binaries (Node-API)',
+    'version with custom engine files (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
@@ -66,7 +66,7 @@ describe('version', () => {
   })
 
   testIf(!useNodeAPI)(
-    'version with custom binaries',
+    'version with custom engine files',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)

@@ -25,7 +25,7 @@ import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
-import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
+import { getEnginePathsByVersion } from './utils/getBinaryPathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
 
 const debug = Debug('prisma:getGenerators')
@@ -53,7 +53,7 @@ export type GetGeneratorOptions = {
   dataProxy: boolean
 }
 /**
- * Makes sure that all generators have the binaries they deserve and returns a
+ * Makes sure that all generators have the engine files they deserve and returns a
  * `Generator` class per generator defined in the schema.prisma file.
  * In other words, this is basically a generator factory function.
  * @param schemaPath Path to schema.prisma
@@ -248,7 +248,7 @@ generator gen {
       }
     }
 
-    // 3. Download all binaries and binary targets needed
+    // 3. Download all engines and binary targets needed
     const neededVersions = Object.create(null)
     for (const g of generators) {
       if (
@@ -310,13 +310,13 @@ generator gen {
       }
     }
     debug('neededVersions', JSON.stringify(neededVersions, null, 2))
-    const binaryPathsByVersion = await getBinaryPathsByVersion({
+    const binaryPathsByVersion = await getEnginePathsByVersion({
       neededVersions,
       platform,
       version,
       printDownloadProgress,
       skipDownload,
-      binaryPathsOverride,
+      enginePathsOverride: binaryPathsOverride,
     })
     for (const generator of generators) {
       if (generator.manifest && generator.manifest.requiresEngines) {
@@ -366,13 +366,13 @@ type NeededVersions = {
   }
 }
 
-export type GetBinaryPathsByVersionInput = {
+export type GetEnginePathsByVersionInput = {
   neededVersions: NeededVersions
   platform: Platform
   version?: string
   printDownloadProgress?: boolean
   skipDownload?: boolean
-  binaryPathsOverride?: BinaryPathsOverride
+  enginePathsOverride?: BinaryPathsOverride
 }
 
 /**

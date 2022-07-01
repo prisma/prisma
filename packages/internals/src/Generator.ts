@@ -1,4 +1,4 @@
-import type { BinaryPaths, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator-helper'
+import type { EnginePaths, GeneratorConfig, GeneratorManifest, GeneratorOptions } from '@prisma/generator-helper'
 import { GeneratorProcess } from '@prisma/generator-helper'
 
 import { parseEnvValue } from './utils/parseEnvValue'
@@ -28,11 +28,11 @@ export class Generator {
   setOptions(options: GeneratorOptions): void {
     this.options = options
   }
-  setBinaryPaths(binaryPaths: BinaryPaths): void {
+  setBinaryPaths(binaryPaths: EnginePaths): void {
     if (!this.options) {
       throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
     }
-    this.options.binaryPaths = binaryPaths
+    this.options.enginePaths = binaryPaths
   }
 
   /**
