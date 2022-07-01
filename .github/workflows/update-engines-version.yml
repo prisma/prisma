@@ -31,8 +31,8 @@ jobs:
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
         run: |
-          echo 'Checking that all packages [@prisma/engines-version] have the published version @${{ github.event.inputs.version }}'
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
+          echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to update the dependencies'
 
       - name: Update the engines dependencies
