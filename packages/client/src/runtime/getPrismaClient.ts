@@ -130,7 +130,7 @@ export interface PrismaClientOptions {
     hooks?: Hooks
     engine?: {
       cwd?: string
-      binaryPath?: string
+      binaryPath?: string // TODO Rename
       endpoint?: string
       allowTriggerPanic?: boolean
     }

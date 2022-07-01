@@ -9,12 +9,12 @@ import { load } from '../utils/load'
 
 const MAX_BUFFER = 1_000_000_000
 
-export async function getEngineVersion(enginePath?: string, binaryName?: EngineTypeEnum): Promise<string> {
-  if (!binaryName) {
-    binaryName = getCliQueryEngineType()
+export async function getEngineVersion(enginePath?: string, engineName?: EngineTypeEnum): Promise<string> {
+  if (!engineName) {
+    engineName = getCliQueryEngineType()
   }
-  enginePath = await resolveEngine(binaryName, enginePath)
-  if (binaryName === EngineTypeEnum.libqueryEngine) {
+  enginePath = await resolveEngine(engineName, enginePath)
+  if (engineName === EngineTypeEnum.libqueryEngine) {
     await isNodeAPISupported()
 
     const QE = load<NodeAPILibraryTypes.Library>(enginePath)

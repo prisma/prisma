@@ -98,7 +98,7 @@ export class GeneratorProcess {
             this.handleResponse(data)
           }
         })
-        // wait 200ms for the binary to fail
+        // wait 200ms for the executable to fail
         setTimeout(() => {
           if (this.exitCode && this.exitCode > 0) {
             reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))

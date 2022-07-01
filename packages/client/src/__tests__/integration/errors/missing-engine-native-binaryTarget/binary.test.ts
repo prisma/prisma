@@ -16,16 +16,16 @@ test('missing-engine-native-binaryTarget: binary', async () => {
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
   const platform = await getPlatform()
-  let binaryPath =
+  let engineFilePath =
     getClientEngineType() === ClientEngineType.Library
       ? path.join(__dirname, 'node_modules/.prisma/client', getNodeAPIName(platform, 'fs'))
       : path.join(__dirname, 'node_modules/.prisma/client', `query-engine-${platform}`)
 
   if (process.platform === 'win32') {
-    binaryPath += '.exe'
+    engineFilePath += '.exe'
   }
 
-  fs.unlinkSync(binaryPath)
+  fs.unlinkSync(engineFilePath)
   const prisma = new PrismaClient({
     log: [
       {

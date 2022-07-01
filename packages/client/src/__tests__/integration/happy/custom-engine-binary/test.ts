@@ -5,39 +5,39 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('custom engine binary path (internal API)', async () => {
+test('custom engine file path via binaryPath (internal API)', async () => {
   await generateTestClient()
 
   const platform = await getPlatform()
 
-  let binaryFileName =
+  let engineFileName =
     getClientEngineType() === ClientEngineType.Library ? getNodeAPIName(platform, 'fs') : `query-engine-${platform}`
 
   if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
-    binaryFileName += '.exe'
+    engineFileName += '.exe'
   }
 
-  const defaultBinaryPath = path.join(__dirname, 'node_modules/.prisma/client', binaryFileName)
-  const customBinaryPath = path.join(__dirname, binaryFileName)
+  const defaultEnginePath = path.join(__dirname, 'node_modules/.prisma/client', engineFileName)
+  const customEnginePath = path.join(__dirname, engineFileName)
 
-  fs.copyFileSync(defaultBinaryPath, customBinaryPath)
-  fs.unlinkSync(defaultBinaryPath)
+  fs.copyFileSync(defaultEnginePath, customEnginePath)
+  fs.unlinkSync(defaultEnginePath)
 
   const { PrismaClient } = require('./node_modules/@prisma/client')
 
   const prisma = new PrismaClient({
     __internal: {
       engine: {
-        binaryPath: customBinaryPath,
+        binaryPath: customEnginePath,
       },
     },
   })
 
-  expect(prisma._engineConfig.prismaPath).toBe(customBinaryPath)
+  expect(prisma._engineConfig.prismaPath).toBe(customEnginePath)
 
   if (getClientEngineType() === ClientEngineType.Binary) {
-    expect(prisma._engine.prismaPath).toBe(customBinaryPath)
-    expect(await prisma._engine.getPrismaPath()).toBe(customBinaryPath)
+    expect(prisma._engine.prismaPath).toBe(customEnginePath)
+    expect(await prisma._engine.getPrismaPath()).toBe(customEnginePath)
   }
 
   const users = await prisma.user.findMany()

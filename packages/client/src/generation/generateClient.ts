@@ -287,12 +287,12 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         await copyFile(filePath, target)
         continue
       }
-      const binaryName =
+      const engineName =
         clientEngineType === ClientEngineType.Binary ? EngineTypeEnum.queryEngine : EngineTypeEnum.libqueryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
-        getEngineVersion(filePath, binaryName).catch(() => null),
-        getEngineVersion(target, binaryName).catch(() => null),
+        getEngineVersion(filePath, engineName).catch(() => null),
+        getEngineVersion(target, engineName).catch(() => null),
       ])
 
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {

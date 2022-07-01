@@ -110,7 +110,7 @@ export async function generateInFolder({
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
-  const binaryPaths =
+  const enginePaths =
     clientEngineType === ClientEngineType.Library
       ? {
           libqueryEngine: {
@@ -124,7 +124,7 @@ export async function generateInFolder({
         }
 
   await generateClient({
-    binaryPaths,
+    binaryPaths: enginePaths,
     datamodel,
     dmmf,
     ...config,

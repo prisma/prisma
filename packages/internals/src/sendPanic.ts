@@ -65,7 +65,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
-      binaryVersion: engineVersion,
+      binaryVersion: engineVersion, // API expects `binaryVersion` 
       command: getCommand(),
       jsStackTrace: stripAnsi(error.stack || error.message),
       rustStackTrace: error.rustStack,

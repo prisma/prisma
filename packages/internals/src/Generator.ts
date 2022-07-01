@@ -28,11 +28,11 @@ export class Generator {
   setOptions(options: GeneratorOptions): void {
     this.options = options
   }
-  setBinaryPaths(binaryPaths: EnginePaths): void {
+  setBinaryPaths(enginePaths: EnginePaths): void {
     if (!this.options) {
       throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
     }
-    this.options.binaryPaths = binaryPaths
+    this.options.binaryPaths = enginePaths
   }
 
   /**

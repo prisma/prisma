@@ -10,7 +10,7 @@ export enum ErrorKind {
 
 export interface CreateErrorReportInput {
   area: ErrorArea
-  binaryVersion: string
+  binaryVersion: string // API expect this
   cliVersion: string
   command: string
   jsStackTrace: string

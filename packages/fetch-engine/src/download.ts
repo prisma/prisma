@@ -98,7 +98,7 @@ export async function download(options: DownloadOptions): Promise<EnginePaths> {
     ...options,
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
-    engines: mapKeys(options.engines, (key) => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
+    engines: mapKeys(options.engines, (key) => barToBaz(key, platform)), // just necessary to support both camelCase and hyphen-case
   }
 
   // creates a matrix of engines x binary targets
@@ -459,8 +459,8 @@ async function saveFileToCache(
   }
 }
 
-// ???? What is this doing?
-function engineTypeToBinaryType(engineType: string, binaryTarget: string): string {
+// TODO ???? What is this doing?
+function barToBaz(engineType: string, binaryTarget: string): string {
   if (EngineTypeEnum[engineType]) {
     return EngineTypeEnum[engineType]
   }

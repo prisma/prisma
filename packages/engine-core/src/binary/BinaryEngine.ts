@@ -210,6 +210,7 @@ export class BinaryEngine extends Engine {
 You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
           this.clientVersion!,
         )
+        // TODO Replace `binary` here and in snapshots
       }
     } else {
       void this.getPlatform()
@@ -375,7 +376,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedBinaryTarget}`)}\n`
         : ''
 
-      let errorText = `Query engine binary for current platform "${chalk.bold(
+      let errorText = `Query engine binary for current platform "${chalk.bold( // TODO replace `binary` here and in snapshots
         platform,
       )}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.
@@ -649,7 +650,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             } else if (this.child?.signalCode) {
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
-Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg,
+Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg, // TODO replace `binary` here and in snapshots
                 this.clientVersion!,
               )
             } else {
