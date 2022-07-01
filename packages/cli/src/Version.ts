@@ -94,7 +94,6 @@ export class Version implements Command {
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
-      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
 
       ...enginesRows,
 
