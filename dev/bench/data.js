@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1656659060080,
+  "lastUpdate": 1656677752119,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -106513,6 +106513,72 @@ window.BENCHMARK_DATA = {
           {
             "name": ".prisma/client size",
             "value": 42,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "pierre",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "24c072b3d462bdeb12d49fdeb908953a3a94a91d",
+          "message": "chore: bring `engines-wrapper` packages back & pnpm 7 (#13769)\n\n* bring engine-wrapper packages back\r\n\r\n* set jest maxWorkers for CI\r\n\r\n* fix engine postinstall script in monorepo\r\n\r\n* disable dmmfTypes tests, it cannot be typechecked\r\n\r\n* use swc jest in all projects\r\n\r\n* update snaps\r\n\r\n* update locks\r\n\r\n* remove ts-node/register from cli tests\r\n\r\n* add jest as a depdency to engines\r\n\r\n* update engine version snapshot logic\r\n\r\n* add swc/jest to work in more places\r\n\r\n* add test todo in engines\r\n\r\n* set --unsafe-perm for builkite to run postinstall\r\n\r\n* upgrade to pnpm@7\r\n\r\n* bump engines to latest\r\n\r\n* remove exclusion out of tsconfig\r\n\r\n* cahnges to adapt to pnpm@7\r\n\r\n* changes to adapt to pnpm@7\r\n\r\n* add missing pnpm@7 for buildkite\r\n\r\n* add typesxcrupt to dependencies for esm test\r\n\r\n* cahnges to adapt to pnpm@7\r\n\r\n* changes to adapt to pnpm@7\r\n\r\n* skip high concurrency itx for sqlite\r\n\r\n* remove yarn pack to alleviate memory and speed\r\n\r\n* attempt to make copy sync\r\n\r\n* exclude node_modules from swc jest\r\n\r\n* try to only transpile what is necessary\r\n\r\n* try to bump nodejs to 18\r\n\r\n* fix forceTraspile to work with jest logic\r\n\r\n* apply review\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* skip memory-heavy tests on windows\r\n\r\n* run tests on node 14 for windows/mac\r\n\r\n* Apply suggestions from code review\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* update readmes\r\n\r\n* update update-engines-version.yml\r\n\r\n* re-enabled skipped tests\r\n\r\n* adapt data version resolution\r\n\r\n* adapt publish script\r\n\r\n* make execa a dependency of engines\r\n\r\n* revert compiling es2020 to es2018\r\n\r\n* move execa to happen in monorepo only in engine postinstall\r\n\r\n* add a line break\r\n\r\n* update locks\r\n\r\n* Apply suggestions from code review\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* update engine.getDatabaseDescription(schema) snapshot\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-07-01T14:12:40+02:00",
+          "tree_id": "2688aaa3353446f5c4e90dab08b19ce9633eb2c4",
+          "url": "https://github.com/prisma/prisma/commit/24c072b3d462bdeb12d49fdeb908953a3a94a91d"
+        },
+        "date": 1656677745257,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.01,
+            "range": "±5.84%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.42%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
