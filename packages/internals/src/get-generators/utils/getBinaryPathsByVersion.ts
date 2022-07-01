@@ -1,7 +1,7 @@
 import { enginesVersion } from '@prisma/engines'
-import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
+import type { EngineDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
-import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
+import type { EnginePaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import makeDir from 'make-dir'
 import path from 'path'
@@ -18,8 +18,8 @@ export async function getBinaryPathsByVersion({
   printDownloadProgress,
   skipDownload,
   binaryPathsOverride,
-}: GetBinaryPathsByVersionInput): Promise<Record<string, BinaryPaths>> {
-  const binaryPathsByVersion: Record<string, BinaryPaths> = Object.create(null)
+}: GetBinaryPathsByVersionInput): Promise<Record<string, EnginePaths>> {
+  const binaryPathsByVersion: Record<string, EnginePaths> = Object.create(null)
 
   // make sure, that at least the current platform is being fetched
   for (const currentVersion in neededVersions) {
@@ -47,7 +47,7 @@ export async function getBinaryPathsByVersion({
       await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
-    const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
+    const binariesConfig: EngineDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
       // only download the binary, of not already covered by the `binaryPathsOverride`
       if (!binaryPathsOverride?.[curr]) {
         acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
@@ -70,7 +70,7 @@ export async function getBinaryPathsByVersion({
       }
 
       const binaryPathsWithEngineType = await download(downloadParams)
-      const binaryPaths: BinaryPaths = mapKeys(binaryPathsWithEngineType, binaryTypeToEngineType)
+      const binaryPaths: EnginePaths = mapKeys(binaryPathsWithEngineType, binaryTypeToEngineType)
       binaryPathsByVersion[currentVersion] = binaryPaths
     }
 

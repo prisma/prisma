@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { BinaryType, download } from '@prisma/fetch-engine'
+import { EngineNameEnum, download } from '@prisma/fetch-engine'
 import type { Platform } from '@prisma/get-platform'
 import path from 'path'
 
@@ -8,19 +8,19 @@ const debug = Debug('prisma:engines')
 export function getEnginesPath() {
   return path.join(__dirname, '../')
 }
-export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.libqueryEngine // TODO: name not clear
+export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = EngineNameEnum.libqueryEngine // TODO: name not clear
 /**
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(): BinaryType.libqueryEngine | BinaryType.queryEngine {
+export function getCliQueryEngineType(): EngineNameEnum.libqueryEngine | EngineNameEnum.queryEngine {
   const envCliQueryEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
   if (envCliQueryEngineType) {
     if (envCliQueryEngineType === 'binary') {
-      return BinaryType.queryEngine
+      return EngineNameEnum.queryEngine
     }
     if (envCliQueryEngineType === 'library') {
-      return BinaryType.libqueryEngine
+      return EngineNameEnum.libqueryEngine
     }
   }
   return DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE
@@ -32,13 +32,13 @@ export async function ensureBinariesExist() {
     binaryTargets = process.env.PRISMA_CLI_BINARY_TARGETS.split(',')
   }
 
-  const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+  const cliQueryEngineBinaryType = getCliQueryEngineType()
 
   const binaries = {
     [cliQueryEngineBinaryType]: binaryDir,
-    [BinaryType.migrationEngine]: binaryDir,
-    [BinaryType.introspectionEngine]: binaryDir,
-    [BinaryType.prismaFmt]: binaryDir,
+    [EngineNameEnum.migrationEngine]: binaryDir,
+    [EngineNameEnum.introspectionEngine]: binaryDir,
+    [EngineNameEnum.prismaFmt]: binaryDir,
   }
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
   await download({

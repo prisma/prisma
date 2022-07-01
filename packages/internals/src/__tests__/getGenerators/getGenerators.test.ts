@@ -1,5 +1,5 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { getCliQueryEngineType } from '@prisma/engines'
+import { EngineNameEnum } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
@@ -578,9 +578,9 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
+    const migrationEngine = await resolveBinary(EngineNameEnum.migrationEngine)
 
-    const queryEngineBinaryType = getCliQueryEngineBinaryType()
+    const queryEngineBinaryType = getCliQueryEngineType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
 
     const generators = await getGenerators({
@@ -592,7 +592,7 @@ describe('getGenerators', () => {
       dataProxy: false,
     })
 
-    const options = generators.map((g) => g.options?.binaryPaths)
+    const options = generators.map((g) => g.options?.enginePaths)
 
     const platform = await getPlatform()
 

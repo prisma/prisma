@@ -26,21 +26,21 @@ const copyFile = promisify(fs.copyFile)
 const utimes = promisify(fs.utimes)
 
 const channel = 'master'
-export enum BinaryType {
+export enum EngineNameEnum {
   queryEngine = 'query-engine',
   libqueryEngine = 'libquery-engine',
   migrationEngine = 'migration-engine',
   introspectionEngine = 'introspection-engine',
   prismaFmt = 'prisma-fmt',
 }
-export type BinaryDownloadConfiguration = {
-  [binary in BinaryType]?: string // that is a path to the binary download location
+export type EngineDownloadConfiguration = {
+  [binary in EngineNameEnum]?: string // that is a path to the binary download location
 }
 export type BinaryPaths = {
-  [binary in BinaryType]?: { [binaryTarget in Platform]: string } // key: target, value: path
+  [binary in EngineNameEnum]?: { [binaryTarget in Platform]: string } // key: target, value: path
 }
 export interface DownloadOptions {
-  binaries: BinaryDownloadConfiguration
+  binaries: EngineDownloadConfiguration
   binaryTargets?: Platform[]
   showProgress?: boolean
   progressCb?: (progress: number) => void
@@ -52,11 +52,11 @@ export interface DownloadOptions {
 }
 
 const BINARY_TO_ENV_VAR = {
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
+  [EngineNameEnum.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [EngineNameEnum.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [EngineNameEnum.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [EngineNameEnum.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  [EngineNameEnum.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 
 type BinaryDownloadJob = {
@@ -81,7 +81,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
-  } else if (BinaryType.libqueryEngine in options.binaries) {
+  } else if (EngineNameEnum.libqueryEngine in options.binaries) {
     await isNodeAPISupported()
   }
 
@@ -102,7 +102,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const binaryJobs = flatMap(Object.entries(opts.binaries), ([binaryName, targetFolder]: [string, string]) =>
     opts.binaryTargets.map((binaryTarget) => {
       const fileName =
-        binaryName === BinaryType.libqueryEngine
+        binaryName === EngineNameEnum.libqueryEngine
           ? getNodeAPIName(binaryTarget, 'fs')
           : getBinaryName(binaryName, binaryTarget)
       const targetFilePath = path.join(targetFolder, fileName)
@@ -299,7 +299,7 @@ async function binaryNeedsToBeDownloaded(
   }
 
   // 3. If same platform, always check --version
-  if (job.binaryTarget === nativePlatform && job.binaryName !== BinaryType.libqueryEngine) {
+  if (job.binaryTarget === nativePlatform && job.binaryName !== EngineNameEnum.libqueryEngine) {
     const works = await checkVersionCommand(job.targetFilePath)
     return !works
   } // TODO: this is probably not useful anymore
@@ -324,7 +324,7 @@ export async function checkVersionCommand(enginePath: string): Promise<boolean> 
 }
 
 export function getBinaryName(binaryName: string, platform: Platform): string {
-  if (binaryName === BinaryType.libqueryEngine) {
+  if (binaryName === EngineNameEnum.libqueryEngine) {
     return `${getNodeAPIName(platform, 'url')}`
   }
   const extension = platform === 'windows' ? '.exe' : ''
@@ -456,8 +456,8 @@ async function saveFileToCache(
 }
 
 function engineTypeToBinaryType(engineType: string, binaryTarget: string): string {
-  if (BinaryType[engineType]) {
-    return BinaryType[engineType]
+  if (EngineNameEnum[engineType]) {
+    return EngineNameEnum[engineType]
   }
   if (engineType === 'native') {
     return binaryTarget

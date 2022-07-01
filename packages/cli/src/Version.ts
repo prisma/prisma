@@ -1,4 +1,4 @@
-import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
 import type { Command } from '@prisma/internals'
 import {
@@ -73,7 +73,7 @@ export class Version implements Command {
     loadEnvFile(undefined, true)
 
     const platform = await getPlatform()
-    const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
+    const cliQueryEngineBinaryType = getCliQueryEngineType()
     const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
     const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
     // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using

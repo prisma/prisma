@@ -1,6 +1,6 @@
 import type { NodeAPILibraryTypes } from '@prisma/engine-core'
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { getCliQueryEngineType } from '@prisma/engines'
+import { EngineNameEnum } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
 
@@ -9,12 +9,12 @@ import { load } from '../utils/load'
 
 const MAX_BUFFER = 1_000_000_000
 
-export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
+export async function getEngineVersion(enginePath?: string, binaryName?: EngineNameEnum): Promise<string> {
   if (!binaryName) {
-    binaryName = getCliQueryEngineBinaryType()
+    binaryName = getCliQueryEngineType()
   }
   enginePath = await resolveBinary(binaryName, enginePath)
-  if (binaryName === BinaryType.libqueryEngine) {
+  if (binaryName === EngineNameEnum.libqueryEngine) {
     await isNodeAPISupported()
 
     const QE = load<NodeAPILibraryTypes.Library>(enginePath)

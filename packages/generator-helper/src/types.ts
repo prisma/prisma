@@ -68,7 +68,7 @@ export interface DataSource {
   config: { [key: string]: string }
 }
 
-export type BinaryPaths = {
+export type EnginePaths = {
   migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
@@ -88,7 +88,7 @@ export type GeneratorOptions = {
   datamodel: string
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
-  binaryPaths?: BinaryPaths
+  enginePaths?: EnginePaths
   dataProxy: boolean
 }
 
