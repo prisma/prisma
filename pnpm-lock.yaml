@@ -79,7 +79,7 @@ importers:
       eslint: 8.18.0
       eslint-config-prettier: 8.5.0_eslint@8.18.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.18.0
-      eslint-plugin-import: 2.26.0_eslint@8.18.0
+      eslint-plugin-import: 2.26.0_c98dd95c676de54ce87ba8db61cd826d
       eslint-plugin-jest: 26.5.3_e732d32663c1c30a97882048076c6859
       eslint-plugin-prettier: 4.0.0_bd3c4b21319ad16ec3ab54a1da22f60e
       eslint-plugin-simple-import-sort: 7.0.0_eslint@8.18.0
@@ -170,7 +170,7 @@ importers:
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@prisma/studio': 0.464.0
-      '@prisma/studio-server': 0.464.0
+      '@prisma/studio-server': 0.464.0_017408d236e35383c3b607ade8c542ef
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21_@swc+core@1.2.204
       '@types/debug': 4.1.7
@@ -212,7 +212,11 @@ importers:
       '@jest/test-sequencer': 28.1.1
       '@microsoft/api-extractor': 7.25.2
       '@opentelemetry/api': 1.1.0
+      '@opentelemetry/context-async-hooks': ^1.3.1
+      '@opentelemetry/exporter-trace-otlp-http': ^0.29.2
+      '@opentelemetry/resources': ^1.3.1
       '@opentelemetry/sdk-trace-base': 1.3.1
+      '@opentelemetry/semantic-conventions': ^1.3.1
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
@@ -282,7 +286,11 @@ importers:
       '@jest/test-sequencer': 28.1.1
       '@microsoft/api-extractor': 7.25.2
       '@opentelemetry/api': 1.1.0
+      '@opentelemetry/context-async-hooks': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/exporter-trace-otlp-http': 0.29.2_@opentelemetry+api@1.1.0
+      '@opentelemetry/resources': 1.3.1_@opentelemetry+api@1.1.0
       '@opentelemetry/sdk-trace-base': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/semantic-conventions': 1.3.1
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
       '@prisma/engines': link:../engines
@@ -2126,6 +2134,7 @@ packages:
       treeverse: 1.0.4
       walk-up-path: 1.0.0
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -2158,6 +2167,8 @@ packages:
       promise-retry: 2.0.1
       semver: 7.3.7
       which: 2.0.2
+    transitivePeerDependencies:
+      - bluebird
     dev: true
 
   /@npmcli/installed-package-contents/1.0.7:
@@ -2191,6 +2202,7 @@ packages:
       pacote: 12.0.3
       semver: 7.3.7
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -2245,6 +2257,7 @@ packages:
       node-gyp: 8.4.1
       read-package-json-fast: 2.0.3
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -2367,10 +2380,28 @@ packages:
       '@octokit/openapi-types': 12.5.0
     dev: true
 
+  /@opentelemetry/api-metrics/0.29.2:
+    resolution:
+      { integrity: sha512-yRdF5beqKuEdsPNoO7ijWCQ9HcyN0Tlgicf8RS6gzGOI54d6Hj7yKquJ6+X9XV+CSRbRWJYb+lOsXyso7uyX2g== }
+    engines: { node: '>=8.12.0' }
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+    dev: true
+
   /@opentelemetry/api/1.1.0:
     resolution:
       { integrity: sha512-hf+3bwuBwtXsugA2ULBc95qxrOqP2pOekLz34BJhcAKawt94vfeNyUKpYc0lZQ/3sCP6LqRa7UAdHA7i5UODzQ== }
     engines: { node: '>=8.0.0' }
+
+  /@opentelemetry/context-async-hooks/1.3.1_@opentelemetry+api@1.1.0:
+    resolution:
+      { integrity: sha512-NKUY3SGiEEIOD3EpB8erpEF4K1iyXkWald1vJMaa973+EPTASNSXvzf8hZa7nhnUVxYbxtTJqbSRsZFfbZpw4g== }
+    engines: { node: '>=8.12.0' }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.2.0'
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+    dev: true
 
   /@opentelemetry/core/1.3.1_@opentelemetry+api@1.1.0:
     resolution:
@@ -2383,6 +2414,47 @@ packages:
       '@opentelemetry/semantic-conventions': 1.3.1
     dev: true
 
+  /@opentelemetry/exporter-trace-otlp-http/0.29.2_@opentelemetry+api@1.1.0:
+    resolution:
+      { integrity: sha512-cCKF00/+H06LDFJwdU4ga4MNZAwpgzPF6Rp5gDJwl2cP9h/QnKWjXNlWYqJZ8dPeNt373HH4iF4HOmEBdE4sUQ== }
+    engines: { node: '>=8.12.0' }
+    peerDependencies:
+      '@opentelemetry/api': ^1.0.0
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/core': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/otlp-exporter-base': 0.29.2_@opentelemetry+api@1.1.0
+      '@opentelemetry/otlp-transformer': 0.29.2_@opentelemetry+api@1.1.0
+      '@opentelemetry/resources': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/sdk-trace-base': 1.3.1_@opentelemetry+api@1.1.0
+    dev: true
+
+  /@opentelemetry/otlp-exporter-base/0.29.2_@opentelemetry+api@1.1.0:
+    resolution:
+      { integrity: sha512-tTK+v2ER9Rv7YQXLrCvZpPdNdvZx8TGdZtlK7TKnzpyMRBIf7lqV1Jl0VaHFml+cgVJcGtow/ER6k5uJ5W4kUQ== }
+    engines: { node: '>=8.12.0' }
+    peerDependencies:
+      '@opentelemetry/api': ^1.0.0
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/core': 1.3.1_@opentelemetry+api@1.1.0
+    dev: true
+
+  /@opentelemetry/otlp-transformer/0.29.2_@opentelemetry+api@1.1.0:
+    resolution:
+      { integrity: sha512-Y6dJj+rhRGynxhLlgEJkdkXuLHdFG8igcSBv6oy3m3GHSSvZkyNV34dVjtZJ586mUXsbFuAf6uqjzteobewO1g== }
+    engines: { node: '>=8.12.0' }
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.2.0'
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/api-metrics': 0.29.2
+      '@opentelemetry/core': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/resources': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/sdk-metrics-base': 0.29.2_@opentelemetry+api@1.1.0
+      '@opentelemetry/sdk-trace-base': 1.3.1_@opentelemetry+api@1.1.0
+    dev: true
+
   /@opentelemetry/resources/1.3.1_@opentelemetry+api@1.1.0:
     resolution:
       { integrity: sha512-X8bl3X0YjlsHWy0Iv0KUETtZuRUznX4yr1iScKCtfy8AoRfZFc2xxWKMDJ0TrqYwSapgeg4YwpmRzUKmmnrbeA== }
@@ -2393,6 +2465,20 @@ packages:
       '@opentelemetry/api': 1.1.0
       '@opentelemetry/core': 1.3.1_@opentelemetry+api@1.1.0
       '@opentelemetry/semantic-conventions': 1.3.1
+    dev: true
+
+  /@opentelemetry/sdk-metrics-base/0.29.2_@opentelemetry+api@1.1.0:
+    resolution:
+      { integrity: sha512-7hhhZ/6YRRgAXOUTeCsbe6SIk3wZAdAHnEwGGp7aiVH5AOyioHyHInw4EHtowlD6dbLxUWURjh6k+Geht2zbxg== }
+    engines: { node: '>=8.12.0' }
+    peerDependencies:
+      '@opentelemetry/api': ^1.0.0
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/api-metrics': 0.29.2
+      '@opentelemetry/core': 1.3.1_@opentelemetry+api@1.1.0
+      '@opentelemetry/resources': 1.3.1_@opentelemetry+api@1.1.0
+      lodash.merge: 4.6.2
     dev: true
 
   /@opentelemetry/sdk-trace-base/1.3.1_@opentelemetry+api@1.1.0:
@@ -2495,6 +2581,8 @@ packages:
       '@prisma/client': '*'
       '@prisma/internals': '*'
     dependencies:
+      '@prisma/client': link:packages/client
+      '@prisma/internals': link:packages/internals
       debug: 4.3.3
       lodash: 4.17.21
     transitivePeerDependencies:
@@ -2508,15 +2596,17 @@ packages:
     peerDependencies:
       '@prisma/internals': '*'
     dependencies:
+      '@prisma/internals': link:packages/internals
       '@prisma/studio': 0.464.0
       '@prisma/studio-common': 0.464.0
-      '@prisma/studio-pcw': 0.464.0
+      '@prisma/studio-pcw': 0.464.0_017408d236e35383c3b607ade8c542ef
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
       untildify: 4.0.0
     transitivePeerDependencies:
+      - '@prisma/client'
       - supports-color
     dev: true
 
@@ -4338,6 +4428,8 @@ packages:
       qs: 6.9.6
       raw-body: 2.4.2
       type-is: 1.6.18
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /boolean/3.2.0:
@@ -4479,6 +4571,8 @@ packages:
       ssri: 8.0.1
       tar: 6.1.11
       unique-filename: 1.1.1
+    transitivePeerDependencies:
+      - bluebird
     dev: true
 
   /cacache/16.1.1:
@@ -4504,6 +4598,8 @@ packages:
       ssri: 9.0.1
       tar: 6.1.11
       unique-filename: 1.1.1
+    transitivePeerDependencies:
+      - bluebird
     dev: true
 
   /cacheable-request/2.1.4:
@@ -5948,6 +6044,8 @@ packages:
     dependencies:
       debug: 3.2.7
       resolve: 1.22.1
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /eslint-module-utils/2.7.3:
@@ -5955,8 +6053,12 @@ packages:
       { integrity: sha512-088JEC7O3lDZM9xGe0RerkOMd0EjFl+Yvd1jPWIkMT5u3H9+HC34mWWPnqPrN13gieT9pBOO+Qt07Nb/6TresQ== }
     engines: { node: '>=4' }
     dependencies:
+      '@typescript-eslint/parser': 5.29.0_eslint@8.18.0+typescript@4.7.4
       debug: 3.2.7
+      eslint-import-resolver-node: 0.3.6
       find-up: 2.1.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /eslint-plugin-eslint-comments/3.2.0_eslint@8.18.0:
@@ -5976,15 +6078,20 @@ packages:
       { integrity: sha512-hYfi3FXaM8WPLf4S1cikh/r4IxnO6zrhZbEGz2b660EJRbuxgpDS5gkCuYgGWg2xxh2rBuIr4Pvhve/7c31koA== }
     engines: { node: '>=4' }
     peerDependencies:
+      '@typescript-eslint/parser': '*'
       eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    peerDependenciesMeta:
+      '@typescript-eslint/parser':
+        optional: true
     dependencies:
+      '@typescript-eslint/parser': 5.29.0_eslint@8.18.0+typescript@4.7.4
       array-includes: 3.1.5
       array.prototype.flat: 1.3.0
       debug: 2.6.9
       doctrine: 2.1.0
       eslint: 8.18.0
       eslint-import-resolver-node: 0.3.6
-      eslint-module-utils: 2.7.3
+      eslint-module-utils: 2.7.3_997a240915676dc771d6b5349fa398d5
       has: 1.0.3
       is-core-module: 2.9.0
       is-glob: 4.0.3
@@ -5992,6 +6099,10 @@ packages:
       object.values: 1.1.5
       resolve: 1.22.1
       tsconfig-paths: 3.14.1
+    transitivePeerDependencies:
+      - eslint-import-resolver-typescript
+      - eslint-import-resolver-webpack
+      - supports-color
     dev: true
 
   /eslint-plugin-jest/26.5.3_44zngjtdyhbqvf4iebeao3dile:
@@ -6359,6 +6470,8 @@ packages:
       type-is: 1.6.18
       utils-merge: 1.0.1
       vary: 1.1.2
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /extend/3.0.2:
@@ -6510,6 +6623,8 @@ packages:
       parseurl: 1.3.3
       statuses: 1.5.0
       unpipe: 1.0.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /find-cache-dir/3.3.2:
@@ -10101,6 +10216,7 @@ packages:
       socks-proxy-agent: 7.0.0
       ssri: 9.0.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -10126,6 +10242,7 @@ packages:
       socks-proxy-agent: 6.2.1
       ssri: 8.0.1
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -10637,6 +10754,7 @@ packages:
       tar: 6.1.11
       which: 2.0.2
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -10776,6 +10894,7 @@ packages:
       minizlib: 2.1.2
       npm-package-arg: 8.1.5
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -11273,6 +11392,7 @@ packages:
       ssri: 8.0.1
       tar: 6.1.11
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -12412,6 +12532,8 @@ packages:
       on-finished: 2.3.0
       range-parser: 1.2.1
       statuses: 1.5.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /serialize-error/7.0.1:
@@ -12682,6 +12804,7 @@ packages:
     dependencies:
       sqlite3: 5.0.8
     transitivePeerDependencies:
+      - bluebird
       - encoding
       - supports-color
     dev: true
@@ -12700,6 +12823,7 @@ packages:
     optionalDependencies:
       node-gyp: 8.4.1
     transitivePeerDependencies:
+      - bluebird
       - encoding
       - supports-color
     dev: true
@@ -13067,6 +13191,8 @@ packages:
       mkdirp: 0.5.6
       npmlog: 2.0.4
       object-assign: 4.1.1
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /taketalk/1.0.0:
@@ -14323,6 +14449,7 @@ packages:
       textextensions: 5.15.0
       untildify: 4.0.0
     transitivePeerDependencies:
+      - bluebird
       - supports-color
     dev: true
 
@@ -14400,6 +14527,7 @@ packages:
       yeoman-environment: 3.9.1
       yosay: 2.0.2
     transitivePeerDependencies:
+      - bluebird
       - mem-fs
       - supports-color
     dev: true
