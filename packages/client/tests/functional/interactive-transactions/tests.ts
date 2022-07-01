@@ -401,7 +401,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   /**
    * Makes sure that the engine does not deadlock
    */
-  test('high concurrency', async () => {
+  testIf(provider !== 'sqlite')('high concurrency', async () => {
     jest.setTimeout(30_000)
 
     await prisma.user.create({

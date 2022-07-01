@@ -88,7 +88,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -154,7 +154,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -212,7 +212,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -279,7 +279,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -354,7 +354,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -426,7 +426,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -495,7 +495,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -542,7 +542,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -627,7 +627,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [16]
+        node: [14]
         queryEngine: ['library', 'binary']
 
     steps:
@@ -651,7 +651,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -666,7 +666,7 @@ jobs:
 
       - name: Test packages/internals
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test --testTimeout=40000
         working-directory: packages/internals
         env:
           CI: true
@@ -683,7 +683,7 @@ jobs:
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes -- --testTimeout=40000
+        run: pnpm run test-notypes --testTimeout=40000
         working-directory: packages/client
         env:
           CI: true
@@ -701,7 +701,7 @@ jobs:
 
       - name: Test packages/migrate
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test --testTimeout=40000
         working-directory: packages/migrate
         env:
           CI: true
@@ -718,7 +718,7 @@ jobs:
 
       - name: Test packages/cli
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test --testTimeout=40000
         working-directory: packages/cli
         env:
           CI: true
