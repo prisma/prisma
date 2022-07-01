@@ -93,7 +93,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     // for pkg we need to make an exception
     if (!potentialPath.startsWith('/snapshot/')) {
       const downloadParams: DownloadOptions = {
-        binaries: {
+        engines: {
           [queryEngineBinaryType]: potentialPath,
         },
         binaryTargets: [platform],

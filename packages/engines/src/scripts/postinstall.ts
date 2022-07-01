@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { BinaryDownloadConfiguration, BinaryType, download } from '@prisma/fetch-engine'
+import { EngineDownloadConfiguration, EngineTypeEnum, download } from '@prisma/fetch-engine'
 import type { Platform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
@@ -25,15 +25,15 @@ async function main() {
     }
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
-    const binaries: BinaryDownloadConfiguration = {
+    const binaries: EngineDownloadConfiguration = {
       [cliQueryEngineBinaryType]: binaryDir,
-      [BinaryType.migrationEngine]: binaryDir,
-      [BinaryType.introspectionEngine]: binaryDir,
-      [BinaryType.prismaFmt]: binaryDir,
+      [EngineTypeEnum.migrationEngine]: binaryDir,
+      [EngineTypeEnum.introspectionEngine]: binaryDir,
+      [EngineTypeEnum.prismaFmt]: binaryDir,
     }
 
     await download({
-      binaries,
+      engines: binaries,
       showProgress: true,
       version: enginesVersion,
       failSilent: true,

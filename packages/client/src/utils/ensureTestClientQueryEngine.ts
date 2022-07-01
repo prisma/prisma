@@ -22,14 +22,14 @@ export async function ensureTestClientQueryEngine(clientEngineType: ClientEngine
 
   if (clientEngineType === ClientEngineType.Library && !fs.existsSync(queryEngineLibraryPath)) {
     await download({
-      binaries: {
+      engines: {
         'libquery-engine': enginesPath,
       },
       version: enginesVersion,
     })
   } else if (clientEngineType === ClientEngineType.Binary && !fs.existsSync(queryEngineBinaryPath)) {
     await download({
-      binaries: {
+      engines: {
         'query-engine': enginesPath,
       },
       version: enginesVersion,

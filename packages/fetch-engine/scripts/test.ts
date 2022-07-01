@@ -3,7 +3,7 @@ import path from 'path'
 import { download } from '../src'
 
 void download({
-  binaries: {
+  engines: {
     'query-engine': path.join(__dirname, '../test'),
     'migration-engine': path.join(__dirname, '../test'),
   },

@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { EngineTypeEnum } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import fs from 'fs'
 import makeDir from 'make-dir'
@@ -13,24 +13,24 @@ const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
 const debug = Debug('prisma:resolveBinary')
 
-async function getBinaryName(name: BinaryType): Promise<string> {
+async function getBinaryName(name: EngineTypeEnum): Promise<string> {
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
 
-  if (name === BinaryType.libqueryEngine) {
+  if (name === EngineTypeEnum.libqueryEngine) {
     return getNodeAPIName(platform, 'fs')
   }
   return `${name}-${platform}${extension}`
 }
 export const engineEnvVarMap = {
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
+  [EngineTypeEnum.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [EngineTypeEnum.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [EngineTypeEnum.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [EngineTypeEnum.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
+  [EngineTypeEnum.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
-export { BinaryType }
-export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
+export { EngineTypeEnum as BinaryType }
+export async function resolveBinary(name: EngineTypeEnum, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
     return proposedPath

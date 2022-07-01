@@ -1,5 +1,5 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType, download } from '@prisma/fetch-engine'
+import { EngineTypeEnum, download } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/internals'
 import makeDir from 'make-dir'
@@ -9,7 +9,7 @@ import packageJson from '../../../package.json'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
+const useNodeAPI = getCliQueryEngineBinaryType() === EngineTypeEnum.libqueryEngine
 const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
 
 describe('version', () => {
@@ -26,7 +26,7 @@ describe('version', () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
       const binaryPaths = await download({
-        binaries: {
+        engines: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'prisma-fmt': enginesDir,
@@ -71,7 +71,7 @@ describe('version', () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
       const binaryPaths = await download({
-        binaries: {
+        engines: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'prisma-fmt': enginesDir,

@@ -22,9 +22,9 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType, platf
   )
 
   if (clientEngineType === ClientEngineType.Library && !(await fs.pathExists(queryEngineLibraryPath))) {
-    await download({ binaries: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
+    await download({ engines: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
   } else if (clientEngineType === ClientEngineType.Binary && !(await fs.pathExists(queryEngineBinaryPath))) {
-    await download({ binaries: { 'query-engine': engineDownloadDir }, version: enginesVersion })
+    await download({ engines: { 'query-engine': engineDownloadDir }, version: enginesVersion })
   }
 }
 

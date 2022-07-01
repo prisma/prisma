@@ -1,5 +1,5 @@
 import { enginesVersion } from '@prisma/engines'
-import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
+import type { EngineDownloadConfiguration, DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
 import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
@@ -47,7 +47,7 @@ export async function getBinaryPathsByVersion({
       await makeDir(binaryTargetBaseDir).catch((e) => console.error(e))
     }
 
-    const binariesConfig: BinaryDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
+    const binariesConfig: EngineDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
       // only download the binary, of not already covered by the `binaryPathsOverride`
       if (!binaryPathsOverride?.[curr]) {
         acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
@@ -62,7 +62,7 @@ export async function getBinaryPathsByVersion({
       )
 
       const downloadParams: DownloadOptions = {
-        binaries: binariesConfig,
+        engines: binariesConfig,
         binaryTargets: platforms,
         showProgress: typeof printDownloadProgress === 'boolean' ? printDownloadProgress : true,
         version: currentVersion && currentVersion !== 'latest' ? currentVersion : enginesVersion,

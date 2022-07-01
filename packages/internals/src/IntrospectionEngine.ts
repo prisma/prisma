@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { BinaryType } from '@prisma/fetch-engine'
+import { EngineTypeEnum } from '@prisma/fetch-engine'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
@@ -321,7 +321,7 @@ export class IntrospectionEngine {
       // eslint-disable-next-line no-async-promise-executor, @typescript-eslint/no-misused-promises
       async (resolve, reject): Promise<void> => {
         try {
-          const binaryPath = await resolveBinary(BinaryType.introspectionEngine)
+          const binaryPath = await resolveBinary(EngineTypeEnum.introspectionEngine)
           debugRpc('starting introspection engine with binary: ' + binaryPath)
 
           this.child = spawn(binaryPath, {

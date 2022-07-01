@@ -1,23 +1,23 @@
-import { BinaryType } from '@prisma/fetch-engine'
+import { EngineTypeEnum } from '@prisma/fetch-engine'
 import type { EngineType } from '@prisma/generator-helper'
 
-export function engineTypeToBinaryType(engineType: EngineType): BinaryType {
+export function engineTypeToBinaryType(engineType: EngineType): EngineTypeEnum {
   if (engineType === 'introspectionEngine') {
-    return BinaryType.introspectionEngine
+    return EngineTypeEnum.introspectionEngine
   }
 
   if (engineType === 'migrationEngine') {
-    return BinaryType.migrationEngine
+    return EngineTypeEnum.migrationEngine
   }
 
   if (engineType === 'queryEngine') {
-    return BinaryType.queryEngine
+    return EngineTypeEnum.queryEngine
   }
   if (engineType === 'libqueryEngine') {
-    return BinaryType.libqueryEngine
+    return EngineTypeEnum.libqueryEngine
   }
   if (engineType === 'prismaFmt') {
-    return BinaryType.prismaFmt
+    return EngineTypeEnum.prismaFmt
   }
 
   throw new Error(`Could not convert engine type ${engineType}`)

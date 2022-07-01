@@ -25,7 +25,7 @@ describe('download', () => {
     const baseDir = path.join(__dirname, 'node-api')
 
     await download({
-      binaries: {
+      engines: {
         'libquery-engine': baseDir,
       },
       binaryTargets: [
