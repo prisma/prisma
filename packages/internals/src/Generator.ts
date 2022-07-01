@@ -32,7 +32,7 @@ export class Generator {
     if (!this.options) {
       throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
     }
-    this.options.enginePaths = binaryPaths
+    this.options.binaryPaths = binaryPaths
   }
 
   /**
