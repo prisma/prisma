@@ -62,7 +62,7 @@ function normalizeNodeApiLibFilePath(str) {
   )
 }
 
-function normalizeBinaryFilePath(str) {
+function normalizeEngineFilePath(str) {
   return str.replace(/query-engine-TEST_PLATFORM\.exe/, 'query-engine-TEST_PLATFORM')
 }
 
@@ -132,7 +132,7 @@ module.exports = {
       normalizeGithubLinks,
       removePlatforms,
       normalizeNodeApiLibFilePath,
-      normalizeBinaryFilePath,
+      normalizeEngineFilePath,
       normalizeTsClientStackTrace,
       trimErrorPaths,
       normalizePrismaPaths,

@@ -1,8 +1,8 @@
 import { EngineTypeEnum } from '@prisma/fetch-engine'
 import type { EngineType } from '@prisma/generator-helper'
 
-// TODO ???
-export function engineTypeToBinaryType(engineType: EngineType): EngineTypeEnum {
+// TODO ??? engineTypeToBinaryType
+export function fooToBar(engineType: EngineType): EngineTypeEnum {
   if (engineType === 'introspectionEngine') {
     return EngineTypeEnum.introspectionEngine
   }

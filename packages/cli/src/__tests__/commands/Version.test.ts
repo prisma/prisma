@@ -25,7 +25,7 @@ describe('version', () => {
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
-      const binaryPaths = await download({
+      const enginePaths = await download({
         engines: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
@@ -42,8 +42,8 @@ describe('version', () => {
 
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][platform]
-        // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+        process.env[envVar] = enginePaths[engine][platform]
+        // console.debug(`Setting ${envVar} to ${enginePaths[engine][platform]}`)
       }
 
       const data = await ctx.cli('--version')
@@ -70,7 +70,7 @@ describe('version', () => {
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
       await makeDir(enginesDir)
-      const binaryPaths = await download({
+      const enginePaths = await download({
         engines: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
@@ -85,8 +85,8 @@ describe('version', () => {
       const { ['libquery-engine']: qe, ...envVarMap } = engineEnvVarMap
       for (const engine in envVarMap) {
         const envVar = envVarMap[engine]
-        process.env[envVar] = binaryPaths[engine][platform]
-        // console.debug(`Setting ${envVar} to ${binaryPaths[engine][platform]}`)
+        process.env[envVar] = enginePaths[engine][platform]
+        // console.debug(`Setting ${envVar} to ${enginePaths[engine][platform]}`)
       }
 
       const data = await ctx.cli('--version')

@@ -5,23 +5,23 @@ import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('corruption of query engine binary', async () => {
+test('corruption of query engine file', async () => {
   expect.assertions(1)
 
   await generateTestClient()
   const { PrismaClient } = require('./node_modules/@prisma/client')
   const platform = await getPlatform()
-  let binaryPath = path.join(
+  let enginePath = path.join(
     __dirname,
     'node_modules/.prisma/client',
     getClientEngineType() === ClientEngineType.Library ? getNodeAPIName(platform, 'fs') : `query-engine-${platform}`,
   )
 
   if (process.platform === 'win32' && getClientEngineType() === ClientEngineType.Binary) {
-    binaryPath += '.exe'
+    enginePath += '.exe'
   }
 
-  fs.writeFileSync(binaryPath, 'hello world')
+  fs.writeFileSync(enginePath, 'hello world')
 
   const prisma = new PrismaClient({
     log: [

@@ -586,7 +586,7 @@ describe('getGenerators', () => {
     const generators = await getGenerators({
       schemaPath: path.join(__dirname, 'valid-minimal-schema.prisma'),
       providerAliases: aliases,
-      binaryPathsOverride: {
+      enginePathsOverride: {
         queryEngine: queryEnginePath,
       },
       dataProxy: false,

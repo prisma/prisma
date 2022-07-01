@@ -173,8 +173,8 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...rest } = process.env
-        const binaryPath = await resolveEngine(EngineTypeEnum.migrationEngine)
-        debugRpc('starting migration engine with binary: ' + binaryPath)
+        const enginePath = await resolveEngine(EngineTypeEnum.migrationEngine)
+        debugRpc('starting migration engine with engine file: ' + enginePath)
         const args: string[] = []
 
         if (this.schemaPath) {
@@ -188,7 +188,7 @@ export class MigrateEngine {
         ) {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
-        this.child = spawn(binaryPath, args, {
+        this.child = spawn(enginePath, args, {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {

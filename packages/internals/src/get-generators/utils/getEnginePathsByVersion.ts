@@ -8,8 +8,8 @@ import path from 'path'
 
 import { mapKeys } from '../../utils/mapKeys'
 import type { GetEnginePathsByVersionInput } from '../getGenerators'
-import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
-import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'
+import { barToFoo } from './binaryTypeToEngineType'
+import { fooToBar } from './engineTypeToBinaryType'
 
 export async function getEnginePathsByVersion({
   neededVersions,
@@ -50,7 +50,7 @@ export async function getEnginePathsByVersion({
     const enginesConfig: EngineDownloadConfiguration = neededVersion.engines.reduce((acc, curr) => {
       // only download the engine, of not already covered by the `enginePathsOverride`
       if (!enginePathsOverride?.[curr]) {
-        acc[engineTypeToBinaryType(curr)] = binaryTargetBaseDir
+        acc[fooToBar(curr)] = binaryTargetBaseDir
       }
       return acc
     }, Object.create(null))
@@ -70,7 +70,7 @@ export async function getEnginePathsByVersion({
       }
 
       const enginePathsWithEngineType = await download(downloadParams)
-      const enginePaths: EnginePaths = mapKeys(enginePathsWithEngineType, binaryTypeToEngineType)
+      const enginePaths: EnginePaths = mapKeys(enginePathsWithEngineType, barToFoo)
       enginePathsByVersion[currentVersion] = enginePaths
     }
 

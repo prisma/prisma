@@ -1,10 +1,10 @@
 import execa from 'execa'
 
-export async function runGeneratorBinary(
-  binaryPath: string,
+export async function runGeneratorExecutable(
+  executablePath: string,
   options: any,
 ): Promise<{ stdout: string; stderr: string }> {
-  const child = execa(binaryPath)
+  const child = execa(executablePath)
 
   child.stdin!.write(JSON.stringify(options) + '\n')
 
