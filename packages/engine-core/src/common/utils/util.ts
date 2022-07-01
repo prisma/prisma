@@ -7,6 +7,7 @@ import newGithubIssueUrl from 'new-github-issue-url'
 
 const debug = Debug('plusX')
 
+// TODO duplicated in fetch-engine/download
 export function plusX(file): void {
   const s = fs.statSync(file)
   const newMode = s.mode | 64 | 8 | 1

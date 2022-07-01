@@ -50,25 +50,25 @@ export async function resolveBinary(name: EngineTypeEnum, proposedPath?: string)
 
   const prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {
-    return maybeCopyToTmp(prismaPath)
+    return maybeCopyToTmpForPkg(prismaPath)
   }
 
   // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
   const prismaPath2 = path.join(__dirname, '..', binaryName)
   if (fs.existsSync(prismaPath2)) {
-    return maybeCopyToTmp(prismaPath2)
+    return maybeCopyToTmpForPkg(prismaPath2)
   }
 
   // TODO for ??
   const prismaPath3 = path.join(__dirname, '../..', binaryName)
   if (fs.existsSync(prismaPath3)) {
-    return maybeCopyToTmp(prismaPath3)
+    return maybeCopyToTmpForPkg(prismaPath3)
   }
 
   // TODO for ?? / needed to come from @prisma/client/generator-build to @prisma/client/runtime
   const prismaPath4 = path.join(__dirname, '../runtime', binaryName)
   if (fs.existsSync(prismaPath4)) {
-    return maybeCopyToTmp(prismaPath4)
+    return maybeCopyToTmpForPkg(prismaPath4)
   }
 
   // Still here? Could not find the engine, so error out.
@@ -81,7 +81,8 @@ export async function resolveBinary(name: EngineTypeEnum, proposedPath?: string)
   )
 }
 
-export async function maybeCopyToTmp(file: string): Promise<string> {
+// TODO This is duplicated in fetch-engine/download
+export async function maybeCopyToTmpForPkg(file: string): Promise<string> {
   const dir = eval('__dirname')
 
   if (dir.startsWith('/snapshot/')) {

@@ -40,17 +40,7 @@ export type EngineDownloadConfiguration = {
 export type EnginePaths = {
   [engineType in EngineTypeEnum]?: { [binaryTarget in Platform]: string } // key: target, value: path
 }
-export interface DownloadOptions {
-  engines: EngineDownloadConfiguration
-  binaryTargets?: Platform[]
-  showProgress?: boolean
-  progressCb?: (progress: number) => void
-  version?: string
-  skipDownload?: boolean
-  failSilent?: boolean
-  ignoreCache?: boolean
-  printVersion?: boolean
-}
+
 
 const ENGINETYPE_TO_ENV_VAR = {
   [EngineTypeEnum.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
@@ -67,6 +57,18 @@ type EngineDownloadJob = {
   fileName: string
   targetFilePath: string
   envVarPath: string | null
+}
+
+export interface DownloadOptions {
+  engines: EngineDownloadConfiguration
+  binaryTargets?: Platform[]
+  showProgress?: boolean
+  progressCb?: (progress: number) => void
+  version?: string
+  skipDownload?: boolean
+  failSilent?: boolean
+  ignoreCache?: boolean
+  printVersion?: boolean
 }
 
 export async function download(options: DownloadOptions): Promise<EnginePaths> {
@@ -180,10 +182,11 @@ export async function download(options: DownloadOptions): Promise<EnginePaths> {
   // this is necessary for pkg
   if (dir.startsWith('/snapshot/')) {
     for (const engineType in enginePaths) {
+      // TODO Clean up naming of variables here
       const binaryTargets = enginePaths[engineType]
       for (const binaryTarget in binaryTargets) {
         const binaryPath = binaryTargets[binaryTarget]
-        binaryTargets[binaryTarget] = await maybeCopyToTmp(binaryPath)
+        binaryTargets[binaryTarget] = await maybeCopyToTmpForPkg(binaryPath)
       }
     }
   }
@@ -479,7 +482,8 @@ function mapKeys<T extends object, K extends keyof T>(
   }, {} as Record<string, any>)
 }
 
-export async function maybeCopyToTmp(file: string): Promise<string> {
+// TODO: This is duplicated in internals/resolveBinary
+export async function maybeCopyToTmpForPkg(file: string): Promise<string> {
   // in this case, we are in a "pkg" context with a virtual fs
   // to make this work, we need to copy the engine file to /tmp and execute it from there
 
@@ -491,7 +495,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     const data = await readFile(file)
     await writeFile(target, data)
     // We have to read and write until https://github.com/zeit/pkg/issues/639
-    // is resolved
+    // is resolved // TODO it is, so can be removed now?
     // await copyFile(file, target)
     plusX(target)
     return target
@@ -500,6 +504,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   return file
 }
 
+// TODO duplicated in engine-core/common/utils
 export function plusX(file): void {
   const s = fs.statSync(file)
   const newMode = s.mode | 64 | 8 | 1
