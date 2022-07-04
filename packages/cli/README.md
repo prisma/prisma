@@ -13,13 +13,13 @@ We recommend using [the latest Node.js LTS ("long-term support") release.](https
 
 ### npm
 
-```
+```sh
 npm install prisma --save-dev
 ```
 
 ### Yarn
 
-```
+```sh
 yarn add prisma --dev
 ```
 

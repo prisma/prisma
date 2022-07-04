@@ -34,7 +34,7 @@ Copy or link `docker-compose.arm64.yml` to `docker-compose.override.yml` to use 
 
 In detached/background mode using `-d` (recommended)
 
-```
+```sh
 docker-compose up -d
 # Or start only one service
 docker-compose up -d mysql
@@ -44,7 +44,7 @@ docker-compose logs -f mysql
 
 In attached mode, the logs will be streamed in the terminal:
 
-```
+```sh
 docker-compose up
 # Or start only one service
 docker-compose up mysql
@@ -52,12 +52,12 @@ docker-compose up mysql
 
 ### Stop
 
-```
+```sh
 docker-compose down
 ```
 
 ### Delete all
 
-```
+```sh
 docker-compose down -v --rmi all --remove-orphans
 ```
