@@ -10,6 +10,7 @@ import { checkVersionCommand, download, getBinaryName, getVersion } from '../dow
 import { getFiles } from './__utils__/getFiles'
 
 const CURRENT_BINARIES_HASH = enginesVersion
+console.log({ CURRENT_BINARIES_HASH })
 
 const FIXED_BINARIES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
 
@@ -19,10 +20,11 @@ describe('download', () => {
   beforeEach(async () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
-    await del(__dirname + '/**/*engine*')
-    await del(__dirname + '/**/prisma-fmt*')
+    await del(path.join(__dirname, '/**/*engine*'))
+    await del(path.join(__dirname, '/**/prisma-fmt*'))
   })
   afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
+
   test('basic download', async () => {
     const platform = await getPlatform()
     const queryEnginePath = path.join(__dirname, getBinaryName('query-engine', platform))
@@ -60,6 +62,7 @@ describe('download', () => {
     const introspectionEnginePath = path.join(__dirname, getBinaryName('introspection-engine', platform))
     const migrationEnginePath = path.join(__dirname, getBinaryName('migration-engine', platform))
     const prismafmtPath = path.join(__dirname, getBinaryName('prisma-fmt', platform))
+    console.debug(queryEnginePath)
 
     await download({
       binaries: {
