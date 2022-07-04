@@ -8,8 +8,6 @@ import * as TE from 'fp-ts/TaskEither'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
-const MAX_BUFFER = 1_000_000_000
-
 export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
     binaryName = getCliQueryEngineBinaryType()
@@ -21,9 +19,7 @@ export async function getEngineVersion(enginePath?: string, binaryName?: BinaryT
     const QE = load<NodeAPILibraryTypes.Library>(enginePath)
     return `libquery-engine ${QE.version().commit}`
   } else {
-    const result = await execa(enginePath, ['--version'], {
-      maxBuffer: MAX_BUFFER,
-    })
+    const result = await execa(enginePath, ['--version'])
 
     return result.stdout
   }
