@@ -1,5 +1,4 @@
-import type { Context } from '@opentelemetry/api'
-import { context } from '@opentelemetry/api'
+import type { SpanOptions } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
@@ -1045,15 +1044,26 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        if (NODE_CLIENT) {
-          // https://github.com/prisma/prisma/issues/3148 not for the data proxy
-          return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
-            return runInChildSpan(useOtel, 'prisma:client', () => consumer(params))
-          })
+        if (useOtel) {
+          const options: SpanOptions = {
+            attributes: {
+              method: internalParams.action,
+              model: internalParams.model,
+            },
+          }
+
+          const runInChild = () => runInChildSpan({ name: 'prisma:client', options, callback: () => consumer(params) })
+
+          if (NODE_CLIENT) {
+            // https://github.com/prisma/prisma/issues/3148 not for the data proxy
+            return await new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
+          } else {
+            // we execute the middleware consumer and wrap the call for otel
+            return await runInChild()
+          }
         }
 
-        // we execute the middleware consumer and wrap the call for otel
-        return await runInChildSpan(useOtel, 'prisma:client', () => consumer(params))
+        return consumer(params)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e

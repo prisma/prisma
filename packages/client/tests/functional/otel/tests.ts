@@ -84,6 +84,8 @@ testMatrix.setupTestSuite(
         case 'postgresql': {
           expect(tree.span.name).toEqual('prisma:client')
           expect(tree.span.resource.attributes['service.name']).toEqual(SERVICE_NAME)
+          expect(tree.span.attributes['method']).toEqual('create')
+          expect(tree.span.attributes['model']).toEqual('User')
 
           expect(tree.children).toHaveLength(1)
 

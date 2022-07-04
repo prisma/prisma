@@ -1,29 +1,26 @@
-import {
-  Attributes,
-  Context,
-  context,
-  HrTime,
-  Span as SpanInterface,
-  SpanKind,
-  trace,
-  TraceFlags,
-  Tracer,
-} from '@opentelemetry/api'
+import { Attributes, context, HrTime, SpanKind, SpanOptions, trace, TraceFlags } from '@opentelemetry/api'
 import { Span } from '@opentelemetry/sdk-trace-base'
 
 /**
  * Executes and traces a function inside of a child span.
  * @param name of the child span
- * @param cb to trace in the child span
+ * @param callback to trace in the child span
+ * @param options span options
  * @returns
  */
-export async function runInChildSpan<R>(useOtel: boolean, name: string, cb: () => Promise<R>) {
-  if (useOtel === false) return cb()
-
+export async function runInChildSpan<R>({
+  name,
+  callback,
+  options = {},
+}: {
+  name: string
+  callback: () => Promise<R>
+  options?: SpanOptions
+}) {
   const tracer = trace.getTracer('prisma')
 
-  return tracer.startActiveSpan(name, {}, context.active(), async (span) => {
-    return cb().finally(() => span.end())
+  return tracer.startActiveSpan(name, options, context.active(), async (span) => {
+    return callback().finally(() => span.end())
   })
 }
 
