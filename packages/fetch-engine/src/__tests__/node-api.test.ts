@@ -49,64 +49,60 @@ describe('download', () => {
     const files = getFiles(baseDir).map((f) => ({ ...f, size: 'X' }))
 
     expect(files).toMatchInlineSnapshot(`
-Array [
-  Object {
-    "name": ".gitkeep",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-darwin-arm64.dylib.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-darwin.dylib.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-debian-openssl-1.0.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-debian-openssl-1.1.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-debian-openssl-3.0.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-linux-musl.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
-    "size": "X",
-  },
-  Object {
-    "name": "query_engine-windows.dll.node",
-    "size": "X",
-  },
-]
-`)
+      Array [
+        Object {
+          "name": ".gitkeep",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-darwin-arm64.dylib.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-1.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-1.1.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-3.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-musl.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "query_engine-windows.dll.node",
+          "size": "X",
+        },
+      ]
+    `)
   })
 })
