@@ -12,18 +12,6 @@ Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
 `;
 
-exports[`version basic version 1`] = `
-prisma                : 0.0.0
-@prisma/client        : Not found
-Current platform      : TEST_PLATFORM
-Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-engine-TEST_PLATFORM)
-Migration Engine      : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
-Introspection Engine  : introspection-core ENGINE_VERSION (at sanitized_path/introspection-engine-TEST_PLATFORM)
-Format Binary         : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM)
-Default Engines Hash  : ENGINE_VERSION
-Studio                : STUDIO_VERSION
-`;
-
 exports[`version version with custom binaries (Node-API) 1`] = `
 prisma                  : 0.0.0
 @prisma/client          : Not found
@@ -34,6 +22,18 @@ Introspection Engine    : introspection-core ENGINE_VERSION (at sanitized_path/i
 Format Binary           : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM, resolved by PRISMA_FMT_BINARY)
 Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
+`;
+
+exports[`version basic version 1`] = `
+prisma                : 0.0.0
+@prisma/client        : Not found
+Current platform      : TEST_PLATFORM
+Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-engine-TEST_PLATFORM)
+Migration Engine      : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
+Introspection Engine  : introspection-core ENGINE_VERSION (at sanitized_path/introspection-engine-TEST_PLATFORM)
+Format Binary         : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM)
+Default Engines Hash  : ENGINE_VERSION
+Studio                : STUDIO_VERSION
 `;
 
 exports[`version version with custom binaries 1`] = `
