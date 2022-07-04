@@ -20,8 +20,10 @@ describe('download', () => {
   beforeEach(async () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
-    await del(path.join(__dirname, '/**/*engine*'))
-    await del(path.join(__dirname, '/**/prisma-fmt*'))
+    const deletedFilePaths = await del(path.posix.join(__dirname, '/**/*engine*'))
+    console.debug('Deleted files:\n', deletedFilePaths.join('\n'))
+
+    await del(path.posix.join(__dirname, '/**/prisma-fmt*'))
   })
   afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
 
