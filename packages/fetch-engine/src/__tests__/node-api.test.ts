@@ -1,4 +1,5 @@
 import { enginesVersion } from '@prisma/engines-version'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import del from 'del'
 import path from 'path'
 
@@ -10,15 +11,16 @@ const CURRENT_BINARIES_HASH = enginesVersion
 
 jest.setTimeout(120_000)
 
-describe('download', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const isNodeAPI = getClientEngineType() === ClientEngineType.Library
+
+describeIf(isNodeAPI)('download', () => {
   beforeEach(async () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     await del(__dirname + '/**/*engine*')
     await del(__dirname + '/**/prisma-fmt*')
   })
-
-  afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
 
   test('download all node-api libraries & cache them', async () => {
     // Channel and Version are currently hardcoded
@@ -56,6 +58,10 @@ describe('download', () => {
         },
         Object {
           "name": "libquery_engine-darwin-arm64.dylib.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-darwin.dylib.node",
           "size": "X",
         },
         Object {
