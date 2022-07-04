@@ -592,7 +592,7 @@ describe('getGenerators', () => {
       dataProxy: false,
     })
 
-    const options = generators.map((g) => g.options?.binaryPaths) // TODO enginePaths
+    const options = generators.map((g) => g.options?.binaryPaths) // TODO rename binaryPaths to enginePaths
 
     const platform = await getPlatform()
 

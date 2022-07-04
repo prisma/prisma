@@ -121,7 +121,7 @@ export async function download(options: DownloadOptions): Promise<EnginePaths> {
   )
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
-    opts.version = process.env.BINARY_DOWNLOAD_VERSION // TODO rename env var
+    opts.version = process.env.BINARY_DOWNLOAD_VERSION // TODO rename env var to PRISMA_ENGINE_DOWNLOAD_VERSION 
   }
 
   // TODO: look to remove latest, because we always pass a version

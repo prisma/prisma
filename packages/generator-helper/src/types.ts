@@ -88,7 +88,7 @@ export type GeneratorOptions = {
   datamodel: string
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
-  binaryPaths?: EnginePaths // TODO Rename after Studio was adapted - currently it depends on this
+  binaryPaths?: EnginePaths // TODO Rename `binaryPaths` to `enginePaths` after Studio was adapted - currently it depends on this
   dataProxy: boolean
 }
 

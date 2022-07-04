@@ -112,7 +112,7 @@ describe('download', () => {
       version: FIXED_ENGINES_HASH,
     })
 
-    fs.writeFileSync(targetPath, 'incorrect-binary') // TODO
+    fs.writeFileSync(targetPath, 'incorrect-binary') // TODO rename `binary` to `engine`
 
     // please heal it
     await download({
