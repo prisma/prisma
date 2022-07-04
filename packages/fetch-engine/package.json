@@ -11,11 +11,6 @@
     "url": "https://github.com/prisma/prisma.git",
     "directory": "packages/fetch-engine"
   },
-  "maintainers": [
-    "Tim Suchanek <suchanek@prisma.io>",
-    "Joël Galeran <galeran@prisma.io>",
-    "William Luke <luke@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@prisma/engines-version": "4.1.0-9.ca8f3da9f74523f1c4b16dc99b81f058c07a8413",

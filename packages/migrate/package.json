@@ -9,9 +9,6 @@
     "directory": "packages/migrate"
   },
   "author": "Tim Suchanek <suchanek@prisma.io>",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>"
-  ],
   "homepage": "https://www.prisma.io/migrate",
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",

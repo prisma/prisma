@@ -11,11 +11,6 @@
     "url": "https://github.com/prisma/prisma.git",
     "directory": "packages/get-platform"
   },
-  "maintainers": [
-    "Tim Suchanek <suchanek@prisma.io>",
-    "Joël Galeran <galeran@prisma.io>",
-    "William Luke <luke@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "27.5.2",

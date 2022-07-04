@@ -5,10 +5,6 @@
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
-  "maintainers": [
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
