@@ -995,16 +995,33 @@ new PrismaClient({
      * @returns
      */
     async $transaction(input: any, options?: any) {
-      // TODO: remove this once interactive tx became GA
-      if (!this._hasPreviewFlag('interactiveTransactions')) {
-        return this._transactionWithArray(input)
-      }
+      let method: () => Promise<any>
 
       if (typeof input === 'function') {
-        return this._transactionWithCallback(input, options)
+        method = () => this._transactionWithCallback(input, options)
+      } else {
+        method = () => this._transactionWithArray(input)
       }
 
-      return this._transactionWithArray(input)
+      const useOtel = this._hasPreviewFlag('tracing')
+
+      if (useOtel) {
+        const options: SpanOptions = {
+          attributes: {
+            method: 'transcation',
+          },
+        }
+
+        const runInChild = () => runInChildSpan({ name: 'prisma:client', options, callback: method })
+
+        if (NODE_CLIENT) {
+          return await new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
+        } else {
+          return await runInChild()
+        }
+      }
+
+      return method()
     }
 
     /**

@@ -124,6 +124,101 @@ testMatrix.setupTestSuite(
           throw new Error('invalid provider')
       }
     })
+
+    describe('ITX', () => {
+      test('array', async () => {
+        const email = 'some-random-email@email.com'
+
+        await prisma.$transaction([
+          prisma.user.create({
+            data: {
+              email,
+            },
+          }),
+          prisma.user.findMany({
+            where: {
+              email,
+            },
+          }),
+        ])
+
+        const spans = exporter.getFinishedSpans()
+        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+        const tree = buildTree({ span: rootSpan }, spans)
+
+        switch (suiteConfig.provider) {
+          case 'postgresql': {
+            expect(tree.span.name).toEqual('prisma:client')
+            expect(tree.span.resource.attributes['service.name']).toEqual(SERVICE_NAME)
+            expect(tree.span.attributes['method']).toEqual('transcation')
+
+            expect(tree.children).toHaveLength(2)
+
+            const create = (tree?.children || [])[0] as unknown as Tree
+            expect(create.span.name).toEqual('prisma:client')
+            expect(create.span.attributes['method']).toEqual('create')
+            expect(create.span.attributes['model']).toEqual('User')
+
+            const findMany = (tree?.children || [])[1] as unknown as Tree
+            expect(findMany.span.name).toEqual('prisma:client')
+            expect(findMany.span.attributes['method']).toEqual('findMany')
+            expect(findMany.span.attributes['model']).toEqual('User')
+
+            break
+          }
+
+          default:
+            throw new Error('invalid provider')
+        }
+      })
+
+      test('callback', async () => {
+        const email = 'some-random-email@email.com'
+
+        await prisma.$transaction(async (client) => {
+          await client.user.create({
+            data: {
+              email,
+            },
+          })
+
+          await client.user.findMany({
+            where: {
+              email,
+            },
+          })
+        })
+
+        const spans = exporter.getFinishedSpans()
+        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+        const tree = buildTree({ span: rootSpan }, spans)
+
+        switch (suiteConfig.provider) {
+          case 'postgresql': {
+            expect(tree.span.name).toEqual('prisma:client')
+            expect(tree.span.resource.attributes['service.name']).toEqual(SERVICE_NAME)
+            expect(tree.span.attributes['method']).toEqual('transcation')
+
+            expect(tree.children).toHaveLength(2)
+
+            const create = (tree?.children || [])[0] as unknown as Tree
+            expect(create.span.name).toEqual('prisma:client')
+            expect(create.span.attributes['method']).toEqual('create')
+            expect(create.span.attributes['model']).toEqual('User')
+
+            const findMany = (tree?.children || [])[1] as unknown as Tree
+            expect(findMany.span.name).toEqual('prisma:client')
+            expect(findMany.span.attributes['method']).toEqual('findMany')
+            expect(findMany.span.attributes['model']).toEqual('User')
+
+            break
+          }
+
+          default:
+            throw new Error('invalid provider')
+        }
+      })
+    })
   },
   {
     optOut: {
