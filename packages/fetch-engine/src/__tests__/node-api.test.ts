@@ -1,5 +1,4 @@
 import { enginesVersion } from '@prisma/engines-version'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import del from 'del'
 import path from 'path'
 
@@ -12,7 +11,7 @@ const CURRENT_BINARIES_HASH = enginesVersion
 jest.setTimeout(120_000)
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-const isNodeAPI = getClientEngineType() === ClientEngineType.Library
+const isNodeAPI = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary'
 
 describeIf(isNodeAPI)('download', () => {
   beforeEach(async () => {

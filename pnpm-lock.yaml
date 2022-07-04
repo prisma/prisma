@@ -441,7 +441,6 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engines-version': 4.1.0-9.ca8f3da9f74523f1c4b16dc99b81f058c07a8413
       '@prisma/get-platform': workspace:*
-      '@prisma/internals': workspace:*
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.21
       '@types/jest': 27.5.2
@@ -487,7 +486,6 @@ importers:
       tempy: 1.0.1
     devDependencies:
       '@prisma/engines-version': 4.1.0-9.ca8f3da9f74523f1c4b16dc99b81f058c07a8413
-      '@prisma/internals': link:../internals
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.21_@swc+core@1.2.197
       '@types/jest': 27.5.2
