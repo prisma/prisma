@@ -11,7 +11,7 @@ import { getFiles } from './__utils__/getFiles'
 
 const CURRENT_BINARIES_HASH = enginesVersion
 
-const FIXED_BINARIES_HASH = 'a10084a836a379babc008c28b143dc1c7e644453'
+const FIXED_BINARIES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
 
 jest.setTimeout(120_000)
 
@@ -41,16 +41,16 @@ describe('download', () => {
     })
 
     expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
-      `"query-engine a10084a836a379babc008c28b143dc1c7e644453"`,
+      `"query-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
     expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core a10084a836a379babc008c28b143dc1c7e644453"`,
+      `"introspection-core da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
     expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli a10084a836a379babc008c28b143dc1c7e644453"`,
+      `"migration-engine-cli da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
     expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
-      `"prisma-fmt a10084a836a379babc008c28b143dc1c7e644453"`,
+      `"prisma-fmt da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
   })
 
