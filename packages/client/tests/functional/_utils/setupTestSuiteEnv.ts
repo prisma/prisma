@@ -32,6 +32,11 @@ function requireEnvVariable(varName: string): string {
       `Required env variable ${varName} is not set. See https://github.com/prisma/prisma/blob/main/TESTING.md for instructions`,
     )
   }
+  if (!value.includes(DB_NAME_VAR)) {
+    throw new Error(
+      `Env variable ${varName} must include ${DB_NAME_VAR} placeholder. See https://github.com/prisma/prisma/blob/main/TESTING.md for instructions`,
+    )
+  }
   return value
 }
 
