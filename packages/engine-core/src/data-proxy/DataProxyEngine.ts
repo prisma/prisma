@@ -1,7 +1,7 @@
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
-import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import type { EngineConfig, EngineEventType, GetConfigResult, InlineDatasource } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
@@ -14,8 +14,6 @@ import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 import { request } from './utils/request'
-// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
-// TODO this is an issue that we cannot share types from the client to other packages
 
 const MAX_RETRIES = 10
 
@@ -25,7 +23,7 @@ const P = Promise.resolve()
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
   private inlineSchemaHash: string
-  private inlineDatasources: any
+  private inlineDatasources: Record<string, InlineDatasource>
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }
