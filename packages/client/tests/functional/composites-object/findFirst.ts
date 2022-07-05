@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker'
-import pRetry from 'p-retry'
 
 import { setupTestSuite } from './_matrix'
 import { commentDataA } from './_testData'
@@ -11,12 +10,7 @@ const id = faker.database.mongodbObjectId()
 
 setupTestSuite(() => {
   beforeAll(async () => {
-    await pRetry(
-      async () => {
-        await prisma.comment.create({ data: commentDataA(id) })
-      },
-      { retries: 2 },
-    )
+    await prisma.comment.create({ data: commentDataA(id) })
   })
 
   test('simple', async () => {

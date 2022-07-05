@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker'
-import pRetry from 'p-retry'
 
 import { setupTestSuite } from './_matrix'
 
@@ -9,28 +8,23 @@ declare let prisma: import('@prisma/client').PrismaClient
 setupTestSuite(({ contentProperty }) => {
   let id
   beforeEach(async () => {
-    await pRetry(
-      async () => {
-        id = faker.database.mongodbObjectId()
+    id = faker.database.mongodbObjectId()
 
-        await prisma.comment.create({
-          data: {
-            id,
-            country: 'France',
-            content: {
-              set: {
-                text: 'Hello World',
-                upvotes: {
-                  vote: true,
-                  userId: '10',
-                },
-              },
+    await prisma.comment.create({
+      data: {
+        id,
+        country: 'France',
+        content: {
+          set: {
+            text: 'Hello World',
+            upvotes: {
+              vote: true,
+              userId: '10',
             },
           },
-        })
+        },
       },
-      { retries: 2 },
-    )
+    })
   })
 
   test('set', async () => {

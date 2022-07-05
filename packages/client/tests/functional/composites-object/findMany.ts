@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker'
-import pRetry from 'p-retry'
 
 import { setupTestSuite } from './_matrix'
 import { commentDataA, commentDataB } from './_testData'
@@ -13,14 +12,9 @@ const id2 = '1ddddddddddddddddddddddd'
 
 setupTestSuite(() => {
   beforeAll(async () => {
-    await pRetry(
-      async () => {
-        await prisma.comment.createMany({
-          data: [commentDataA(id1), commentDataB(id2)],
-        })
-      },
-      { retries: 2 },
-    )
+    await prisma.comment.createMany({
+      data: [commentDataA(id1), commentDataB(id2)],
+    })
   })
 
   test('simple', async () => {
