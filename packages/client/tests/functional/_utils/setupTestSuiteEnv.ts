@@ -34,6 +34,7 @@ function requireEnvVariable(varName: string): string {
   }
   return value
 }
+
 /**
  * Copies the necessary files for the generated test suite folder.
  * @param suiteMeta
