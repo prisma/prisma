@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657003773769,
+  "lastUpdate": 1657012668558,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -107358,6 +107358,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.91%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "82153e0c0fc9a786bea23fe5af80213786ee8c75",
+          "message": "test(client): fix db isolation and run tests in parallel (#14081)\n\n* test: Fix db isolation and run tests in parallel\r\n\r\n- Introduce separate set of env variables for functional tests DBs\r\nurls. During test execution, `PRISMA_DB_NAME` substring in those URLs\r\nwill be replaced with unique name.\r\n- Workaround for jest BigInt serialization issues\r\n\r\nFix #13186\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-07-05T11:14:26+02:00",
+          "tree_id": "956c65ee3a2f808dbe873344e9cfdb7a8885a049",
+          "url": "https://github.com/prisma/prisma/commit/82153e0c0fc9a786bea23fe5af80213786ee8c75"
+        },
+        "date": 1657012662244,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.78,
+            "range": "±6.71%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.70%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
