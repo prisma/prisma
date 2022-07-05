@@ -1,7 +1,6 @@
 import cuid from 'cuid'
 import fs from 'fs-extra'
 import path from 'path'
-import { performance } from 'perf_hooks'
 import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
