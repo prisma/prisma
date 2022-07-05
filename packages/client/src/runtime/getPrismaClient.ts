@@ -1,4 +1,5 @@
 import type { SpanOptions } from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
@@ -491,6 +492,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       if (this._dataProxy === true) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library) {
+        // @ts-ignore
         return NODE_CLIENT && new LibraryEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Binary) {
         return NODE_CLIENT && new BinaryEngine(this._engineConfig)
@@ -967,8 +969,10 @@ new PrismaClient({
       callback: (client: Client) => Promise<unknown>,
       options?: { maxWait: number; timeout: number },
     ) {
-      // we ask the query engine to open a transaction
-      const info = await this._engine.transaction('start', options)
+      const headers = applyTracingHeaders({})
+      const headerStr = JSON.stringify(headers)
+      //@ts-ignore
+      const info = await this._engine.transaction('start', headerStr, options)
 
       let result: unknown
       try {
@@ -976,10 +980,12 @@ new PrismaClient({
         result = await callback(transactionProxy(this, info.id))
 
         // it went well, then we commit the transaction
-        await this._engine.transaction('commit', info)
+        //@ts-ignore
+        await this._engine.transaction('commit', headerStr, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', info).catch(() => {})
+        //@ts-ignore
+        await this._engine.transaction('rollback', headerStr, info).catch(() => {})
 
         e.clientVersion = this._clientVersion
         throw e // silent rollback, throw original error
@@ -1008,11 +1014,11 @@ new PrismaClient({
       if (useOtel) {
         const options: SpanOptions = {
           attributes: {
-            method: 'transcation',
+            method: 'transaction',
           },
         }
 
-        const runInChild = () => runInChildSpan({ name: 'prisma:client', options, callback: method })
+        const runInChild = () => runInChildSpan({ name: 'prisma:client:transaction', options, callback: method })
 
         if (NODE_CLIENT) {
           return await new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
@@ -1067,6 +1073,10 @@ new PrismaClient({
               method: internalParams.action,
               model: internalParams.model,
             },
+          }
+
+          if (internalParams.transactionId) {
+            return consumer(params)
           }
 
           const runInChild = () => runInChildSpan({ name: 'prisma:client', options, callback: () => consumer(params) })

@@ -109,10 +109,14 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
-  async transaction(action: any, arg?: any) {
+  //@ts-ignore
+  async transaction(action: 'start', headers: string, options?: Tx.Options): Promise<Tx.Info>
+  //@ts-ignore
+  async transaction(action: 'commit', headers: string, info: Tx.Info): Promise<undefined>
+  //@ts-ignore
+  async transaction(action: 'rollback', headers: string, info: Tx.Info): Promise<undefined>
+  //@ts-ignore
+  async transaction(action: any, headers: string, arg?: any) {
     await this.start()
 
     let result: string | undefined
@@ -122,11 +126,11 @@ export class LibraryEngine extends Engine {
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, '{}')
+      result = await this.engine?.startTransaction(jsonOptions, headers)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, '{}')
+      result = await this.engine?.commitTransaction(arg.id, headers)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, '{}')
+      result = await this.engine?.rollbackTransaction(arg.id, headers)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
