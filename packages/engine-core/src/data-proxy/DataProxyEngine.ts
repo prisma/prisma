@@ -212,7 +212,7 @@ export class DataProxyEngine extends Engine {
     const mainDatasource = this.inlineDatasources[mainDatasourceName]
     const mainDatasourceURL = mainDatasource?.url.value
     const mainDatasourceEnv = mainDatasource?.url.fromEnvVar
-    const loadedEnvURL = this.env[mainDatasourceEnv]
+    const loadedEnvURL = this.env[mainDatasourceEnv!]
     const dataProxyURL = mainDatasourceURL ?? loadedEnvURL
 
     let url: URL
