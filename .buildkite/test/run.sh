@@ -36,10 +36,11 @@ npm -v
 # See package.json setup script
 pnpm run setup
 
-echo "Start testing..."
-# Run test for all packages
-pnpm run test
 
 # New client test suite
 # 
 pnpm run --filter "@prisma/client" test:functional
+
+echo "Start testing..."
+# Run test for all packages
+pnpm run test
