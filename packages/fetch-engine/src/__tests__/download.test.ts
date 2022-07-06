@@ -20,10 +20,11 @@ describe('download', () => {
   beforeEach(async () => {
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
-    const deletedFilePaths = await del(path.posix.join(__dirname, '/**/*engine*'))
-    console.debug('Deleted files:\n', deletedFilePaths.join('\n'))
-
-    await del(path.posix.join(__dirname, '/**/prisma-fmt*'))
+    // Make sure to not mix forward and backward slashes in the path
+    // or del glob pattern would not work on Windows
+    const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
+    await del(path.posix.join(dirname, '/**/*engine*'))
+    await del(path.posix.join(dirname, '/**/prisma-fmt*'))
   })
   afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
 
