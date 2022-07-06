@@ -62,281 +62,83 @@ describe('download', () => {
       version: CURRENT_ENGINES_HASH,
     })
 
-    // Check that all binaries git hash are the same
+    const files = getFiles(baseDir).map((f) => f.name)
+    expect(files).toMatchInlineSnapshot(`
+      Array [
+        ".gitkeep",
+        "introspection-engine-darwin",
+        "introspection-engine-darwin-arm64",
+        "introspection-engine-debian-openssl-1.0.x",
+        "introspection-engine-debian-openssl-1.1.x",
+        "introspection-engine-debian-openssl-3.0.x",
+        "introspection-engine-linux-arm64-openssl-1.0.x",
+        "introspection-engine-linux-arm64-openssl-1.1.x",
+        "introspection-engine-linux-arm64-openssl-3.0.x",
+        "introspection-engine-linux-musl",
+        "introspection-engine-rhel-openssl-1.0.x",
+        "introspection-engine-rhel-openssl-1.1.x",
+        "introspection-engine-rhel-openssl-3.0.x",
+        "introspection-engine-windows.exe",
+        "libquery_engine-darwin-arm64.dylib.node",
+        "libquery_engine-darwin.dylib.node",
+        "libquery_engine-debian-openssl-1.0.x.so.node",
+        "libquery_engine-debian-openssl-1.1.x.so.node",
+        "libquery_engine-debian-openssl-3.0.x.so.node",
+        "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
+        "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
+        "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+        "libquery_engine-linux-musl.so.node",
+        "libquery_engine-rhel-openssl-1.0.x.so.node",
+        "libquery_engine-rhel-openssl-1.1.x.so.node",
+        "libquery_engine-rhel-openssl-3.0.x.so.node",
+        "migration-engine-darwin",
+        "migration-engine-darwin-arm64",
+        "migration-engine-debian-openssl-1.0.x",
+        "migration-engine-debian-openssl-1.1.x",
+        "migration-engine-debian-openssl-3.0.x",
+        "migration-engine-linux-arm64-openssl-1.0.x",
+        "migration-engine-linux-arm64-openssl-1.1.x",
+        "migration-engine-linux-arm64-openssl-3.0.x",
+        "migration-engine-linux-musl",
+        "migration-engine-rhel-openssl-1.0.x",
+        "migration-engine-rhel-openssl-1.1.x",
+        "migration-engine-rhel-openssl-3.0.x",
+        "migration-engine-windows.exe",
+        "prisma-fmt-darwin",
+        "prisma-fmt-darwin-arm64",
+        "prisma-fmt-debian-openssl-1.0.x",
+        "prisma-fmt-debian-openssl-1.1.x",
+        "prisma-fmt-debian-openssl-3.0.x",
+        "prisma-fmt-linux-arm64-openssl-1.0.x",
+        "prisma-fmt-linux-arm64-openssl-1.1.x",
+        "prisma-fmt-linux-arm64-openssl-3.0.x",
+        "prisma-fmt-linux-musl",
+        "prisma-fmt-rhel-openssl-1.0.x",
+        "prisma-fmt-rhel-openssl-1.1.x",
+        "prisma-fmt-rhel-openssl-3.0.x",
+        "prisma-fmt-windows.exe",
+        "query-engine-darwin",
+        "query-engine-darwin-arm64",
+        "query-engine-debian-openssl-1.0.x",
+        "query-engine-debian-openssl-1.1.x",
+        "query-engine-debian-openssl-3.0.x",
+        "query-engine-linux-arm64-openssl-1.0.x",
+        "query-engine-linux-arm64-openssl-1.1.x",
+        "query-engine-linux-arm64-openssl-3.0.x",
+        "query-engine-linux-musl",
+        "query-engine-rhel-openssl-1.0.x",
+        "query-engine-rhel-openssl-1.1.x",
+        "query-engine-rhel-openssl-3.0.x",
+        "query-engine-windows.exe",
+        "query_engine-windows.dll.node",
+      ]
+    `)
+
+    // Check that all engines hashes are the same
     expect(await getVersion(queryEnginePath)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(introspectionEnginePath)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(migrationEnginePath)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(prismafmtPath)).toContain(CURRENT_ENGINES_HASH)
-
-    const files = getFiles(baseDir).map((f) => ({ ...f, size: 'X' }))
-    expect(files).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          "name": ".gitkeep",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-darwin",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-darwin-arm64",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-debian-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-linux-arm64-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-linux-arm64-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-linux-arm64-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-linux-musl",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-rhel-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "introspection-engine-windows.exe",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-darwin-arm64.dylib.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-darwin.dylib.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-debian-openssl-1.0.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-debian-openssl-1.1.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-debian-openssl-3.0.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-linux-musl.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-darwin",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-darwin-arm64",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-debian-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-debian-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-debian-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-linux-arm64-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-linux-arm64-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-linux-arm64-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-linux-musl",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-rhel-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "migration-engine-windows.exe",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-darwin",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-darwin-arm64",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-debian-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-debian-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-debian-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-linux-arm64-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-linux-arm64-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-linux-arm64-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-linux-musl",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-rhel-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-rhel-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-rhel-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "prisma-fmt-windows.exe",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-darwin",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-darwin-arm64",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-debian-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-debian-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-debian-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-linux-arm64-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-linux-arm64-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-linux-arm64-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-linux-musl",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-rhel-openssl-1.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-rhel-openssl-1.1.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-rhel-openssl-3.0.x",
-          "size": "X",
-        },
-        Object {
-          "name": "query-engine-windows.exe",
-          "size": "X",
-        },
-        Object {
-          "name": "query_engine-windows.dll.node",
-          "size": "X",
-        },
-      ]
-    `)
   })
 
   test('download all binaries & cache them', async () => {
