@@ -214,7 +214,7 @@ export class DataProxyEngine extends Engine {
 
     let url: URL
     try {
-      url = new URL(dataProxyURL ?? '')
+      url = new URL(dataProxyURL)
     } catch {
       throw new InvalidDatasourceError('Could not parse URL of the datasource', {
         clientVersion: this.clientVersion,
