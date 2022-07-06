@@ -706,6 +706,10 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
+      # TODO remove
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
+
       - name: Test packages/internals
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
         run: pnpm run test --testTimeout=40000
