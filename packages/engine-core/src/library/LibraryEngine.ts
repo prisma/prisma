@@ -124,6 +124,7 @@ export class LibraryEngine extends Engine {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
+        trace: headers, // TODO - make this optional engine side
       })
 
       result = await this.engine?.startTransaction(jsonOptions, headers)
