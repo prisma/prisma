@@ -21,7 +21,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -31,11 +31,8 @@ jobs:
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
         run: |
-          echo 'Checking that all packages [@prisma/engines, @prisma/engines-version, @prisma/fetch-engine, @prisma/get-platform] have the published version @${{ github.event.inputs.version }}'
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines -u ${{ github.event.inputs.version }}
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/fetch-engine -u ${{ github.event.inputs.version }}
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/get-platform -u ${{ github.event.inputs.version }}
+          echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to update the dependencies'
 
       - name: Update the engines dependencies
@@ -44,8 +41,8 @@ jobs:
           timeout_minutes: 7
           max_attempts: 3
           command: |
-            echo 'Updating @prisma/engines, @prisma/engines-version, @prisma/fetch-engine and @prisma/get-platform to ${{ github.event.inputs.version }} using pnpm'
-            pnpm update -r @prisma/engines@${{ github.event.inputs.version }} @prisma/engines-version@${{ github.event.inputs.version }} @prisma/fetch-engine@${{ github.event.inputs.version }} @prisma/get-platform@${{ github.event.inputs.version }}
+            echo 'Updating @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
             echo 'Awesome - proceeding to make the PR'
 
       - name: Extract Engine Commit hash from version
@@ -73,10 +70,7 @@ jobs:
             ## Packages
             | Package | NPM URL |
             |---------|---------|
-            |`@prisma/engines`| https://npmjs.com/package/@prisma/engines/v/${{ github.event.inputs.version }}|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
-            |`@prisma/fetch-engine`| https://npmjs.com/package/@prisma/fetch-engine/v/${{ github.event.inputs.version }}|
-            |`@prisma/get-platform`| https://npmjs.com/package/@prisma/get-platform/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
 

@@ -11,7 +11,7 @@ const userSignalsSupportedByOperatingSystem = process.platform !== 'win32'
 
 function spawnChild() {
   const childPath = path.join(__dirname, '__helpers__', 'client.ts')
-  return execa('node', ['-r', 'esbuild-register', childPath], {
+  return execa('node', ['-r', '@swc-node/register', childPath], {
     // Don't reject the promise if the process exits on signal.
     reject: false,
   })

@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
-  jest.setTimeout(30_000)
+  jest.setTimeout(60_000)
 
   beforeEach(async () => {
     await prisma.user.deleteMany()
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     })
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
+      `Transaction API error: Transaction already closed: A commit cannot be executed on a closed transaction..`,
     )
 
     expect(await prisma.user.findMany()).toHaveLength(0)
@@ -84,7 +84,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     )
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Expired'.`,
+      `Transaction API error: Transaction already closed: A commit cannot be executed on a closed transaction..`,
     )
 
     expect(await prisma.user.findMany()).toHaveLength(0)
@@ -203,7 +203,7 @@ testMatrix.setupTestSuite(({ provider }) => {
               188 
               189 const result = prisma.$transaction(async () => {
             → 190   await transactionBoundPrisma.user.create(
-              Transaction API error: Transaction already closed: Transaction is no longer valid. Last state: 'Committed'.
+              Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
           `)
 
     const users = await prisma.user.findMany()
@@ -400,8 +400,12 @@ testMatrix.setupTestSuite(({ provider }) => {
 
   /**
    * Makes sure that the engine does not deadlock
+   * For sqlite, it sometimes causes DB lock up and all subsequent
+   * tests fail. We might want to re-enable it either after we implemented
+   * WAL mode (https://github.com/prisma/prisma/issues/3303) or identified the
+   * issue on our side
    */
-  test('high concurrency', async () => {
+  testIf(provider !== 'sqlite')('high concurrency', async () => {
     jest.setTimeout(30_000)
 
     await prisma.user.create({

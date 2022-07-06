@@ -34,7 +34,9 @@ testMatrix.setupTestSuite(
           id: 1,
           string: 'str',
           int: 42,
-          bInt: BigInt('12345'),
+          // TODO: replace with exact value and remove next assert after
+          // https://github.com/facebook/jest/issues/11617 is fixed
+          bInt: expect.any(BigInt),
           float: 0.125,
           bytes: Buffer.from([1, 2, 3]),
           bool: true,
@@ -42,6 +44,8 @@ testMatrix.setupTestSuite(
           dec: new Prisma.Decimal('0.0625'),
         },
       ])
+      // @ts-ignore
+      expect(testModel[0].bInt === BigInt('12345')).toBe(true)
     })
   },
   {

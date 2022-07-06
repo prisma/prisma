@@ -15,7 +15,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -26,8 +26,8 @@ jobs:
       - name: Check if version is available on npm
         run: |
           echo 'Checking that all packages [@prisma/studio, @prisma/studio-server] have the published version @${{ github.event.inputs.version }}'
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/studio -u ${{ github.event.inputs.version }}
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/studio-server -u ${{ github.event.inputs.version }}
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/studio -u ${{ github.event.inputs.version }}
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/studio-server -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
 
       - name: Update the studio dependencies
@@ -35,7 +35,7 @@ jobs:
           echo 'Updating @prisma/studio, @prisma/studio-server to ${{ github.event.inputs.version }} using pnpm'
           pnpm update -r @prisma/studio@${{ github.event.inputs.version }} @prisma/studio-server@${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
-            
+
       - name: Create Pull Request
         id: cpr
         uses: peter-evans/create-pull-request@v4
