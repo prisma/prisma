@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657119868224,
+  "lastUpdate": 1657120034887,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -108348,6 +108348,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±3.32%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "lodi-g@users.noreply.github.com",
+            "name": "Grégoire Lodi",
+            "username": "lodi-g"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9fb32c1c0d788dc8258391a55b029a7f939b776b",
+          "message": "feat(client): Export NotFoundError in Prisma namespace (#14076)\n\nRef: https://github.com/prisma/prisma/issues/12159#issuecomment-1167274606\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-07-06T17:03:01+02:00",
+          "tree_id": "2b5735fa626d4c17ec47f0f0d7f13a1f8befc0a0",
+          "url": "https://github.com/prisma/prisma/commit/9fb32c1c0d788dc8258391a55b029a7f939b776b"
+        },
+        "date": 1657120025227,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.46,
+            "range": "±5.55%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±3.33%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
