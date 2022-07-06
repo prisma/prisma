@@ -971,6 +971,7 @@ new PrismaClient({
     ) {
       const headers = applyTracingHeaders({})
       const headerStr = JSON.stringify(headers)
+
       //@ts-ignore
       const info = await this._engine.transaction('start', headerStr, options)
 

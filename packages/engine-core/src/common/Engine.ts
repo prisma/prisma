@@ -28,9 +28,9 @@ export abstract class Engine {
     transaction?: boolean,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
-  abstract transaction(action: 'start', options?: Transaction.Options): Promise<Transaction.Info>
-  abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
-  abstract transaction(action: 'rollback', info: Transaction.Info): Promise<void>
+  abstract transaction(action: 'start', headerStr: string, options?: Transaction.Options): Promise<Transaction.Info>
+  abstract transaction(action: 'commit', headerStr: string, info: Transaction.Info): Promise<void>
+  abstract transaction(action: 'rollback', headerStr: string, info: Transaction.Info): Promise<void>
 
   abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
   abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
