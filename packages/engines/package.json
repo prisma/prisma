@@ -15,7 +15,7 @@
     "@types/jest": "28.1.4",
     "@types/node": "16.11.43",
     "execa": "5.1.1",
-    "jest": "27.5.1",
+    "jest": "28.1.2",
     "typescript": "4.7.3"
   },
   "repository": {
