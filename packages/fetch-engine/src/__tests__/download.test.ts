@@ -9,10 +9,10 @@ import { cleanupCache } from '../cleanupCache'
 import { checkVersionCommand, download, getBinaryName, getVersion } from '../download'
 import { getFiles } from './__utils__/getFiles'
 
-const CURRENT_BINARIES_HASH = enginesVersion
-console.log({ CURRENT_BINARIES_HASH })
-
-const FIXED_BINARIES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
+const CURRENT_ENGINES_HASH = enginesVersion
+console.debug({ CURRENT_ENGINES_HASH })
+const FIXED_ENGINES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
+const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
 jest.setTimeout(120_000)
 
@@ -22,179 +22,23 @@ describe('download', () => {
     await cleanupCache(0)
     // Make sure to not mix forward and backward slashes in the path
     // or del glob pattern would not work on Windows
-    const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
     await del(path.posix.join(dirname, '/**/*engine*'))
     await del(path.posix.join(dirname, '/**/prisma-fmt*'))
   })
   afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
 
-  test('basic download', async () => {
+  test('download all current engines', async () => {
+    const baseDir = path.posix.join(dirname, 'all')
+
     const platform = await getPlatform()
-    const queryEnginePath = path.join(__dirname, getBinaryName('query-engine', platform))
-    const introspectionEnginePath = path.join(__dirname, getBinaryName('introspection-engine', platform))
-    const migrationEnginePath = path.join(__dirname, getBinaryName('migration-engine', platform))
-    const prismafmtPath = path.join(__dirname, getBinaryName('prisma-fmt', platform))
+    const queryEnginePath = path.join(baseDir, getBinaryName('query-engine', platform))
+    const introspectionEnginePath = path.join(baseDir, getBinaryName('introspection-engine', platform))
+    const migrationEnginePath = path.join(baseDir, getBinaryName('migration-engine', platform))
+    const prismafmtPath = path.join(baseDir, getBinaryName('prisma-fmt', platform))
 
     await download({
       binaries: {
-        'query-engine': __dirname,
-        'introspection-engine': __dirname,
-        'migration-engine': __dirname,
-        'prisma-fmt': __dirname,
-      },
-      version: FIXED_BINARIES_HASH,
-    })
-
-    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
-      `"query-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
-    )
-    expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
-      `"introspection-core da41d2bb3406da22087b849f0e911199ba4fbf11"`,
-    )
-    expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
-      `"migration-engine-cli da41d2bb3406da22087b849f0e911199ba4fbf11"`,
-    )
-    expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
-      `"prisma-fmt da41d2bb3406da22087b849f0e911199ba4fbf11"`,
-    )
-  })
-
-  test('basic download all current binaries', async () => {
-    const platform = await getPlatform()
-    const queryEnginePath = path.join(__dirname, getBinaryName('query-engine', platform))
-    const introspectionEnginePath = path.join(__dirname, getBinaryName('introspection-engine', platform))
-    const migrationEnginePath = path.join(__dirname, getBinaryName('migration-engine', platform))
-    const prismafmtPath = path.join(__dirname, getBinaryName('prisma-fmt', platform))
-    console.debug(queryEnginePath)
-
-    await download({
-      binaries: {
-        'query-engine': __dirname,
-        'introspection-engine': __dirname,
-        'migration-engine': __dirname,
-        'prisma-fmt': __dirname,
-      },
-      binaryTargets: [
-        'darwin',
-        'darwin-arm64',
-        'debian-openssl-1.0.x',
-        'debian-openssl-1.1.x',
-        'debian-openssl-3.0.x',
-        'linux-arm64-openssl-1.0.x',
-        'linux-arm64-openssl-1.1.x',
-        'linux-arm64-openssl-3.0.x',
-        'rhel-openssl-1.0.x',
-        'rhel-openssl-1.1.x',
-        'rhel-openssl-3.0.x',
-        'windows',
-        'linux-musl',
-      ],
-      version: CURRENT_BINARIES_HASH,
-    })
-
-    // Check that all binaries git hash are the same
-    expect(await getVersion(queryEnginePath)).toContain(CURRENT_BINARIES_HASH)
-    expect(await getVersion(introspectionEnginePath)).toContain(CURRENT_BINARIES_HASH)
-    expect(await getVersion(migrationEnginePath)).toContain(CURRENT_BINARIES_HASH)
-    expect(await getVersion(prismafmtPath)).toContain(CURRENT_BINARIES_HASH)
-  })
-
-  test('auto heal corrupt binary', async () => {
-    const platform = await getPlatform()
-    const baseDir = path.join(__dirname, 'corruption')
-    const targetPath = path.join(baseDir, getBinaryName('query-engine', platform))
-    if (fs.existsSync(targetPath)) {
-      try {
-        fs.unlinkSync(targetPath)
-      } catch (e) {
-        console.error(e)
-      }
-    }
-
-    await download({
-      binaries: {
-        'query-engine': baseDir,
-      },
-      version: FIXED_BINARIES_HASH,
-    })
-
-    fs.writeFileSync(targetPath, 'incorrect-binary')
-
-    // please heal it
-    await download({
-      binaries: {
-        'query-engine': baseDir,
-      },
-      version: FIXED_BINARIES_HASH,
-    })
-
-    expect(fs.existsSync(targetPath)).toBe(true)
-
-    expect(await checkVersionCommand(targetPath)).toBe(true)
-  })
-
-  test('handle non-existent binary target', async () => {
-    await expect(
-      download({
-        binaries: {
-          'query-engine': __dirname,
-        },
-        version: FIXED_BINARIES_HASH,
-        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-      }),
-    ).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Unknown binaryTarget marvin and no custom engine files were provided"`,
-    )
-  })
-
-  test('handle non-existent binary target with missing custom binaries', async () => {
-    expect.assertions(1)
-    process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
-    try {
-      await download({
-        binaries: {
-          'query-engine': __dirname,
-        },
-        version: FIXED_BINARIES_HASH,
-        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-      })
-    } catch (err: any) {
-      expect(stripAnsi(err.message)).toMatchInlineSnapshot(
-        `"Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ../query-engine can't be resolved."`,
-      )
-    }
-  })
-
-  test('handle non-existent binary target with custom binaries', async () => {
-    const e = await download({
-      binaries: {
-        'query-engine': __dirname,
-      },
-    })
-    const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
-    const targetPath = path.join(
-      __dirname,
-      // @ts-ignore
-      getBinaryName('query-engine', 'marvin'),
-    )
-    fs.copyFileSync(dummyPath, targetPath)
-    process.env.PRISMA_QUERY_ENGINE_BINARY = targetPath
-
-    const testResult = await download({
-      binaries: {
-        'query-engine': path.join(__dirname, 'all'),
-      },
-      binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
-    })
-    expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
-  })
-
-  test('download all binaries & cache them', async () => {
-    const baseDir = path.join(__dirname, 'all')
-
-    const before0 = Date.now()
-    await download({
-      binaries: {
+        'libquery-engine': baseDir,
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
@@ -215,7 +59,319 @@ describe('download', () => {
         'windows',
         'linux-musl',
       ],
-      version: FIXED_BINARIES_HASH,
+      version: CURRENT_ENGINES_HASH,
+    })
+
+    // Check that all binaries git hash are the same
+    expect(await getVersion(queryEnginePath)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(introspectionEnginePath)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(migrationEnginePath)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(prismafmtPath)).toContain(CURRENT_ENGINES_HASH)
+
+    const files = getFiles(baseDir).map((f) => ({ ...f, size: 'X' }))
+    expect(files).toMatchInlineSnapshot(`
+      Array [
+        Object {
+          "name": ".gitkeep",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-darwin",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-darwin-arm64",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-debian-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-debian-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-debian-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-linux-arm64-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-linux-arm64-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-linux-arm64-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-linux-musl",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-rhel-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-rhel-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-rhel-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "introspection-engine-windows.exe",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-darwin-arm64.dylib.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-darwin.dylib.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-1.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-1.1.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-3.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-linux-musl.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-darwin",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-darwin-arm64",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-debian-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-debian-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-debian-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-linux-arm64-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-linux-arm64-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-linux-arm64-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-linux-musl",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-rhel-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-rhel-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-rhel-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "migration-engine-windows.exe",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-darwin",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-darwin-arm64",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-debian-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-linux-arm64-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-linux-arm64-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-linux-arm64-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-linux-musl",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-rhel-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "prisma-fmt-windows.exe",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-darwin",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-darwin-arm64",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-debian-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-debian-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-debian-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-linux-arm64-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-linux-arm64-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-linux-arm64-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-linux-musl",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-rhel-openssl-1.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-rhel-openssl-1.1.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-rhel-openssl-3.0.x",
+          "size": "X",
+        },
+        Object {
+          "name": "query-engine-windows.exe",
+          "size": "X",
+        },
+        Object {
+          "name": "query_engine-windows.dll.node",
+          "size": "X",
+        },
+      ]
+    `)
+  })
+
+  test('download all binaries & cache them', async () => {
+    const baseDir = path.posix.join(dirname, 'all')
+    const platform = await getPlatform()
+    const queryEnginePath = path.join(baseDir, getBinaryName('query-engine', platform))
+    const introspectionEnginePath = path.join(baseDir, getBinaryName('introspection-engine', platform))
+    const migrationEnginePath = path.join(baseDir, getBinaryName('migration-engine', platform))
+    const prismafmtPath = path.join(baseDir, getBinaryName('prisma-fmt', platform))
+
+    const before0 = Date.now()
+    await download({
+      binaries: {
+        'libquery-engine': baseDir,
+        'query-engine': baseDir,
+        'introspection-engine': baseDir,
+        'migration-engine': baseDir,
+        'prisma-fmt': baseDir,
+      },
+      binaryTargets: [
+        'darwin',
+        'darwin-arm64',
+        'debian-openssl-1.0.x',
+        'debian-openssl-1.1.x',
+        'debian-openssl-3.0.x',
+        'linux-arm64-openssl-1.0.x',
+        'linux-arm64-openssl-1.1.x',
+        'linux-arm64-openssl-3.0.x',
+        'rhel-openssl-1.0.x',
+        'rhel-openssl-1.1.x',
+        'rhel-openssl-3.0.x',
+        'windows',
+        'linux-musl',
+      ],
+      version: FIXED_ENGINES_HASH,
     })
     const after0 = Date.now()
     const timeInMsToDownloadAll = after0 - before0
@@ -282,6 +438,54 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         Object {
           "name": "introspection-engine-windows.exe",
           "size": 21941248,
+        },
+        Object {
+          "name": "libquery_engine-darwin-arm64.dylib.node",
+          "size": 29651762,
+        },
+        Object {
+          "name": "libquery_engine-darwin.dylib.node",
+          "size": 32938944,
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-1.0.x.so.node",
+          "size": 43309920,
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-1.1.x.so.node",
+          "size": 40584936,
+        },
+        Object {
+          "name": "libquery_engine-debian-openssl-3.0.x.so.node",
+          "size": 40584984,
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
+          "size": 40597496,
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
+          "size": 41133176,
+        },
+        Object {
+          "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+          "size": 43016432,
+        },
+        Object {
+          "name": "libquery_engine-linux-musl.so.node",
+          "size": 40477248,
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
+          "size": 43286256,
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
+          "size": 40577600,
+        },
+        Object {
+          "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
+          "size": 40577536,
         },
         Object {
           "name": "migration-engine-darwin",
@@ -439,8 +643,25 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           "name": "query-engine-windows.exe",
           "size": 34626048,
         },
+        Object {
+          "name": "query_engine-windows.dll.node",
+          "size": 29770240,
+        },
       ]
     `)
+
+    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
+      `"query-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+    )
+    expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
+      `"introspection-core da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+    )
+    expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
+      `"migration-engine-cli da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+    )
+    expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
+      `"prisma-fmt da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+    )
 
     //
     // Cache test 1
@@ -449,12 +670,15 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
     //
 
     // Delete all artifacts
-    await del(baseDir + '/*engine*')
-    await del(baseDir + '/prisma-fmt*')
+    const deletedEngines = await del(path.posix.join(baseDir, '/*engine*'))
+    const deletedPrismafmt = await del(path.posix.join(baseDir, '/prisma-fmt*'))
+    expect(deletedEngines.length).toBeGreaterThan(0)
+    expect(deletedPrismafmt.length).toBeGreaterThan(0)
 
     const before = Date.now()
     await download({
       binaries: {
+        'libquery-engine': baseDir,
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
@@ -475,7 +699,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         'windows',
         'linux-musl',
       ],
-      version: FIXED_BINARIES_HASH,
+      version: FIXED_ENGINES_HASH,
     })
     const after = Date.now()
     const timeInMsToDownloadAllFromCache1 = after - before
@@ -492,6 +716,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
     const before2 = Date.now()
     await download({
       binaries: {
+        'libquery-engine': baseDir,
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
@@ -512,7 +737,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
         'windows',
         'linux-musl',
       ],
-      version: FIXED_BINARIES_HASH,
+      version: FIXED_ENGINES_HASH,
     })
     const after2 = Date.now()
     const timeInMsToDownloadAllFromCache2 = after2 - before2
@@ -528,5 +753,95 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     // Using cache should be faster
     expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)
     expect(timeInMsToDownloadAllFromCache2).toBeLessThan(timeInMsToDownloadAllFromCache1)
+  })
+
+  test('auto heal corrupt engine binary', async () => {
+    const platform = await getPlatform()
+    const baseDir = path.posix.join(dirname, 'corruption')
+    const targetPath = path.join(baseDir, getBinaryName('query-engine', platform))
+    if (fs.existsSync(targetPath)) {
+      try {
+        fs.unlinkSync(targetPath)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    await download({
+      binaries: {
+        'query-engine': baseDir,
+      },
+      version: FIXED_ENGINES_HASH,
+    })
+
+    fs.writeFileSync(targetPath, 'incorrect-binary')
+
+    // please heal it
+    await download({
+      binaries: {
+        'query-engine': baseDir,
+      },
+      version: FIXED_ENGINES_HASH,
+    })
+
+    expect(fs.existsSync(targetPath)).toBe(true)
+
+    expect(await checkVersionCommand(targetPath)).toBe(true)
+  })
+
+  test('handle non-existent "binarTarget"', async () => {
+    await expect(
+      download({
+        binaries: {
+          'query-engine': __dirname,
+        },
+        version: FIXED_ENGINES_HASH,
+        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"Unknown binaryTarget marvin and no custom engine files were provided"`,
+    )
+  })
+
+  test('handle non-existent "binarTarget" with missing custom engine binary', async () => {
+    expect.assertions(1)
+    process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
+    try {
+      await download({
+        binaries: {
+          'query-engine': __dirname,
+        },
+        version: FIXED_ENGINES_HASH,
+        binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      })
+    } catch (err: any) {
+      expect(stripAnsi(err.message)).toMatchInlineSnapshot(
+        `"Env var PRISMA_QUERY_ENGINE_BINARY is provided but provided path ../query-engine can't be resolved."`,
+      )
+    }
+  })
+
+  test('handle non-existent "binarTarget" with custom engine binary', async () => {
+    const e = await download({
+      binaries: {
+        'query-engine': __dirname,
+      },
+    })
+    const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
+    const targetPath = path.join(
+      __dirname,
+      // @ts-ignore
+      getBinaryName('query-engine', 'marvin'),
+    )
+    fs.copyFileSync(dummyPath, targetPath)
+    process.env.PRISMA_QUERY_ENGINE_BINARY = targetPath
+
+    const testResult = await download({
+      binaries: {
+        'query-engine': path.join(__dirname, 'all'),
+      },
+      binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+    })
+    expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
   })
 })
