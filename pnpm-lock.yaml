@@ -407,6 +407,7 @@ importers:
       indent-string: 4.0.0
       jest: 28.1.3
       jest-junit: 14.0.0
+      klona: 2.0.5
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
@@ -423,6 +424,7 @@ importers:
       execa: 5.1.1
       get-stream: 6.0.1
       indent-string: 4.0.0
+      klona: 2.0.5
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
@@ -8363,7 +8365,6 @@ packages:
   /klona/2.0.5:
     resolution: {integrity: sha512-pJiBpiXMbt7dkzXe8Ghj/u4FfXOOa98fPW+bihOJ4SjnoijweJrNThJfd3ifXpXhREjpoF2mZVH1GfS9LV3kHQ==}
     engines: {node: '>= 8'}
-    dev: true
 
   /latest-version/3.1.0:
     resolution: {integrity: sha512-Be1YRHWWlZaSsrz2U+VInk+tO0EwLIyV+23RhWLINJYwg/UIikxjlj3MhH37/6/EDCAusjajvMkMMUXRaMWl/w==}

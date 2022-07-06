@@ -8,8 +8,13 @@ export interface FilterConstructor {
   new (config: EngineConfig): Engine
 }
 
+export type NullableEnvValue = {
+  fromEnvVar: string | null
+  value: string | null
+}
+
 export type InlineDatasource = {
-  url: EnvValue
+  url: NullableEnvValue
 }
 
 // TODO Move shared logic in here

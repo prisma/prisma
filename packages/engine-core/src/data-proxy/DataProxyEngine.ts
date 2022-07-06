@@ -1,5 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
+import { klona } from 'klona'
 
 import type { EngineConfig, EngineEventType, GetConfigResult, InlineDatasource } from '../common/Engine'
 import { Engine } from '../common/Engine'
@@ -206,12 +207,10 @@ export class DataProxyEngine extends Engine {
   }
 
   private extractHostAndApiKey() {
-    const mainDatasourceName = Object.keys(this.inlineDatasources)[0]
-    const mainDatasource = this.inlineDatasources[mainDatasourceName]
-    const mainDatasourceURL = mainDatasource?.url.value
-    const mainDatasourceEnv = mainDatasource?.url.fromEnvVar
-    const loadedEnvURL = this.env[mainDatasourceEnv!]
-    const dataProxyURL = mainDatasourceURL ?? loadedEnvURL
+    const datasources = this.mergeOverriddenDatasources()
+    const mainDatasourceName = Object.keys(datasources)[0]
+    const mainDatasource = datasources[mainDatasourceName]
+    const dataProxyURL = this.resolveDatasourceURL(mainDatasourceName, mainDatasource)
 
     let url: URL
     try {
@@ -238,6 +237,50 @@ export class DataProxyEngine extends Engine {
     }
 
     return [host, apiKey]
+  }
+
+  private mergeOverriddenDatasources(): Record<string, InlineDatasource> {
+    if (this.config.datasources === undefined) {
+      return this.inlineDatasources
+    }
+
+    const finalDatasources = klona(this.inlineDatasources)
+
+    for (const override of this.config.datasources) {
+      const datasource = finalDatasources[override.name]
+
+      if (!datasource) {
+        throw new Error(`Unknown datasource: ${override.name}`)
+      }
+
+      if (override.url === undefined) {
+        continue
+      }
+
+      datasource.url.fromEnvVar = null
+      datasource.url.value = override.url
+    }
+
+    return finalDatasources
+  }
+
+  private resolveDatasourceURL(name: string, datasource: InlineDatasource): string {
+    if (datasource.url.value) {
+      return datasource.url.value
+    }
+
+    if (datasource.url.fromEnvVar) {
+      const envVar = datasource.url.fromEnvVar
+      const loadedEnvURL = this.env[envVar]
+
+      if (loadedEnvURL === undefined) {
+        throw new Error(`Datasource "${name}" references an environment variable "${envVar}" that is not set`)
+      }
+
+      return loadedEnvURL
+    }
+
+    throw new Error(`Datasource "${name}" specification is invalid: both value and fromEnvVar are null`)
   }
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>
