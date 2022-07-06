@@ -596,7 +596,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         byline(this.child.stdout).on('data', (msg) => {
           const data = String(msg)
-          // console.log('RAW', data)
+          console.log('RAW', data)
           try {
             const json = JSON.parse(data)
             debug('stdout', getMessage(json))
@@ -1005,11 +1005,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
-        trace: headerStr,
       })
 
+      const headers: QueryEngineRequestHeaders = JSON.parse(headerStr)
+
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
         transactionHttpErrorHandler,
       )
 
