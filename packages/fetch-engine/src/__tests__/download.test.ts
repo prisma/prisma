@@ -521,6 +521,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
 
     // Using cache should be faster
     expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)
-    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(timeInMsToDownloadAllFromCache1)
+    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(timeInMsToDownloadAll)
   })
 })
