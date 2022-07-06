@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657102550050,
+  "lastUpdate": 1657116382525,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -108216,6 +108216,72 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±6.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "Jolg42@users.noreply.github.com",
+            "name": "Joël Galeran",
+            "username": "Jolg42"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9a3435d53f4b9933659671d7315d4ad108c0e6bb",
+          "message": "ci: test fetch-engine & get-platform & engines packages (#14121)\n\n* ci: test fetch-engine & get-platform & engines packages\r\n\r\nLooks like we missed that during review of https://github.com/prisma/prisma/pull/13769\r\n\r\nCloses https://github.com/prisma/engines-wrapper/issues/141\r\n\r\n* update FIXED_BINARIES_HASH\r\n\r\n* update snapshots\r\n\r\n* describeIf for node-api test\r\n\r\n* simple describeIf\r\n\r\n* debug windows test failure\r\n\r\n* path.posix.join\r\n\r\n* add mxschmitt/action-tmate@v3\r\n\r\n* fix beforeEach del for windows\r\n\r\n* merge/remove node-api test + rename\r\n\r\n* code suggestion",
+          "timestamp": "2022-07-06T16:02:53+02:00",
+          "tree_id": "817fccc807ce3bd63379a95d21804c16d04f5dcd",
+          "url": "https://github.com/prisma/prisma/commit/9a3435d53f4b9933659671d7315d4ad108c0e6bb"
+        },
+        "date": 1657116375139,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.8,
+            "range": "±6.50%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±3.39%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
