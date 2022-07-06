@@ -1,14 +1,16 @@
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+type PrismaClient = import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
+// @ts-ignore this is just for type checks
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const TIMEOUT = 60_000
 
 testMatrix.setupTestSuite(() => {
   const oldConsoleWarn = console.warn
   const warnings: any[] = []
-  const clients: any[] = []
 
   beforeAll(() => {
     jest.resetModules()
@@ -26,13 +28,8 @@ testMatrix.setupTestSuite(() => {
     'should console warn when spawning too many instances of PrismaClient',
     async () => {
       for (let i = 0; i < 15; i++) {
-        const client = new PrismaClient()
+        const client = newPrismaClient()
         await client.$connect()
-        clients.push(client)
-      }
-
-      for (const client of clients) {
-        client.$disconnect()
       }
 
       expect(warnings.join('')).toContain('There are already 10 instances of Prisma Client actively running')

@@ -30,6 +30,7 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -45,7 +46,8 @@ function isSpanEvent(event: any): Boolean {
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
-const engines: LibraryEngine[] = []
+let engineInstanceCount = 0
+const exitHooks = new ExitHooks()
 
 export class LibraryEngine extends Engine {
   private engine?: QueryEngineInstance
@@ -68,10 +70,17 @@ export class LibraryEngine extends Engine {
   lastQuery?: string
   loggerRustPanic?: any
 
-  beforeExitListener?: (args?: any) => any
   versionInfo?: {
     commit: string
     version: string
+  }
+
+  get beforeExitListener() {
+    return exitHooks.getListener(this)
+  }
+
+  set beforeExitListener(listener: BeforeExitListener | undefined) {
+    exitHooks.setListener(this, listener)
   }
 
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
@@ -95,19 +104,15 @@ export class LibraryEngine extends Engine {
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    initHooks()
-    engines.push(this)
+    exitHooks.install()
     this.checkForTooManyEngines()
   }
 
   private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.engine)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
-        )
-      }
+    if (engineInstanceCount === 10) {
+      console.warn(
+        `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
+      )
     }
   }
 
@@ -194,6 +199,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         this.QueryEngineConstructor = this.library.QueryEngine
       }
       try {
+        // Using strong reference to `this` inside of log callback will prevent
+        // this instance from being GCed while native engine is alive. At the same time,
+        // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
+        // to avoid this cycle
+        const weakThis = new WeakRef(this)
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
@@ -204,8 +214,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             logLevel: this.logLevel,
             configDir: this.config.cwd!,
           },
-          (log) => this.logger(log),
+          (log) => {
+            weakThis.deref()?.logger(log)
+          },
         )
+        engineInstanceCount++
       } catch (_e) {
         const e = _e as Error
         const error = this.parseInitError(e.message)
@@ -501,31 +514,5 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return responseString
     }
     return this.parseEngineResponse(responseString)
-  }
-}
-
-function hookProcess(handler: string, exit = false) {
-  process.once(handler as any, async () => {
-    debug(`hookProcess received: ${handler}`)
-    for (const engine of engines) {
-      await engine.runBeforeExit()
-    }
-    engines.splice(0, engines.length)
-    // only exit, if only we are listening
-    // if there is another listener, that other listener is responsible
-    if (exit && process.listenerCount(handler) === 0) {
-      process.exit()
-    }
-  })
-}
-let hooksInitialized = false
-function initHooks() {
-  if (!hooksInitialized) {
-    hookProcess('beforeExit')
-    hookProcess('exit')
-    hookProcess('SIGINT', true)
-    hookProcess('SIGUSR2', true)
-    hookProcess('SIGTERM', true)
-    hooksInitialized = true
   }
 }

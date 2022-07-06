@@ -1,9 +1,10 @@
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+type PrismaClient = import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 // @ts-ignore this is just for type checks
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider }) => {
   describe('empty', () => {
@@ -85,17 +86,8 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   describe('mutliple instances', () => {
-    let secondClient: typeof prisma
-
-    beforeAll(() => {
-      secondClient = new PrismaClient()
-    })
-
-    afterAll(async () => {
-      await secondClient.$disconnect()
-    })
-
     test('does not share metrics between 2 different instances of client', async () => {
+      const secondClient = newPrismaClient()
       await secondClient.user.create({
         data: {
           email: 'second-user@example.com',
