@@ -197,9 +197,6 @@ export class MigrateEngine {
             RUST_BACKTRACE: '1',
             // Take env values from process.env (willl override values set before)
             ...processEnv,
-            // Set SERVER_ROOT
-            // TODO why is this needed?
-            SERVER_ROOT: this.projectDir,
           },
         })
 
