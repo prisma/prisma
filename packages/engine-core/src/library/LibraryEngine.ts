@@ -228,10 +228,15 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) return
 
+    // @ts-ignore - TODO
+    const useOtel = global.HAS_CONSTRUCTED_INSTRUMENTATION
+
     // @ts-ignore
     if (event?.span === true) {
-      //@ts-ignore TODO: Get the type conversion correct;
-      createSpan(event as EngineSpanEvent)
+      if (useOtel) {
+        //@ts-ignore TODO: Get the type conversion correct;
+        createSpan(event as EngineSpanEvent)
+      }
 
       return
     }

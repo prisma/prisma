@@ -1,5 +1,4 @@
 import type { SpanOptions } from '@opentelemetry/api'
-import { context, trace } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
 import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
@@ -1010,7 +1009,8 @@ new PrismaClient({
         method = () => this._transactionWithArray(input)
       }
 
-      const useOtel = this._hasPreviewFlag('tracing')
+      // @ts-ignore
+      const useOtel = this._hasPreviewFlag('tracing') && global.HAS_CONSTRUCTED_INSTRUMENTATION
 
       if (useOtel) {
         const options: SpanOptions = {
@@ -1039,7 +1039,8 @@ new PrismaClient({
      */
     async _request(internalParams: InternalRequestParams): Promise<any> {
       // TODO: remove this once we have an instrumentation package
-      const useOtel = this._hasPreviewFlag('tracing')
+      // @ts-ignore
+      const useOtel = this._hasPreviewFlag('tracing') && global.HAS_CONSTRUCTED_INSTRUMENTATION
 
       try {
         // make sure that we don't leak extra properties to users
@@ -1179,7 +1180,12 @@ new PrismaClient({
         debug(query + '\n')
       }
 
-      headers = applyTracingHeaders(headers)
+      // @ts-ignore
+      const useOtel = this._hasPreviewFlag('tracing') && global.HAS_CONSTRUCTED_INSTRUMENTATION
+
+      if (useOtel) {
+        headers = applyTracingHeaders(headers)
+      }
 
       await lock /** @see {@link getLockCountPromise} */
 

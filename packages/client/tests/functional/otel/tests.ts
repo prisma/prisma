@@ -2,6 +2,7 @@ import { faker } from '@faker-js/faker'
 import * as api from '@opentelemetry/api'
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import {
   BasicTracerProvider,
@@ -10,6 +11,7 @@ import {
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 import testMatrix from './_matrix'
 
@@ -33,6 +35,10 @@ export function getExporter(): InMemorySpanExporter {
   provider.addSpanProcessor(new SimpleSpanProcessor(otlpTraceExporter))
   provider.addSpanProcessor(new SimpleSpanProcessor(inMemory))
   provider.register()
+
+  registerInstrumentations({
+    instrumentations: [new PrismaInstrumentation()],
+  })
 
   return inMemory
 }

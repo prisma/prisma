@@ -615,12 +615,19 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // they could also be a RustError, which has is_panic
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
+              // @ts-ignore - TODO
+              const useOtel = global.HAS_CONSTRUCTED_INSTRUMENTATION
+
               //@ts-ignore
               if (json.span === true) {
-                //@ts-ignore TODO: Get the type conversion correct;
-                createSpan(json as EngineSpanEvent)
+                if (useOtel) {
+                  //@ts-ignore TODO: Get the type conversion correct;
+                  createSpan(json as EngineSpanEvent)
+                }
+
                 return
               }
+
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)

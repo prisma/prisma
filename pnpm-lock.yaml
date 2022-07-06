@@ -215,6 +215,7 @@ importers:
       '@opentelemetry/api': 1.1.0
       '@opentelemetry/context-async-hooks': ^1.3.1
       '@opentelemetry/exporter-trace-otlp-http': ^0.29.2
+      '@opentelemetry/instrumentation': ^0.29.2
       '@opentelemetry/resources': ^1.3.1
       '@opentelemetry/sdk-trace-base': 1.3.1
       '@opentelemetry/semantic-conventions': ^1.3.1
@@ -225,6 +226,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
+      '@prisma/instrumentation': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@swc-node/register': 1.5.1
@@ -289,6 +291,7 @@ importers:
       '@opentelemetry/api': 1.1.0
       '@opentelemetry/context-async-hooks': 1.3.1_@opentelemetry+api@1.1.0
       '@opentelemetry/exporter-trace-otlp-http': 0.29.2_@opentelemetry+api@1.1.0
+      '@opentelemetry/instrumentation': 0.29.2_@opentelemetry+api@1.1.0
       '@opentelemetry/resources': 1.3.1_@opentelemetry+api@1.1.0
       '@opentelemetry/sdk-trace-base': 1.3.1_@opentelemetry+api@1.1.0
       '@opentelemetry/semantic-conventions': 1.3.1
@@ -298,6 +301,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
+      '@prisma/instrumentation': link:../instrumentation
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@swc-node/register': 1.5.1_typescript@4.7.4
@@ -559,6 +563,21 @@ importers:
       '@types/jest': 27.5.2
       '@types/node': 16.11.43
       jest: 27.5.1
+      typescript: 4.7.3
+
+  packages/instrumentation:
+    specifiers:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/instrumentation': ^0.29.2
+      '@swc/core': 1.2.197
+      '@types/node': 16.11.43
+      typescript: 4.7.3
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/instrumentation': 0.29.2_@opentelemetry+api@1.1.0
+    devDependencies:
+      '@swc/core': 1.2.197
+      '@types/node': 16.11.43
       typescript: 4.7.3
 
   packages/integration-tests:
@@ -2254,7 +2273,6 @@ packages:
     engines: {node: '>=8.12.0'}
     dependencies:
       '@opentelemetry/api': 1.1.0
-    dev: true
 
   /@opentelemetry/api/1.1.0:
     resolution: {integrity: sha512-hf+3bwuBwtXsugA2ULBc95qxrOqP2pOekLz34BJhcAKawt94vfeNyUKpYc0lZQ/3sCP6LqRa7UAdHA7i5UODzQ==}
@@ -2292,6 +2310,19 @@ packages:
       '@opentelemetry/resources': 1.3.1_@opentelemetry+api@1.1.0
       '@opentelemetry/sdk-trace-base': 1.3.1_@opentelemetry+api@1.1.0
     dev: true
+
+  /@opentelemetry/instrumentation/0.29.2_@opentelemetry+api@1.1.0:
+    resolution: {integrity: sha512-LXx5V0ONNATQFCE8C5uqnxWSm4rcXLssdLHdXjtGdxRmURqj/JO8jYefqXCD0LzsqEQ6yxOx2GZ0dgXvhBVdTw==}
+    peerDependencies:
+      '@opentelemetry/api': ^1.0.0
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/api-metrics': 0.29.2
+      require-in-the-middle: 5.1.0
+      semver: 7.3.7
+      shimmer: 1.2.1
+    transitivePeerDependencies:
+      - supports-color
 
   /@opentelemetry/otlp-exporter-base/0.29.2_@opentelemetry+api@1.1.0:
     resolution: {integrity: sha512-tTK+v2ER9Rv7YQXLrCvZpPdNdvZx8TGdZtlK7TKnzpyMRBIf7lqV1Jl0VaHFml+cgVJcGtow/ER6k5uJ5W4kUQ==}
@@ -9125,7 +9156,6 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       yallist: 4.0.0
-    dev: true
 
   /lru-cache/7.12.0:
     resolution: {integrity: sha512-OIP3DwzRZDfLg9B9VP/huWBlpvbkmbfiBy8xmsXp4RPmE4A3MhwNozc5ZJ3fWnSg8fDcdlE/neRTPG2ycEKliw==}
@@ -9539,6 +9569,9 @@ packages:
   /mock-stdin/1.0.0:
     resolution: {integrity: sha512-tukRdb9Beu27t6dN+XztSRHq9J0B/CoAOySGzHfn8UTfmqipA5yNT/sDUEyYdAV3Hpka6Wx6kOMxuObdOex60Q==}
     dev: true
+
+  /module-details-from-path/1.0.3:
+    resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
 
   /moment-timezone/0.5.34:
     resolution: {integrity: sha512-3zAEHh2hKUs3EXLESx/wsgw6IQdusOT8Bxm3D9UrHPQR7zlMmzwybC8zHEM1tQ4LJwP7fcxrWr8tuBg05fFCbg==}
@@ -10969,6 +11002,15 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
+  /require-in-the-middle/5.1.0:
+    resolution: {integrity: sha512-M2rLKVupQfJ5lf9OvqFGIT+9iVLnTmjgbOmpil12hiSQNn5zJTKGPoIisETNjfK+09vP3rpm1zJajmErpr2sEQ==}
+    dependencies:
+      debug: 4.3.4
+      module-details-from-path: 1.0.3
+      resolve: 1.22.1
+    transitivePeerDependencies:
+      - supports-color
+
   /resolve-cwd/3.0.0:
     resolution: {integrity: sha512-OrZaX2Mb+rJCpH/6CpSqt9xFVpN++x01XnN2ie9g6P5/3xelLAkXWVADpdz1IHD/KFfEXyE6V0U01OQ3UO2rEg==}
     engines: {node: '>=8'}
@@ -11183,7 +11225,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /send/0.17.2:
     resolution: {integrity: sha512-UJYB6wFSJE3G00nEivR5rgWp8c2xXvJ3OPWPhmuteU0IKj8nKbG3DrjiOmLwpnHGYWAVwA69zmTm++YG0Hmwww==}
@@ -11268,6 +11309,9 @@ packages:
       interpret: 1.4.0
       rechoir: 0.6.2
     dev: true
+
+  /shimmer/1.2.1:
+    resolution: {integrity: sha512-sQTKC1Re/rM6XyFM6fIAGHRPVGvyXfgzIDvzoq608vM+jeyVD0Tu1E6Np0Kc2zAIFWIj963V2800iF/9LPieQw==}
 
   /side-channel/1.0.4:
     resolution: {integrity: sha512-q5XPytqFEIKHkGdiMIrY10mvLRvnQh42/+GoBlFW3b2LXLE2xxJpZFdm94we0BaoV3RwJyGqg5wS7epxTv0Zvw==}
