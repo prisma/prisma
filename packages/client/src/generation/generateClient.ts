@@ -35,7 +35,7 @@ export interface GenerateClientOptions {
   datamodel: string
   schemaPath: string
   transpile?: boolean
-  runtimeDirs?: { node: string; edge: string }
+  runtimeDirs?: { node: string; edge: string; deno: string }
   outputDir: string
   generator?: GeneratorConfig
   dmmf: DMMF.Document
@@ -47,6 +47,7 @@ export interface GenerateClientOptions {
   clientVersion: string
   activeProvider: string
   dataProxy: boolean
+  deno: boolean
 }
 
 export interface BuildClientResult {
@@ -68,6 +69,7 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
+  deno,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -104,6 +106,15 @@ export async function buildClient({
     runtimeDir: runtimeDirs.edge,
   })
 
+  // create a client that is fit for deno
+  const denoTsClient = new TSClient({
+    ...tsClientOptions,
+    dataProxy: true, // deno currently only works w/ data proxy
+    runtimeName: 'deno',
+    runtimeDir: runtimeDirs.deno,
+    deno: true,
+  })
+
   const fileMap = {} // we will store the generated contents here
 
   // we generate the default client that is meant to work on Node
@@ -125,6 +136,13 @@ export async function buildClient({
   if (dataProxy === true) {
     fileMap['edge.js'] = await JS(edgeTsClient, true)
     fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
+  }
+
+  // we only generate the deno client if `--deno` is passed
+  if (deno === true) {
+    fileMap['deno.js'] = await JS(denoTsClient, true)
+    fileMap['deno.ts'] = '// @deno-types="./deno.d.ts"\nexport * from "./deno.js"'
+    fileMap['deno.d.ts'] = await TS(denoTsClient, true)
   }
 
   return {
@@ -174,6 +192,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     dataProxy,
+    deno,
   } = options
 
   const clientEngineType = getClientEngineType(generator!)
@@ -194,6 +213,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     projectRoot,
     activeProvider,
     dataProxy,
+    deno,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -426,6 +446,8 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
     // if we have an override, we use it, but if not then use the defaults
     node: runtimeDirs?.node || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
     edge: runtimeDirs?.edge || (useDefaultOutdir ? '@prisma/client/runtime' : './runtime'),
+    // deno only works with none default output
+    deno: runtimeDirs?.deno || './runtime',
   }
 
   const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir

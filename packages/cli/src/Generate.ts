@@ -51,6 +51,7 @@ ${chalk.bold('Options')}
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
   --data-proxy   Enable the Data Proxy in the Prisma Client
+        --deno   Enable Deno support in the Prisma Client
        --watch   Watch the Prisma schema and rerun after a change
 
 ${chalk.bold('Examples')}
@@ -103,6 +104,7 @@ ${chalk.bold('Examples')}
       '--watch': Boolean,
       '--schema': String,
       '--data-proxy': Boolean,
+      '--deno': Boolean,
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
@@ -139,6 +141,7 @@ ${chalk.bold('Examples')}
         version: enginesVersion,
         cliVersion: pkg.version,
         dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
+        deno: !!args['--deno'],
       })
 
       if (!generators || generators.length === 0) {
@@ -211,7 +214,7 @@ Please run \`prisma generate\` manually.`
               replacePathSeperatorsIfNecessary(
                 path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
               ),
-            )
+            ) + (prismaClientJSGenerator.options.deno ? '/deno.ts' : '')
           : '@prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
           ? `
@@ -262,6 +265,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               version: enginesVersion,
               cliVersion: pkg.version,
               dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
+              deno: !!args['--deno'],
             })
 
             if (!generatorsWatch || generatorsWatch.length === 0) {

@@ -43,6 +43,7 @@ export interface TSClientOptions {
   outputDir: string
   activeProvider: string
   dataProxy: boolean
+  deno?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -129,13 +130,14 @@ ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)
+${this.options.deno ? 'export { exports as default, Prisma, PrismaClient }' : ''}
 ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
   }
   public toTS(edge = false): string {
     // edge exports the same ts definitions as the index
-    if (edge === true) return `export * from './index'`
+    if (edge === true && this.options.deno !== true) return `export * from './index'`
 
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
@@ -172,7 +174,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
  * Client
 **/
 
-${commonCode.tsWithoutNamespace()}
+${commonCode.tsWithoutNamespace(this.options.deno)}
 
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${
@@ -193,7 +195,7 @@ ${prismaClientClass.toTSWithoutNamespace()}
 
 export namespace Prisma {
 ${indent(
-  `${commonCode.ts()}
+  `${commonCode.ts(undefined, this.options.deno)}
 ${new Enum(
   {
     name: 'ModelName',

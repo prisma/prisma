@@ -51,6 +51,7 @@ export type GetGeneratorOptions = {
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
   dataProxy: boolean
+  deno: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -71,6 +72,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     skipDownload,
     binaryPathsOverride,
     dataProxy,
+    deno,
   } = options
 
   if (!schemaPath) {
@@ -80,6 +82,11 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (!fs.existsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
+
+  if (deno && !dataProxy) {
+    throw new Error('Currently "--deno" option is only supported for Data Proxy client')
+  }
+
   const platform = await getPlatform()
 
   const queryEngineBinaryType = getCliQueryEngineBinaryType()
@@ -177,6 +184,11 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
             fromEnvVar: null,
           }
           generator.isCustomOutput = true
+        } else if (deno) {
+          throw new Error(`Can't find output dir for generator ${chalk.bold(generator.name)} with provider ${chalk.bold(
+            generator.provider.value,
+          )}.
+When you specify \`--deno\` option, you need to define \`output\` in the schema.prisma file.`)
         } else if (paths) {
           generator.output = {
             value: paths.outputPath,
@@ -210,6 +222,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
           dataProxy,
+          deno,
         }
 
         // we set the options here a bit later after instantiating the Generator,

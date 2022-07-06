@@ -90,6 +90,7 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   dataProxy: boolean
+  deno: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'

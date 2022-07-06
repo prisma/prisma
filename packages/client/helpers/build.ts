@@ -65,6 +65,14 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   logLevel: 'error',
 }
 
+// we define the config for deno
+const denoRuntimeBuildConfig: BuildOptions = {
+  ...edgeRuntimeBuildConfig,
+  name: 'deno',
+  outfile: 'runtime/deno',
+  format: 'esm',
+}
+
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
   name: 'generator',
@@ -125,7 +133,13 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
   }
 }
 
-void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
+void build([
+  generatorBuildConfig,
+  nodeRuntimeBuildConfig,
+  browserBuildConfig,
+  edgeRuntimeBuildConfig,
+  denoRuntimeBuildConfig,
+]).then(() => {
   if (process.env.DEV !== 'true') {
     bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
     bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')

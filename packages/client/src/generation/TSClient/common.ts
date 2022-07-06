@@ -9,17 +9,40 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
+  deno,
 }: TSClientOptions): string => `
-Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  browser
+  deno
+    ? `import {
+  Decimal,
+  decompressFromBase64,
+  empty,
+  getPrismaClient,
+  join,
+  NotFoundError,
+  objectEnumValues,
+  PrismaClientInitializationError,
+  PrismaClientKnownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientUnknownRequestError,
+  PrismaClientValidationError,
+  raw,
+  sqltag,
+} from "${runtimeDir}/${runtimeName}.js";
+import "https://deno.land/std@0.145.0/dotenv/load.ts";
+const process = { env: Deno.env.toObject() };
+const exports = {};
+`
+    : browser
     ? `
+Object.defineProperty(exports, "__esModule", { value: true });
 const {
   Decimal,
   objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
+Object.defineProperty(exports, "__esModule", { value: true });
 const {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
@@ -93,7 +116,34 @@ In case this error is unexpected for you, please report it in https://github.com
 }
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+  tsWithoutNamespace: (deno = false) => `${
+    // Mock out the runtime types for Deno client as generated runtime types are
+    // incompatible with Deno's type checker.
+    deno
+      ? `declare namespace runtime {
+  const DMMF: unknown
+  type DMMFClass = unknown
+  type BaseDMMF = unknown
+  const PrismaClientKnownRequestError: unknown
+  const PrismaClientUnknownRequestError: unknown
+  const PrismaClientRustPanicError: unknown
+  const PrismaClientInitializationError: unknown
+  const PrismaClientValidationError: unknown
+  const NotFoundError: unknown
+  const sqltag: unknown
+  const empty: unknown
+  const join: unknown
+  const raw: unknown
+  type Sql = unknown
+  type Decimal = unknown
+  type DecimalJsLike = unknown
+  const Metrics: unknown
+  const Metric: unknown
+  const MetricHistogram: unknown
+  const MetricHistogramBucket: unknown
+}`
+      : `import * as runtime from '${runtimeDir}/${runtimeName}';`
+  }
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
@@ -101,7 +151,7 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
 `,
-  ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
+  ts: (hideFetcher?: boolean, deno = false) => `export import DMMF = runtime.DMMF
 
 /**
  * Prisma Errors
@@ -328,8 +378,10 @@ type IsObject<T extends any> = T extends Array<any>
 ? False
 : T extends Date
 ? False
-: T extends Buffer
-? False
+${
+  // Deno doesn't have Buffer type
+  deno ? '' : `: T extends Buffer\n? False`
+}
 : T extends BigInt
 ? False
 : T extends object

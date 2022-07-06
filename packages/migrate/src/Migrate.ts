@@ -156,6 +156,7 @@ export class Migrate {
       version: enginesVersion,
       cliVersion: packageJson.version,
       dataProxy: false,
+      deno: false,
     })
 
     for (const generator of generators) {

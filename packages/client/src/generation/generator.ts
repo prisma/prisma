@@ -52,6 +52,7 @@ if (process.argv[1] === __filename) {
         transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
         dataProxy: options.dataProxy,
+        deno: options.deno,
       })
     },
   })
