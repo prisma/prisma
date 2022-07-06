@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657095029892,
+  "lastUpdate": 1657095688886,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -107958,6 +107958,72 @@ window.BENCHMARK_DATA = {
           {
             "name": "@prisma/client size",
             "value": 2.2,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.8,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 172,
+            "range": "±0.00%",
+            "unit": "KB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "29139614+renovate[bot]@users.noreply.github.com",
+            "name": "renovate[bot]",
+            "username": "renovate[bot]"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6146d3df111e6c33353bae2d8005387f197017fd",
+          "message": "fix(deps): update dependency undici to v5.6.0 (#14167)\n\nCo-authored-by: renovate[bot] <29139614+renovate[bot]@users.noreply.github.com>",
+          "timestamp": "2022-07-06T10:15:26+02:00",
+          "tree_id": "6ae6341799faddc1fbfe1a1c94b1c35b2f36c147",
+          "url": "https://github.com/prisma/prisma/commit/6146d3df111e6c33353bae2d8005387f197017fd"
+        },
+        "date": 1657095682274,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.78,
+            "range": "±6.77%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±4.50%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
