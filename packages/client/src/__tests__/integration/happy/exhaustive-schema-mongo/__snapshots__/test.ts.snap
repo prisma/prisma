@@ -689,6 +689,11 @@ export class PrismaClient<
    */
   $use(cb: Prisma.Middleware): void
 
+  /**
+   * Add a set context handler
+   */
+   $setContext(arg: Prisma.QueryMiddlewareContext): any;
+
 /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
    * @example
@@ -1485,7 +1490,13 @@ export namespace Prisma {
   export type Middleware<T = any> = (
     params: MiddlewareParams,
     next: (params: MiddlewareParams) => Promise<T>,
+    context: QueryMiddlewareContext
   ) => Promise<T>
+
+  /**
+   * Context type
+   */
+  export type QueryMiddlewareContext = Record<string, string | number | boolean>;
 
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
