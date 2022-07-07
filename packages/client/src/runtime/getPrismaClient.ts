@@ -1019,7 +1019,7 @@ new PrismaClient({
           },
         }
 
-        const runInChild = () => runInChildSpan({ name: 'prisma:client:transaction', options, callback: method })
+        const runInChild = () => runInChildSpan({ name: 'prisma:transaction', options, callback: method })
 
         if (NODE_CLIENT) {
           return await new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
@@ -1077,11 +1077,7 @@ new PrismaClient({
             },
           }
 
-          if (internalParams.transactionId) {
-            return consumer(params)
-          }
-
-          const runInChild = () => runInChildSpan({ name: 'prisma:client', options, callback: () => consumer(params) })
+          const runInChild = () => runInChildSpan({ name: 'prisma', options, callback: () => consumer(params) })
 
           if (NODE_CLIENT) {
             // https://github.com/prisma/prisma/issues/3148 not for the data proxy
