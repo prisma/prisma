@@ -34,7 +34,6 @@ const {
   join,
   raw,
   Decimal,
-  DecimalJsLike,
   objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
