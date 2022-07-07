@@ -228,6 +228,11 @@ export class PrismaClient<
    */
   $use(cb: Prisma.Middleware): void
 
+  /**
+   * Add a set context handler
+   */
+   $setContext(arg: Prisma.QueryMiddlewareContext): any;
+
 ${[
   executeRawDefinition.bind(this)(),
   queryRawDefinition.bind(this)(),
@@ -398,7 +403,13 @@ export type MiddlewareParams = {
 export type Middleware<T = any> = (
   params: MiddlewareParams,
   next: (params: MiddlewareParams) => Promise<T>,
+  context: QueryMiddlewareContext
 ) => Promise<T>
+
+/**
+ * Context type
+ */
+export type QueryMiddlewareContext = Record<string, string | number | boolean>;
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;

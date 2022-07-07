@@ -30,7 +30,13 @@ import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
+import type {
+  EngineMiddleware,
+  Namespace,
+  QueryMiddleware,
+  QueryMiddlewareContext,
+  QueryMiddlewareParams,
+} from './MiddlewareHandler'
 import { Middlewares } from './MiddlewareHandler'
 import { makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
@@ -311,6 +317,7 @@ export interface Client {
   _clientVersion: string
   _errorFormat: ErrorFormat
   readonly $metrics: MetricsClient
+  $setContext(arg: QueryMiddlewareContext)
   $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>)
   $on(eventType: EngineEventType, callback: (event: any) => void)
   $connect()
@@ -347,6 +354,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private _transactionId = 1
     private _rejectOnNotFound?: InstanceRejectOnNotFound
     private _dataProxy: boolean
+    private _context: QueryMiddlewareContext = {}
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -498,6 +506,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
+    }
+
+    /**
+     * Add a context that will be passed to query middleware
+     * @param context Record<string,string> to pass to middleware
+     */
+    $setContext(context: QueryMiddlewareContext) {
+      this._context = context
     }
 
     /**
@@ -1041,7 +1057,7 @@ new PrismaClient({
 
           // we pass the modified params down to the next one, & repeat
           // calling `next` calls the consumer again with the new params
-          if (nextMiddleware) return nextMiddleware(changedParams, consumer)
+          if (nextMiddleware) return nextMiddleware(changedParams, consumer, this._context)
 
           // before we send the execution request, we use the changed params
           const changedInternalParams = { ...internalParams, ...changedParams }

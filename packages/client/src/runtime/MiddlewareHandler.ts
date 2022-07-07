@@ -4,7 +4,10 @@ import type { Document } from './query'
 export type QueryMiddleware<T = unknown> = (
   params: QueryMiddlewareParams,
   next: (params: QueryMiddlewareParams) => Promise<T>,
+  context: QueryMiddlewareContext,
 ) => Promise<T>
+
+export type QueryMiddlewareContext = Record<string, string | number | boolean>
 
 export type QueryMiddlewareParams = {
   /** The model this is executed on */
