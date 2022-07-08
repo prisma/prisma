@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657280383809,
+  "lastUpdate": 1657281936194,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -108914,6 +108914,44 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±4.32%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "5d1226504b343ff2e4c9d41f561151439c3be114",
+          "message": "chore(deps): update engines to 4.1.0-26.9de910a34419e86cf3631267a0fd39bbb8895d4d (#14215)",
+          "timestamp": "2022-07-08T14:01:47+02:00",
+          "tree_id": "d64f0eb9644c5db709550275fc6e5a0f466eb966",
+          "url": "https://github.com/prisma/prisma/commit/5d1226504b343ff2e4c9d41f561151439c3be114"
+        },
+        "date": 1657281927292,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.54,
+            "range": "±8.53%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.58%",
             "unit": "ops/sec",
             "extra": "5 samples"
           }
