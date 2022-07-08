@@ -42,12 +42,12 @@ suite
     console.log(String(event.target))
   })
   .on('complete', () => {
-    getSize('./node_modules/@prisma/client')
-    getSize('./node_modules/.prisma/client')
-    getSize('./node_modules/.prisma/client/index.d.ts')
-    getSize('./node_modules/.prisma/client/index.js')
+    printSize('./node_modules/@prisma/client')
+    printSize('./node_modules/.prisma/client')
+    printSize('./node_modules/.prisma/client/index.d.ts')
+    printSize('./node_modules/.prisma/client/index.js')
     // For GitHub CI
-    getSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
+    printSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
     // getSize('./node_modules/.prisma/client/query-engine-darwin')
 
     // Zip .prisma/client and @prisma/client and check size
@@ -63,13 +63,11 @@ suite
         cwd: __dirname,
       },
     )
-    getSize('./dotPlusAtPrismaClientFolder.zip')
+    printSize('./dotPlusAtPrismaClientFolder.zip')
   })
   .run()
 
-const regex = new RegExp(/([\d]{1,99}([.]\d{1,99})?)(\w)/)
-
-function getSize(targetPath: string): void {
+function printSize(targetPath: string): void {
   const size = fs.statSync(targetPath).size() / 1024 / 1024
   console.log(
     `${targetPath.replace('./node_modules/', '').replace('./', '')} size x ${size} MB ±0.00% (1 runs sampled)`,
