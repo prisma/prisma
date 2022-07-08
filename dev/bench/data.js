@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657269376204,
+  "lastUpdate": 1657277057547,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -108840,6 +108840,44 @@ window.BENCHMARK_DATA = {
             "range": "±0.00%",
             "unit": "KB",
             "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "9b55681711546ae8685813ed51bd46cbabf87170",
+          "message": "fix: Always report package size in MB (#14211)\n\nBenchmark action does not understand different units",
+          "timestamp": "2022-07-08T12:41:24+02:00",
+          "tree_id": "d0df55015a0b9d3e8cf42a5fece3f2e418936da3",
+          "url": "https://github.com/prisma/prisma/commit/9b55681711546ae8685813ed51bd46cbabf87170"
+        },
+        "date": 1657277050164,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.03,
+            "range": "±5.59%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.37%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
           }
         ]
       }
