@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657281936194,
+  "lastUpdate": 1657284862314,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -108954,6 +108954,72 @@ window.BENCHMARK_DATA = {
             "range": "±2.58%",
             "unit": "ops/sec",
             "extra": "5 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "04598c3d239d843ad97c4fd164af7169a7e51079",
+          "message": "test: Fix & cleanup benchmark (#14217)\n\n- Fix size function for directories\r\n- Make it possible to run benchmark locally on non-linux\r\n- Cleanup from #14214\r\n- Cleanup couple of deprecated tools and schema flags\r\n- Adjust .gitignore\r\n\r\n Co-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-07-08T14:50:19+02:00",
+          "tree_id": "ce2fc34efb89643f1a0d10f92193a9236a7d0a67",
+          "url": "https://github.com/prisma/prisma/commit/04598c3d239d843ad97c4fd164af7169a7e51079"
+        },
+        "date": 1657284853890,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.55,
+            "range": "±8.54%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.40%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.1415224075317383,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 40.90443515777588,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7801876068115234,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16670608520507812,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
           }
         ]
       }
