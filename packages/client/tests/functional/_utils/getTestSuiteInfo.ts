@@ -32,6 +32,10 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
   if (suiteConfig['previewFeatures']) {
     name += `${suiteConfig['previewFeatures']}`
   }
+
+  if (suiteConfig['referentialIntegrity']) {
+    name += `=${suiteConfig['referentialIntegrity']}`
+  }
   name += `)`
 
   // replace illegal chars with empty string
