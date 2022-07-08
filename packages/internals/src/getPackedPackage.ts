@@ -2,16 +2,9 @@ import fs from 'fs'
 import { copySync } from 'fs-extra'
 import path from 'path'
 import readPkgUp from 'read-pkg-up'
-import rimraf from 'rimraf'
 import tempy from 'tempy'
-import { promisify } from 'util'
 
 import { resolvePkg } from './utils/resolve'
-
-// why not directly use Sindre's 'del'? Because it's not ncc-able :/
-const del = promisify(rimraf)
-const readdir = promisify(fs.readdir)
-const rename = promisify(fs.rename)
 
 export async function getPackedPackage(name: string, target?: string, packageDir?: string): Promise<string | void> {
   packageDir =
