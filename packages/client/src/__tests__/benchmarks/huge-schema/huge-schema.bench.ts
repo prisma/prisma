@@ -2,6 +2,7 @@
 
 import Benchmark from 'benchmark'
 import execa from 'execa'
+import fs from 'fs'
 import path from 'path'
 
 import { compileFile } from '../../../utils/compileFile'
@@ -68,25 +69,9 @@ suite
 
 const regex = new RegExp(/([\d]{1,99}([.]\d{1,99})?)(\w)/)
 
-function getSize(targetPath: string): { size: string; unit: string } {
-  // const listFiles = execa.sync('ls', ['-la', `./node_modules/${targetPath}`], {
-  //   stdout: 'pipe',
-  //   cwd: __dirname,
-  // })
-  // console.log(listFiles)
-
-  const output = execa.sync('du', ['-sh', targetPath], {
-    stdout: 'pipe',
-    cwd: __dirname,
-  })
-  const str = output.stdout.split('\t')[0]
-  const match = regex.exec(str)
-  const pkgSize = { size: match[1], unit: match[3] }
+function getSize(targetPath: string): void {
+  const size = fs.statSync(targetPath).size() / 1024 / 1024
   console.log(
-    `${targetPath.replace('./node_modules/', '').replace('./', '')} size x ${pkgSize.size} ${
-      pkgSize.unit
-    }B ±0.00% (1 runs sampled)`,
+    `${targetPath.replace('./node_modules/', '').replace('./', '')} size x ${size} MB ±0.00% (1 runs sampled)`,
   )
-
-  return pkgSize
 }
