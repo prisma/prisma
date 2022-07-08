@@ -42,15 +42,14 @@ suite
     console.log(String(event.target))
   })
   .on('complete', () => {
-    getSize('./node_modules/@prisma/client')
-    getSize('./node_modules/.prisma/client')
-    getSize('./node_modules/.prisma/client/index.d.ts')
-    getSize('./node_modules/.prisma/client/index.js')
+    printSize('./node_modules/@prisma/client')
+    printSize('./node_modules/.prisma/client')
+    printSize('./node_modules/.prisma/client/index.d.ts')
+    printSize('./node_modules/.prisma/client/index.js')
     // For GitHub CI
-    getSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
-    // getSize('./node_modules/.prisma/client/query-engine-darwin')
-
-    // Zip .prisma/client and @prisma/client and check size
+    if (process.env.CI) {
+      printSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
+    }
     execa.sync('rm', ['-rf', `./dotPlusAtPrismaClientFolder.zip`], {
       stdout: 'pipe',
       cwd: __dirname,
@@ -63,15 +62,29 @@ suite
         cwd: __dirname,
       },
     )
-    getSize('./dotPlusAtPrismaClientFolder.zip')
+    printSize('./dotPlusAtPrismaClientFolder.zip')
   })
   .run()
 
-const regex = new RegExp(/([\d]{1,99}([.]\d{1,99})?)(\w)/)
-
-function getSize(targetPath: string): void {
-  const size = fs.statSync(targetPath).size() / 1024 / 1024
+function printSize(targetPath: string): void {
+  const size = getSize(path.join(__dirname, targetPath)) / 1024 / 1024
   console.log(
     `${targetPath.replace('./node_modules/', '').replace('./', '')} size x ${size} MB ±0.00% (1 runs sampled)`,
   )
+}
+
+function getSize(targetPath: string): number {
+  const stat = fs.statSync(targetPath)
+  if (stat.isFile()) {
+    return stat.size
+  }
+
+  if (stat.isDirectory()) {
+    return fs
+      .readdirSync(targetPath)
+      .filter((fileName) => fileName !== '.' && fileName !== '..')
+      .map((subPath) => getSize(path.join(targetPath, subPath)))
+      .reduce((a, b) => a + b)
+  }
+  return 0
 }
