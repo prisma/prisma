@@ -551,10 +551,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
+        const tracingConfig = getTracingConfig(this)
+
         const flags = [
           '--enable-raw-queries',
           '--enable-metrics',
-          '--enable-open-telemetry',
+          ...(tracingConfig.enabled ? ['--enable-open-telemetry'] : []),
           ...this.flags,
           ...additionalFlag,
         ]
