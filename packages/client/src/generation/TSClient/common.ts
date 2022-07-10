@@ -26,6 +26,7 @@ const {
   PrismaClientRustPanicError,
   PrismaClientInitializationError,
   PrismaClientValidationError,
+  NotFoundError,
   decompressFromBase64,
   getPrismaClient,
   sqltag,
@@ -33,7 +34,6 @@ const {
   join,
   raw,
   Decimal,
-  DecimalJsLike,
   objectEnumValues
 } = require('${runtimeDir}/${runtimeName}')
 `
@@ -57,6 +57,7 @@ Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnkn
 Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
 Prisma.PrismaClientInitializationError = ${notSupportOnBrowser('PrismaClientInitializationError', browser)}
 Prisma.PrismaClientValidationError = ${notSupportOnBrowser('PrismaClientValidationError', browser)}
+Prisma.NotFoundError = ${notSupportOnBrowser('NotFoundError', browser)}
 Prisma.Decimal = Decimal
 
 /**
@@ -110,6 +111,7 @@ export import PrismaClientUnknownRequestError = runtime.PrismaClientUnknownReque
 export import PrismaClientRustPanicError = runtime.PrismaClientRustPanicError
 export import PrismaClientInitializationError = runtime.PrismaClientInitializationError
 export import PrismaClientValidationError = runtime.PrismaClientValidationError
+export import NotFoundError = runtime.NotFoundError
 
 /**
  * Re-export of sql-template-tag

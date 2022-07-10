@@ -602,6 +602,48 @@ jobs:
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
 
+      - run: pnpm run test
+        name: 'get-platform'
+        working-directory: packages/get-platform
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/get-platform/src/__tests__/coverage/clover.xml
+          flags: get-platform,${{ matrix.os }},library,binary
+          name: get-platform-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'fetch-engine'
+        working-directory: packages/fetch-engine
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
+          flags: fetch-engine,${{ matrix.os }},library,binary
+          name: fetch-engine-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'engines'
+        working-directory: packages/engines
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/engines/src/__tests__/coverage/clover.xml
+          flags: engines,${{ matrix.os }},library,binary
+          name: engines-${{ matrix.os }}
+
   #
   # Run all tests on macOS and Windows.
   #
@@ -788,6 +830,57 @@ jobs:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
+
+      - name: Test packages/get-platform
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        run: pnpm run test
+        working-directory: packages/get-platform
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/get-platform/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        with:
+          files: ./packages/get-platform/src/__tests__/coverage/clover.xml
+          flags: get-platform,${{ matrix.os }},library,binary
+          name: get-platform-${{ matrix.os }}
+
+      - name: Test packages/fetch-engine
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        run: pnpm run test
+        working-directory: packages/fetch-engine
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/fetch-engine/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        with:
+          files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
+          flags: fetch-engine,${{ matrix.os }},library,binary
+          name: fetch-engine-${{ matrix.os }}
+
+      - name: Test packages/engines
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        run: pnpm run test
+        working-directory: packages/engines
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engines/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        with:
+          files: ./packages/engines/src/__tests__/coverage/clover.xml
+          flags: engines,${{ matrix.os }},library,binary
+          name: engines-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.
