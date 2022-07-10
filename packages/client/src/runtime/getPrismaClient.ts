@@ -1066,7 +1066,7 @@ new PrismaClient({
             },
           }
 
-          return this._tracedRequest({
+          return await this._tracedRequest({
             callback: () => consumer(params),
             name: 'prisma',
             options,
