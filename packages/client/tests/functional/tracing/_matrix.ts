@@ -4,8 +4,6 @@ export default defineMatrix(() => [
   [
     {
       provider: 'postgresql',
-      id: 'Int @id @default(autoincrement())',
-      providerFeatures: '',
     },
   ],
 ])

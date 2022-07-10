@@ -1,6 +1,7 @@
+import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, id }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
@@ -13,8 +14,8 @@ export default testMatrix.setupSchema(({ provider, id }) => {
     }
     
     model User {
-      id ${id}
-      email String
+      id ${idForProvider(provider)}
+      email String @unique
     }
   `
 })
