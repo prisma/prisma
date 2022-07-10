@@ -1,20 +1,31 @@
 import { InstrumentationBase, InstrumentationNodeModuleDefinition } from '@opentelemetry/instrumentation'
 
-const VERSION = 'TODO'
+import { GLOBAL_KEY, MODULE_NAME, NAME, VERSION } from './constants'
 
 export interface PrismaInstrumentationConfig {}
 
-export const module = new InstrumentationNodeModuleDefinition('express', [VERSION])
-
 export class PrismaInstrumentation extends InstrumentationBase {
   constructor(config: PrismaInstrumentationConfig = {}) {
-    super('@opentelemetry/instrumentation-express', VERSION, Object.assign({}, config))
+    super(NAME, VERSION, config)
   }
 
   init() {
-    // @ts-ignore - TODO what should this be? Global symbol ? How to type it ? How to test it? What about options?
-    global.HAS_CONSTRUCTED_INSTRUMENTATION = true
+    const module = new InstrumentationNodeModuleDefinition(MODULE_NAME, [VERSION])
 
     return [module]
+  }
+
+  enable() {
+    // @ts-ignore
+    global[GLOBAL_KEY] = true
+  }
+
+  disable() {
+    // @ts-ignore
+    delete global[GLOBAL_KEY]
+  }
+
+  isEnabled() {
+    return Boolean(global[GLOBAL_KEY])
   }
 }

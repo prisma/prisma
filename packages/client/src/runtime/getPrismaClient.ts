@@ -1,7 +1,7 @@
 import type { SpanOptions } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
-import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
+import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType, Options } from '@prisma/engine-core'
+import { BinaryEngine, DataProxyEngine, getTracingConfig, LibraryEngine } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import {
   ClientEngineType,
@@ -491,7 +491,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       if (this._dataProxy === true) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library) {
-        // @ts-ignore
         return NODE_CLIENT && new LibraryEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Binary) {
         return NODE_CLIENT && new BinaryEngine(this._engineConfig)
@@ -969,10 +968,9 @@ new PrismaClient({
       options?: { maxWait: number; timeout: number },
     ) {
       const headers = applyTracingHeaders({})
-      const headerStr = JSON.stringify(headers)
+      const traceHeaders = JSON.stringify(headers)
 
-      //@ts-ignore
-      const info = await this._engine.transaction('start', headerStr, options)
+      const info = await this._engine.transaction('start', traceHeaders, options as Options)
 
       let result: unknown
       try {
@@ -980,12 +978,10 @@ new PrismaClient({
         result = await callback(transactionProxy(this, info.id))
 
         // it went well, then we commit the transaction
-        //@ts-ignore
-        await this._engine.transaction('commit', headerStr, info)
+        await this._engine.transaction('commit', traceHeaders, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        //@ts-ignore
-        await this._engine.transaction('rollback', headerStr, info).catch(() => {})
+        await this._engine.transaction('rollback', traceHeaders, info).catch(() => {})
 
         e.clientVersion = this._clientVersion
         throw e // silent rollback, throw original error
@@ -1001,34 +997,30 @@ new PrismaClient({
      * @returns
      */
     async $transaction(input: any, options?: any) {
-      let method: () => Promise<any>
+      let callback: () => Promise<any>
 
       if (typeof input === 'function') {
-        method = () => this._transactionWithCallback(input, options)
+        callback = () => this._transactionWithCallback(input, options)
       } else {
-        method = () => this._transactionWithArray(input)
+        callback = () => this._transactionWithArray(input)
       }
 
-      // @ts-ignore
-      const useOtel = this._hasPreviewFlag('tracing') && global.HAS_CONSTRUCTED_INSTRUMENTATION
-
-      if (useOtel) {
+      const tracingConfig = getTracingConfig(this._engine)
+      if (tracingConfig.enabled) {
         const options: SpanOptions = {
           attributes: {
             method: 'transaction',
           },
         }
 
-        const runInChild = () => runInChildSpan({ name: 'prisma:transaction', options, callback: method })
-
-        if (NODE_CLIENT) {
-          return await new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
-        } else {
-          return await runInChild()
-        }
+        return this._tracedRequest({
+          callback,
+          name: 'prisma:transaction',
+          options,
+        })
       }
 
-      return method()
+      return callback()
     }
 
     /**
@@ -1038,10 +1030,6 @@ new PrismaClient({
      * @returns
      */
     async _request(internalParams: InternalRequestParams): Promise<any> {
-      // TODO: remove this once we have an instrumentation package
-      // @ts-ignore
-      const useOtel = this._hasPreviewFlag('tracing') && global.HAS_CONSTRUCTED_INSTRUMENTATION
-
       try {
         // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
@@ -1069,7 +1057,8 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
-        if (useOtel) {
+        const tracingConfig = getTracingConfig(this._engine)
+        if (tracingConfig.enabled) {
           const options: SpanOptions = {
             attributes: {
               method: internalParams.action,
@@ -1077,21 +1066,37 @@ new PrismaClient({
             },
           }
 
-          const runInChild = () => runInChildSpan({ name: 'prisma', options, callback: () => consumer(params) })
-
-          if (NODE_CLIENT) {
-            // https://github.com/prisma/prisma/issues/3148 not for the data proxy
-            return await new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
-          } else {
-            // we execute the middleware consumer and wrap the call for otel
-            return await runInChild()
-          }
+          return this._tracedRequest({
+            callback: () => consumer(params),
+            name: 'prisma',
+            options,
+          })
         }
 
         return consumer(params)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
+      }
+    }
+
+    async _tracedRequest({
+      callback,
+      options,
+      name,
+    }: {
+      callback: () => any
+      options: SpanOptions
+      name: 'prisma' | 'prisma:transaction'
+    }) {
+      const runInChild = () => runInChildSpan({ name, options, callback })
+
+      if (NODE_CLIENT) {
+        // https://github.com/prisma/prisma/issues/3148 not for the data proxy
+        return new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
+      } else {
+        // we execute the middleware consumer and wrap the call for otel
+        return runInChild()
       }
     }
 
@@ -1176,10 +1181,8 @@ new PrismaClient({
         debug(query + '\n')
       }
 
-      // @ts-ignore
-      const useOtel = this._hasPreviewFlag('tracing') && global.HAS_CONSTRUCTED_INSTRUMENTATION
-
-      if (useOtel) {
+      const tracingConfig = getTracingConfig(this._engine)
+      if (tracingConfig.enabled) {
         headers = applyTracingHeaders(headers)
       }
 

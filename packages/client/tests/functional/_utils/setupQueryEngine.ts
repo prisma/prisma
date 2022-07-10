@@ -14,17 +14,17 @@ import path from 'path'
  * @param platform
  */
 export async function setupQueryEngine(clientEngineType: ClientEngineType, platform: Platform) {
-  // const engineDownloadDir = path.join(__dirname, '..', '..', '..')
-  // const queryEngineLibraryPath = path.join(engineDownloadDir, getNodeAPIName(platform, 'fs'))
-  // const queryEngineBinaryPath = path.join(
-  //   engineDownloadDir,
-  //   `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
-  // )
-  // if (clientEngineType === ClientEngineType.Library && !(await fs.pathExists(queryEngineLibraryPath))) {
-  //   await download({ binaries: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
-  // } else if (clientEngineType === ClientEngineType.Binary && !(await fs.pathExists(queryEngineBinaryPath))) {
-  //   await download({ binaries: { 'query-engine': engineDownloadDir }, version: enginesVersion })
-  // }
+  const engineDownloadDir = path.join(__dirname, '..', '..', '..')
+  const queryEngineLibraryPath = path.join(engineDownloadDir, getNodeAPIName(platform, 'fs'))
+  const queryEngineBinaryPath = path.join(
+    engineDownloadDir,
+    `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+  )
+  if (clientEngineType === ClientEngineType.Library && !(await fs.pathExists(queryEngineLibraryPath))) {
+    await download({ binaries: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
+  } else if (clientEngineType === ClientEngineType.Binary && !(await fs.pathExists(queryEngineBinaryPath))) {
+    await download({ binaries: { 'query-engine': engineDownloadDir }, version: enginesVersion })
+  }
 }
 
 // TODO this might be duplicated in a few places, find a common place

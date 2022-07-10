@@ -82,6 +82,7 @@ ${detailsHeader} ${message}`
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
+  // @ts-ignore - Type 'unknown' is not assignable to type 'ConfigMetaFormat
   const data: ConfigMetaFormat = await match(cliEngineBinaryType)
     .with(BinaryType.libqueryEngine, () => {
       return getConfigNodeAPI(options)

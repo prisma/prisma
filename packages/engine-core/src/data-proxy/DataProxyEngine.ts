@@ -243,4 +243,8 @@ export class DataProxyEngine extends Engine {
       clientVersion: this.clientVersion,
     })
   }
+
+  _hasPreviewFlag(feature: string): Boolean {
+    return !!this.config.previewFeatures?.includes(feature)
+  }
 }

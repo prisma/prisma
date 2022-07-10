@@ -6,7 +6,6 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
-import { createSpan, EngineSpanEvent } from '../../../client/src/runtime/utils/otel/runInChildSpan'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -18,6 +17,7 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
+  EngineSpanEvent,
   QueryEngineBatchRequest,
   QueryEngineEvent,
   QueryEngineLogLevel,
@@ -30,6 +30,8 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { createSpan } from '../common/utils/createSpan'
+import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
@@ -39,6 +41,10 @@ function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
+  if ('span' in event) {
+    return false
+  }
+
   return event.level === 'error' && event['message'] === 'PANIC'
 }
 
@@ -109,14 +115,10 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  //@ts-ignore
-  async transaction(action: 'start', headers: string, options?: Tx.Options): Promise<Tx.Info>
-  //@ts-ignore
-  async transaction(action: 'commit', headers: string, info: Tx.Info): Promise<undefined>
-  //@ts-ignore
-  async transaction(action: 'rollback', headers: string, info: Tx.Info): Promise<undefined>
-  //@ts-ignore
-  async transaction(action: any, headers: string, arg?: any) {
+  async transaction(action: 'start', traceHeaders: string, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', traceHeaders: string, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', traceHeaders: string, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, traceHeaders: string, arg?: any) {
     await this.start()
 
     let result: string | undefined
@@ -124,14 +126,13 @@ export class LibraryEngine extends Engine {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
-        trace: headers, // TODO - make this optional engine side
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, headers)
+      result = await this.engine?.startTransaction(jsonOptions, traceHeaders)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, headers)
+      result = await this.engine?.commitTransaction(arg.id, traceHeaders)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, headers)
+      result = await this.engine?.rollbackTransaction(arg.id, traceHeaders)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -225,16 +226,15 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     if (err) {
       throw err
     }
+
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
-    if (!event) return
+    if (!event) {
+      return
+    }
 
-    // @ts-ignore - TODO
-    const useOtel = global.HAS_CONSTRUCTED_INSTRUMENTATION
-
-    // @ts-ignore
-    if (event?.span === true) {
-      if (useOtel) {
-        //@ts-ignore TODO: Get the type conversion correct;
+    if ('span' in event) {
+      const tracingConfig = getTracingConfig(this)
+      if (tracingConfig.enabled) {
         createSpan(event as EngineSpanEvent)
       }
 
@@ -516,6 +516,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return responseString
     }
     return this.parseEngineResponse(responseString)
+  }
+
+  _hasPreviewFlag(feature: string): Boolean {
+    return !!this.config.previewFeatures?.includes(feature)
   }
 }
 

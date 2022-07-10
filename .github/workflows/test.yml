@@ -242,6 +242,47 @@ jobs:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client-types,${{ matrix.os }},library,binary
           name: client-types-${{ matrix.os }}
+  #
+  # instrumentation
+  #
+  instrumentation:
+    timeout-minutes: 15
+    runs-on: buildjet-4vcpu-ubuntu-2004
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [16]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test
+        working-directory: packages/instrumentation
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
+          flags: instrumentation,${{ matrix.os }},library,binary
+          name: instrumentation-${{ matrix.os }}
 
   #
   # INTEGRATION-TESTS

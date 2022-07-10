@@ -28,12 +28,14 @@ export abstract class Engine {
     transaction?: boolean,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
-  abstract transaction(action: 'start', headerStr: string, options?: Transaction.Options): Promise<Transaction.Info>
-  abstract transaction(action: 'commit', headerStr: string, info: Transaction.Info): Promise<void>
-  abstract transaction(action: 'rollback', headerStr: string, info: Transaction.Info): Promise<void>
+  abstract transaction(action: 'start', traceHeaders: string, options: Transaction.Options): Promise<Transaction.Info>
+  abstract transaction(action: 'commit', traceHeaders: string, info: Transaction.Info): Promise<void>
+  abstract transaction(action: 'rollback', traceHeaders: string, info: Transaction.Info): Promise<void>
 
   abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
   abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
+
+  abstract _hasPreviewFlag(feature: string): Boolean
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'

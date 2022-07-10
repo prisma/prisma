@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker'
-import * as api from '@opentelemetry/api'
+import { context, trace } from '@opentelemetry/api'
 import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http'
 import { registerInstrumentations } from '@opentelemetry/instrumentation'
 import { Resource } from '@opentelemetry/resources'
 import {
@@ -35,16 +34,14 @@ function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
+  () => {
     let inMemorySpanExporter: InMemorySpanExporter
-    let otlpTraceExporter: OTLPTraceExporter
     let basicTracerProvider: BasicTracerProvider
 
     beforeAll(() => {
       const contextManager = new AsyncHooksContextManager().enable()
-      api.context.setGlobalContextManager(contextManager)
+      context.setGlobalContextManager(contextManager)
 
-      otlpTraceExporter = new OTLPTraceExporter()
       inMemorySpanExporter = new InMemorySpanExporter()
 
       basicTracerProvider = new BasicTracerProvider({
@@ -54,7 +51,6 @@ testMatrix.setupTestSuite(
         }),
       })
 
-      basicTracerProvider.addSpanProcessor(new SimpleSpanProcessor(otlpTraceExporter))
       basicTracerProvider.addSpanProcessor(new SimpleSpanProcessor(inMemorySpanExporter))
       basicTracerProvider.register()
 
@@ -70,11 +66,10 @@ testMatrix.setupTestSuite(
 
     afterAll(async () => {
       await inMemorySpanExporter?.shutdown()
-      await otlpTraceExporter?.shutdown()
       await basicTracerProvider?.shutdown()
     })
 
-    describe('tracing on crud', () => {
+    describe('tracing on crud methods', () => {
       const email = faker.internet.email()
 
       test('create', async () => {
@@ -88,39 +83,35 @@ testMatrix.setupTestSuite(
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
 
-        if (suiteConfig.provider === 'mongodb') {
-          // todo
-        } else {
-          expect(tree.span.name).toEqual('prisma')
-          expect(tree.span.attributes['method']).toEqual('create')
-          expect(tree.span.attributes['model']).toEqual('User')
+        expect(tree.span.name).toEqual('prisma')
+        expect(tree.span.attributes['method']).toEqual('create')
+        expect(tree.span.attributes['model']).toEqual('User')
 
-          expect(tree.children).toHaveLength(1)
+        expect(tree.children).toHaveLength(1)
 
-          const engine = (tree?.children || [])[0] as unknown as Tree
-          expect(engine.span.name).toEqual('prisma:engine:query')
+        const engine = (tree?.children || [])[0] as unknown as Tree
+        expect(engine.span.name).toEqual('prisma:query_builder')
 
-          expect(engine.children).toHaveLength(5)
+        expect(engine.children).toHaveLength(5)
 
-          const getConnection = (engine.children || [])[0]
-          expect(getConnection.span.name).toEqual('engine:get_connection')
+        const getConnection = (engine.children || [])[0]
+        expect(getConnection.span.name).toEqual('prisma:connection')
 
-          const quaint1 = (engine.children || [])[1]
-          expect(quaint1.span.name).toEqual('quaint:query')
-          expect(quaint1.span.attributes['query']).toEqual('BEGIN')
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
 
-          const quaint2 = (engine.children || [])[2]
-          expect(quaint2.span.name).toEqual('quaint:query')
-          expect(quaint2.span.attributes['query']).toContain('INSERT')
+        const dbQuery2 = (engine.children || [])[2]
+        expect(dbQuery2.span.name).toEqual('prisma:db_query')
+        expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
 
-          const quaint3 = (engine.children || [])[3]
-          expect(quaint3.span.name).toEqual('quaint:query')
-          expect(quaint3.span.attributes['query']).toContain('SELECT')
+        const dbQuery3 = (engine.children || [])[3]
+        expect(dbQuery3.span.name).toEqual('prisma:db_query')
+        expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-          const quaint4 = (engine.children || [])[4]
-          expect(quaint4.span.name).toEqual('quaint:query')
-          expect(quaint4.span.attributes['query']).toContain('COMMIT')
-        }
+        const dbQuery4 = (engine.children || [])[4]
+        expect(dbQuery4.span.name).toEqual('prisma:db_query')
+        expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
       })
 
       test('read', async () => {
@@ -134,27 +125,23 @@ testMatrix.setupTestSuite(
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
 
-        if (suiteConfig.provider === 'mongodb') {
-          // todo
-        } else {
-          expect(tree.span.name).toEqual('prisma')
-          expect(tree.span.attributes['method']).toEqual('findMany')
-          expect(tree.span.attributes['model']).toEqual('User')
+        expect(tree.span.name).toEqual('prisma')
+        expect(tree.span.attributes['method']).toEqual('findMany')
+        expect(tree.span.attributes['model']).toEqual('User')
 
-          expect(tree.children).toHaveLength(1)
+        expect(tree.children).toHaveLength(1)
 
-          const engine = (tree?.children || [])[0] as unknown as Tree
-          expect(engine.span.name).toEqual('prisma:engine:query')
+        const engine = (tree?.children || [])[0] as unknown as Tree
+        expect(engine.span.name).toEqual('prisma:query_builder')
 
-          expect(engine.children).toHaveLength(2)
+        expect(engine.children).toHaveLength(2)
 
-          const getConnection = (engine.children || [])[0]
-          expect(getConnection.span.name).toEqual('engine:get_connection')
+        const getConnection = (engine.children || [])[0]
+        expect(getConnection.span.name).toEqual('prisma:connection')
 
-          const select = (engine.children || [])[1]
-          expect(select.span.name).toEqual('quaint:query')
-          expect(select.span.attributes['query']).toContain('SELECT')
-        }
+        const select = (engine.children || [])[1]
+        expect(select.span.name).toEqual('prisma:db_query')
+        expect(select.span.attributes['db.statement']).toContain('SELECT')
       })
 
       test('update', async () => {
@@ -171,43 +158,39 @@ testMatrix.setupTestSuite(
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
 
-        if (suiteConfig.provider === 'mongodb') {
-          // todo
-        } else {
-          expect(tree.span.name).toEqual('prisma')
-          expect(tree.span.attributes['method']).toEqual('update')
-          expect(tree.span.attributes['model']).toEqual('User')
+        expect(tree.span.name).toEqual('prisma')
+        expect(tree.span.attributes['method']).toEqual('update')
+        expect(tree.span.attributes['model']).toEqual('User')
 
-          expect(tree.children).toHaveLength(1)
+        expect(tree.children).toHaveLength(1)
 
-          const engine = (tree?.children || [])[0] as unknown as Tree
-          expect(engine.span.name).toEqual('prisma:engine:query')
+        const engine = (tree?.children || [])[0] as unknown as Tree
+        expect(engine.span.name).toEqual('prisma:query_builder')
 
-          expect(engine.children).toHaveLength(6)
+        expect(engine.children).toHaveLength(6)
 
-          const getConnection = (engine.children || [])[0]
-          expect(getConnection.span.name).toEqual('engine:get_connection')
+        const getConnection = (engine.children || [])[0]
+        expect(getConnection.span.name).toEqual('prisma:connection')
 
-          const quaint1 = (engine.children || [])[1]
-          expect(quaint1.span.name).toEqual('quaint:query')
-          expect(quaint1.span.attributes['query']).toEqual('BEGIN')
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
 
-          const quaint2 = (engine.children || [])[2]
-          expect(quaint2.span.name).toEqual('quaint:query')
-          expect(quaint2.span.attributes['query']).toContain('SELECT')
+        const dbQuery2 = (engine.children || [])[2]
+        expect(dbQuery2.span.name).toEqual('prisma:db_query')
+        expect(dbQuery2.span.attributes['db.statement']).toContain('SELECT')
 
-          const quaint3 = (engine.children || [])[3]
-          expect(quaint3.span.name).toEqual('quaint:query')
-          expect(quaint3.span.attributes['query']).toContain('UPDATE')
+        const dbQuery3 = (engine.children || [])[3]
+        expect(dbQuery3.span.name).toEqual('prisma:db_query')
+        expect(dbQuery3.span.attributes['db.statement']).toContain('UPDATE')
 
-          const quaint4 = (engine.children || [])[4]
-          expect(quaint4.span.name).toEqual('quaint:query')
-          expect(quaint4.span.attributes['query']).toContain('SELECT')
+        const dbQuery4 = (engine.children || [])[4]
+        expect(dbQuery4.span.name).toEqual('prisma:db_query')
+        expect(dbQuery4.span.attributes['db.statement']).toContain('SELECT')
 
-          const quaint5 = (engine.children || [])[5]
-          expect(quaint5.span.name).toEqual('quaint:query')
-          expect(quaint5.span.attributes['query']).toContain('COMMIT')
-        }
+        const dbQuery5 = (engine.children || [])[5]
+        expect(dbQuery5.span.name).toEqual('prisma:db_query')
+        expect(dbQuery5.span.attributes['db.statement']).toContain('COMMIT')
       })
 
       test('delete', async () => {
@@ -221,46 +204,43 @@ testMatrix.setupTestSuite(
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
 
-        if (suiteConfig.provider === 'mongodb') {
-          // todo
-        } else {
-          expect(tree.span.name).toEqual('prisma')
-          expect(tree.span.attributes['method']).toEqual('delete')
-          expect(tree.span.attributes['model']).toEqual('User')
+        expect(tree.span.name).toEqual('prisma')
+        expect(tree.span.attributes['method']).toEqual('delete')
+        expect(tree.span.attributes['model']).toEqual('User')
 
-          expect(tree.children).toHaveLength(1)
+        expect(tree.children).toHaveLength(1)
 
-          const engine = (tree?.children || [])[0] as unknown as Tree
-          expect(engine.span.name).toEqual('prisma:engine:query')
+        const engine = (tree?.children || [])[0] as unknown as Tree
+        expect(engine.span.name).toEqual('prisma:query_builder')
 
-          expect(engine.children).toHaveLength(6)
+        expect(engine.children).toHaveLength(6)
 
-          const getConnection = (engine.children || [])[0]
-          expect(getConnection.span.name).toEqual('engine:get_connection')
+        const getConnection = (engine.children || [])[0]
+        expect(getConnection.span.name).toEqual('prisma:connection')
 
-          const quaint1 = (engine.children || [])[1]
-          expect(quaint1.span.name).toEqual('quaint:query')
-          expect(quaint1.span.attributes['query']).toEqual('BEGIN')
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
 
-          const quaint2 = (engine.children || [])[2]
-          expect(quaint2.span.name).toEqual('quaint:query')
-          expect(quaint2.span.attributes['query']).toContain('SELECT')
+        const dbQuery2 = (engine.children || [])[2]
+        expect(dbQuery2.span.name).toEqual('prisma:db_query')
+        expect(dbQuery2.span.attributes['db.statement']).toContain('SELECT')
 
-          const quaint3 = (engine.children || [])[3]
-          expect(quaint3.span.name).toEqual('quaint:query')
-          expect(quaint3.span.attributes['query']).toContain('SELECT')
+        const dbQuery3 = (engine.children || [])[3]
+        expect(dbQuery3.span.name).toEqual('prisma:db_query')
+        expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-          const quaint4 = (engine.children || [])[4]
-          expect(quaint4.span.name).toEqual('quaint:query')
-          expect(quaint4.span.attributes['query']).toContain('DELETE')
+        const dbQuery4 = (engine.children || [])[4]
+        expect(dbQuery4.span.name).toEqual('prisma:db_query')
+        expect(dbQuery4.span.attributes['db.statement']).toContain('DELETE')
 
-          const quaint5 = (engine.children || [])[5]
-          expect(quaint5.span.name).toEqual('quaint:query')
-          expect(quaint5.span.attributes['query']).toContain('COMMIT')
-        }
+        const dbQuery5 = (engine.children || [])[5]
+        expect(dbQuery5.span.name).toEqual('prisma:db_query')
+        expect(dbQuery5.span.attributes['db.statement']).toContain('COMMIT')
       })
     })
 
+    // TODO broken
     describe.skip('tracing on transactions', () => {
       test('$transaction', async () => {
         const email = faker.internet.email()
@@ -282,24 +262,14 @@ testMatrix.setupTestSuite(
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
 
-        switch (suiteConfig.provider) {
-          case 'postgresql': {
-            expect(tree.span.name).toEqual('prisma:transaction')
-            expect(tree.span.resource.attributes['service.name']).toEqual(SERVICE_NAME)
-            expect(tree.span.attributes['method']).toEqual('transaction')
+        expect(tree.span.name).toEqual('prisma:transaction')
+        expect(tree.span.attributes['method']).toEqual('transaction')
 
-            expect(tree.children).toHaveLength(1)
+        expect(tree.children).toHaveLength(1)
 
-            const prismaEngineQuery = (tree?.children || [])[0] as unknown as Tree
-            expect(prismaEngineQuery.span.name).toEqual('prisma:engine:query')
-            expect(prismaEngineQuery.children).toHaveLength(5)
-
-            break
-          }
-
-          default:
-            throw new Error('invalid provider')
-        }
+        const prismaEngineQuery = (tree?.children || [])[0] as unknown as Tree
+        expect(prismaEngineQuery.span.name).toEqual('prisma:query_builder')
+        expect(prismaEngineQuery.children).toHaveLength(5)
       })
 
       test('interactive-transactions', async () => {
@@ -323,30 +293,123 @@ testMatrix.setupTestSuite(
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
 
-        switch (suiteConfig.provider) {
-          case 'postgresql': {
-            expect(tree.span.name).toEqual('prisma:transaction')
-            expect(tree.span.resource.attributes['service.name']).toEqual(SERVICE_NAME)
-            expect(tree.span.attributes['method']).toEqual('transaction')
+        expect(tree.span.name).toEqual('prisma:transaction')
+        expect(tree.span.attributes['method']).toEqual('transaction')
 
-            expect(tree.children).toHaveLength(1)
+        expect(tree.children).toHaveLength(1)
 
-            const prismaEngineQuery = (tree?.children || [])[0] as unknown as Tree
-            expect(prismaEngineQuery.span.name).toEqual('prisma:engine:itx')
-            expect(prismaEngineQuery.children).toHaveLength(6)
-
-            break
-          }
-
-          default:
-            throw new Error('invalid provider')
-        }
+        const prismaEngineQuery = (tree?.children || [])[0] as unknown as Tree
+        expect(prismaEngineQuery.span.name).toEqual('prisma:engine:itx')
+        expect(prismaEngineQuery.children).toHaveLength(6)
       })
     })
 
-    // describe('tracing on $raw & $runCommandRaw methods', () => {})
+    describe('tracing on $raw methods', () => {
+      test('$queryRaw', async () => {
+        await prisma.$queryRaw`SELECT 1 + 1;`
 
-    // describe('tracing with custom span', () => {})
+        const spans = inMemorySpanExporter.getFinishedSpans()
+        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+        const tree = buildTree({ span: rootSpan }, spans)
+
+        expect(tree.span.name).toEqual('prisma')
+        expect(tree.span.attributes['method']).toEqual('queryRaw')
+
+        expect(tree.children).toHaveLength(1)
+
+        const engine = (tree?.children || [])[0] as unknown as Tree
+        expect(engine.span.name).toEqual('prisma:query_builder')
+
+        expect(engine.children).toHaveLength(2)
+
+        const getConnection = (engine.children || [])[0]
+        expect(getConnection.span.name).toEqual('prisma:connection')
+
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toEqual('SELECT 1 + 1;')
+      })
+
+      test('$executeRaw', async () => {
+        await prisma.$executeRaw`SELECT 1 + 1;`
+
+        const spans = inMemorySpanExporter.getFinishedSpans()
+        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+        const tree = buildTree({ span: rootSpan }, spans)
+
+        expect(tree.span.name).toEqual('prisma')
+        expect(tree.span.attributes['method']).toEqual('executeRaw')
+
+        expect(tree.children).toHaveLength(1)
+
+        const engine = (tree?.children || [])[0] as unknown as Tree
+        expect(engine.span.name).toEqual('prisma:query_builder')
+
+        expect(engine.children).toHaveLength(2)
+
+        const getConnection = (engine.children || [])[0]
+        expect(getConnection.span.name).toEqual('prisma:connection')
+
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toEqual('SELECT 1 + 1;')
+      })
+    })
+
+    test('tracing with custom span', async () => {
+      const tracer = trace.getTracer('MyApp')
+      const email = faker.internet.email()
+
+      await tracer.startActiveSpan('create-user', async (span) => {
+        try {
+          return await prisma.user.create({
+            data: {
+              email: email,
+            },
+          })
+        } finally {
+          span.end()
+        }
+      })
+
+      const spans = inMemorySpanExporter.getFinishedSpans()
+      const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+      const tree = buildTree({ span: rootSpan }, spans)
+
+      expect(tree.span.name).toEqual('create-user')
+
+      const prismaSpan = (tree.children || [])[0]
+
+      expect(prismaSpan.span.name).toEqual('prisma')
+      expect(prismaSpan.span.attributes['method']).toEqual('create')
+      expect(prismaSpan.span.attributes['model']).toEqual('User')
+
+      expect(prismaSpan.children).toHaveLength(1)
+
+      const engine = (prismaSpan?.children || [])[0] as unknown as Tree
+      expect(engine.span.name).toEqual('prisma:query_builder')
+
+      expect(engine.children).toHaveLength(5)
+
+      const getConnection = (engine.children || [])[0]
+      expect(getConnection.span.name).toEqual('prisma:connection')
+
+      const dbQuery1 = (engine.children || [])[1]
+      expect(dbQuery1.span.name).toEqual('prisma:db_query')
+      expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+
+      const dbQuery2 = (engine.children || [])[2]
+      expect(dbQuery2.span.name).toEqual('prisma:db_query')
+      expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
+
+      const dbQuery3 = (engine.children || [])[3]
+      expect(dbQuery3.span.name).toEqual('prisma:db_query')
+      expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
+
+      const dbQuery4 = (engine.children || [])[4]
+      expect(dbQuery4.span.name).toEqual('prisma:db_query')
+      expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+    })
   },
   {
     optOut: {
