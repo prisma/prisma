@@ -1073,7 +1073,7 @@ new PrismaClient({
           })
         }
 
-        return consumer(params)
+        return await consumer(params)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
