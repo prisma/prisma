@@ -35,11 +35,11 @@ export default defineMatrix(() => [
       id: 'String @id',
       referentialIntegrity,
     },
-    {
-      provider: 'mongodb',
-      id: 'String @id @map("_id") @db.ObjectId',
-      referentialIntegrity: 'default',
-    },
+    // {
+    //   provider: 'mongodb',
+    //   id: 'String @id @map("_id") @db.ObjectId',
+    //   referentialIntegrity: 'default',
+    // },
   ],
   [
     {
