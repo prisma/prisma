@@ -1013,7 +1013,7 @@ new PrismaClient({
           },
         }
 
-        return this._tracedRequest({
+        return runInChildSpan({
           callback,
           name: 'prisma:transaction',
           options,
@@ -1057,6 +1057,15 @@ new PrismaClient({
           return this._executeRequest(changedInternalParams)
         }
 
+        let callback: (changedParams: QueryMiddlewareParams) => Promise<unknown>
+
+        if (NODE_CLIENT) {
+          // https://github.com/prisma/prisma/issues/3148 not for the data proxy
+          callback = () => new AsyncResource('prisma-client-request').runInAsyncScope(() => consumer(params))
+        } else {
+          callback = consumer
+        }
+
         const tracingConfig = getTracingConfig(this._engine)
         if (tracingConfig.enabled) {
           const options: SpanOptions = {
@@ -1066,37 +1075,17 @@ new PrismaClient({
             },
           }
 
-          return await this._tracedRequest({
-            callback: () => consumer(params),
+          return await runInChildSpan({
+            callback: () => callback(params),
             name: 'prisma',
             options,
           })
         }
 
-        return await consumer(params)
+        return await callback(params)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
-      }
-    }
-
-    async _tracedRequest({
-      callback,
-      options,
-      name,
-    }: {
-      callback: () => any
-      options: SpanOptions
-      name: 'prisma' | 'prisma:transaction'
-    }) {
-      const runInChild = () => runInChildSpan({ name, options, callback })
-
-      if (NODE_CLIENT) {
-        // https://github.com/prisma/prisma/issues/3148 not for the data proxy
-        return new AsyncResource('prisma-client-request').runInAsyncScope(runInChild)
-      } else {
-        // we execute the middleware consumer and wrap the call for otel
-        return runInChild()
       }
     }
 
