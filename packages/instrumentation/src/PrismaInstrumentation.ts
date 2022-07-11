@@ -1,11 +1,21 @@
-import { InstrumentationBase, InstrumentationNodeModuleDefinition } from '@opentelemetry/instrumentation'
+import {
+  InstrumentationBase,
+  InstrumentationConfig,
+  InstrumentationNodeModuleDefinition,
+} from '@opentelemetry/instrumentation'
 
 import { GLOBAL_KEY, MODULE_NAME, NAME, VERSION } from './constants'
 
-export interface PrismaInstrumentationConfig {}
+export interface PrismaInstrumentationConfig {
+  middleware?: boolean
+}
+
+export type PrismaInstrumentationGlobalValue = {} & PrismaInstrumentationConfig
+
+type Config = PrismaInstrumentationConfig & InstrumentationConfig
 
 export class PrismaInstrumentation extends InstrumentationBase {
-  constructor(config: PrismaInstrumentationConfig = {}) {
+  constructor(config: Config = {}) {
     super(NAME, VERSION, config)
   }
 
@@ -16,12 +26,16 @@ export class PrismaInstrumentation extends InstrumentationBase {
   }
 
   enable() {
-    // @ts-ignore
-    global[GLOBAL_KEY] = true
+    const config = this._config as Config
+
+    const globalValue: PrismaInstrumentationGlobalValue = {
+      middleware: config.middleware,
+    }
+
+    global[GLOBAL_KEY] = globalValue
   }
 
   disable() {
-    // @ts-ignore
     delete global[GLOBAL_KEY]
   }
 

@@ -1,4 +1,4 @@
-import type { SpanOptions } from '@opentelemetry/api'
+import { SpanOptions } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType, Options } from '@prisma/engine-core'
 import { BinaryEngine, DataProxyEngine, getTracingConfig, LibraryEngine } from '@prisma/engine-core'
@@ -39,7 +39,7 @@ import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
-import { runInChildSpan } from './utils/otel/runInChildSpan'
+import { runInActiveSpan, runInSpan } from './utils/otel/runInSpan'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
@@ -1013,7 +1013,7 @@ new PrismaClient({
           },
         }
 
-        return runInChildSpan({
+        return runInActiveSpan({
           callback,
           name: 'prisma:transaction',
           options,
@@ -1040,21 +1040,39 @@ new PrismaClient({
           model: internalParams.model,
         }
 
+        const tracingConfig = getTracingConfig(this._engine)
+
         let index = -1
         // prepare recursive fn that will pipe params through middlewares
-        const consumer = (changedParams: QueryMiddlewareParams) => {
-          // if this `next` was called and there's some more middlewares
+        const consumer = async (changedParams: QueryMiddlewareParams): Promise<any> => {
           const nextMiddleware = this._middlewares.query.get(++index)
+          let middleware: () => Promise<any>
+          let isEnvokingMethod = false
 
-          // we pass the modified params down to the next one, & repeat
-          // calling `next` calls the consumer again with the new params
-          if (nextMiddleware) return nextMiddleware(changedParams, consumer)
+          if (nextMiddleware) {
+            middleware = () => nextMiddleware(changedParams, consumer)
+          } else {
+            isEnvokingMethod = true
+            middleware = () => this._executeRequest({ ...internalParams, ...changedParams })
+          }
 
-          // before we send the execution request, we use the changed params
-          const changedInternalParams = { ...internalParams, ...changedParams }
+          if (tracingConfig.enabled && tracingConfig.middleware && !isEnvokingMethod) {
+            const options: SpanOptions = {
+              attributes: {
+                method: '$use',
+                sequence: index + 1,
+              },
+            }
 
-          // no middleware? then we just proceed with request execution
-          return this._executeRequest(changedInternalParams)
+            // middleware is an adjacent span and not nested
+            return await runInSpan({
+              name: 'prisma:middleware',
+              options,
+              callback: middleware,
+            })
+          }
+
+          return await middleware()
         }
 
         let callback: (changedParams: QueryMiddlewareParams) => Promise<unknown>
@@ -1066,7 +1084,6 @@ new PrismaClient({
           callback = consumer
         }
 
-        const tracingConfig = getTracingConfig(this._engine)
         if (tracingConfig.enabled) {
           const options: SpanOptions = {
             attributes: {
@@ -1075,7 +1092,7 @@ new PrismaClient({
             },
           }
 
-          return await runInChildSpan({
+          return await runInActiveSpan({
             callback: () => callback(params),
             name: 'prisma',
             options,

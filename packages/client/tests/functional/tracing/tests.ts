@@ -20,6 +20,9 @@ type Tree = {
 }
 
 function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
+  // @ts-ignore - For JSON stringify debugging
+  delete tree.span._spanProcessor
+
   const childrenSpans = spans.filter((span) => span.parentSpanId === tree.span.spanContext().spanId)
   if (childrenSpans.length) {
     tree.children = childrenSpans.map((span) => buildTree({ span }, spans))
@@ -32,6 +35,8 @@ function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
+// @ts-ignore this is just for type checks
+declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
@@ -55,7 +60,7 @@ testMatrix.setupTestSuite(
       basicTracerProvider.register()
 
       registerInstrumentations({
-        instrumentations: [new PrismaInstrumentation()],
+        instrumentations: [new PrismaInstrumentation({ middleware: true })],
       })
     })
 
@@ -431,6 +436,72 @@ testMatrix.setupTestSuite(
       const dbQuery4 = (engine.children || [])[4]
       expect(dbQuery4.span.name).toEqual('prisma:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+    })
+
+    test('tracing with middleware', async () => {
+      // TODO - remove when engines are merged
+      if (process.env.CI) return
+      const email = faker.internet.email()
+
+      const _prisma = new PrismaClient()
+      _prisma.$use(async (params, next) => {
+        // Manipulate params here
+        const result = await next(params)
+        // See results here
+        return result
+      })
+      _prisma.$use(async (params, next) => {
+        // Manipulate params here
+        const result = await next(params)
+        // See results here
+        return result
+      })
+
+      await _prisma.user.create({
+        data: {
+          email: email,
+        },
+      })
+
+      const spans = inMemorySpanExporter.getFinishedSpans()
+      const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+      const tree = buildTree({ span: rootSpan }, spans)
+
+      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.attributes['method']).toEqual('create')
+      expect(tree.span.attributes['model']).toEqual('User')
+
+      expect(tree.children).toHaveLength(3)
+
+      const middlewares = (tree.children || []).filter(({ span }) => span.name === 'prisma:middleware') as Tree[]
+      expect(middlewares).toHaveLength(2)
+      middlewares.forEach((m) => {
+        expect(m.span.attributes['method']).toEqual('$use')
+      })
+
+      const engine = (tree.children || []).find(({ span }) => span.name === 'prisma:query_builder') as Tree
+      expect(engine.children).toHaveLength(5)
+
+      const getConnection = (engine.children || [])[0]
+      expect(getConnection.span.name).toEqual('prisma:connection')
+
+      const dbQuery1 = (engine.children || [])[1]
+      expect(dbQuery1.span.name).toEqual('prisma:db_query')
+      expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+
+      const dbQuery2 = (engine.children || [])[2]
+      expect(dbQuery2.span.name).toEqual('prisma:db_query')
+      expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
+
+      const dbQuery3 = (engine.children || [])[3]
+      expect(dbQuery3.span.name).toEqual('prisma:db_query')
+      expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
+
+      const dbQuery4 = (engine.children || [])[4]
+      expect(dbQuery4.span.name).toEqual('prisma:db_query')
+      expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+      _prisma.$disconnect()
     })
   },
   {
