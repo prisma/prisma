@@ -287,6 +287,7 @@ testMatrix.setupTestSuite(
       test('interactive-transactions', async () => {
         const email = faker.internet.email()
 
+        // @ts-ignore
         await prisma.$transaction(async (client) => {
           await client.user.create({
             data: {
