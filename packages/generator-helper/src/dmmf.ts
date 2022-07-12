@@ -190,12 +190,12 @@ export namespace DMMF {
     findUnique?: string | null
     findFirst?: string | null
     findMany?: string | null
-    create?: string | null
+    createOne?: string | null
     createMany?: string | null
-    update?: string | null
+    updateOne?: string | null
     updateMany?: string | null
-    upsert?: string | null
-    delete?: string | null
+    upsertOne?: string | null
+    deleteOne?: string | null
     deleteMany?: string | null
     aggregate?: string | null
     groupBy?: string | null
@@ -208,12 +208,12 @@ export namespace DMMF {
     findUnique = 'findUnique',
     findFirst = 'findFirst',
     findMany = 'findMany',
-    create = 'create',
+    createOne = 'createOne',
     createMany = 'createMany',
-    update = 'update',
+    updateOne = 'updateOne',
     updateMany = 'updateMany',
-    upsert = 'upsert',
-    delete = 'delete',
+    upsertOne = 'upsertOne',
+    deleteOne = 'deleteOne',
     deleteMany = 'deleteMany',
     groupBy = 'groupBy',
     count = 'count', // TODO: count does not actually exist, why?
