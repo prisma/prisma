@@ -15,6 +15,7 @@ import type {
   InvalidFieldError,
 } from './error-types'
 import { ObjectEnumValue } from './object-enums'
+import { CallSite } from './utils/CallSite'
 import {
   getGraphQLType,
   getInputTypeName,
@@ -27,6 +28,7 @@ import {
   unionBy,
   wrapWithList,
 } from './utils/common'
+import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { isDecimalJsLike, stringifyDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
@@ -36,7 +38,6 @@ import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
 import type { MissingItem, PrintJsonWithErrorsArgs } from './utils/printJsonErrors'
 import { printJsonWithErrors } from './utils/printJsonErrors'
-import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 
 const tab = 2
@@ -175,7 +176,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
       }
     }
 
-    const renderErrorStr = (callsite?: string) => {
+    const renderErrorStr = (callsite?: CallSite) => {
       const hasRequiredMissingArgsErrors = argErrors.some(
         (e) => e.error.type === 'missingArg' && e.error.missingArg.isRequired,
       )
@@ -216,17 +217,6 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
         return stripAnsi(errorMessages)
       }
 
-      const {
-        stack,
-        indent: indentValue,
-        afterLines,
-      } = printStack({
-        callsite,
-        originalMethod: originalMethod || queryName,
-        showColors: errorFormat && errorFormat === 'pretty',
-        isValidationError: true,
-      })
-
       let printJsonArgs: PrintJsonWithErrorsArgs = {
         ast: isTopLevelQuery ? { [topLevelQueryName]: select } : select,
         keyPaths,
@@ -240,11 +230,13 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
         printJsonArgs = transformAggregatePrintJsonArgs(printJsonArgs)
       }
 
-      const errorStr = `${stack}${indent(printJsonWithErrors(printJsonArgs), indentValue).slice(
-        indentValue,
-      )}${chalk.dim(afterLines)}
-
-${errorMessages}${missingArgsLegend}\n`
+      const errorStr = createErrorMessageWithContext({
+        callsite,
+        originalMethod: originalMethod || queryName,
+        showColors: errorFormat && errorFormat === 'pretty',
+        callArguments: printJsonWithErrors(printJsonArgs),
+        message: `${errorMessages}${missingArgsLegend}\n`,
+      })
 
       if (process.env.NO_COLOR || errorFormat === 'colorless') {
         return stripAnsi(errorStr)

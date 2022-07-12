@@ -8,9 +8,9 @@ import {
   isClientOnlyAction,
 } from '../../clientActions'
 import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
+import { getCallSite } from '../../utils/CallSite'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
-import { getCallSite } from '../utils/getCallSite'
 import { applyAggregates } from './applyAggregates'
 import { wrapRequest } from './applyClientOnlyWrapper'
 import { applyFieldsProxy, FieldProxy } from './applyFieldsProxy'

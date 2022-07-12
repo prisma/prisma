@@ -267,6 +267,7 @@ importers:
       lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 3.0.1
+      memfs: 3.4.7
       mssql: 9.0.1
       pg: 8.8.0
       pkg-up: 3.1.0
@@ -342,6 +343,7 @@ importers:
       lz-string: 1.4.4
       make-dir: 3.1.0
       mariadb: 3.0.1
+      memfs: 3.4.7
       mssql: 9.0.1
       pg: 8.8.0
       pkg-up: 3.1.0
@@ -8451,6 +8453,13 @@ packages:
       map-age-cleaner: 0.1.3
       mimic-fn: 2.1.0
       p-is-promise: 2.1.0
+    dev: true
+
+  /memfs/3.4.7:
+    resolution: {integrity: sha512-ygaiUSNalBX85388uskeCyhSAoOSgzBbtVCr9jA2RROssFL9Q19/ZXFqS+2Th2sr1ewNIWgFdLzLC3Yl1Zv+lw==}
+    engines: {node: '>= 4.0.0'}
+    dependencies:
+      fs-monkey: 1.0.3
     dev: true
 
   /memory-pager/1.5.0:

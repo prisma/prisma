@@ -64,17 +64,17 @@ testMatrix.setupTestSuite(() => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:53:37
 
-         50 })
-         51 
-         52 test('wrong field type', async () => {
-      →  53   const products = prisma.product.findMany({
-                where: {
-                  string: {
-                    equals: prisma.product.fields.notString
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                  }
-                }
-              })
+        50 })
+        51 
+        52 test('wrong field type', async () => {
+      → 53   const products = prisma.product.findMany({
+               where: {
+                 string: {
+                   equals: prisma.product.fields.notString
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                 }
+               }
+             })
 
       Argument equals: Got invalid value prisma.product.fields.notString on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected String or StringFieldRefInput.
 
@@ -97,17 +97,17 @@ testMatrix.setupTestSuite(() => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:86:37
 
-         83 })
-         84 
-         85 test('wrong model', async () => {
-      →  86   const products = prisma.product.findMany({
-                where: {
-                  string: {
-                    equals: prisma.otherModel.fields.string
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                  }
-                }
-              })
+        83 })
+        84 
+        85 test('wrong model', async () => {
+      → 86   const products = prisma.product.findMany({
+               where: {
+                 string: {
+                   equals: prisma.otherModel.fields.string
+                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                 }
+               }
+             })
 
       Argument equals: Got invalid value prisma.otherModel.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<OtherModel>, expected String or StringFieldRefInput.
 
@@ -127,24 +127,24 @@ testMatrix.setupTestSuite(() => {
 
     await expect(products).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference/string/tests.ts:119:37
+            Invalid \`prisma.product.findMany()\` invocation in
+            /client/tests/functional/field-reference/string/tests.ts:119:37
 
-        116 })
-        117 
-        118 test('wrong identical model', async () => {
-      → 119   const products = prisma.product.findMany({
-                where: {
-                  string: {
-                    equals: prisma.identicalToProduct.fields.string
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                  }
-                }
-              })
+              116 })
+              117 
+              118 test('wrong identical model', async () => {
+            → 119   const products = prisma.product.findMany({
+                      where: {
+                        string: {
+                          equals: prisma.identicalToProduct.fields.string
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                        }
+                      }
+                    })
 
-      Argument equals: Got invalid value prisma.identicalToProduct.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<IdenticalToProduct>, expected String or StringFieldRefInput.
+            Argument equals: Got invalid value prisma.identicalToProduct.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<IdenticalToProduct>, expected String or StringFieldRefInput.
 
 
-    `)
+        `)
   })
 })
