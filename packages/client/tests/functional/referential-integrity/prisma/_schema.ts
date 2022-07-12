@@ -12,7 +12,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
       break
   }
 
-  return /* Prisma */ `
+  const schemaHeader = /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
       previewFeatures = [${previewFeatures}]
@@ -23,25 +23,32 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
       url      = env("DATABASE_URI_${provider}")
       ${referentialIntegrityLine}
     }
+  `
 
-    model UserDefault {
+  return /* Prisma */ `
+    ${schemaHeader}
+
+    // TODO rename models to more explicit name
+    // 1:1 relation
+    model User {
       id      ${id}
-      profile ProfileDefault?
+      profile Profile?
     }
-    model ProfileDefault {
-      id     ${id}
-      user   UserDefault    @relation(fields: [userId], references: [id])
-      userId String  @unique
+    model Profile {
+      id       ${id}
+      user     User @relation(fields: [userId], references: [id])
+      userId   String @unique
     }
 
-    model UserCascade {
-      id      ${id}
-      profile ProfileCascade?
+    // 1:n relation
+    model OneToManyUser {
+      id    Int    @id
+      posts Post[]
     }
-    model ProfileCascade {
-      id     ${id}
-      user   UserCascade @relation(fields: [userId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-      userId String  @unique
+    model OneToManyPost {
+      id       Int  @id
+      author   User @relation(fields: [authorId], references: [id])
+      authorId Int
     }
   `
 })

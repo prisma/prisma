@@ -2,10 +2,10 @@ import { faker } from '@faker-js/faker'
 
 import testMatrix from './_matrix'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
-
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
+// @ts-ignore
+declare let prisma: import('@prisma/client').PrismaClient
 
 async function createXUsers({ count, userColumn, profileColumn, userModel, profileModel }) {
   const usersArr: any = []
@@ -64,259 +64,304 @@ async function checkForNoChange({ count, userColumn, profileColumn, userModel, p
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    describe('1:1 optional (default)', () => {
-      const c = {
-        // Always create n+1 for the safety check at the end
-        // So we know nothing unentended happened
-        count: 2,
-        userColumn: 'user',
-        profileColumn: 'profile',
-        userModel: `userDefault`,
-        profileModel: `profileDefault`,
-      }
+    // - [ ]  **1-to-1** relationship, explicit
+    // - [ ]  **1-to-n** relationship, explicit
+    // - [ ]  **m-to-n** relationship, explicit
 
+    // we can create a user without a profile, but not a profile without a user
+    describe('1:1 mandatory (explicit)', () => {
       beforeEach(async () => {
-        await prisma.$transaction([prisma[c.profileModel].deleteMany(), prisma[c.userModel].deleteMany()])
+        // TODO: consider using something like:
+        // await ctx.cli('db', 'push', '--force-reset', '--accept-data-loss', '--schema', 'schema.prisma')
+        await prisma.$transaction([prisma.profile.deleteMany(), prisma.user.deleteMany()])
       })
 
-      test('[create] parent and [connect] child with non-existing id should throw', async () => {
-        const usersArr = await prepare(c)
-        const randomId = faker.database.mongodbObjectId()
-
-        await expect(
-          prisma[c.userModel].create({
-            data: {
-              id: faker.database.mongodbObjectId(),
-              [c.profileColumn]: {
-                connect: { id: randomId },
-              },
-            },
-          }),
-        ).rejects.toThrowError(
-          `An operation failed because it depends on one or more records that were required but not found. No 'ProfileDefault' record to connect was found was found for a nested connect on one-to-one relation 'ProfileDefaultToUserDefault'.`,
-        )
-
-        await checkForNoChange({
-          ...c,
-          usersArr,
-        })
-      })
-
-      test('[create] child and [connect] parent with non-existing id should throw', async () => {
-        const usersArr = await prepare(c)
-        const randomId = faker.database.mongodbObjectId()
-
-        await expect(
-          prisma[c.profileModel].create({
-            data: {
-              id: faker.database.mongodbObjectId(),
-              [c.userColumn]: {
-                connect: { id: randomId },
-              },
-            },
-          }),
-        ).rejects.toThrowError(
-          `An operation failed because it depends on one or more records that were required but not found. No 'UserDefault' record (needed to inline connect on create for 'ProfileDefault' record) was found for a nested connect on one-to-one relation 'ProfileDefaultToUserDefault'.`,
-        )
-
-        await checkForNoChange({
-          ...c,
-          usersArr,
-        })
-      })
-
-      const fkDbErrors = {
-        postgresql: 'Foreign key constraint failed on the field: `ProfileDefault_userId_fkey (index)`',
-        cockroachdb: 'Foreign key constraint failed on the field: `(not available)`',
-        mysql: 'Foreign key constraint failed on the field: `userId`',
-        sqlite: 'Foreign key constraint failed on the field: `foreign key`',
-        mongodb:
-          "The change you are trying to make would violate the required relation 'ProfileDefaultToUserDefault' between the `ProfileDefault` and `UserDefault` models.",
-      }
-      // Note: Does not throw if RI = prisma
-      test('[create] child with non-existing parent id should throw', async () => {
-        const usersArr = await prepare(c)
-
-        await expect(
-          prisma[c.profileModel].create({
-            data: {
-              id: faker.database.mongodbObjectId(),
-              userId: faker.database.mongodbObjectId(),
-            },
-          }),
-        ).rejects.toThrowError(fkDbErrors[suiteConfig.provider])
-
-        await checkForNoChange({
-          ...c,
-          usersArr,
-        })
-      })
-      // Note: Does not throw if RI = prisma
-      test('[update] child with non-existing parent id should throw', async () => {
-        const usersArr = await prepare(c)
-
-        await expect(
-          prisma[c.profileModel].update({
-            where: { id: usersArr[0].profile.id },
-            data: {
-              userId: faker.database.mongodbObjectId(),
-            },
-          }),
-        ).rejects.toThrowError(fkDbErrors[suiteConfig.provider])
-
-        await checkForNoChange({
-          ...c,
-          usersArr,
-        })
-      })
-      // Note: Does not throw if RI = prisma
-      test('[delete] parent should throw', async () => {
-        const usersArr = await prepare(c)
-
-        await expect(
-          prisma[c.userModel].delete({
-            where: {
-              id: usersArr[0].id,
-            },
-          }),
-        ).rejects.toThrowError(fkDbErrors[suiteConfig.provider])
-
-        await checkForNoChange({
-          ...c,
-          usersArr,
-        })
-      })
-
-      test('[delete] child should suceed', async () => {
-        const usersArr = await prepare(c)
-
-        expect(
-          await prisma[c.profileModel].delete({
-            where: {
-              id: usersArr[0].profile.id,
-            },
-          }),
-        ).toBeTruthy()
-
-        const [findManyUserById1, findManyProfileById1] = await prisma.$transaction([
-          prisma[c.userModel].findMany({
-            include: {
-              [c.profileColumn]: true,
-            },
-          }),
-          prisma[c.profileModel].findMany({}),
-        ])
-        expect(findManyUserById1).toHaveLength(c.count)
-        expect(findManyProfileById1).toHaveLength(c.count - 1)
-        const expected = sortArrayById([{ id: usersArr[0].id, [c.profileColumn]: null }, usersArr[1]])
-        expect(sortArrayById(findManyUserById1)).toMatchObject(expected)
-      })
-    })
-
-    describe('1:1 optional (Cascade)', () => {
-      const c = {
-        // Always create n+1 for the safety check at the end
-        // So we know nothing unentended happened
-        count: 2,
-        userColumn: 'user',
-        profileColumn: 'profile',
-        userModel: `userCascade`,
-        profileModel: `profileCascade`,
-      }
-
-      beforeEach(async () => {
-        await prisma.$transaction([prisma[c.profileModel].deleteMany(), prisma[c.userModel].deleteMany()])
-      })
-
-      test('[update] parent id should cascade and update child', async () => {
-        const usersArr = await prepare(c)
-        const randomId = faker.database.mongodbObjectId()
-
-        /*
-        Errors on MongoDB with
-          232 // Update
-          233 expect(
-        → 234   await prisma[c.userModel].update({
-                  where: {
-                    id: '6ecaec17dae205ceeadad25e'
-                  },
-                  data: {
-                    id: 'defc1e1e9d36d8d906ecda1c'
-                    ~~
-                  }
-                })
-
-        Unknown arg `id` in data.id for type UserCascadeUpdateInput. Available args:
-
-        type UserCascadeUpdateInput {
-          profile?: ProfileCascadeUpdateOneWithoutUserNestedInput
-        }
-        */
-        // Update
-        expect(
-          await prisma[c.userModel].update({
-            where: {
-              id: usersArr[0].id,
-            },
-            data: {
-              id: randomId,
-            },
-          }),
-        ).toMatchObject({ id: randomId })
-
-        const [findManyUserById1, findManyProfileById1] = await prisma.$transaction([
-          prisma[c.userModel].findMany({
-            include: {
-              [c.profileColumn]: true,
-            },
-          }),
-          prisma[c.profileModel].findMany({}),
-        ])
-        expect(findManyUserById1).toHaveLength(c.count)
-        expect(findManyProfileById1).toHaveLength(c.count)
-        const expected = sortArrayById([
-          {
-            id: randomId,
-            [c.profileColumn]: {
-              id: usersArr[0].profile.id,
-              userId: randomId,
+      test('[create] nested [create]', async () => {
+        const user1 = await prisma.user.create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
             },
           },
-          usersArr[1],
-        ])
-        expect(sortArrayById(findManyUserById1)).toMatchObject(expected)
+          include: { profile: true },
+        })
+        const user2 = await prisma.user.create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+          include: { profile: true },
+        })
+        const user3 = await prisma.user.create({
+          data: {
+            id: '3',
+            profile: {
+              create: { id: '3' },
+            },
+          },
+          include: { profile: true },
+        })
+        expect(user1).toEqual({
+          id: '1',
+          profile: {
+            id: '1',
+            userId: '1',
+          },
+        })
+        expect(user2).toEqual({
+          id: '2',
+          profile: {
+            id: '2',
+            userId: '2',
+          },
+        })
+        expect(user3).toEqual({
+          id: '3',
+          profile: {
+            id: '3',
+            userId: '3',
+          },
+        })
+
+        /**
+         * TODO: consider porting the read queries to a transaction.
+         */
+        const profile1 = await prisma.profile.findUniqueOrThrow({
+          where: { userId: '1' },
+        })
+        expect(profile1).toEqual({
+          id: '1',
+          userId: '1',
+        })
+        const profile2 = await prisma.profile.findUniqueOrThrow({
+          where: { userId: '2' },
+        })
+        expect(profile2).toEqual({
+          id: '2',
+          userId: '2',
+        })
+        const profile3 = await prisma.profile.findUniqueOrThrow({
+          where: { userId: '3' },
+        })
+        expect(profile3).toEqual({
+          id: '3',
+          userId: '3',
+        })
+
+        const user1Copy = await prisma.user.findUniqueOrThrow({
+          where: { id: '1' },
+        })
+        expect(user1Copy).toEqual({
+          id: '1',
+        })
       })
 
-      test('[delete] parent should cascade and delete child', async () => {
-        const usersArr = await prepare(c)
-
-        // Update
-        expect(
-          await prisma[c.userModel].delete({
-            where: {
-              id: usersArr[0].id,
-            },
-          }),
-        ).toMatchObject({ id: usersArr[0].id })
-
-        const [findManyUserById1, findManyProfileById1] = await prisma.$transaction([
-          prisma[c.userModel].findMany({
-            include: {
-              [c.profileColumn]: true,
-            },
-          }),
-          prisma[c.profileModel].findMany({}),
-        ])
-        expect(findManyUserById1).toHaveLength(c.count - 1)
-        expect(findManyProfileById1).toHaveLength(c.count - 1)
-        expect(sortArrayById(findManyUserById1)).toMatchObject(sortArrayById([usersArr[1]]))
-      })
+      //
+      // TODO more create cases
+      //
 
       /*
-        // const deleteRaw = await prisma.$executeRaw`DELETE FROM "UserCascade" WHERE id = ${userId}`
-        // const deleteRaw = await prisma.$executeRaw`DELETE FROM "ProfileCascade" WHERE id = ${profileId}`
-        // console.log({ deleteRaw })
+      * Update
+      // - [ ]  user.update
+      //     - [ ]  valid id
+      //     - [ ]  invalid id
+      // - [ ]  user.updateMany
+      //     - [ ]  valid id
+      //     - [ ]  invalid id
+      // - [ ]  user.upsert
+      //     - [ ]  valid id
+      //     - [ ]  invalid id
+      // - [ ]  user nested:
+      //     - [ ]  connect (only if optional) (if required is it available, probably not?)
+      //         - [ ]
+      //     - [ ]  disconnect should throw if required (is it even available?)
+      //     - [ ]  update
+      //     - [ ]  updateMany
+      //     - [ ]  upsert
       */
+
+      test('[update] parent id with non-existing id should succeed', async () => {
+        await prisma.user.create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma.user.create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        const user1WithNewId = await prisma.user.update({
+          where: { id: '1' },
+          data: {
+            id: '3',
+          },
+        })
+        expect(user1WithNewId).toEqual({
+          id: '3',
+        })
+
+        // Checks
+        const profileNull = await prisma.profile.findFirst({
+          where: { userId: '1' },
+        })
+        expect(profileNull).toEqual(null)
+        const profiles = await prisma.profile.findMany({
+          orderBy: [{ id: 'asc' }],
+        })
+        expect(profiles).toEqual([
+          {
+            id: '1',
+            userId: '3',
+          },
+          {
+            id: '2',
+            userId: '2',
+          },
+        ])
+      })
+
+      test('[update] parent id with existing id should throw', async () => {
+        await prisma.user.create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma.user.create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        await expect(
+          prisma.user.update({
+            where: { id: '1' },
+            data: {
+              id: '2', // existing id
+            },
+          }),
+        ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
+      })
+
+      test('[update] child id with non-existing id should succeed', async () => {
+        await prisma.user.create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma.user.create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        const profile1WithNewId = await prisma.profile.update({
+          where: { id: '1' },
+          data: {
+            id: '3',
+          },
+        })
+        expect(profile1WithNewId).toEqual({
+          id: '3',
+          userId: '1',
+        })
+
+        const user1WithUpdatedProfile = await prisma.user.findUniqueOrThrow({
+          where: { id: '1' },
+          include: { profile: true },
+        })
+        expect(user1WithUpdatedProfile).toEqual({
+          id: '1',
+          profile: {
+            id: '3',
+            userId: '1',
+          },
+        })
+
+        const profiles = await prisma.profile.findMany({
+          orderBy: [{ id: 'asc' }],
+        })
+        expect(profiles).toEqual([
+          {
+            id: '2',
+            userId: '2',
+          },
+          {
+            id: '3',
+            userId: '1',
+          },
+        ])
+      })
+
+      test('[update] child id with existing id should throw', async () => {
+        await prisma.user.create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma.user.create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        await expect(
+          prisma.profile.update({
+            where: { id: '1' },
+            data: {
+              id: '2', // existing id
+            },
+          }),
+        ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
+      })
+
+      test.skip('[updateMany] parent id should succeed', async () => {})
+      test.skip('[updateMany] parent id with existing id should throw', async () => {})
+      test.skip('[upsert] parent id should succeed', async () => {})
+      test.skip('[upsert] parent id with existing id should throw', async () => {})
+      test.skip('[nested] update parent id [connect] child should succeed', async () => {})
+      test.skip('[nested] update parent id [disconnect] child should succeed', async () => {})
+      test.skip('[nested] update parent id [update] child should succeed', async () => {})
+      test.skip('[nested] update parent id [updateMany] child should succeed', async () => {})
+      test.skip('[nested] update parent id [upsert] child should succeed', async () => {})
+
+      // describe.skip('onUpdate: DEFAULT', () => {})
+      // describe.skip('onUpdate: Cascade', () => {})
+
+      // test('[create] parent and [connect] child with non-existing id should throw', async () => {})
+      // test('[create] child and [connect] parent with non-existing id should throw', async () => {})
+      // test('[create] child with non-existing parent id should throw', async () => {})
+      // test('[update] child with non-existing parent id should throw', async () => {})
+      // test('[delete] parent should throw', async () => {})
+      // test('[delete] child should suceed', async () => {})
     })
 
     // testIf(suiteConfig.provider !== 'mongodb')('conditional @ts-test-if', async () => {
@@ -333,3 +378,12 @@ testMatrix.setupTestSuite(
     },
   },
 )
+
+// const fkDbErrors = {
+//   postgresql: 'Foreign key constraint failed on the field: `ProfileDefault_userId_fkey (index)`',
+//   cockroachdb: 'Foreign key constraint failed on the field: `(not available)`',
+//   mysql: 'Foreign key constraint failed on the field: `userId`',
+//   sqlite: 'Foreign key constraint failed on the field: `foreign key`',
+//   mongodb:
+//     "The change you are trying to make would violate the required relation 'ProfileDefaultToUserDefault' between the `ProfileDefault` and `UserDefault` models.",
+// }

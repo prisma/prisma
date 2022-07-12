@@ -15,26 +15,26 @@ export default defineMatrix(() => [
       id: 'String @id',
       referentialIntegrity,
     },
-    {
-      provider: 'sqlite',
-      id: 'String @id',
-      referentialIntegrity,
-    },
-    {
-      provider: 'mysql',
-      id: 'String @id',
-      referentialIntegrity,
-    },
-    {
-      provider: 'sqlserver',
-      id: 'String @id',
-      referentialIntegrity,
-    },
-    {
-      provider: 'cockroachdb',
-      id: 'String @id',
-      referentialIntegrity,
-    },
+    // {
+    //   provider: 'sqlite',
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    // },
+    // {
+    //   provider: 'mysql',
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    // },
+    // {
+    //   provider: 'sqlserver',
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    // },
+    // {
+    //   provider: 'cockroachdb',
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    // },
     // {
     //   provider: 'mongodb',
     //   id: 'String @id @map("_id") @db.ObjectId',
