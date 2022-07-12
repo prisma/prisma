@@ -2,8 +2,8 @@
 
 exports[`exhaustive-schema: generatedBrowserJS 1`] = `
 
-Object.defineProperty(exports, "__esModule", { value: true });
 
+Object.defineProperty(exports, "__esModule", { value: true });
 const {
   Decimal,
   objectEnumValues
