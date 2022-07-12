@@ -28,27 +28,55 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
   return /* Prisma */ `
     ${schemaHeader}
 
-    // TODO rename models to more explicit name
+    //
     // 1:1 relation
-    model User {
+    //
+
+    model UserOneToOne {
       id      ${id}
-      profile Profile?
+      profile ProfileOneToOne?
     }
-    model Profile {
+    model ProfileOneToOne {
       id       ${id}
-      user     User @relation(fields: [userId], references: [id])
+      user     UserOneToOne @relation(fields: [userId], references: [id])
       userId   String @unique
     }
 
+    //
     // 1:n relation
-    model OneToManyUser {
-      id    Int    @id
-      posts Post[]
+    //
+
+    model UserOneToMany {
+      id    ${id}
+      posts PostOneToMany[]
     }
-    model OneToManyPost {
-      id       Int  @id
-      author   User @relation(fields: [authorId], references: [id])
-      authorId Int
+    model PostOneToMany {
+      id       ${id}
+      author   UserOneToMany @relation(fields: [authorId], references: [id])
+      authorId String
+    }
+
+    //
+    // m:n relation
+    //
+
+    model PostManyToMany {
+      id         ${id}
+      categories CategoriesOnPostsManyToMany[]
+    }
+
+    model CategoryManyToMany {
+      id    ${id}
+      posts CategoriesOnPostsManyToMany[]
+    }
+
+    model CategoriesOnPostsManyToMany {
+      post       PostManyToMany     @relation(fields: [postId], references: [id])
+      postId     String
+      category   CategoryManyToMany @relation(fields: [categoryId], references: [id])
+      categoryId String
+
+      @@id([postId, categoryId])
     }
   `
 })

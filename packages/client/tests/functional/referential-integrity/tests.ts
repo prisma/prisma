@@ -7,6 +7,10 @@ import testMatrix from './_matrix'
 // @ts-ignore
 declare let prisma: import('@prisma/client').PrismaClient
 
+function assertUnreachable() {
+  expect(true).toEqual(false)
+}
+
 async function createXUsers({ count, userColumn, profileColumn, userModel, profileModel }) {
   const usersArr: any = []
 
@@ -70,14 +74,51 @@ testMatrix.setupTestSuite(
 
     // we can create a user without a profile, but not a profile without a user
     describe('1:1 mandatory (explicit)', () => {
+      const userModel = 'userOneToOne'
+      const profileModel = 'profileOneToOne'
+
       beforeEach(async () => {
         // TODO: consider using something like:
         // await ctx.cli('db', 'push', '--force-reset', '--accept-data-loss', '--schema', 'schema.prisma')
-        await prisma.$transaction([prisma.profile.deleteMany(), prisma.user.deleteMany()])
+        await prisma.$transaction([prisma[profileModel].deleteMany(), prisma[userModel].deleteMany()])
+      })
+
+      afterAll(async () => {
+        await prisma.$disconnect()
+      })
+
+      test('[create] child with non existing parent should throw', async () => {
+        try {
+          await prisma[profileModel].create({
+            data: {
+              id: '1',
+              userId: '1',
+            },
+          })
+          assertUnreachable()
+        } catch (error) {
+          expect(error.message).toContain(
+            'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)',
+          )
+        }
+      })
+
+      test('[create] child with undefined parent should throw', async () => {
+        try {
+          await prisma[profileModel].create({
+            data: {
+              id: '1',
+              userId: undefined, // this would actually be a type-error, but we don't have access to types here
+            },
+          })
+          assertUnreachable()
+        } catch (error) {
+          expect(error.message).toContain('Argument user for data.user is missing.')
+        }
       })
 
       test('[create] nested [create]', async () => {
-        const user1 = await prisma.user.create({
+        const user1 = await prisma[userModel].create({
           data: {
             id: '1',
             profile: {
@@ -86,7 +127,7 @@ testMatrix.setupTestSuite(
           },
           include: { profile: true },
         })
-        const user2 = await prisma.user.create({
+        const user2 = await prisma[userModel].create({
           data: {
             id: '2',
             profile: {
@@ -95,7 +136,7 @@ testMatrix.setupTestSuite(
           },
           include: { profile: true },
         })
-        const user3 = await prisma.user.create({
+        const user3 = await prisma[userModel].create({
           data: {
             id: '3',
             profile: {
@@ -129,21 +170,21 @@ testMatrix.setupTestSuite(
         /**
          * TODO: consider porting the read queries to a transaction.
          */
-        const profile1 = await prisma.profile.findUniqueOrThrow({
+        const profile1 = await prisma[profileModel].findUniqueOrThrow({
           where: { userId: '1' },
         })
         expect(profile1).toEqual({
           id: '1',
           userId: '1',
         })
-        const profile2 = await prisma.profile.findUniqueOrThrow({
+        const profile2 = await prisma[profileModel].findUniqueOrThrow({
           where: { userId: '2' },
         })
         expect(profile2).toEqual({
           id: '2',
           userId: '2',
         })
-        const profile3 = await prisma.profile.findUniqueOrThrow({
+        const profile3 = await prisma[profileModel].findUniqueOrThrow({
           where: { userId: '3' },
         })
         expect(profile3).toEqual({
@@ -151,7 +192,7 @@ testMatrix.setupTestSuite(
           userId: '3',
         })
 
-        const user1Copy = await prisma.user.findUniqueOrThrow({
+        const user1Copy = await prisma[userModel].findUniqueOrThrow({
           where: { id: '1' },
         })
         expect(user1Copy).toEqual({
@@ -184,7 +225,7 @@ testMatrix.setupTestSuite(
       */
 
       test('[update] parent id with non-existing id should succeed', async () => {
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '1',
             profile: {
@@ -192,7 +233,7 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '2',
             profile: {
@@ -201,7 +242,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const user1WithNewId = await prisma.user.update({
+        const user1WithNewId = await prisma[userModel].update({
           where: { id: '1' },
           data: {
             id: '3',
@@ -212,11 +253,11 @@ testMatrix.setupTestSuite(
         })
 
         // Checks
-        const profileNull = await prisma.profile.findFirst({
+        const profileNull = await prisma[profileModel].findFirst({
           where: { userId: '1' },
         })
         expect(profileNull).toEqual(null)
-        const profiles = await prisma.profile.findMany({
+        const profiles = await prisma[profileModel].findMany({
           orderBy: [{ id: 'asc' }],
         })
         expect(profiles).toEqual([
@@ -232,7 +273,7 @@ testMatrix.setupTestSuite(
       })
 
       test('[update] parent id with existing id should throw', async () => {
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '1',
             profile: {
@@ -240,7 +281,7 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '2',
             profile: {
@@ -250,7 +291,7 @@ testMatrix.setupTestSuite(
         })
 
         await expect(
-          prisma.user.update({
+          prisma[userModel].update({
             where: { id: '1' },
             data: {
               id: '2', // existing id
@@ -260,7 +301,7 @@ testMatrix.setupTestSuite(
       })
 
       test('[update] child id with non-existing id should succeed', async () => {
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '1',
             profile: {
@@ -268,7 +309,7 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '2',
             profile: {
@@ -277,7 +318,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const profile1WithNewId = await prisma.profile.update({
+        const profile1WithNewId = await prisma[profileModel].update({
           where: { id: '1' },
           data: {
             id: '3',
@@ -288,7 +329,7 @@ testMatrix.setupTestSuite(
           userId: '1',
         })
 
-        const user1WithUpdatedProfile = await prisma.user.findUniqueOrThrow({
+        const user1WithUpdatedProfile = await prisma[userModel].findUniqueOrThrow({
           where: { id: '1' },
           include: { profile: true },
         })
@@ -300,7 +341,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const profiles = await prisma.profile.findMany({
+        const profiles = await prisma[profileModel].findMany({
           orderBy: [{ id: 'asc' }],
         })
         expect(profiles).toEqual([
@@ -316,7 +357,7 @@ testMatrix.setupTestSuite(
       })
 
       test('[update] child id with existing id should throw', async () => {
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '1',
             profile: {
@@ -324,7 +365,7 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        await prisma.user.create({
+        await prisma[userModel].create({
           data: {
             id: '2',
             profile: {
@@ -334,7 +375,7 @@ testMatrix.setupTestSuite(
         })
 
         await expect(
-          prisma.profile.update({
+          prisma[profileModel].update({
             where: { id: '1' },
             data: {
               id: '2', // existing id
@@ -343,15 +384,262 @@ testMatrix.setupTestSuite(
         ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
       })
 
-      test.skip('[updateMany] parent id should succeed', async () => {})
-      test.skip('[updateMany] parent id with existing id should throw', async () => {})
-      test.skip('[upsert] parent id should succeed', async () => {})
-      test.skip('[upsert] parent id with existing id should throw', async () => {})
-      test.skip('[nested] update parent id [connect] child should succeed', async () => {})
-      test.skip('[nested] update parent id [disconnect] child should succeed', async () => {})
-      test.skip('[nested] update parent id [update] child should succeed', async () => {})
+      test('[updateMany] parent id should succeed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        await prisma[userModel].updateMany({
+          data: { id: '3' },
+          where: { id: '1' },
+        })
+
+        expect(
+          prisma[userModel].findUnique({
+            where: { id: '1' },
+          }),
+        ).resolves.toEqual(null)
+
+        const user1WithNewId = await prisma[userModel].findUniqueOrThrow({
+          where: { id: '3' },
+          include: { profile: true },
+        })
+        expect(user1WithNewId).toEqual({
+          id: '3',
+          profile: {
+            id: '1',
+            userId: '3',
+          },
+        })
+
+        const profile1FromUser3 = await prisma[profileModel].findUniqueOrThrow({
+          where: { userId: '3' },
+        })
+        expect(profile1FromUser3).toEqual({
+          id: '1',
+          userId: '3',
+        })
+      })
+
+      test('[updateMany] parent id with existing id should throw', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        try {
+          await prisma[userModel].updateMany({
+            data: { id: '2' }, // existing id
+            where: { id: '1' },
+          })
+          assertUnreachable()
+        } catch (error) {
+          expect(error.message).toContain('Unique constraint failed on the fields: (\`id\`)')
+        }
+      })
+
+      test('[nested] update parent id [connect] child should succeed if the relationship didn\'t exist', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+          },
+        })
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        const user3 = await prisma[userModel].update({
+          where: { id: '1' },
+          data: {
+            id: '3',
+            profile: {
+              connect: { id: '2' },
+            },
+          },
+        })
+
+        expect(user3).toEqual({
+          id: '3',
+        })
+
+        expect(
+          prisma[profileModel].findUnique({
+            where: { userId: '1' },
+          }),
+        ).resolves.toEqual(null)
+
+        expect(
+          prisma[profileModel].findUnique({
+            where: { userId: '2' },
+          }),
+        ).resolves.toEqual(null)
+
+        const profile2 = await prisma[profileModel].findUniqueOrThrow({
+          where: { userId: '3' },
+        })
+        expect(profile2).toEqual({
+          id: '2',
+          userId: '3',
+        })
+      })
+
+      test('[nested] update parent id [connect] child should succeed if the relationship already existed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        // TODO: is this a bug? Probably it's trying to disconnect under the hood?
+        try {
+          await prisma[userModel].update({
+            where: { id: '1' },
+            data: {
+              id: '3',
+              profile: {
+                connect: { id: '1' },
+              },
+            },
+          })
+          assertUnreachable()
+        } catch (error) {
+          expect(error.message).toContain('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
+        }
+      })
+
+      test('[nested] update parent id [disconnect] child should succeed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        try {
+          await prisma[userModel].update({
+            where: { id: '1' },
+            data: {
+              id: '3',
+              profile: {
+                disconnect: true,
+              },
+            },
+          })
+          assertUnreachable()
+        } catch (error) {
+          expect(error.message).toContain('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
+        }
+      })
+
+      test('[nested] update parent id [update] child should succeed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+        })
+
+        const user3 = await prisma[userModel].update({
+          where: { id: '1' },
+          data: {
+            id: '3',
+            profile: {
+              update: {
+                id: '3',
+              },
+            }
+          },
+          include: { profile: true }
+        })
+        expect(user3).toEqual({
+          id: '3',
+          profile: {
+            id: '3',
+            userId: '3',
+          },
+        })
+
+        expect(
+          prisma[profileModel].findUnique({
+            where: { userId: '1' },
+          }),
+        ).resolves.toEqual(null)
+
+        const profile1FromUser3 = await prisma[profileModel].findUniqueOrThrow({
+          where: { userId: '3' },
+        })
+        expect(profile1FromUser3).toEqual({
+          id: '3',
+          userId: '3',
+        })
+      })
+
       test.skip('[nested] update parent id [updateMany] child should succeed', async () => {})
       test.skip('[nested] update parent id [upsert] child should succeed', async () => {})
+
+      test.skip('[upsert] parent id should succeed', async () => {})
+      test.skip('[upsert] parent id with existing id should throw', async () => {})
 
       // describe.skip('onUpdate: DEFAULT', () => {})
       // describe.skip('onUpdate: Cascade', () => {})
