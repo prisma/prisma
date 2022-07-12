@@ -139,6 +139,7 @@ export async function generateInFolder({
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
     dataProxy: !!process.env.DATA_PROXY,
+    deno: !!process.env.DENO,
   })
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)

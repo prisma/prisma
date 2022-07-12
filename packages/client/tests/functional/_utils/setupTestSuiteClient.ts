@@ -61,9 +61,11 @@ export async function setupTestSuiteClient({
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
+      deno: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'deno'].join('/'),
     },
     projectRoot: suiteFolderPath,
     dataProxy: !!process.env.DATA_PROXY,
+    deno: !!process.env.DENO,
   })
 
   return require(path.join(suiteFolderPath, 'node_modules/@prisma/client'))
