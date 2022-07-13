@@ -452,15 +452,12 @@ testMatrix.setupTestSuite(
           },
         })
 
-        try {
-          await prisma[userModel].updateMany({
+        await expect(
+          prisma[userModel].updateMany({
             data: { id: '2' }, // existing id
             where: { id: '1' },
           })
-          assertUnreachable()
-        } catch (error) {
-          expect(error.message).toContain('Unique constraint failed on the fields: (\`id\`)')
-        }
+        ).rejects.toThrowError('Unique constraint failed on the fields: (\`id\`)')
       })
 
       test('[nested] update parent id [connect] child should succeed if the relationship didn\'t exist', async () => {
@@ -532,8 +529,8 @@ testMatrix.setupTestSuite(
         })
 
         // TODO: is this a bug? Probably it's trying to disconnect under the hood?
-        try {
-          await prisma[userModel].update({
+        await expect(
+          prisma[userModel].update({
             where: { id: '1' },
             data: {
               id: '3',
@@ -542,10 +539,7 @@ testMatrix.setupTestSuite(
               },
             },
           })
-          assertUnreachable()
-        } catch (error) {
-          expect(error.message).toContain('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
-        }
+        ).rejects.toThrowError('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
       })
 
       test('[nested] update parent id [disconnect] child should succeed', async () => {
@@ -566,8 +560,8 @@ testMatrix.setupTestSuite(
           },
         })
 
-        try {
-          await prisma[userModel].update({
+        expect(
+          prisma[userModel].update({
             where: { id: '1' },
             data: {
               id: '3',
@@ -576,10 +570,7 @@ testMatrix.setupTestSuite(
               },
             },
           })
-          assertUnreachable()
-        } catch (error) {
-          expect(error.message).toContain('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
-        }
+        ).rejects.toThrowError('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
       })
 
       test('[nested] update parent id [update] child should succeed', async () => {
