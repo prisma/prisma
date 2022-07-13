@@ -1,6 +1,6 @@
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, previewFeatures, referentialIntegrity, id }) => {
+export default testMatrix.setupSchema(({ provider, previewFeatures, referentialIntegrity, referentialActions, id }) => {
   let referentialIntegrityLine = ''
 
   switch (referentialIntegrity) {
@@ -25,6 +25,14 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     }
   `
 
+  let referentialActionLine = ''
+  if(referentialActions.onUpdate) {
+    referentialActionLine += `, onUpdate: ${referentialActions.onUpdate}` 
+  }
+  if(referentialActions.onDelete) {
+    referentialActionLine += `, onDelete: ${referentialActions.onDelete}` 
+  }
+
   return /* Prisma */ `
     ${schemaHeader}
 
@@ -38,7 +46,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     }
     model ProfileOneToOne {
       id       ${id}
-      user     UserOneToOne @relation(fields: [userId], references: [id])
+      user     UserOneToOne @relation(fields: [userId], references: [id]${referentialActionLine})
       userId   String @unique
     }
 
@@ -52,7 +60,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     }
     model PostOneToMany {
       id       ${id}
-      author   UserOneToMany @relation(fields: [authorId], references: [id])
+      author   UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
       authorId String
     }
 
@@ -71,9 +79,9 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     }
 
     model CategoriesOnPostsManyToMany {
-      post       PostManyToMany     @relation(fields: [postId], references: [id])
+      post       PostManyToMany     @relation(fields: [postId], references: [id]${referentialActionLine})
       postId     String
-      category   CategoryManyToMany @relation(fields: [categoryId], references: [id])
+      category   CategoryManyToMany @relation(fields: [categoryId], references: [id]${referentialActionLine})
       categoryId String
 
       @@id([postId, categoryId])

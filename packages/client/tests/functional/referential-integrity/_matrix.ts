@@ -8,12 +8,26 @@ type RIType = 'prisma' | 'foreignKeys' | ''
 
 const referentialIntegrity: RIType = (RI as RIType) || ''
 
+// TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 export default defineMatrix(() => [
   [
     {
       provider: 'postgresql',
       id: 'String @id',
       referentialIntegrity,
+      referentialActions: {
+        onUpdate: '',
+        onDelete: '',
+      }
+    },
+    {
+      provider: 'postgresql',
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: 'Cascade',
+        onDelete: 'Cascade',
+      }
     },
     // {
     //   provider: 'sqlite',

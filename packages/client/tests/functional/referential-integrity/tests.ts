@@ -7,9 +7,8 @@ import testMatrix from './_matrix'
 // @ts-ignore
 declare let prisma: import('@prisma/client').PrismaClient
 
-function assertUnreachable() {
-  expect(true).toEqual(false)
-}
+// @ts-ignore
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 async function createXUsers({ count, userColumn, profileColumn, userModel, profileModel }) {
   const usersArr: any = []
@@ -68,6 +67,9 @@ async function checkForNoChange({ count, userColumn, profileColumn, userModel, p
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
+    
+
+
     // - [ ]  **1-to-1** relationship, explicit
     // - [ ]  **1-to-n** relationship, explicit
     // - [ ]  **m-to-n** relationship, explicit
@@ -88,33 +90,25 @@ testMatrix.setupTestSuite(
       })
 
       test('[create] child with non existing parent should throw', async () => {
-        try {
-          await prisma[profileModel].create({
+        await expect(
+          prisma[profileModel].create({
             data: {
               id: '1',
               userId: '1',
             },
           })
-          assertUnreachable()
-        } catch (error) {
-          expect(error.message).toContain(
-            'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)',
-          )
-        }
+        ).rejects.toThrowError('Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)')
       })
 
-      test('[create] child with undefined parent should throw', async () => {
-        try {
-          await prisma[profileModel].create({
+      test('[create] child with undefined parent should throw with type error', async () => {
+        await expect(
+          prisma[profileModel].create({
             data: {
               id: '1',
               userId: undefined, // this would actually be a type-error, but we don't have access to types here
             },
           })
-          assertUnreachable()
-        } catch (error) {
-          expect(error.message).toContain('Argument user for data.user is missing.')
-        }
+        ).rejects.toThrowError('Argument user for data.user is missing.')
       })
 
       test('[create] nested [create]', async () => {
@@ -199,7 +193,7 @@ testMatrix.setupTestSuite(
           id: '1',
         })
       })
-
+    
       //
       // TODO more create cases
       //
@@ -456,11 +450,11 @@ testMatrix.setupTestSuite(
           prisma[userModel].updateMany({
             data: { id: '2' }, // existing id
             where: { id: '1' },
-          })
-        ).rejects.toThrowError('Unique constraint failed on the fields: (\`id\`)')
+          }),
+        ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
       })
 
-      test('[nested] update parent id [connect] child should succeed if the relationship didn\'t exist', async () => {
+      test("[nested] update parent id [connect] child should succeed if the relationship didn't exist", async () => {
         await prisma[userModel].create({
           data: {
             id: '1',
@@ -510,6 +504,29 @@ testMatrix.setupTestSuite(
         })
       })
 
+      test('[nested] [connect] child should succeed if the relationship already existed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+        })
+
+        // TODO: this is probably a bug, this operation should be idempotent and succeed
+        await expect(
+          prisma[userModel].update({
+            where: { id: '1' },
+            data: {
+              profile: {
+                connect: { id: '1' },
+              },
+            },
+          }),
+        ).rejects.toThrowError('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.')
+      })
+
       test('[nested] update parent id [connect] child should succeed if the relationship already existed', async () => {
         await prisma[userModel].create({
           data: {
@@ -538,11 +555,13 @@ testMatrix.setupTestSuite(
                 connect: { id: '1' },
               },
             },
-          })
-        ).rejects.toThrowError('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
+          }),
+        ).rejects.toThrowError(
+          "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+        )
       })
 
-      test('[nested] update parent id [disconnect] child should succeed', async () => {
+      test('[nested] [disconnect] child should throw', async () => {
         await prisma[userModel].create({
           data: {
             id: '1',
@@ -551,26 +570,19 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        await prisma[userModel].create({
-          data: {
-            id: '2',
-            profile: {
-              create: { id: '2' },
-            },
-          },
-        })
 
-        expect(
+        await expect(
           prisma[userModel].update({
             where: { id: '1' },
             data: {
-              id: '3',
               profile: {
                 disconnect: true,
               },
             },
-          })
-        ).rejects.toThrowError('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the `ProfileOneToOne` and `UserOneToOne` models.')
+          }),
+        ).rejects.toThrowError(
+          "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+        )
       })
 
       test('[nested] update parent id [update] child should succeed', async () => {
@@ -599,9 +611,9 @@ testMatrix.setupTestSuite(
               update: {
                 id: '3',
               },
-            }
+            },
           },
-          include: { profile: true }
+          include: { profile: true },
         })
         expect(user3).toEqual({
           id: '3',
@@ -626,11 +638,209 @@ testMatrix.setupTestSuite(
         })
       })
 
-      test.skip('[nested] update parent id [updateMany] child should succeed', async () => {})
-      test.skip('[nested] update parent id [upsert] child should succeed', async () => {})
+      // user.upsert, post.upsert
 
+      // This is ok for 1-to-n and m-to-m
+      // test.skip('[nested] update parent id [updateMany] child should succeed', async () => {})
+
+      test.skip('[nested] update parent id [upsert] child should succeed', async () => {})
       test.skip('[upsert] parent id should succeed', async () => {})
-      test.skip('[upsert] parent id with existing id should throw', async () => {})
+      test.skip('[upsert] parent id with existing id should throw', async () => {}) 
+
+      test('[delete] child should succeed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+          include: { profile: true },
+        })
+
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+          include: { profile: true },
+        })
+
+        await prisma[profileModel].delete({
+          where: { id: '1' },
+        })
+
+        const usersFromDb = await prisma[userModel].findMany({
+          include: { profile: true },
+        })
+        expect(usersFromDb).toEqual([
+          {
+            id: '1',
+            profile: null,
+          },
+          {
+            id: '2',
+            profile: {
+              id: '2',
+              userId: '2',
+            },
+          }
+        ])
+
+        const profilesFromDb = await prisma[profileModel].findMany({})
+        expect(profilesFromDb).toEqual([
+          {
+            id: '2',
+            userId: '2',
+          },
+        ])
+      })
+
+      test('[delete] child and then [delete] parent should succeed', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+          include: { profile: true },
+        })
+
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+          include: { profile: true },
+        })
+
+        await prisma[profileModel].delete({
+          where: { id: '1' },
+        })
+        await prisma[userModel].delete({
+          where: { id: '1' },
+        })
+
+        const usersFromDb = await prisma[userModel].findMany({
+          include: { profile: true },
+        })
+        expect(usersFromDb).toEqual([
+          {
+            id: '2',
+            profile: {
+              id: '2',
+              userId: '2',
+            },
+          }
+        ])
+
+        const profilesFromDb = await prisma[profileModel].findMany({})
+        expect(profilesFromDb).toEqual([
+          {
+            id: '2',
+            userId: '2',
+          },
+        ])
+      })
+
+      test.skip('[deleteMany] parents should throw', async () => {
+        await prisma[userModel].create({
+          data: {
+            id: '1',
+            profile: {
+              create: { id: '1' },
+            },
+          },
+          include: { profile: true },
+        })
+
+        await prisma[userModel].create({
+          data: {
+            id: '2',
+            profile: {
+              create: { id: '2' },
+            },
+          },
+          include: { profile: true },
+        })
+      })
+
+      describeIf(suiteConfig.referentialActions.onDelete === '')('onDelete: DEFAULT', () => {
+        test('[delete] parent should throw', async () => {
+          await prisma[userModel].create({
+            data: {
+              id: '1',
+              profile: {
+                create: { id: '1' },
+              },
+            },
+            include: { profile: true },
+          })
+  
+          // this throws because "profileModel" has a mandatory relation with "userModel", hence
+          // we have a "onDelete: Restrict" situation by default 
+  
+          await expect(
+            prisma[userModel].delete({
+              where: { id: '1' },
+            })
+          ).rejects.toThrowError('Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)')
+        })
+      })
+
+      describeIf(suiteConfig.referentialActions.onDelete === 'Cascade')('onDelete: Cascade', () => {
+        test('[delete] parent should succeed', async () => {
+          await prisma[userModel].create({
+            data: {
+              id: '1',
+              profile: {
+                create: { id: '1' },
+              },
+            },
+            include: { profile: true },
+          })
+
+          await prisma[userModel].create({
+            data: {
+              id: '2',
+              profile: {
+                create: { id: '2' },
+              },
+            },
+            include: { profile: true },
+          })
+  
+          await prisma[userModel].delete({
+            where: { id: '1' },
+          })
+
+          const usersFromDb = await prisma[userModel].findMany({
+            include: { profile: true }
+          })
+          expect(usersFromDb).toEqual([
+            {
+              id: '2',
+              profile: {
+                id: '2',
+                userId: '2',
+              },
+            },
+          ])
+
+          const profilesFromDb = await prisma[profileModel].findMany({})
+          expect(profilesFromDb).toEqual([
+            {
+              id: '2',
+              userId: '2',
+            },
+          ])
+        })
+      })
 
       // describe.skip('onUpdate: DEFAULT', () => {})
       // describe.skip('onUpdate: Cascade', () => {})

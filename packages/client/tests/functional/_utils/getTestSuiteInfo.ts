@@ -6,7 +6,7 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
-export type TestSuiteMatrix = { [K in string]: string }[][]
+export type TestSuiteMatrix = { [K in string]: string | Record<string, string> }[][]
 export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
