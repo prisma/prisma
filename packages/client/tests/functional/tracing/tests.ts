@@ -11,8 +11,17 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
+import * as util from 'util'
 
 import testMatrix from './_matrix'
+
+const sleep = util.promisify(setTimeout)
+
+/*
+ Spans comes thru logs and sometimes these tests
+ can be flaky without giving some buffer
+*/
+const logBuffer = () => sleep(200)
 
 type Tree = {
   span: ReadableSpan
@@ -84,6 +93,8 @@ testMatrix.setupTestSuite(
           },
         })
 
+        await logBuffer()
+
         const spans = inMemorySpanExporter.getFinishedSpans()
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
@@ -125,6 +136,8 @@ testMatrix.setupTestSuite(
             email: email,
           },
         })
+
+        await logBuffer()
 
         const spans = inMemorySpanExporter.getFinishedSpans()
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
@@ -205,6 +218,8 @@ testMatrix.setupTestSuite(
           },
         })
 
+        await logBuffer()
+
         const spans = inMemorySpanExporter.getFinishedSpans()
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
@@ -263,6 +278,8 @@ testMatrix.setupTestSuite(
           }),
         ])
 
+        await logBuffer()
+
         const spans = inMemorySpanExporter.getFinishedSpans()
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
         const tree = buildTree({ span: rootSpan }, spans)
@@ -313,6 +330,8 @@ testMatrix.setupTestSuite(
     describe('tracing on $raw methods', () => {
       test('$queryRaw', async () => {
         await prisma.$queryRaw`SELECT 1 + 1;`
+
+        await logBuffer()
 
         const spans = inMemorySpanExporter.getFinishedSpans()
         const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
@@ -378,6 +397,8 @@ testMatrix.setupTestSuite(
         }
       })
 
+      await logBuffer()
+
       const spans = inMemorySpanExporter.getFinishedSpans()
       const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
       const tree = buildTree({ span: rootSpan }, spans)
@@ -439,6 +460,8 @@ testMatrix.setupTestSuite(
           email: email,
         },
       })
+
+      await logBuffer()
 
       const spans = inMemorySpanExporter.getFinishedSpans()
       const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
