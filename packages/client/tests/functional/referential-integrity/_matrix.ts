@@ -30,23 +30,31 @@ export default defineMatrix(() => [
         onDelete: 'Cascade',
       },
     },
+    {
+      provider: Providers.COCKROACHDB,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: '',
+        onDelete: '',
+      },
+    },
+    {
+      provider: Providers.MYSQL,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: '',
+        onDelete: '',
+      },
+    },
     // {
     //   provider: 'sqlite',
     //   id: 'String @id',
     //   referentialIntegrity,
     // },
     // {
-    //   provider: 'mysql',
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    // },
-    // {
     //   provider: 'sqlserver',
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    // },
-    // {
-    //   provider: 'cockroachdb',
     //   id: 'String @id',
     //   referentialIntegrity,
     // },

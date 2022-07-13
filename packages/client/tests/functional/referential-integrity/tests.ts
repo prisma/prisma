@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-
+import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -67,8 +67,10 @@ async function checkForNoChange({ count, userColumn, profileColumn, userModel, p
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    
 
+    function conditionalError(errors: Record<Providers, string>): string {
+      return errors[suiteConfig.provider]
+    }
 
     // - [ ]  **1-to-1** relationship, explicit
     // - [ ]  **1-to-n** relationship, explicit
@@ -90,6 +92,7 @@ testMatrix.setupTestSuite(
       })
 
       test('[create] child with non existing parent should throw', async () => {
+        // TODO: this doesn't throw with "referentialIntegrity: prisma"
         await expect(
           prisma[profileModel].create({
             data: {
@@ -97,7 +100,14 @@ testMatrix.setupTestSuite(
               userId: '1',
             },
           })
-        ).rejects.toThrowError('Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)')
+        ).rejects.toThrowError(
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+            [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+            [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+          })
+        )
       })
 
       test('[create] child with undefined parent should throw with type error', async () => {
@@ -291,7 +301,14 @@ testMatrix.setupTestSuite(
               id: '2', // existing id
             },
           }),
-        ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
+        ).rejects.toThrowError(
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+            [Providers.MYSQL]: 'Foreign key constraint for table \'UserOneToOne\', record \'2\' would lead to a duplicate entry in table \'ProfileOneToOne\', key \'ProfileOneToOne_userId_key\'',
+          })
+        )
       })
 
       test('[update] child id with non-existing id should succeed', async () => {
@@ -375,7 +392,14 @@ testMatrix.setupTestSuite(
               id: '2', // existing id
             },
           }),
-        ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
+        ).rejects.toThrowError(
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+            [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+          })
+        )
       })
 
       test('[updateMany] parent id should succeed', async () => {
@@ -451,7 +475,14 @@ testMatrix.setupTestSuite(
             data: { id: '2' }, // existing id
             where: { id: '1' },
           }),
-        ).rejects.toThrowError('Unique constraint failed on the fields: (`id`)')
+        ).rejects.toThrowError(
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+            [Providers.MYSQL]: 'Foreign key constraint for table \'UserOneToOne\', record \'2\' would lead to a duplicate entry in table \'ProfileOneToOne\', key \'ProfileOneToOne_userId_key\'',
+          })
+        )
       })
 
       test("[nested] update parent id [connect] child should succeed if the relationship didn't exist", async () => {
@@ -524,7 +555,14 @@ testMatrix.setupTestSuite(
               },
             },
           }),
-        ).rejects.toThrowError('The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.')
+        ).rejects.toThrowError(
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+            [Providers.COCKROACHDB]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+            [Providers.MYSQL]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+          })
+        )
       })
 
       test('[nested] update parent id [connect] child should succeed if the relationship already existed', async () => {
@@ -557,7 +595,12 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toThrowError(
-          "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+            [Providers.COCKROACHDB]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+            [Providers.MYSQL]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+          })
         )
       })
 
@@ -581,7 +624,12 @@ testMatrix.setupTestSuite(
             },
           }),
         ).rejects.toThrowError(
-          "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+          // @ts-expect-error: all providers ought to be logged
+          conditionalError({
+            [Providers.POSTGRESQL]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+            [Providers.COCKROACHDB]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+            [Providers.MYSQL]: 'The change you are trying to make would violate the required relation \'ProfileOneToOneToUserOneToOne\' between the \`ProfileOneToOne\` and \`UserOneToOne\` models.',
+          })
         )
       })
 
@@ -771,7 +819,7 @@ testMatrix.setupTestSuite(
       })
 
       describeIf(suiteConfig.referentialActions.onDelete === '')('onDelete: DEFAULT', () => {
-        test('[delete] parent should throw', async () => {
+        test.only('[delete] parent should throw', async () => {
           await prisma[userModel].create({
             data: {
               id: '1',
@@ -789,7 +837,14 @@ testMatrix.setupTestSuite(
             prisma[userModel].delete({
               where: { id: '1' },
             })
-          ).rejects.toThrowError('Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)')
+          ).rejects.toThrowError(
+            // @ts-expect-error: all providers ought to be logged
+            conditionalError({
+              [Providers.POSTGRESQL]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+            })
+          )
         })
       })
 
