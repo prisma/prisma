@@ -17,5 +17,8 @@ export default defineMatrix(() => [
     {
       provider: 'sqlserver',
     },
+    {
+      provider: 'mongodb',
+    },
   ],
 ])
