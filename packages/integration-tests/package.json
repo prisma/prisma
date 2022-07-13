@@ -16,7 +16,7 @@
     "@sindresorhus/slugify": "1.1.2",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/mssql": "8.0.3",
     "@types/node": "12.20.55",
     "@types/pg": "8.6.5",

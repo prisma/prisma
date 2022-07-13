@@ -19,12 +19,12 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.1.0-31.9f27eed0f8b8773287ff09e657bfa267983e5948",
+    "@prisma/engines-version": "4.1.0-37.7550a065359a43f860142328100fead99cc9188a",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/node": "12.20.55",
     "@types/pg": "8.6.5",
     "@types/prompts": "2.0.14",

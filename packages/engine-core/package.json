@@ -20,7 +20,7 @@
   "devDependencies": {
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/node": "16.11.43",
     "esbuild": "0.14.47",
     "jest": "28.1.2",
@@ -48,7 +48,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "undici": "5.6.0"
+    "undici": "5.7.0"
   },
   "files": [
     "README.md",

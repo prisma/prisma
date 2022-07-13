@@ -87,7 +87,7 @@
     "@swc/jest": "0.2.21",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.0.3",
     "@types/node": "12.20.55",
@@ -145,7 +145,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.1.0-31.9f27eed0f8b8773287ff09e657bfa267983e5948"
+    "@prisma/engines-version": "4.1.0-37.7550a065359a43f860142328100fead99cc9188a"
   },
   "sideEffects": false
 }
