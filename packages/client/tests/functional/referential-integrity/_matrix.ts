@@ -2,12 +2,12 @@ import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
 
 const RI = process.env.RI
-if (!RI || !['prisma', 'foreignKeys'].includes(RI)) {
+if (RI && RI !== 'prisma' && RI !== 'foreignKeys') {
   throw new Error(`RI must be either "prisma" or "foreignKeys" but was "${RI}"`)
 }
 
-type RIType = 'prisma' | 'foreignKeys'
-const referentialIntegrity: RIType = RI as RIType
+type RIType = 'prisma' | 'foreignKeys' | ''
+const referentialIntegrity: RIType = (RI as RIType) || ''
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 export default defineMatrix(() => [
@@ -49,19 +49,13 @@ export default defineMatrix(() => [
       },
     },
     // {
-    //   provider: 'sqlite',
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    // },
-    // {
-    //   provider: 'sqlserver',
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    // },
-    // {
-    //   provider: 'mongodb',
+    //   provider: Providers.MONGODB,
     //   id: 'String @id @map("_id")',
-    //   referentialIntegrity: 'default',
+    //   referentialIntegrity: '',
+    //   referentialActions: {
+    //     onUpdate: '',
+    //     onDelete: '',
+    //   },
     // },
   ],
   [

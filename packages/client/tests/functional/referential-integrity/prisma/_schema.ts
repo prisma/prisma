@@ -2,9 +2,15 @@ import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures, referentialIntegrity, referentialActions, id }) => {
-  const actualReferentialIntegrity = provider === Providers.MONGODB ? ('prisma' as const) : referentialIntegrity
-
-  const referentialIntegrityLine = `referentialIntegrity = "${actualReferentialIntegrity}"`
+  let referentialIntegrityLine = ''
+  switch (referentialIntegrity) {
+    case 'prisma':
+    case 'foreignKeys':
+      referentialIntegrityLine = `referentialIntegrity = "${referentialIntegrity}"`
+      break
+    default:
+      break
+  }
 
   const schemaHeader = /* Prisma */ `
     generator client {
@@ -27,58 +33,63 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     referentialActionLine += `, onDelete: ${referentialActions.onDelete}`
   }
 
+  const manyToMany = /* Prisma */ `
+//
+// m:n relation
+//
+
+model PostManyToMany {
+  id         ${id}
+  categories CategoriesOnPostsManyToMany[]
+}
+
+model CategoryManyToMany {
+  id    ${id}
+  posts CategoriesOnPostsManyToMany[]
+}
+
+model CategoriesOnPostsManyToMany {
+  post       PostManyToMany     @relation(fields: [postId], references: [id]${referentialActionLine})
+  postId     String
+  category   CategoryManyToMany @relation(fields: [categoryId], references: [id]${referentialActionLine})
+  categoryId String
+
+  // Not supported on MongoDB
+  @@id([postId, categoryId])
+}
+`
+
   return /* Prisma */ `
-    ${schemaHeader}
+${schemaHeader}
 
-    //
-    // 1:1 relation
-    //
+//
+// 1:1 relation
+//
 
-    model UserOneToOne {
-      id      ${id}
-      profile ProfileOneToOne?
-    }
-    model ProfileOneToOne {
-      id       ${id}
-      user     UserOneToOne @relation(fields: [userId], references: [id]${referentialActionLine})
-      userId   String @unique
-    }
+model UserOneToOne {
+  id      ${id}
+  profile ProfileOneToOne?
+}
+model ProfileOneToOne {
+  id       ${id}
+  user     UserOneToOne @relation(fields: [userId], references: [id]${referentialActionLine})
+  userId   String @unique
+}
 
-    //
-    // 1:n relation
-    //
+//
+// 1:n relation
+//
 
-    model UserOneToMany {
-      id    ${id}
-      posts PostOneToMany[]
-    }
-    model PostOneToMany {
-      id       ${id}
-      author   UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
-      authorId String
-    }
+model UserOneToMany {
+  id    ${id}
+  posts PostOneToMany[]
+}
+model PostOneToMany {
+  id       ${id}
+  author   UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
+  authorId String
+}
 
-    //
-    // m:n relation
-    //
-
-    model PostManyToMany {
-      id         ${id}
-      categories CategoriesOnPostsManyToMany[]
-    }
-
-    model CategoryManyToMany {
-      id    ${id}
-      posts CategoriesOnPostsManyToMany[]
-    }
-
-    model CategoriesOnPostsManyToMany {
-      post       PostManyToMany     @relation(fields: [postId], references: [id]${referentialActionLine})
-      postId     String
-      category   CategoryManyToMany @relation(fields: [categoryId], references: [id]${referentialActionLine})
-      categoryId String
-
-      @@id([postId, categoryId])
-    }
+${provider === Providers.MONGODB ? '' : manyToMany}
   `
 })
