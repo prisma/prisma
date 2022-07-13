@@ -1,16 +1,10 @@
+import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures, referentialIntegrity, referentialActions, id }) => {
-  let referentialIntegrityLine = ''
+  const actualReferentialIntegrity = provider === Providers.MONGODB ? ('prisma' as const) : referentialIntegrity
 
-  switch (referentialIntegrity) {
-    case 'prisma':
-    case 'foreignKeys':
-      referentialIntegrityLine = `referentialIntegrity = "${referentialIntegrity}"`
-      break
-    default:
-      break
-  }
+  const referentialIntegrityLine = `referentialIntegrity = "${actualReferentialIntegrity}"`
 
   const schemaHeader = /* Prisma */ `
     generator client {
@@ -26,11 +20,11 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
   `
 
   let referentialActionLine = ''
-  if(referentialActions.onUpdate) {
-    referentialActionLine += `, onUpdate: ${referentialActions.onUpdate}` 
+  if (referentialActions.onUpdate) {
+    referentialActionLine += `, onUpdate: ${referentialActions.onUpdate}`
   }
-  if(referentialActions.onDelete) {
-    referentialActionLine += `, onDelete: ${referentialActions.onDelete}` 
+  if (referentialActions.onDelete) {
+    referentialActionLine += `, onDelete: ${referentialActions.onDelete}`
   }
 
   return /* Prisma */ `

@@ -1,33 +1,34 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { Providers } from '../_utils/providers'
 
 const RI = process.env.RI
-if (RI && RI !== 'prisma' && RI !== 'foreignKeys') {
+if (!RI || !['prisma', 'foreignKeys'].includes(RI)) {
   throw new Error(`RI must be either "prisma" or "foreignKeys" but was "${RI}"`)
 }
-type RIType = 'prisma' | 'foreignKeys' | ''
 
-const referentialIntegrity: RIType = (RI as RIType) || ''
+type RIType = 'prisma' | 'foreignKeys'
+const referentialIntegrity: RIType = RI as RIType
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 export default defineMatrix(() => [
   [
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
         onUpdate: '',
         onDelete: '',
-      }
+      },
     },
     {
-      provider: 'postgresql',
+      provider: Providers.POSTGRESQL,
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
         onUpdate: 'Cascade',
         onDelete: 'Cascade',
-      }
+      },
     },
     // {
     //   provider: 'sqlite',
@@ -51,7 +52,7 @@ export default defineMatrix(() => [
     // },
     // {
     //   provider: 'mongodb',
-    //   id: 'String @id @map("_id") @db.ObjectId',
+    //   id: 'String @id @map("_id")',
     //   referentialIntegrity: 'default',
     // },
   ],
