@@ -1,27 +1,9 @@
 import { faker } from '@faker-js/faker'
-import { context, trace } from '@opentelemetry/api'
-import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
-import { registerInstrumentations } from '@opentelemetry/instrumentation'
-import { Resource } from '@opentelemetry/resources'
-import {
-  BasicTracerProvider,
-  InMemorySpanExporter,
-  ReadableSpan,
-  SimpleSpanProcessor,
-} from '@opentelemetry/sdk-trace-base'
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-import { PrismaInstrumentation } from '@prisma/instrumentation'
+import { trace } from '@opentelemetry/api'
+import { ReadableSpan } from '@opentelemetry/sdk-trace-base'
 import * as util from 'util'
 
 import testMatrix from './_matrix'
-
-const sleep = util.promisify(setTimeout)
-
-/*
- Spans comes thru logs and sometimes these tests
- can be flaky without giving some buffer
-*/
-const logBuffer = () => sleep(200)
 
 type Tree = {
   span: ReadableSpan
@@ -48,40 +30,25 @@ declare let prisma: import('@prisma/client').PrismaClient
 declare let PrismaClient: typeof import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
-  () => {
-    let inMemorySpanExporter: InMemorySpanExporter
-    let basicTracerProvider: BasicTracerProvider
-
-    beforeAll(() => {
-      const contextManager = new AsyncHooksContextManager().enable()
-      context.setGlobalContextManager(contextManager)
-
-      inMemorySpanExporter = new InMemorySpanExporter()
-
-      basicTracerProvider = new BasicTracerProvider({
-        resource: new Resource({
-          [SemanticResourceAttributes.SERVICE_NAME]: 'test-name',
-          [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
-        }),
-      })
-
-      basicTracerProvider.addSpanProcessor(new SimpleSpanProcessor(inMemorySpanExporter))
-      basicTracerProvider.register()
-
-      registerInstrumentations({
-        instrumentations: [new PrismaInstrumentation({ middleware: true })],
-      })
-    })
-
-    afterEach(async () => {
+  ({ provider }, __, inMemorySpanExporter) => {
+    beforeEach(() => {
       inMemorySpanExporter.reset()
-      await basicTracerProvider.forceFlush()
     })
 
-    afterAll(async () => {
-      await inMemorySpanExporter?.shutdown()
-      await basicTracerProvider?.shutdown()
-    })
+    async function waitForSpanTree(): Promise<Tree> {
+      /*
+        Spans comes thru logs and sometimes these tests
+        can be flaky without giving some buffer
+      */
+      const logBuffer = () => util.promisify(setTimeout)(500)
+      await logBuffer()
+
+      const spans = inMemorySpanExporter.getFinishedSpans()
+      const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
+      const tree = buildTree({ span: rootSpan }, spans)
+
+      return tree
+    }
 
     describe('tracing on crud methods', () => {
       const email = faker.internet.email()
@@ -93,11 +60,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await logBuffer()
-
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('create')
@@ -115,7 +78,7 @@ testMatrix.setupTestSuite(
 
         const dbQuery1 = (engine.children || [])[1]
         expect(dbQuery1.span.name).toEqual('prisma:db_query')
-        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
 
         const dbQuery2 = (engine.children || [])[2]
         expect(dbQuery2.span.name).toEqual('prisma:db_query')
@@ -137,11 +100,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await logBuffer()
-
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('findMany')
@@ -172,9 +131,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('update')
@@ -192,7 +149,7 @@ testMatrix.setupTestSuite(
 
         const dbQuery1 = (engine.children || [])[1]
         expect(dbQuery1.span.name).toEqual('prisma:db_query')
-        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
 
         const dbQuery2 = (engine.children || [])[2]
         expect(dbQuery2.span.name).toEqual('prisma:db_query')
@@ -218,11 +175,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await logBuffer()
-
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('delete')
@@ -240,7 +193,7 @@ testMatrix.setupTestSuite(
 
         const dbQuery1 = (engine.children || [])[1]
         expect(dbQuery1.span.name).toEqual('prisma:db_query')
-        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
 
         const dbQuery2 = (engine.children || [])[2]
         expect(dbQuery2.span.name).toEqual('prisma:db_query')
@@ -278,11 +231,7 @@ testMatrix.setupTestSuite(
           }),
         ])
 
-        await logBuffer()
-
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma:transaction')
         expect(tree.span.attributes['method']).toEqual('transaction')
@@ -312,9 +261,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma:transaction')
         expect(tree.span.attributes['method']).toEqual('transaction')
@@ -331,11 +278,7 @@ testMatrix.setupTestSuite(
       test('$queryRaw', async () => {
         await prisma.$queryRaw`SELECT 1 + 1;`
 
-        await logBuffer()
-
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('queryRaw')
@@ -356,11 +299,14 @@ testMatrix.setupTestSuite(
       })
 
       test('$executeRaw', async () => {
+        // Raw query failed. Code: `N/A`. Message: `Execute returned results, which is not allowed in SQLite.`
+        if (provider === 'sqlite') {
+          return
+        }
+
         await prisma.$executeRaw`SELECT 1 + 1;`
 
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('executeRaw')
@@ -397,11 +343,7 @@ testMatrix.setupTestSuite(
         }
       })
 
-      await logBuffer()
-
-      const spans = inMemorySpanExporter.getFinishedSpans()
-      const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-      const tree = buildTree({ span: rootSpan }, spans)
+      const tree = await waitForSpanTree()
 
       expect(tree.span.name).toEqual('create-user')
 
@@ -423,7 +365,7 @@ testMatrix.setupTestSuite(
 
       const dbQuery1 = (engine.children || [])[1]
       expect(dbQuery1.span.name).toEqual('prisma:db_query')
-      expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+      expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
 
       const dbQuery2 = (engine.children || [])[2]
       expect(dbQuery2.span.name).toEqual('prisma:db_query')
@@ -472,11 +414,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await logBuffer()
-
-        const spans = inMemorySpanExporter.getFinishedSpans()
-        const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
-        const tree = buildTree({ span: rootSpan }, spans)
+        const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma')
         expect(tree.span.attributes['method']).toEqual('create')
@@ -498,7 +436,7 @@ testMatrix.setupTestSuite(
 
         const dbQuery1 = (engine.children || [])[1]
         expect(dbQuery1.span.name).toEqual('prisma:db_query')
-        expect(dbQuery1.span.attributes['db.statement']).toEqual('BEGIN')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
 
         const dbQuery2 = (engine.children || [])[2]
         expect(dbQuery2.span.name).toEqual('prisma:db_query')
@@ -516,8 +454,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'mysql', 'sqlserver', 'cockroachdb', 'mongodb'],
-      reason: 'TODO',
+      from: ['mongodb'],
+      reason: 'not working - need engine fix',
     },
   },
 )
