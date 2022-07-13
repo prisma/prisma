@@ -18,7 +18,7 @@
   ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/node": "12.20.55",
     "esbuild": "0.14.47",
     "jest": "28.1.2",
