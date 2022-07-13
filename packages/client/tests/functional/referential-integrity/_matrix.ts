@@ -51,7 +51,7 @@ export default defineMatrix(() => [
     // {
     //   provider: Providers.MONGODB,
     //   id: 'String @id @map("_id")',
-    //   referentialIntegrity: '',
+    //   referentialIntegrity,
     //   referentialActions: {
     //     onUpdate: '',
     //     onDelete: '',

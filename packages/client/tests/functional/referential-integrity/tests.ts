@@ -33,7 +33,6 @@ async function createXUsersWithAProfile({ count, userModel, profileModel, profil
 }
 
 async function checkIfEmpty({ userModel, profileModel }) {
-  // Check
   const checkEmpty = await prisma.$transaction([prisma[userModel].findMany(), prisma[profileModel].findMany()])
   expect(checkEmpty[0]).toHaveLength(0)
   expect(checkEmpty[1]).toHaveLength(0)
@@ -672,8 +671,78 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describe.skip('1-to-n mandatory (explicit)', () => {})
-    describe.skip('m-to-n mandatory (explicit)', () => {})
+    describe('1-to-n mandatory (explicit)', () => {
+      const userModel = 'userOneToMany'
+      const profileModel = 'postOneToMany'
+      const profileColumn = 'profile'
+
+      beforeEach(async () => {
+        await prisma.$transaction([prisma[profileModel].deleteMany(), prisma[userModel].deleteMany()])
+      })
+
+      describe('[create]', () => {
+        test.skip('[create] child with non existing parent should throw', async () => {})
+        test.skip('[create] child with non existing parent should throw', async () => {})
+      })
+
+      describe('[update]', () => {
+        beforeEach(async () => {
+          await checkIfEmpty({ userModel, profileModel })
+          // TODO
+          // await createXUsersWithAProfile({
+          //   count: 2,
+          //   userModel,
+          //   profileModel,
+          //   profileColumn,
+          // })
+        })
+
+        test.skip('[update] parent id with non-existing id should succeed', async () => {})
+        test.skip('[update] parent id with existing id should throw', async () => {})
+      })
+
+      describe('[delete]', () => {
+        test.skip('[delete] child should succeed', async () => {})
+        test.skip('[delete] childs and then [delete] parent should succeed', async () => {})
+      })
+    })
+
+    describe.skip('m-to-n mandatory (explicit)', () => {
+      // TODO
+      const userModel = 'user...'
+      const profileModel = 'post...'
+      const profileColumn = 'profile'
+
+      beforeEach(async () => {
+        // await prisma.$transaction([prisma[profileModel].deleteMany(), prisma[userModel].deleteMany()])
+      })
+
+      describe('[create]', () => {
+        test.skip('[create] child with non existing parent should throw', async () => {})
+        test.skip('[create] child with non existing parent should throw', async () => {})
+      })
+
+      describe('[update]', () => {
+        beforeEach(async () => {
+          await checkIfEmpty({ userModel, profileModel })
+          // TODO
+          // await createXUsersWithAProfile({
+          //   count: 2,
+          //   userModel,
+          //   profileModel,
+          //   profileColumn,
+          // })
+        })
+
+        test.skip('[update] parent id with non-existing id should succeed', async () => {})
+        test.skip('[update] parent id with existing id should throw', async () => {})
+      })
+
+      describe('[delete]', () => {
+        test.skip('[delete] child should succeed', async () => {})
+        test.skip('[delete] children and then [delete] parent should succeed', async () => {})
+      })
+    })
   },
   // Use `optOut` to opt out from testing the default selected providers
   // otherwise the suite will require all providers to be specified.
