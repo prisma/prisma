@@ -78,9 +78,6 @@ testMatrix.setupTestSuite(
       const email = faker.internet.email()
 
       test('create', async () => {
-        // TODO - remove when engines are merged
-        if (process.env.CI) return
-
         await prisma.user.create({
           data: {
             email: email,
@@ -123,9 +120,6 @@ testMatrix.setupTestSuite(
       })
 
       test('read', async () => {
-        // TODO - remove when engines are merged
-        if (process.env.CI) return
-
         await prisma.user.findMany({
           where: {
             email: email,
@@ -156,9 +150,6 @@ testMatrix.setupTestSuite(
       })
 
       test('update', async () => {
-        // TODO - remove when engines are merged
-        if (process.env.CI) return
-
         await prisma.user.update({
           data: {
             email: email,
@@ -208,9 +199,6 @@ testMatrix.setupTestSuite(
       })
 
       test('delete', async () => {
-        // TODO - remove when engines are merged
-        if (process.env.CI) return
-
         await prisma.user.delete({
           where: {
             email: email,
@@ -324,9 +312,6 @@ testMatrix.setupTestSuite(
 
     describe('tracing on $raw methods', () => {
       test('$queryRaw', async () => {
-        // TODO - remove when engines are merged
-        if (process.env.CI) return
-
         await prisma.$queryRaw`SELECT 1 + 1;`
 
         const spans = inMemorySpanExporter.getFinishedSpans()
@@ -352,9 +337,6 @@ testMatrix.setupTestSuite(
       })
 
       test('$executeRaw', async () => {
-        // TODO - remove when engines are merged
-        if (process.env.CI) return
-
         await prisma.$executeRaw`SELECT 1 + 1;`
 
         const spans = inMemorySpanExporter.getFinishedSpans()
@@ -381,9 +363,6 @@ testMatrix.setupTestSuite(
     })
 
     test('tracing with custom span', async () => {
-      // TODO - remove when engines are merged
-      if (process.env.CI) return
-
       const tracer = trace.getTracer('MyApp')
       const email = faker.internet.email()
 
@@ -439,8 +418,6 @@ testMatrix.setupTestSuite(
     })
 
     test('tracing with middleware', async () => {
-      // TODO - remove when engines are merged
-      if (process.env.CI) return
       const email = faker.internet.email()
 
       const _prisma = new PrismaClient()
