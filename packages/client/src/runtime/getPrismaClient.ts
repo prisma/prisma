@@ -19,6 +19,7 @@ import * as sqlTemplateTag from 'sql-template-tag'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
+import { TransactionTracer } from '../utils/TransactionTracer'
 import { PrismaClientValidationError } from '.'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
@@ -940,7 +941,10 @@ new PrismaClient({
      * @param requests
      * @param options
      */
-    private _transactionWithArray(promises: Array<PrismaPromise<any>>): Promise<any> {
+    private _transactionWithArray(
+      promises: Array<PrismaPromise<any>>,
+      transactionTracer: TransactionTracer,
+    ): Promise<any> {
       const txId = this._transactionId++
       const lock = getLockCountPromise(promises.length)
 
@@ -951,7 +955,7 @@ new PrismaClient({
           )
         }
 
-        return request.requestTransaction?.(txId, lock)
+        return request.requestTransaction?.(txId, lock, transactionTracer)
       })
 
       return Promise.all(_requests)
@@ -963,10 +967,15 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private async _transactionWithCallback(
-      callback: (client: Client) => Promise<unknown>,
-      options?: { maxWait: number; timeout: number },
-    ) {
+    private async _transactionWithCallback({
+      callback,
+      options,
+      transactionTracer,
+    }: {
+      callback: (client: Client) => Promise<unknown>
+      options?: { maxWait: number; timeout: number }
+      transactionTracer: TransactionTracer
+    }) {
       const headers = applyTracingHeaders({})
       const traceHeaders = JSON.stringify(headers)
 
@@ -975,7 +984,7 @@ new PrismaClient({
       let result: unknown
       try {
         // execute user logic with a proxied the client
-        result = await callback(transactionProxy(this, info.id))
+        result = await callback(transactionProxy(this, info.id, transactionTracer))
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', traceHeaders, info)
@@ -999,10 +1008,12 @@ new PrismaClient({
     async $transaction(input: any, options?: any) {
       let callback: () => Promise<any>
 
+      const transactionTracer = new TransactionTracer()
+
       if (typeof input === 'function') {
-        callback = () => this._transactionWithCallback(input, options)
+        callback = () => this._transactionWithCallback({ callback: input, options, transactionTracer })
       } else {
-        callback = () => this._transactionWithArray(input)
+        callback = () => this._transactionWithArray(input, transactionTracer)
       }
 
       const tracingConfig = getTracingConfig(this._engine)
@@ -1013,8 +1024,16 @@ new PrismaClient({
           },
         }
 
+        const tracedCallback = () =>
+          runInActiveSpan({
+            callback,
+            name: 'prisma',
+            options,
+            transactionTracer,
+          })
+
         return runInActiveSpan({
-          callback,
+          callback: tracedCallback,
           name: 'prisma:transaction',
           options,
         })
@@ -1084,7 +1103,7 @@ new PrismaClient({
           callback = consumer
         }
 
-        if (tracingConfig.enabled) {
+        if (tracingConfig.enabled && !internalParams.runInTransaction) {
           const options: SpanOptions = {
             attributes: {
               method: internalParams.action,
@@ -1250,7 +1269,7 @@ const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
  * @param txId to be passed down to {@link RequestHandler}
  * @returns
  */
-function transactionProxy<T>(thing: T, txId: string): T {
+function transactionProxy<T>(thing: T, txId: string, transactionTracer: TransactionTracer): T {
   // we only wrap within a proxy if it's possible: if it's an object
   if (typeof thing !== 'object') return thing
 
@@ -1265,17 +1284,17 @@ function transactionProxy<T>(thing: T, txId: string): T {
       if (typeof target[prop] === 'function') {
         return (...args: unknown[]) => {
           // we hijack promise calls to pass txId to prisma promises
-          if (prop === 'then') return target[prop](args[0], args[1], txId)
-          if (prop === 'catch') return target[prop](args[0], txId)
-          if (prop === 'finally') return target[prop](args[0], txId)
+          if (prop === 'then') return target[prop](args[0], args[1], txId, transactionTracer)
+          if (prop === 'catch') return target[prop](args[0], txId, transactionTracer)
+          if (prop === 'finally') return target[prop](args[0], txId, transactionTracer)
 
           // if it's not the end promise, result is also tx-proxied
-          return transactionProxy(target[prop](...args), txId)
+          return transactionProxy(target[prop](...args), txId, transactionTracer)
         }
       }
 
       // if it's an object prop, then we keep on making it proxied
-      return transactionProxy(target[prop], txId)
+      return transactionProxy(target[prop], txId, transactionTracer)
     },
   }) as any as T
 }

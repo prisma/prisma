@@ -276,8 +276,7 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
     })
   })
 
-  // TODO broken
-  describe.skip('tracing on transactions', () => {
+  describe('tracing on transactions', () => {
     test('$transaction', async () => {
       const email = faker.internet.email()
 
@@ -298,12 +297,23 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
 
       expect(tree.span.name).toEqual('prisma:transaction')
       expect(tree.span.attributes['method']).toEqual('transaction')
-
       expect(tree.children).toHaveLength(1)
 
-      const prismaEngineQuery = (tree?.children || [])[0] as unknown as Tree
-      expect(prismaEngineQuery.span.name).toEqual('prisma:query_builder')
-      expect(prismaEngineQuery.children).toHaveLength(5)
+      const prismaSpan = (tree?.children || [])[0] as unknown as Tree
+      expect(prismaSpan.span.name).toEqual('prisma')
+      expect(prismaSpan.span.attributes['children']).toEqual(
+        JSON.stringify([
+          { method: 'create', model: 'User' },
+          { method: 'findMany', model: 'User' },
+        ]),
+      )
+
+      if (provider === 'mongodb') {
+        // TODO
+        return
+      }
+
+      expect(prismaSpan.children).toHaveLength(1)
     })
 
     test('interactive-transactions', async () => {
@@ -328,12 +338,23 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
 
       expect(tree.span.name).toEqual('prisma:transaction')
       expect(tree.span.attributes['method']).toEqual('transaction')
-
       expect(tree.children).toHaveLength(1)
 
-      const prismaEngineQuery = (tree?.children || [])[0] as unknown as Tree
-      expect(prismaEngineQuery.span.name).toEqual('prisma:engine:itx')
-      expect(prismaEngineQuery.children).toHaveLength(6)
+      const prismaSpan = (tree?.children || [])[0] as unknown as Tree
+      expect(prismaSpan.span.name).toEqual('prisma')
+      expect(prismaSpan.span.attributes['children']).toEqual(
+        JSON.stringify([
+          { method: 'create', model: 'User' },
+          { method: 'findMany', model: 'User' },
+        ]),
+      )
+
+      if (provider === 'mongodb') {
+        // TODO
+        return
+      }
+
+      expect(prismaSpan.children).toHaveLength(5)
     })
   })
 
