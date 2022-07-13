@@ -90,6 +90,7 @@ testMatrix.setupTestSuite(
                 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
               [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -178,7 +179,7 @@ testMatrix.setupTestSuite(
           const user1WithNewId = await prisma[userModel].update({
             where: { id: '1' },
             data: {
-              id: '3',
+              id: '3', // TODO: Type error, Invalid `prisma[userModel].update()` with Mongo.
             },
           })
           expect(user1WithNewId).toEqual({
@@ -210,6 +211,7 @@ testMatrix.setupTestSuite(
             prisma[userModel].update({
               where: { id: '1' },
               data: {
+                // TODO: Type error with MongoDB, Unknown arg `id` in data.id for type UserOneToOneUpdateInput.
                 id: '2', // existing id
               },
             }),
@@ -220,6 +222,7 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.MYSQL]:
                 "Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne', key 'ProfileOneToOne_userId_key'",
+              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -228,7 +231,7 @@ testMatrix.setupTestSuite(
           const profile1WithNewId = await prisma[profileModel].update({
             where: { id: '1' },
             data: {
-              id: '3',
+              id: '3', // TODO: Type error with MongoDB, Invalid `prisma[profileModel].update()` invocation
             },
           })
           expect(profile1WithNewId).toEqual({
@@ -277,6 +280,7 @@ testMatrix.setupTestSuite(
               [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -327,6 +331,7 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.MYSQL]:
                 "Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne', key 'ProfileOneToOne_userId_key'",
+              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -390,6 +395,7 @@ testMatrix.setupTestSuite(
                 "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
               [Providers.MYSQL]:
                 "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
