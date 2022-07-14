@@ -29,11 +29,7 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     referentialActionLine += `, onDelete: ${referentialActions.onDelete}`
   }
 
-  const manyToMany = /* Prisma */ `
-//
-// m:n relation
-//
-
+  const manyToManySQLExplicit = /* Prisma */ `
 model PostManyToMany {
   id         ${id}
   categories CategoriesOnPostsManyToMany[]
@@ -50,8 +46,33 @@ model CategoriesOnPostsManyToMany {
   category   CategoryManyToMany @relation(fields: [categoryId], references: [id]${referentialActionLine})
   categoryId String
 
-  // Not supported on MongoDB
   @@id([postId, categoryId])
+}
+`
+
+  const manyToManySQLImplicit = /* Prisma */ `
+model PostManyToMany {
+  id         String        @id 
+  categories CategoryManyToMany[]
+}
+
+model CategoryManyToMany {
+  id    String    @id 
+  posts PostManyToMany[]
+}
+`
+
+  const manyToManyMongoDB = /* Prisma */ `
+model PostManyToMany {
+  id          String     @id @map("_id")
+  categoryIDs String[]
+  categories  CategoryManyToMany[] @relation(fields: [categoryIDs], references: [id])
+}
+
+model CategoryManyToMany {
+  id      String   @id @map("_id") 
+  postIDs String[]
+  posts   PostManyToMany[]   @relation(fields: [postIDs], references: [id])
 }
 `
 
@@ -86,6 +107,9 @@ model PostOneToMany {
   authorId String
 }
 
-${provider === Providers.MONGODB ? '' : manyToMany}
+//
+// m:n relation
+//
+${provider === Providers.MONGODB ? manyToManyMongoDB : manyToManySQLExplicit}
   `
 })
