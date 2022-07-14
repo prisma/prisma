@@ -171,7 +171,6 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
       debug('unserialized dmmf result ready')
       return pipe(
         E.tryCatch(
-          // @ts-ignore -  Argument of type 'unknown' is not assignable to parameter
           () => JSON.parse(result) as DMMF.Document,
           (e) => ({
             type: 'parse-json' as const,
