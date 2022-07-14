@@ -1,5 +1,6 @@
-import glob from 'globby'
-import fs from 'fs-extra'
+'use strict'
+const glob = require('globby')
+const fs = require('fs-extra')
 
 module.exports = () => {
   // we clear up all the files before we run the tests that are not type tests
