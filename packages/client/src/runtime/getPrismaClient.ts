@@ -1010,7 +1010,7 @@ new PrismaClient({
 
       const transactionTracer = new TransactionTracer()
 
-      if (typeof input === 'function') {
+      if (typeof input === 'function' && this._hasPreviewFlag('interactiveTransactions')) {
         callback = () => this._transactionWithCallback({ callback: input, options, transactionTracer })
       } else {
         callback = () => this._transactionWithArray(input, transactionTracer)
