@@ -3,7 +3,6 @@ import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
-// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
@@ -28,9 +27,17 @@ export abstract class Engine {
     transaction?: boolean,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
-  abstract transaction(action: 'start', traceHeaders: string, options: Transaction.Options): Promise<Transaction.Info>
-  abstract transaction(action: 'commit', traceHeaders: string, info: Transaction.Info): Promise<void>
-  abstract transaction(action: 'rollback', traceHeaders: string, info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'start',
+    headers: Transaction.TransactionHeaders,
+    options: Transaction.Options,
+  ): Promise<Transaction.Info>
+  abstract transaction(action: 'commit', headers: Transaction.TransactionHeaders, info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'rollback',
+    headers: Transaction.TransactionHeaders,
+    info: Transaction.Info,
+  ): Promise<void>
 
   abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
   abstract metrics(options: MetricsOptionsPrometheus): Promise<string>

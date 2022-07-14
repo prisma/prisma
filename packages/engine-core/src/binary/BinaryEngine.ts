@@ -994,14 +994,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   /**
    * Send START, COMMIT, or ROLLBACK to the Query Engine
    * @param action START, COMMIT, or ROLLBACK
-   * @param traceHeaders headers for tracing
+   * @param headers headers for tracing
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', traceHeaders: string, options: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', traceHeaders: string, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', traceHeaders: string, info: Tx.Info): Promise<undefined>
-  async transaction(action: any, traceHeaders: string, arg?: any) {
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
     if (action === 'start') {
@@ -1009,8 +1009,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
       })
-
-      const headers: QueryEngineRequestHeaders = JSON.parse(traceHeaders)
 
       const result = await Connection.onHttpError(
         this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),

@@ -1,7 +1,7 @@
 import { SpanOptions } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType, Options } from '@prisma/engine-core'
-import { BinaryEngine, DataProxyEngine, getTracingConfig, LibraryEngine } from '@prisma/engine-core'
+import { BinaryEngine, DataProxyEngine, getTracingConfig, LibraryEngine, TransactionHeaders } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import {
   ClientEngineType,
@@ -39,7 +39,7 @@ import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
-import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
+import { getTraceParent } from './utils/otel/getTraceParent'
 import { runInActiveSpan, runInSpan } from './utils/otel/runInSpan'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
@@ -976,10 +976,12 @@ new PrismaClient({
       options?: { maxWait: number; timeout: number }
       transactionTracer: TransactionTracer
     }) {
-      const headers = applyTracingHeaders({})
-      const traceHeaders = JSON.stringify(headers)
+      const traceparent = getTraceParent()
+      const headers: TransactionHeaders = {
+        traceparent,
+      }
 
-      const info = await this._engine.transaction('start', traceHeaders, options as Options)
+      const info = await this._engine.transaction('start', headers, options as Options)
 
       let result: unknown
       try {
@@ -987,10 +989,10 @@ new PrismaClient({
         result = await callback(transactionProxy(this, info.id, transactionTracer))
 
         // it went well, then we commit the transaction
-        await this._engine.transaction('commit', traceHeaders, info)
+        await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', traceHeaders, info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => {})
 
         e.clientVersion = this._clientVersion
         throw e // silent rollback, throw original error
@@ -1208,7 +1210,14 @@ new PrismaClient({
 
       const tracingConfig = getTracingConfig(this._engine)
       if (tracingConfig.enabled) {
-        headers = applyTracingHeaders(headers)
+        if (!headers) {
+          headers = {}
+        }
+
+        const traceparent = getTraceParent()
+        if (traceparent) {
+          headers.traceparent = traceparent
+        }
       }
 
       await lock /** @see {@link getLockCountPromise} */

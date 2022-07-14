@@ -115,11 +115,13 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', traceHeaders: string, options: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', traceHeaders: string, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', traceHeaders: string, info: Tx.Info): Promise<undefined>
-  async transaction(action: any, traceHeaders: string, arg?: any) {
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
+
+    const headerStr = JSON.stringify(headers)
 
     let result: string | undefined
     if (action === 'start') {
@@ -128,11 +130,11 @@ export class LibraryEngine extends Engine {
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, traceHeaders)
+      result = await this.engine?.startTransaction(jsonOptions, headerStr)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, traceHeaders)
+      result = await this.engine?.commitTransaction(arg.id, headerStr)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, traceHeaders)
+      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
