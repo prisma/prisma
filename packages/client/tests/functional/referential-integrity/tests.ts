@@ -39,6 +39,7 @@ async function checkIfEmpty(...models: unknown[]) {
   })
 }
 
+// TODO: why would we use this rather than relying on "orderBy: { id: asc }"?
 // Order is different depending on the provider?
 function sortArrayById(arr) {
   return arr.sort((a, b) => a.id.localeCompare(b.id))
