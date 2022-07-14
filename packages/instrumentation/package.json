@@ -26,6 +26,12 @@
   "files": [
     "dist"
   ],
+  "keywords": [
+    "prisma",
+    "instrumentation",
+    "opentelemetry",
+    "otel"
+  ],
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",

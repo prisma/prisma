@@ -4,6 +4,9 @@
 
 [OTEL - OpenTelemetry](https://opentelemetry.io/) compliant instrumentation for Prisma.
 
+⚠️ **Warning**: This package is provided as part of the `tracing` Preview Feature
+Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
+
 ## Installing
 
 ```
