@@ -439,9 +439,11 @@ async function getAllVersions(packages: Packages, channel: string, prefix: strin
   return unique(
     flatten(
       await pMap(
-        Object.values(packages).filter((p) => p.name !== '@prisma/integration-tests'),
+        Object.values(packages).filter(
+          (p) => p.name !== '@prisma/integration-tests' && p.name !== '@prisma/instrumentation',
+        ),
         async (pkg) => {
-          if (pkg.name === '@prisma/integration-tests') {
+          if (pkg.name === '@prisma/integration-tests' || pkg.name === '@prisma/instrumentation') {
             return []
           }
           const pkgVersions = [] as string[]
@@ -1021,7 +1023,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }
