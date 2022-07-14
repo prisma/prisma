@@ -125,7 +125,7 @@ jobs:
         referentialIntegrity: ['', 'foreignKeys', 'prisma']
         # queryEngine: ['library', 'binary']
         # os: [buildjet-4vcpu-ubuntu-2004]
-        os: ubuntu-latest
+        os: [ubuntu-latest]
         node: [16]
 
     steps:
