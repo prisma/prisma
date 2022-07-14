@@ -9,6 +9,10 @@ if (RI && RI !== 'prisma' && RI !== 'foreignKeys') {
 type RIType = 'prisma' | 'foreignKeys' | ''
 const referentialIntegrity: RIType = (RI as RIType) || ''
 
+// Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
+// If no defaults are provided for any of the scalar fields, a runtime error will be thrown.
+const referentialActionsChoices = ['', 'Cascade', 'Restrict', 'NoAction', 'SetNull']
+
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 export default defineMatrix(() => [
   [
@@ -28,15 +32,6 @@ export default defineMatrix(() => [
       referentialActions: {
         onUpdate: 'Cascade',
         onDelete: 'Cascade',
-      },
-    },
-    {
-      provider: Providers.COCKROACHDB,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: '',
-        onDelete: '',
       },
     },
     {
