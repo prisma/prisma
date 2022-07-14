@@ -48,6 +48,7 @@ export default defineMatrix(() => [
         onDelete: '',
       },
     },
+    /*
     {
       provider: Providers.MONGODB,
       id: 'String @id @map("_id")',
@@ -57,6 +58,7 @@ export default defineMatrix(() => [
         onDelete: '',
       },
     },
+    */
   ],
   [
     {

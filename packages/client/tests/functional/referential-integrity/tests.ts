@@ -32,10 +32,11 @@ async function createXUsersWithAProfile({ count, userModel, profileModel, profil
   return await prisma.$transaction(prismaPromises)
 }
 
-async function checkIfEmpty({ userModel, profileModel }) {
-  const checkEmpty = await prisma.$transaction([prisma[userModel].findMany(), prisma[profileModel].findMany()])
-  expect(checkEmpty[0]).toHaveLength(0)
-  expect(checkEmpty[1]).toHaveLength(0)
+async function checkIfEmpty(...models: unknown[]) {
+  const checkEmptyArr = await prisma.$transaction(models.map(model => prisma[model].findMany()))
+  checkEmptyArr.forEach(checkEmpty => {
+    expect(checkEmpty).toHaveLength(0)
+  })
 }
 
 // Order is different depending on the provider?
@@ -90,7 +91,6 @@ testMatrix.setupTestSuite(
                 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
               [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -166,7 +166,7 @@ testMatrix.setupTestSuite(
       */
 
         beforeEach(async () => {
-          await checkIfEmpty({ userModel, profileModel })
+          await checkIfEmpty(userModel, profileModel)
           await createXUsersWithAProfile({
             count: 2,
             userModel,
@@ -222,7 +222,6 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.MYSQL]:
                 "Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne', key 'ProfileOneToOne_userId_key'",
-              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -280,7 +279,6 @@ testMatrix.setupTestSuite(
               [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -331,7 +329,6 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
               [Providers.MYSQL]:
                 "Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne', key 'ProfileOneToOne_userId_key'",
-              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -395,7 +392,6 @@ testMatrix.setupTestSuite(
                 "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
               [Providers.MYSQL]:
                 "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-              [Providers.MONGODB]: 'Foreign key constraint failed on the field: `userId`',
             }),
           )
         })
@@ -679,21 +675,135 @@ testMatrix.setupTestSuite(
 
     describe('1-to-n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
-      const profileModel = 'postOneToMany'
-      const profileColumn = 'profile'
+      const postModel = 'postOneToMany'
 
       beforeEach(async () => {
-        await prisma.$transaction([prisma[profileModel].deleteMany(), prisma[userModel].deleteMany()])
+        await prisma.$transaction([prisma[postModel].deleteMany(), prisma[userModel].deleteMany()])
       })
 
       describe('[create]', () => {
-        test.skip('[create] child with non existing parent should throw', async () => {})
-        test.skip('[create] child with non existing parent should throw', async () => {})
+        test('[create] child with non existing parent should throw', async () => {
+          await expect(
+            prisma[postModel].create({
+              data: {
+                id: '1',
+                authorId: '1',
+              },
+            }),
+          ).rejects.toThrowError(
+            // @ts-expect-error: all providers ought to be logged
+            conditionalError({
+              [Providers.POSTGRESQL]:
+                'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+            }),
+          )
+        })
+
+        test('[create] child with undefined parent should throw with type error', async () => {
+          await expect(
+            prisma[postModel].create({
+              data: {
+                id: '1',
+                authorId: undefined, // this would actually be a type-error, but we don't have access to types here
+              },
+            }),
+          ).rejects.toThrowError('Argument author for data.author is missing.')
+        })
+
+        test('[create] nested child [create]', async () => {
+          const user1 = await prisma[userModel].create({
+            data: {
+              id: '1',
+              posts: {
+                create: { id: '1' },
+              },
+            },
+            include: { posts: true },
+          })
+          expect(user1).toEqual({
+            id: '1',
+            posts: [
+              {
+                id: '1',
+                authorId: '1',
+              },
+            ],
+          })
+
+          const posts = await prisma[postModel].findMany({
+            where: { authorId: '1' },
+          })
+          expect(posts).toEqual([
+            {
+              id: '1',
+              authorId: '1',
+            },
+          ])
+          const user1Copy = await prisma[userModel].findUniqueOrThrow({
+            where: { id: '1' },
+          })
+          expect(user1Copy).toEqual({
+            id: '1',
+          })
+        })
+
+        test('[create] nested child [createMany]', async () => {
+          const user1 = await prisma[userModel].create({
+            data: {
+              id: '1',
+              posts: {
+                createMany: {
+                  data: [
+                    { id: '1' },
+                    { id: '2' },      
+                  ],
+                },
+              },
+            },
+            include: { posts: true },
+          })
+          expect(user1).toEqual({
+            id: '1',
+            posts: [
+              {
+                id: '1',
+                authorId: '1',
+              },
+              {
+                id: '2',
+                authorId: '1',
+              },
+            ],
+          })
+  
+          const postsUser1 = await prisma[postModel].findMany({
+            where: { authorId: '1' },
+            orderBy: { id: 'asc' },
+          })
+          expect(postsUser1).toEqual([
+            {
+              id: '1',
+              authorId: '1',
+            },
+            {
+              id: '2',
+              authorId: '1',
+            }
+          ])
+          const user1Copy = await prisma[userModel].findUniqueOrThrow({
+            where: { id: '1' },
+          })
+          expect(user1Copy).toEqual({
+            id: '1',
+          })
+        })
       })
 
       describe('[update]', () => {
         beforeEach(async () => {
-          await checkIfEmpty({ userModel, profileModel })
+          await checkIfEmpty(userModel, postModel)
           // TODO
           // await createXUsersWithAProfile({
           //   count: 2,
@@ -730,7 +840,7 @@ testMatrix.setupTestSuite(
 
       describe('[update]', () => {
         beforeEach(async () => {
-          await checkIfEmpty({ userModel, profileModel })
+          await checkIfEmpty(userModel, profileModel)
           // TODO
           // await createXUsersWithAProfile({
           //   count: 2,
