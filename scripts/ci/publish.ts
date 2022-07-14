@@ -439,11 +439,9 @@ async function getAllVersions(packages: Packages, channel: string, prefix: strin
   return unique(
     flatten(
       await pMap(
-        Object.values(packages).filter(
-          (p) => p.name !== '@prisma/integration-tests' && p.name !== '@prisma/instrumentation',
-        ),
+        Object.values(packages).filter((p) => p.name !== '@prisma/integration-tests'),
         async (pkg) => {
-          if (pkg.name === '@prisma/integration-tests' || pkg.name === '@prisma/instrumentation') {
+          if (pkg.name === '@prisma/integration-tests') {
             return []
           }
           const pkgVersions = [] as string[]

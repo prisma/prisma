@@ -23,6 +23,9 @@
     "@opentelemetry/instrumentation": "^0.30.0",
     "@opentelemetry/api": "^1.1.0"
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
