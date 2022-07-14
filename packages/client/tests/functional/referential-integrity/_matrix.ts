@@ -21,28 +21,47 @@ export default defineMatrix(() => [
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
-        onUpdate: '',
-        onDelete: '',
+        // onUpdate: '',
+        // onDelete: '',
+        // onUpdate: 'Cascade',
+        // onDelete: 'Cascade',
+        // onUpdate: 'Restrict',
+        // onDelete: 'Restrict',
+        // onUpdate: 'NoAction',
+        // onDelete: 'NoAction',
+        // onUpdate: 'SetNull',
+        // onDelete: 'SetNull',
+        onUpdate: 'SetDefault',
+        onDelete: 'SetDefault',
       },
     },
-    {
-      provider: Providers.POSTGRESQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: 'Cascade',
-        onDelete: 'Cascade',
-      },
-    },
-    {
-      provider: Providers.MYSQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: '',
-        onDelete: '',
-      },
-    },
+    // {
+    //   provider: Providers.MYSQL,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     onUpdate: '',
+    //     onDelete: '',
+    //   },
+    // },
+    // {
+    //   provider: Providers.SQLITE,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     onUpdate: '',
+    //     onDelete: '',
+    //   },
+    // },
+    // {
+    //   provider: Providers.SQLSERVER,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     onUpdate: '',
+    //     onDelete: '',
+    //   },
+    // },
     /*
     {
       provider: Providers.MONGODB,
