@@ -52,6 +52,12 @@ export class DataProxyEngine extends Engine {
     this.remoteClientVersion = P.then(() => getClientVersion(this.config))
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
+
+    if (this.config.previewFeatures?.includes('tracing')) {
+      throw new NotImplementedYetError('Tracing is not yet supported for Data Proxy', {
+        clientVersion: this.clientVersion,
+      })
+    }
   }
 
   version() {
