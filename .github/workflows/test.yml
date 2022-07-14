@@ -133,7 +133,8 @@ jobs:
 
       - name: Set referentialIntegrity custom test env var
         run: |
-          echo "RI=${{ matrix.referentialIntegrity }}" >> $GITHUB_ENV
+          echo "RI=${{ matrix.referentialIntegrity }}"
+          if [ -z "${{ matrix.referentialIntegrity }}" ]; then echo "RI=${{ matrix.referentialIntegrity }}" >> $GITHUB_ENV; fi
 
       # - name: Set CLI Engine Type
       #   run: |
