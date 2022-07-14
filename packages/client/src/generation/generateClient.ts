@@ -1,4 +1,4 @@
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/internals'
 import { ClientEngineType, getClientEngineType, getEngineVersion } from '@prisma/internals'
@@ -275,7 +275,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
         if (fs.existsSync(filePath)) {
-          await copyFile(filePath, target)
+          await overwriteFile(filePath, target)
           continue
         } else {
           throw new Error(`File at ${filePath} is required but was not present`)
@@ -284,7 +284,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
       // If target !== source size, they're definitely different, copy it
       if (targetFileSize && sourceFileSize && targetFileSize !== sourceFileSize) {
-        await copyFile(filePath, target)
+        await overwriteFile(filePath, target)
         continue
       }
       const binaryName =
@@ -298,7 +298,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
         // skip
       } else {
-        await copyFile(filePath, target)
+        await overwriteFile(filePath, target)
       }
     }
   }
