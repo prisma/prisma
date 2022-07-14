@@ -69,3 +69,22 @@ export function getDownloadUrl(
 
   return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${finalExtension}`
 }
+
+export async function overwriteFile(sourcePath: string, targetPath: string) {
+  // without removing the file first,
+  // macOS Gatekeeper can sometimes complain
+  // about incorrect binary signature and kill node process
+  // https://openradar.appspot.com/FB8914243
+  await removeFileIfExists(targetPath)
+  await fs.promises.copyFile(sourcePath, targetPath)
+}
+
+async function removeFileIfExists(filePath: string) {
+  try {
+    await fs.promises.unlink(filePath)
+  } catch (e) {
+    if (e.code !== 'ENOENT') {
+      throw e
+    }
+  }
+}
