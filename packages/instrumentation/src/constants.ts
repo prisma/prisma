@@ -1,9 +1,9 @@
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+const { version, name } = require('../package.json')
 
 export const GLOBAL_KEY = 'PRISMA_INSTRUMENTATION'
 
-export const VERSION = packageJson.version as string
+export const VERSION = version as string
 
-export const NAME = packageJson.name as string
+export const NAME = name as string
 
 export const MODULE_NAME = 'prisma'
