@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657798667414,
+  "lastUpdate": 1657804553609,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -110242,6 +110242,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±4.69%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.1442270278930664,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.3838586807251,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7801876068115234,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16670608520507812,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.400634765625,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.286099433898926,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4684be77fa6419e780db7a74c804dc646e2ed41e",
+          "message": "test: Enable functional tests on mac and windows (#14281)\n\nEnables functional tests on mac and windows and fixes few discrepances\r\nbetween them and Windows CI.\r\n\r\n- MySQL has different `lowercase_table_names` settings on different\r\n  platforms which some times shows up in error message, when print DB\r\n  error verbatim. Easiest way to work around it is forcing linux to convert\r\n  table names to lowercase.\r\n\r\n- `swc` sometimes produces incorrect source maps. In our case, that\r\n  happens only on Windows. Fixed by temprary switching `ts-jest` on\r\n  Windows only.\r\n\r\n- Some iTx tests produce different error message depending on timing,\r\n  which didn't really show up before. Fixed by adjusting the tests to\r\n  assert only on consistent porition of those messages.",
+          "timestamp": "2022-07-14T15:12:10+02:00",
+          "tree_id": "1f0b9f44357b6e2dbb1d93c5752409b5fe17d1f6",
+          "url": "https://github.com/prisma/prisma/commit/4684be77fa6419e780db7a74c804dc646e2ed41e"
+        },
+        "date": 1657804543951,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.62,
+            "range": "±4.57%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±6.18%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
