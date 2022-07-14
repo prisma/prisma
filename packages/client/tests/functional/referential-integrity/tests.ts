@@ -33,6 +33,35 @@ async function createXUsersWithAProfile({ count, userModel, profileModel, profil
   return await prisma.$transaction(prismaPromises)
 }
 
+// 1:n relation
+async function createXUsersWith2Posts({ count, userModel, postModel, postColumn }) {
+  const prismaPromises = [] as Array<Promise<any>>
+
+  for (let i = 1; i <= count; i++) {
+    const id = i.toString()
+    const prismaPromise = prisma[userModel].create({
+      data: {
+        id,
+        [postColumn]: {
+          createMany: {
+            data: [
+              { id: `${id}-post-a` },
+              { id: `${id}-post-b` },
+            ],
+          },
+        },
+      },
+      include: {
+        [postColumn]: true,
+      },
+    })
+
+    prismaPromises.push(prismaPromise)
+  }
+
+  return await prisma.$transaction(prismaPromises)
+}
+
 // m:n relation (SQL database)
 async function createXPostsWith2Categories({ count, postModel }) {
   const prismaPromises: any = []
@@ -717,9 +746,14 @@ testMatrix.setupTestSuite(
     describe('1-to-n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'
+      const postColumn = 'posts'
 
       beforeEach(async () => {
         await prisma.$transaction([prisma[postModel].deleteMany(), prisma[userModel].deleteMany()])
+      })
+
+      afterEach(async () => {
+        await prisma.$disconnect()
       })
 
       describe('[create]', () => {
@@ -842,22 +876,364 @@ testMatrix.setupTestSuite(
       describe('[update]', () => {
         beforeEach(async () => {
           await checkIfEmpty(userModel, postModel)
-          // TODO
-          // await createXUsersWithAProfile({
-          //   count: 2,
-          //   userModel,
-          //   profileModel,
-          //   profileColumn,
-          // })
+          await createXUsersWith2Posts({
+            count: 2,
+            userModel,
+            postModel,
+            postColumn,
+          })
         })
 
-        test.skip('[update] parent id with non-existing id should succeed', async () => {})
-        test.skip('[update] parent id with existing id should throw', async () => {})
+        test('[update] parent id with non-existing id should succeed', async () => {
+          const user3 = await prisma[userModel].update({
+            where: { id: '1' },
+            data: {
+              id: '3',
+            },
+            include: { posts: true }
+          })
+          expect(user3).toEqual({
+            id: '3',
+            posts: [
+              {
+                id: '1-post-a',
+                authorId: '3',
+              },
+              {
+                id: '1-post-b',
+                authorId: '3',
+              },
+            ],
+          })
+
+          const users = await prisma[userModel].findMany({
+            orderBy: { id: 'asc' },
+          })
+          expect(users).toEqual([
+            { id: '2' },
+            { id: '3' },
+          ])
+
+          const posts = await prisma[postModel].findMany({
+            orderBy: { id: 'asc' },
+          })
+          expect(posts).toEqual([
+            {
+              id: '1-post-a',
+              authorId: '3',
+            },
+            {
+              id: '1-post-b',
+              authorId: '3',
+            },
+            {
+              id: '2-post-a',
+              authorId: '2',
+            },
+            {
+              id: '2-post-b',
+              authorId: '2',
+            },
+          ])
+        })
+
+        test('[update] parent id with existing id should throw', async () => {
+          await expect(
+            prisma[userModel].update({
+              where: { id: '1' },
+              data: {
+                id: '2',
+              },
+            })
+          ).rejects.toThrowError(
+            // @ts-expect-error
+            conditionalError({
+              [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+              [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+              [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+            })
+          )
+        })
+
+        test('[update] child id with non-existing id should succeed', async () => {
+          const postUser1A = await prisma[postModel].update({
+            where: { id: '1-post-a' },
+            data: {
+              id: '1-post-c',
+            },
+          })
+          expect(postUser1A).toEqual({
+            id: '1-post-c',
+            authorId: '1',
+          })
+
+          const users = await prisma[userModel].findMany({
+            orderBy: { id: 'asc' },
+            include: { posts: true },
+          })
+          expect(users).toEqual([
+            {
+              id: '1',
+              posts: [
+                {
+                  id: '1-post-b',
+                  authorId: '1',
+                },
+                {
+                  id: '1-post-c',
+                  authorId: '1',
+                },
+              ],
+            },
+            {
+              id: '2',
+              posts: [
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ],
+            },
+          ])
+
+          const posts = await prisma[postModel].findMany({
+            orderBy: { id: 'asc' },
+          })
+          expect(posts).toEqual([
+            {
+              id: '1-post-b',
+              authorId: '1',
+            },
+            {
+              id: '1-post-c',
+              authorId: '1',
+            },
+            {
+              id: '2-post-a',
+              authorId: '2',
+            },
+            {
+              id: '2-post-b',
+              authorId: '2',
+            },
+          ])
+        })
       })
 
-      describe('[delete]', () => {
-        test.skip('[delete] child should succeed', async () => {})
-        test.skip('[delete] children and then [delete] parent should succeed', async () => {})
+      describe.only('[delete]', () => {
+        beforeEach(async () => {
+          await checkIfEmpty(userModel, postModel)
+          await createXUsersWith2Posts({
+            count: 2,
+            userModel,
+            postModel,
+            postColumn,
+          })
+        })
+
+        test('[delete] child should succeed', async () => {
+          await prisma[postModel].delete({
+            where: { id: '1-post-a' },
+          })
+
+          const usersFromDb = await prisma[userModel].findMany({
+            include: { posts: true },
+          })
+          expect(usersFromDb).toEqual([
+            {
+              id: '1',
+              posts: [
+                {
+                  id: '1-post-b',
+                  authorId: '1',
+                },
+              ],
+            },
+            {
+              id: '2',
+              posts: [
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ]
+            },
+          ])
+
+          const postsFromDb = await prisma[postModel].findMany({
+            orderBy: { id: 'asc' },
+          })
+          expect(postsFromDb).toEqual([
+            {
+              id: '1-post-b',
+              authorId: '1',
+            },
+            {
+              id: '2-post-a',
+              authorId: '2',
+            },
+            {
+              id: '2-post-b',
+              authorId: '2',
+            },
+          ])
+        })
+
+        test('[delete] children and then [delete] parent should succeed', async () => {
+          await prisma[postModel].delete({
+            where: { id: '1-post-a' },
+          })
+          await prisma[postModel].delete({
+            where: { id: '1-post-b' },
+          })
+          await prisma[userModel].delete({
+            where: { id: '1' },
+          })
+
+          const usersFromDb = await prisma[userModel].findMany({
+            include: { posts: true },
+          })
+          expect(usersFromDb).toEqual([
+            {
+              id: '2',
+              posts: [
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ]
+            },
+          ])
+
+          const postsFromDb = await prisma[postModel].findMany({
+            orderBy: { id: 'asc' },
+          })
+          expect(postsFromDb).toEqual([
+            {
+              id: '2-post-a',
+              authorId: '2',
+            },
+            {
+              id: '2-post-b',
+              authorId: '2',
+            },
+          ])
+        })
+
+        test.skip('[deleteMany] parents should throw', async () => {
+          
+        })
+
+        describeIf(suiteConfig.referentialActions.onDelete === '')('onDelete: DEFAULT', () => {
+          test('[delete] parent should throw', async () => {
+            // this throws because "postModel" has a mandatory relation with "userModel", hence
+            // we have a "onDelete: Restrict" situation by default
+
+            await expect(
+              prisma[userModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+              }),
+            )
+          })
+
+          test('[delete] a subset of children and then [delete] parent should throw', async () => {
+            await prisma[postModel].delete({
+              where: { id: '1-post-a' },
+            })
+  
+            const postsFromDb = await prisma[postModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(postsFromDb).toEqual([
+              {
+                id: '1-post-b',
+                authorId: '1',
+              },
+              {
+                id: '2-post-a',
+                authorId: '2',
+              },
+              {
+                id: '2-post-b',
+                authorId: '2',
+              },
+            ])
+  
+            await expect(
+              prisma[userModel].delete({
+                where: { id: '1' },
+              })
+            ).rejects.toThrowError(
+              // @ts-expect-error
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Integrity constraint violation: cannot delete due to existing foreign key references',
+                [Providers.COCKROACHDB]: 'Integrity constraint violation: cannot delete due to existing foreign key references',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+              })
+            )
+          })
+        })
+
+        describeIf(suiteConfig.referentialActions.onDelete === 'Cascade')('onDelete: Cascade', () => {
+          test('[delete] parent should succeed', async () => {
+            await prisma[userModel].delete({
+              where: { id: '1' },
+            })
+
+            const usersFromDb = await prisma[userModel].findMany({
+              include: { posts: true },
+            })
+            expect(usersFromDb).toEqual([
+              {
+                id: '2',
+                posts: [
+                  {
+                    id: '2-post-a',
+                    authorId: '2',
+                  },
+                  {
+                    id: '2-post-b',
+                    authorId: '2',
+                  },
+                ],
+              },
+            ])
+
+            const postsFromDb = await prisma[postModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(postsFromDb).toEqual([
+              {
+                id: '2-post-a',
+                authorId: '2',
+              },
+              {
+                id: '2-post-b',
+                authorId: '2',
+              },
+            ])
+          })
+        })
       })
     })
 
