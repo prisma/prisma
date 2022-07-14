@@ -208,7 +208,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             logLevel: this.logLevel,
             configDir: this.config.cwd!,
           },
-          (err, log) => this.logger(err, log),
+          (log) => this.logger(log),
         )
       } catch (_e) {
         const e = _e as Error
@@ -222,11 +222,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  private logger(err: string, log: string) {
-    if (err) {
-      throw err
-    }
-
+  private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) {
       return
