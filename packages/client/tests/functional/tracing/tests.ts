@@ -74,11 +74,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
       expect(getConnection.span.name).toEqual('prisma:connection')
 
       if (provider === 'mongodb') {
-        // TODO wating for engines to merge
-        if (process.env.CI) {
-          return
-        }
-
         expect(engine.children).toHaveLength(3)
 
         const dbQuery1 = (engine.children || [])[1]
@@ -133,11 +128,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
       expect(getConnection.span.name).toEqual('prisma:connection')
 
       if (provider === 'mongodb') {
-        // TODO wating for engines to merge
-        if (process.env.CI) {
-          return
-        }
-
         expect(engine.children).toHaveLength(2)
 
         const dbQuery1 = (engine.children || [])[1]
@@ -183,11 +173,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
       expect(getConnection.span.name).toEqual('prisma:connection')
 
       if (provider === 'mongodb') {
-        // TODO wating for engines to merge
-        if (process.env.CI) {
-          return
-        }
-
         expect(engine.children).toHaveLength(4)
 
         const dbQuery1 = (engine.children || [])[1]
@@ -250,11 +235,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
       expect(getConnection.span.name).toEqual('prisma:connection')
 
       if (provider === 'mongodb') {
-        // TODO wating for engines to merge
-        if (process.env.CI) {
-          return
-        }
-
         expect(engine.children).toHaveLength(4)
 
         const dbQuery1 = (engine.children || [])[1]
@@ -328,12 +308,18 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
         ]),
       )
 
+      expect(prismaSpan.children).toHaveLength(1)
+
+      const queryBuilder = (prismaSpan.children || [])[0] as unknown as Tree
+      expect(queryBuilder.span.name).toEqual('prisma:query_builder')
+
       if (provider === 'mongodb') {
-        // TODO
+        expect(queryBuilder.children).toHaveLength(4)
+
         return
       }
 
-      expect(prismaSpan.children).toHaveLength(1)
+      expect(queryBuilder.children).toHaveLength(6)
     })
 
     test('interactive-transactions', async () => {
@@ -346,7 +332,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
             email,
           },
         })
-
         await client.user.findMany({
           where: {
             email,
@@ -369,12 +354,43 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
         ]),
       )
 
+      expect(prismaSpan.children).toHaveLength(1)
+
+      const prismaItxRunner = (prismaSpan?.children || [])[0] as unknown as Tree
+      expect(prismaItxRunner.span.name).toEqual('prisma:itx_runner')
+
+      const prismaGetConnection = (prismaItxRunner?.children || []).find(
+        (child) => child.span.name === 'prisma:connection',
+      ) as unknown as Tree
+      expect(prismaGetConnection).toBeDefined()
+
+      const [queryBuilder1, queryBuilder2] = (prismaItxRunner?.children || []).filter(
+        (child) => child.span.name === 'prisma:itx_query_builder',
+      ) as Tree[]
+
+      expect(queryBuilder1).toBeDefined()
+      expect(queryBuilder1.children).toHaveLength(2)
+
+      expect(queryBuilder2).toBeDefined()
+      expect(queryBuilder2.children).toHaveLength(1)
+
       if (provider === 'mongodb') {
-        // TODO
+        expect(prismaItxRunner.children).toHaveLength(3)
+
         return
       }
 
-      expect(prismaSpan.children).toHaveLength(5)
+      expect(prismaItxRunner.children).toHaveLength(5)
+
+      const begin = (prismaItxRunner?.children || []).find((child) =>
+        child.span.attributes['db.statement']?.toString().includes('BEGIN'),
+      ) as unknown as Tree
+      expect(begin).toBeDefined()
+
+      const commit = (prismaItxRunner?.children || []).find((child) =>
+        child.span.attributes['db.statement']?.toString().includes('COMMIT'),
+      ) as unknown as Tree
+      expect(commit).toBeDefined()
     })
   })
 
@@ -472,11 +488,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
     expect(getConnection.span.name).toEqual('prisma:connection')
 
     if (provider === 'mongodb') {
-      // TODO wating for engines to merge
-      if (process.env.CI) {
-        return
-      }
-
       expect(engine.children).toHaveLength(3)
 
       const dbQuery1 = (engine.children || [])[1]
@@ -563,11 +574,6 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
       expect(getConnection.span.name).toEqual('prisma:connection')
 
       if (provider === 'mongodb') {
-        // TODO wating for engines to merge
-        if (process.env.CI) {
-          return
-        }
-
         expect(engine.children).toHaveLength(3)
 
         const dbQuery1 = (engine.children || [])[1]
