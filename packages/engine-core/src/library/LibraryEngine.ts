@@ -41,11 +41,11 @@ function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
-  if ('span' in event) {
+  if ('level' in event) {
+    return event.level === 'error' && event['message'] === 'PANIC'
+  } else {
     return false
   }
-
-  return event.level === 'error' && event['message'] === 'PANIC'
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
