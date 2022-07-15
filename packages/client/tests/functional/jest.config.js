@@ -4,14 +4,7 @@ const os = require('os')
 
 module.exports = () => {
   const configCommon = {
-    testMatch: [
-      '**/*.ts',
-      '!(**/*.d.ts)',
-      '!(**/_utils/**)',
-      '!(**/_matrix.ts)',
-      '!(**/_schema.ts)',
-      '!(**/.generated/**)',
-    ],
+    testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
     transformIgnorePatterns: [forceTranspile()],
     reporters: [
       'default',

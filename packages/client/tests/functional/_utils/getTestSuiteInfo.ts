@@ -20,19 +20,13 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
   let name = ``
 
-  name += `${suiteMeta.testDirName.replace(/\\|\//, '.')}`
+  name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  name += ` (${suiteConfig['provider']})`
+  const suiteParams = Object.entries(suiteConfig)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(', ')
 
-  name += ` (`
-  if (suiteConfig['providerFeatures']) {
-    name += `${suiteConfig['providerFeatures']}`
-  }
-
-  if (suiteConfig['previewFeatures']) {
-    name += `${suiteConfig['previewFeatures']}`
-  }
-  name += `)`
+  name += ` (${suiteParams})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')
@@ -120,12 +114,30 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSu
 export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
-  const testDir = path.dirname(testPath)
-  const testDirName = testDir.replace(testsDir, '')
+  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  const testRoot = path.join(testsDir, testRootDirName)
+  const rootRelativeTestPath = path.relative(testRoot, testPath)
+  const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
+  let testName
+  if (rootRelativeTestPath === 'tests.ts') {
+    testName = testRootDirName
+  } else {
+    testName = path.join(testRootDirName, rootRelativeTestDir, path.basename(testPath, '.ts'))
+  }
   const testFileName = path.basename(testPath)
-  const prismaPath = path.join(testDir, 'prisma')
-  const _matrixPath = path.join(testDir, '_matrix')
+  const prismaPath = path.join(testRoot, 'prisma')
+  const _matrixPath = path.join(testRoot, '_matrix')
   const _schemaPath = path.join(prismaPath, '_schema')
 
-  return { testPath, testDir, testDirName, testFileName, prismaPath, _matrixPath, _schemaPath }
+  return {
+    testName,
+    testPath,
+    testRoot,
+    rootRelativeTestPath,
+    rootRelativeTestDir,
+    testFileName,
+    prismaPath,
+    _matrixPath,
+    _schemaPath,
+  }
 }
