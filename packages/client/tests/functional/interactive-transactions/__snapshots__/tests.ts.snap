@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`interactive-transactions (cockroachdb) () batching raw rollback 1`] = `
+exports[`interactive-transactions (provider=cockroachdb) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
 
@@ -8,7 +8,7 @@ Invalid \`prisma.$executeRaw()\` invocation:
   Raw query failed. Code: \`23505\`. Message: \`Key (id)=('1') already exists.\`
 `;
 
-exports[`interactive-transactions (cockroachdb) () batching rollback 1`] = `
+exports[`interactive-transactions (provider=cockroachdb) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:234:19
@@ -20,7 +20,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (cockroachdb) () rollback query 1`] = `
+exports[`interactive-transactions (provider=cockroachdb) rollback query 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:168:25
@@ -32,7 +32,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (mongodb) () batching rollback 1`] = `
+exports[`interactive-transactions (provider=mongodb) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:234:19
@@ -44,7 +44,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`interactive-transactions (mongodb) () rollback query 1`] = `
+exports[`interactive-transactions (provider=mongodb) rollback query 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:168:25
@@ -56,7 +56,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`interactive-transactions (mysql) () batching raw rollback 1`] = `
+exports[`interactive-transactions (provider=mysql) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
 
@@ -64,7 +64,7 @@ Invalid \`prisma.$executeRaw()\` invocation:
   Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'user.PRIMARY'\`
 `;
 
-exports[`interactive-transactions (mysql) () batching rollback 1`] = `
+exports[`interactive-transactions (provider=mysql) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:234:19
@@ -76,7 +76,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`interactive-transactions (mysql) () rollback query 1`] = `
+exports[`interactive-transactions (provider=mysql) rollback query 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:168:25
@@ -88,7 +88,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`interactive-transactions (postgresql) () batching raw rollback 1`] = `
+exports[`interactive-transactions (provider=postgresql) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
 
@@ -96,7 +96,7 @@ Invalid \`prisma.$executeRaw()\` invocation:
   Raw query failed. Code: \`23505\`. Message: \`Key (id)=(1) already exists.\`
 `;
 
-exports[`interactive-transactions (postgresql) () batching rollback 1`] = `
+exports[`interactive-transactions (provider=postgresql) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:234:19
@@ -108,7 +108,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (postgresql) () rollback query 1`] = `
+exports[`interactive-transactions (provider=postgresql) rollback query 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:168:25
@@ -120,7 +120,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (sqlite) () batching raw rollback 1`] = `
+exports[`interactive-transactions (provider=sqlite) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
 
@@ -128,7 +128,7 @@ Invalid \`prisma.$executeRaw()\` invocation:
   Raw query failed. Code: \`2067\`. Message: \`UNIQUE constraint failed: User.email\`
 `;
 
-exports[`interactive-transactions (sqlite) () batching rollback 1`] = `
+exports[`interactive-transactions (provider=sqlite) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:234:19
@@ -140,7 +140,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (sqlite) () rollback query 1`] = `
+exports[`interactive-transactions (provider=sqlite) rollback query 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:168:25
@@ -152,7 +152,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`interactive-transactions (sqlserver) () batching raw rollback 1`] = `
+exports[`interactive-transactions (provider=sqlserver) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
 
@@ -160,7 +160,7 @@ Invalid \`prisma.$executeRaw()\` invocation:
   Raw query failed. Code: \`2627\`. Message: \`Violation of PRIMARY KEY constraint 'User_pkey'. Cannot insert duplicate key in object 'dbo.User'. The duplicate key value is (1).\`
 `;
 
-exports[`interactive-transactions (sqlserver) () batching rollback 1`] = `
+exports[`interactive-transactions (provider=sqlserver) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:234:19
@@ -172,7 +172,7 @@ Invalid \`prisma.user.create()\` invocation in
   Unique constraint failed on the constraint: \`dbo.User\`
 `;
 
-exports[`interactive-transactions (sqlserver) () rollback query 1`] = `
+exports[`interactive-transactions (provider=sqlserver) rollback query 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:168:25
