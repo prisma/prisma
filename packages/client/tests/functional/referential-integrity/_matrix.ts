@@ -11,7 +11,7 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 
 // Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
 // If no defaults are provided for any of the scalar fields, a runtime error will be thrown.
-const referentialActionsChoices = ['', 'Cascade', 'Restrict', 'NoAction', 'SetNull']
+// const referentialActionsChoices = ['', 'Cascade', 'Restrict', 'NoAction', 'SetNull']
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
@@ -73,8 +73,9 @@ export default defineMatrix(() => [
       id: 'String @id @map("_id")',
       referentialIntegrity,
       referentialActions: {
-        onUpdate,
-        onDelete,
+        // Note: on MongoDB SetDefault is not supported
+        onUpdate: onUpdate === 'SetDefault' ? '' : onUpdate,
+        onDelete: onDelete === 'SetDefault' ? '' : onDelete,
       },
     },
     */

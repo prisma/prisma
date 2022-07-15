@@ -60,7 +60,7 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
 }
 
 // m:n relation (SQL database)
-async function createXPostsWith2Categories({ count, postModel }) {
+async function createXPostsWith2CategoriesSQLDb({ count, postModel }) {
   const prismaPromises: any = []
 
   for (let i = 0; i < count; i++) {
@@ -84,6 +84,36 @@ async function createXPostsWith2Categories({ count, postModel }) {
                   id: `${id}-cat-b`,
                 },
               },
+            },
+          ],
+        },
+      },
+      include: {
+        categories: true,
+      },
+    })
+    prismaPromises.push(prismaPromise)
+  }
+
+  return await prisma.$transaction(prismaPromises)
+}
+// m:n relation (MongoDB database)
+async function createXPostsWith2CategoriesMongoDB({ count, postModel }) {
+  const prismaPromises: any = []
+
+  for (let i = 0; i < count; i++) {
+    // We want to start at 1
+    const id = (i + 1).toString()
+    const prismaPromise = prisma[postModel].create({
+      data: {
+        id: id,
+        categories: {
+          create: [
+            {
+              id: `${id}-cat-a`,
+            },
+            {
+              id: `${id}-cat-b`,
             },
           ],
         },
@@ -135,7 +165,7 @@ testMatrix.setupTestSuite(
     const onUpdate = suiteConfig.referentialActions.onUpdate
 
     // we can create a user without a profile, but not a profile without a user
-    describe('1:1 mandatory (explicit)', () => {
+    describeIf(suiteConfig.provider !== Providers.MONGODB)('1:1 mandatory (explicit)', () => {
       const userModel = 'userOneToOne'
       const profileModel = 'profileOneToOne'
       const profileColumn = 'profile'
@@ -743,7 +773,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describe('1-to-n mandatory (explicit)', () => {
+    describeIf(suiteConfig.provider !== Providers.MONGODB)('1-to-n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'
       const postColumn = 'posts'
@@ -1235,16 +1265,17 @@ testMatrix.setupTestSuite(
     })
 
     // Many to Many - m:n
-    describe('m-to-n mandatory (explicit)', () => {
+    describeIf(suiteConfig.provider !== Providers.MONGODB)('m-to-n mandatory (explicit) - SQL Databases', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
       const categoriesOnPostsModel = 'CategoriesOnPostsManyToMany'
 
       beforeEach(async () => {
-        const prismaPromises = [prisma[postModel].deleteMany(), prisma[categoryModel].deleteMany()]
-        if (suiteConfig.provider !== Providers.MONGODB) {
-          prismaPromises.unshift(prisma[categoriesOnPostsModel].deleteMany())
-        }
+        const prismaPromises = [
+          prisma[categoriesOnPostsModel].deleteMany(),
+          prisma[postModel].deleteMany(),
+          prisma[categoryModel].deleteMany(),
+        ]
         await prisma.$transaction(prismaPromises)
       })
 
@@ -1303,7 +1334,7 @@ testMatrix.setupTestSuite(
                   {
                     category: {
                       create: {
-                        id: '1',
+                        id: '1-cat-a',
                       },
                     },
                   },
@@ -1311,6 +1342,26 @@ testMatrix.setupTestSuite(
               },
             },
           })
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+            {
+              id: '1',
+            },
+          ])
+          expect(
+            await prisma[categoryModel].findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1-cat-a',
+            },
+          ])
+          expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
+            {
+              categoryId: '1-cat-a',
+              postId: '1',
+            },
+          ])
         })
 
         test.skip('[create] x connect with non existing x should throw', async () => {})
@@ -1319,7 +1370,7 @@ testMatrix.setupTestSuite(
       describe('[update]', () => {
         beforeEach(async () => {
           await checkIfEmpty(categoryModel, postModel, categoriesOnPostsModel)
-          await createXPostsWith2Categories({
+          await createXPostsWith2CategoriesSQLDb({
             count: 2,
             postModel,
           })
@@ -1642,7 +1693,7 @@ testMatrix.setupTestSuite(
       describe('[delete]', () => {
         beforeEach(async () => {
           await checkIfEmpty(categoryModel, postModel, categoriesOnPostsModel)
-          await createXPostsWith2Categories({
+          await createXPostsWith2CategoriesSQLDb({
             count: 2,
             postModel,
           })
@@ -1681,7 +1732,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['Cascade'].includes(onUpdate))('onDelete: Cascade', () => {
+        describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
           test('[delete] post should succeed', async () => {
             await prisma[postModel].delete({
               where: { id: '1' },
@@ -1848,6 +1899,205 @@ testMatrix.setupTestSuite(
               postId: '2',
             },
           ])
+        })
+      })
+    })
+
+    /*
+     *
+     * MongoDB
+     *
+     */
+    // Many to Many - m:n
+    describeIf(suiteConfig.provider === Providers.MONGODB)('m-to-n mandatory (explicit) - MongoDB', () => {
+      const postModel = 'PostManyToMany'
+      const categoryModel = 'CategoryManyToMany'
+
+      beforeEach(async () => {
+        const prismaPromises = [prisma[postModel].deleteMany(), prisma[categoryModel].deleteMany()]
+        await prisma.$transaction(prismaPromises)
+      })
+
+      describe('[create]', () => {
+        test('[create] catgegory alone should succeed', async () => {
+          await prisma[categoryModel].create({
+            data: {
+              id: '1',
+            },
+          })
+          expect(await prisma[categoryModel].findMany()).toEqual([
+            {
+              id: '1',
+              postIDs: [],
+            },
+          ])
+        })
+
+        test('[create] post alone should succeed', async () => {
+          await prisma[postModel].create({
+            data: {
+              id: '1',
+            },
+          })
+          expect(await prisma[postModel].findMany()).toEqual([
+            {
+              id: '1',
+              categoryIDs: [],
+            },
+          ])
+        })
+
+        test('[create] create post [nested] [create] categories [nested] [create] category should succeed', async () => {
+          await prisma[postModel].create({
+            data: {
+              id: '1',
+              categories: {
+                create: [
+                  {
+                    id: '1',
+                  },
+                ],
+              },
+            },
+          })
+
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+            {
+              id: '1',
+              categoryIDs: ['1'],
+            },
+          ])
+          expect(await prisma[categoryModel].findMany()).toEqual([
+            {
+              id: '1',
+              postIDs: ['1'],
+            },
+          ])
+        })
+
+        test.skip('[create] x connect with non existing x should throw', async () => {})
+      })
+
+      // MongoDB id is immutable
+      describe.skip('[update]', () => {})
+
+      describe('[delete]', () => {
+        beforeEach(async () => {
+          await checkIfEmpty(categoryModel, postModel)
+          await createXPostsWith2CategoriesMongoDB({
+            count: 2,
+            postModel,
+          })
+        })
+
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
+          test('[delete] post should throw', async () => {
+            // TODO Resolved to value: {"categoryIDs": ["1-cat-a", "1-cat-b"], "id": "1"}
+            await expect(
+              prisma[postModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError()
+          })
+          test('[delete] category should throw', async () => {
+            // TODO:  Resolved to value: {"id": "1-cat-a", "postIDs": ["1"]}
+            await expect(
+              prisma[categoryModel].delete({
+                where: { id: '1-cat-a' },
+              }),
+            ).rejects.toThrowError()
+          })
+        })
+
+        // describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
+        describe(`onDelete: ${onDelete}`, () => {
+          test('[delete] post should succeed', async () => {
+            await prisma[postModel].delete({
+              where: { id: '1' },
+            })
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '2',
+                categoryIDs: ['2-cat-a', '2-cat-b'],
+              },
+            ])
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1-cat-a',
+                postIDs: ['1'],
+              },
+              {
+                id: '1-cat-b',
+                postIDs: ['1'],
+              },
+              {
+                id: '2-cat-a',
+                postIDs: ['2'],
+              },
+              {
+                id: '2-cat-b',
+                postIDs: ['2'],
+              },
+            ])
+          })
+          test('[delete] category should succeed', async () => {
+            await prisma[categoryModel].delete({
+              where: { id: '1-cat-a' },
+            })
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '1',
+                categoryIDs: ['1-cat-a', '1-cat-b'],
+              },
+              {
+                id: '2',
+                categoryIDs: ['2-cat-a', '2-cat-b'],
+              },
+            ])
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1-cat-b',
+                postIDs: ['1'],
+              },
+              {
+                id: '2-cat-a',
+                postIDs: ['2'],
+              },
+              {
+                id: '2-cat-b',
+                postIDs: ['2'],
+              },
+            ])
+          })
+        })
+
+        describeIf(['SetNull'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
+          test('[delete] post should throw', async () => {
+            // TODO Resolved to value: {"categoryIDs": ["1-cat-a", "1-cat-b"], "id": "1"}
+            await expect(
+              prisma[postModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError()
+          })
+          test('[delete] category should throw', async () => {
+            // TODO Resolved to value: {"id": "1-cat-a", "postIDs": ["1"]}
+            await expect(
+              prisma[categoryModel].delete({
+                where: { id: '1-cat-a' },
+              }),
+            ).rejects.toThrowError()
+          })
         })
       })
     })
