@@ -9,23 +9,23 @@ export default testMatrix.setupSchema(({ provider, previewFeatures, referentialI
     provider === Providers.MONGODB || !referentialIntegrity ? '' : `referentialIntegrity = "${referentialIntegrity}"`
 
   const schemaHeader = /* Prisma */ `
-    generator client {
-      provider = "prisma-client-js"
-      previewFeatures = [${previewFeatures}]
-    }
-    
-    datasource db {
-      provider = "${provider}"
-      url      = env("DATABASE_URI_${provider}")
-      ${referentialIntegrityLine}
-    }
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = [${previewFeatures}]
+}
+
+datasource db {
+  provider = "${provider}"
+  url      = env("DATABASE_URI_${provider}")
+  ${referentialIntegrityLine}
+}
   `
 
   let referentialActionLine = ''
-  if (referentialActions.onUpdate) {
+  if (referentialActions.onUpdate && referentialActions.onUpdate !== 'DEFAULT') {
     referentialActionLine += `, onUpdate: ${referentialActions.onUpdate}`
   }
-  if (referentialActions.onDelete) {
+  if (referentialActions.onDelete && referentialActions.onDelete !== 'DEFAULT') {
     referentialActionLine += `, onDelete: ${referentialActions.onDelete}`
   }
 

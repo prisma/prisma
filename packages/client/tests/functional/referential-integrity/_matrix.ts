@@ -14,6 +14,19 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 const referentialActionsChoices = ['', 'Cascade', 'Restrict', 'NoAction', 'SetNull']
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
+type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
+const onUpdate: ReferentialActions | string = 'DEFAULT'
+const onDelete: ReferentialActions | string = 'DEFAULT'
+// const onUpdate: ReferentialActions | string = 'Cascade'
+// const onDelete: ReferentialActions | string = 'Cascade'
+// const onUpdate: ReferentialActions | string = 'Restrict'
+// const onDelete: ReferentialActions | string = 'Restrict'
+// const onUpdate: ReferentialActions | string = 'NoAction'
+// const onDelete: ReferentialActions | string = 'NoAction'
+// const onUpdate: ReferentialActions | string = 'SetNull'
+// const onDelete: ReferentialActions | string = 'SetNull'
+// const onUpdate: ReferentialActions | string = 'SetDefault'
+// const onDelete: ReferentialActions | string = 'SetDefault'
 export default defineMatrix(() => [
   [
     {
@@ -21,18 +34,8 @@ export default defineMatrix(() => [
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
-        // onUpdate: '',
-        // onDelete: '',
-        // onUpdate: 'Cascade',
-        // onDelete: 'Cascade',
-        // onUpdate: 'Restrict',
-        // onDelete: 'Restrict',
-        // onUpdate: 'NoAction',
-        // onDelete: 'NoAction',
-        // onUpdate: 'SetNull',
-        // onDelete: 'SetNull',
-        onUpdate: 'SetDefault',
-        onDelete: 'SetDefault',
+        onUpdate,
+        onDelete,
       },
     },
     // {
@@ -40,17 +43,8 @@ export default defineMatrix(() => [
     //   id: 'String @id',
     //   referentialIntegrity,
     //   referentialActions: {
-    //     onUpdate: '',
-    //     onDelete: '',
-    //   },
-    // },
-    // {
-    //   provider: Providers.SQLITE,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     onUpdate: '',
-    //     onDelete: '',
+    //     onUpdate,
+    //     onDelete,
     //   },
     // },
     // {
@@ -58,8 +52,19 @@ export default defineMatrix(() => [
     //   id: 'String @id',
     //   referentialIntegrity,
     //   referentialActions: {
-    //     onUpdate: '',
-    //     onDelete: '',
+    //     // Restrict is not supported by SQL Server
+    //     // TODO we should not run the test intead of switching to default
+    //     onUpdate: onUpdate === 'Restrict' ? '' : onUpdate,
+    //     onDelete: onDelete === 'Restrict' ? '' : onDelete,
+    //   },
+    // },
+    // {
+    //   provider: Providers.SQLITE,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     onUpdate,
+    //     onDelete,
     //   },
     // },
     /*
@@ -68,8 +73,8 @@ export default defineMatrix(() => [
       id: 'String @id @map("_id")',
       referentialIntegrity,
       referentialActions: {
-        onUpdate: '',
-        onDelete: '',
+        onUpdate,
+        onDelete,
       },
     },
     */

@@ -125,6 +125,7 @@ async function checkForNoChange({ count, userColumn, profileColumn, userModel, p
   expect(sortArrayById(findManyUserById1)).toMatchObject(sortArrayById(usersArr))
 }
 
+// TODO: maybe we can split each relation into a separate file for readability
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     function conditionalError(errors: Record<Providers, string>): string {
@@ -650,7 +651,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(onDelete === '')('onDelete: DEFAULT', () => {
+        describeIf(onDelete === 'DEFAULT')('onDelete: DEFAULT', () => {
           test('[delete] parent should throw', async () => {
             await prisma[userModel].create({
               data: {
@@ -1130,7 +1131,7 @@ testMatrix.setupTestSuite(
 
         test.skip('[deleteMany] parents should throw', async () => {})
 
-        describeIf(onDelete === '')('onDelete: DEFAULT', () => {
+        describeIf(onDelete === 'DEFAULT')('onDelete: DEFAULT', () => {
           test('[delete] parent should throw', async () => {
             // this throws because "postModel" has a mandatory relation with "userModel", hence
             // we have a "onDelete: Restrict" situation by default
@@ -1233,7 +1234,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    // Many to Many
+    // Many to Many - m:n
     describe('m-to-n mandatory (explicit)', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
@@ -1372,127 +1373,124 @@ testMatrix.setupTestSuite(
           )
         })
 
-        describeIf(!['Restrict', 'NoAction', 'SetNull', 'SetDefault'].includes(onUpdate))(
-          `onUpdate: ${onUpdate}`,
-          () => {
-            test('[update] post id should succeed', async () => {
-              await prisma[postModel].update({
-                where: {
-                  id: '1',
-                },
-                data: {
-                  id: '3',
-                },
-              })
-
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-                {
-                  id: '2',
-                },
-                {
-                  // The update
-                  id: '3',
-                },
-              ])
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1-cat-a',
-                },
-                {
-                  id: '1-cat-b',
-                },
-                {
-                  id: '2-cat-a',
-                },
-                {
-                  id: '2-cat-b',
-                },
-              ])
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
-                {
-                  categoryId: '1-cat-a',
-                  // The update
-                  postId: '3',
-                },
-                {
-                  categoryId: '1-cat-b',
-                  // The update
-                  postId: '3',
-                },
-                {
-                  categoryId: '2-cat-a',
-                  postId: '2',
-                },
-                {
-                  categoryId: '2-cat-b',
-                  postId: '2',
-                },
-              ])
+        describeIf(['DEFAULT', 'Cascade'].includes(onUpdate))(`onUpdate: Cascade`, () => {
+          test('[update] post id should succeed', async () => {
+            await prisma[postModel].update({
+              where: {
+                id: '1',
+              },
+              data: {
+                id: '3',
+              },
             })
 
-            test('[update] category id should succeed', async () => {
-              await prisma[categoryModel].update({
-                where: {
-                  id: '1-cat-a',
-                },
-                data: {
-                  id: '1-cat-a-updated',
-                },
-              })
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '2',
+              },
+              {
+                // The update
+                id: '3',
+              },
+            ])
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1-cat-a',
+              },
+              {
+                id: '1-cat-b',
+              },
+              {
+                id: '2-cat-a',
+              },
+              {
+                id: '2-cat-b',
+              },
+            ])
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
+              {
+                categoryId: '1-cat-a',
+                // The update
+                postId: '3',
+              },
+              {
+                categoryId: '1-cat-b',
+                // The update
+                postId: '3',
+              },
+              {
+                categoryId: '2-cat-a',
+                postId: '2',
+              },
+              {
+                categoryId: '2-cat-b',
+                postId: '2',
+              },
+            ])
+          })
 
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-                {
-                  id: '1',
-                },
-                {
-                  id: '2',
-                },
-              ])
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  // The update
-                  id: '1-cat-a-updated',
-                },
-                {
-                  id: '1-cat-b',
-                },
-                {
-                  id: '2-cat-a',
-                },
-                {
-                  id: '2-cat-b',
-                },
-              ])
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
-                {
-                  // The update
-                  categoryId: '1-cat-a-updated',
-                  postId: '1',
-                },
-                {
-                  categoryId: '1-cat-b',
-                  postId: '1',
-                },
-                {
-                  categoryId: '2-cat-a',
-                  postId: '2',
-                },
-                {
-                  categoryId: '2-cat-b',
-                  postId: '2',
-                },
-              ])
+          test('[update] category id should succeed', async () => {
+            await prisma[categoryModel].update({
+              where: {
+                id: '1-cat-a',
+              },
+              data: {
+                id: '1-cat-a-updated',
+              },
             })
-          },
-        )
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '1',
+              },
+              {
+                id: '2',
+              },
+            ])
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                // The update
+                id: '1-cat-a-updated',
+              },
+              {
+                id: '1-cat-b',
+              },
+              {
+                id: '2-cat-a',
+              },
+              {
+                id: '2-cat-b',
+              },
+            ])
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
+              {
+                // The update
+                categoryId: '1-cat-a-updated',
+                postId: '1',
+              },
+              {
+                categoryId: '1-cat-b',
+                postId: '1',
+              },
+              {
+                categoryId: '2-cat-a',
+                postId: '2',
+              },
+              {
+                categoryId: '2-cat-b',
+                postId: '2',
+              },
+            ])
+          })
+        })
 
         describeIf(['Restrict', 'NoAction'].includes(onUpdate))(`onUpdate: ${onUpdate}`, () => {
           test('[update] post id should succeed', async () => {
@@ -1511,7 +1509,7 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `cateroryId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
           })
@@ -1532,13 +1530,13 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
               }),
             )
           })
         })
 
-        describeIf(onUpdate === 'SetNull' || onUpdate === 'SetDefault')(`onUpdate: ${onUpdate}`, () => {
+        describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: ${onUpdate}`, () => {
           test('[update] post id should succeed', async () => {
             await expect(
               prisma[postModel].update({
@@ -1650,7 +1648,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(!['Cascade', 'SetNull', 'SetDefault'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
           test('[delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({
@@ -1683,7 +1681,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(onDelete === 'Cascade')('onDelete: Cascade', () => {
+        describeIf(['Cascade'].includes(onUpdate))('onDelete: Cascade', () => {
           test('[delete] post should succeed', async () => {
             await prisma[postModel].delete({
               where: { id: '1' },
@@ -1768,6 +1766,7 @@ testMatrix.setupTestSuite(
           })
         })
 
+        // TODO check why SetDefault works because we don't have @default in the schema
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
           test('[delete] post should throw', async () => {
             await expect(
