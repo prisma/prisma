@@ -16,13 +16,12 @@ import { flatMap } from './flatMap'
 import { getHash } from './getHash'
 import { getLatestTag } from './getLatestTag'
 import { getBar } from './log'
-import { getCacheDir, getDownloadUrl } from './util'
+import { getCacheDir, getDownloadUrl, overwriteFile } from './util'
 
 const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const readFile = promisify(fs.readFile)
-const copyFile = promisify(fs.copyFile)
 const utimes = promisify(fs.utimes)
 
 const channel = 'master'
@@ -276,12 +275,12 @@ async function binaryNeedsToBeDownloaded(
           // Workaround for https://github.com/prisma/prisma/issues/7037
           await utimes(cachedFile, new Date(), new Date())
 
-          await copyFile(cachedFile, job.targetFilePath)
+          await overwriteFile(cachedFile, job.targetFilePath)
         }
         const targetSha256 = await getHash(job.targetFilePath)
         if (sha256File !== targetSha256) {
           debug(`overwriting ${job.targetFilePath} with ${cachedFile} as hashes do not match`)
-          await copyFile(cachedFile, job.targetFilePath)
+          await overwriteFile(cachedFile, job.targetFilePath)
         }
         return false
       } else {
@@ -446,7 +445,7 @@ async function saveFileToCache(
   const cachedSha256ZippedPath = path.join(cacheDir, job.binaryName + '.gz.sha256')
 
   try {
-    await copyFile(job.targetFilePath, cachedTargetPath)
+    await overwriteFile(job.targetFilePath, cachedTargetPath)
     await writeFile(cachedSha256Path, sha256)
     await writeFile(cachedSha256ZippedPath, zippedSha256)
   } catch (e) {
