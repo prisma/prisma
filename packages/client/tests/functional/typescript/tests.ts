@@ -7,6 +7,8 @@ import { keys } from '../../../../../helpers/blaze/keys'
 import { map } from '../../../../../helpers/blaze/map'
 import { reduce } from '../../../../../helpers/blaze/reduce'
 
+const testsRoot = path.resolve(__dirname, '..')
+
 function getAllTestSuiteTypeChecks(fileNames: string[]) {
   const program = ts.createProgram(fileNames, {
     ...ts.convertCompilerOptionsFromJson(
@@ -61,8 +63,8 @@ describe('typescript', () => {
 
 function getTestSuiteDisplayName(filePath: string) {
   const testDir = path.join(path.dirname(filePath), '..')
-  const testPath = path.relative(testDir, filePath)
-  const suiteName = testPath.replace(/\.generated/g, '')
+  const testPath = path.relative(testsRoot, filePath)
+  const suiteName = testPath.replace(/^.*\.generated\//g, '')
 
   return suiteName
 }

@@ -31,7 +31,7 @@ export function checkMissingProviders({
 
   if (missingProviders.length) {
     throw new Error(
-      `Test: '${suiteMeta.testDirName}' is missing providers '${missingProviders
+      `Test: '${suiteMeta.testName}' is missing providers '${missingProviders
         .map((x) => `'${x}'`)
         .join(', ')}' out out using options.optOut`,
     )
