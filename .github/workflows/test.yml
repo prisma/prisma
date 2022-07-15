@@ -644,6 +644,20 @@ jobs:
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
 
+      - run: pnpm run test
+        name: 'instrumentation'
+        working-directory: packages/instrumentation
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
+          flags: instrumentation,${{ matrix.os }},library,binary
+          name: instrumentation-${{ matrix.os }}
+
   #
   # Run all tests on macOS and Windows.
   #

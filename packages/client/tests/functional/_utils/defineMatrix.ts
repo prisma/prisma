@@ -1,3 +1,4 @@
+import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-base'
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
@@ -17,7 +18,7 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
    * and generic suite metadata as an arguments
    */
   setupTestSuite(
-    tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta) => void,
+    tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta, tracer: InMemorySpanExporter) => void,
     options?: MatrixOptions,
   ): void
 

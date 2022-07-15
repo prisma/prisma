@@ -20,7 +20,6 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType, platf
     engineDownloadDir,
     `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
   )
-
   if (clientEngineType === ClientEngineType.Library && !(await fs.pathExists(queryEngineLibraryPath))) {
     await download({ binaries: { 'libquery-engine': engineDownloadDir }, version: enginesVersion })
   } else if (clientEngineType === ClientEngineType.Binary && !(await fs.pathExists(queryEngineBinaryPath))) {

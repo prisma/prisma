@@ -1,7 +1,7 @@
-import type { Context } from '@opentelemetry/api'
+import { SpanOptions } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType } from '@prisma/engine-core'
-import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
+import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType, Options } from '@prisma/engine-core'
+import { BinaryEngine, DataProxyEngine, getTracingConfig, LibraryEngine, TransactionHeaders } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import {
   ClientEngineType,
@@ -19,6 +19,7 @@ import * as sqlTemplateTag from 'sql-template-tag'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
+import { TransactionTracer } from '../utils/TransactionTracer'
 import { PrismaClientValidationError } from '.'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
@@ -38,8 +39,8 @@ import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
-import { applyTracingHeaders } from './utils/otel/applyTracingHeaders'
-import { runInChildSpan } from './utils/otel/runInChildSpan'
+import { getTraceParent } from './utils/otel/getTraceParent'
+import { runInActiveSpan, runInSpan } from './utils/otel/runInSpan'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
@@ -169,7 +170,6 @@ export type InternalRequestParams = {
   headers?: Record<string, string> // TODO what is this
   transactionId?: string | number
   unpacker?: Unpacker // TODO what is this
-  otelCtx?: Context // an otel context
   lock?: PromiseLike<void>
 } & QueryMiddlewareParams
 
@@ -596,7 +596,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private $executeRawInternal(
       txId: string | number | undefined,
       lock: PromiseLike<void> | undefined,
-      otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -692,7 +691,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         callsite: getCallSite(this._errorFormat),
         runInTransaction: !!txId,
         transactionId: txId,
-        otelCtx: otelCtx,
         lock,
       })
     }
@@ -706,9 +704,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @returns
      */
     $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise((txId, lock, otelCtx) => {
+      return createPrismaPromise((txId, lock) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
-          return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
+          return this.$executeRawInternal(txId, lock, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -730,8 +728,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return createPrismaPromise((txId, lock, otelCtx) => {
-        return this.$executeRawInternal(txId, lock, otelCtx, query, ...values)
+      return createPrismaPromise((txId, lock) => {
+        return this.$executeRawInternal(txId, lock, query, ...values)
       })
     }
 
@@ -748,7 +746,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         )
       }
 
-      return createPrismaPromise((txId, lock, otelCtx) => {
+      return createPrismaPromise((txId, lock) => {
         return this._request({
           args: { command: command },
           clientMethod: '$runCommandRaw',
@@ -757,7 +755,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           callsite: getCallSite(this._errorFormat),
           runInTransaction: !!txId,
           transactionId: txId,
-          otelCtx: otelCtx,
           lock,
         })
       })
@@ -769,7 +766,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     private $queryRawInternal(
       txId: string | number | undefined,
       lock: PromiseLike<void> | undefined,
-      otelCtx: Context | undefined,
       query: string | TemplateStringsArray | sqlTemplateTag.Sql,
       ...values: sqlTemplateTag.RawValue[]
     ) {
@@ -868,7 +864,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         callsite: getCallSite(this._errorFormat),
         runInTransaction: !!txId,
         transactionId: txId,
-        otelCtx: otelCtx,
         lock,
       }).then(deserializeRawResults)
     }
@@ -882,9 +877,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
-      return createPrismaPromise((txId, lock, otelCtx) => {
+      return createPrismaPromise((txId, lock) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
-          return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
+          return this.$queryRawInternal(txId, lock, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -906,8 +901,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
-      return createPrismaPromise((txId, lock, otelCtx) => {
-        return this.$queryRawInternal(txId, lock, otelCtx, query, ...values)
+      return createPrismaPromise((txId, lock) => {
+        return this.$queryRawInternal(txId, lock, query, ...values)
       })
     }
 
@@ -946,7 +941,10 @@ new PrismaClient({
      * @param requests
      * @param options
      */
-    private _transactionWithArray(promises: Array<PrismaPromise<any>>): Promise<any> {
+    private _transactionWithArray(
+      promises: Array<PrismaPromise<any>>,
+      transactionTracer: TransactionTracer,
+    ): Promise<any> {
       const txId = this._transactionId++
       const lock = getLockCountPromise(promises.length)
 
@@ -957,7 +955,7 @@ new PrismaClient({
           )
         }
 
-        return request.requestTransaction?.(txId, lock)
+        return request.requestTransaction?.(txId, lock, transactionTracer)
       })
 
       return Promise.all(_requests)
@@ -969,23 +967,32 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private async _transactionWithCallback(
-      callback: (client: Client) => Promise<unknown>,
-      options?: { maxWait: number; timeout: number },
-    ) {
-      // we ask the query engine to open a transaction
-      const info = await this._engine.transaction('start', options)
+    private async _transactionWithCallback({
+      callback,
+      options,
+      transactionTracer,
+    }: {
+      callback: (client: Client) => Promise<unknown>
+      options?: { maxWait: number; timeout: number }
+      transactionTracer: TransactionTracer
+    }) {
+      const traceparent = getTraceParent()
+      const headers: TransactionHeaders = {
+        traceparent,
+      }
+
+      const info = await this._engine.transaction('start', headers, options as Options)
 
       let result: unknown
       try {
         // execute user logic with a proxied the client
-        result = await callback(transactionProxy(this, info.id))
+        result = await callback(transactionProxy(this, info.id, transactionTracer))
 
         // it went well, then we commit the transaction
-        await this._engine.transaction('commit', info)
+        await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => {})
 
         e.clientVersion = this._clientVersion
         throw e // silent rollback, throw original error
@@ -1001,16 +1008,40 @@ new PrismaClient({
      * @returns
      */
     async $transaction(input: any, options?: any) {
-      // TODO: remove this once interactive tx became GA
-      if (!this._hasPreviewFlag('interactiveTransactions')) {
-        return this._transactionWithArray(input)
+      let callback: () => Promise<any>
+
+      const transactionTracer = new TransactionTracer()
+
+      if (typeof input === 'function' && this._hasPreviewFlag('interactiveTransactions')) {
+        callback = () => this._transactionWithCallback({ callback: input, options, transactionTracer })
+      } else {
+        callback = () => this._transactionWithArray(input, transactionTracer)
       }
 
-      if (typeof input === 'function') {
-        return this._transactionWithCallback(input, options)
+      const tracingConfig = getTracingConfig(this._engine)
+      if (tracingConfig.enabled) {
+        const options: SpanOptions = {
+          attributes: {
+            method: 'transaction',
+          },
+        }
+
+        const tracedCallback = () =>
+          runInActiveSpan({
+            callback,
+            name: 'prisma',
+            options,
+            transactionTracer,
+          })
+
+        return runInActiveSpan({
+          callback: tracedCallback,
+          name: 'prisma:transaction',
+          options,
+        })
       }
 
-      return this._transactionWithArray(input)
+      return callback()
     }
 
     /**
@@ -1020,9 +1051,6 @@ new PrismaClient({
      * @returns
      */
     async _request(internalParams: InternalRequestParams): Promise<any> {
-      // TODO remove this check once tracing is no longer in preview
-      if (!this._hasPreviewFlag('tracing')) delete internalParams['otelCtx']
-
       try {
         // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
@@ -1033,32 +1061,66 @@ new PrismaClient({
           model: internalParams.model,
         }
 
+        const tracingConfig = getTracingConfig(this._engine)
+
         let index = -1
         // prepare recursive fn that will pipe params through middlewares
-        const consumer = (changedParams: QueryMiddlewareParams) => {
-          // if this `next` was called and there's some more middlewares
+        const consumer = async (changedParams: QueryMiddlewareParams): Promise<any> => {
           const nextMiddleware = this._middlewares.query.get(++index)
+          let middleware: () => Promise<any>
+          let isEnvokingMethod = false
 
-          // we pass the modified params down to the next one, & repeat
-          // calling `next` calls the consumer again with the new params
-          if (nextMiddleware) return nextMiddleware(changedParams, consumer)
+          if (nextMiddleware) {
+            middleware = () => nextMiddleware(changedParams, consumer)
+          } else {
+            isEnvokingMethod = true
+            middleware = () => this._executeRequest({ ...internalParams, ...changedParams })
+          }
 
-          // before we send the execution request, we use the changed params
-          const changedInternalParams = { ...internalParams, ...changedParams }
+          if (tracingConfig.enabled && tracingConfig.middleware && !isEnvokingMethod) {
+            const options: SpanOptions = {
+              attributes: {
+                method: '$use',
+                sequence: index + 1,
+              },
+            }
 
-          // no middleware? then we just proceed with request execution
-          return this._executeRequest(changedInternalParams)
+            // middleware is an adjacent span and not nested
+            return await runInSpan({
+              name: 'prisma:middleware',
+              options,
+              callback: middleware,
+            })
+          }
+
+          return await middleware()
         }
+
+        let callback: (changedParams: QueryMiddlewareParams) => Promise<unknown>
 
         if (NODE_CLIENT) {
           // https://github.com/prisma/prisma/issues/3148 not for the data proxy
-          return await new AsyncResource('prisma-client-request').runInAsyncScope(() => {
-            return runInChildSpan('request', internalParams.otelCtx, () => consumer(params))
+          callback = () => new AsyncResource('prisma-client-request').runInAsyncScope(() => consumer(params))
+        } else {
+          callback = consumer
+        }
+
+        if (tracingConfig.enabled && !internalParams.runInTransaction) {
+          const options: SpanOptions = {
+            attributes: {
+              method: internalParams.action,
+              model: internalParams.model,
+            },
+          }
+
+          return await runInActiveSpan({
+            callback: () => callback(params),
+            name: 'prisma',
+            options,
           })
         }
 
-        // we execute the middleware consumer and wrap the call for otel
-        return await runInChildSpan('request', internalParams.otelCtx, () => consumer(params))
+        return await callback(params)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -1076,7 +1138,6 @@ new PrismaClient({
       model,
       headers,
       transactionId,
-      otelCtx,
       lock,
       unpacker,
     }: InternalRequestParams) {
@@ -1147,7 +1208,17 @@ new PrismaClient({
         debug(query + '\n')
       }
 
-      headers = applyTracingHeaders(headers, otelCtx)
+      const tracingConfig = getTracingConfig(this._engine)
+      if (tracingConfig.enabled) {
+        if (!headers) {
+          headers = {}
+        }
+
+        const traceparent = getTraceParent()
+        if (traceparent) {
+          headers.traceparent = traceparent
+        }
+      }
 
       await lock /** @see {@link getLockCountPromise} */
 
@@ -1207,7 +1278,7 @@ const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
  * @param txId to be passed down to {@link RequestHandler}
  * @returns
  */
-function transactionProxy<T>(thing: T, txId: string): T {
+function transactionProxy<T>(thing: T, txId: string, transactionTracer: TransactionTracer): T {
   // we only wrap within a proxy if it's possible: if it's an object
   if (typeof thing !== 'object') return thing
 
@@ -1222,17 +1293,17 @@ function transactionProxy<T>(thing: T, txId: string): T {
       if (typeof target[prop] === 'function') {
         return (...args: unknown[]) => {
           // we hijack promise calls to pass txId to prisma promises
-          if (prop === 'then') return target[prop](args[0], args[1], txId)
-          if (prop === 'catch') return target[prop](args[0], txId)
-          if (prop === 'finally') return target[prop](args[0], txId)
+          if (prop === 'then') return target[prop](args[0], args[1], txId, transactionTracer)
+          if (prop === 'catch') return target[prop](args[0], txId, transactionTracer)
+          if (prop === 'finally') return target[prop](args[0], txId, transactionTracer)
 
           // if it's not the end promise, result is also tx-proxied
-          return transactionProxy(target[prop](...args), txId)
+          return transactionProxy(target[prop](...args), txId, transactionTracer)
         }
       }
 
       // if it's an object prop, then we keep on making it proxied
-      return transactionProxy(target[prop], txId)
+      return transactionProxy(target[prop], txId, transactionTracer)
     },
   }) as any as T
 }

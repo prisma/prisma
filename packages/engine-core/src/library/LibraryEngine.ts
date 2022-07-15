@@ -17,6 +17,7 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
+  EngineSpanEvent,
   QueryEngineBatchRequest,
   QueryEngineEvent,
   QueryEngineLogLevel,
@@ -29,6 +30,8 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { createSpan } from '../common/utils/createSpan'
+import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
@@ -38,10 +41,11 @@ function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
-  return event.level === 'error' && event['message'] === 'PANIC'
-}
-function isSpanEvent(event: any): Boolean {
-  return 'span' in event
+  if ('level' in event) {
+    return event.level === 'error' && event['message'] === 'PANIC'
+  } else {
+    return false
+  }
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
@@ -111,11 +115,13 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
-  async transaction(action: any, arg?: any) {
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
+
+    const headerStr = JSON.stringify(headers)
 
     let result: string | undefined
     if (action === 'start') {
@@ -124,11 +130,11 @@ export class LibraryEngine extends Engine {
         timeout: arg?.timeout ?? 5000, // default
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, '{}')
+      result = await this.engine?.startTransaction(jsonOptions, headerStr)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, '{}')
+      result = await this.engine?.commitTransaction(arg.id, headerStr)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, '{}')
+      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -220,9 +226,16 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
-    if (!event) return
+    if (!event) {
+      return
+    }
 
-    if (isSpanEvent(event)) {
+    if ('span' in event) {
+      const tracingConfig = getTracingConfig(this)
+      if (tracingConfig.enabled) {
+        createSpan(event as EngineSpanEvent)
+      }
+
       return
     }
 
@@ -501,6 +514,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return responseString
     }
     return this.parseEngineResponse(responseString)
+  }
+
+  _hasPreviewFlag(feature: string): Boolean {
+    return !!this.config.previewFeatures?.includes(feature)
   }
 }
 

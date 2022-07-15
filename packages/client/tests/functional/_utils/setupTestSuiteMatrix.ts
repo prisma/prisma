@@ -1,8 +1,11 @@
+import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-base'
+
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { setupTracing } from './setupTracing'
 import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
@@ -39,7 +42,7 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta, tracer: InMemorySpanExporter) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -51,6 +54,10 @@ function setupTestSuiteMatrix(
     suiteMeta,
     options,
   })
+
+  // Tracing to happen top level because many different instances of OTEL will conflict(using global vars)
+  const inMemorySpanExporter = setupTracing()
+
   for (const { name, suiteConfig, skip } of testPlan) {
     const describeFn = skip ? describe.skip : describe
 
@@ -80,7 +87,7 @@ function setupTestSuiteMatrix(
         delete globalThis['PrismaClient']
       })
 
-      tests(suiteConfig, suiteMeta)
+      tests(suiteConfig, suiteMeta, inMemorySpanExporter)
     })
   }
 }
