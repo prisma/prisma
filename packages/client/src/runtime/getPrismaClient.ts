@@ -1027,6 +1027,7 @@ new PrismaClient({
         // make sure that we don't leak extra properties to users
         const params: QueryMiddlewareParams = {
           args: internalParams.args,
+          context: internalParams.context,
           dataPath: internalParams.dataPath,
           runInTransaction: internalParams.runInTransaction,
           action: internalParams.action,

@@ -1475,6 +1475,7 @@ export namespace Prisma {
     model?: ModelName
     action: PrismaAction
     args: any
+    context: JsonObject
     dataPath: string[]
     runInTransaction: boolean
   }
@@ -1544,6 +1545,11 @@ export namespace Prisma {
      * 
     **/
     select?: UserCountOutputTypeSelect | null
+    /**
+     * Sets the context for UserCountOutputType
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -1593,6 +1599,11 @@ export namespace Prisma {
      * 
     **/
     select?: EmbedHolderCountOutputTypeSelect | null
+    /**
+     * Sets the context for EmbedHolderCountOutputType
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -1642,6 +1653,11 @@ export namespace Prisma {
      * 
     **/
     select?: MCountOutputTypeSelect | null
+    /**
+     * Sets the context for MCountOutputType
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -1691,6 +1707,11 @@ export namespace Prisma {
      * 
     **/
     select?: NCountOutputTypeSelect | null
+    /**
+     * Sets the context for NCountOutputType
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -1740,6 +1761,11 @@ export namespace Prisma {
      * 
     **/
     select?: OneOptionalCountOutputTypeSelect | null
+    /**
+     * Sets the context for OneOptionalCountOutputType
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -1872,6 +1898,11 @@ export namespace Prisma {
      * 
     **/
     include?: EmbedInclude | null
+    /**
+     * Sets the context for Embed
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -1975,6 +2006,11 @@ export namespace Prisma {
      * 
     **/
     select?: EmbedEmbedSelect | null
+    /**
+     * Sets the context for EmbedEmbed
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -2624,6 +2660,11 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which Post to fetch.
      * 
     **/
@@ -2656,6 +2697,11 @@ export namespace Prisma {
      * 
     **/
     include?: PostInclude | null
+    /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which Post to fetch.
      * 
@@ -2725,6 +2771,11 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which Posts to fetch.
      * 
     **/
@@ -2776,6 +2827,11 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a Post.
      * 
     **/
@@ -2809,6 +2865,11 @@ export namespace Prisma {
      * 
     **/
     include?: PostInclude | null
+    /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a Post.
      * 
@@ -2854,6 +2915,11 @@ export namespace Prisma {
     **/
     include?: PostInclude | null
     /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the Post to update in case it exists.
      * 
     **/
@@ -2885,6 +2951,11 @@ export namespace Prisma {
      * 
     **/
     include?: PostInclude | null
+    /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which Post to delete.
      * 
@@ -2965,6 +3036,11 @@ export namespace Prisma {
      * 
     **/
     include?: PostInclude | null
+    /**
+     * Sets the context for Post
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -3734,6 +3810,11 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which User to fetch.
      * 
     **/
@@ -3766,6 +3847,11 @@ export namespace Prisma {
      * 
     **/
     include?: UserInclude | null
+    /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which User to fetch.
      * 
@@ -3835,6 +3921,11 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which Users to fetch.
      * 
     **/
@@ -3886,6 +3977,11 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a User.
      * 
     **/
@@ -3919,6 +4015,11 @@ export namespace Prisma {
      * 
     **/
     include?: UserInclude | null
+    /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a User.
      * 
@@ -3964,6 +4065,11 @@ export namespace Prisma {
     **/
     include?: UserInclude | null
     /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the User to update in case it exists.
      * 
     **/
@@ -3995,6 +4101,11 @@ export namespace Prisma {
      * 
     **/
     include?: UserInclude | null
+    /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which User to delete.
      * 
@@ -4075,6 +4186,11 @@ export namespace Prisma {
      * 
     **/
     include?: UserInclude | null
+    /**
+     * Sets the context for User
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -4727,6 +4843,11 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which EmbedHolder to fetch.
      * 
     **/
@@ -4759,6 +4880,11 @@ export namespace Prisma {
      * 
     **/
     include?: EmbedHolderInclude | null
+    /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which EmbedHolder to fetch.
      * 
@@ -4828,6 +4954,11 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which EmbedHolders to fetch.
      * 
     **/
@@ -4879,6 +5010,11 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a EmbedHolder.
      * 
     **/
@@ -4912,6 +5048,11 @@ export namespace Prisma {
      * 
     **/
     include?: EmbedHolderInclude | null
+    /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a EmbedHolder.
      * 
@@ -4957,6 +5098,11 @@ export namespace Prisma {
     **/
     include?: EmbedHolderInclude | null
     /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the EmbedHolder to update in case it exists.
      * 
     **/
@@ -4988,6 +5134,11 @@ export namespace Prisma {
      * 
     **/
     include?: EmbedHolderInclude | null
+    /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which EmbedHolder to delete.
      * 
@@ -5068,6 +5219,11 @@ export namespace Prisma {
      * 
     **/
     include?: EmbedHolderInclude | null
+    /**
+     * Sets the context for EmbedHolder
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -5819,6 +5975,11 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which M to fetch.
      * 
     **/
@@ -5851,6 +6012,11 @@ export namespace Prisma {
      * 
     **/
     include?: MInclude | null
+    /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which M to fetch.
      * 
@@ -5920,6 +6086,11 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which MS to fetch.
      * 
     **/
@@ -5971,6 +6142,11 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a M.
      * 
     **/
@@ -6004,6 +6180,11 @@ export namespace Prisma {
      * 
     **/
     include?: MInclude | null
+    /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a M.
      * 
@@ -6049,6 +6230,11 @@ export namespace Prisma {
     **/
     include?: MInclude | null
     /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the M to update in case it exists.
      * 
     **/
@@ -6080,6 +6266,11 @@ export namespace Prisma {
      * 
     **/
     include?: MInclude | null
+    /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which M to delete.
      * 
@@ -6160,6 +6351,11 @@ export namespace Prisma {
      * 
     **/
     include?: MInclude | null
+    /**
+     * Sets the context for M
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -6911,6 +7107,11 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which N to fetch.
      * 
     **/
@@ -6943,6 +7144,11 @@ export namespace Prisma {
      * 
     **/
     include?: NInclude | null
+    /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which N to fetch.
      * 
@@ -7012,6 +7218,11 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which NS to fetch.
      * 
     **/
@@ -7063,6 +7274,11 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a N.
      * 
     **/
@@ -7096,6 +7312,11 @@ export namespace Prisma {
      * 
     **/
     include?: NInclude | null
+    /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a N.
      * 
@@ -7141,6 +7362,11 @@ export namespace Prisma {
     **/
     include?: NInclude | null
     /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the N to update in case it exists.
      * 
     **/
@@ -7172,6 +7398,11 @@ export namespace Prisma {
      * 
     **/
     include?: NInclude | null
+    /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which N to delete.
      * 
@@ -7252,6 +7483,11 @@ export namespace Prisma {
      * 
     **/
     include?: NInclude | null
+    /**
+     * Sets the context for N
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -7999,6 +8235,11 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which OneOptional to fetch.
      * 
     **/
@@ -8031,6 +8272,11 @@ export namespace Prisma {
      * 
     **/
     include?: OneOptionalInclude | null
+    /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which OneOptional to fetch.
      * 
@@ -8100,6 +8346,11 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which OneOptionals to fetch.
      * 
     **/
@@ -8151,6 +8402,11 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a OneOptional.
      * 
     **/
@@ -8184,6 +8440,11 @@ export namespace Prisma {
      * 
     **/
     include?: OneOptionalInclude | null
+    /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a OneOptional.
      * 
@@ -8229,6 +8490,11 @@ export namespace Prisma {
     **/
     include?: OneOptionalInclude | null
     /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the OneOptional to update in case it exists.
      * 
     **/
@@ -8260,6 +8526,11 @@ export namespace Prisma {
      * 
     **/
     include?: OneOptionalInclude | null
+    /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which OneOptional to delete.
      * 
@@ -8340,6 +8611,11 @@ export namespace Prisma {
      * 
     **/
     include?: OneOptionalInclude | null
+    /**
+     * Sets the context for OneOptional
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -9091,6 +9367,11 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which ManyRequired to fetch.
      * 
     **/
@@ -9123,6 +9404,11 @@ export namespace Prisma {
      * 
     **/
     include?: ManyRequiredInclude | null
+    /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which ManyRequired to fetch.
      * 
@@ -9192,6 +9478,11 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which ManyRequireds to fetch.
      * 
     **/
@@ -9243,6 +9534,11 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a ManyRequired.
      * 
     **/
@@ -9276,6 +9572,11 @@ export namespace Prisma {
      * 
     **/
     include?: ManyRequiredInclude | null
+    /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a ManyRequired.
      * 
@@ -9321,6 +9622,11 @@ export namespace Prisma {
     **/
     include?: ManyRequiredInclude | null
     /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the ManyRequired to update in case it exists.
      * 
     **/
@@ -9352,6 +9658,11 @@ export namespace Prisma {
      * 
     **/
     include?: ManyRequiredInclude | null
+    /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which ManyRequired to delete.
      * 
@@ -9432,6 +9743,11 @@ export namespace Prisma {
      * 
     **/
     include?: ManyRequiredInclude | null
+    /**
+     * Sets the context for ManyRequired
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -10183,6 +10499,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which OptionalSide1 to fetch.
      * 
     **/
@@ -10215,6 +10536,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide1Include | null
+    /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which OptionalSide1 to fetch.
      * 
@@ -10284,6 +10610,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which OptionalSide1s to fetch.
      * 
     **/
@@ -10335,6 +10666,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a OptionalSide1.
      * 
     **/
@@ -10368,6 +10704,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide1Include | null
+    /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a OptionalSide1.
      * 
@@ -10413,6 +10754,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide1Include | null
     /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the OptionalSide1 to update in case it exists.
      * 
     **/
@@ -10444,6 +10790,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide1Include | null
+    /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which OptionalSide1 to delete.
      * 
@@ -10524,6 +10875,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide1Include | null
+    /**
+     * Sets the context for OptionalSide1
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -11267,6 +11623,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which OptionalSide2 to fetch.
      * 
     **/
@@ -11299,6 +11660,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide2Include | null
+    /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which OptionalSide2 to fetch.
      * 
@@ -11368,6 +11734,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which OptionalSide2s to fetch.
      * 
     **/
@@ -11419,6 +11790,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a OptionalSide2.
      * 
     **/
@@ -11452,6 +11828,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide2Include | null
+    /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a OptionalSide2.
      * 
@@ -11497,6 +11878,11 @@ export namespace Prisma {
     **/
     include?: OptionalSide2Include | null
     /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the OptionalSide2 to update in case it exists.
      * 
     **/
@@ -11528,6 +11914,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide2Include | null
+    /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which OptionalSide2 to delete.
      * 
@@ -11608,6 +11999,11 @@ export namespace Prisma {
      * 
     **/
     include?: OptionalSide2Include | null
+    /**
+     * Sets the context for OptionalSide2
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -12285,6 +12681,11 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which A to fetch.
      * 
     **/
@@ -12312,6 +12713,11 @@ export namespace Prisma {
      * 
     **/
     select?: ASelect | null
+    /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which A to fetch.
      * 
@@ -12376,6 +12782,11 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which AS to fetch.
      * 
     **/
@@ -12422,6 +12833,11 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a A.
      * 
     **/
@@ -12450,6 +12866,11 @@ export namespace Prisma {
      * 
     **/
     select?: ASelect | null
+    /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a A.
      * 
@@ -12490,6 +12911,11 @@ export namespace Prisma {
     **/
     select?: ASelect | null
     /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the A to update in case it exists.
      * 
     **/
@@ -12516,6 +12942,11 @@ export namespace Prisma {
      * 
     **/
     select?: ASelect | null
+    /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which A to delete.
      * 
@@ -12591,6 +13022,11 @@ export namespace Prisma {
      * 
     **/
     select?: ASelect | null
+    /**
+     * Sets the context for A
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -13240,6 +13676,11 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which B to fetch.
      * 
     **/
@@ -13267,6 +13708,11 @@ export namespace Prisma {
      * 
     **/
     select?: BSelect | null
+    /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which B to fetch.
      * 
@@ -13331,6 +13777,11 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which BS to fetch.
      * 
     **/
@@ -13377,6 +13828,11 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a B.
      * 
     **/
@@ -13405,6 +13861,11 @@ export namespace Prisma {
      * 
     **/
     select?: BSelect | null
+    /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a B.
      * 
@@ -13445,6 +13906,11 @@ export namespace Prisma {
     **/
     select?: BSelect | null
     /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the B to update in case it exists.
      * 
     **/
@@ -13471,6 +13937,11 @@ export namespace Prisma {
      * 
     **/
     select?: BSelect | null
+    /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which B to delete.
      * 
@@ -13546,6 +14017,11 @@ export namespace Prisma {
      * 
     **/
     select?: BSelect | null
+    /**
+     * Sets the context for B
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -14189,6 +14665,11 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which C to fetch.
      * 
     **/
@@ -14216,6 +14697,11 @@ export namespace Prisma {
      * 
     **/
     select?: CSelect | null
+    /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which C to fetch.
      * 
@@ -14280,6 +14766,11 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which CS to fetch.
      * 
     **/
@@ -14326,6 +14817,11 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a C.
      * 
     **/
@@ -14354,6 +14850,11 @@ export namespace Prisma {
      * 
     **/
     select?: CSelect | null
+    /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a C.
      * 
@@ -14394,6 +14895,11 @@ export namespace Prisma {
     **/
     select?: CSelect | null
     /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the C to update in case it exists.
      * 
     **/
@@ -14420,6 +14926,11 @@ export namespace Prisma {
      * 
     **/
     select?: CSelect | null
+    /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which C to delete.
      * 
@@ -14495,6 +15006,11 @@ export namespace Prisma {
      * 
     **/
     select?: CSelect | null
+    /**
+     * Sets the context for C
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -15160,6 +15676,11 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which D to fetch.
      * 
     **/
@@ -15187,6 +15708,11 @@ export namespace Prisma {
      * 
     **/
     select?: DSelect | null
+    /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which D to fetch.
      * 
@@ -15251,6 +15777,11 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which DS to fetch.
      * 
     **/
@@ -15297,6 +15828,11 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a D.
      * 
     **/
@@ -15325,6 +15861,11 @@ export namespace Prisma {
      * 
     **/
     select?: DSelect | null
+    /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a D.
      * 
@@ -15365,6 +15906,11 @@ export namespace Prisma {
     **/
     select?: DSelect | null
     /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the D to update in case it exists.
      * 
     **/
@@ -15391,6 +15937,11 @@ export namespace Prisma {
      * 
     **/
     select?: DSelect | null
+    /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which D to delete.
      * 
@@ -15466,6 +16017,11 @@ export namespace Prisma {
      * 
     **/
     select?: DSelect | null
+    /**
+     * Sets the context for D
+     * 
+    **/
+    context?: JsonObject
   }
 
 
@@ -16085,6 +16641,11 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which E to fetch.
      * 
     **/
@@ -16112,6 +16673,11 @@ export namespace Prisma {
      * 
     **/
     select?: ESelect | null
+    /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter, which E to fetch.
      * 
@@ -16176,6 +16742,11 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
+    /**
      * Filter, which ES to fetch.
      * 
     **/
@@ -16222,6 +16793,11 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The data needed to create a E.
      * 
     **/
@@ -16250,6 +16826,11 @@ export namespace Prisma {
      * 
     **/
     select?: ESelect | null
+    /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
     /**
      * The data needed to update a E.
      * 
@@ -16290,6 +16871,11 @@ export namespace Prisma {
     **/
     select?: ESelect | null
     /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
+    /**
      * The filter to search for the E to update in case it exists.
      * 
     **/
@@ -16316,6 +16902,11 @@ export namespace Prisma {
      * 
     **/
     select?: ESelect | null
+    /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
     /**
      * Filter which E to delete.
      * 
@@ -16391,6 +16982,11 @@ export namespace Prisma {
      * 
     **/
     select?: ESelect | null
+    /**
+     * Sets the context for E
+     * 
+    **/
+    context?: JsonObject
   }
 
 

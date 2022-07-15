@@ -52,10 +52,15 @@ export function applyModel(client: Client, dmmfModelName: string) {
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
+        const context = userArgs?.context as UserArgs
+        if (userArgs?.context) {
+          delete userArgs.context
+        }
+
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
         return createPrismaPromise((txId, lock, otelCtx) => {
-          const data = { args: userArgs, dataPath: [] } // data and its dataPath for nested results
+          const data = { args: userArgs, context, dataPath: [] } // data and its dataPath for nested results
           const action = { action: dmmfActionName, model: dmmfModelName } // action name and its related model
           const method = { clientMethod: `${jsModelName}.${prop}`, jsModelName } // method name for display only
           const tx = { runInTransaction: !!txId, transactionId: txId, lock } // transaction information

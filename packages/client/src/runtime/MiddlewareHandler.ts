@@ -17,6 +17,8 @@ export type QueryMiddlewareParams = {
   runInTransaction: boolean
   /** TODO what is this */
   args: any // TODO remove any, does this make sense, what is args?
+  /** The context that is sended in query */
+  context?: Record<string, unknown>
 }
 
 export type EngineMiddleware<T = unknown> = (
