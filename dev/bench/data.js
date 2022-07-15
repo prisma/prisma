@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657889213455,
+  "lastUpdate": 1657892404320,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -110843,6 +110843,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.293366432189941,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "pierre",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "e4ba03021047f6a1807316409aeba0a17b7acaab",
+          "message": "feat(client): Consolidating Tracing (#13980)\n\n* simplify otel context propagation logic\r\n\r\n* basic tracing setup\r\n\r\n* test: add create coverage to otel\r\n\r\n* feat: add model name and method to root span\r\n\r\n* feat: add otel to ITX\r\n\r\n* rough itx fixes\r\n\r\n* test: updates based on itx\r\n\r\n* feat: pass header str in json to binary\r\n\r\n* fix: pass trace thru on lib transaction\r\n\r\n* binary itx\r\n\r\n* feat: add groundwork for @prisma/instrumentation\r\n\r\n* rename tracing names\r\n\r\n* test: updates add crud coverage for tracing\r\n\r\n* refactor: remove tracing ts-ignore, move funcs to correct pkgs, more testing.\r\n\r\n* revert: non relevant changes\r\n\r\n* fix: only pass --enable-open-telemetry if its set\r\n\r\n* test: skip tracing tests untill tracing engines are merged\r\n\r\n* fix: add bundledPackages back\r\n\r\n* fix: await _tracedRequest to set clientVersion\r\n\r\n* fix: await consumer to set clientVersion\r\n\r\n* fix: add back AsyncResource for async-hooks\r\n\r\n* fix: type error\r\n\r\n* feat: add middleware tracing\r\n\r\n* pkg: updates to lock\r\n\r\n* test: remove skip\r\n\r\n* test: add log buffer\r\n\r\n* test: add afterall for disconnect client\r\n\r\n* test: add tracing coverage for SQL based providers\r\n\r\n* test: mongo tracing\r\n\r\n* feat: add transactionTracer for proper nesting ITX.\r\n\r\n* test: fix add itx flag\r\n\r\n* test: skip mongo untill merged\r\n\r\n* ci: try fix publish\r\n\r\n* ci: revert publish.ts change and add pkg.json files\r\n\r\n* add readme warning and keywords\r\n\r\n* refactor: delete npmrc\r\n\r\n* refactor: remove random ts-ignore\r\n\r\n* fix: add interactiveTransactions preview flag back\r\n\r\n* ci: refactor instrumentation to use others section\r\n\r\n* package: lock problems\r\n\r\n* test: updates for mongo tracing and itx changes\r\n\r\n* refactor: make sure we pickup on panics in logs\r\n\r\n* refactor: tree shake pkg and remove eslint\r\n\r\n* refactor: remove optional flag\r\n\r\n* refactor: have a strict type for trace headers\r\n\r\n* *: throw when tracing on data proxy\r\n\r\nCo-authored-by: garren smith <garren.smith@gmail.com>\r\nCo-authored-by: daniel starns <danielstarns@hotmail.com>\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-07-15T14:36:28+01:00",
+          "tree_id": "c94476a8fa775e588587349d36bd0c250844639e",
+          "url": "https://github.com/prisma/prisma/commit/e4ba03021047f6a1807316409aeba0a17b7acaab"
+        },
+        "date": 1657892396280,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.62,
+            "range": "±7.71%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±5.61%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2690210342407227,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.44362735748291,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7801876068115234,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16670608520507812,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.46040344238281,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.316383361816406,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
