@@ -24,16 +24,17 @@ import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnow
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
-import type { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { createSpan } from '../common/utils/createSpan'
+import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
+import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
 import type { Result } from './Connection'
@@ -550,7 +551,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = ['--enable-raw-queries', '--enable-metrics', ...this.flags, ...additionalFlag]
+        const flags = [
+          '--enable-raw-queries',
+          '--enable-metrics',
+          '--enable-open-telemetry',
+          ...this.flags,
+          ...additionalFlag,
+        ]
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
@@ -589,9 +596,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         byline(this.child.stdout).on('data', (msg) => {
           const data = String(msg)
+
           try {
             const json = JSON.parse(data)
             debug('stdout', getMessage(json))
+
             if (
               this.engineStartDeferred &&
               json.level === 'INFO' &&
@@ -607,6 +616,15 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // they could also be a RustError, which has is_panic
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
+              if (json.span === true) {
+                const tracingConfig = getTracingConfig(this)
+                if (tracingConfig.enabled) {
+                  createSpan(json as EngineSpanEvent)
+                }
+
+                return
+              }
+
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
@@ -976,13 +994,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   /**
    * Send START, COMMIT, or ROLLBACK to the Query Engine
    * @param action START, COMMIT, or ROLLBACK
+   * @param headers headers for tracing
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
-  async transaction(action: any, arg?: any) {
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
     if (action === 'start') {
@@ -992,7 +1011,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
         transactionHttpErrorHandler,
       )
 
@@ -1127,6 +1146,10 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       parseResponse,
     )
     return response.data
+  }
+
+  _hasPreviewFlag(feature: string): Boolean {
+    return !!this.previewFeatures?.includes(feature)
   }
 }
 
