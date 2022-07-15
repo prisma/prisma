@@ -25,9 +25,10 @@ function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
 }
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+type PrismaClient = import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 // @ts-ignore this is just for type checks
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
   beforeEach(() => {
@@ -525,11 +526,7 @@ testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
     let _prisma: PrismaClient
 
     beforeAll(() => {
-      _prisma = new PrismaClient()
-    })
-
-    afterAll(async () => {
-      await _prisma.$disconnect()
+      _prisma = newPrismaClient()
     })
 
     test('tracing with middleware', async () => {
