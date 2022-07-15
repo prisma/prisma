@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1657898051210,
+  "lastUpdate": 1657898779351,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -111003,6 +111003,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.316299438476562,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f0ef3fb0c926cca430cf309b5851c5a4ce065bb2",
+          "message": "fix: Allow engine to be GCed correctly (#14174)\n\n* fix: Allow engine to be GCed correctly\r\n\r\nIn combination with napi-rs fixes this significantly improves jest\r\nmemory situation. Fix consist of 3 parts:\r\n\r\n- Remove global engines array. For instance counter we use simple number\r\n  variable. For exit hooks: we don't retain the engine unless it has\r\n  `beforeExitHook`.\r\n- Logging callback uses weak reference to engine class.\r\n- In test setup: intorduce helper function for creating extra instances\r\n  of test client, that ensures that this instance would be correctly\r\n  cleaned up at the end of the test.\r\n\r\nThere still might be some leaks left as memory footprint of library\r\nengine is a little bit higher than library one, but it improves\r\nsignificantly.",
+          "timestamp": "2022-07-15T17:23:18+02:00",
+          "tree_id": "89d4811e6709292b03d397ca789430efcc9bb799",
+          "url": "https://github.com/prisma/prisma/commit/f0ef3fb0c926cca430cf309b5851c5a4ce065bb2"
+        },
+        "date": 1657898771611,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.9,
+            "range": "±6.20%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±2.60%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2699403762817383,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.4435510635376,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7801876068115234,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16670608520507812,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.4603271484375,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.316569328308105,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
