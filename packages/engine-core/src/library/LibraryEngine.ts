@@ -304,17 +304,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async runBeforeExit() {
-    debug('runBeforeExit')
-    if (this.beforeExitListener) {
-      try {
-        await this.beforeExitListener()
-      } catch (e) {
-        console.error(e)
-      }
-    }
-  }
-
   async start(): Promise<void> {
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise

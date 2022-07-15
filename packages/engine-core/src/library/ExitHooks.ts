@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 
-export type BeforeExitListener = () => unknown
+export type BeforeExitListener = () => Promise<void> | void
 
 const debug = Debug('prisma:client:libraryEngine:exitHooks')
 
