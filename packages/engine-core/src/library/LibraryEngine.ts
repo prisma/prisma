@@ -40,6 +40,9 @@ function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   return event.level === 'error' && event['message'] === 'PANIC'
 }
+function isSpanEvent(event: any): Boolean {
+  return 'span' in event
+}
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
 const engines: LibraryEngine[] = []
@@ -201,7 +204,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             logLevel: this.logLevel,
             configDir: this.config.cwd!,
           },
-          (err, log) => this.logger(err, log),
+          (log) => this.logger(log),
         )
       } catch (_e) {
         const e = _e as Error
@@ -215,12 +218,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  private logger(err: string, log: string) {
-    if (err) {
-      throw err
-    }
+  private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) return
+
+    if (isSpanEvent(event)) {
+      return
+    }
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {

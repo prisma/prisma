@@ -15,9 +15,22 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 // Note: 'Restrict' is not available when using 'sqlserver' as a provider, and it triggers a schema parsing error arising from DMMF.
 //
 // Note: 'SetNull' is only available on optional relations.
-const referentialActionsChoices = ['', 'Cascade', 'NoAction']
+//  const referentialActionsChoices = ['', 'Cascade', 'NoAction']
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
+type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
+const onUpdate: ReferentialActions | string = 'DEFAULT'
+const onDelete: ReferentialActions | string = 'DEFAULT'
+// const onUpdate: ReferentialActions | string = 'Cascade'
+// const onDelete: ReferentialActions | string = 'Cascade'
+// const onUpdate: ReferentialActions | string = 'Restrict'
+// const onDelete: ReferentialActions | string = 'Restrict'
+// const onUpdate: ReferentialActions | string = 'NoAction'
+// const onDelete: ReferentialActions | string = 'NoAction'
+// const onUpdate: ReferentialActions | string = 'SetNull'
+// const onDelete: ReferentialActions | string = 'SetNull'
+// const onUpdate: ReferentialActions | string = 'SetDefault'
+// const onDelete: ReferentialActions | string = 'SetDefault'
 export default defineMatrix(() => [
   [
     {
@@ -25,74 +38,48 @@ export default defineMatrix(() => [
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
-        onUpdate: '',
-        onDelete: '',
+        onUpdate,
+        onDelete,
       },
     },
-    {
-      provider: Providers.SQLSERVER,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: 'Cascade',
-        onDelete: 'Cascade',
-      },
-    },
-    {
-      provider: Providers.SQLSERVER,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: 'NoAction',
-        onDelete: 'NoAction',
-      },
-    },
+    // {
+    //   provider: Providers.MYSQL,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     onUpdate,
+    //     onDelete,
+    //   },
+    // },
+    // {
+    //   provider: Providers.SQLSERVER,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     // Restrict is not supported by SQL Server
+    //     // TODO we should not run the test intead of switching to default
+    //     onUpdate: onUpdate === 'Restrict' ? '' : onUpdate,
+    //     onDelete: onDelete === 'Restrict' ? '' : onDelete,
+    //   },
+    // },
+    // {
+    //   provider: Providers.SQLITE,
+    //   id: 'String @id',
+    //   referentialIntegrity,
+    //   referentialActions: {
+    //     onUpdate,
+    //     onDelete,
+    //   },
+    // },
     /*
-    {
-      provider: Providers.COCKROACHDB,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: 'Restrict',
-        onDelete: 'Restrict',
-      },
-    },
-    {
-      provider: Providers.COCKROACHDB,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: 'NoAction',
-        onDelete: 'NoAction',
-      },
-    },
-    {
-      provider: Providers.COCKROACHDB,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: 'SetNull',
-        onDelete: 'SetNull',
-      },
-    },
-    */
-    /*
-    {
-      provider: Providers.MYSQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate: '',
-        onDelete: '',
-      },
-    },
     {
       provider: Providers.MONGODB,
       id: 'String @id @map("_id")',
       referentialIntegrity,
       referentialActions: {
-        onUpdate: '',
-        onDelete: '',
+        // Note: on MongoDB SetDefault is not supported
+        onUpdate: onUpdate === 'SetDefault' ? '' : onUpdate,
+        onDelete: onDelete === 'SetDefault' ? '' : onDelete,
       },
     },
     */

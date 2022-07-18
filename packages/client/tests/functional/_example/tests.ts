@@ -29,13 +29,15 @@ testMatrix.setupTestSuite(
     test('suiteMeta', () => {
       /* 
       {
-        testPath: './code/prisma/packages/client/tests/functional/_example/tests.ts',
-        testDir: './code/prisma/packages/client/tests/functional/_example',
-        testDirName: '_example',
+        testName: '_example',
+        testPath: '/code/prisma/packages/client/tests/functional/_example/tests.ts',
+        testRoot: '/code/projects/prisma/packages/client/tests/functional/_example',
+        rootRelativeTestPath: 'tests.ts',
+        rootRelativeTestDir: '.',
         testFileName: 'tests.ts',
-        prismaPath: './code/prisma/packages/client/tests/functional/_example/prisma',
-        _matrixPath: './code/prisma/packages/client/tests/functional/_example/_matrix',
-        _schemaPath: './code/prisma/packages/client/tests/functional/_example/prisma/_schema'
+        prismaPath: '/code/prisma/packages/client/tests/functional/_example/prisma',
+        _matrixPath: '/code/prisma/packages/client/tests/functional/_example/_matrix',
+        _schemaPath: '/code/prisma/packages/client/tests/functional/_example/prisma/_schema'
       }
     */
 
