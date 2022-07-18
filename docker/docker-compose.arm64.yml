@@ -3,6 +3,12 @@ version: '3.7'
 services:
   mssql:
     image: mcr.microsoft.com/azure-sql-edge:latest
+    restart: always
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Pr1sm4_Pr1sm4
+    ports:
+      - '1433:1433'
 
   mariadb:
     ports:
