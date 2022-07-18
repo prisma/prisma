@@ -82,6 +82,13 @@
     "typescript": "4.7.4",
     "util": "0.12.4"
   },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@octokit/core": ">=3"
+      }
+    }
+  },
   "lint-staged": {
     "*.{md,yml,json}": "prettier --write",
     "*.{js,ts}": [

@@ -2028,7 +2028,7 @@ packages:
   /@octokit/plugin-paginate-rest/2.21.2_@octokit+core@3.6.0:
     resolution: {integrity: sha512-S24H0a6bBVreJtoTaRHT/gnVASbOHVTRMOVIqd9zrJBP3JozsxJB56TDuTUmd1xLI4/rAE2HNmThvVKtIdLLEw==}
     peerDependencies:
-      '@octokit/core': '>=4'
+      '@octokit/core': '>=4 || >=3'
     dependencies:
       '@octokit/core': 3.6.0
       '@octokit/types': 6.39.0
