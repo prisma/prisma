@@ -33,11 +33,6 @@
     "directory": "packages/client"
   },
   "author": "Tim Suchanek <suchanek@prisma.io>",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

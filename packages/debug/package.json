@@ -11,11 +11,6 @@
     "url": "https://github.com/prisma/prisma.git",
     "directory": "packages/debug"
   },
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@types/jest": "28.1.5",
