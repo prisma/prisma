@@ -278,7 +278,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
            * to serialize big datamodels.
            */
           PRISMA_DML_PATH: tempDatamodelPath,
-          RUST_BACKTRACE: '1',
+          RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
           ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
         },
         maxBuffer: MAX_BUFFER,
