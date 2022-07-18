@@ -190,8 +190,8 @@ export async function execaCommand({
     return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {
       cwd,
       env: {
-        RUST_BACKTRACE: '1',
-        RUST_LOG: 'info',
+        RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
+        RUST_LOG: process.env.RUST_LOG ?? 'info',
       },
     })
   } catch (_e) {
