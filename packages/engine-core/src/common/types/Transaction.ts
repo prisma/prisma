@@ -10,3 +10,7 @@ export type Options = {
 export type Info = {
   id: string
 }
+
+export type TransactionHeaders = {
+  traceparent?: string
+}

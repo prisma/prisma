@@ -1,8 +1,11 @@
+import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-base'
+
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { setupTracing } from './setupTracing'
 import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
@@ -39,7 +42,7 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta, tracer: InMemorySpanExporter) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -51,10 +54,15 @@ function setupTestSuiteMatrix(
     suiteMeta,
     options,
   })
+
+  // Tracing to happen top level because many different instances of OTEL will conflict(using global vars)
+  const inMemorySpanExporter = setupTracing()
+
   for (const { name, suiteConfig, skip } of testPlan) {
     const describeFn = skip ? describe.skip : describe
 
     describeFn(name, () => {
+      const clients = [] as any[]
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
         process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
@@ -65,22 +73,34 @@ function setupTestSuiteMatrix(
           skipDb: options?.skipDb,
         })
 
-        globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()
-        globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']
+        globalThis['newPrismaClient'] = (...args) => {
+          const client = new global['loaded']['PrismaClient'](...args)
+          clients.push(client)
+          return client
+        }
+        if (!options?.skipDefaultClientInstance) {
+          globalThis['prisma'] = globalThis['newPrismaClient']()
+        }
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
       })
 
       afterAll(async () => {
-        !options?.skipDb && (await globalThis['prisma']?.$disconnect())
+        for (const client of clients) {
+          await client.$disconnect().catch(() => {
+            // sometimes we test connection errors. In that case,
+            // disconnect might also fail, so ignoring the error here
+          })
+        }
+        clients.length = 0
         !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig))
         process.env = originalEnv
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
-        delete globalThis['PrismaClient']
+        delete globalThis['newPrismaClient']
       })
 
-      tests(suiteConfig, suiteMeta)
+      tests(suiteConfig, suiteMeta, inMemorySpanExporter)
     })
   }
 }

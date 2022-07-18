@@ -82,6 +82,9 @@ module.exports = {
   settings: {
     jest: {
       version: 27,
+      globalAliases: {
+        describe: 'describeIf',
+      },
     },
   },
 }

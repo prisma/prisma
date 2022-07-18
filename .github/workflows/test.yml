@@ -644,6 +644,20 @@ jobs:
           flags: engines,${{ matrix.os }},library,binary
           name: engines-${{ matrix.os }}
 
+      - run: pnpm run test
+        name: 'instrumentation'
+        working-directory: packages/instrumentation
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
+          flags: instrumentation,${{ matrix.os }},library,binary
+          name: instrumentation-${{ matrix.os }}
+
   #
   # Run all tests on macOS and Windows.
   #
@@ -730,7 +744,7 @@ jobs:
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes --testTimeout=40000
+        run: pnpm run test:functional:code && pnpm run test-notypes --testTimeout=40000
         working-directory: packages/client
         env:
           CI: true

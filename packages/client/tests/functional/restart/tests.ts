@@ -5,7 +5,9 @@ import { ChildProcess } from 'child_process'
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+type PrismaClient = import('@prisma/client').PrismaClient
+// @ts-ignore this is just for type checks
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 function waitForChildExit(child: ChildProcess): Promise<void> {
   return new Promise((resolve) => {
@@ -34,7 +36,7 @@ testMatrix.setupTestSuite(() => {
       return
     }
 
-    client = new PrismaClient()
+    client = newPrismaClient()
     await client.$connect()
 
     const username = faker.internet.userName()

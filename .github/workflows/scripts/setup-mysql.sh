@@ -12,5 +12,6 @@ if [ "$RUNNER_OS" = "macOS" ]; then
 fi
 
 echo 'TEST_MYSQL_URI=mysql://root@localhost:3306/tests' >> $GITHUB_ENV
+echo 'TEST_FUNCTIONAL_MYSQL_URI=mysql://root@localhost:3306/PRISMA_DB_NAME' >> $GITHUB_ENV
 echo 'TEST_MYSQL_URI_MIGRATE=mysql://root@localhost:3306/tests-migrate' >> $GITHUB_ENV
 echo 'TEST_MYSQL_SHADOWDB_URI_MIGRATE=mysql://root@localhost:3306/tests-migrate-shadowdb' >> $GITHUB_ENV

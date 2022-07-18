@@ -3,11 +3,6 @@
   "name": "dev-env",
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "engines": {
     "node": ">=14.17",
     "pnpm": ">=7.3.0 <8"

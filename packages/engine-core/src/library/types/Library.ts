@@ -13,14 +13,14 @@ export type QueryEngineInstance = {
    */
   query(requestStr: string, headersStr: string, transactionId?: string): Promise<string>
   sdlSchema(): Promise<string>
-  startTransaction(options: string, trace: string): Promise<string>
-  commitTransaction(id: string, trace: string): Promise<string>
-  rollbackTransaction(id: string, trace: string): Promise<string>
+  startTransaction(options: string, traceHeaders: string): Promise<string>
+  commitTransaction(id: string, traceHeaders: string): Promise<string>
+  rollbackTransaction(id: string, traceHeaders: string): Promise<string>
   metrics(options: string): Promise<string>
 }
 
 export interface QueryEngineConstructor {
-  new (config: QueryEngineConfig, logger: (err: string, log: string) => void): QueryEngineInstance
+  new (config: QueryEngineConfig, logger: (log: string) => void): QueryEngineInstance
 }
 
 export interface LibraryLoader {

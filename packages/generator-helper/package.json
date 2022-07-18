@@ -12,11 +12,6 @@
   },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
     "@prisma/debug": "workspace:*",
@@ -34,7 +29,7 @@
     "@swc-node/register": "1.5.1",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.21",
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/node": "12.20.55",
     "esbuild": "0.14.47",
     "jest": "28.1.2",

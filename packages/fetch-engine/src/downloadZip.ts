@@ -10,6 +10,7 @@ import { promisify } from 'util'
 import zlib from 'zlib'
 
 import { getProxyAgent } from './getProxyAgent'
+import { overwriteFile } from './util'
 
 const debug = Debug('prisma:downloadZip')
 const del = promisify(rimraf)
@@ -113,7 +114,8 @@ export async function downloadZip(
       onFailedAttempt: (err) => debug(err),
     },
   )
-  fs.copyFileSync(partial, target)
+
+  await overwriteFile(partial, target)
 
   // it's ok if the unlink fails
   try {

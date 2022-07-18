@@ -103,7 +103,7 @@ services:
 
   mysql:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -114,7 +114,7 @@ services:
 
   mysql_isolated:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
+    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root

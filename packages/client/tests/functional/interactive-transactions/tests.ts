@@ -1,11 +1,14 @@
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
+import { PrismaClient } from '../../../../react-prisma/dist'
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+type PrismaClient = import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 // @ts-ignore this is just for type checks
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -56,9 +59,9 @@ testMatrix.setupTestSuite(({ provider }) => {
       await delay(6000)
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: A commit cannot be executed on a closed transaction..`,
-    )
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringContaining('Transaction API error: Transaction already closed'),
+    })
 
     expect(await prisma.user.findMany()).toHaveLength(0)
   })
@@ -83,9 +86,9 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     )
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Transaction API error: Transaction already closed: A commit cannot be executed on a closed transaction..`,
-    )
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringContaining('Transaction API error: Transaction already closed'),
+    })
 
     expect(await prisma.user.findMany()).toHaveLength(0)
   })
@@ -194,17 +197,9 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-            Invalid \`transactionBoundPrisma.user.create()\` invocation in
-            /client/tests/functional/interactive-transactions/tests.ts:190:41
-
-              187 })
-              188 
-              189 const result = prisma.$transaction(async () => {
-            → 190   await transactionBoundPrisma.user.create(
-              Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
-          `)
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringContaining('Transaction API error: Transaction already closed'),
+    })
 
     const users = await prisma.user.findMany()
 
@@ -307,20 +302,11 @@ testMatrix.setupTestSuite(({ provider }) => {
   // middleware change the return values of model methods
   // and this would affect subsequent tests if run on a main instance
   describe('middlewares', () => {
-    let isolatedPrisma: typeof prisma
-
-    beforeEach(() => {
-      isolatedPrisma = new PrismaClient()
-    })
-
-    afterEach(async () => {
-      await isolatedPrisma.$disconnect()
-    })
-
     /**
      * Minimal example of a interactive transaction & middleware
      */
     test('middleware basic', async () => {
+      const isolatedPrisma = newPrismaClient()
       let runInTransaction = false
 
       isolatedPrisma.$use(async (params, next) => {
@@ -347,6 +333,7 @@ testMatrix.setupTestSuite(({ provider }) => {
      * Middlewares should work normally on batches
      */
     test('middlewares batching', async () => {
+      const isolatedPrisma = newPrismaClient()
       isolatedPrisma.$use(async (params, next) => {
         const result = await next(params)
 

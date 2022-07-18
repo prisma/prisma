@@ -5,10 +5,6 @@
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
-  "maintainers": [
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/prisma/prisma.git",
@@ -17,14 +13,14 @@
   "homepage": "https://www.prisma.io",
   "devDependencies": {
     "@prisma/client": "workspace:*",
-    "@types/jest": "28.1.4",
+    "@types/jest": "28.1.5",
     "@types/node": "16.11.43",
-    "esbuild": "0.14.48",
+    "esbuild": "0.14.49",
     "jest": "28.1.2",
     "jest-junit": "14.0.0",
     "react": "18.2.0",
     "typescript": "4.7.4",
-    "@swc/core": "1.2.210",
+    "@swc/core": "1.2.213",
     "@swc/jest": "0.2.21"
   },
   "scripts": {

@@ -2,8 +2,10 @@ import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import testMatrix from './_matrix'
 
-// @ts-ignore
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+// @ts-ignore this is just for type checks
+type PrismaClient = import('@prisma/client').PrismaClient
+// @ts-ignore this is just for type checks
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/12507
 testMatrix.setupTestSuite(() => {
@@ -12,7 +14,7 @@ testMatrix.setupTestSuite(() => {
       return
     }
 
-    const prismaClient1 = new PrismaClient({
+    const prismaClient1 = newPrismaClient({
       log: [
         {
           emit: 'event',
@@ -33,7 +35,7 @@ testMatrix.setupTestSuite(() => {
         prismaClient1.$connect().catch(reject)
       }))()
 
-    const prismaClient2 = new PrismaClient({
+    const prismaClient2 = newPrismaClient({
       // @ts-ignore
       __internal: {
         engine: {
