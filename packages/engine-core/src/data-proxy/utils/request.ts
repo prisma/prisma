@@ -8,7 +8,10 @@ import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
 export type RequestOptions = O.Patch<{ headers?: { [k: string]: string }; body?: string }, RequestInit>
-export type RequestResponse = O.Required<O.Optional<Response>, 'text' | 'json' | 'url' | 'ok' | 'status'>
+export type RequestResponse = O.Required<
+  O.Optional<O.Patch<{ text: () => string }, Response>>,
+  'text' | 'json' | 'url' | 'ok' | 'status'
+>
 
 // fetch is global on edge runtime
 declare let fetch: typeof nodeFetch
