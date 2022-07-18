@@ -11,13 +11,17 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 
 // Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
 // If no defaults are provided for any of the scalar fields, a runtime error will be thrown.
-const referentialActionsChoices = ['', 'Cascade', 'Restrict', 'NoAction', 'SetNull']
+//
+// Note: 'Restrict' is not available when using 'sqlserver' as a provider, and it triggers a schema parsing error arising from DMMF.
+//
+// Note: 'SetNull' is only available on optional relations.
+const referentialActionsChoices = ['', 'Cascade', 'NoAction']
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 export default defineMatrix(() => [
   [
     {
-      provider: Providers.POSTGRESQL,
+      provider: Providers.SQLSERVER,
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
@@ -26,7 +30,7 @@ export default defineMatrix(() => [
       },
     },
     {
-      provider: Providers.POSTGRESQL,
+      provider: Providers.SQLSERVER,
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
@@ -34,6 +38,45 @@ export default defineMatrix(() => [
         onDelete: 'Cascade',
       },
     },
+    {
+      provider: Providers.SQLSERVER,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: 'NoAction',
+        onDelete: 'NoAction',
+      },
+    },
+    /*
+    {
+      provider: Providers.COCKROACHDB,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: 'Restrict',
+        onDelete: 'Restrict',
+      },
+    },
+    {
+      provider: Providers.COCKROACHDB,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: 'NoAction',
+        onDelete: 'NoAction',
+      },
+    },
+    {
+      provider: Providers.COCKROACHDB,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate: 'SetNull',
+        onDelete: 'SetNull',
+      },
+    },
+    */
+    /*
     {
       provider: Providers.MYSQL,
       id: 'String @id',
@@ -43,7 +86,6 @@ export default defineMatrix(() => [
         onDelete: '',
       },
     },
-    /*
     {
       provider: Providers.MONGODB,
       id: 'String @id @map("_id")',
