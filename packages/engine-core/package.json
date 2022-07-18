@@ -11,11 +11,6 @@
     "url": "https://github.com/prisma/prisma.git",
     "directory": "packages/engine-core"
   },
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@swc/core": "1.2.204",
