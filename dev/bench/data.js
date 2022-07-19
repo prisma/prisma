@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1658235378692,
+  "lastUpdate": 1658246676389,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -111922,6 +111922,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±2.53%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2691574096679688,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.44362735748291,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7801876068115234,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16670608520507812,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.46040344238281,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.315967559814453,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d35d80d1db3972769bab7c69f3ccda20ad6a7c8f",
+          "message": "fix: Negative zero warning in dependencies (#14384)\n\nAppears in fetch-engines->node-fetch->whatwg-url->webidl-conversions\r\npackage. Ideally, we'd like to be able to update node-fetch@3, but it's\r\ncurrently blocked. `node-fetch@2` uses whatwg-url for polyfilling `URL`\r\nobject if it is not present. Since we support node 14+, we never need\r\nthis polyfill and we can patch out node-fetch->whatwg-url dependency.\r\n\r\nFix #14188",
+          "timestamp": "2022-07-19T18:00:03+02:00",
+          "tree_id": "7796b558188a7eda00ef8c6742648479547b2818",
+          "url": "https://github.com/prisma/prisma/commit/d35d80d1db3972769bab7c69f3ccda20ad6a7c8f"
+        },
+        "date": 1658246665550,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.36,
+            "range": "±4.63%",
+            "unit": "ops/sec",
+            "extra": "11 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±3.98%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
