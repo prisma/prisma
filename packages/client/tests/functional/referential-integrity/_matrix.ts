@@ -15,6 +15,8 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 // Note: 'Restrict' is not available when using 'sqlserver' as a provider, and it triggers a schema parsing error arising from DMMF.
 //
 // Note: 'SetNull' is only available on optional relations.
+//
+// Note: 'SetDefault' is making SQL Server crash badly
 //  const referentialActionsChoices = ['', 'Cascade', 'NoAction']
 
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
@@ -31,8 +33,37 @@ const onDelete: ReferentialActions | string = 'DEFAULT'
 // const onDelete: ReferentialActions | string = 'SetNull'
 // const onUpdate: ReferentialActions | string = 'SetDefault'
 // const onDelete: ReferentialActions | string = 'SetDefault'
+
+// TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [
   [
+    {
+      provider: Providers.POSTGRESQL,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate,
+        onDelete,
+      },
+    },
+    {
+      provider: Providers.COCKROACHDB,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate,
+        onDelete,
+      },
+    },
+    {
+      provider: Providers.MYSQL,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate,
+        onDelete,
+      },
+    },
     {
       provider: Providers.SQLSERVER,
       id: 'String @id',
@@ -42,6 +73,17 @@ export default defineMatrix(() => [
         onDelete,
       },
     },
+    /*
+    {
+      provider: Providers.SQLSERVER,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate,
+        onDelete,
+      },
+    },
+    */
     // {
     //   provider: Providers.MYSQL,
     //   id: 'String @id',

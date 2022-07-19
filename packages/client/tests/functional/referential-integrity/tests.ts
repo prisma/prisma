@@ -161,10 +161,14 @@ testMatrix.setupTestSuite(
     function conditionalError(errors: Record<Providers, string>): string {
       return errors[suiteConfig.provider]
     }
-    const onDelete = suiteConfig.referentialActions.onDelete
-    const onUpdate = suiteConfig.referentialActions.onUpdate
+    const { onDelete } = suiteConfig.referentialActions
+    const { onUpdate } = suiteConfig.referentialActions
 
-    // we can create a user without a profile, but not a profile without a user
+    /**
+     * 1:1 relation
+     * - we can create a user without a profile, but not a profile without a user
+     */
+    
     describeIf(suiteConfig.provider !== Providers.MONGODB)('1:1 mandatory (explicit)', () => {
       const userModel = 'userOneToOne'
       const profileModel = 'profileOneToOne'
@@ -242,15 +246,10 @@ testMatrix.setupTestSuite(
         })
       })
 
-      //
-      // TODO more create cases
-      //
-
       describe('[update]', () => {
         /*
       * Update
       // - [ ]  user.upsert
-      //     - [ ]  valid id
       //     - [ ]  invalid id
       // - [ ]  user nested:
       //     - [ ]  connect (only if optional) (if required is it available, probably not?)
@@ -271,11 +270,15 @@ testMatrix.setupTestSuite(
           })
         })
 
-        test('[update] child id with non-existing id should succeed', async () => {
-          const profile1WithNewId = await prisma[profileModel].update({
+        test('[upsert] child id with non-existing id should succeed', async () => {
+          const profile1WithNewId = await prisma[profileModel].upsert({
             where: { id: '1' },
-            data: {
-              id: '3', // TODO: Type error with MongoDB, Invalid `prisma[profileModel].update()` invocation
+            create: {
+              id: '3',
+              userId: '1',
+            },
+            update: {
+              id: '3',
             },
           })
           expect(profile1WithNewId).toEqual({
@@ -283,17 +286,74 @@ testMatrix.setupTestSuite(
             userId: '1',
           })
 
-          const user1WithUpdatedProfile = await prisma[userModel].findUniqueOrThrow({
-            where: { id: '1' },
+          const usersFromDb = await prisma[userModel].findMany({
             include: { profile: true },
+            orderBy: { id: 'asc' },
           })
-          expect(user1WithUpdatedProfile).toEqual({
-            id: '1',
-            profile: {
+          expect(usersFromDb).toEqual([
+            {
+              id: '1',
+              profile: {
+                id: '3',
+                userId: '1',
+              },
+            },
+            {
+              id: '2',
+              profile: {
+                id: '2',
+                userId: '2',
+              },
+            },
+          ])
+
+          const profiles = await prisma[profileModel].findMany({
+            orderBy: [{ id: 'asc' }],
+          })
+          expect(profiles).toEqual([
+            {
+              id: '2',
+              userId: '2',
+            },
+            {
               id: '3',
               userId: '1',
             },
+          ])
+        })
+
+        test('[update] child id with non-existing id should succeed', async () => {
+          const profile1WithNewId = await prisma[profileModel].update({
+            where: { id: '1' },
+            data: {
+              id: '3',
+            },
           })
+          expect(profile1WithNewId).toEqual({
+            id: '3',
+            userId: '1',
+          })
+
+          const usersFromDb = await prisma[userModel].findMany({
+            include: { profile: true },
+            orderBy: { id: 'asc' },
+          })
+          expect(usersFromDb).toEqual([
+            {
+              id: '1',
+              profile: {
+                id: '3',
+                userId: '1',
+              },
+            },
+            {
+              id: '2',
+              profile: {
+                id: '2',
+                userId: '2',
+              },
+            },
+          ])
 
           const profiles = await prisma[profileModel].findMany({
             orderBy: [{ id: 'asc' }],
@@ -386,7 +446,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        describeIf(['', 'Cascade'].includes(suiteConfig.referentialActions.onUpdate))('onUpdate: DEFAULT, Cascade', () => {
+        describeIf(['DEFAULT', 'Cascade'].includes(onUpdate))('onUpdate: DEFAULT, Cascade', () => {
           test('[update] parent id with non-existing id should succeed', async () => {
             const user1WithNewId = await prisma[userModel].update({
               where: { id: '1' },
@@ -452,7 +512,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['Restrict', 'NoAction'].includes(suiteConfig.referentialActions.onUpdate))('onUpdate: Restrict, NoAction', () => {
+        describeIf(['Restrict', 'NoAction'].includes(onUpdate))('onUpdate: Restrict, NoAction', () => {
           test('[update] parent id with non-existing id should throw', async () => {
             await expect(
               prisma[userModel].update({
@@ -496,7 +556,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['', 'Restrict', 'NoAction'].includes(suiteConfig.referentialActions.onUpdate))('onUpdate: DEFAULT, Restrict, NoAction', () => {
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onUpdate))('onUpdate: DEFAULT, Restrict, NoAction', () => {
           test('[update] parent id with existing id should throw', async () => {
             await expect(
               prisma[userModel].update({
@@ -512,7 +572,7 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                 [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                 [Providers.MYSQL]:
-                  "Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne', key 'ProfileOneToOne_userId_key'",
+                  "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
                 [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
               }),
             )
@@ -549,7 +609,7 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                 [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                 [Providers.MYSQL]:
-                  "Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne', key 'ProfileOneToOne_userId_key'",
+                  "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
                 [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
               }),
             )
@@ -571,7 +631,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['Cascade'].includes(suiteConfig.referentialActions.onUpdate))('onUpdate: Cascade', () => {
+        describeIf(['Cascade'].includes(onUpdate))('onUpdate: Cascade', () => {
           test.skip('[update] parent id with existing id should succeed', async () => {})
           test.skip('[update] child id with existing id should succeed', async () => {})
           test.skip('[updateMany] parent id with existing id should', async () => {})
@@ -599,7 +659,7 @@ testMatrix.setupTestSuite(
               [Providers.MYSQL]:
                 "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
               [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
             }),
           )
         })
@@ -685,7 +745,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        describeIf(suiteConfig.referentialActions.onDelete === '')('onDelete: DEFAULT', () => {
+        describeIf(['DEFAULT'].includes(onDelete))('onDelete: DEFAULT', () => {
           test('[deleteMany] parents should throw', async () => {
             await expect(
               prisma[userModel].deleteMany({
@@ -769,7 +829,11 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describeIf(suiteConfig.provider !== Providers.MONGODB)('1-to-n mandatory (explicit)', () => {
+    /**
+     * 1:n relationship
+     */
+
+    describeIf(suiteConfig.provider !== Providers.MONGODB)('1:n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'
       const postColumn = 'posts'
@@ -1216,7 +1280,7 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                 [Providers.COCKROACHDB]:
-                  'Integrity constraint violation: cannot delete due to existing foreign key references',
+                  'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
@@ -1268,8 +1332,11 @@ testMatrix.setupTestSuite(
       })
     })
 
-    // Many to Many - m:n
-    describeIf(suiteConfig.provider !== Providers.MONGODB)('m-to-n mandatory (explicit) - SQL Databases', () => {
+    /**
+     * m:n relationship
+     */
+
+    describeIf(suiteConfig.provider !== Providers.MONGODB)('m:n mandatory (explicit) - SQL Databases', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
       const categoriesOnPostsModel = 'CategoriesOnPostsManyToMany'
@@ -1326,7 +1393,7 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
               [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
             }),
           )
         })
@@ -1403,7 +1470,7 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
               [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
             }),
           )
         })
@@ -1429,7 +1496,7 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
               [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
             }),
           )
         })
@@ -1571,6 +1638,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
           })
@@ -1592,6 +1660,7 @@ testMatrix.setupTestSuite(
                   'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
           })
@@ -1612,8 +1681,9 @@ testMatrix.setupTestSuite(
               // @ts-expect-error: all providers ought to be logged
               conditionalError({
                 [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                [Providers.COCKROACHDB]: 'TODO1',
-                [Providers.MYSQL]: 'TODO1',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
           })
@@ -1632,8 +1702,9 @@ testMatrix.setupTestSuite(
               // @ts-expect-error: all providers ought to be logged
               conditionalError({
                 [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                [Providers.COCKROACHDB]: 'TODO2',
-                [Providers.MYSQL]: 'TODO2',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
           })
@@ -1723,7 +1794,7 @@ testMatrix.setupTestSuite(
               [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
               [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
             }),
           )
         })
