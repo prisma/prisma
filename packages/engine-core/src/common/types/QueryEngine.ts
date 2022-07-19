@@ -16,8 +16,8 @@ export type QueryEngineQueryEvent = {
   query: string
   item_type: 'query'
   params: string
-  duration_ms: string
-  result: string
+  duration_ms?: string
+  result?: string
 }
 
 export type QueryEnginePanicEvent = {

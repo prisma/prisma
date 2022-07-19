@@ -49,6 +49,14 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
   }
 }
 
+type QueryEvent = {
+  timestamp: Date
+  query: string
+  params: string
+  target: string
+  duration?: number
+}
+
 const knownPlatforms: Platform[] = [...platforms, 'native']
 let engineInstanceCount = 0
 const exitHooks = new ExitHooks()
@@ -254,13 +262,17 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {
-      this.logEmitter.emit('query', {
+      const emittedEvent: QueryEvent = {
         timestamp: new Date(),
         query: event.query,
         params: event.params,
-        duration: Number(event.duration_ms),
         target: event.module_path,
-      })
+      }
+
+      if (typeof event.duration_ms !== 'undefined') {
+        emittedEvent.duration = Number(event.duration_ms)
+      }
+      this.logEmitter.emit('query', emittedEvent)
     } else if (isPanicEvent(event)) {
       this.loggerRustPanic = new PrismaClientRustPanicError(
         this.getErrorMessageWithLink(
