@@ -87,6 +87,9 @@
       "allowedVersions": {
         "@octokit/core": ">=3"
       }
+    },
+    "patchedDependencies": {
+      "node-fetch@2.6.7": "patches/node-fetch@2.6.7.patch"
     }
   },
   "lint-staged": {
