@@ -556,83 +556,99 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onUpdate))(
-          'onUpdate: DEFAULT, Restrict, NoAction',
-          () => {
-            test('[update] parent id with existing id should throw', async () => {
-              await expect(
-                prisma[userModel].update({
-                  where: { id: '1' },
-                  data: {
-                    // TODO: Type error with MongoDB, Unknown arg `id` in data.id for type UserOneToOneUpdateInput.
-                    id: '2', // existing id
-                  },
-                }),
-              ).rejects.toThrowError(
-                // @ts-expect-error: all providers ought to be logged
-                conditionalError({
-                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.MYSQL]:
-                    "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
-                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
-                }),
-              )
-            })
+        describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
+          test('[updateMany] parent id with existing id should throw', async () => {
+            await expect(
+              prisma[userModel].updateMany({
+                data: { id: '2' }, // existing id
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]: "Foreign key constraint failed on the field: `userId`",
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+              }),
+            )
+          })
+        })
 
-            test('[update] child id with existing id should throw', async () => {
-              await expect(
-                prisma[profileModel].update({
-                  where: { id: '1' },
-                  data: {
-                    id: '2', // existing id
-                  },
-                }),
-              ).rejects.toThrowError(
-                // @ts-expect-error: all providers ought to be logged
-                conditionalError({
-                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                }),
-              )
-            })
+        describeIf(['DEFAULT', 'Restrict'].includes(onUpdate))('onUpdate: DEFAULT, Restrict', () => {
+          test('[update] parent id with existing id should throw', async () => {
+            await expect(
+              prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  // TODO: Type error with MongoDB, Unknown arg `id` in data.id for type UserOneToOneUpdateInput.
+                  id: '2', // existing id
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]:
+                  "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+              }),
+            )
+          })
 
-            test('[updateMany] parent id with existing id should throw', async () => {
-              await expect(
-                prisma[userModel].updateMany({
-                  data: { id: '2' }, // existing id
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError(
-                // @ts-expect-error: all providers ought to be logged
-                conditionalError({
-                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.MYSQL]:
-                    "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
-                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
-                }),
-              )
-            })
+          test('[update] child id with existing id should throw', async () => {
+            await expect(
+              prisma[profileModel].update({
+                where: { id: '1' },
+                data: {
+                  id: '2', // existing id
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+              }),
+            )
+          })
 
-            test('[update] nested child [disconnect] should throw', async () => {
-              await expect(
-                prisma[userModel].update({
-                  where: { id: '1' },
-                  data: {
-                    profile: {
-                      disconnect: true,
-                    },
+          test('[updateMany] parent id with existing id should throw', async () => {
+            await expect(
+              prisma[userModel].updateMany({
+                data: { id: '2' }, // existing id
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]:
+                  "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+              }),
+            )
+          })
+
+          test('[update] nested child [disconnect] should throw', async () => {
+            await expect(
+              prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  profile: {
+                    disconnect: true,
                   },
-                }),
-              ).rejects.toThrowError(
-                "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-              )
-            })
-          },
-        )
+                },
+              }),
+            ).rejects.toThrowError(
+              "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+            )
+          })
+        })
 
         describeIf(['Cascade'].includes(onUpdate))('onUpdate: Cascade', () => {
           test.skip('[update] parent id with existing id should succeed', async () => {})
@@ -979,18 +995,39 @@ testMatrix.setupTestSuite(
           })
         })
 
-        test('[update] parent id with non-existing id should succeed', async () => {
-          // TODO: this fails on sqlserver, but it shouldn't
-          const user3 = await prisma[userModel].update({
-            where: { id: '1' },
-            data: {
+        describeIf(['DEFAULT', 'CASCADE'].includes(onUpdate))('onUpdate: DEFAULT, CASCADE', () => {
+          test('[update] parent id with non-existing id should succeed', async () => {
+            // TODO: this fails on sqlserver, but it shouldn't
+            const user3 = await prisma[userModel].update({
+              where: { id: '1' },
+              data: {
+                id: '3',
+              },
+              include: { posts: true },
+            })
+            expect(user3).toEqual({
               id: '3',
-            },
-            include: { posts: true },
-          })
-          expect(user3).toEqual({
-            id: '3',
-            posts: [
+              posts: [
+                {
+                  id: '1-post-a',
+                  authorId: '3',
+                },
+                {
+                  id: '1-post-b',
+                  authorId: '3',
+                },
+              ],
+            })
+  
+            const users = await prisma[userModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(users).toEqual([{ id: '2' }, { id: '3' }])
+  
+            const posts = await prisma[postModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(posts).toEqual([
               {
                 id: '1-post-a',
                 authorId: '3',
@@ -999,54 +1036,58 @@ testMatrix.setupTestSuite(
                 id: '1-post-b',
                 authorId: '3',
               },
-            ],
+              {
+                id: '2-post-a',
+                authorId: '2',
+              },
+              {
+                id: '2-post-b',
+                authorId: '2',
+              },
+            ])
           })
-
-          const users = await prisma[userModel].findMany({
-            orderBy: { id: 'asc' },
-          })
-          expect(users).toEqual([{ id: '2' }, { id: '3' }])
-
-          const posts = await prisma[postModel].findMany({
-            orderBy: { id: 'asc' },
-          })
-          expect(posts).toEqual([
-            {
-              id: '1-post-a',
-              authorId: '3',
-            },
-            {
-              id: '1-post-b',
-              authorId: '3',
-            },
-            {
-              id: '2-post-a',
-              authorId: '2',
-            },
-            {
-              id: '2-post-b',
-              authorId: '2',
-            },
-          ])
         })
 
-        test('[update] parent id with existing id should throw', async () => {
-          await expect(
-            prisma[userModel].update({
-              where: { id: '1' },
-              data: {
-                id: '2',
-              },
-            }),
-          ).rejects.toThrowError(
-            // @ts-expect-error
-            conditionalError({
-              [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-              [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-              [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-              [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-            }),
-          )
+        describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
+          test('[update] parent id with existing id should throw', async () => {
+            await expect(
+              prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  id: '2',
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+              }),
+            )
+          })
+        })
+
+        describeIf(['DEFAULT', 'Cascade', 'Restrict'].includes(onUpdate))('onUpdate: DEFAULT, Cascade, Restrict', () => {
+          test('[update] parent id with existing id should throw', async () => {
+            await expect(
+              prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  id: '2',
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+              }),
+            )
+          })
         })
 
         test('[update] child id with non-existing id should succeed', async () => {
@@ -1622,7 +1663,54 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['Restrict', 'NoAction'].includes(onUpdate))(`onUpdate: ${onUpdate}`, () => {
+        // TODO: these are the same tests as onUpdate: Restrict, different SQL Server message
+        describeIf(['NoAction'].includes(onUpdate))(`onUpdate: NoAction`, () => {
+          test('[update] post id should succeed', async () => {
+            await expect(
+              prisma[postModel].update({
+                where: {
+                  id: '1',
+                },
+                data: {
+                  id: '3',
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+              }),
+            )
+          })
+
+          test('[update] category id should succeed', async () => {
+            await expect(
+              prisma[categoryModel].update({
+                where: {
+                  id: '1-cat-a',
+                },
+                data: {
+                  id: '1-cat-a-updated',
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+              }),
+            )
+          })
+        })
+
+        describeIf(['Restrict'].includes(onUpdate))(`onUpdate: ${onUpdate}`, () => {
           test('[update] post id should succeed', async () => {
             await expect(
               prisma[postModel].update({
@@ -1668,7 +1756,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: ${onUpdate}`, () => {
+        describeIf(['SetNull'].includes(onUpdate))(`onUpdate: SetNull`, () => {
           test('[update] post id should succeed', async () => {
             await expect(
               prisma[postModel].update({
@@ -1706,6 +1794,50 @@ testMatrix.setupTestSuite(
                 [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `postId`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
+              }),
+            )
+          })
+        })
+
+        describeIf(['SetDefault'].includes(onUpdate))(`onUpdate: SetDefault`, () => {
+          test('[update] post id should succeed', async () => {
+            await expect(
+              prisma[postModel].update({
+                where: {
+                  id: '1',
+                },
+                data: {
+                  id: '3',
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+              }),
+            )
+          })
+
+          test('[update] category id should succeed', async () => {
+            await expect(
+              prisma[categoryModel].update({
+                where: {
+                  id: '1-cat-a',
+                },
+                data: {
+                  id: '1-cat-a-updated',
+                },
+              }),
+            ).rejects.toThrowError(
+              // @ts-expect-error: all providers ought to be logged
+              conditionalError({
+                [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                 [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
@@ -1782,26 +1914,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        // TODO Cascade
-        test('[delete] post should throw', async () => {
-          await expect(
-            prisma[postModel].delete({
-              where: { id: '1' },
-            }),
-          ).rejects.toThrowError(
-            // @ts-expect-error: all providers ought to be logged
-            conditionalError({
-              [Providers.POSTGRESQL]:
-                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-              [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-            }),
-          )
-        })
-
-        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(`onDelete: DEFAULT, Restrict, NoAction`, () => {
           test('[delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({
@@ -1932,7 +2045,7 @@ testMatrix.setupTestSuite(
               conditionalError({
                 [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
                 [Providers.COCKROACHDB]: 'TODO1',
-                [Providers.MYSQL]: 'TODO1',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
               }),
             )
           })
@@ -1946,7 +2059,7 @@ testMatrix.setupTestSuite(
               conditionalError({
                 [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
                 [Providers.COCKROACHDB]: 'TODO2',
-                [Providers.MYSQL]: 'TODO2',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
               }),
             )
           })
