@@ -162,14 +162,14 @@ testMatrix.setupTestSuite(
       return errors[suiteConfig.provider]
     }
     const { onDelete } = suiteConfig.referentialActions
-    const { onUpdate } = suiteConfig.referentialActions
+    const { onUpdate } = suiteConfig.referentialActions
 
     /**
      * 1:1 relation
      * - we can create a user without a profile, but not a profile without a user
      */
-    
-    describeIf(suiteConfig.provider !== Providers.MONGODB)('1:1 mandatory (explicit)', () => {
+
+    describe('1:1 mandatory (explicit)', () => {
       const userModel = 'userOneToOne'
       const profileModel = 'profileOneToOne'
       const profileColumn = 'profile'
@@ -246,7 +246,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      describe('[update]', () => {
+      describeIf(suiteConfig.provider !== Providers.MONGODB)('[update]', () => {
         /*
       * Update
       // - [ ]  user.upsert
@@ -370,7 +370,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        test('[update] nested child [connect] child should succeed if the relationship didn\'t exist', async () => {
+        test("[update] nested child [connect] child should succeed if the relationship didn't exist", async () => {
           await prisma[userModel].create({
             data: {
               id: '3',
@@ -556,80 +556,83 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onUpdate))('onUpdate: DEFAULT, Restrict, NoAction', () => {
-          test('[update] parent id with existing id should throw', async () => {
-            await expect(
-              prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  // TODO: Type error with MongoDB, Unknown arg `id` in data.id for type UserOneToOneUpdateInput.
-                  id: '2', // existing id
-                },
-              }),
-            ).rejects.toThrowError(
-              // @ts-expect-error: all providers ought to be logged
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.MYSQL]:
-                  "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
-                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
-              }),
-            )
-          })
-
-          test('[update] child id with existing id should throw', async () => {
-            await expect(
-              prisma[profileModel].update({
-                where: { id: '1' },
-                data: {
-                  id: '2', // existing id
-                },
-              }),
-            ).rejects.toThrowError(
-              // @ts-expect-error: all providers ought to be logged
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-              }),
-            )
-          })
-
-          test('[updateMany] parent id with existing id should throw', async () => {
-            await expect(
-              prisma[userModel].updateMany({
-                data: { id: '2' }, // existing id
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(
-              // @ts-expect-error: all providers ought to be logged
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.MYSQL]:
-                  "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
-                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
-              }),
-            )
-          })
-
-          test('[update] nested child [disconnect] should throw', async () => {
-            await expect(
-              prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  profile: {
-                    disconnect: true,
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onUpdate))(
+          'onUpdate: DEFAULT, Restrict, NoAction',
+          () => {
+            test('[update] parent id with existing id should throw', async () => {
+              await expect(
+                prisma[userModel].update({
+                  where: { id: '1' },
+                  data: {
+                    // TODO: Type error with MongoDB, Unknown arg `id` in data.id for type UserOneToOneUpdateInput.
+                    id: '2', // existing id
                   },
-                },
-              }),
-            ).rejects.toThrowError(
-              "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-            )
-          })
-        })
+                }),
+              ).rejects.toThrowError(
+                // @ts-expect-error: all providers ought to be logged
+                conditionalError({
+                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.MYSQL]:
+                    "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
+                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+                }),
+              )
+            })
+
+            test('[update] child id with existing id should throw', async () => {
+              await expect(
+                prisma[profileModel].update({
+                  where: { id: '1' },
+                  data: {
+                    id: '2', // existing id
+                  },
+                }),
+              ).rejects.toThrowError(
+                // @ts-expect-error: all providers ought to be logged
+                conditionalError({
+                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+                }),
+              )
+            })
+
+            test('[updateMany] parent id with existing id should throw', async () => {
+              await expect(
+                prisma[userModel].updateMany({
+                  data: { id: '2' }, // existing id
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(
+                // @ts-expect-error: all providers ought to be logged
+                conditionalError({
+                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.MYSQL]:
+                    "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
+                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+                }),
+              )
+            })
+
+            test('[update] nested child [disconnect] should throw', async () => {
+              await expect(
+                prisma[userModel].update({
+                  where: { id: '1' },
+                  data: {
+                    profile: {
+                      disconnect: true,
+                    },
+                  },
+                }),
+              ).rejects.toThrowError(
+                "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+              )
+            })
+          },
+        )
 
         describeIf(['Cascade'].includes(onUpdate))('onUpdate: Cascade', () => {
           test.skip('[update] parent id with existing id should succeed', async () => {})
@@ -833,19 +836,19 @@ testMatrix.setupTestSuite(
      * 1:n relationship
      */
 
-    describeIf(suiteConfig.provider !== Providers.MONGODB)('1:n mandatory (explicit)', () => {
+    describe('1:n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'
       const postColumn = 'posts'
-    
+
       beforeEach(async () => {
         await prisma.$transaction([prisma[postModel].deleteMany(), prisma[userModel].deleteMany()])
       })
-    
+
       afterEach(async () => {
         await prisma.$disconnect()
       })
-    
+
       describe('[create]', () => {
         test('[create] child with non existing parent should throw', async () => {
           await expect(
@@ -867,7 +870,7 @@ testMatrix.setupTestSuite(
             }),
           )
         })
-    
+
         test('[create] child with undefined parent should throw with type error', async () => {
           await expect(
             prisma[postModel].create({
@@ -878,7 +881,7 @@ testMatrix.setupTestSuite(
             }),
           ).rejects.toThrowError('Argument author for data.author is missing.')
         })
-    
+
         test('[create] nested child [create]', async () => {
           const user1 = await prisma[userModel].create({
             data: {
@@ -898,7 +901,7 @@ testMatrix.setupTestSuite(
               },
             ],
           })
-    
+
           const posts = await prisma[postModel].findMany({
             where: { authorId: '1' },
           })
@@ -915,7 +918,7 @@ testMatrix.setupTestSuite(
             id: '1',
           })
         })
-    
+
         test('[create] nested child [createMany]', async () => {
           const user1 = await prisma[userModel].create({
             data: {
@@ -941,7 +944,7 @@ testMatrix.setupTestSuite(
               },
             ],
           })
-    
+
           const postsUser1 = await prisma[postModel].findMany({
             where: { authorId: '1' },
             orderBy: { id: 'asc' },
@@ -964,8 +967,8 @@ testMatrix.setupTestSuite(
           })
         })
       })
-    
-      describe('[update]', () => {
+
+      describeIf(suiteConfig.provider !== Providers.MONGODB)('[update]', () => {
         beforeEach(async () => {
           await checkIfEmpty(userModel, postModel)
           await createXUsersWith2Posts({
@@ -975,7 +978,7 @@ testMatrix.setupTestSuite(
             postColumn,
           })
         })
-    
+
         test('[update] parent id with non-existing id should succeed', async () => {
           // TODO: this fails on sqlserver, but it shouldn't
           const user3 = await prisma[userModel].update({
@@ -998,12 +1001,12 @@ testMatrix.setupTestSuite(
               },
             ],
           })
-    
+
           const users = await prisma[userModel].findMany({
             orderBy: { id: 'asc' },
           })
           expect(users).toEqual([{ id: '2' }, { id: '3' }])
-    
+
           const posts = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
@@ -1026,7 +1029,7 @@ testMatrix.setupTestSuite(
             },
           ])
         })
-    
+
         test('[update] parent id with existing id should throw', async () => {
           await expect(
             prisma[userModel].update({
@@ -1045,7 +1048,7 @@ testMatrix.setupTestSuite(
             }),
           )
         })
-    
+
         test('[update] child id with non-existing id should succeed', async () => {
           const postUser1A = await prisma[postModel].update({
             where: { id: '1-post-a' },
@@ -1057,7 +1060,7 @@ testMatrix.setupTestSuite(
             id: '1-post-c',
             authorId: '1',
           })
-    
+
           const users = await prisma[userModel].findMany({
             orderBy: { id: 'asc' },
             include: { posts: true },
@@ -1090,7 +1093,7 @@ testMatrix.setupTestSuite(
               ],
             },
           ])
-    
+
           const posts = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
@@ -1114,7 +1117,7 @@ testMatrix.setupTestSuite(
           ])
         })
       })
-    
+
       describe('[delete]', () => {
         beforeEach(async () => {
           await checkIfEmpty(userModel, postModel)
@@ -1125,12 +1128,12 @@ testMatrix.setupTestSuite(
             postColumn,
           })
         })
-    
+
         test('[delete] child should succeed', async () => {
           await prisma[postModel].delete({
             where: { id: '1-post-a' },
           })
-    
+
           const usersFromDb = await prisma[userModel].findMany({
             include: { posts: true },
           })
@@ -1158,7 +1161,7 @@ testMatrix.setupTestSuite(
               ],
             },
           ])
-    
+
           const postsFromDb = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
@@ -1177,7 +1180,7 @@ testMatrix.setupTestSuite(
             },
           ])
         })
-    
+
         test('[delete] children and then [delete] parent should succeed', async () => {
           await prisma[postModel].delete({
             where: { id: '1-post-a' },
@@ -1188,7 +1191,7 @@ testMatrix.setupTestSuite(
           await prisma[userModel].delete({
             where: { id: '1' },
           })
-    
+
           const usersFromDb = await prisma[userModel].findMany({
             include: { posts: true },
           })
@@ -1207,7 +1210,7 @@ testMatrix.setupTestSuite(
               ],
             },
           ])
-    
+
           const postsFromDb = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
@@ -1222,14 +1225,14 @@ testMatrix.setupTestSuite(
             },
           ])
         })
-    
+
         test.skip('[deleteMany] parents should throw', async () => {})
-    
+
         describeIf(onDelete === 'DEFAULT')('onDelete: DEFAULT', () => {
           test('[delete] parent should throw', async () => {
             // this throws because "postModel" has a mandatory relation with "userModel", hence
             // we have a "onDelete: Restrict" situation by default
-    
+
             await expect(
               prisma[userModel].delete({
                 where: { id: '1' },
@@ -1246,12 +1249,12 @@ testMatrix.setupTestSuite(
               }),
             )
           })
-    
+
           test('[delete] a subset of children and then [delete] parent should throw', async () => {
             await prisma[postModel].delete({
               where: { id: '1-post-a' },
             })
-    
+
             const postsFromDb = await prisma[postModel].findMany({
               orderBy: { id: 'asc' },
             })
@@ -1269,7 +1272,7 @@ testMatrix.setupTestSuite(
                 authorId: '2',
               },
             ])
-    
+
             await expect(
               prisma[userModel].delete({
                 where: { id: '1' },
@@ -1279,8 +1282,7 @@ testMatrix.setupTestSuite(
               conditionalError({
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                [Providers.COCKROACHDB]:
-                  'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
@@ -1288,13 +1290,13 @@ testMatrix.setupTestSuite(
             )
           })
         })
-    
+
         describeIf(onDelete === 'Cascade')('onDelete: Cascade', () => {
           test('[delete] parent should succeed', async () => {
             await prisma[userModel].delete({
               where: { id: '1' },
             })
-    
+
             const usersFromDb = await prisma[userModel].findMany({
               include: { posts: true },
             })
@@ -1313,7 +1315,7 @@ testMatrix.setupTestSuite(
                 ],
               },
             ])
-    
+
             const postsFromDb = await prisma[postModel].findMany({
               orderBy: { id: 'asc' },
             })
@@ -2009,8 +2011,9 @@ testMatrix.setupTestSuite(
      * MongoDB
      *
      */
+
     // Many to Many - m:n
-    describeIf(suiteConfig.provider === Providers.MONGODB)('m-to-n mandatory (explicit) - MongoDB', () => {
+    describeIf(suiteConfig.provider === Providers.MONGODB)('m:n mandatory (explicit) - MongoDB', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
 
