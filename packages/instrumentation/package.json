@@ -15,9 +15,9 @@
     "@swc/core": "1.2.197",
     "@types/node": "16.11.43",
     "typescript": "4.7.4",
-    "jest": "28.1.2",
+    "jest": "28.1.3",
     "jest-junit": "14.0.0",
-    "@types/jest": "28.1.4"
+    "@types/jest": "28.1.6"
   },
   "dependencies": {
     "@opentelemetry/instrumentation": "^0.30.0",
