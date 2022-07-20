@@ -98,7 +98,7 @@ importers:
       is-ci: 3.0.1
       jest-junit: 14.0.0
       lint-staged: 13.0.2
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.2
@@ -201,7 +201,7 @@ importers:
       line-replace: 2.0.1
       log-update: 4.0.0
       make-dir: 3.1.0
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       open: 7.4.2
       pkg-up: 3.1.0
       replace-string: 3.1.0
@@ -408,7 +408,7 @@ importers:
       p-retry: 4.6.2
       strip-ansi: 6.0.1
       typescript: 4.7.4
-      undici: 5.7.0
+      undici: 5.8.0
     dependencies:
       '@opentelemetry/api': 1.1.0
       '@opentelemetry/core': 1.4.0_@opentelemetry+api@1.1.0
@@ -424,7 +424,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      undici: 5.7.0
+      undici: 5.8.0
     devDependencies:
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.21_@swc+core@1.2.204
@@ -736,7 +736,7 @@ importers:
       is-wsl: 2.2.0
       make-dir: 3.1.0
       new-github-issue-url: 0.2.1
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       open: 7.4.2
       ora: 5.4.1
       p-map: 4.0.0
@@ -919,7 +919,7 @@ packages:
       '@types/node-fetch': 2.6.2
       '@types/tunnel': 0.0.3
       form-data: 4.0.0
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       process: 0.11.10
       tough-cookie: 4.0.0
       tslib: 2.4.0
@@ -1768,7 +1768,7 @@ packages:
       detect-libc: 2.0.1
       https-proxy-agent: 5.0.1
       make-dir: 3.1.0
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
@@ -2072,7 +2072,7 @@ packages:
       '@octokit/request-error': 2.1.0
       '@octokit/types': 6.39.0
       is-plain-object: 5.0.0
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       universal-user-agent: 6.0.0
     transitivePeerDependencies:
       - encoding
@@ -4131,7 +4131,7 @@ packages:
       fast-write-atomic: 0.2.1
       make-dir: 3.1.0
       ms: 2.1.3
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
@@ -8933,17 +8933,6 @@ packages:
     engines: {node: 4.x || >=6.0.0}
     dev: true
 
-  /node-fetch/2.6.7:
-    resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    dependencies:
-      whatwg-url: 5.0.0
-
   /node-fetch/2.6.7_3wcp6bao3dfksocwsfev5pt7km:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
@@ -8954,7 +8943,6 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
-    dev: false
     patched: true
 
   /node-gyp/8.4.1:
@@ -11539,8 +11527,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici/5.7.0:
-    resolution: {integrity: sha512-ORgxwDkiPS+gK2VxE7iyVeR7JliVn5DqhZ4LgQqYLBXsuK+lwOEmnJ66dhvlpLM0tC3fC7eYF1Bti2frbw2eAA==}
+  /undici/5.8.0:
+    resolution: {integrity: sha512-1F7Vtcez5w/LwH2G2tGnFIihuWUlc58YidwLiCv+jR2Z50x0tNXpRRw7eOIJ+GvqCqIkg9SB7NWAJ/T9TLfv8Q==}
     engines: {node: '>=12.18'}
     dev: false
 
