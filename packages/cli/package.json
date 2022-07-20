@@ -95,7 +95,7 @@
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
     "node-fetch": "2.6.7",
-    "open": "7.4.2",
+    "open": "8.4.0",
     "pkg-up": "3.1.0",
     "replace-string": "3.1.0",
     "resolve-pkg": "2.0.0",
