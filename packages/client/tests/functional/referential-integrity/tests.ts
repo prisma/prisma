@@ -135,31 +135,11 @@ async function checkIfEmpty(...models: unknown[]) {
   })
 }
 
-// TODO: why would we use this rather than relying on "orderBy: { id: asc }"?
-// Order is different depending on the provider?
-function sortArrayById(arr) {
-  return arr.sort((a, b) => a.id.localeCompare(b.id))
-}
-
-async function checkForNoChange({ count, userColumn, profileColumn, userModel, profileModel, usersArr }) {
-  const [findManyUserById1, findManyProfileById1] = await prisma.$transaction([
-    prisma[userModel].findMany({
-      include: {
-        [profileColumn]: true,
-      },
-    }),
-    prisma[profileModel].findMany({}),
-  ])
-  expect(findManyUserById1).toHaveLength(count)
-  expect(findManyProfileById1).toHaveLength(count)
-  expect(sortArrayById(findManyUserById1)).toMatchObject(sortArrayById(usersArr))
-}
-
 // TODO: maybe we can split each relation into a separate file for readability
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     function conditionalError(errors: Record<Providers, string>): string {
-      return errors[suiteConfig.provider]
+      return errors[suiteConfig.provider] || `TODO add error for ${suiteConfig.provider}`
     }
     const { onDelete } = suiteConfig.referentialActions
     const { onUpdate } = suiteConfig.referentialActions
@@ -247,19 +227,6 @@ testMatrix.setupTestSuite(
       })
 
       describeIf(suiteConfig.provider !== Providers.MONGODB)('[update]', () => {
-        /*
-      * Update
-      // - [ ]  user.upsert
-      //     - [ ]  invalid id
-      // - [ ]  user nested:
-      //     - [ ]  connect (only if optional) (if required is it available, probably not?)
-      //         - [ ]
-      //     - [ ]  disconnect should throw if required (is it even available?)
-      //     - [ ]  update
-      //     - [ ]  updateMany
-      //     - [ ]  upsert
-      */
-
         beforeEach(async () => {
           await checkIfEmpty(userModel, profileModel)
           await createXUsersWithAProfile({
@@ -667,8 +634,6 @@ testMatrix.setupTestSuite(
           )
         })
 
-        // user.upsert, post.upsert
-
         // This is ok for 1-to-n and m-to-m
         test.skip('[update] nested child [updateMany] should succeed', async () => {})
         test.skip('[update] nested child [upsert] child should succeed', async () => {})
@@ -748,50 +713,55 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        describeIf(['DEFAULT'].includes(onDelete))('onDelete: DEFAULT', () => {
-          test('[deleteMany] parents should throw', async () => {
-            await expect(
-              prisma[userModel].deleteMany({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(
-              // @ts-expect-error: all providers ought to be logged
-              conditionalError({
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-              }),
-            )
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
+          const expectedError = conditionalError({
+            [Providers.MONGODB]:
+              "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+            [Providers.POSTGRESQL]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+            [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+            [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+            [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+            [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
           })
-        })
-
-        describeIf(onDelete === 'DEFAULT')('onDelete: DEFAULT', () => {
           test('[delete] parent should throw', async () => {
             // this throws because "profileModel" has a mandatory relation with "userModel", hence
             // we have a "onDelete: Restrict" situation by default
 
+            // MongoDB: onDelete: NoAction resolves with {"id": "1"}
             await expect(
               prisma[userModel].delete({
                 where: { id: '1' },
               }),
-            ).rejects.toThrowError(
-              // @ts-expect-error: all providers ought to be logged
-              conditionalError({
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-              }),
-            )
+            ).rejects.toThrowError(expectedError)
+          })
+          test('[deleteMany] parents should throw', async () => {
+            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
           })
         })
-
-        describeIf(onDelete === 'Cascade')('onDelete: Cascade', () => {
+        describeIf(['SetNull'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
+          const expectedError =
+            // @ts-expect-error: all providers ought to be logged
+            conditionalError({
+              // TODO: MongoDB: onDelete: SetNull resolves with {"id": "1"}
+              // [Providers.MONGODB]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.COCKROACHDB]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.MYSQL]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.SQLSERVER]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.SQLITE]: 'Null constraint violation on the fields: (`userId`)',
+            })
+          test('[delete] parent should throw', async () => {
+            await expect(
+              prisma[userModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(expectedError)
+          })
+          test('[deleteMany] parents should throw', async () => {
+            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+          })
+        })
+        describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
           test('[delete] parent should succeed', async () => {
             await prisma[userModel].delete({
               where: { id: '1' },
@@ -819,16 +789,6 @@ testMatrix.setupTestSuite(
             ])
           })
         })
-
-        // describe.skip('onUpdate: DEFAULT', () => {})
-        // describe.skip('onUpdate: Cascade', () => {})
-
-        // test('[create] parent and [connect] child with non-existing id should throw', async () => {})
-        // test('[create] child and [connect] parent with non-existing id should throw', async () => {})
-        // test('[create] child with non-existing parent id should throw', async () => {})
-        // test('[update] child with non-existing parent id should throw', async () => {})
-        // test('[delete] parent should throw', async () => {})
-        // test('[delete] child should suceed', async () => {})
       })
     })
 
