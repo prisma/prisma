@@ -238,12 +238,12 @@ ${chalk.dim('```')}${
           prismaClientJSGenerator.options?.dataProxy
             ? `
 
-To use Prisma Client in edge environments like Cloudflare Workers or Vercel Edge Functions, import it like this:
+To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:
 ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}/edge'`)}
 ${chalk.dim('```')}
-Data Proxy documentation: ${link('https://www.prisma.io/docs/data-platform/data-proxy')}
+You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}
 `
             : ''
         }${breakingChangesStr}${versionsWarning}`
