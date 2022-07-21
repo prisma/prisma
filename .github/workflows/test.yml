@@ -175,7 +175,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests?allowPublicKeyRetrieval=true
           TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
@@ -185,7 +185,7 @@ jobs:
           TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
           TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
-          TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME?allowPublicKeyRetrieval=true'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -307,7 +307,7 @@ jobs:
           TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
           TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests?allowPublicKeyRetrieval=true
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
 
@@ -379,7 +379,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests?allowPublicKeyRetrieval=true
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
           TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
 
@@ -453,9 +453,9 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_POSTGRES_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate
           TEST_POSTGRES_SHADOWDB_URI_MIGRATE: postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MYSQL_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate
-          TEST_MYSQL_SHADOWDB_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate-shadowdb
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests?allowPublicKeyRetrieval=true
+          TEST_MYSQL_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate?allowPublicKeyRetrieval=true
+          TEST_MYSQL_SHADOWDB_URI_MIGRATE: mysql://root:root@localhost:3306/tests-migrate-shadowdb?allowPublicKeyRetrieval=true
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
           TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
