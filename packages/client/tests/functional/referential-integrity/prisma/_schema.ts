@@ -83,29 +83,29 @@ ${schemaHeader}
 // 1:1 relation
 //
 
-// model UserOneToOne {
-//   id      ${id}
-//   profile ProfileOneToOne?
-// }
-// model ProfileOneToOne {
-//   id       ${id}
-//   user     UserOneToOne @relation(fields: [userId], references: [id]${referentialActionLine})
-//   userId   String @unique
-// }
+model UserOneToOne {
+  id      ${id}
+  profile ProfileOneToOne?
+}
+model ProfileOneToOne {
+  id       ${id}
+  user     UserOneToOne @relation(fields: [userId], references: [id]${referentialActionLine})
+  userId   String @unique
+}
 
 //
 // 1:n relation
 //
 
-// model UserOneToMany {
-//   id    ${id}
-//   posts PostOneToMany[]
-// }
-// model PostOneToMany {
-//   id       ${id}
-//   author   UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
-//   authorId String
-// }
+model UserOneToMany {
+  id    ${id}
+  posts PostOneToMany[]
+}
+model PostOneToMany {
+  id       ${id}
+  author   UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
+  authorId String
+}
 
 //
 // m:n relation
