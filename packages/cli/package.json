@@ -68,6 +68,7 @@
     "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@prisma/prisma-fmt-wasm": "4.2.0-8.1900f76d9da8c905fb5b2d3fc3f778e02bd6b0e7",
     "@prisma/studio": "0.467.0",
     "@prisma/studio-server": "0.467.0",
     "@swc/core": "1.2.204",

@@ -1,8 +1,10 @@
 import type * as esbuild from 'esbuild'
+import wasmLoader from 'esbuild-plugin-wasm'
 import fs from 'fs'
 import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
+import { A } from 'ts-toolbelt'
 import { promisify } from 'util'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
@@ -48,13 +50,47 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
+const wasmModulePlugin: esbuild.Plugin = {
+  name: 'wasm',
+  setup(build) {
+    // run on each import path in each module that esbuild builds
+    build.onResolve({ filter: /@prisma\/.*-wasm$/ }, (args) => {
+      // args.path: unresolved path from the underlying module's source code
+      // args.resolveDir: file system directory to use when resolving an import path to a real path on the file system.
+      //                  It can be overrided by onLoad for virtual modules (i.e., with a custom namespace).
+      console.log('args@onResolve @prisma/*-wasm', args)
+
+      const cliPath = path.join(__dirname, '..')
+      const prismaWASMPath = path.join(cliPath, 'node_modules', args.path)
+      const { main } = require(path.join(prismaWASMPath, 'package.json'))
+      const modulePath = path.join(prismaWASMPath, main)
+
+      return {
+        path: modulePath,
+        namespace: 'wasm-binary',
+      }
+    })
+
+    // run for each unique path/namespace pair that has not been marked as external
+    build.onLoad({ filter: /.*/, namespace: 'wasm-binary' }, async (args) => {
+      const contents = await fs.promises.readFile(args.path, 'utf8')
+      const actualContents = contents.replace(/__dirname/g, `"${path.join(args.path, '..')}"`)
+
+      return {
+        contents: actualContents,
+        loader: 'js',
+      }
+    })
+  },
+}
+
 // we define the config for cli
 const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   external: ['@prisma/engines'],
-  plugins: [cliLifecyclePlugin],
+  plugins: [cliLifecyclePlugin, wasmModulePlugin],
   bundle: true,
 }
 

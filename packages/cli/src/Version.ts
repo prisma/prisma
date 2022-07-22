@@ -14,12 +14,17 @@ import {
   isError,
   loadEnvFile,
 } from '@prisma/internals'
+import prismaFmtWASM from '@prisma/prisma-fmt-wasm'
 import chalk from 'chalk'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+
+console.log('prismaFmtWASM', prismaFmtWASM)
+const prismaFmtWASMVersion = prismaFmtWASM.version()
+console.log('prismaFmtWASMVersion', prismaFmtWASMVersion)
 
 /**
  * $ prisma version
@@ -94,6 +99,7 @@ export class Version implements Command {
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
+      ['Prisma Fmt WASM', prismaFmtWASMVersion],
 
       ...enginesRows,
 
