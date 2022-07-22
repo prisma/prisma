@@ -1,5 +1,4 @@
 import type * as esbuild from 'esbuild'
-import wasmLoader from 'esbuild-plugin-wasm'
 import fs from 'fs'
 import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
@@ -55,11 +54,6 @@ const wasmModulePlugin: esbuild.Plugin = {
   setup(build) {
     // run on each import path in each module that esbuild builds
     build.onResolve({ filter: /@prisma\/.*-wasm$/ }, (args) => {
-      // args.path: unresolved path from the underlying module's source code
-      // args.resolveDir: file system directory to use when resolving an import path to a real path on the file system.
-      //                  It can be overrided by onLoad for virtual modules (i.e., with a custom namespace).
-      console.log('args@onResolve @prisma/*-wasm', args)
-
       const cliPath = path.join(__dirname, '..')
       const prismaWASMPath = path.join(cliPath, 'node_modules', args.path)
       const { main } = require(path.join(prismaWASMPath, 'package.json'))
@@ -74,6 +68,8 @@ const wasmModulePlugin: esbuild.Plugin = {
     // run for each unique path/namespace pair that has not been marked as external
     build.onLoad({ filter: /.*/, namespace: 'wasm-binary' }, async (args) => {
       const contents = await fs.promises.readFile(args.path, 'utf8')
+
+      // otherwise it would look for wasm modules in './cli/build/'
       const actualContents = contents.replace(/__dirname/g, `"${path.join(args.path, '..')}"`)
 
       return {

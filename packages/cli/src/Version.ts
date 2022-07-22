@@ -22,10 +22,6 @@ import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
-console.log('prismaFmtWASM', prismaFmtWASM)
-const prismaFmtWASMVersion = prismaFmtWASM.version()
-console.log('prismaFmtWASMVersion', prismaFmtWASMVersion)
-
 /**
  * $ prisma version
  */
@@ -94,6 +90,7 @@ export class Version implements Command {
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
+    const prismaFmtWASMVersion = prismaFmtWASM.version()
 
     const rows = [
       [packageJson.name, packageJson.version],
