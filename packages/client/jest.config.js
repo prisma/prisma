@@ -20,6 +20,7 @@ module.exports = {
     '<rootDir>/src/__tests__/benchmarks/',
     '<rootDir>/src/__tests__/types/.*/test.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
+    '<rootDir>/src/__tests__/generation/__fixture__',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema-mongo/generated-dmmf.ts',
     '__helpers__/',
     'node_modules/',
