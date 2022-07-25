@@ -33,10 +33,15 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
     return ''
   }
 
-  const txOptions = `{ maxWait?: number, timeout?: number }`
+  const txOptions = ['maxWait?: number', 'timeout?: number']
 
+  if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+    txOptions.push('isolationLevel?: Prisma.TransactionIsolationLevel')
+  }
+
+  const optionsType = `{${txOptions.join(', ')}}`
   return `
-  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: ${txOptions}): Promise<R>;`
+  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: ${optionsType}): Promise<R>;`
 }
 
 function queryRawDefinition(this: PrismaClientClass) {

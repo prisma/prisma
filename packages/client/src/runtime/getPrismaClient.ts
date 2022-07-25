@@ -973,7 +973,7 @@ new PrismaClient({
       transactionTracer,
     }: {
       callback: (client: Client) => Promise<unknown>
-      options?: { maxWait: number; timeout: number }
+      options?: Options
       transactionTracer: TransactionTracer
     }) {
       const traceparent = getTraceParent()
@@ -981,7 +981,7 @@ new PrismaClient({
         traceparent,
       }
 
-      const info = await this._engine.transaction('start', headers, options as Options)
+      const info = await this._engine.transaction('start', headers, options)
 
       let result: unknown
       try {

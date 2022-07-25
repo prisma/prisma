@@ -16,7 +16,8 @@ ${
     ? `
 const {
   Decimal,
-  objectEnumValues
+  objectEnumValues,
+  makeStrictEnum
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -34,7 +35,8 @@ const {
   join,
   raw,
   Decimal,
-  objectEnumValues
+  objectEnumValues,
+  makeStrictEnum
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
