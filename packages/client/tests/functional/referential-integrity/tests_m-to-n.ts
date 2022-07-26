@@ -102,6 +102,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
+        // RI=prisma - Cascade - SQLServer/CockroachDB/PostgreSQL:  Resolved to value: {"categoryId": "99", "postId": "99"}
         test('[create] categoriesOnPostsModel with non-existing post and category id should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].create({
@@ -174,6 +175,7 @@ testMatrix.setupTestSuite(
           })
         })
 
+        // RI=prisma - Cascade - SQLServer/CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
         test('[update] categoriesOnPostsModel with non-existing postId should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].update({
@@ -200,6 +202,7 @@ testMatrix.setupTestSuite(
           )
         })
 
+        // RI=prisma - Cascade - CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "99", "postId": "1"}
         test('[update] categoriesOnPostsModel with non-existing categoryId should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].update({
