@@ -243,6 +243,7 @@ ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}/edge'`)}
 ${chalk.dim('```')}
+
 You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}
 `
             : ''
