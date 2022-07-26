@@ -548,6 +548,7 @@ testMatrix.setupTestSuite(
             expect(usersFromDb).toEqual([
               {
                 id: '2',
+                enabled: null,
               },
             ])
             const postsFromDb = await prisma[postModel].findMany({

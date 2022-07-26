@@ -65,6 +65,15 @@ export default defineMatrix(() => [
       },
     },
     {
+      provider: Providers.MYSQL,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
+        onUpdate,
+        onDelete,
+      },
+    },
+    {
       provider: Providers.COCKROACHDB,
       id: 'String @id',
       referentialIntegrity,
@@ -74,17 +83,6 @@ export default defineMatrix(() => [
       },
     },
     {
-      provider: Providers.MYSQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-
-    /*
-    {
       provider: Providers.SQLSERVER,
       id: 'String @id',
       referentialIntegrity,
@@ -93,7 +91,6 @@ export default defineMatrix(() => [
         onDelete,
       },
     },
-    */
 
     /*
     {

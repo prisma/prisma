@@ -588,7 +588,7 @@ testMatrix.setupTestSuite(
             test.skip('[update] nested child [disconnect] should succeed', async () => {})
           })
 
-          test.skip('[update] nested child [connect] should succeed if the relationship already existed', async () => {
+          test('[update] nested child [connect] should succeed if the relationship already existed', async () => {
             // TODO: this is probably a bug, this operation should be idempotent and succeed
             await expect(
               prisma[userModel].update({
