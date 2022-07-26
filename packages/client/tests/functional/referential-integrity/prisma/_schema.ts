@@ -1,6 +1,9 @@
 import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
+const PLANETSCALE = false
+// const PLANETSCALE = true
+
 export default testMatrix.setupSchema(({ provider, previewFeatures, referentialIntegrity, referentialActions, id }) => {
   // if referentialIntegrity is not defined, we do not add the line
   // if referentialIntegrity is defined
@@ -16,7 +19,11 @@ generator client {
 
 datasource db {
   provider = "${provider}"
-  url      = env("DATABASE_URI_${provider}")
+  ${
+    PLANETSCALE && provider === Providers.MYSQL
+      ? `url = "mysql://root:root@127.0.0.1:33807/PRISMA_DB_NAME"`
+      : `url = env("DATABASE_URI_${provider}")`
+  }
   ${referentialIntegrityLine}
 }
   `
@@ -82,7 +89,6 @@ ${schemaHeader}
 //
 // 1:1 relation
 //
-
 model UserOneToOne {
   id      ${id}
   profile ProfileOneToOne?
@@ -96,15 +102,15 @@ model ProfileOneToOne {
 //
 // 1:n relation
 //
-
 model UserOneToMany {
   id    ${id}
   posts PostOneToMany[]
+  enabled Boolean?
 }
 model PostOneToMany {
-  id       ${id}
-  author   UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
-  authorId String
+  id        ${id}
+  author    UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
+  authorId  String
 }
 
 //

@@ -106,6 +106,7 @@ testMatrix.setupTestSuite(
           })
           expect(user1).toEqual({
             id: '1',
+            enabled: null,
             posts: [
               {
                 id: '1',
@@ -128,6 +129,7 @@ testMatrix.setupTestSuite(
           })
           expect(user1Copy).toEqual({
             id: '1',
+            enabled: null,
           })
         })
 
@@ -145,6 +147,7 @@ testMatrix.setupTestSuite(
           })
           expect(user1).toEqual({
             id: '1',
+            enabled: null,
             posts: [
               {
                 id: '1',
@@ -176,11 +179,12 @@ testMatrix.setupTestSuite(
           })
           expect(user1Copy).toEqual({
             id: '1',
+            enabled: null,
           })
         })
       })
 
-      describeIf(suiteConfig.provider !== Providers.MONGODB)('[update]', () => {
+      describe('[update]', () => {
         beforeEach(async () => {
           await checkIfEmpty(userModel, postModel)
           await createXUsersWith2Posts({
@@ -191,156 +195,34 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['DEFAULT', 'CASCADE'].includes(onUpdate))('onUpdate: DEFAULT, CASCADE', () => {
-          test('[update] parent id with non-existing id should succeed', async () => {
-            // TODO: this fails on sqlserver, but it shouldn't
-            const user3 = await prisma[userModel].update({
-              where: { id: '1' },
-              data: {
-                id: '3',
-              },
-              include: { posts: true },
-            })
-            expect(user3).toEqual({
-              id: '3',
-              posts: [
-                {
-                  id: '1-post-a',
-                  authorId: '3',
-                },
-                {
-                  id: '1-post-b',
-                  authorId: '3',
-                },
-              ],
-            })
-  
-            const users = await prisma[userModel].findMany({
-              orderBy: { id: 'asc' },
-            })
-            expect(users).toEqual([{ id: '2' }, { id: '3' }])
-  
-            const posts = await prisma[postModel].findMany({
-              orderBy: { id: 'asc' },
-            })
-            expect(posts).toEqual([
-              {
-                id: '1-post-a',
-                authorId: '3',
-              },
-              {
-                id: '1-post-b',
-                authorId: '3',
-              },
-              {
-                id: '2-post-a',
-                authorId: '2',
-              },
-              {
-                id: '2-post-b',
-                authorId: '2',
-              },
-            ])
-          })
-        })
-
-        describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
-          test('[update] parent id with existing id should throw', async () => {
-            await expect(
-              prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  id: '2',
-                },
-              }),
-            ).rejects.toThrowError(
-              // @ts-expect-error
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-              }),
-            )
-          })
-        })
-
-        describeIf(['DEFAULT', 'Cascade', 'Restrict'].includes(onUpdate))('onUpdate: DEFAULT, Cascade, Restrict', () => {
-          test('[update] parent id with existing id should throw', async () => {
-            await expect(
-              prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  id: '2',
-                },
-              }),
-            ).rejects.toThrowError(
-              // @ts-expect-error
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-              }),
-            )
-          })
-        })
-
-        test('[update] child id with non-existing id should succeed', async () => {
-          const postUser1A = await prisma[postModel].update({
-            where: { id: '1-post-a' },
+        // Fails with `onUpdate: Restrict` & `referentialIntegrity = "prisma"`
+        // On MongoDB / MySQL / Vitess (all providers?) fails with
+        // The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.
+        test('[update] optional boolean field should succeed', async () => {
+          await prisma[userModel].update({
+            where: { id: '1' },
             data: {
-              id: '1-post-c',
+              enabled: true,
             },
-          })
-          expect(postUser1A).toEqual({
-            id: '1-post-c',
-            authorId: '1',
           })
 
           const users = await prisma[userModel].findMany({
             orderBy: { id: 'asc' },
-            include: { posts: true },
           })
           expect(users).toEqual([
-            {
-              id: '1',
-              posts: [
-                {
-                  id: '1-post-b',
-                  authorId: '1',
-                },
-                {
-                  id: '1-post-c',
-                  authorId: '1',
-                },
-              ],
-            },
-            {
-              id: '2',
-              posts: [
-                {
-                  id: '2-post-a',
-                  authorId: '2',
-                },
-                {
-                  id: '2-post-b',
-                  authorId: '2',
-                },
-              ],
-            },
+            { id: '1', enabled: true },
+            { id: '2', enabled: null },
           ])
-
           const posts = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
           expect(posts).toEqual([
             {
-              id: '1-post-b',
+              id: '1-post-a',
               authorId: '1',
             },
             {
-              id: '1-post-c',
+              id: '1-post-b',
               authorId: '1',
             },
             {
@@ -352,6 +234,159 @@ testMatrix.setupTestSuite(
               authorId: '2',
             },
           ])
+        })
+
+        // Not possible on MongoDB as _id is immutable
+        describeIf(suiteConfig.provider !== Providers.MONGODB)('mutate id', () => {
+          describeIf(['DEFAULT', 'CASCADE'].includes(onUpdate))('onUpdate: DEFAULT, CASCADE', () => {
+            test('[update] parent id with non-existing id should succeed', async () => {
+              // TODO: this fails on sqlserver, but it shouldn't
+              const user3 = await prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  id: '3',
+                },
+                include: { posts: true },
+              })
+              expect(user3).toEqual({
+                id: '3',
+                enabled: null,
+                posts: [
+                  {
+                    id: '1-post-a',
+                    authorId: '3',
+                  },
+                  {
+                    id: '1-post-b',
+                    authorId: '3',
+                  },
+                ],
+              })
+
+              const users = await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              })
+              expect(users).toEqual([
+                { id: '2', enabled: null },
+                { id: '3', enabled: null },
+              ])
+
+              const posts = await prisma[postModel].findMany({
+                orderBy: { id: 'asc' },
+              })
+              expect(posts).toEqual([
+                {
+                  id: '1-post-a',
+                  authorId: '3',
+                },
+                {
+                  id: '1-post-b',
+                  authorId: '3',
+                },
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ])
+            })
+          })
+
+          describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
+            test('[update] parent id with existing id should throw', async () => {
+              await expect(
+                prisma[userModel].update({
+                  where: { id: '1' },
+                  data: {
+                    id: '2',
+                  },
+                }),
+              ).rejects.toThrowError(
+                // @ts-expect-error
+                conditionalError({
+                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                }),
+              )
+            })
+          })
+
+          describeIf(['DEFAULT', 'Cascade', 'Restrict'].includes(onUpdate))(
+            'onUpdate: DEFAULT, Cascade, Restrict',
+            () => {
+              test('[update] parent id with existing id should throw', async () => {
+                await expect(
+                  prisma[userModel].update({
+                    where: { id: '1' },
+                    data: {
+                      id: '2',
+                    },
+                  }),
+                ).rejects.toThrowError(
+                  // @ts-expect-error
+                  conditionalError({
+                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                  }),
+                )
+              })
+            },
+          )
+
+          test('[update] child id with non-existing id should succeed', async () => {
+            const postUser1A = await prisma[postModel].update({
+              where: { id: '1-post-a' },
+              data: {
+                id: '1-post-c',
+              },
+            })
+            expect(postUser1A).toEqual({
+              id: '1-post-c',
+              authorId: '1',
+            })
+
+            const users = await prisma[userModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(users).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
+            const posts = await prisma[postModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(posts).toEqual([
+              {
+                id: '1-post-b',
+                authorId: '1',
+              },
+              {
+                id: '1-post-c',
+                authorId: '1',
+              },
+              {
+                id: '2-post-a',
+                authorId: '2',
+              },
+              {
+                id: '2-post-b',
+                authorId: '2',
+              },
+            ])
+          })
         })
       })
 
@@ -371,34 +406,17 @@ testMatrix.setupTestSuite(
             where: { id: '1-post-a' },
           })
 
-          const usersFromDb = await prisma[userModel].findMany({
-            include: { posts: true },
-          })
+          const usersFromDb = await prisma[userModel].findMany({})
           expect(usersFromDb).toEqual([
             {
               id: '1',
-              posts: [
-                {
-                  id: '1-post-b',
-                  authorId: '1',
-                },
-              ],
+              enabled: null,
             },
             {
               id: '2',
-              posts: [
-                {
-                  id: '2-post-a',
-                  authorId: '2',
-                },
-                {
-                  id: '2-post-b',
-                  authorId: '2',
-                },
-              ],
+              enabled: null,
             },
           ])
-
           const postsFromDb = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
@@ -429,25 +447,13 @@ testMatrix.setupTestSuite(
             where: { id: '1' },
           })
 
-          const usersFromDb = await prisma[userModel].findMany({
-            include: { posts: true },
-          })
+          const usersFromDb = await prisma[userModel].findMany({})
           expect(usersFromDb).toEqual([
             {
               id: '2',
-              posts: [
-                {
-                  id: '2-post-a',
-                  authorId: '2',
-                },
-                {
-                  id: '2-post-b',
-                  authorId: '2',
-                },
-              ],
+              enabled: null,
             },
           ])
-
           const postsFromDb = await prisma[postModel].findMany({
             orderBy: { id: 'asc' },
           })
@@ -477,6 +483,8 @@ testMatrix.setupTestSuite(
             ).rejects.toThrowError(
               // @ts-expect-error: all providers ought to be logged
               conditionalError({
+                [Providers.MONGODB]:
+                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
@@ -517,6 +525,8 @@ testMatrix.setupTestSuite(
             ).rejects.toThrowError(
               // @ts-expect-error
               conditionalError({
+                [Providers.MONGODB]:
+                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 [Providers.POSTGRESQL]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
@@ -534,25 +544,12 @@ testMatrix.setupTestSuite(
               where: { id: '1' },
             })
 
-            const usersFromDb = await prisma[userModel].findMany({
-              include: { posts: true },
-            })
+            const usersFromDb = await prisma[userModel].findMany({})
             expect(usersFromDb).toEqual([
               {
                 id: '2',
-                posts: [
-                  {
-                    id: '2-post-a',
-                    authorId: '2',
-                  },
-                  {
-                    id: '2-post-b',
-                    authorId: '2',
-                  },
-                ],
               },
             ])
-
             const postsFromDb = await prisma[postModel].findMany({
               orderBy: { id: 'asc' },
             })
