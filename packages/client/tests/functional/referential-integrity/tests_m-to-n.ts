@@ -49,6 +49,54 @@ async function createXPostsWith2CategoriesSQLDb({ count, postModel }) {
   return await prisma.$transaction(prismaPromises)
 }
 
+// If no change
+const expectedFindManyPostModel = [
+  {
+    id: '1',
+    published: null,
+  },
+  {
+    id: '2',
+    published: null,
+  },
+]
+const expectedFindManyCategoryModel = [
+  {
+    id: '1-cat-a',
+    published: null,
+  },
+  {
+    id: '1-cat-b',
+    published: null,
+  },
+  {
+    id: '2-cat-a',
+    published: null,
+  },
+  {
+    id: '2-cat-b',
+    published: null,
+  },
+]
+const expectedFindManyCategoriesOnPostsModel = [
+  {
+    categoryId: '1-cat-a',
+    postId: '1',
+  },
+  {
+    categoryId: '1-cat-b',
+    postId: '1',
+  },
+  {
+    categoryId: '2-cat-a',
+    postId: '2',
+  },
+  {
+    categoryId: '2-cat-b',
+    postId: '2',
+  },
+]
+
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     function conditionalError(errors: Record<Providers, string>): string {
@@ -85,6 +133,7 @@ testMatrix.setupTestSuite(
           expect(await prisma[categoryModel].findMany()).toEqual([
             {
               id: '1',
+              published: null,
             },
           ])
         })
@@ -98,6 +147,7 @@ testMatrix.setupTestSuite(
           expect(await prisma[postModel].findMany()).toEqual([
             {
               id: '1',
+              published: null,
             },
           ])
         })
@@ -144,6 +194,7 @@ testMatrix.setupTestSuite(
           expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
             {
               id: '1',
+              published: null,
             },
           ])
           expect(
@@ -153,6 +204,7 @@ testMatrix.setupTestSuite(
           ).toEqual([
             {
               id: '1-cat-a',
+              published: null,
             },
           ])
           expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
@@ -173,6 +225,76 @@ testMatrix.setupTestSuite(
             count: 2,
             postModel,
           })
+        })
+
+        test('[update] (post) optional boolean field should succeed', async () => {
+          await prisma[postModel].update({
+            where: {
+              id: '1',
+            },
+            data: {
+              published: true,
+            },
+          })
+
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+            {
+              id: '1',
+              // the update
+              published: true,
+            },
+            {
+              id: '2',
+              published: null,
+            },
+          ])
+          expect(
+            await prisma[categoryModel].findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual(expectedFindManyCategoryModel)
+          expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+            expectedFindManyCategoriesOnPostsModel,
+          )
+        })
+
+        test('[update] (category): optional boolean field should succeed', async () => {
+          await prisma[categoryModel].update({
+            where: {
+              id: '1-cat-a',
+            },
+            data: {
+              published: true,
+            },
+          })
+
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
+          expect(
+            await prisma[categoryModel].findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual([
+            {
+              id: '1-cat-a',
+              // The update
+              published: true,
+            },
+            {
+              id: '1-cat-b',
+              published: null,
+            },
+            {
+              id: '2-cat-a',
+              published: null,
+            },
+            {
+              id: '2-cat-b',
+              published: null,
+            },
+          ])
+          expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+            expectedFindManyCategoriesOnPostsModel,
+          )
         })
 
         // RI=prisma - Cascade - SQLServer/CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
@@ -243,30 +365,19 @@ testMatrix.setupTestSuite(
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
               {
                 id: '2',
+                published: null,
               },
               {
                 // The update
                 id: '3',
+                published: null,
               },
             ])
             expect(
               await prisma[categoryModel].findMany({
                 orderBy: { id: 'asc' },
               }),
-            ).toEqual([
-              {
-                id: '1-cat-a',
-              },
-              {
-                id: '1-cat-b',
-              },
-              {
-                id: '2-cat-a',
-              },
-              {
-                id: '2-cat-b',
-              },
-            ])
+            ).toEqual(expectedFindManyCategoryModel)
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
               {
                 categoryId: '1-cat-a',
@@ -299,14 +410,7 @@ testMatrix.setupTestSuite(
               },
             })
 
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-              {
-                id: '1',
-              },
-              {
-                id: '2',
-              },
-            ])
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
             expect(
               await prisma[categoryModel].findMany({
                 orderBy: { id: 'asc' },
@@ -315,15 +419,19 @@ testMatrix.setupTestSuite(
               {
                 // The update
                 id: '1-cat-a-updated',
+                published: null,
               },
               {
                 id: '1-cat-b',
+                published: null,
               },
               {
                 id: '2-cat-a',
+                published: null,
               },
               {
                 id: '2-cat-b',
+                published: null,
               },
             ])
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
@@ -544,32 +652,12 @@ testMatrix.setupTestSuite(
             },
           })
 
-          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-            {
-              id: '1',
-            },
-            {
-              id: '2',
-            },
-          ])
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
           expect(
             await prisma[categoryModel].findMany({
               orderBy: { id: 'asc' },
             }),
-          ).toEqual([
-            {
-              id: '1-cat-a',
-            },
-            {
-              id: '1-cat-b',
-            },
-            {
-              id: '2-cat-a',
-            },
-            {
-              id: '2-cat-b',
-            },
-          ])
+          ).toEqual(expectedFindManyCategoryModel)
           expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
             {
               categoryId: '1-cat-a',
@@ -646,26 +734,14 @@ testMatrix.setupTestSuite(
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
               {
                 id: '2',
+                published: null,
               },
             ])
             expect(
               await prisma[categoryModel].findMany({
                 orderBy: { id: 'asc' },
               }),
-            ).toEqual([
-              {
-                id: '1-cat-a',
-              },
-              {
-                id: '1-cat-b',
-              },
-              {
-                id: '2-cat-a',
-              },
-              {
-                id: '2-cat-b',
-              },
-            ])
+            ).toEqual(expectedFindManyCategoryModel)
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
               {
                 categoryId: '2-cat-a',
@@ -683,14 +759,7 @@ testMatrix.setupTestSuite(
               where: { id: '1-cat-a' },
             })
 
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-              {
-                id: '1',
-              },
-              {
-                id: '2',
-              },
-            ])
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
             expect(
               await prisma[categoryModel].findMany({
                 orderBy: { id: 'asc' },
@@ -698,12 +767,15 @@ testMatrix.setupTestSuite(
             ).toEqual([
               {
                 id: '1-cat-b',
+                published: null,
               },
               {
                 id: '2-cat-a',
+                published: null,
               },
               {
                 id: '2-cat-b',
+                published: null,
               },
             ])
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
@@ -765,32 +837,12 @@ testMatrix.setupTestSuite(
             },
           })
 
-          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-            {
-              id: '1',
-            },
-            {
-              id: '2',
-            },
-          ])
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
           expect(
             await prisma[categoryModel].findMany({
               orderBy: { id: 'asc' },
             }),
-          ).toEqual([
-            {
-              id: '1-cat-a',
-            },
-            {
-              id: '1-cat-b',
-            },
-            {
-              id: '2-cat-a',
-            },
-            {
-              id: '2-cat-b',
-            },
-          ])
+          ).toEqual(expectedFindManyCategoryModel)
           expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
             {
               categoryId: '1-cat-b',

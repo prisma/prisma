@@ -40,11 +40,13 @@ datasource db {
 model PostManyToMany {
   id         ${id}
   categories CategoriesOnPostsManyToMany[]
+  published   Boolean?
 }
 
 model CategoryManyToMany {
   id    ${id}
   posts CategoriesOnPostsManyToMany[]
+  published   Boolean?
 }
 
 model CategoriesOnPostsManyToMany {
@@ -61,11 +63,13 @@ model CategoriesOnPostsManyToMany {
 model PostManyToMany {
   id         String        @id 
   categories CategoryManyToMany[]
+  published   Boolean?
 }
 
 model CategoryManyToMany {
   id    String    @id 
   posts PostManyToMany[]
+  published   Boolean?
 }
 `
 
