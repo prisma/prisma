@@ -74,12 +74,14 @@ model PostManyToMany {
   id          String     @id @map("_id")
   categoryIDs String[]
   categories  CategoryManyToMany[] @relation(fields: [categoryIDs], references: [id])
+  published   Boolean?
 }
 
 model CategoryManyToMany {
   id      String   @id @map("_id") 
   postIDs String[]
   posts   PostManyToMany[]   @relation(fields: [postIDs], references: [id])
+  published   Boolean?
 }
 `
 
