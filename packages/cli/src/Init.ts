@@ -272,7 +272,7 @@ export class Init implements Command {
     const steps: string[] = []
 
     if (provider === 'mongodb') {
-      steps.push(`Define models in the prisma.schema file.`)
+      steps.push(`Define models in the schema.prisma file.`)
     } else {
       steps.push(
         `Run ${chalk.green(
