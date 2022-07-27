@@ -1,6 +1,16 @@
 import { faker } from '@faker-js/faker'
-import { trace } from '@opentelemetry/api'
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base'
+import { context, trace } from '@opentelemetry/api'
+import { AsyncHooksContextManager } from '@opentelemetry/context-async-hooks'
+import { registerInstrumentations } from '@opentelemetry/instrumentation'
+import { Resource } from '@opentelemetry/resources'
+import {
+  BasicTracerProvider,
+  InMemorySpanExporter,
+  ReadableSpan,
+  SimpleSpanProcessor,
+} from '@opentelemetry/sdk-trace-base'
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+import { PrismaInstrumentation } from '@prisma/instrumentation'
 import * as util from 'util'
 
 import testMatrix from './_matrix'
@@ -30,7 +40,34 @@ declare let prisma: PrismaClient
 // @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite(({ provider }, __, inMemorySpanExporter) => {
+let inMemorySpanExporter: InMemorySpanExporter
+
+beforeAll(() => {
+  const contextManager = new AsyncHooksContextManager().enable()
+  context.setGlobalContextManager(contextManager)
+
+  inMemorySpanExporter = new InMemorySpanExporter()
+
+  const basicTracerProvider = new BasicTracerProvider({
+    resource: new Resource({
+      [SemanticResourceAttributes.SERVICE_NAME]: `test-name`,
+      [SemanticResourceAttributes.SERVICE_VERSION]: '1.0.0',
+    }),
+  })
+
+  basicTracerProvider.addSpanProcessor(new SimpleSpanProcessor(inMemorySpanExporter))
+  basicTracerProvider.register()
+
+  registerInstrumentations({
+    instrumentations: [new PrismaInstrumentation({ middleware: true })],
+  })
+})
+
+afterAll(() => {
+  context.disable()
+})
+
+testMatrix.setupTestSuite(({ provider }) => {
   beforeEach(() => {
     inMemorySpanExporter.reset()
   })
