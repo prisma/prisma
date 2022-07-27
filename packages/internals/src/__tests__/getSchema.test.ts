@@ -160,8 +160,8 @@ it('finds the schema path in the root package.json of a yarn workspace from a ch
 
   expect(res).toMatchInlineSnapshot(`
 Object {
-  "async": "src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/prisma.schema",
-  "sync": "src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/prisma.schema",
+  "async": "src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/schema.prisma",
+  "sync": "src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/db/schema.prisma",
 }
 `)
 })
