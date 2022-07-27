@@ -1,10 +1,12 @@
 import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { BinaryType } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
+import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
+import os from 'os'
 import tmpWrite from 'temp-write'
 import { match } from 'ts-pattern'
 
@@ -80,12 +82,26 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
         const error = e as Error
         const defaultErrorMessage = `Unable to establish a connection to query-engine-node-api library.`
         const proposedErrorFixMessage = match(error.message)
+          // handle openssl loading error
           .when(
-            (errMessage) => errMessage.includes('openssl'),
+            (errMessage) => errMessage.includes('libssl'),
             () => {
               return ` It seems there is a problem with your OpenSSL installation!`
             },
           )
+
+          // handle incompatible arch or c library error
+          .when(
+            (errMessage) => errMessage.includes('Unable to require'),
+            () => {
+              const architecture = os.arch()
+              return ` It seems that the current architecture ${chalk.redBright(
+                architecture,
+              )} is not supported, or that ${chalk.redBright('libc')} is missing from the system.`
+            },
+          )
+
+          // handle fallback with unknown fix
           .otherwise(() => '')
         const reason = `${defaultErrorMessage}${proposedErrorFixMessage}`
         return {
