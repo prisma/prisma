@@ -152,7 +152,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        // RI=prisma - Cascade - SQLServer/CockroachDB/PostgreSQL:  Resolved to value: {"categoryId": "99", "postId": "99"}
+        // RI=prisma - Cascade/Restrict - SQLServer/CockroachDB/PostgreSQL:  Resolved to value: {"categoryId": "99", "postId": "99"}
         test('[create] categoriesOnPostsModel with non-existing post and category id should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].create({
@@ -297,7 +297,7 @@ testMatrix.setupTestSuite(
           )
         })
 
-        // RI=prisma - Cascade - SQLServer/CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
+        // RI=prisma - Cascade/Restrict - SQLServer/CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
         test('[update] categoriesOnPostsModel with non-existing postId should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].update({
@@ -324,7 +324,7 @@ testMatrix.setupTestSuite(
           )
         })
 
-        // RI=prisma - Cascade - CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "99", "postId": "1"}
+        // RI=prisma - Cascade/Restrict - CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "99", "postId": "1"}
         test('[update] categoriesOnPostsModel with non-existing categoryId should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].update({
@@ -692,6 +692,7 @@ testMatrix.setupTestSuite(
         describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
           `onDelete: DEFAULT, Restrict, NoAction`,
           () => {
+            // RI=prisma - NoAction - MySQL/SQLServer/CockroachDB/PostgreSQL: Resolved to {"id": "1", "published": null}
             test('[delete] post should throw', async () => {
               await expect(
                 prisma[postModel].delete({
@@ -704,10 +705,13 @@ testMatrix.setupTestSuite(
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                 }),
               )
             })
+
+            // RI=prisma - NoAction - MySQL/SQLServer/CockroachDB/PostgreSQL: Resolved to {"id": "1-cat-a", "published": null}
             test('[delete] category should throw', async () => {
               await expect(
                 prisma[categoryModel].delete({
@@ -720,7 +724,8 @@ testMatrix.setupTestSuite(
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                 }),
               )
             })

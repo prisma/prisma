@@ -267,7 +267,6 @@ testMatrix.setupTestSuite(
           })
         })
 
-        // describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
         describe(`onDelete: ${onDelete}`, () => {
           test('[delete] post should succeed', async () => {
             await prisma[postModel].delete({
