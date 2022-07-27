@@ -17,7 +17,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     const result = DbPush.new().parse(['--preview-feature'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
-            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+            You can either provide it with --schema, set it as \`schema.prisma\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       prisma:warn Prisma "db push" was in Preview and is now Generally Available.
@@ -31,7 +31,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                       Could not find a schema.prisma file that is required for this command.
-                      You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+                      You can either provide it with --schema, set it as \`schema.prisma\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
                   `)
   })
 

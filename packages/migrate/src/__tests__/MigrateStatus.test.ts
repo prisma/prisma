@@ -10,7 +10,7 @@ describe('common', () => {
     const result = MigrateStatus.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Could not find a schema.prisma file that is required for this command.
-            You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
+            You can either provide it with --schema, set it as \`schema.prisma\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
   it('should fail if experimental flag', async () => {

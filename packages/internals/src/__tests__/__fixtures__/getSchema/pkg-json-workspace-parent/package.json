@@ -5,6 +5,6 @@
   ],
   "private": true,
   "prisma": {
-    "schema": "./db/prisma.schema"
+    "schema": "./db/schema.prisma"
   }
 }

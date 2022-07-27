@@ -18,7 +18,7 @@ const readFileAsync = promisify(fs.readFile)
 export async function verifySeedConfigAndReturnMessage(schemaPath: string | null): Promise<string | undefined> {
   const cwd = process.cwd()
 
-  // Detect if seed files are next to prisma.schema file
+  // Detect if seed files are next to schema.prisma file
   const detected = detectSeedFiles(cwd, schemaPath)
 
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)

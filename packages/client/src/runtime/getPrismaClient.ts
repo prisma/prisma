@@ -96,7 +96,7 @@ export interface PrismaClientOptions {
    */
   rejectOnNotFound?: InstanceRejectOnNotFound
   /**
-   * Overwrites the datasource url from your prisma.schema file
+   * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
 
