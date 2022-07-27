@@ -577,7 +577,7 @@ importers:
   packages/instrumentation:
     specifiers:
       '@opentelemetry/api': ^1.1.0
-      '@opentelemetry/instrumentation': ^0.30.0
+      '@opentelemetry/instrumentation': ^0.31.0
       '@swc/core': 1.2.197
       '@types/jest': 28.1.6
       '@types/node': 16.11.45
@@ -586,7 +586,7 @@ importers:
       typescript: 4.7.4
     dependencies:
       '@opentelemetry/api': 1.1.0
-      '@opentelemetry/instrumentation': 0.30.0_@opentelemetry+api@1.1.0
+      '@opentelemetry/instrumentation': 0.31.0_@opentelemetry+api@1.1.0
     devDependencies:
       '@swc/core': 1.2.197
       '@types/jest': 28.1.6
@@ -674,7 +674,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fp-ts: 2.12.1
+      fp-ts: 2.12.2
       fs-extra: 10.1.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
@@ -725,7 +725,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fp-ts: 2.12.1
+      fp-ts: 2.12.2
       fs-extra: 10.1.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
@@ -794,7 +794,7 @@ importers:
       jest-junit: 14.0.0
       log-update: 4.0.0
       make-dir: 3.1.0
-      mariadb: 3.0.0
+      mariadb: 3.0.1
       mock-stdin: 1.0.0
       mssql: 8.1.2
       pg: 8.7.3
@@ -815,7 +815,7 @@ importers:
       has-yarn: 2.1.0
       indent-string: 4.0.0
       log-update: 4.0.0
-      mariadb: 3.0.0
+      mariadb: 3.0.1
       mssql: 8.1.2
       pg: 8.7.3
       pkg-up: 3.1.0
@@ -2090,6 +2090,14 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       '@opentelemetry/api': 1.1.0
+    dev: true
+
+  /@opentelemetry/api-metrics/0.31.0:
+    resolution: {integrity: sha512-PcL1x0kZtMie7NsNy67OyMvzLEXqf3xd0TZJKHHPMGTe89oMpNVrD1zJB1kZcwXOxLlHHb6tz21G3vvXPdXyZg==}
+    engines: {node: '>=14'}
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+    dev: false
 
   /@opentelemetry/api/1.1.0:
     resolution: {integrity: sha512-hf+3bwuBwtXsugA2ULBc95qxrOqP2pOekLz34BJhcAKawt94vfeNyUKpYc0lZQ/3sCP6LqRa7UAdHA7i5UODzQ==}
@@ -2126,6 +2134,22 @@ packages:
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@opentelemetry/instrumentation/0.31.0_@opentelemetry+api@1.1.0:
+    resolution: {integrity: sha512-b2hFebXPtBcut4d81b8Kg6GiCoAS8nxb8kYSronQYAXxwNSetqHwIJ2nKLo1slFH1UWUXn0zi3eDez2Sn/9uMQ==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@opentelemetry/api': ^1.0.0
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/api-metrics': 0.31.0
+      require-in-the-middle: 5.1.0
+      semver: 7.3.7
+      shimmer: 1.2.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /@opentelemetry/resources/1.4.0_@opentelemetry+api@1.1.0:
     resolution: {integrity: sha512-Q3pI5+pCM+Ur7YwK9GbG89UBipwJbfmuzSPAXTw964ZHFzSrz+JAgrETC9rqsUOYdUlj/V7LbRMG5bo72xE0Xw==}
@@ -6065,8 +6089,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /fp-ts/2.12.1:
-    resolution: {integrity: sha512-oxvgqUYR6O9VkKXrxkJ0NOyU0FrE705MeqgBUMEPWyTu6Pwn768cJbHChw2XOBlgFLKfIHxjr2OOBFpv2mUGZw==}
+  /fp-ts/2.12.2:
+    resolution: {integrity: sha512-v8J7ud+nTkP5Zz17GhpCsY19wiRbB9miuj61nBcCJyDpu52zs9Z4O7OLDfYoKFQMJ9EsSZA7W1vRgC1d3jy5qw==}
     dev: false
 
   /fresh/0.5.2:
@@ -8606,6 +8630,20 @@ packages:
       iconv-lite: 0.6.3
       moment-timezone: 0.5.34
       please-upgrade-node: 3.2.0
+    dev: true
+
+  /mariadb/3.0.1:
+    resolution: {integrity: sha512-orYg4JojWszNWlI1a+We2TUe4h+S5WIkjUa0U4DF0jjrOtxBVtCsQtioXxURWCxVfxwQ5wZVZkBoa53lqRuQeQ==}
+    engines: {node: '>= 12'}
+    dependencies:
+      '@alloc/quick-lru': 5.2.0
+      '@types/geojson': 7946.0.10
+      '@types/node': 17.0.45
+      denque: 2.0.1
+      iconv-lite: 0.6.3
+      moment-timezone: 0.5.34
+      please-upgrade-node: 3.2.0
+    dev: false
 
   /matcher/3.0.0:
     resolution: {integrity: sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng==}
