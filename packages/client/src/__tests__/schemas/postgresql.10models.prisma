@@ -1,0 +1,172 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+model Post {
+    id        Int      @id @default(autoincrement())
+    createdAt DateTime @default(now())
+    title     String
+    content   String?
+    published Boolean  @default(false)
+    author    User     @relation(fields: [authorId], references: [id])
+    authorId  Int
+}
+
+model User {
+    id              Int             @id @default(autoincrement())
+    email           String          @unique
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+    posts           Post[]
+}
+
+model M {
+    id              Int             @id @default(autoincrement())
+    n               N[]
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model N {
+    id              Int             @id @default(autoincrement())
+    m               M[]
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model OneOptional {
+    id              Int             @id @default(autoincrement())
+    many            ManyRequired[]
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model ManyRequired {
+    id  Int          @id @default(autoincrement())
+    one OneOptional? @relation(fields: [oneOptionalId], references: [id])
+
+    oneOptionalId   Int?
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model OptionalSide1 {
+    id Int @id @default(autoincrement())
+
+    optionalSide2Id Int?           @unique
+    opti            OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
+
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+model OptionalSide2 {
+    id              Int             @id @default(autoincrement())
+    opti            OptionalSide1?
+    int             Int
+    optionalInt     Int?
+    float           Float
+    optionalFloat   Float?
+    string          String
+    optionalString  String?
+    json            Json
+    optionalJson    Json?
+    enum            ABeautifulEnum
+    optionalEnum    ABeautifulEnum?
+    boolean         Boolean
+    optionalBoolean Boolean?
+}
+
+enum ABeautifulEnum {
+    A
+    B
+    C
+}
+
+model A {
+    /// field comment 1
+    id    String  @id @default(uuid())
+    email String  @unique
+    name  String?
+
+    /// field comment 2
+    int      Int    @db.Integer
+    sInt     Int    @db.SmallInt
+    bInt     BigInt @db.BigInt
+    inc_int  Int    @default(autoincrement()) @db.Integer
+    inc_sInt Int    @default(autoincrement()) @db.SmallInt
+    inc_bInt BigInt @default(autoincrement()) @db.BigInt
+}
+
+model B {
+    id       String  @id @default(cuid())
+    float    Float   @db.Real
+    dFloat   Float   @db.DoublePrecision
+    decFloat Decimal @db.Decimal(2, 1)
+    numFloat Decimal @db.Decimal(10, 6)
+}

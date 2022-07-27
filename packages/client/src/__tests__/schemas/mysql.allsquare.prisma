@@ -1,0 +1,2168 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model access_types {
+    id   Int     @id @default(autoincrement())
+    name String? @db.VarChar(255)
+}
+
+model addresses {
+    id         Int     @id @default(autoincrement())
+    city       String? @db.VarChar(255)
+    lat        Float?  @db.Float
+    lng        Float?  @db.Float
+    country_id Int?
+    google_id  String? @db.VarChar(255)
+}
+
+model ahoy_events {
+    id         Bytes     @id @db.Binary(16)
+    visit_id   Bytes?    @db.Binary(16)
+    user_id    Int?
+    name       String?   @db.VarChar(255)
+    properties String?   @db.Text
+    type       String?   @db.Text
+    time       DateTime? @db.DateTime(0)
+    created_at DateTime? @db.DateTime(0)
+    updated_at DateTime? @db.DateTime(0)
+
+    @@index([id], map: "index_ahoy_events_on_id")
+    @@index([time], map: "index_ahoy_events_on_time")
+    @@index([user_id], map: "index_ahoy_events_on_user_id")
+    @@index([visit_id], map: "index_ahoy_events_on_visit_id")
+}
+
+model albums {
+    id               Int      @id @default(autoincrement())
+    title            String?  @db.VarChar(255)
+    content          String?  @db.Text
+    albumable_type   String?
+    albumable_id     Int?
+    created_at       DateTime @db.DateTime(0)
+    updated_at       DateTime @db.DateTime(0)
+    deleted_at       DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    type             String?  @db.VarChar(255)
+    cover_picture_id Int?
+    priority         Int?
+    media_id         Int?
+    attachment_id    Int?
+
+    @@index([albumable_type, albumable_id], map: "index_albums_on_albumable_type_and_albumable_id")
+    @@index([deleted_at], map: "index_albums_on_deleted_at")
+}
+
+model ambassador_contests {
+    id                Int       @id @default(autoincrement())
+    start_at          DateTime? @db.DateTime(0)
+    title             String?   @db.VarChar(255)
+    slug              String?   @db.VarChar(255)
+    winner_id         Int?
+    description       String?   @db.MediumText
+    contest_type      String?   @db.VarChar(255)
+    date_title        String?   @db.VarChar(255)
+    counter           Int?
+    small_description String?   @db.MediumText
+    open              Boolean?  @default(false)
+    finished          Boolean?  @default(false)
+    picture_id        Int?
+    prize_id          Int?
+
+    @@index([slug], map: "index_ambassador_contests_on_slug")
+}
+
+model ambassador_user_contests {
+    id                    Int      @id @default(autoincrement())
+    user_id               Int?
+    ambassador_contest_id Int?
+    validated             Boolean? @default(false)
+    win                   Boolean? @default(false)
+}
+
+model amenities {
+    id              Int               @id @default(autoincrement())
+    name            String?           @db.VarChar(255)
+    picture         String?           @db.VarChar(255)
+    amenity_type    String?           @db.VarChar(255)
+    priority        Int?
+    priority_type   Int?
+    friendly_id     String?           @db.VarChar(255)
+    amenities_clubs amenities_clubs[]
+}
+
+model amenities_clubs {
+    id         Int        @id @default(autoincrement())
+    club_id    Int?
+    amenity_id Int?
+    amenities  amenities? @relation(fields: [amenity_id], references: [id], map: "amenities_clubs_ibfk_2")
+    clubs      clubs?     @relation(fields: [club_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "amenities_clubs_ibfk_1")
+
+    @@index([amenity_id], map: "amenity_id")
+    @@index([club_id], map: "club_id")
+}
+
+model architects {
+    id               Int      @id @default(autoincrement())
+    firstname        String?  @db.VarChar(255)
+    lastname         String?  @db.VarChar(255)
+    company          String?  @db.VarChar(255)
+    email            String?  @db.VarChar(255)
+    biography        String?  @db.Text
+    comittee         String?  @db.VarChar(255)
+    comittee_website String?  @db.VarChar(255)
+    website          String?  @db.VarChar(255)
+    top_ranking      Int?
+    deleted_at       DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    slug             String?  @db.VarChar(255)
+    created_at       DateTime @db.DateTime(0)
+    updated_at       DateTime @db.DateTime(0)
+
+    @@index([slug], map: "index_architects_on_slug")
+}
+
+model areas {
+    id          Int      @id @default(autoincrement())
+    name        String?  @db.VarChar(255)
+    description String?  @db.Text
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+    slug        String?  @db.VarChar(255)
+    nb_top100   Int?
+    rank        Int?
+
+    @@index([slug], map: "idx_slug_areas")
+}
+
+model articles {
+    id                          Int       @id @default(autoincrement())
+    title                       String?   @db.VarChar(255)
+    content                     String?   @db.Text
+    picture_file_name           String?   @db.VarChar(255)
+    picture_content_type        String?   @db.VarChar(255)
+    picture_file_size           Int?
+    picture_updated_at          DateTime? @db.DateTime(0)
+    created_at                  DateTime  @db.DateTime(0)
+    updated_at                  DateTime  @db.DateTime(0)
+    club_id                     Int?
+    url                         String?   @db.VarChar(255)
+    private                     Boolean?  @default(false)
+    mobile_picture_file_name    String?   @db.VarChar(255)
+    mobile_picture_content_type String?   @db.VarChar(255)
+    mobile_picture_file_size    Int?
+    mobile_picture_updated_at   DateTime? @db.DateTime(0)
+    user_id                     Int?
+    deleted_at                  DateTime? @db.DateTime(0)
+
+    @@index([club_id], map: "index_articles_on_club_id")
+    @@index([deleted_at], map: "index_articles_on_deleted_at")
+}
+
+model attachments {
+    id                Int       @id @default(autoincrement())
+    mime              String?   @db.VarChar(255)
+    title             String?   @db.VarChar(255)
+    attachable_type   String?   @db.VarChar(255)
+    attachable_id     Int?
+    file_file_name    String?   @db.VarChar(255)
+    file_content_type String?   @db.VarChar(255)
+    file_file_size    Int?
+    file_updated_at   DateTime? @db.DateTime(0)
+    pos               Int?
+    attached_type     String?   @db.VarChar(255)
+    attached_id       Int?
+}
+
+model attendings {
+    id           Int      @id @default(autoincrement())
+    event_id     Int?
+    user_id      Int?
+    attending    Int?     @default(1)
+    created_at   DateTime @db.DateTime(0)
+    updated_at   DateTime @db.DateTime(0)
+    invitor_id   Int?
+    invitor_type String?  @db.VarChar(255)
+
+    @@index([invitor_id], map: "idx_attending_invitor_id")
+    @@index([event_id, user_id], map: "index_attendings_on_event_id")
+    @@index([user_id], map: "index_attendings_on_user_id")
+}
+
+model blogs {
+    id                 Int       @id @default(autoincrement())
+    title              String?   @db.VarChar(255)
+    content            String?   @db.Text
+    created_at         DateTime  @db.DateTime(0)
+    updated_at         DateTime  @db.DateTime(0)
+    cover_file_name    String?   @db.VarChar(255)
+    cover_content_type String?   @db.VarChar(255)
+    cover_file_size    Int?
+    cover_updated_at   DateTime? @db.DateTime(0)
+    content_preview    String?   @db.Text
+    slug               String?   @db.VarChar(255)
+    article_url        String?   @db.VarChar(255)
+}
+
+model booking_requests {
+    id         Int       @id @default(autoincrement())
+    user_id    Int?
+    club_id    Int?
+    created_at DateTime? @db.DateTime(0)
+    updated_at DateTime? @db.DateTime(0)
+}
+
+model braintree_customers {
+    id               Int     @id @default(autoincrement())
+    braintree_handle String? @db.VarChar(255)
+    address          String? @db.VarChar(255)
+    vat_number       String? @db.VarChar(255)
+    user_id          Int?
+}
+
+model braintree_subscriptions {
+    id                    Int       @id @default(autoincrement())
+    braintree_handle      String?   @db.VarChar(255)
+    payment_method        String?   @db.VarChar(255)
+    description           String?   @db.VarChar(255)
+    date                  DateTime? @db.DateTime(0)
+    amount                Float?    @db.Float
+    currency              String?   @db.VarChar(255)
+    braintree_customer_id Int?
+    club_id               Int?
+    payment_method_token  String?   @db.VarChar(255)
+    active                Boolean?
+}
+
+model braintree_transactions {
+    id                        Int       @id @default(autoincrement())
+    braintree_handle          String?   @db.VarChar(255)
+    receipt_path              String?   @db.VarChar(255)
+    payment_method            String?   @db.VarChar(255)
+    description               String?   @db.VarChar(255)
+    date                      DateTime? @db.DateTime(0)
+    amount                    Float?    @db.Float
+    currency                  String?   @db.VarChar(255)
+    success                   Boolean?
+    braintree_customer_id     Int?
+    braintree_subscription_id Int?
+    club_id                   Int?
+    contact_email             String?   @db.VarChar(255)
+}
+
+model brands {
+    id                                                          Int                  @id @default(autoincrement())
+    name                                                        String?              @db.VarChar(255)
+    created_at                                                  DateTime             @db.DateTime(0)
+    updated_at                                                  DateTime             @db.DateTime(0)
+    year                                                        Int?
+    picture_id                                                  Int?
+    cover_picture_id                                            Int?
+    description                                                 String?              @db.Text
+    slug                                                        String?              @db.VarChar(255)
+    media_id                                                    Int?
+    page_id                                                     Int?
+    brands_competitors_brandsTobrands_competitors_brand_id      brands_competitors[] @relation("brandsTobrands_competitors_brand_id")
+    brands_competitors_brandsTobrands_competitors_competitor_id brands_competitors[] @relation("brandsTobrands_competitors_competitor_id")
+
+    @@index([slug], map: "index_brands_on_slug")
+}
+
+model brands_competitors {
+    id                                              Int     @id @default(autoincrement())
+    product_type                                    String? @db.VarChar(255)
+    brand_id                                        Int?
+    competitor_id                                   Int?
+    brands_brandsTobrands_competitors_brand_id      brands? @relation("brandsTobrands_competitors_brand_id", fields: [brand_id], references: [id], onDelete: Cascade, map: "brands_competitors_ibfk_1")
+    brands_brandsTobrands_competitors_competitor_id brands? @relation("brandsTobrands_competitors_competitor_id", fields: [competitor_id], references: [id], onDelete: Cascade, map: "brands_competitors_ibfk_2")
+
+    @@index([brand_id], map: "brand_id")
+    @@index([competitor_id], map: "competitor_id")
+}
+
+model business_admins {
+    id          Int  @id @default(autoincrement())
+    user_id     Int?
+    business_id Int?
+}
+
+model checkins {
+    id                   Int      @id @default(autoincrement())
+    club_id              Int?
+    user_id              Int?
+    created_at           DateTime @db.DateTime(0)
+    updated_at           DateTime @db.DateTime(0)
+    message              String?  @db.Text
+    picture_url_shortcut String?  @db.VarChar(255)
+    deleted_at           DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    album_id             Int?
+    media_processing     Boolean? @default(false)
+
+    @@index([club_id], map: "index_checkins_on_club_id")
+    @@index([deleted_at], map: "index_checkins_on_deleted_at")
+    @@index([user_id], map: "index_checkins_on_user_id")
+}
+
+model checkins_users {
+    checkin_id Int?
+    user_id    Int?
+    id         Int  @id @default(autoincrement())
+
+    @@index([checkin_id, user_id], map: "index_checkins_users_on_checkin_id_and_user_id")
+}
+
+model client_accesses {
+    id               Int       @id @default(autoincrement())
+    ip_address       String?   @db.VarChar(255)
+    user_id          Int?
+    version          String?   @db.VarChar(255)
+    accesses_count   Int?
+    last_access_date DateTime? @db.DateTime(0)
+    platform         Int?
+    created_at       DateTime  @db.DateTime(0)
+    updated_at       DateTime  @db.DateTime(0)
+}
+
+model clothes_products {
+    id                 Int      @id @default(autoincrement())
+    slug               String?  @db.VarChar(255)
+    name               String?  @db.VarChar(255)
+    description        String?  @db.Text
+    brand_id           Int?
+    price_id           Int?
+    album_id           Int?
+    picture_id         Int?
+    internal_video_id  Int?
+    gender_restriction Int?
+    item_type          Int?
+    created_at         DateTime @db.DateTime(0)
+    updated_at         DateTime @db.DateTime(0)
+
+    @@index([slug], map: "index_clothes_products_on_slug")
+}
+
+model clothes_sizes {
+    id                 Int      @id @default(autoincrement())
+    size               Int?
+    clothes_product_id Int?
+    created_at         DateTime @db.DateTime(0)
+    updated_at         DateTime @db.DateTime(0)
+}
+
+model club_administrators {
+    id         Int      @id @default(autoincrement())
+    club_id    Int?
+    user_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([club_id], map: "index_club_administrators_on_club_id")
+    @@index([user_id], map: "index_club_administrators_on_user_id")
+}
+
+model club_amenities {
+    id         Int  @id @default(autoincrement())
+    club_id    Int?
+    amenity_id Int?
+}
+
+model club_bookings {
+    id             Int       @id @default(autoincrement())
+    owner_type     String?   @db.VarChar(255)
+    owner_id       Int?
+    date           DateTime? @db.DateTime(0)
+    club_id        Int?
+    nb_players     Int?
+    created_at     DateTime  @db.DateTime(0)
+    updated_at     DateTime  @db.DateTime(0)
+    golf_cart      Boolean?
+    rental_clubs   Boolean?
+    responsible_id Int?
+    current_status String?   @db.VarChar(255)
+    comment_status String?   @db.VarChar(255)
+}
+
+model club_course_reviews {
+    id               Int  @id @default(autoincrement())
+    course_id        Int?
+    course_review_id Int?
+
+    @@index([course_id], map: "index_club_course_reviews_on_course_id")
+    @@index([course_review_id], map: "index_club_course_reviews_on_course_review_id")
+}
+
+model club_requests {
+    id         Int      @id @default(autoincrement())
+    club_id    Int?
+    user_id    Int?
+    seen       Boolean? @default(false)
+    status     Int?     @default(0)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([club_id], map: "index_club_requests_on_club_id")
+    @@index([user_id], map: "index_club_requests_on_user_id")
+}
+
+model club_words {
+    id      Int      @id @default(autoincrement())
+    word    String?  @db.Text
+    checked Boolean? @default(false)
+}
+
+model club_words_clubs {
+    id           Int  @id @default(autoincrement())
+    club_id      Int?
+    club_word_id Int?
+
+    @@index([club_id], map: "index_mrr_on_club_id")
+    @@index([club_word_id], map: "index_mrr_on_word_id")
+}
+
+model clubs {
+    id                     Int                    @id @default(autoincrement())
+    name                   String?
+    content                String?                @db.Text
+    street                 String?                @db.VarChar(255)
+    zipcode                String?                @db.VarChar(255)
+    city                   String?                @db.VarChar(255)
+    phone                  String?                @db.VarChar(255)
+    email                  String?                @db.VarChar(255)
+    website                String?                @db.VarChar(255)
+    closest_city           String?                @db.VarChar(255)
+    latitude               Float?                 @db.Float
+    longitude              Float?                 @db.Float
+    created_at             DateTime               @db.DateTime(0)
+    updated_at             DateTime               @db.DateTime(0)
+    closest_airport        String?                @db.VarChar(255)
+    logo_file_name         String?                @db.VarChar(255)
+    logo_content_type      String?                @db.VarChar(255)
+    logo_file_size         Int?
+    logo_updated_at        DateTime?              @db.DateTime(0)
+    scorecard_file_name    String?                @db.VarChar(255)
+    scorecard_content_type String?                @db.VarChar(255)
+    scorecard_file_size    Int?
+    scorecard_updated_at   DateTime?              @db.DateTime(0)
+    online                 Boolean?               @default(true)
+    simple                 Boolean?               @default(false)
+    perma                  String?                @db.VarChar(255)
+    edit_key               String?                @db.VarChar(255)
+    booking_url            String?                @db.VarChar(255)
+    manager_fullname       String?                @db.VarChar(255)
+    manager_email          String?                @db.VarChar(255)
+    manager_phone          String?                @db.VarChar(255)
+    deleted_at             DateTime               @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    slug                   String?                @db.VarChar(255)
+    pin_type               String?                @db.VarChar(255)
+    has_carts              Boolean?
+    has_driving_range      Boolean?
+    access_type_id         Int?
+    merge_course           Boolean?               @default(true)
+    cover_album_id         Int?
+    booking_link           String?                @db.VarChar(255)
+    booking_type           String?                @db.VarChar(255)
+    meta_visible           Boolean?               @default(false)
+    external_video_id      Int?
+    logo_picture_id        Int?                   @default(3)
+    cover_picture_id       Int?                   @default(1)
+    country_id             Int?
+    facebook_token         String?                @db.VarChar(255)
+    continent_id           Int?
+    area_id                Int?
+    destination_id         Int?
+    top100continent        Int?
+    top100area             Int?
+    top100country          Int?
+    top100world            Int?
+    facebook_user_id       String?                @db.VarChar(255)
+    altitude               Float?                 @db.Float
+    altitude_resolution    Float?                 @db.Float
+    score                  Float?                 @default(0) @db.Float
+    green_fee              String?                @db.VarChar(255)
+    handicap               String?                @db.VarChar(255)
+    open_informations      String?                @db.VarChar(255)
+    amenities_activated    Boolean?               @default(false)
+    booking_available      Boolean?
+    amenities_clubs        amenities_clubs[]
+    clubs_administrators   clubs_administrators[]
+    user_club_activities   user_club_activities[]
+
+    @@index([area_id], map: "idx_club_area")
+    @@index([continent_id], map: "idx_club_continent")
+    @@index([country_id], map: "idx_club_country")
+    @@index([destination_id], map: "idx_club_destination")
+    @@index([deleted_at], map: "idxclubdeletedat")
+    @@index([name], map: "index_clubs_on_name")
+    @@index([slug], map: "index_clubs_slug")
+}
+
+model clubs_administrators {
+    id      Int    @id @default(autoincrement())
+    club_id Int?
+    user_id Int?
+    clubs   clubs? @relation(fields: [club_id], references: [id], onDelete: Cascade, map: "clubs_administrators_ibfk_1")
+    users   users? @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "clubs_administrators_ibfk_2")
+
+    @@index([club_id], map: "club_id")
+    @@index([user_id], map: "user_id")
+}
+
+model clubs_geographical_areas {
+    club_id              Int?
+    geographical_area_id Int?
+    id                   Int  @id @default(autoincrement())
+
+    @@unique([club_id, geographical_area_id], map: "index_on_club_id_and_geographical_area_id")
+}
+
+model comments {
+    id               Int      @id @default(autoincrement())
+    commentable_type String?
+    commentable_id   Int?
+    content          String?  @db.Text
+    created_at       DateTime @db.DateTime(0)
+    updated_at       DateTime @db.DateTime(0)
+    deleted_at       DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    author_id        Int?
+    author_type      String?  @db.VarChar(255)
+    public           Boolean?
+
+    @@index([author_id], map: "idxcommentauthorid")
+    @@index([commentable_id], map: "idxcommentcommentableid")
+    @@index([deleted_at], map: "index_comments_on_deleted_at")
+}
+
+model continents {
+    id          Int      @id @default(autoincrement())
+    name        String?  @db.VarChar(255)
+    code        String?  @db.VarChar(255)
+    description String?  @db.Text
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+    slug        String?  @db.VarChar(255)
+    nb_top100   Int?
+    rank        Int?
+    latitude    Float?   @db.Float
+    longitude   Float?   @db.Float
+
+    @@index([slug], map: "index_continents_on_slug")
+}
+
+model countries {
+    id          Int      @id @default(autoincrement())
+    name        String?
+    latitude    Float?   @db.Float
+    longitude   Float?   @db.Float
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+    position    Int?
+    alpha2      String?  @db.TinyText
+    alpha3      String?  @db.TinyText
+    calling     String?  @db.TinyText
+    continent   String?  @db.TinyText
+    numeric3    String?  @db.TinyText
+    currency    String?  @db.TinyText
+    slug        String?  @db.VarChar(255)
+    description String?  @db.Text
+    nb_top100   Int?
+    google_id   String?  @db.VarChar(255)
+    google_name String?  @db.VarChar(255)
+    rank        Int?
+
+    @@index([google_id], map: "idxcountriesgoogleid")
+    @@index([slug], map: "idxcountrieslug")
+    @@index([name], map: "index_countries_on_name")
+}
+
+model course_reviews {
+    id         Int      @id @default(autoincrement())
+    user_id    Int?
+    score      Int?
+    content    String?  @db.Text
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+    online     Boolean? @default(false)
+
+    @@index([score], map: "index_course_reviews_on_score")
+    @@index([user_id], map: "index_course_reviews_on_user_id")
+}
+
+model courses {
+    id                 Int      @id @default(autoincrement())
+    name               String?  @db.VarChar(255)
+    description        String?  @db.Text
+    holes              Int?
+    par                Int?
+    length             Int?
+    slope              Int?
+    year_built         Int?
+    visitors           String?  @db.VarChar(255)
+    allowed_players    Int?
+    currency_id        Int?
+    green_fee_price    Float?   @db.Float
+    latitude           Float?   @db.Float
+    longitude          Float?   @db.Float
+    architect          String?  @db.VarChar(255)
+    designed_at        String?  @db.VarChar(255)
+    club_id            Int?
+    top100_world       Int?
+    top100_continent   Int?
+    top100_country     Int?
+    top100_area        Int?
+    created_at         DateTime @db.DateTime(0)
+    updated_at         DateTime @db.DateTime(0)
+    deleted_at         DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    course_record      Int?
+    gender_restriction Int?
+
+    @@index([club_id], map: "index_courses_on_club_id")
+    @@index([deleted_at], map: "index_courses_on_deleted_at")
+}
+
+model courses_architects {
+    id           Int     @id @default(autoincrement())
+    course_id    Int?
+    architect_id Int?
+    firstname    String? @db.VarChar(255)
+    lastname     String? @db.VarChar(255)
+}
+
+model courses_golf_types {
+    course_id    Int?
+    golf_type_id Int?
+    id           Int  @id @default(autoincrement())
+}
+
+model currencies {
+    id         Int      @id @default(autoincrement())
+    name       String?
+    code       String?  @db.VarChar(255)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model destinations {
+    id            Int      @id @default(autoincrement())
+    name          String?  @db.VarChar(255)
+    description   String?  @db.Text
+    slug          String?  @db.VarChar(255)
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    picture_id    Int?
+    location_type String?  @default("destination") @db.VarChar(255)
+    album_id      Int?
+    rank          Int?
+
+    @@index([slug], map: "idxdestinatjonslug")
+}
+
+model device_tokens {
+    id                   Int     @id @default(autoincrement())
+    user_id              Int?
+    device               String? @db.VarChar(255)
+    push_token           String? @db.VarChar(255)
+    one_signal_player_id String? @db.VarChar(255)
+
+    @@index([user_id], map: "devicetokenuserid")
+}
+
+model discussions {
+    id                   Int       @id @default(autoincrement())
+    discussion_type      String?   @db.VarChar(255)
+    created_at           DateTime  @db.DateTime(0)
+    updated_at           DateTime  @db.DateTime(0)
+    title                String?   @db.Text
+    picture_file_name    String?   @db.VarChar(255)
+    picture_content_type String?   @db.VarChar(255)
+    picture_file_size    Int?
+    picture_updated_at   DateTime? @db.DateTime(0)
+}
+
+model discussions_users {
+    id            Int       @id @default(autoincrement())
+    discussion_id Int?
+    user_id       Int?
+    last_seen     DateTime? @db.DateTime(0)
+    created_at    DateTime? @db.DateTime(0)
+    last_received DateTime? @db.DateTime(0)
+    last_typing   DateTime? @db.DateTime(0)
+
+    @@index([discussion_id], map: "discussionsuersdiscussiondi")
+    @@index([user_id], map: "discussionuseruserid")
+}
+
+model driving_ranges {
+    id         Int      @id @default(autoincrement())
+    range_type String?  @db.VarChar(255)
+    club_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model email_notifications {
+    id         Int      @id @default(autoincrement())
+    email_type String?  @db.VarChar(255)
+    activated  Boolean? @default(false)
+    user_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([user_id], map: "index_email_notifications_on_user_id")
+}
+
+model email_types {
+    id         Int       @id @default(autoincrement())
+    user_id    Int?
+    name       String?   @db.VarChar(255)
+    created_at DateTime? @db.DateTime(0)
+    updated_at DateTime? @db.DateTime(0)
+
+    @@index([user_id], map: "emailtypeuserid")
+}
+
+model emails {
+    id         Int      @id @default(autoincrement())
+    email      String?  @db.VarChar(255)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model events {
+    id               Int       @id @default(autoincrement())
+    title            String?
+    content          String?   @db.Text
+    starts_at        DateTime? @db.DateTime(0)
+    ends_at          DateTime? @db.DateTime(0)
+    created_at       DateTime  @db.DateTime(0)
+    updated_at       DateTime  @db.DateTime(0)
+    eventable_type   String?
+    eventable_id     Int?
+    public           Boolean?  @default(false)
+    fee              String?   @db.VarChar(255)
+    country_id       Int?
+    club_id          Int?
+    perma            String?   @db.VarChar(255)
+    deleted          Boolean?  @default(false)
+    slug             String?
+    deleted_at       DateTime  @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    online           Boolean?  @default(true)
+    author_id        Int?
+    author_type      String?   @db.VarChar(255)
+    cover_picture_id Int?      @default(1)
+    currency         String?   @db.VarChar(255)
+    price            Int?
+    is_travel        Boolean?  @default(false)
+
+    @@index([author_id], map: "eventauthorid")
+    @@index([club_id], map: "index_events_on_club_id")
+    @@index([deleted_at], map: "index_events_on_deleted_at")
+    @@index([slug], map: "index_events_on_slug")
+}
+
+model external_videos {
+    id            Int     @id @default(autoincrement())
+    url           String? @db.VarChar(255)
+    provider      String? @db.VarChar(255)
+    video_id      String? @db.VarChar(255)
+    thumbnail_url String? @db.VarChar(255)
+    media_id      Int?
+}
+
+model feedbacks {
+    id         Int      @id @default(autoincrement())
+    user_id    Int?
+    content    String?  @db.Text
+    navigator  String?  @db.VarChar(255)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([user_id], map: "index_feedbacks_on_user_id")
+}
+
+model followings {
+    id            Int      @id @default(autoincrement())
+    user_id       Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    followed_id   Int?
+    followed_type String?  @db.VarChar(255)
+
+    @@unique([user_id, followed_id, followed_type], map: "idxfollowuser")
+    @@index([followed_id], map: "followedid")
+    @@index([user_id], map: "idx_followings_userid")
+}
+
+model friendly_id_slugs {
+    id             Int       @id @default(autoincrement())
+    slug           String    @db.VarChar(255)
+    sluggable_id   Int
+    sluggable_type String?   @db.VarChar(40)
+    created_at     DateTime? @db.DateTime(0)
+
+    @@index([sluggable_id], map: "index_friendly_id_slugs_on_sluggable_id")
+    @@index([sluggable_type], map: "index_friendly_id_slugs_on_sluggable_type")
+}
+
+model gamers {
+    id         Int      @id @default(autoincrement())
+    game_id    Int?
+    user_id    Int?
+    validated  Boolean? @default(false)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([game_id], map: "index_gamers_on_game_id")
+    @@index([user_id], map: "index_gamers_on_user_id")
+}
+
+model games {
+    id         Int       @id @default(autoincrement())
+    club_id    Int?
+    starts_at  DateTime? @db.Date
+    created_at DateTime  @db.DateTime(0)
+    updated_at DateTime  @db.DateTime(0)
+
+    @@index([club_id], map: "index_games_on_club_id")
+}
+
+model geographical_areas {
+    id                        Int       @id @default(autoincrement())
+    geographical_areable_id   Int?
+    geographical_areable_type String?   @db.VarChar(255)
+    parent_id                 Int?
+    created_at                DateTime  @db.DateTime(0)
+    updated_at                DateTime  @db.DateTime(0)
+    picture_file_name         String?   @db.VarChar(255)
+    picture_content_type      String?   @db.VarChar(255)
+    picture_file_size         Int?
+    picture_updated_at        DateTime? @db.DateTime(0)
+
+    @@index([parent_id], map: "index_geographical_areas_on_parent_id")
+}
+
+model glossary_terms {
+    id         Int       @id @default(autoincrement())
+    name       String?   @db.VarChar(255)
+    definition String?   @db.Text
+    created_at DateTime  @db.DateTime(0)
+    updated_at DateTime  @db.DateTime(0)
+    slug       String?
+    top_search Int?
+    deleted_at DateTime? @db.DateTime(0)
+
+    @@index([slug], map: "index_glossary_terms_on_slug")
+}
+
+model golf_types {
+    id         Int      @id @default(autoincrement())
+    name       String?  @db.VarChar(255)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model greenfees {
+    id             Int      @id @default(autoincrement())
+    user_id        Int?
+    comment        String?  @db.VarChar(255)
+    created_at     DateTime @db.DateTime(0)
+    updated_at     DateTime @db.DateTime(0)
+    firstname      String?  @db.VarChar(255)
+    lastname       String?  @db.VarChar(255)
+    email          String?  @db.VarChar(255)
+    responsible_id Int?
+    current_status String?  @db.VarChar(255)
+    comment_status String?  @db.VarChar(255)
+    priority       Int?     @default(0)
+}
+
+model hits {
+    id         Int      @id @default(autoincrement())
+    club_id    Int?
+    user_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([club_id], map: "index_hits_on_club_id")
+    @@index([user_id], map: "index_hits_on_user_id")
+}
+
+model hosters {
+    id         Int      @id @default(autoincrement())
+    user_id    Int?
+    event_id   Int?
+    role_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+
+    @@index([event_id], map: "index_hosters_on_event_id")
+    @@index([role_id], map: "index_hosters_on_role_id")
+    @@index([user_id], map: "index_hosters_on_user_id")
+}
+
+model hotel_bookings {
+    id         Int       @id @default(autoincrement())
+    owner_type String?   @db.VarChar(255)
+    owner_id   Int?
+    date       DateTime? @db.DateTime(0)
+    hotel_id   Int?
+    nb_players Int?
+    nb_nights  Int?
+    created_at DateTime  @db.DateTime(0)
+    updated_at DateTime  @db.DateTime(0)
+}
+
+model hotels {
+    id                 Int       @id @default(autoincrement())
+    name               String?   @db.Text
+    address            String?   @db.Text
+    zip                String?   @db.Text
+    city_hotel         String?   @db.Text
+    cc1                String?   @db.Text
+    classs             Float?    @db.Float
+    longitude          Float?    @db.Float
+    latitude           Float?    @db.Float
+    public_ranking     Float?    @db.Float
+    hotel_url          String?   @db.Text
+    photo_url          String?   @db.Text
+    continent_id       Float?    @db.Float
+    review_score       Float?    @db.Float
+    photo_file_name    String?   @db.VarChar(255)
+    photo_content_type String?   @db.VarChar(255)
+    photo_file_size    Int?
+    photo_updated_at   DateTime? @db.DateTime(0)
+    created_at         DateTime  @db.DateTime(0)
+    updated_at         DateTime  @db.DateTime(0)
+    id_booking         BigInt?   @unique(map: "index_id_booking")
+    image_file_name    String?   @db.VarChar(255)
+    image_content_type String?   @db.VarChar(255)
+    image_file_size    Int?
+    image_updated_at   DateTime? @db.DateTime(0)
+
+    @@index([latitude], map: "index_hotels_on_latitude")
+    @@index([longitude], map: "index_hotels_on_longitude")
+}
+
+model influencers {
+    id                Int     @id @default(autoincrement())
+    priority          Int?
+    influencable_type String? @db.VarChar(255)
+    influencable_id   Int?
+}
+
+model internal_videos {
+    id                 Int       @id @default(autoincrement())
+    media_id           Int?
+    video_file_name    String?   @db.VarChar(255)
+    video_content_type String?   @db.VarChar(255)
+    video_file_size    Int?
+    video_updated_at   DateTime? @db.DateTime(0)
+    media_processing   Boolean?
+    created_at         DateTime  @db.DateTime(0)
+    updated_at         DateTime  @db.DateTime(0)
+    video_width        Int?
+    video_height       Int?
+}
+
+model invitations {
+    id              Int      @id @default(autoincrement())
+    email           String?  @db.VarChar(255)
+    created_at      DateTime @db.DateTime(0)
+    updated_at      DateTime @db.DateTime(0)
+    content         String?  @db.Text
+    invitable_type  String?  @db.VarChar(255)
+    invitable_id    Int?
+    user_id         Int?
+    invited_user_id Int?
+
+    @@index([invitable_id], map: "invitableid")
+    @@index([user_id], map: "userid")
+}
+
+model items {
+    id          Int      @id @default(autoincrement())
+    name        String?  @db.VarChar(255)
+    position    Int?
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+    preposition String?  @db.VarChar(255)
+    year        Int?
+}
+
+model job_offers {
+    id          Int      @id @default(autoincrement())
+    title       String?  @db.VarChar(255)
+    description String?  @db.Text
+    department  String?  @db.VarChar(255)
+    location    String?  @db.VarChar(255)
+    status      Int?
+    active      Boolean?
+    slug        String?  @db.VarChar(255)
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+
+    @@index([slug], map: "index_job_offers_on_slug")
+}
+
+model likes {
+    id           Int       @id @default(autoincrement())
+    likable_type String?
+    likable_id   Int?
+    created_at   DateTime  @db.DateTime(0)
+    updated_at   DateTime  @db.DateTime(0)
+    deleted_at   DateTime? @db.DateTime(0)
+    author_id    Int?
+    author_type  String?   @db.VarChar(255)
+
+    @@index([deleted_at], map: "index_likes_on_deleted_at")
+    @@index([likable_id, likable_type], map: "index_likes_on_likable_id_and_likable_type")
+}
+
+model linked_clubs {
+    id         Int      @id @default(autoincrement())
+    owner_id   Int?
+    owner_type String?  @db.VarChar(255)
+    club_id    Int?
+    persistent Boolean?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model logins {
+    id           Int       @id @default(autoincrement())
+    ip           String?   @db.TinyText
+    logged_in_at DateTime? @db.DateTime(0)
+    user_id      Int?
+    latitude     Float?    @db.Float
+    longitude    Float?    @db.Float
+    country_id   Int?
+    device_desc  String?   @db.Text
+    device_type  String?   @db.TinyText
+    created_at   DateTime? @db.DateTime(0)
+    updated_at   DateTime? @db.DateTime(0)
+
+    @@index([country_id], map: "index_logins_on_country_id")
+    @@index([logged_in_at], map: "index_logins_on_logged_in_at")
+    @@index([user_id], map: "index_logins_on_user_id")
+}
+
+model medias {
+    id            Int       @id @default(autoincrement())
+    mediable_type String?   @db.VarChar(255)
+    mediable_id   Int?
+    owner_type    String?   @db.VarChar(255)
+    owner_id      Int?
+    created_at    DateTime? @db.DateTime(0)
+    updated_at    DateTime? @db.DateTime(0)
+}
+
+model membership_wishes {
+    id           Int       @id @default(autoincrement())
+    user_id      Int?
+    created_at   DateTime? @db.DateTime(0)
+    updated_at   DateTime? @db.DateTime(0)
+    has_accepted Boolean?
+    club_id      Int?
+
+    @@index([user_id], map: "index_membership_wishes_on_user_id")
+}
+
+model merged_pictures {
+    id         Int      @id @default(autoincrement())
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model merged_pictures_pictures {
+    id                Int      @id @default(autoincrement())
+    merged_picture_id Int?
+    picture_id        Int?
+    created_at        DateTime @db.DateTime(0)
+    updated_at        DateTime @db.DateTime(0)
+
+    @@index([merged_picture_id], map: "index_merged_pictures_pictures_on_merged_picture_id")
+    @@index([picture_id], map: "index_merged_pictures_pictures_on_picture_id")
+}
+
+model merged_relationships {
+    id         Int      @id @default(autoincrement())
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model merged_relationships_relationships {
+    id                     Int      @id @default(autoincrement())
+    merged_relationship_id Int?
+    relationship_id        Int?
+    created_at             DateTime @db.DateTime(0)
+    updated_at             DateTime @db.DateTime(0)
+
+    @@index([merged_relationship_id], map: "index_mrr_on_merged_relationship_id")
+    @@index([relationship_id], map: "index_mrr_on_relationship_id")
+}
+
+model message_reads {
+    id         Int      @id @default(autoincrement())
+    message_id Int?
+    user_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+    status     String?  @db.VarChar(255)
+
+    @@index([user_id], map: "useridmessageread")
+}
+
+model messages {
+    id            Int      @id @default(autoincrement())
+    discussion_id Int?
+    user_id       Int?
+    content       String?  @db.Text
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    deleted_at    DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+
+    @@index([discussion_id], map: "index_messages_on_discussion_id")
+    @@index([user_id], map: "index_messages_on_discussion_id_and_sender_id")
+}
+
+model metatags {
+    id          Int     @id @default(autoincrement())
+    url         String? @db.VarChar(255)
+    description String? @db.VarChar(400)
+    title       String? @db.VarChar(255)
+    image       String? @db.VarChar(255)
+}
+
+model meteos {
+    id            Int       @id @default(autoincrement())
+    wind          Int?
+    longitude     Int?
+    latitude      Int?
+    icon          String?   @db.VarChar(255)
+    day           DateTime? @db.DateTime(0)
+    created_at    DateTime? @db.DateTime(0)
+    updated_at    DateTime? @db.DateTime(0)
+    temperature_c Int?
+    temperature_f Int?
+
+    @@index([day], map: "index_meteos_on_day")
+    @@index([latitude], map: "index_meteos_on_latitude")
+    @@index([longitude], map: "index_meteos_on_longitude")
+}
+
+model models_links {
+    id          Int      @id @default(autoincrement())
+    source_type String?  @db.VarChar(255)
+    source_id   Int?
+    target_type String?  @db.VarChar(255)
+    target_id   Int?
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+}
+
+model multimedias {
+    id         Int      @id @default(autoincrement())
+    owner_id   Int?
+    owner_type String?  @db.VarChar(255)
+    media_id   Int?
+    media_type String?  @db.VarChar(255)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model notation_labels {
+    id          Int  @id @default(autoincrement())
+    notation_id Int?
+    label       Int?
+    score       Int?
+    user_id     Int?
+}
+
+model notations {
+    id           Int       @id @default(autoincrement())
+    notable_type String?   @db.VarChar(255)
+    notable_id   Int?
+    author_id    Int?
+    score        Int?
+    pros         String?   @db.VarChar(255)
+    cons         String?   @db.VarChar(255)
+    created_at   DateTime? @db.DateTime(0)
+    updated_at   DateTime? @db.DateTime(0)
+}
+
+model notices {
+    id          Int      @id @default(autoincrement())
+    user_id     Int?
+    review_id   Int?
+    notice_type Int?
+    created_at  DateTime @db.DateTime(0)
+    updated_at  DateTime @db.DateTime(0)
+}
+
+model notification_dispatches {
+    id                    Int                     @id @default(autoincrement())
+    dispatcher_name       String?                 @db.VarChar(255)
+    args                  String?                 @db.Text
+    current_user_id       Int?
+    created_at            DateTime                @db.DateTime(0)
+    updated_at            DateTime                @db.DateTime(0)
+    error                 String?                 @db.Text
+    notification_notifies notification_notifies[]
+}
+
+model notification_notifies {
+    id                            Int                             @id @default(autoincrement())
+    dispatch_id                   Int?
+    notifier_name                 String?                         @db.VarChar(255)
+    error                         String?                         @db.Text
+    disabled                      Boolean?
+    created_at                    DateTime                        @db.DateTime(0)
+    updated_at                    DateTime                        @db.DateTime(0)
+    identifier                    String?                         @db.Text
+    notification_dispatches       notification_dispatches?        @relation(fields: [dispatch_id], references: [id], onDelete: Cascade, map: "notification_notifies_ibfk_1")
+    notification_notifies_targets notification_notifies_targets[]
+
+    @@index([dispatch_id], map: "dispatch_id")
+}
+
+model notification_notifies_targets {
+    id                    Int                    @id @default(autoincrement())
+    notify_id             Int?
+    target_type           String?                @db.VarChar(255)
+    target_id             Int?
+    disabled              Boolean?
+    created_at            DateTime               @db.DateTime(0)
+    updated_at            DateTime               @db.DateTime(0)
+    notification_notifies notification_notifies? @relation(fields: [notify_id], references: [id], onDelete: Cascade, map: "notification_notifies_targets_ibfk_1")
+
+    @@index([notify_id], map: "notify_id")
+}
+
+model notifications {
+    id                Int       @id @default(autoincrement())
+    author_id         Int?
+    notifable_type    String?
+    notifable_id      Int?
+    seen              Boolean?  @default(false)
+    created_at        DateTime  @db.DateTime(0)
+    updated_at        DateTime  @db.DateTime(0)
+    notified_id       Int?
+    notified_type     String?   @db.VarChar(255)
+    author_type       String?   @db.VarChar(255)
+    read              Boolean?  @default(false)
+    notification_type Int?
+    params            String?   @db.Text
+    post_id           Int?
+    version           Int?      @default(2)
+    grouping_key      Int?      @default(0)
+    date              DateTime? @db.DateTime(0)
+
+    @@index([notifable_id, notifable_type], map: "index_likes_on_notifable_id_and_notifable_type")
+    @@index([notified_id], map: "notifiedid")
+}
+
+model opening_days {
+    id         Int      @id @default(autoincrement())
+    club_id    Int?
+    day        String?  @db.VarChar(255)
+    open_time  String?  @db.VarChar(255)
+    close_time String?  @db.VarChar(255)
+    fullday    Boolean?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+    open       Boolean?
+}
+
+model page_admins {
+    id         Int       @id @default(autoincrement())
+    user_id    Int?
+    page_id    Int?
+    created_at DateTime? @db.DateTime(0)
+}
+
+model pages {
+    id                  Int       @id @default(autoincrement())
+    name                String?   @db.VarChar(255)
+    slug                String?   @db.VarChar(255)
+    description         String?   @db.VarChar(255)
+    website             String?   @db.VarChar(255)
+    email               String?   @db.VarChar(255)
+    logo_file_name      String?   @db.VarChar(255)
+    logo_content_type   String?   @db.VarChar(255)
+    logo_file_size      Int?
+    logo_updated_at     DateTime? @db.DateTime(0)
+    deleted_at          DateTime  @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    hide                Boolean?  @default(true)
+    logo_picture_id     Int?      @default(3)
+    created_at          DateTime  @db.DateTime(0)
+    updated_at          DateTime  @db.DateTime(0)
+    category            String?   @db.VarChar(255)
+    suggestion_priority Int?
+
+    @@index([deleted_at], map: "index_pages_on_deleted_at")
+    @@index([slug], map: "index_pages_on_slug")
+}
+
+model pdfs {
+    id                Int       @id @default(autoincrement())
+    attachment_id     Int?
+    file_file_name    String?   @db.VarChar(255)
+    file_content_type String?   @db.VarChar(255)
+    file_file_size    Int?
+    file_updated_at   DateTime? @db.DateTime(0)
+    media_processing  Boolean?  @default(true)
+    created_at        DateTime? @db.DateTime(0)
+    updated_at        DateTime? @db.DateTime(0)
+}
+
+model pictures {
+    id                   Int      @id @default(autoincrement())
+    title                String?  @db.VarChar(255)
+    content              String?  @db.Text
+    album_id             Int?
+    picture_file_name    String?  @db.VarChar(255)
+    picture_content_type String?  @db.VarChar(255)
+    picture_file_size    Int?
+    created_at           DateTime @db.DateTime(0)
+    updated_at           DateTime @db.DateTime(0)
+    position             Int?
+    width                Int?
+    height               Int?
+    club_id              Int?
+    picture_url_shortcut String?  @db.VarChar(255)
+    deleted_at           DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    media_processing     Int?     @default(0) @db.TinyInt
+    media_id             Int?
+    album_position       Float?   @db.Float
+
+    @@index([album_id], map: "index_pictures_on_album_id")
+    @@index([deleted_at], map: "index_pictures_on_deleted_at")
+}
+
+model places {
+    id            Int      @id @default(autoincrement())
+    club_id       Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    placable_type String?  @db.VarChar(255)
+    placable_id   Int?
+    hand_picked   Int?
+    user_id       Int?
+    distance      Float?   @db.Float
+    priority      Int?     @default(0)
+
+    @@index([user_id], map: "idx_count_by_user")
+    @@index([club_id], map: "index_places_on_club_id")
+    @@index([placable_id], map: "placableid")
+}
+
+model post_views {
+    id         Int      @id @default(autoincrement())
+    user_id    Int?
+    post_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model posts {
+    id            Int           @id @default(autoincrement())
+    postable_type String?
+    postable_id   Int?
+    created_at    DateTime      @db.DateTime(0)
+    updated_at    DateTime      @db.DateTime(0)
+    shared_from   Int?
+    posted_id     Int?
+    posted_type   String?
+    items         String?       @db.Text
+    video_link    String?       @db.VarChar(255)
+    web_link      String?       @db.VarChar(255)
+    publish       DateTime?     @db.DateTime(0)
+    author_id     Int?
+    author_type   String?       @db.VarChar(255)
+    action        Int?          @default(0)
+    posts_views   posts_views[]
+
+    @@index([author_id], map: "postauthorid")
+    @@index([postable_id], map: "postpostableid")
+    @@index([posted_id], map: "postpostedid")
+}
+
+model posts_views {
+    id         Int       @id @default(autoincrement())
+    user_id    Int?
+    post_id    Int?
+    created_at DateTime? @db.DateTime(0)
+    updated_at DateTime? @db.DateTime(0)
+    posts      posts?    @relation(fields: [post_id], references: [id], onDelete: Cascade, map: "posts_views_ibfk_2")
+    users      users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, map: "posts_views_ibfk_1")
+
+    @@index([post_id], map: "post_id")
+    @@index([user_id], map: "user_id")
+}
+
+model prices {
+    id            Int     @id @default(autoincrement())
+    pricable_id   Int?
+    pricable_type String? @db.VarChar(255)
+    currency      String? @db.VarChar(255)
+    price_value   Int?
+    description   String? @db.VarChar(255)
+    title         String? @db.VarChar(255)
+}
+
+model prizes {
+    id          Int     @id @default(autoincrement())
+    picture_id  Int?
+    description String? @db.MediumText
+    title       String? @db.VarChar(255)
+    sponsor_id  Int?
+}
+
+model products {
+    id                 Int                @id @default(autoincrement())
+    name               String?
+    brand_id           Int?
+    item_id            Int?
+    photo_file_name    String?            @db.VarChar(255)
+    photo_content_type String?            @db.VarChar(255)
+    photo_file_size    Int?
+    photo_updated_at   DateTime?          @db.DateTime(0)
+    created_at         DateTime           @db.DateTime(0)
+    updated_at         DateTime           @db.DateTime(0)
+    year               Int?
+    product_type       String?            @db.VarChar(255)
+    album_id           Int?
+    description        String?            @db.Text
+    price_id           Int?
+    spec_picture_id    Int?
+    slug               String?            @db.VarChar(255)
+    internal_video_id  Int?
+    website            String?            @db.VarChar(255)
+    score              Float?             @db.Float
+    score_feel         Float?             @db.Float
+    score_accuracy     Float?             @db.Float
+    score_distance     Float?             @db.Float
+    score_forgiveness  Float?             @db.Float
+    score_design       Float?             @db.Float
+    picture_id         Int?
+    gender_restriction Int?
+    products_reviews   products_reviews[]
+
+    @@index([brand_id], map: "index_products_on_brand_id")
+    @@index([item_id], map: "index_products_on_item_id")
+    @@index([name], map: "index_products_on_name")
+    @@index([slug], map: "index_products_on_slug")
+}
+
+model products_reviews {
+    id                Int       @id @default(autoincrement())
+    pros              String?   @db.Text
+    cons              String?   @db.Text
+    score             Int?
+    score_feel        Int?
+    score_accuracy    Int?
+    score_distance    Int?
+    score_forgiveness Int?
+    score_design      Int?
+    online            Boolean?
+    user_id           Int?
+    product_id        Int?
+    deleted_at        DateTime  @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    created_at        DateTime  @db.DateTime(0)
+    updated_at        DateTime  @db.DateTime(0)
+    products          products? @relation(fields: [product_id], references: [id], onDelete: Cascade, map: "products_reviews_ibfk_2")
+    users             users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "products_reviews_ibfk_1")
+
+    @@index([product_id], map: "product_id")
+    @@index([user_id], map: "user_id")
+}
+
+model rankings {
+    id      Int  @id @default(autoincrement())
+    user_id Int?
+}
+
+model relationships {
+    id           Int      @id @default(autoincrement())
+    user_id      Int?
+    target_id    Int?
+    state        String?  @db.VarChar(255)
+    created_at   DateTime @db.DateTime(0)
+    updated_at   DateTime @db.DateTime(0)
+    target_state String?  @db.VarChar(255)
+
+    @@unique([user_id, target_id], map: "idxuniqusertarget")
+    @@index([target_id], map: "idx_target")
+    @@index([user_id], map: "idx_user_issou")
+}
+
+model reports {
+    id              Int      @id @default(autoincrement())
+    user_id         Int?
+    reportable_type String?
+    reportable_id   Int?
+    content         String?  @db.Text
+    created_at      DateTime @db.DateTime(0)
+    updated_at      DateTime @db.DateTime(0)
+
+    @@index([reportable_type, reportable_id], map: "index_reports_on_reportable_type_and_reportable_id")
+}
+
+model restaurants {
+    id           Int      @id @default(autoincrement())
+    cooking_type String?  @db.VarChar(255)
+    club_id      Int?
+    created_at   DateTime @db.DateTime(0)
+    updated_at   DateTime @db.DateTime(0)
+}
+
+model review_stats {
+    id         Int  @id @default(autoincrement())
+    club_id    Int?
+    nb_reviews Int?
+    average    Int?
+
+    @@index([club_id], map: "clubidreviewstat")
+}
+
+model reviews {
+    id         Int      @id @default(autoincrement())
+    club_id    Int?
+    user_id    Int?
+    score      Int?
+    content    String?  @db.Text
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+    online     Boolean? @default(false)
+    deleted_at DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+
+    @@index([club_id], map: "index_reviews_on_club_id")
+    @@index([user_id], map: "index_reviews_on_user_id")
+}
+
+model roles {
+    id            Int      @id @default(autoincrement())
+    name          String?
+    resource_id   Int?
+    resource_type String?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+}
+
+model saved_errors {
+    id                            Int       @id @default(autoincrement())
+    current_user_id               Int?
+    environment                   String?   @db.VarChar(255)
+    kind                          Int?
+    code                          String?   @db.VarChar(255)
+    operation_name                String?   @db.VarChar(255)
+    origin                        String?   @db.VarChar(255)
+    variables                     String?   @db.Text
+    query                         String?   @db.Text
+    message                       String?   @db.Text
+    stack                         String?   @db.Text
+    num_occurences                Int?
+    num_occurences_when_discarded Int?
+    discarded_at                  DateTime? @db.DateTime(0)
+    created_at                    DateTime  @db.DateTime(0)
+    updated_at                    DateTime  @db.DateTime(0)
+    user_agent                    String?   @db.VarChar(255)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model schema_migrations {
+    version String? @unique(map: "unique_schema_migrations")
+
+    @@ignore
+}
+
+model serialized_amenities {
+    id              Int      @id @default(autoincrement())
+    serialized_data String?  @db.Text
+    club_id         Int?
+    user_id         Int?
+    approved        Boolean?
+    created_at      DateTime @db.DateTime(0)
+    updated_at      DateTime @db.DateTime(0)
+}
+
+model sessions {
+    id         Int       @id @default(autoincrement())
+    session_id String?   @unique(map: "index_sessions_on_session_id")
+    data       String?   @db.Text
+    created_at DateTime? @db.DateTime(0)
+    updated_at DateTime? @db.DateTime(0)
+
+    @@index([updated_at], map: "index_sessions_on_updated_at")
+}
+
+model shaft_flexes {
+    id           Int      @id @default(autoincrement())
+    torque_min   Float?   @db.Float
+    torque_max   Float?   @db.Float
+    flex_type_id Int?
+    shaft_id     Int?
+    created_at   DateTime @db.DateTime(0)
+    updated_at   DateTime @db.DateTime(0)
+}
+
+model shaft_flexes_types {
+    id         Int      @id @default(autoincrement())
+    name       String?  @db.VarChar(255)
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model shaft_flexes_weights {
+    id         Int      @id @default(autoincrement())
+    weight     Float?   @db.Float
+    flex_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+}
+
+model shaft_products {
+    id                 Int      @id @default(autoincrement())
+    slug               String?  @db.VarChar(255)
+    name               String?  @db.VarChar(255)
+    description        String?  @db.Text
+    brand_id           Int?
+    price_id           Int?
+    album_id           Int?
+    picture_id         Int?
+    internal_video_id  Int?
+    gender_restriction Int?
+    item_type          Int?
+    launch             Int?
+    spin               Int?
+    length             Float?   @db.Float
+    butt_frequency     Float?   @db.Float
+    tip_frequency      Float?   @db.Float
+    tip_diameter       Float?   @db.Float
+    created_at         DateTime @db.DateTime(0)
+    updated_at         DateTime @db.DateTime(0)
+
+    @@index([slug], map: "index_shaft_products_on_slug")
+}
+
+model shoes_sizes {
+    id                 Int      @id @default(autoincrement())
+    size               Float?   @db.Float
+    clothes_product_id Int?
+    created_at         DateTime @db.DateTime(0)
+    updated_at         DateTime @db.DateTime(0)
+}
+
+model signup_stats_followings {
+    id            Int      @id @default(autoincrement())
+    user_id       Int?
+    followed_type String?  @db.VarChar(255)
+    followed_id   Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+}
+
+model signup_stats_user_suggestions {
+    id           Int      @id @default(autoincrement())
+    user_id      Int?
+    num_requests Int?
+    created_at   DateTime @db.DateTime(0)
+    updated_at   DateTime @db.DateTime(0)
+}
+
+model simple_reviews {
+    id            Int      @id @default(autoincrement())
+    content       String?  @db.Text
+    score         Int?
+    author_type   String?  @db.VarChar(255)
+    author_id     Int?
+    reviewed_type String?  @db.VarChar(255)
+    reviewed_id   Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    deleted_at    DateTime @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+
+    @@index([deleted_at], map: "index_simple_reviews_on_deleted_at")
+}
+
+model sinup_stats_followings {
+    id            Int      @id @default(autoincrement())
+    user_id       Int?
+    followed_type String?  @db.VarChar(255)
+    followed_id   Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+}
+
+model slopes {
+    id         Int      @id @default(autoincrement())
+    name       String?  @db.VarChar(255)
+    length     Int?
+    slope      Int?
+    par        Int?
+    club_id    Int?
+    created_at DateTime @db.DateTime(0)
+    updated_at DateTime @db.DateTime(0)
+    unit       String?  @db.VarChar(255)
+}
+
+model slugs {
+    id            Int      @id @default(autoincrement())
+    resource_id   Int?
+    resource_type String?  @db.VarChar(255)
+    slug          String?  @db.VarChar(255)
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    base_slug     String?  @db.VarChar(255)
+    suffix        Int?
+}
+
+model social_network_accounts {
+    id               Int      @id @default(autoincrement())
+    provider         String?  @db.VarChar(255)
+    name             String?  @db.VarChar(255)
+    appid            String?  @db.VarChar(255)
+    token            String?  @db.VarChar(255)
+    club_id          Int?
+    publish          Boolean? @default(false)
+    facebook_user_id String?  @db.VarChar(255)
+    picture_url      String?  @db.VarChar(255)
+    username         String?  @db.VarChar(255)
+    secret_token     String?  @db.VarChar(255)
+}
+
+model sponsors {
+    id                Int       @id @default(autoincrement())
+    name              String?   @db.VarChar(255)
+    logo_file_name    String?   @db.VarChar(255)
+    logo_content_type String?   @db.VarChar(255)
+    logo_file_size    Int?
+    logo_updated_at   DateTime? @db.DateTime(0)
+    sponsorable_type  String?   @db.VarChar(255)
+    sponsorable_id    Int?
+    created_at        DateTime  @db.DateTime(0)
+    updated_at        DateTime  @db.DateTime(0)
+    website           String?   @db.VarChar(255)
+
+    @@index([sponsorable_id], map: "sponsorableid")
+}
+
+model statuses {
+    id                 Int       @id @default(autoincrement())
+    content            String?   @db.Text
+    video_file_name    String?   @db.VarChar(255)
+    video_content_type String?   @db.VarChar(255)
+    video_file_size    Int?
+    video_updated_at   DateTime? @db.DateTime(0)
+    image_file_name    String?   @db.VarChar(255)
+    image_content_type String?   @db.VarChar(255)
+    image_file_size    Int?
+    image_updated_at   DateTime? @db.DateTime(0)
+    created_at         DateTime  @db.DateTime(0)
+    updated_at         DateTime  @db.DateTime(0)
+    private            Boolean?  @default(false)
+    publish            DateTime? @db.DateTime(0)
+    author_id          Int?
+    author_type        String?   @db.VarChar(255)
+    external_video_id  Int?
+    online             Boolean?  @default(true)
+    video_processing   Boolean?
+    image_width        Int?
+    image_height       Int?
+    media_processing   Boolean?  @default(false)
+    push               Boolean?  @default(false)
+    video_width        Int?
+    video_height       Int?
+
+    @@index([author_id], map: "statusauthorid")
+}
+
+model sticky_note_users {
+    id             Int      @id @default(autoincrement())
+    user_id        Int?
+    sticky_note_id Int?
+    seen           Boolean?
+    clicked        Boolean?
+}
+
+model sticky_notes {
+    id                 Int                  @id @default(autoincrement())
+    user_id            Int?
+    picture_id         Int?
+    external_video_id  Int?
+    created_at         DateTime             @db.DateTime(0)
+    updated_at         DateTime             @db.DateTime(0)
+    content            String?              @db.Text
+    sticky_notes_users sticky_notes_users[]
+}
+
+model sticky_notes_users {
+    id             Int           @id @default(autoincrement())
+    user_id        Int?
+    sticky_note_id Int?
+    seen           Boolean?      @default(false)
+    clicked        Boolean?      @default(false)
+    sticky_notes   sticky_notes? @relation(fields: [sticky_note_id], references: [id], onDelete: Cascade, map: "sticky_notes_users_ibfk_2")
+    users          users?        @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "sticky_notes_users_ibfk_1")
+
+    @@index([sticky_note_id], map: "sticky_note_id")
+    @@index([user_id], map: "user_id")
+}
+
+model suggestions {
+    id                BigInt   @id @default(autoincrement())
+    user_id           Int?
+    suggested_user_id Int?
+    nb_time_displayed Int?     @default(0)
+    rejected          Boolean? @default(false)
+    accepted          Boolean? @default(false)
+    match_score       Int?     @default(0)
+
+    @@index([suggested_user_id], map: "index_suggestions_on_suggested_user_id")
+    @@index([user_id], map: "index_suggestions_on_user_id")
+    @@index([user_id, suggested_user_id], map: "user_id_suggested_user_id")
+}
+
+model suggestions_views {
+    id                Int      @id @default(autoincrement())
+    user_id           Int?
+    suggested_user_id Int?
+    created_at        DateTime @db.DateTime(0)
+    updated_at        DateTime @db.DateTime(0)
+    users             users?   @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "suggestions_views_ibfk_1")
+
+    @@index([suggested_user_id], map: "suggested_user_id")
+    @@index([user_id], map: "user_id")
+    @@index([user_id, suggested_user_id], map: "user_id_suggested_user_id")
+}
+
+model tagged_items {
+    id            Int      @id @default(autoincrement())
+    tagged_type   String?  @db.VarChar(255)
+    tagged_id     Int?
+    taggable_type String?  @db.VarChar(255)
+    taggable_id   Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+
+    @@index([tagged_id], map: "taggedid")
+}
+
+model tags {
+    id            Int     @id @default(autoincrement())
+    tagged_id     Int?
+    tagged_type   String? @db.VarChar(255)
+    attachment_id Int?
+}
+
+model texts {
+    id            Int     @id @default(autoincrement())
+    content       String? @db.VarChar(255)
+    attachment_id Int?
+}
+
+model tokens {
+    id                   Int       @id @default(autoincrement())
+    user_id              Int?
+    token                String?   @db.MediumText
+    created_at           DateTime? @db.DateTime(0)
+    updated_at           DateTime? @db.DateTime(0)
+    application          String?   @db.VarChar(255)
+    refresh_token        String?   @db.MediumText
+    refresh_token_expire DateTime? @db.DateTime(0)
+    scope                String?   @db.VarChar(255)
+    expire_at            DateTime? @db.DateTime(0)
+    deleted_at           DateTime? @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+
+    @@index([user_id], map: "index_token_user")
+}
+
+model travels {
+    id             Int       @id @default(autoincrement())
+    user_id        Int?
+    starts_at      DateTime? @db.DateTime(0)
+    ends_at        DateTime? @db.DateTime(0)
+    budget         String?   @db.VarChar(255)
+    comment        String?   @db.Text
+    created_at     DateTime  @db.DateTime(0)
+    updated_at     DateTime  @db.DateTime(0)
+    firstname      String?   @db.VarChar(255)
+    lastname       String?   @db.VarChar(255)
+    email          String?   @db.VarChar(255)
+    currency       String?   @db.VarChar(255)
+    responsible_id Int?
+    current_status String?   @db.VarChar(255)
+    comment_status String?   @db.VarChar(255)
+    priority       Int?      @default(0)
+}
+
+model trending_categories {
+    id               Int      @id @default(autoincrement())
+    name             String?  @db.VarChar(255)
+    item_type        String?  @db.VarChar(255)
+    slug             String?  @db.VarChar(255)
+    randomize        Boolean?
+    description      String?  @db.Text
+    ranking_type     String?  @db.VarChar(255)
+    virtual_type     Int?     @default(-1)
+    parent_area_type String?  @db.VarChar(255)
+    parent_area_id   Int?
+    sitemap          Boolean? @default(true)
+
+    @@index([slug], map: "index_trending_categories_on_slug")
+}
+
+model trending_categories_items {
+    id          Int  @id @default(autoincrement())
+    category_id Int?
+    item_id     Int?
+}
+
+model unsent_pushes {
+    id            Int     @id @default(autoincrement())
+    push_type     String? @db.VarChar(255)
+    message       String? @db.VarChar(255)
+    data_id       Int?
+    error_message String? @db.VarChar(255)
+    error_status  String? @db.VarChar(255)
+}
+
+model unsent_pushes_users {
+    id             Int  @id @default(autoincrement())
+    unsent_push_id Int?
+    user_id        Int?
+}
+
+model user_club_activities {
+    id                 Int      @id @default(autoincrement())
+    user_id            Int?
+    club_id            Int?
+    review_score       Int?
+    following          Boolean?
+    checked_in         Boolean?
+    played             Int?     @default(0)
+    wishing            Boolean?
+    wishing_membership Boolean?
+    clubs              clubs?   @relation(fields: [club_id], references: [id], onDelete: Cascade, map: "user_club_activities_ibfk_2")
+    users              users?   @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "user_club_activities_ibfk_1")
+
+    @@index([club_id], map: "club_id")
+    @@index([user_id], map: "user_id_idx")
+}
+
+model user_products {
+    id           Int      @id @default(autoincrement())
+    user_id      Int?
+    item_id      Int?
+    product_id   Int?
+    created_at   DateTime @db.DateTime(0)
+    updated_at   DateTime @db.DateTime(0)
+    year         Int?
+    product_type String?  @db.VarChar(255)
+
+    @@index([product_id], map: "index_equipment_on_product_id")
+    @@index([user_id], map: "index_equipment_on_user_id")
+}
+
+model usernames {
+    id               Int      @id @default(autoincrement())
+    name             String?  @db.VarChar(255)
+    usernamable_type String?
+    usernamable_id   Int?
+    created_at       DateTime @db.DateTime(0)
+    updated_at       DateTime @db.DateTime(0)
+
+    @@index([usernamable_id, usernamable_type], map: "index_usernames_on_usernamable_id_and_usernamable_type")
+}
+
+model users {
+    id                       Int                    @id @default(autoincrement())
+    email                    String?                @db.VarChar(255)
+    encrypted_password       String?                @db.VarChar(255)
+    reset_password_token     String?
+    reset_password_sent_at   DateTime?              @db.DateTime(0)
+    remember_created_at      DateTime?              @db.DateTime(0)
+    sign_in_count            Int?                   @default(0)
+    current_sign_in_at       DateTime?              @db.DateTime(0)
+    last_sign_in_at          DateTime?              @db.DateTime(0)
+    current_sign_in_ip       String?                @db.VarChar(255)
+    last_sign_in_ip          String?                @db.VarChar(255)
+    created_at               DateTime               @db.DateTime(0)
+    updated_at               DateTime               @db.DateTime(0)
+    firstname                String?                @db.VarChar(255)
+    lastname                 String?                @db.VarChar(255)
+    provider                 String?
+    uid                      String?
+    username                 String?                @db.VarChar(255)
+    oauth_token              String?                @db.VarChar(255)
+    oauth_secret             String?                @db.VarChar(255)
+    oauth_expires_at         DateTime?              @db.DateTime(0)
+    city                     String?                @db.VarChar(255)
+    country_id               Int?
+    from_country_id          Int?
+    club_id                  Int?
+    handicap                 Int?
+    work                     String?                @db.VarChar(255)
+    points                   Int?                   @default(0)
+    latitude                 Float?                 @db.Float
+    longitude                Float?                 @db.Float
+    job                      String?                @db.VarChar(255)
+    sex                      Int?
+    authentication_token     String?                @unique(map: "index_users_on_authentication_token")
+    enable_notifications     Boolean?               @default(true)
+    birthdate                DateTime?              @db.Date
+    notification_token       String?                @db.VarChar(255)
+    mixpanel_distinct_id     String?                @db.Text
+    slug                     String?
+    description              String?                @db.Text
+    confirmation_token       String?
+    confirmed_at             DateTime?              @db.DateTime(0)
+    confirmation_sent_at     DateTime?              @db.DateTime(0)
+    unconfirmed_email        String?                @db.VarChar(255)
+    tokens                   String?                @db.Text
+    official                 Boolean?               @default(false)
+    deleted_at               DateTime               @default(dbgenerated("'1970-01-01 00:00:00'")) @db.DateTime(0)
+    step                     String?                @default("step1") @db.VarChar(255)
+    ip_address               String?                @db.VarChar(255)
+    no_club                  Boolean?               @default(false)
+    pro                      Boolean?               @default(false)
+    ranking_id               Int?
+    address_id               Int?
+    private                  Boolean?               @default(false)
+    miles                    Boolean?
+    fahrenheit               Boolean?
+    ambassador_club_id       Int?
+    profile_picture_id       Int?                   @default(2)
+    cover_picture_id         Int?                   @default(1)
+    ios_app                  Boolean?               @default(false)
+    android_app              Boolean?               @default(false)
+    verified_ambassador      Boolean?               @default(false)
+    signup_nb_courses_played String?                @db.VarChar(10)
+    is_admin                 Boolean?               @default(false)
+    location                 String?                @db.VarChar(255)
+    google_place_id          String?                @db.VarChar(255)
+    clubs_administrators     clubs_administrators[]
+    posts_views              posts_views[]
+    products_reviews         products_reviews[]
+    sticky_notes_users       sticky_notes_users[]
+    suggestions_views        suggestions_views[]
+    user_club_activities     user_club_activities[]
+
+    @@index([deleted_at], map: "index_users_on_deleted_at")
+    @@index([uid, provider], map: "index_users_on_provider_and_uid")
+    @@index([slug], map: "index_users_on_slug")
+    @@index([club_id], map: "usersclubid")
+}
+
+model users_interactions {
+    id            Int      @id @default(autoincrement())
+    user_id       Int?
+    resource_type String?  @db.VarChar(255)
+    resource_id   Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    platform      Int?
+    action        String?  @db.VarChar(255)
+    referrer      String?  @db.VarChar(255)
+}
+
+model users_roles {
+    user_id Int?
+    role_id Int?
+    id      Int  @id @default(autoincrement())
+
+    @@index([user_id, role_id], map: "index_users_roles_on_user_id_and_role_id")
+}
+
+model versions {
+    id         Int       @id @default(autoincrement())
+    item_type  String?
+    item_id    Int
+    event      String?   @db.VarChar(255)
+    whodunnit  String?   @db.VarChar(255)
+    object     String?   @db.Text
+    created_at DateTime? @db.DateTime(0)
+
+    @@index([item_id], map: "index_versions_on_item_id")
+    @@index([item_type], map: "index_versions_on_item_type")
+}
+
+model villas {
+    id        Int     @id @default(autoincrement())
+    name      String? @db.VarChar(255)
+    link      String? @db.VarChar(255)
+    city      String? @db.VarChar(255)
+    address   String? @db.VarChar(255)
+    latitude  Float?  @db.Float
+    longitude Float?  @db.Float
+}
+
+model visits {
+    id               Bytes     @id @db.Binary(16)
+    visitor_id       Bytes?    @db.Binary(16)
+    ip               String?   @db.VarChar(255)
+    user_agent       String?   @db.Text
+    referrer         String?   @db.Text
+    landing_page     String?   @db.Text
+    user_id          Int?
+    referring_domain String?   @db.VarChar(255)
+    search_keyword   String?   @db.VarChar(255)
+    browser          String?   @db.VarChar(255)
+    os               String?   @db.VarChar(255)
+    device_type      String?   @db.VarChar(255)
+    screen_height    Int?
+    screen_width     Int?
+    country          String?   @db.VarChar(255)
+    region           String?   @db.VarChar(255)
+    city             String?   @db.VarChar(255)
+    utm_source       String?   @db.VarChar(255)
+    utm_medium       String?   @db.VarChar(255)
+    utm_term         String?   @db.VarChar(255)
+    utm_content      String?   @db.VarChar(255)
+    utm_campaign     String?   @db.VarChar(255)
+    started_at       DateTime? @db.DateTime(0)
+    created_at       DateTime? @db.DateTime(0)
+    updated_at       DateTime? @db.DateTime(0)
+
+    @@index([id], map: "index_visits_on_id")
+    @@index([user_id], map: "index_visits_on_user_id")
+    @@index([visitor_id], map: "index_visits_on_visitor_id")
+}
+
+model votes {
+    id            Int      @id @default(autoincrement())
+    resource_id   Int?
+    user_id       Int?
+    value         Int?
+    resource_type String?  @db.VarChar(255)
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+
+    @@index([resource_id], map: "review_id")
+}
+
+model weathers {
+    id               Int       @id @default(autoincrement())
+    date             DateTime? @db.DateTime(0)
+    description      String?   @db.VarChar(255)
+    temp_min         Int?
+    temp_max         Int?
+    wind_speed       Int?
+    weathering       Int?
+    weatherable_type String?   @db.VarChar(255)
+    weatherable_id   Int?
+    wind_direction   Int?
+}
+
+model wishes {
+    id            Int      @id @default(autoincrement())
+    user_id       Int?
+    created_at    DateTime @db.DateTime(0)
+    updated_at    DateTime @db.DateTime(0)
+    wishable_id   Int?
+    wishable_type String?  @db.VarChar(255)
+
+    @@index([user_id], map: "index_wishes_on_user_id")
+}

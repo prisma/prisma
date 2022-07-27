@@ -1,11 +1,49 @@
 import { serializeQueryEngineName } from '@prisma/internals'
+import fs from 'fs'
+import lzString from 'lz-string'
+import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { getDMMF } from '../generation/getDMMF'
+import { escapeJson } from '../generation/TSClient/helpers'
+
+function getBytes(string) {
+  return Buffer.byteLength(string, 'utf8')
+}
+
+function formatBytes(bytes, decimals = 2) {
+  if (bytes === 0) return '0 Bytes'
+
+  const k = 1024
+  const dm = decimals < 0 ? 0 : decimals
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB']
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+}
+
+async function computeDMMFSizeAndPrint(schema) {
+  const modelsCount = (schema.match(/^model\s+/gm) || []).length
+
+  // See buildDMMF()
+  const dmmf = await getDMMF({ datamodel: schema })
+  const { datamodel, mappings } = dmmf
+  const dmmfString = escapeJson(JSON.stringify({ datamodel, mappings }))
+
+  // Uncompressed
+  const dmmfStringSize = getBytes(dmmfString)
+  console.log(`dmmf ${modelsCount} models size: ${formatBytes(dmmfStringSize)}`)
+
+  // Compressed = Data Proxy
+  const compressedDMMF = lzString.compressToBase64(dmmfString)
+  const compressedDMMFSize = getBytes(compressedDMMF)
+  console.log(`dmmf ${modelsCount} models compressed size: ${formatBytes(compressedDMMFSize)}`)
+}
 
 describe('dmmf', () => {
   test('dmmf enum filter mysql', async () => {
-    const datamodel = `
+    const datamodel = /* Prisma */ `
       datasource db {
         provider = "mysql"
         url      = env("MY_MYSQL_DB")
@@ -166,7 +204,7 @@ describe('dmmf', () => {
   })
 
   test('dmmf enum filter postgresql', async () => {
-    const datamodel = `
+    const datamodel = /* Prisma */ `
       datasource db {
         provider = "postgresql"
         url      = env("MY_POSTGRES_DB")
@@ -327,7 +365,7 @@ describe('dmmf', () => {
   })
 
   test('dmmf enum should fail on sqlite', async () => {
-    const datamodel = `
+    const datamodel = /* Prisma */ `
       datasource db {
         provider = "sqlite"
         url      = "file:./dev.db"
@@ -366,5 +404,44 @@ describe('dmmf', () => {
         Prisma CLI Version : 0.0.0
       `)
     }
+  })
+})
+
+describe('dmmf sizes', () => {
+  test('dmmf 1 model size', async () => {
+    const schema = /* Prisma */ `
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  name String
+  email String @unique
+  kind PostKind
+}
+
+enum PostKind {
+  NICE
+  AWESOME
+}`
+
+    await computeDMMFSizeAndPrint(schema)
+  })
+
+  test('dmmf 10 models size', async () => {
+    const schema = fs.readFileSync(path.join(__dirname, 'schemas', 'postgresql.10models.prisma'), 'utf-8')
+    await computeDMMFSizeAndPrint(schema)
+  })
+
+  test('dmmf northwind 20 models size', async () => {
+    const schema = fs.readFileSync(path.join(__dirname, 'schemas', 'mariadb.northwind.prisma'), 'utf-8')
+    await computeDMMFSizeAndPrint(schema)
+  })
+
+  test('dmmf allsquare 200 models size', async () => {
+    const schema = fs.readFileSync(path.join(__dirname, 'schemas', 'mysql.allsquare.prisma'), 'utf-8')
+    await computeDMMFSizeAndPrint(schema)
   })
 })
