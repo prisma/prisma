@@ -40,7 +40,7 @@ export async function getSchemaPathInternal(
     return customSchemaPath
   }
 
-  // 2. Try the package.json `schema.prisma` custom path
+  // 2. Try the package.json `prisma.schema` custom path
   // 3. Try the conventional ./schema.prisma or ./prisma/schema.prisma paths
   // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
   const schemaPath =
@@ -291,7 +291,7 @@ export function getSchemaPathSyncInternal(
     return customSchemaPath
   }
 
-  // 2. Try the package.json `schema.prisma` custom path
+  // 2. Try the package.json `prisma.schema` custom path
   // 3. Try the conventional `./schema.prisma` or `./prisma/schema.prisma` paths
   // 4. Try resolving yarn workspaces and looking for a schema.prisma file there
   const schemaPath =
