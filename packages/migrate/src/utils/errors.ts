@@ -8,7 +8,7 @@ export class NoSchemaFoundError extends Error {
         'schema.prisma',
       )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
         '--schema',
-      )}, set it as \`schema.prisma\` in your package.json or put it into the default location ${chalk.greenBright(
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
         './prisma/schema.prisma',
       )} ${link('https://pris.ly/d/prisma-schema-location')}`,
     )
