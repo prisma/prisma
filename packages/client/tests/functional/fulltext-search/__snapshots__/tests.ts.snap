@@ -1,0 +1,27 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`fulltext-search (provider=mysql, previewFeatures=fullTextSearch, fullTextIndex, andQuery=+John +Smith, orQuery=John April, notQuery=John -Smith April, noResultsQuery=+April +Smith, badQuery=John -- Smith) bad query 1`] = `
+
+Invalid \`prisma.user.findMany()\` invocation in
+/client/tests/functional/fulltext-search/tests.ts:81:34
+
+   78 })
+   79 
+   80 test('bad query', async () => {
+→  81   const result = prisma.user.findMany(
+  Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })) })
+`;
+
+exports[`fulltext-search (provider=postgresql, previewFeatures=fullTextSearch, andQuery=John & Smith, orQuery=John  April, notQuery=(John  April) & !Smith, noResultsQuery=April & Smith, badQuery=John Smith) bad query 1`] = `
+
+Invalid \`prisma.user.findMany()\` invocation in
+/client/tests/functional/fulltext-search/tests.ts:81:34
+
+   78 })
+   79 
+   80 test('bad query', async () => {
+→  81   const result = prisma.user.findMany(
+  Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error in tsquery: \\"John Smith\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(514), routine: Some("makepol") }) }) })
+`;
