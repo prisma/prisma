@@ -6,6 +6,8 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
+import { getTraceParent } from '../../../client/src/runtime/utils/otel/getTraceParent'
+import { runInActiveSpan } from '../../../client/src/runtime/utils/otel/runInSpan'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -320,63 +322,87 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   async start(): Promise<void> {
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
+
     if (this.libraryStartingPromise) {
       debug(`library already starting, this.libraryStarted: ${this.libraryStarted}`)
       return this.libraryStartingPromise
     }
-    if (!this.libraryStarted) {
-      this.libraryStartingPromise = new Promise((resolve, reject) => {
-        debug('library starting')
-        this.engine
-          ?.connect({ enableRawQueries: true })
-          .then(() => {
-            this.libraryStarted = true
-            debug('library started')
-            resolve()
-          })
-          .catch((err) => {
-            const error = this.parseInitError(err.message)
-            // The error message thrown by the query engine should be a stringified JSON
-            // if parsing fails then we just reject the error
-            if (typeof error === 'string') {
-              reject(err)
-            } else {
-              reject(new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code))
-            }
-          })
-          .finally(() => {
-            this.libraryStartingPromise = undefined
-          })
-      })
-      return this.libraryStartingPromise
+
+    if (this.libraryStarted) {
+      return
     }
+
+    const tracingConfig = getTracingConfig(this)
+
+    const startFn = async () => {
+      debug('library starting')
+
+      try {
+        await this.engine?.connect(getTraceParent())
+
+        this.libraryStarted = true
+
+        debug('library started')
+      } catch (err) {
+        const error = this.parseInitError(err.message as string)
+
+        // The error message thrown by the query engine should be a stringified JSON
+        // if parsing fails then we just reject the error
+        if (typeof error === 'string') {
+          throw err
+        } else {
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+        }
+      } finally {
+        this.libraryStartingPromise = undefined
+      }
+    }
+
+    if (tracingConfig.enabled) {
+      this.libraryStartingPromise = runInActiveSpan({ name: 'prisma:connect', callback: startFn })
+    } else {
+      this.libraryStartingPromise = startFn()
+    }
+
+    return this.libraryStartingPromise
   }
 
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
+
     if (this.libraryStoppingPromise) {
       debug('library is already stopping')
       return this.libraryStoppingPromise
     }
 
-    if (this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
-        try {
-          await new Promise((r) => setTimeout(r, 5))
-          debug('library stopping')
-          await this.engine?.disconnect()
-          this.libraryStarted = false
-          this.libraryStoppingPromise = undefined
-          debug('library stopped')
-          resolve()
-        } catch (err) {
-          reject(err)
-        }
-      })
-      return this.libraryStoppingPromise
+    if (!this.libraryStarted) {
+      return
     }
+
+    const tracingConfig = getTracingConfig(this)
+
+    const stopFn = async () => {
+      // TODO - What is doing, why '5'?
+      await new Promise((r) => setTimeout(r, 5))
+
+      debug('library stopping')
+
+      await this.engine?.disconnect(getTraceParent())
+
+      this.libraryStarted = false
+      this.libraryStoppingPromise = undefined
+
+      debug('library stopped')
+    }
+
+    if (tracingConfig.enabled) {
+      this.libraryStoppingPromise = runInActiveSpan({ name: 'prisma:disconnect', callback: stopFn })
+    } else {
+      this.libraryStoppingPromise = stopFn()
+    }
+
+    return this.libraryStoppingPromise
   }
 
   async getConfig(): Promise<ConfigMetaFormat> {

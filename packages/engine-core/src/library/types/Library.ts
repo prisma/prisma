@@ -1,12 +1,8 @@
 import type { ConfigMetaFormat, GetConfigOptions, QueryEngineConfig } from '../../common/types/QueryEngine'
 
-export type ConnectArgs = {
-  enableRawQueries: boolean
-}
-
 export type QueryEngineInstance = {
-  connect(connectArgs: ConnectArgs): Promise<void>
-  disconnect(): Promise<void>
+  connect(trace?: string): Promise<void>
+  disconnect(trace?: string): Promise<void>
   /**
    * @param requestStr JSON.stringified `QueryEngineRequest | QueryEngineBatchRequest`
    * @param headersStr JSON.stringified `QueryEngineRequestHeaders`
