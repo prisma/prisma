@@ -1,10 +1,8 @@
-const forceTranspile = require('../../helpers/jest/forceTranspile')
-
 module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: [forceTranspile()],
+  transformIgnorePatterns: [],
   testEnvironment: 'node',
   testMatch: ['**/src/**/*.test.ts'],
   collectCoverage: process.env.CI ? true : false,
