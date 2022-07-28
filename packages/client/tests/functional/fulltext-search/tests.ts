@@ -77,14 +77,20 @@ testMatrix.setupTestSuite(
       expect(result).toEqual([])
     })
 
-    test('bad query', async () => {
-      const result = prisma.user.findMany({
-        where: {
-          name: {
-            search: badQuery,
+    testIf(process.platform !== 'win32')('bad query', async () => {
+      const result = prisma.user
+        .findMany({
+          where: {
+            name: {
+              search: badQuery,
+            },
           },
-        },
-      })
+        })
+        .catch((error) => {
+          // Remove `tsquery.c` line number to make error snapshots portable across PostgreSQL versions.
+          error.message = error.message.replace(/line: Some\(\d+\)/, 'line: Some(0)')
+          throw error
+        })
 
       await expect(result).rejects.toThrowErrorMatchingSnapshot()
     })
