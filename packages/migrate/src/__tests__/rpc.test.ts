@@ -20,10 +20,10 @@ it('evaluateDataLoss - schema-only-sqlite', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = migrate.engine.evaluateDataLoss({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
-    prismaSchema: datamodel,
+    prismaSchema: schema,
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -41,10 +41,10 @@ it('evaluateDataLoss - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = migrate.engine.evaluateDataLoss({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
-    prismaSchema: datamodel,
+    prismaSchema: schema,
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -61,12 +61,12 @@ it('createMigration - existing-db-1-migration', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     migrationName: 'my_migration',
     draft: false,
-    prismaSchema: datamodel,
+    prismaSchema: schema,
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -81,12 +81,12 @@ it('createMigration draft - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     migrationName: 'draft_123',
     draft: true,
-    prismaSchema: datamodel,
+    prismaSchema: schema,
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -175,10 +175,10 @@ it('push', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = migrate.engine.schemaPush({
     force: false,
-    schema: datamodel,
+    schema: schema,
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -195,11 +195,11 @@ it('push should return executedSteps 0 with warning if dataloss detected', async
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
 
   const result = migrate.engine.schemaPush({
     force: false,
-    schema: datamodel.replace('Blog', 'Something'),
+    schema: schema.replace('Blog', 'Something'),
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -218,11 +218,11 @@ it('push force should accept dataloss', async () => {
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
 
   const result = migrate.engine.schemaPush({
     force: true,
-    schema: datamodel.replace('Blog', 'Something'),
+    schema: schema.replace('Blog', 'Something'),
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
@@ -262,12 +262,12 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = await migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     migrationName: 'draft_123',
     draft: true,
-    prismaSchema: datamodel,
+    prismaSchema: schema,
   })
 
   expect(result).toMatchInlineSnapshot(`
@@ -321,12 +321,12 @@ it('markMigrationApplied - existing-db-1-migration', async () => {
   ctx.fixture('existing-db-1-migration')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
-  const datamodel = migrate.getDatamodel()
+  const schema = migrate.getPrismaSchema()
   const result = await migrate.engine.createMigration({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     migrationName: 'draft_123',
     draft: true,
-    prismaSchema: datamodel,
+    prismaSchema: schema,
   })
 
   expect(result).toMatchInlineSnapshot(`
