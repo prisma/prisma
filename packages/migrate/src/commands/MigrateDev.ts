@@ -264,7 +264,7 @@ ${chalk.bold('Examples')}
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
       debug({ createMigrationResult })
 
