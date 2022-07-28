@@ -303,7 +303,7 @@ export interface PrismaClientOptions {
    */
   rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
   /**
-   * Overwrites the datasource url from your prisma.schema file
+   * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
 
