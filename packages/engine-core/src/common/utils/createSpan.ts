@@ -1,4 +1,4 @@
-import { context, HrTime, SpanContext, SpanKind, trace, TraceFlags } from '@opentelemetry/api'
+import { HrTime, ROOT_CONTEXT, SpanContext, SpanKind, trace, TraceFlags } from '@opentelemetry/api'
 import { Span, Tracer } from '@opentelemetry/sdk-trace-base'
 
 import { EngineSpanEvent } from '../types/QueryEngine'
@@ -19,7 +19,7 @@ export function createSpan(engineSpanEvent: EngineSpanEvent) {
 
     const span = new Span(
       tracer,
-      context.active(),
+      ROOT_CONTEXT,
       engineSpan.name,
       spanContext,
       SpanKind.INTERNAL,

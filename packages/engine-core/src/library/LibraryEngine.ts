@@ -31,7 +31,6 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { createSpan } from '../common/utils/createSpan'
-import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
@@ -239,13 +238,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
-    if (!event) {
-      return
-    }
+    if (!event) return
 
     if ('span' in event) {
-      const tracingConfig = getTracingConfig(this)
-      if (tracingConfig.enabled) {
+      if (this.config.tracingConfig.enabled === true) {
         createSpan(event as EngineSpanEvent)
       }
 

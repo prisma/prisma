@@ -32,7 +32,6 @@ import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPromet
 import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { createSpan } from '../common/utils/createSpan'
-import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
@@ -114,6 +113,7 @@ export class BinaryEngine extends Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
+  private tracingConfig: { enabled: boolean }
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -136,6 +136,7 @@ export class BinaryEngine extends Engine {
     allowTriggerPanic,
     dirname,
     activeProvider,
+    tracingConfig,
   }: EngineConfig) {
     super()
 
@@ -148,6 +149,7 @@ export class BinaryEngine extends Engine {
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
+    this.tracingConfig = tracingConfig
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {
       // to prevent unhandled error events
@@ -617,8 +619,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               if (json.span === true) {
-                const tracingConfig = getTracingConfig(this)
-                if (tracingConfig.enabled) {
+                if (this.tracingConfig.enabled === true) {
                   createSpan(json as EngineSpanEvent)
                 }
 

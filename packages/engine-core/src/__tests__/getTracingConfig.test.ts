@@ -1,4 +1,4 @@
-import { getTracingConfig } from '../common/utils/getTracingConfig'
+import { getTracingConfig } from '../../../client/src/runtime/core/tracing/getTracingConfig'
 
 describe('getTracingConfig', () => {
   test('should return enabled=false when tracing preview is not set', () => {

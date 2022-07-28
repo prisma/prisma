@@ -90,6 +90,12 @@ export interface EngineConfig {
    * @remarks only used for the purpose of data proxy
    */
   inlineSchemaHash?: string
+
+  /**
+   * The configuration object for enabling tracing
+   * @remarks enabling is determined by the client
+   */
+  tracingConfig: { enabled: boolean }
 }
 
 export type GetConfigResult = {

@@ -1,3 +1,4 @@
+import { Context, trace } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import stripAnsi from 'strip-ansi'
 
@@ -7,6 +8,8 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { getTraceParent } from './core/tracing/getTraceParent'
+import { runInChildSpan } from './core/tracing/runInChildSpan'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
@@ -33,6 +36,8 @@ export type RequestParams = {
   headers?: Record<string, string>
   transactionId?: string | number
   unpacker?: Unpacker
+  otelParentCtx?: Context
+  otelChildCtx?: Context
 }
 
 export type HandleErrorParams = {
@@ -46,19 +51,28 @@ export type Request = {
   runInTransaction?: boolean
   transactionId?: string | number
   headers?: Record<string, string>
+  otelParentCtx?: Context
+  otelChildCtx?: Context
 }
 
-function getRequestInfo(requests: Request[]) {
-  const txId = requests[0].transactionId
-  const inTx = requests[0].runInTransaction
-  const headers = requests[0].headers ?? {}
+function getRequestInfo(request: Request) {
+  const txId = request.transactionId
+  const inTx = request.runInTransaction
+  const headers = request.headers ?? {}
+  const otelCtx = request.otelChildCtx
 
   // if the tx has a number for an id, then it's a regular batch tx
   const _inTx = typeof txId === 'number' && inTx ? true : undefined
   // if the tx has a string for id, it's an interactive transaction
   const _txId = typeof txId === 'string' && inTx ? txId : undefined
 
-  if (_txId !== undefined) headers.transactionId = _txId
+  if (_txId !== undefined) {
+    headers.transactionId = _txId
+  }
+
+  if (otelCtx !== undefined) {
+    headers.traceparent = getTraceParent(otelCtx)
+  }
 
   return { inTx: _inTx, headers }
 }
@@ -73,13 +87,28 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const info = getRequestInfo(requests)
-        const queries = requests.map((r) => String(r.document))
+        return runInChildSpan(
+          {
+            name: 'request:batch',
+            otelCtx: requests[0].otelParentCtx,
+            enabled: this.client._tracingConfig.enabled,
+            links: requests.map((r) => ({ context: trace.getSpanContext(r.otelChildCtx!)! })),
+          },
+          (span, context) => {
+            const info = getRequestInfo(requests[0])
+            const queries = requests.map((r) => String(r.document))
 
-        return this.client._engine.requestBatch(queries, info.headers, info.inTx)
+            // bcs transactions get batched, the spans would normally appear on
+            // the first request, but we want them to appear separately on the
+            // `request:batch` span, so we set that on the parent span instead.
+            if (context) info.headers.traceparent = getTraceParent(context)
+
+            return this.client._engine.requestBatch(queries, info.headers, info.inTx)
+          },
+        )
       },
       singleLoader: (request) => {
-        const info = getRequestInfo([request])
+        const info = getRequestInfo(request)
         const query = String(request.document)
 
         return this.client._engine.request(query, info.headers)
@@ -109,6 +138,8 @@ export class RequestHandler {
     headers,
     transactionId,
     unpacker,
+    otelParentCtx,
+    otelChildCtx,
   }: RequestParams) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -144,6 +175,8 @@ export class RequestHandler {
           runInTransaction,
           headers,
           transactionId,
+          otelParentCtx,
+          otelChildCtx,
         })
         data = result?.data
         elapsed = result?.elapsed
