@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`fulltext-search (provider=mysql, previewFeatures=fullTextSearch, fullTextIndex, andQuery=+John +Smith, orQuery=John April, notQuery=John -Smith April, noResultsQuery=+April +Smith, badQuery=John -- Smith) bad query 1`] = `
+exports[`fulltext-search (provider=mysql) bad query 1`] = `
 
 Invalid \`.findMany()\` invocation in
 /client/tests/functional/fulltext-search/tests.ts:82:10
@@ -13,7 +13,7 @@ Invalid \`.findMany()\` invocation in
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })) })
 `;
 
-exports[`fulltext-search (provider=postgresql, previewFeatures=fullTextSearch, andQuery=John & Smith, orQuery=John  April, notQuery=(John  April) & !Smith, noResultsQuery=April & Smith, badQuery=John Smith) bad query 1`] = `
+exports[`fulltext-search (provider=postgresql) bad query 1`] = `
 
 Invalid \`.findMany()\` invocation in
 /client/tests/functional/fulltext-search/tests.ts:82:10

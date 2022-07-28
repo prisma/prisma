@@ -1,20 +1,16 @@
-import { getTestSuiteFullName } from './getTestSuiteInfo'
+import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 export type TestPlanEntry = {
   name: string
   skip: boolean
-  suiteConfig: SuiteConfig
+  suiteConfig: NamedTestSuiteConfig
 }
 
 type SuitePlanContext = {
   includedProviders?: string[]
   excludedProviders: string[]
   updateSnapshots: 'inline' | 'external' | undefined
-}
-
-type SuiteConfig = {
-  [x: string]: string
 }
 
 /**
@@ -24,22 +20,22 @@ type SuiteConfig = {
  * @returns [test-suite-title: string, test-suite-config: object]
  */
 
-export function getTestSuitePlan(suiteMeta: TestSuiteMeta, suiteConfig: SuiteConfig[]): TestPlanEntry[] {
+export function getTestSuitePlan(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig[]): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  return suiteConfig.map((config, configIndex) => ({
-    name: getTestSuiteFullName(suiteMeta, config),
-    skip: shouldSkipProvider(context, config, configIndex),
-    suiteConfig: config,
+  return suiteConfig.map((namedConfig, configIndex) => ({
+    name: getTestSuiteFullName(suiteMeta, namedConfig),
+    skip: shouldSkipProvider(context, namedConfig, configIndex),
+    suiteConfig: namedConfig,
   }))
 }
 
 function shouldSkipProvider(
   { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
-  config: SuiteConfig,
+  config: NamedTestSuiteConfig,
   configIndex: number,
 ): boolean {
-  const provider = config['provider'].toLocaleLowerCase()
+  const provider = config.matrixOptions['provider'].toLocaleLowerCase()
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
