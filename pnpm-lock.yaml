@@ -271,7 +271,7 @@ importers:
       pg: 8.7.3
       pkg-up: 3.1.0
       pluralize: 8.0.0
-      replace-string: 3.1.0
+      replace-string: '4'
       resolve: 1.22.1
       rimraf: 3.0.2
       sort-keys: 4.2.0
@@ -345,7 +345,7 @@ importers:
       pg: 8.7.3
       pkg-up: 3.1.0
       pluralize: 8.0.0
-      replace-string: 3.1.0
+      replace-string: 4.0.0
       resolve: 1.22.1
       rimraf: 3.0.2
       sort-keys: 4.2.0
@@ -10333,6 +10333,11 @@ packages:
   /replace-string/3.1.0:
     resolution: {integrity: sha512-yPpxc4ZR2makceA9hy/jHNqc7QVkd4Je/N0WRHm6bs3PtivPuPynxE5ejU/mp5EhnCv8+uZL7vhz8rkluSlx+Q==}
     engines: {node: '>=8'}
+
+  /replace-string/4.0.0:
+    resolution: {integrity: sha512-fcgyZ62o26oBaihEC302pZQ2WectvmZ4sGOq4Lwa8ad12lPbhIlZCvLpgpI1sOAsbN83kpXiH5KCcr3pcZa8bA==}
+    engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
+    dev: true
 
   /request/2.88.2:
     resolution: {integrity: sha512-MsvtOrfG9ZcrOwAW+Qi+F6HbD0CWXEh9ou77uOb7FM2WPhwT7smM833PzanhJLsgXjN89Ir6V2PczXNnMpwKhw==}
