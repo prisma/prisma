@@ -30,7 +30,7 @@ export abstract class Engine {
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
-    options: Transaction.Options,
+    options?: Transaction.Options,
   ): Promise<Transaction.Info>
   abstract transaction(action: 'commit', headers: Transaction.TransactionHeaders, info: Transaction.Info): Promise<void>
   abstract transaction(
