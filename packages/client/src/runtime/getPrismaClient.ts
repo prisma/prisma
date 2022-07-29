@@ -968,7 +968,7 @@ new PrismaClient({
       callback: (client: Client) => Promise<unknown>
       options?: { maxWait: number; timeout: number }
     }) {
-      const headers = { traceparent: getTraceParent(context.active()) }
+      const headers = { traceparent: getTraceParent() }
       const info = await this._engine.transaction('start', headers, options as Options)
 
       let result: unknown
@@ -1020,6 +1020,7 @@ new PrismaClient({
      * @returns
      */
     async _request(internalParams: InternalRequestParams): Promise<any> {
+      // this is the otel context that is active at the callsite
       internalParams.otelParentCtx = context.active()
 
       try {
@@ -1056,7 +1057,7 @@ new PrismaClient({
             // calling `next` calls the consumer again with the new params
             return runInChildSpan(spanOptions.middleware, async (span) => {
               // we call `span.end()` _before_ calling the next middleware
-              return nextMiddleware(changedParams, (p) => span?.end() || consumer(p))
+              return nextMiddleware(changedParams, (p) => (span?.end(), consumer(p)))
             })
           }
 

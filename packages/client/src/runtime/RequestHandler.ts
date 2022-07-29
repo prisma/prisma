@@ -59,20 +59,15 @@ function getRequestInfo(request: Request) {
   const txId = request.transactionId
   const inTx = request.runInTransaction
   const headers = request.headers ?? {}
-  const otelCtx = request.otelChildCtx
+  const traceparent = getTraceParent()
 
   // if the tx has a number for an id, then it's a regular batch tx
   const _inTx = typeof txId === 'number' && inTx ? true : undefined
   // if the tx has a string for id, it's an interactive transaction
   const _txId = typeof txId === 'string' && inTx ? txId : undefined
 
-  if (_txId !== undefined) {
-    headers.transactionId = _txId
-  }
-
-  if (otelCtx !== undefined) {
-    headers.traceparent = getTraceParent(otelCtx)
-  }
+  if (_txId !== undefined) headers.transactionId = _txId
+  if (traceparent !== undefined) headers.traceparent = traceparent
 
   return { inTx: _inTx, headers }
 }
@@ -87,25 +82,15 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        return runInChildSpan(
-          {
-            name: 'request:batch',
-            otelCtx: requests[0].otelParentCtx,
-            enabled: this.client._tracingConfig.enabled,
-            links: requests.map((r) => ({ context: trace.getSpanContext(r.otelChildCtx!)! })),
-          },
-          (span, context) => {
-            const info = getRequestInfo(requests[0])
-            const queries = requests.map((r) => String(r.document))
+        const info = getRequestInfo(requests[0])
+        const queries = requests.map((r) => String(r.document))
+        const traceparent = getTraceParent(requests[0].otelParentCtx)
 
-            // bcs transactions get batched, the spans would normally appear on
-            // the first request, but we want them to appear separately on the
-            // `request:batch` span, so we set that on the parent span instead.
-            if (context) info.headers.traceparent = getTraceParent(context)
+        if (traceparent) info.headers.traceparent = traceparent
+        // TODO: pass the child information to QE for it to issue links to queries
+        // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-            return this.client._engine.requestBatch(queries, info.headers, info.inTx)
-          },
-        )
+        return this.client._engine.requestBatch(queries, info.headers, info.inTx)
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
