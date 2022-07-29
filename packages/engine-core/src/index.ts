@@ -1,4 +1,3 @@
-export { getTracingConfig } from '../../client/src/runtime/core/tracing/getTracingConfig'
 export { BinaryEngine } from './binary/BinaryEngine'
 export type { EngineConfig } from './common/Engine'
 export type { EngineEventType } from './common/Engine'
