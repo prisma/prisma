@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1658995204754,
+  "lastUpdate": 1659112669446,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -113883,6 +113883,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.333452224731445,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "44e1a8d16d62db62fbe8cc9c3e7ed0801617227a",
+          "message": "feat(client): Allow to set iTx isolation level (#14498)\n\nExposes isolation level option to the client, using the enum, generated\r\nfrom DMMF.\r\n\r\nFor testing, similarly to the way engine does it, does not test for\r\neffects of setting isolation level, we simply check that transaction\r\ncompletes with the level set.\r\n\r\nIntroduces new concept of \"strict enums\": unlike normal ones, strict\r\nenums will throw on attempt to access non-existing values. This is\r\nneeded so we can have a runtime error on attempt to use unsupported\r\nvalue without typechecking.",
+          "timestamp": "2022-07-29T18:33:55+02:00",
+          "tree_id": "ab594327b6ee634cc4d9134315dc1a36c33be97a",
+          "url": "https://github.com/prisma/prisma/commit/44e1a8d16d62db62fbe8cc9c3e7ed0801617227a"
+        },
+        "date": 1659112659900,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.52,
+            "range": "±7.40%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±1.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2800827026367188,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.47731876373291,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.1669178009033203,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.493370056152344,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.330073356628418,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
