@@ -30,7 +30,7 @@ module.exports = {
     'index.test-d.ts',
     '.bench.ts',
   ],
-  collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
+  collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*', '!src/**/*.test.ts'],
   snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
   testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
