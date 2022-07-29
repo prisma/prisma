@@ -1,12 +1,6 @@
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
-  const index =
-    provider === 'mysql'
-      ? `@@fulltext([name])
-         @@fulltext([name, email])
-         @@fulltext([email])`
-      : ''
+export default testMatrix.setupSchema(({ provider, previewFeatures, index }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"

@@ -5,6 +5,7 @@ export default defineMatrix(() => [
     {
       provider: 'postgresql',
       previewFeatures: '"fullTextSearch"',
+      index: '',
       andQuery: 'John & Smith',
       orQuery: 'John | April',
       notQuery: '(John | April) & !Smith',
@@ -14,6 +15,11 @@ export default defineMatrix(() => [
     {
       provider: 'mysql',
       previewFeatures: '"fullTextSearch", "fullTextIndex"',
+      index: `
+      @@fulltext([name])
+      @@fulltext([name, email])
+      @@fulltext([email])
+      `,
       andQuery: '+John +Smith',
       orQuery: 'John April',
       notQuery: 'John -Smith April',
