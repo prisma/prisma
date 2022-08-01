@@ -28,16 +28,16 @@ testMatrix.setupTestSuite(({ provider }) => {
     test('returns metrics in prometheus format', async () => {
       const metrics = await prisma.$metrics.prometheus()
 
-      expect(metrics).toContain('query_total_operations')
-      expect(metrics).toContain('query_total_queries')
-      expect(metrics).toContain('query_active_transactions')
-      expect(metrics).toContain('query_total_elapsed_time_ms_bucket')
+      expect(metrics).toContain('prisma_client_queries_total')
+      expect(metrics).toContain('prisma_datasource_queries_total')
+      expect(metrics).toContain('prisma_client_queries_active')
+      expect(metrics).toContain('prisma_client_queries_duration_histogram_ms_bucket')
 
       if (provider !== 'mongodb') {
-        expect(metrics).toContain('pool_wait_duration_ms_bucket')
-        expect(metrics).toContain('pool_active_connections')
-        expect(metrics).toContain('pool_idle_connections')
-        expect(metrics).toContain('pool_wait_count')
+        expect(metrics).toContain('prisma_client_queries_wait_histogram_ms_bucket')
+        expect(metrics).toContain('prisma_pool_connections_open')
+        expect(metrics).toContain('prisma_pool_connections_idle')
+        expect(metrics).toContain('prisma_client_queries_wait')
       }
     })
 
