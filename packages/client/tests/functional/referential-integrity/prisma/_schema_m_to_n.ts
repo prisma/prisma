@@ -15,15 +15,17 @@ model CategoryManyToMany {
 }
 
 model CategoriesOnPostsManyToMany {
-  post       PostManyToMany     @relation(fields: [postId], references: [id]${referentialActionLine})
+  post       PostManyToMany     @relation(fields: [postId], references: [id] ${referentialActionLine})
   postId     String
-  category   CategoryManyToMany @relation(fields: [categoryId], references: [id]${referentialActionLine})
+  category   CategoryManyToMany @relation(fields: [categoryId], references: [id] ${referentialActionLine})
   categoryId String
 
   @@id([postId, categoryId])
 }
 `
 
+  // Note: Referential actions on two-way embedded many-to-many relations are not supported
+  // (= adding referential actions is a schema validation error)
   const manyToManyMongoDB = /* Prisma */ `
 model PostManyToMany {
   id          String     @id @map("_id")

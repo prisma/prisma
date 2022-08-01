@@ -10,7 +10,7 @@ model UserOneToMany {
 }
 model PostOneToMany {
   id        ${id}
-  author    UserOneToMany @relation(fields: [authorId], references: [id]${referentialActionLine})
+  author    UserOneToMany @relation(fields: [authorId], references: [id] ${referentialActionLine})
   authorId  String
 }
 `

@@ -10,7 +10,7 @@ model UserOneToOne {
 }
 model ProfileOneToOne {
   id       ${id}
-  user     UserOneToOne @relation(fields: [userId], references: [id]${referentialActionLine})
+  user     UserOneToOne @relation(fields: [userId], references: [id] ${referentialActionLine})
   userId   String @unique
   enabled Boolean?
 }
