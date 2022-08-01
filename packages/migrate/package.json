@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.2.0-17.1b996e940dc3998d2003ab429f3ac9a3f98a1fbd",
+    "@prisma/engines-version": "4.2.0-19.integration-tracing-fix-8cd3da4cf873bb75ec82d00295e47a2e078c4aea",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.2.204",
