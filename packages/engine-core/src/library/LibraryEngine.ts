@@ -386,6 +386,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     const tracingConfig = getTracingConfig(this)
 
     const stopFn = async () => {
+      await new Promise((r) => setTimeout(r, 5))
+
       debug('library stopping')
 
       const headers = {
