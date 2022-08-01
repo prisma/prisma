@@ -324,7 +324,7 @@ testMatrix.setupTestSuite(
           )
         })
 
-        // RI=prisma - Cascade/Restrict - CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "99", "postId": "1"}
+        // RI=prisma - Cascade/Restrict - SQLServer/CockroachDB/PostgreSQL: Resolved to value: {"categoryId": "99", "postId": "1"}
         test('[update] categoriesOnPostsModel with non-existing categoryId should throw', async () => {
           await expect(
             prisma[categoriesOnPostsModel].update({
