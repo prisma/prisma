@@ -276,7 +276,7 @@ importers:
       rimraf: 3.0.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
-      sql-template-tag: 4.0.0
+      sql-template-tag: 4.1.0
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -350,7 +350,7 @@ importers:
       rimraf: 3.0.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
-      sql-template-tag: 4.0.0
+      sql-template-tag: 4.1.0
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -2972,7 +2972,7 @@ packages:
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/mem-fs-editor/7.0.2:
@@ -2989,7 +2989,7 @@ packages:
   /@types/mem-fs/1.1.2:
     resolution: {integrity: sha512-tt+4IoDO8/wmtaP2bHnB91c8AnzYtR9MK6NxfcZY9E3XgtmzOiFMeSXu3EZrBeevd0nJ87iGoUiFDGsb9QUvew==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
       '@types/vinyl': 2.0.6
     dev: true
 
@@ -3080,7 +3080,7 @@ packages:
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/retry/0.12.0:
@@ -3116,7 +3116,7 @@ packages:
   /@types/through/0.0.30:
     resolution: {integrity: sha512-FvnCJljyxhPM3gkRgWmxmDZyAQSiBQQWLI0A0VFL0K7W1oRUrPJSqNO0NvTnLkBcotdlp3lKvaT0JrnyRDkzOg==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/tunnel/0.0.3:
@@ -3128,7 +3128,7 @@ packages:
     resolution: {integrity: sha512-ayJ0iOCDNHnKpKTgBG6Q6JOnHTj9zFta+3j2b8Ejza0e4cvRyMn0ZoLEmbPrTHe5YYRlDYPvPWVdV4cTaRyH7g==}
     dependencies:
       '@types/expect': 1.20.4
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/ws/8.5.3:
@@ -10793,8 +10793,8 @@ packages:
   /sprintf-js/1.1.2:
     resolution: {integrity: sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==}
 
-  /sql-template-tag/4.0.0:
-    resolution: {integrity: sha512-S82ZPaT3a8rw7dDfOQyrVR82fQPA0qqihq/qkKIZrm4IfkP8RpyT6SyF+syp2Pmf8pzPh63H3yTIMuBRsL95kQ==}
+  /sql-template-tag/4.1.0:
+    resolution: {integrity: sha512-VarfrlW5yoz0EcceKenipKdZBWi9dMK8VcdQm2P1FIPpa5YTnN+UkVgBe+9p+5vEBmnberL831/Alfx/RzNm1A==}
     engines: {node: '>=6'}
     dev: true
 

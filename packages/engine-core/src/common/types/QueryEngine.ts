@@ -56,7 +56,7 @@ export type QueryEngineConfig = {
   logQueries: boolean
   ignoreEnvVarErrors: boolean
   datasourceOverrides?: Record<string, string>
-  env: NodeJS.ProcessEnv | Record<string, string>
+  env: Record<string, string | undefined>
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
 }
@@ -91,7 +91,7 @@ export type GetConfigOptions = {
   datamodel: string
   ignoreEnvVarErrors: boolean
   datasourceOverrides: Record<string, string>
-  env: NodeJS.ProcessEnv | Record<string, string>
+  env: Record<string, string | undefined>
 }
 
 export type GetDMMFOptions = {
