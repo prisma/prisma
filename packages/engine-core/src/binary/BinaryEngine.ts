@@ -573,14 +573,15 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
 
-        const additionalHeaders: { traceparent?: string } = {}
+        // TODO - This should be uncommended(and tested) when this PR is merged: https://github.com/prisma/prisma-engines/pull/3087
+        // const additionalHeaders: { traceparent?: string } = {}
 
-        const tracingConfig = getTracingConfig(this)
-        if (tracingConfig.enabled) {
-          additionalHeaders.traceparent = getTraceParent()
-        }
+        // const tracingConfig = getTracingConfig(this)
+        // if (tracingConfig.enabled) {
+        //   additionalHeaders.traceparent = getTraceParent()
+        // }
 
-        flags.push('--additional-headers', JSON.stringify(additionalHeaders))
+        // flags.push('--additional-headers', JSON.stringify(additionalHeaders))
 
         debug({ flags })
 
