@@ -998,7 +998,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
@@ -1008,6 +1008,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
+        isolation_level: arg?.isolationLevel,
       })
 
       const result = await Connection.onHttpError(
