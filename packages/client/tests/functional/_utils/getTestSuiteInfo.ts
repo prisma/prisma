@@ -23,7 +23,7 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
   const suiteParams = Object.entries(suiteConfig)
-    .map(([key, value]) => `${key}=${value}`)
+    .map(([key, value]) => `${key}=${value !== null && typeof value === 'object' ? JSON.stringify(value) : value}`)
     .join(', ')
 
   name += ` (${suiteParams})`
