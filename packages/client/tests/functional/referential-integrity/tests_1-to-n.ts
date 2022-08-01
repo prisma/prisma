@@ -1,6 +1,7 @@
+import { checkIfEmpty } from '../_referential-integrity-utils/checkIfEmpty'
+import { ConditionalError } from '../_referential-integrity-utils/conditionalError'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
-import { checkIfEmpty } from './_utils'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
@@ -38,9 +39,12 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    function conditionalError(errors: Record<Providers, string>): string {
-      return errors[suiteConfig.provider] || `TODO add error for ${suiteConfig.provider}`
-    }
+    const conditionalError = ConditionalError
+      .new()
+      .with('provider', suiteConfig.provider)
+      // @ts-ignore
+      .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
+
     const { onDelete } = suiteConfig.referentialActions
     const { onUpdate } = suiteConfig.referentialActions
 
@@ -71,14 +75,17 @@ testMatrix.setupTestSuite(
               },
             }),
           ).rejects.toThrowError(
-            // @ts-expect-error: all providers ought to be logged
-            conditionalError({
-              [Providers.POSTGRESQL]:
-                'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-              [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+            conditionalError.snapshot({
+              foreignKeys: {
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                [Providers.SQLSERVER]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+              },
+              prisma: '__SNAPSHOT__',
             }),
           )
         })
@@ -240,7 +247,6 @@ testMatrix.setupTestSuite(
         describeIf(suiteConfig.provider !== Providers.MONGODB)('mutate id', () => {
           describeIf(['DEFAULT', 'CASCADE'].includes(onUpdate))('onUpdate: DEFAULT, CASCADE', () => {
             test('[update] parent id with non-existing id should succeed', async () => {
-              // TODO: this fails on sqlserver, but it shouldn't
               const user3 = await prisma[userModel].update({
                 where: { id: '1' },
                 data: {
@@ -305,19 +311,26 @@ testMatrix.setupTestSuite(
                   },
                 }),
               ).rejects.toThrowError(
-                // @ts-expect-error
-                conditionalError({
-                  [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                  [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                  },
+                  prisma: {
+                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                  },
                 }),
               )
             })
           })
 
-          describeIf(['DEFAULT', 'Cascade', 'Restrict'].includes(onUpdate))(
-            'onUpdate: DEFAULT, Cascade, Restrict',
+          describeIf(['DEFAULT, Cascade'].includes(onUpdate))(
+            'onUpdate: DEFAULT, Cascade',
             () => {
               test('[update] parent id with existing id should throw', async () => {
                 await expect(
@@ -328,12 +341,98 @@ testMatrix.setupTestSuite(
                     },
                   }),
                 ).rejects.toThrowError(
-                  // @ts-expect-error
-                  conditionalError({
-                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                  conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                    },
+                    prisma: {
+                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.MYSQL]: "Unique constraint failed on the constraint: `PRIMARY`",
+                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                    },
+                  }),
+                )
+              })
+            },
+          )
+
+          describeIf(['DEFAULT', 'Cascade', 'Restrict'].includes(onUpdate))(
+            'onUpdate: Default, Cascade, Restrict',
+            () => {
+              test('[update] child id with non-existing id should succeed', async () => {
+                const postUser1A = await prisma[postModel].update({
+                  where: { id: '1-post-a' },
+                  data: {
+                    id: '1-post-c',
+                  },
+                })
+                expect(postUser1A).toEqual({
+                  id: '1-post-c',
+                  authorId: '1',
+                })
+    
+                const users = await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                })
+                expect(users).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+                const posts = await prisma[postModel].findMany({
+                  orderBy: { id: 'asc' },
+                })
+                expect(posts).toEqual([
+                  {
+                    id: '1-post-b',
+                    authorId: '1',
+                  },
+                  {
+                    id: '1-post-c',
+                    authorId: '1',
+                  },
+                  {
+                    id: '2-post-a',
+                    authorId: '2',
+                  },
+                  {
+                    id: '2-post-b',
+                    authorId: '2',
+                  },
+                ])
+              })
+            },
+          )
+
+          describeIf(['Restrict'].includes(onUpdate))(
+            'onUpdate: Restrict',
+            () => {
+              test('[update] parent id with existing id should throw', async () => {
+                await expect(
+                  prisma[userModel].update({
+                    where: { id: '1' },
+                    data: {
+                      id: '2',
+                    },
+                  }),
+                ).rejects.toThrowError(
+                  conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                    },
+                    prisma: "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                   }),
                 )
               })
@@ -481,16 +580,18 @@ testMatrix.setupTestSuite(
                 where: { id: '1' },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: all providers ought to be logged
-              conditionalError({
-                [Providers.MONGODB]:
-                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.MONGODB]:
+                    "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                },
+                prisma: "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
               }),
             )
           })
@@ -523,16 +624,18 @@ testMatrix.setupTestSuite(
                 where: { id: '1' },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error
-              conditionalError({
-                [Providers.MONGODB]:
-                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.MONGODB]:
+                    "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                },
+                prisma: "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
               }),
             )
           })

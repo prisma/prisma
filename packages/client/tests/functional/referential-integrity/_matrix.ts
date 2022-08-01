@@ -1,3 +1,4 @@
+import { computeMatrix } from '../_referential-integrity-utils/computeMatrix'
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
 
@@ -37,8 +38,8 @@ type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'Set
  * On Postgres and MySQL, it runs fine.
  */
 
-const onUpdate: ReferentialActions | string = 'DEFAULT'
-const onDelete: ReferentialActions | string = 'DEFAULT'
+const onUpdate: ReferentialActions | string = 'Restrict'
+const onDelete: ReferentialActions | string = 'Restrict'
 // const onUpdate: ReferentialActions | string = 'Cascade'
 // const onDelete: ReferentialActions | string = 'Cascade'
 // const onUpdate: ReferentialActions | string = 'Restrict'
@@ -50,88 +51,11 @@ const onDelete: ReferentialActions | string = 'DEFAULT'
 // const onUpdate: ReferentialActions | string = 'SetDefault'
 // const onDelete: ReferentialActions | string = 'SetDefault'
 
-// figure out how to separate the test
+const defaultMatrix = computeMatrix({ referentialIntegrity })
 
-// TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [
   [
-    {
-      provider: Providers.POSTGRESQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-    {
-      provider: Providers.MYSQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-    {
-      provider: Providers.COCKROACHDB,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-    {
-      provider: Providers.SQLSERVER,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-
-    /*
-    {
-      provider: Providers.SQLSERVER,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-    */
-    // {
-    //   provider: Providers.MYSQL,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     onUpdate,
-    //     onDelete,
-    //   },
-    // },
-    // {
-    //   provider: Providers.SQLSERVER,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     // Restrict is not supported by SQL Server
-    //     // TODO we should not run the test intead of switching to default
-    //     onUpdate: onUpdate === 'Restrict' ? '' : onUpdate,
-    //     onDelete: onDelete === 'Restrict' ? '' : onDelete,
-    //   },
-    // },
-    // {
-    //   provider: Providers.SQLITE,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     onUpdate,
-    //     onDelete,
-    //   },
-    // },
+    ...defaultMatrix,
     /*
     {
       provider: Providers.MONGODB,
