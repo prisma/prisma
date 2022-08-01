@@ -50,8 +50,6 @@ const onDelete: ReferentialActions | string = 'DEFAULT'
 // const onUpdate: ReferentialActions | string = 'SetDefault'
 // const onDelete: ReferentialActions | string = 'SetDefault'
 
-// figure out how to separate the test
-
 // TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [
   [
