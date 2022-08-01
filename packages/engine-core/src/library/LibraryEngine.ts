@@ -339,7 +339,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       debug('library starting')
 
       try {
-        await this.engine?.connect(getTraceParent())
+        const headers = {
+          ...(tracingConfig.enabled ? { traceparent: getTraceParent() } : {}),
+        }
+
+        await this.engine?.connect(JSON.stringify(headers))
 
         this.libraryStarted = true
 
@@ -384,12 +388,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     const tracingConfig = getTracingConfig(this)
 
     const stopFn = async () => {
-      // TODO - What is doing, why '5'?
-      await new Promise((r) => setTimeout(r, 5))
-
       debug('library stopping')
 
-      await this.engine?.disconnect(getTraceParent())
+      const headers = {
+        ...(tracingConfig.enabled ? { traceparent: getTraceParent() } : {}),
+      }
+
+      await this.engine?.disconnect(JSON.stringify(headers))
 
       this.libraryStarted = false
       this.libraryStoppingPromise = undefined

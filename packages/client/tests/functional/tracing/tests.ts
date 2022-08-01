@@ -68,6 +68,10 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(({ provider }) => {
+  beforeEach(async () => {
+    await prisma.$connect()
+  })
+
   beforeEach(() => {
     inMemorySpanExporter.reset()
   })
@@ -562,8 +566,10 @@ testMatrix.setupTestSuite(({ provider }) => {
     // @ts-ignore
     let _prisma: PrismaClient
 
-    beforeAll(() => {
+    beforeAll(async () => {
       _prisma = newPrismaClient()
+
+      await _prisma.$connect()
     })
 
     test('tracing with middleware', async () => {
@@ -638,6 +644,80 @@ testMatrix.setupTestSuite(({ provider }) => {
       const dbQuery4 = (engine.children || [])[4]
       expect(dbQuery4.span.name).toEqual('prisma:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+    })
+  })
+
+  describe('Tracing connect', () => {
+    // @ts-ignore
+    let _prisma: PrismaClient
+
+    beforeAll(() => {
+      _prisma = newPrismaClient()
+    })
+
+    afterAll(async () => {
+      await _prisma.$disconnect()
+    })
+
+    test('should trace the implict $connect call', async () => {
+      const email = faker.internet.email()
+
+      await _prisma.user.findMany({
+        where: {
+          email: email,
+        },
+      })
+
+      const tree = await waitForSpanTree()
+
+      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.attributes['method']).toEqual('findMany')
+      expect(tree.span.attributes['model']).toEqual('User')
+
+      expect(tree.children).toHaveLength(2)
+
+      const connect = (tree?.children || [])[0] as unknown as Tree
+      expect(connect.span.name).toEqual('prisma:connect')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
+      expect(engine.span.name).toEqual('prisma:query_builder')
+
+      const getConnection = (engine.children || [])[0]
+      expect(getConnection.span.name).toEqual('prisma:connection')
+
+      if (provider === 'mongodb') {
+        expect(engine.children).toHaveLength(2)
+
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('db.User.findMany(*)')
+
+        return
+      }
+
+      expect(engine.children).toHaveLength(2)
+
+      const select = (engine.children || [])[1]
+      expect(select.span.name).toEqual('prisma:db_query')
+      expect(select.span.attributes['db.statement']).toContain('SELECT')
+    })
+  })
+
+  describe('Tracing disconnect', () => {
+    // @ts-ignore
+    let _prisma: PrismaClient
+
+    beforeAll(async () => {
+      _prisma = newPrismaClient()
+      await _prisma.$connect()
+    })
+
+    test('should trace $disconnect', async () => {
+      await _prisma.$disconnect()
+
+      const tree = await waitForSpanTree()
+
+      expect(tree.span.name).toEqual('prisma:disconnect')
     })
   })
 })
