@@ -27,11 +27,11 @@ type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'Set
  * - [x] DEFAULT
  * - [x] Cascade
  * - [x] NoAction
- * 
+ *
  * SetNull causes Rust panics on MySQL, and SQL Server.
  * On CockroachDB, it causes jest to to timeout.
  * On Postgres, it runs fine.
- * 
+ *
  * SetDefault causes Rust panics on SQL Server.
  * On CockroachDB, it causes jest to to timeout.
  * On Postgres and MySQL, it runs fine.
@@ -65,15 +65,6 @@ export default defineMatrix(() => [
       },
     },
     {
-      provider: Providers.MYSQL,
-      id: 'String @id',
-      referentialIntegrity,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-    {
       provider: Providers.COCKROACHDB,
       id: 'String @id',
       referentialIntegrity,
@@ -83,7 +74,7 @@ export default defineMatrix(() => [
       },
     },
     {
-      provider: Providers.SQLSERVER,
+      provider: Providers.MYSQL,
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
@@ -91,48 +82,26 @@ export default defineMatrix(() => [
         onDelete,
       },
     },
-
-    /*
     {
       provider: Providers.SQLSERVER,
       id: 'String @id',
       referentialIntegrity,
       referentialActions: {
+        // Restrict is not supported by SQL Server
+        // TODO we should not run the test intead of switching to default
+        onUpdate: onUpdate === 'Restrict' ? '' : onUpdate,
+        onDelete: onDelete === 'Restrict' ? '' : onDelete,
+      },
+    },
+    {
+      provider: Providers.SQLITE,
+      id: 'String @id',
+      referentialIntegrity,
+      referentialActions: {
         onUpdate,
         onDelete,
       },
     },
-    */
-    // {
-    //   provider: Providers.MYSQL,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     onUpdate,
-    //     onDelete,
-    //   },
-    // },
-    // {
-    //   provider: Providers.SQLSERVER,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     // Restrict is not supported by SQL Server
-    //     // TODO we should not run the test intead of switching to default
-    //     onUpdate: onUpdate === 'Restrict' ? '' : onUpdate,
-    //     onDelete: onDelete === 'Restrict' ? '' : onDelete,
-    //   },
-    // },
-    // {
-    //   provider: Providers.SQLITE,
-    //   id: 'String @id',
-    //   referentialIntegrity,
-    //   referentialActions: {
-    //     onUpdate,
-    //     onDelete,
-    //   },
-    // },
-    /*
     {
       provider: Providers.MONGODB,
       id: 'String @id @map("_id")',
@@ -143,7 +112,6 @@ export default defineMatrix(() => [
         onDelete: onDelete === 'SetDefault' ? '' : onDelete,
       },
     },
-    */
   ],
   [
     {
