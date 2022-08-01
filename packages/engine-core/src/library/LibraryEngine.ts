@@ -6,8 +6,6 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
-import { getTraceParent } from '../../../client/src/runtime/utils/otel/getTraceParent'
-import { runInActiveSpan } from '../../../client/src/runtime/utils/otel/runInSpan'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -32,8 +30,8 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { createSpan } from '../common/utils/createSpan'
 import { getTracingConfig } from '../common/utils/getTracingConfig'
+import { createSpan, getTraceParent, runInActiveSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
