@@ -46,7 +46,8 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
   if (isArrayBufferLike(parameter) || ArrayBuffer.isView(parameter)) {
     return {
       prisma__type: 'bytes',
-      prisma__value: Buffer.from(parameter).toString('base64'),
+      // TODO: node typings do not include ArrayBufferView as of 14.x
+      prisma__value: Buffer.from(parameter as ArrayBuffer).toString('base64'),
     }
   }
 
