@@ -42,7 +42,7 @@ async function createXPostsWith2CategoriesMongoDB({ count, postModel }) {
 }
 
 // If no change
-const expectedFindManyPostModel = [
+const expectedFindManyPostModelIfNoChange = [
   {
     id: '1',
     published: null,
@@ -54,7 +54,7 @@ const expectedFindManyPostModel = [
     categoryIDs: ['2-cat-a', '2-cat-b'],
   },
 ]
-const expectedFindManyCategoryModel = [
+const expectedFindManyCategoryModelIfNoChange = [
   {
     id: '1-cat-a',
     published: null,
@@ -79,9 +79,6 @@ const expectedFindManyCategoryModel = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    const { onDelete } = suiteConfig.referentialActions
-    const { onUpdate } = suiteConfig.referentialActions
-
     /**
      * m:n relationship
      */
@@ -158,7 +155,6 @@ testMatrix.setupTestSuite(
         test.skip('[create] x connect with non existing x should throw', async () => {})
       })
 
-      // Note: it's not possible on MongoDB to mutate _id, it is immutable
       describe('[update]', () => {
         beforeEach(async () => {
           await checkIfEmpty(categoryModel, postModel)
@@ -166,6 +162,56 @@ testMatrix.setupTestSuite(
             count: 2,
             postModel,
           })
+        })
+
+        // Note: it's not possible on MongoDB to mutate _id, it is immutable
+        test('[update] id (_id) should throw a type error', async () => {
+          expect(
+            prisma[postModel].update({
+              where: {
+                id: '1',
+              },
+              data: {
+                id: 'new id',
+              },
+            }),
+          ).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+            Invalid \`prisma[postModel].update()\` invocation in
+            /client/tests/functional/referential-integrity/tests_m-to-n-MongoDB.ts:173:31
+
+              170 // Note: it's not possible on MongoDB to mutate _id, it is immutable
+              171 test('[update] id (_id) should throw a type error', async () => {
+              172   expect(
+            → 173     prisma[postModel].update({
+                        where: {
+                          id: '1'
+                        },
+                        data: {
+                          id: 'new id'
+                          ~~
+                        }
+                      })
+
+            Unknown arg \`id\` in data.id for type PostManyToManyUpdateInput. Available args:
+
+            type PostManyToManyUpdateInput {
+              categoryIDs?: PostManyToManyUpdatecategoryIDsInput | List<String>
+              categories?: CategoryManyToManyUpdateManyWithoutPostsNestedInput
+              published?: Boolean | NullableBoolFieldUpdateOperationsInput | Null
+            }
+
+
+          `)
+
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+            expectedFindManyPostModelIfNoChange,
+          )
+          expect(
+            await prisma[categoryModel].findMany({
+              orderBy: { id: 'asc' },
+            }),
+          ).toEqual(expectedFindManyCategoryModelIfNoChange)
         })
 
         test('[update] (post) optional boolean field should succeed', async () => {
@@ -195,7 +241,7 @@ testMatrix.setupTestSuite(
             await prisma[categoryModel].findMany({
               orderBy: { id: 'asc' },
             }),
-          ).toEqual(expectedFindManyCategoryModel)
+          ).toEqual(expectedFindManyCategoryModelIfNoChange)
         })
 
         test('[update] (category): optional boolean field should succeed', async () => {
@@ -208,7 +254,9 @@ testMatrix.setupTestSuite(
             },
           })
 
-          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
+          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+            expectedFindManyPostModelIfNoChange,
+          )
           expect(
             await prisma[categoryModel].findMany({
               orderBy: { id: 'asc' },
@@ -248,26 +296,9 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
-          test('[delete] post should throw', async () => {
-            // TODO Resolved to value: {"categoryIDs": ["1-cat-a", "1-cat-b"], "id": "1", "published": null}
-            await expect(
-              prisma[postModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError()
-          })
-          test('[delete] category should throw', async () => {
-            // TODO:  Resolved to value: {"id": "1-cat-a", "postIDs": ["1"], "published": null}
-            await expect(
-              prisma[categoryModel].delete({
-                where: { id: '1-cat-a' },
-              }),
-            ).rejects.toThrowError()
-          })
-        })
-
-        describe(`onDelete: ${onDelete}`, () => {
+        // Note :Referential actions on two-way embedded many-to-many relations are not supported (schema validation error when added)
+        // Which means everything has the same following behaviour:
+        describe(`onDelete:`, () => {
           test('[delete] post should succeed', async () => {
             await prisma[postModel].delete({
               where: { id: '1' },
@@ -284,14 +315,17 @@ testMatrix.setupTestSuite(
               await prisma[categoryModel].findMany({
                 orderBy: { id: 'asc' },
               }),
-            ).toEqual(expectedFindManyCategoryModel)
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
           })
+
           test('[delete] category should succeed', async () => {
             await prisma[categoryModel].delete({
               where: { id: '1-cat-a' },
             })
 
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(expectedFindManyPostModel)
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
             expect(
               await prisma[categoryModel].findMany({
                 orderBy: { id: 'asc' },
@@ -313,25 +347,6 @@ testMatrix.setupTestSuite(
                 postIDs: ['2'],
               },
             ])
-          })
-        })
-
-        describeIf(['SetNull'].includes(onDelete))(`onDelete: ${onDelete}`, () => {
-          test('[delete] post should throw', async () => {
-            // TODO Resolved to value: {"categoryIDs": ["1-cat-a", "1-cat-b"], "id": "1", "published": null}
-            await expect(
-              prisma[postModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError()
-          })
-          test('[delete] category should throw', async () => {
-            // TODO Resolved to value: {"id": "1-cat-a", "postIDs": ["1"], "published": null}
-            await expect(
-              prisma[categoryModel].delete({
-                where: { id: '1-cat-a' },
-              }),
-            ).rejects.toThrowError()
           })
         })
       })

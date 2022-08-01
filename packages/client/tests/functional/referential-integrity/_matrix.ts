@@ -23,23 +23,8 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 // TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
 type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
 
-/**
- * [foreignKeys] Tests with referential actions that are passing on Postgres, CockroachDB, MySQL, and SQL Server:
- * - [x] DEFAULT
- * - [x] Cascade
- * - [x] NoAction
- * 
- * SetNull causes Rust panics on MySQL, and SQL Server.
- * On CockroachDB, it causes jest to to timeout.
- * On Postgres, it runs fine.
- * 
- * SetDefault causes Rust panics on SQL Server.
- * On CockroachDB, it causes jest to to timeout.
- * On Postgres and MySQL, it runs fine.
- */
-
-const onUpdate: ReferentialActions | string = 'Restrict'
-const onDelete: ReferentialActions | string = 'Restrict'
+const onUpdate: ReferentialActions | string = 'DEFAULT'
+const onDelete: ReferentialActions | string = 'DEFAULT'
 // const onUpdate: ReferentialActions | string = 'Cascade'
 // const onDelete: ReferentialActions | string = 'Cascade'
 // const onUpdate: ReferentialActions | string = 'Restrict'
