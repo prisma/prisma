@@ -465,15 +465,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
    * Starts the engine, returns the url that it runs on
    */
   async start(): Promise<void> {
-    if (this.startPromise) {
-      return this.startPromise
+    if (this.stopPromise) {
+      await this.stopPromise
     }
 
     const startFn = async () => {
-      if (this.stopPromise) {
-        await this.stopPromise
-      }
-
       if (!this.startPromise) {
         this.startCount++
         this.startPromise = this.internalStart()
@@ -490,7 +486,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
     const tracingConfig = getTracingConfig(this)
-    if (tracingConfig.enabled) {
+    if (tracingConfig.enabled && !this.startPromise) {
       return runInActiveSpan({ name: 'prisma:connect', callback: () => startFn() })
     } else {
       return startFn()
