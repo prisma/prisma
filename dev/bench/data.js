@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659365256069,
+  "lastUpdate": 1659425152804,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -114043,6 +114043,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.333694458007812,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "62ded36d9d9fcc714391a07beabfe6336a15580f",
+          "message": "feat(client): Tracing Connect and Disconnect (#14527)\n\n* feat: add Lib tracing for connect and disconnect\r\n\r\n* refactor: correct headers and testing for lib connect and discconect\r\n\r\n* refactor: export tracing from engine-core\r\n\r\n* fix: add disconnect race back\r\n\r\n* feat: add connect and disconnect to binary engine tracing\r\n\r\n* refactor: temp remove --additional-headers flag\r\n\r\n* fix: disconnect race",
+          "timestamp": "2022-08-02T08:21:53+01:00",
+          "tree_id": "f1e2a8ccc23203627fa374528e40898391f30737",
+          "url": "https://github.com/prisma/prisma/commit/62ded36d9d9fcc714391a07beabfe6336a15580f"
+        },
+        "date": 1659425142310,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.51,
+            "range": "±6.76%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.88%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.281217575073242,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.464226722717285,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.1669178009033203,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.48027801513672,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.333913803100586,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
