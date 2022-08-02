@@ -360,7 +360,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       enabled: this.config.tracingConfig.enabled,
     }
 
-    return runInChildSpan(spanConfig, startFn)
+    this.libraryStartingPromise = runInChildSpan(spanConfig, startFn)
+
+    return this.libraryStartingPromise
   }
 
   async stop(): Promise<void> {
@@ -398,7 +400,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       enabled: this.config.tracingConfig.enabled,
     }
 
-    return runInChildSpan(spanConfig, stopFn)
+    this.libraryStoppingPromise = runInChildSpan(spanConfig, stopFn)
+
+    return this.libraryStoppingPromise
   }
 
   async getConfig(): Promise<ConfigMetaFormat> {
