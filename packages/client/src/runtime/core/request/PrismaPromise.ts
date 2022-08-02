@@ -1,4 +1,4 @@
-import { TransactionTracer } from '../../../utils/TransactionTracer'
+import { TransactionTracer } from '@prisma/engine-core'
 
 /**
  * Prisma's `Promise` that is backwards-compatible. All additions on top of the

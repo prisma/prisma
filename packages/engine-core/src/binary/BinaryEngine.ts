@@ -31,12 +31,12 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { createSpan } from '../common/utils/createSpan'
 import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
+import { createSpan, getTraceParent, runInActiveSpan } from '../tracing'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
 
@@ -469,21 +469,28 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.stopPromise
     }
 
-    if (!this.startPromise) {
-      this.startCount++
-      this.startPromise = this.internalStart()
+    const startFn = async () => {
+      if (!this.startPromise) {
+        this.startCount++
+        this.startPromise = this.internalStart()
+      }
+
+      await this.startPromise
+
+      if (!this.child && !this.engineEndpoint) {
+        throw new PrismaClientUnknownRequestError(
+          `Can't perform request, as the Engine has already been stopped`,
+          this.clientVersion!,
+        )
+      }
     }
 
-    await this.startPromise
-
-    if (!this.child && !this.engineEndpoint) {
-      throw new PrismaClientUnknownRequestError(
-        `Can't perform request, as the Engine has already been stopped`,
-        this.clientVersion!,
-      )
+    const tracingConfig = getTracingConfig(this)
+    if (tracingConfig.enabled && !this.startPromise) {
+      return runInActiveSpan({ name: 'prisma:connect', callback: () => startFn() })
+    } else {
+      return startFn()
     }
-
-    return this.startPromise
   }
 
   private getEngineEnvVars() {
@@ -561,6 +568,16 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
+
+        // TODO - This should be uncommended(and tested) when this PR is merged: https://github.com/prisma/prisma-engines/pull/3087
+        // const additionalHeaders: { traceparent?: string } = {}
+
+        // const tracingConfig = getTracingConfig(this)
+        // if (tracingConfig.enabled) {
+        //   additionalHeaders.traceparent = getTraceParent()
+        // }
+
+        // flags.push('--additional-headers', JSON.stringify(additionalHeaders))
 
         debug({ flags })
 
@@ -768,11 +785,20 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async stop(): Promise<void> {
-    if (!this.stopPromise) {
-      this.stopPromise = this._stop()
+    const stopFn = async () => {
+      if (!this.stopPromise) {
+        this.stopPromise = this._stop()
+      }
+
+      return this.stopPromise
     }
 
-    return this.stopPromise
+    const tracingConfig = getTracingConfig(this)
+    if (tracingConfig.enabled) {
+      return runInActiveSpan({ name: 'prisma:disconnect', callback: () => stopFn() })
+    } else {
+      return stopFn()
+    }
   }
 
   /**
