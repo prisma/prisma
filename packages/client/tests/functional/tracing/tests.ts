@@ -104,7 +104,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -158,7 +158,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -203,7 +203,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('update')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -265,7 +265,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('delete')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -338,17 +338,17 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:transaction')
+      expect(tree.span.name).toEqual('prisma:client:transaction')
       expect(tree.span.attributes['method']).toEqual('$transaction')
       expect(tree.children).toHaveLength(3)
 
       const create = (tree?.children || [])[0] as unknown as Tree
-      expect(create.span.name).toEqual('prisma:request')
+      expect(create.span.name).toEqual('prisma:client:operation')
       expect(create.span.attributes.model).toEqual('User')
       expect(create.span.attributes.method).toEqual('create')
 
       const findMany = (tree?.children || [])[1] as unknown as Tree
-      expect(findMany.span.name).toEqual('prisma:request')
+      expect(findMany.span.name).toEqual('prisma:client:operation')
       expect(findMany.span.attributes.model).toEqual('User')
       expect(findMany.span.attributes.method).toEqual('findMany')
 
@@ -383,17 +383,17 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:transaction')
+      expect(tree.span.name).toEqual('prisma:client:transaction')
       expect(tree.span.attributes['method']).toEqual('$transaction')
       expect(tree.children).toHaveLength(3)
 
       const create = (tree?.children || [])[0] as unknown as Tree
-      expect(create.span.name).toEqual('prisma:request')
+      expect(create.span.name).toEqual('prisma:client:operation')
       expect(create.span.attributes.model).toEqual('User')
       expect(create.span.attributes.method).toEqual('create')
 
       const findMany = (tree?.children || [])[1] as unknown as Tree
-      expect(findMany.span.name).toEqual('prisma:request')
+      expect(findMany.span.name).toEqual('prisma:client:operation')
       expect(findMany.span.attributes.model).toEqual('User')
       expect(findMany.span.attributes.method).toEqual('findMany')
 
@@ -421,7 +421,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('queryRaw')
 
       expect(tree.children).toHaveLength(1)
@@ -450,7 +450,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('executeRaw')
 
       expect(tree.children).toHaveLength(1)
@@ -491,7 +491,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     const prismaSpan = (tree.children || [])[0]
 
-    expect(prismaSpan.span.name).toEqual('prisma:request')
+    expect(prismaSpan.span.name).toEqual('prisma:client:operation')
     expect(prismaSpan.span.attributes['method']).toEqual('create')
     expect(prismaSpan.span.attributes['model']).toEqual('User')
 
@@ -570,7 +570,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -644,14 +644,14 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
 
       expect(tree.children).toHaveLength(2)
 
       const connect = (tree?.children || [])[0] as unknown as Tree
-      expect(connect.span.name).toEqual('prisma:connect')
+      expect(connect.span.name).toEqual('prisma:client:connect')
 
       const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:query_builder')
@@ -691,7 +691,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma:disconnect')
+      expect(tree.span.name).toEqual('prisma:client:disconnect')
     })
   })
 })

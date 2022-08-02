@@ -13,7 +13,7 @@ export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, 
   const tracer = trace.getTracer('prisma')
 
   return tracer.startActiveSpan(
-    `prisma:${options.name}`,
+    `prisma:client:${options.name}`,
     options,
     options.context ?? context.active(),
     async (span) => {

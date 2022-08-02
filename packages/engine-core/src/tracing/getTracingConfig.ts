@@ -18,11 +18,11 @@ export interface PrismaInstrumentationConfig {
  * @returns
  */
 export function getTracingConfig(previewFeatures: string[]): TracingConfig {
-  const hasTracingEnabled = previewFeatures.includes('tracing')
+  const hasTracingPreviewFeatureFlagEnabled = previewFeatures.includes('tracing')
 
   return {
     get enabled() {
-      return Boolean(hasTracingEnabled && globalThis.PRISMA_INSTRUMENTATION)
+      return Boolean(globalThis.PRISMA_INSTRUMENTATION && hasTracingPreviewFeatureFlagEnabled)
     },
     get middleware() {
       return Boolean(globalThis.PRISMA_INSTRUMENTATION && globalThis.PRISMA_INSTRUMENTATION.middleware)

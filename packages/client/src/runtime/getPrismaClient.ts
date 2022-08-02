@@ -1025,7 +1025,6 @@ new PrismaClient({
     /**
      * Runs the middlewares over params before executing a request
      * @param internalParams
-     * @param middlewareIndex
      * @returns
      */
     async _request(internalParams: InternalRequestParams): Promise<any> {
@@ -1048,10 +1047,14 @@ new PrismaClient({
             enabled: this._tracingConfig.middleware,
             attributes: { method: '$use' },
           } as SpanOptions,
-          request: {
-            name: 'request',
+          operation: {
+            name: 'operation',
             enabled: this._tracingConfig.enabled,
-            attributes: { method: params.action, model: params.model, name: `${params.model}.${params.action}` },
+            attributes: {
+              method: params.action,
+              model: params.model,
+              name: `${params.model}.${params.action}`,
+            },
           } as SpanOptions,
         }
 
@@ -1075,7 +1078,7 @@ new PrismaClient({
           return this._executeRequest({ ...internalParams, ...changedParams })
         }
 
-        return await runInChildSpan(spanOptions.request, () => {
+        return await runInChildSpan(spanOptions.operation, () => {
           if (NODE_CLIENT) {
             // https://github.com/prisma/prisma/issues/3148 not for the data proxy
             const asyncRes = new AsyncResource('prisma-client-request')
