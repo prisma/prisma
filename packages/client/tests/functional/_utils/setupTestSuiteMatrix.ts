@@ -76,7 +76,7 @@ function setupTestSuiteMatrix(
           globalThis['prisma'] = globalThis['newPrismaClient']()
         }
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
-      })
+      }, 180_000)
 
       afterAll(async () => {
         for (const client of clients) {
