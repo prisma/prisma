@@ -31,7 +31,15 @@ function setupMockLibraryEngine() {
     },
   }
 
-  const engine = new LibraryEngine({ datamodelPath: '/mock' }, loader)
+  const engine = new LibraryEngine(
+    {
+      datamodelPath: '/mock',
+      tracingConfig: {
+        enabled: false,
+      },
+    },
+    loader,
+  )
   return { engine, rustEngineMock }
 }
 
