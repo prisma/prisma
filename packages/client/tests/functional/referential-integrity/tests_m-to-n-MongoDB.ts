@@ -165,44 +165,19 @@ testMatrix.setupTestSuite(
         })
 
         // Note: it's not possible on MongoDB to mutate _id, it is immutable
-        test('[update] id (_id) should throw a type error', async () => {
+        test('[update] id (_id) should throw at runtime because id field is read-only/immutable', async () => {
           expect(
             prisma[postModel].update({
               where: {
                 id: '1',
               },
               data: {
+                // This would show a type error
                 id: 'new id',
               },
             }),
-          ).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-            Invalid \`prisma[postModel].update()\` invocation in
-            /client/tests/functional/referential-integrity/tests_m-to-n-MongoDB.ts:173:31
-
-              170 // Note: it's not possible on MongoDB to mutate _id, it is immutable
-              171 test('[update] id (_id) should throw a type error', async () => {
-              172   expect(
-            → 173     prisma[postModel].update({
-                        where: {
-                          id: '1'
-                        },
-                        data: {
-                          id: 'new id'
-                          ~~
-                        }
-                      })
-
-            Unknown arg \`id\` in data.id for type PostManyToManyUpdateInput. Available args:
-
-            type PostManyToManyUpdateInput {
-              categoryIDs?: PostManyToManyUpdatecategoryIDsInput | List<String>
-              categories?: CategoryManyToManyUpdateManyWithoutPostsNestedInput
-              published?: Boolean | NullableBoolFieldUpdateOperationsInput | Null
-            }
-
-
-          `)
+            // Runtime error
+          ).rejects.toThrowError('Unknown arg `id` in data.id for type PostManyToManyUpdateInput. Available args:')
 
           expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
             expectedFindManyPostModelIfNoChange,
