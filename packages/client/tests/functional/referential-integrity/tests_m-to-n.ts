@@ -152,9 +152,9 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        // RI=prisma - Cascade/Restrict - SQLServer/CockroachDB/PostgreSQL:  Resolved to value: {"categoryId": "99", "postId": "99"}
-        test('[create] categoriesOnPostsModel with non-existing post and category id', async () => {
-          if (suiteConfig.referentialIntegrity === 'prisma') {
+        testIf(suiteConfig.referentialIntegrity === 'prisma')(
+          '[create] categoriesOnPostsModel with non-existing post and category id should suceed with prisma emulation',
+          async () => {
             expect(
               await prisma[categoriesOnPostsModel].create({
                 data: {
@@ -169,7 +169,11 @@ testMatrix.setupTestSuite(
                 categoryId: '99',
               },
             ])
-          } else {
+          },
+        )
+        testIf(suiteConfig.referentialIntegrity !== 'prisma')(
+          '[create] categoriesOnPostsModel with non-existing post and category id should throw with foreignKeys',
+          async () => {
             await expect(
               prisma[categoriesOnPostsModel].create({
                 data: {
@@ -191,8 +195,8 @@ testMatrix.setupTestSuite(
             )
 
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([])
-          }
-        })
+          },
+        )
 
         test('[create] create post [nested] [create] categories [nested] [create] category should succeed', async () => {
           await prisma[postModel].create({
