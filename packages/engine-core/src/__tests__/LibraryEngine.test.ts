@@ -36,7 +36,9 @@ function setupMockLibraryEngine() {
       datamodelPath: '/mock',
       tracingConfig: {
         enabled: false,
+        middleware: false,
       },
+      env: {},
     },
     loader,
   )
