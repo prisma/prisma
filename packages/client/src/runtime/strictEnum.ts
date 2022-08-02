@@ -1,6 +1,17 @@
 export const strictEnumNames = ['TransactionIsolationLevel']
 
 /**
+ * List of properties that won't throw exception on access and return undefined instead
+ */
+const allowList = new Set([
+  'toJSON', // used by JSON.stringify
+  'asymmetricMatch', // used by Jest
+  Symbol.iterator, // used by various JS constructs/methods
+  Symbol.toStringTag, // Used by .toString()
+  Symbol.isConcatSpreadable, // Used by Array#concat,
+  Symbol.toPrimitive, // Used when getting converted to primitive values
+])
+/**
  * Generates more strict variant of an enum which, unlike regular enum,
  * throws on non-existing property access. This can be useful in following situations:
  * - we have an API, that accepts both `undefined` and `SomeEnumType` as an input
@@ -21,6 +32,9 @@ export function makeStrictEnum<T extends Record<PropertyKey, string | number>>(d
     get(target, property) {
       if (property in target) {
         return target[property]
+      }
+      if (allowList.has(property)) {
+        return undefined
       }
       throw new TypeError(`Invalid enum value: ${String(property)}`)
     },
