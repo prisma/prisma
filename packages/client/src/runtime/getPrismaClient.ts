@@ -8,10 +8,12 @@ import {
   EngineConfig,
   EngineEventType,
   getTraceParent,
+  getTracingConfig,
   LibraryEngine,
   Options,
   runInChildSpan,
   SpanOptions,
+  TracingConfig,
 } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
@@ -21,7 +23,6 @@ import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
 
-import { getTracingConfig, TracingConfig } from '../../../engine-core/src/tracing/getTracingConfig'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
