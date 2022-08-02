@@ -276,7 +276,7 @@ importers:
       rimraf: 3.0.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
-      sql-template-tag: 4.1.0
+      sql-template-tag: 5.0.3
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -350,7 +350,7 @@ importers:
       rimraf: 3.0.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
-      sql-template-tag: 4.1.0
+      sql-template-tag: 5.0.3
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -10793,9 +10793,9 @@ packages:
   /sprintf-js/1.1.2:
     resolution: {integrity: sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==}
 
-  /sql-template-tag/4.1.0:
-    resolution: {integrity: sha512-VarfrlW5yoz0EcceKenipKdZBWi9dMK8VcdQm2P1FIPpa5YTnN+UkVgBe+9p+5vEBmnberL831/Alfx/RzNm1A==}
-    engines: {node: '>=6'}
+  /sql-template-tag/5.0.3:
+    resolution: {integrity: sha512-LGxasxbVflQlgP5cme4+7zee7LeFGQyILTAnlI6RzxOOPMg/d+n74To0+0TkiYiD+2Hzy8gX6inkgJkQfyNlFQ==}
+    engines: {node: '>=14'}
     dev: true
 
   /sqlite-async/1.1.3:

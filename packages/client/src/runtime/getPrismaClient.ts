@@ -47,6 +47,7 @@ import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
+const sqltag = sqlTemplateTag.default
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -615,7 +616,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
+            const queryInstance = sqltag(query, ...values)
 
             queryString = queryInstance.sql
             parameters = {
@@ -627,7 +628,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
           case 'cockroachdb':
           case 'postgresql': {
-            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
+            const queryInstance = sqltag(query, ...values)
 
             queryString = queryInstance.text
             checkAlter(queryString, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
@@ -785,7 +786,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         switch (this._activeProvider) {
           case 'sqlite':
           case 'mysql': {
-            const queryInstance = sqlTemplateTag.sqltag(query, ...values)
+            const queryInstance = sqltag(query, ...values)
 
             queryString = queryInstance.sql
             parameters = {
@@ -797,7 +798,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
           case 'cockroachdb':
           case 'postgresql': {
-            const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
+            const queryInstance = sqltag(query as any, ...values)
 
             queryString = queryInstance.text
             parameters = {
@@ -808,7 +809,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           }
 
           case 'sqlserver': {
-            const queryInstance = sqlTemplateTag.sqltag(query as any, ...values)
+            const queryInstance = sqltag(query as any, ...values)
 
             queryString = mssqlPreparedStatement(queryInstance.strings)
             parameters = {
