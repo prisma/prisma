@@ -1,7 +1,17 @@
 import { SpanOptions } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType, Options } from '@prisma/engine-core'
-import { BinaryEngine, DataProxyEngine, getTracingConfig, LibraryEngine, TransactionHeaders } from '@prisma/engine-core'
+import {
+  BinaryEngine,
+  DataProxyEngine,
+  getTraceParent,
+  getTracingConfig,
+  LibraryEngine,
+  runInActiveSpan,
+  runInSpan,
+  TransactionHeaders,
+  TransactionTracer,
+} from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import {
   ClientEngineType,
@@ -19,7 +29,6 @@ import * as sqlTemplateTag from 'sql-template-tag'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
-import { TransactionTracer } from '../utils/TransactionTracer'
 import { PrismaClientValidationError } from '.'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
@@ -39,8 +48,6 @@ import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
-import { getTraceParent } from './utils/otel/getTraceParent'
-import { runInActiveSpan, runInSpan } from './utils/otel/runInSpan'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'

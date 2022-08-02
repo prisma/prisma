@@ -1,6 +1,6 @@
 import { context, SpanOptions, trace } from '@opentelemetry/api'
 
-import { TransactionTracer } from '../../../utils/TransactionTracer'
+import { TransactionTracer } from './TransactionTracer'
 
 export function runInActiveSpan<R>({
   name,

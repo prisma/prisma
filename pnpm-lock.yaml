@@ -387,7 +387,6 @@ importers:
   packages/engine-core:
     specifiers:
       '@opentelemetry/api': ^1.1.0
-      '@opentelemetry/core': ^1.4.0
       '@opentelemetry/sdk-trace-base': ^1.4.0
       '@prisma/debug': workspace:*
       '@prisma/engines': workspace:*
@@ -411,7 +410,6 @@ importers:
       undici: 5.8.0
     dependencies:
       '@opentelemetry/api': 1.1.0
-      '@opentelemetry/core': 1.4.0_@opentelemetry+api@1.1.0
       '@opentelemetry/sdk-trace-base': 1.4.0_@opentelemetry+api@1.1.0
       '@prisma/debug': link:../debug
       '@prisma/engines': link:../engines
