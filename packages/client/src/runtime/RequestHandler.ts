@@ -1,5 +1,6 @@
 import { Context, trace } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
+import { getTraceParent } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -8,8 +9,6 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { getTraceParent } from './core/tracing/getTraceParent'
-import { runInChildSpan } from './core/tracing/runInChildSpan'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'

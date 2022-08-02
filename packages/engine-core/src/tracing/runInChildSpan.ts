@@ -1,6 +1,6 @@
 import { Context, context, Span, SpanOptions as _SpanOptions, trace } from '@opentelemetry/api'
 
-export type SpanOptions = _SpanOptions & { name: string; enabled: boolean; otelCtx?: Context }
+export type SpanOptions = _SpanOptions & { name: string; enabled: boolean; context?: Context }
 
 /**
  * Executes and traces a function inside of a child span asynchronously.
@@ -15,7 +15,7 @@ export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, 
   return tracer.startActiveSpan(
     `prisma:${options.name}`,
     options,
-    options.otelCtx ?? context.active(),
+    options.context ?? context.active(),
     async (span) => {
       return cb(span, context.active()).finally(() => span.end())
     },

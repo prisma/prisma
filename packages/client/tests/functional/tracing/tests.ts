@@ -13,6 +13,7 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import * as util from 'util'
 
+import { map } from '../../../../../helpers/blaze/map'
 import testMatrix from './_matrix'
 
 type Tree = {
@@ -68,6 +69,10 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(({ provider }) => {
+  beforeEach(async () => {
+    await prisma.$connect()
+  })
+
   beforeEach(() => {
     inMemorySpanExporter.reset()
   })
@@ -99,7 +104,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -153,7 +158,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -198,7 +203,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('update')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -260,7 +265,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('delete')
       expect(tree.span.attributes['model']).toEqual('User')
 
@@ -334,21 +339,20 @@ testMatrix.setupTestSuite(({ provider }) => {
       const tree = await waitForSpanTree()
 
       expect(tree.span.name).toEqual('prisma:transaction')
-      expect(tree.span.attributes['method']).toEqual('transaction')
-      expect(tree.children).toHaveLength(1)
+      expect(tree.span.attributes['method']).toEqual('$transaction')
+      expect(tree.children).toHaveLength(3)
 
-      const prismaSpan = (tree?.children || [])[0] as unknown as Tree
-      expect(prismaSpan.span.name).toEqual('prisma')
-      expect(prismaSpan.span.attributes['children']).toEqual(
-        JSON.stringify([
-          { method: 'create', model: 'User' },
-          { method: 'findMany', model: 'User' },
-        ]),
-      )
+      const create = (tree?.children || [])[0] as unknown as Tree
+      expect(create.span.name).toEqual('prisma:request')
+      expect(create.span.attributes.model).toEqual('User')
+      expect(create.span.attributes.method).toEqual('create')
 
-      expect(prismaSpan.children).toHaveLength(1)
+      const findMany = (tree?.children || [])[1] as unknown as Tree
+      expect(findMany.span.name).toEqual('prisma:request')
+      expect(findMany.span.attributes.model).toEqual('User')
+      expect(findMany.span.attributes.method).toEqual('findMany')
 
-      const queryBuilder = (prismaSpan.children || [])[0] as unknown as Tree
+      const queryBuilder = (tree?.children || [])[2] as unknown as Tree
       expect(queryBuilder.span.name).toEqual('prisma:query_builder')
 
       if (provider === 'mongodb') {
@@ -380,55 +384,29 @@ testMatrix.setupTestSuite(({ provider }) => {
       const tree = await waitForSpanTree()
 
       expect(tree.span.name).toEqual('prisma:transaction')
-      expect(tree.span.attributes['method']).toEqual('transaction')
-      expect(tree.children).toHaveLength(1)
+      expect(tree.span.attributes['method']).toEqual('$transaction')
+      expect(tree.children).toHaveLength(3)
 
-      const prismaSpan = (tree?.children || [])[0] as unknown as Tree
-      expect(prismaSpan.span.name).toEqual('prisma')
-      expect(prismaSpan.span.attributes['children']).toEqual(
-        JSON.stringify([
-          { method: 'create', model: 'User' },
-          { method: 'findMany', model: 'User' },
-        ]),
-      )
+      const create = (tree?.children || [])[0] as unknown as Tree
+      expect(create.span.name).toEqual('prisma:request')
+      expect(create.span.attributes.model).toEqual('User')
+      expect(create.span.attributes.method).toEqual('create')
 
-      expect(prismaSpan.children).toHaveLength(1)
+      const findMany = (tree?.children || [])[1] as unknown as Tree
+      expect(findMany.span.name).toEqual('prisma:request')
+      expect(findMany.span.attributes.model).toEqual('User')
+      expect(findMany.span.attributes.method).toEqual('findMany')
 
-      const prismaItxRunner = (prismaSpan?.children || [])[0] as unknown as Tree
-      expect(prismaItxRunner.span.name).toEqual('prisma:itx_runner')
-
-      const prismaGetConnection = (prismaItxRunner?.children || []).find(
-        (child) => child.span.name === 'prisma:connection',
-      ) as unknown as Tree
-      expect(prismaGetConnection).toBeDefined()
-
-      const [queryBuilder1, queryBuilder2] = (prismaItxRunner?.children || []).filter(
-        (child) => child.span.name === 'prisma:itx_query_builder',
-      ) as Tree[]
-
-      expect(queryBuilder1).toBeDefined()
-      expect(queryBuilder1.children).toHaveLength(2)
-
-      expect(queryBuilder2).toBeDefined()
-      expect(queryBuilder2.children).toHaveLength(1)
+      const queryBuilder = (tree?.children || [])[2] as unknown as Tree
+      expect(queryBuilder.span.name).toEqual('prisma:itx_runner')
 
       if (provider === 'mongodb') {
-        expect(prismaItxRunner.children).toHaveLength(3)
+        expect(queryBuilder.children).toHaveLength(3)
 
         return
       }
 
-      expect(prismaItxRunner.children).toHaveLength(5)
-
-      const begin = (prismaItxRunner?.children || []).find((child) =>
-        child.span.attributes['db.statement']?.toString().includes('BEGIN'),
-      ) as unknown as Tree
-      expect(begin).toBeDefined()
-
-      const commit = (prismaItxRunner?.children || []).find((child) =>
-        child.span.attributes['db.statement']?.toString().includes('COMMIT'),
-      ) as unknown as Tree
-      expect(commit).toBeDefined()
+      expect(queryBuilder.children).toHaveLength(5)
     })
   })
 
@@ -443,7 +421,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('queryRaw')
 
       expect(tree.children).toHaveLength(1)
@@ -472,7 +450,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('executeRaw')
 
       expect(tree.children).toHaveLength(1)
@@ -513,7 +491,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     const prismaSpan = (tree.children || [])[0]
 
-    expect(prismaSpan.span.name).toEqual('prisma')
+    expect(prismaSpan.span.name).toEqual('prisma:request')
     expect(prismaSpan.span.attributes['method']).toEqual('create')
     expect(prismaSpan.span.attributes['model']).toEqual('User')
 
@@ -562,8 +540,10 @@ testMatrix.setupTestSuite(({ provider }) => {
     // @ts-ignore
     let _prisma: PrismaClient
 
-    beforeAll(() => {
+    beforeAll(async () => {
       _prisma = newPrismaClient()
+
+      await _prisma.$connect()
     })
 
     test('tracing with middleware', async () => {
@@ -590,19 +570,19 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      expect(tree.span.name).toEqual('prisma')
+      expect(tree.span.name).toEqual('prisma:request')
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(3)
+      expect(tree.children).toHaveLength(1)
 
-      const middlewares = (tree.children || []).filter(({ span }) => span.name === 'prisma:middleware') as Tree[]
-      expect(middlewares).toHaveLength(2)
-      middlewares.forEach((m) => {
-        expect(m.span.attributes['method']).toEqual('$use')
-      })
+      const middleware1 = (tree.children || [])[0] as unknown as Tree
+      expect(middleware1.children).toHaveLength(1)
 
-      const engine = (tree.children || []).find(({ span }) => span.name === 'prisma:query_builder') as Tree
+      const middleware2 = (middleware1.children || [])[0] as unknown as Tree
+      expect(middleware2.children).toHaveLength(1)
+
+      const engine = (middleware2.children || []).find(({ span }) => span.name === 'prisma:query_builder') as Tree
 
       const getConnection = (engine.children || [])[0]
       expect(getConnection.span.name).toEqual('prisma:connection')
@@ -638,6 +618,80 @@ testMatrix.setupTestSuite(({ provider }) => {
       const dbQuery4 = (engine.children || [])[4]
       expect(dbQuery4.span.name).toEqual('prisma:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+    })
+  })
+
+  describe('Tracing connect', () => {
+    // @ts-ignore
+    let _prisma: PrismaClient
+
+    beforeAll(() => {
+      _prisma = newPrismaClient()
+    })
+
+    afterAll(async () => {
+      await _prisma.$disconnect()
+    })
+
+    test('should trace the implict $connect call', async () => {
+      const email = faker.internet.email()
+
+      await _prisma.user.findMany({
+        where: {
+          email: email,
+        },
+      })
+
+      const tree = await waitForSpanTree()
+
+      expect(tree.span.name).toEqual('prisma:request')
+      expect(tree.span.attributes['method']).toEqual('findMany')
+      expect(tree.span.attributes['model']).toEqual('User')
+
+      expect(tree.children).toHaveLength(2)
+
+      const connect = (tree?.children || [])[0] as unknown as Tree
+      expect(connect.span.name).toEqual('prisma:connect')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
+      expect(engine.span.name).toEqual('prisma:query_builder')
+
+      const getConnection = (engine.children || [])[0]
+      expect(getConnection.span.name).toEqual('prisma:connection')
+
+      if (provider === 'mongodb') {
+        expect(engine.children).toHaveLength(2)
+
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('db.User.findMany(*)')
+
+        return
+      }
+
+      expect(engine.children).toHaveLength(2)
+
+      const select = (engine.children || [])[1]
+      expect(select.span.name).toEqual('prisma:db_query')
+      expect(select.span.attributes['db.statement']).toContain('SELECT')
+    })
+  })
+
+  describe('Tracing disconnect', () => {
+    // @ts-ignore
+    let _prisma: PrismaClient
+
+    beforeAll(async () => {
+      _prisma = newPrismaClient()
+      await _prisma.$connect()
+    })
+
+    test('should trace $disconnect', async () => {
+      await _prisma.$disconnect()
+
+      const tree = await waitForSpanTree()
+
+      expect(tree.span.name).toEqual('prisma:disconnect')
     })
   })
 })

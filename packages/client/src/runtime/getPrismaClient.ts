@@ -1,7 +1,18 @@
 import { Context, context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import type { DatasourceOverwrite, Engine, EngineConfig, EngineEventType, Options } from '@prisma/engine-core'
-import { BinaryEngine, DataProxyEngine, LibraryEngine } from '@prisma/engine-core'
+import {
+  BinaryEngine,
+  DataProxyEngine,
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  getTraceParent,
+  LibraryEngine,
+  Options,
+  runInChildSpan,
+  SpanOptions,
+} from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
@@ -10,6 +21,7 @@ import fs from 'fs'
 import path from 'path'
 import * as sqlTemplateTag from 'sql-template-tag'
 
+import { getTracingConfig, TracingConfig } from '../../../engine-core/src/tracing/getTracingConfig'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
@@ -17,9 +29,6 @@ import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type { PrismaPromise } from './core/request/PrismaPromise'
-import { getTraceParent } from './core/tracing/getTraceParent'
-import { getTracingConfig, TracingConfig } from './core/tracing/getTracingConfig'
-import { runInChildSpan, SpanOptions } from './core/tracing/runInChildSpan'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { getCallSite } from './core/utils/getCallSite'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
@@ -89,7 +98,7 @@ export interface PrismaClientOptions {
    */
   rejectOnNotFound?: InstanceRejectOnNotFound
   /**
-   * Overwrites the datasource url from your prisma.schema file
+   * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
 
@@ -966,7 +975,7 @@ new PrismaClient({
       options,
     }: {
       callback: (client: Client) => Promise<unknown>
-      options?: { maxWait: number; timeout: number }
+      options?: Options
     }) {
       const headers = { traceparent: getTraceParent() }
       const info = await this._engine.transaction('start', headers, options as Options)
@@ -1042,7 +1051,7 @@ new PrismaClient({
           request: {
             name: 'request',
             enabled: this._tracingConfig.enabled,
-            attributes: { method: params.action, model: params.model },
+            attributes: { method: params.action, model: params.model, name: `${params.model}.${params.action}` },
           } as SpanOptions,
         }
 
@@ -1063,18 +1072,18 @@ new PrismaClient({
 
           // no middleware? then we just proceed with request execution
           // before we send the execution request, we use the changed params
-          return runInChildSpan(spanOptions.request, () => {
-            return this._executeRequest({ ...internalParams, ...changedParams })
-          })
+          return this._executeRequest({ ...internalParams, ...changedParams })
         }
 
-        if (NODE_CLIENT) {
-          // https://github.com/prisma/prisma/issues/3148 not for the data proxy
-          const asyncRes = new AsyncResource('prisma-client-request')
-          return await asyncRes.runInAsyncScope(() => consumer(params))
-        }
+        return await runInChildSpan(spanOptions.request, () => {
+          if (NODE_CLIENT) {
+            // https://github.com/prisma/prisma/issues/3148 not for the data proxy
+            const asyncRes = new AsyncResource('prisma-client-request')
+            return asyncRes.runInAsyncScope(() => consumer(params))
+          }
 
-        return await consumer(params)
+          return consumer(params)
+        })
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e

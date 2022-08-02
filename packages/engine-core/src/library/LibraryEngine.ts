@@ -30,7 +30,7 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { createSpan } from '../common/utils/createSpan'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
@@ -119,7 +119,7 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
@@ -132,6 +132,7 @@ export class LibraryEngine extends Engine {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
+        isolation_level: arg?.isolationLevel,
       })
 
       result = await this.engine?.startTransaction(jsonOptions, headerStr)
@@ -242,7 +243,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
     if ('span' in event) {
       if (this.config.tracingConfig.enabled === true) {
-        createSpan(event as EngineSpanEvent)
+        void createSpan(event as EngineSpanEvent)
       }
 
       return
@@ -316,63 +317,88 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   async start(): Promise<void> {
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
+
     if (this.libraryStartingPromise) {
       debug(`library already starting, this.libraryStarted: ${this.libraryStarted}`)
       return this.libraryStartingPromise
     }
-    if (!this.libraryStarted) {
-      this.libraryStartingPromise = new Promise((resolve, reject) => {
-        debug('library starting')
-        this.engine
-          ?.connect({ enableRawQueries: true })
-          .then(() => {
-            this.libraryStarted = true
-            debug('library started')
-            resolve()
-          })
-          .catch((err) => {
-            const error = this.parseInitError(err.message)
-            // The error message thrown by the query engine should be a stringified JSON
-            // if parsing fails then we just reject the error
-            if (typeof error === 'string') {
-              reject(err)
-            } else {
-              reject(new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code))
-            }
-          })
-          .finally(() => {
-            this.libraryStartingPromise = undefined
-          })
-      })
-      return this.libraryStartingPromise
+
+    if (this.libraryStarted) {
+      return
     }
+
+    const startFn = async () => {
+      debug('library starting')
+
+      try {
+        const headers = {
+          traceparent: getTraceParent(),
+        }
+
+        await this.engine?.connect(JSON.stringify(headers))
+
+        this.libraryStarted = true
+
+        debug('library started')
+      } catch (err) {
+        const error = this.parseInitError(err.message as string)
+
+        // The error message thrown by the query engine should be a stringified JSON
+        // if parsing fails then we just reject the error
+        if (typeof error === 'string') {
+          throw err
+        } else {
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+        }
+      } finally {
+        this.libraryStartingPromise = undefined
+      }
+    }
+
+    const spanConfig = {
+      name: 'connect',
+      enabled: this.config.tracingConfig.enabled,
+    }
+
+    return runInChildSpan(spanConfig, startFn)
   }
 
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
+
     if (this.libraryStoppingPromise) {
       debug('library is already stopping')
       return this.libraryStoppingPromise
     }
 
-    if (this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
-        try {
-          await new Promise((r) => setTimeout(r, 5))
-          debug('library stopping')
-          await this.engine?.disconnect()
-          this.libraryStarted = false
-          this.libraryStoppingPromise = undefined
-          debug('library stopped')
-          resolve()
-        } catch (err) {
-          reject(err)
-        }
-      })
-      return this.libraryStoppingPromise
+    if (!this.libraryStarted) {
+      return
     }
+
+    const stopFn = async () => {
+      await new Promise((r) => setTimeout(r, 5))
+
+      debug('library stopping')
+
+      const headers = {
+        traceparent: getTraceParent(),
+      }
+
+      await this.engine?.disconnect(JSON.stringify(headers))
+
+      this.libraryStarted = false
+      this.libraryStoppingPromise = undefined
+
+      debug('library stopped')
+    }
+
+    const spanConfig = {
+      name: 'disconnect',
+      enabled: this.config.tracingConfig.enabled,
+    }
+
+    return runInChildSpan(spanConfig, stopFn)
   }
 
   async getConfig(): Promise<ConfigMetaFormat> {
@@ -512,9 +538,5 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return responseString
     }
     return this.parseEngineResponse(responseString)
-  }
-
-  _hasPreviewFlag(feature: string): Boolean {
-    return !!this.config.previewFeatures?.includes(feature)
   }
 }

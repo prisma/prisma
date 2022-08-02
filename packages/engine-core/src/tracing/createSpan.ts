@@ -1,9 +1,13 @@
 import { ROOT_CONTEXT, SpanContext, SpanKind, trace, TraceFlags } from '@opentelemetry/api'
 import { Span, Tracer } from '@opentelemetry/sdk-trace-base'
 
-import { EngineSpanEvent } from '../types/QueryEngine'
+import { EngineSpanEvent } from '../common/types/QueryEngine'
 
-export function createSpan(engineSpanEvent: EngineSpanEvent) {
+export async function createSpan(engineSpanEvent: EngineSpanEvent) {
+  // this is only needed for tests and isn't useful otherwise
+  // so that "engine" spans are always emitted after "client"
+  await new Promise((res) => setTimeout(res, 0))
+
   const tracer = trace.getTracer('prisma') as Tracer
 
   engineSpanEvent.spans.forEach((engineSpan) => {

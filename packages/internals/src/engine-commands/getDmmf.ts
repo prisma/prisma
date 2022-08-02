@@ -116,7 +116,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
 
   /**
    * - load the query engine library
-   * - create a temporary datamodel file if one is not provided
+   * - create a temporary schema file if one is not provided
    * - run the "dmmf" command
    * - JSON-deserialize the "dmmf" output
    */

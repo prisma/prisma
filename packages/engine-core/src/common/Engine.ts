@@ -1,5 +1,6 @@
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 
+import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
@@ -30,7 +31,7 @@ export abstract class Engine {
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
-    options: Transaction.Options,
+    options?: Transaction.Options,
   ): Promise<Transaction.Info>
   abstract transaction(action: 'commit', headers: Transaction.TransactionHeaders, info: Transaction.Info): Promise<void>
   abstract transaction(
@@ -41,8 +42,6 @@ export abstract class Engine {
 
   abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
   abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
-
-  abstract _hasPreviewFlag(feature: string): Boolean
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
@@ -95,7 +94,7 @@ export interface EngineConfig {
    * The configuration object for enabling tracing
    * @remarks enabling is determined by the client
    */
-  tracingConfig: { enabled: boolean }
+  tracingConfig: TracingConfig
 }
 
 export type GetConfigResult = {

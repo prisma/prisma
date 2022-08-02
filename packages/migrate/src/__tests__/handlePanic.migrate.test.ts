@@ -109,7 +109,7 @@ describe('handlePanic migrate', () => {
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
     } catch (err) {
       // No to send error report
@@ -185,7 +185,7 @@ describe('handlePanic migrate', () => {
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
     } catch (error) {
       expect(error).toMatchSnapshot()
