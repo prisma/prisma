@@ -1243,9 +1243,7 @@ function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Incomi
     }
 
     // if header key isn't changed, a copy happens
-    if (acc[httpHeaderKey] !== undefined) {
-      acc[httpHeaderKey] = headers[runtimeHeaderKey]
-    }
+    acc[httpHeaderKey] = headers[runtimeHeaderKey]
 
     return acc
   }, {} as IncomingHttpHeaders)
