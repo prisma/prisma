@@ -33,3 +33,19 @@ test('hasOwnProperty', () => {
   expect(Object.prototype.hasOwnProperty.call(StrictEnum, 'ONE')).toBe(true)
   expect(Object.prototype.hasOwnProperty.call(StrictEnum, 'NotThere')).toBe(false)
 })
+
+test('JSON.stringify', () => {
+  expect(JSON.stringify(StrictEnum)).toMatchInlineSnapshot(`{"ONE":"1","TWO":"2","THREE":"3"}`)
+})
+
+test('Object.prototype.toString', () => {
+  expect(Object.prototype.toString.call(StrictEnum)).toMatchInlineSnapshot(`[object Object]`)
+})
+
+test('iterator', () => {
+  expect(([] as object[]).concat(StrictEnum)).toEqual([StrictEnum])
+})
+
+test('toPrimitive', () => {
+  expect(+StrictEnum).toBeNaN()
+})

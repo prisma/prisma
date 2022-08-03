@@ -1,4 +1,5 @@
-import { TransactionTracer } from '../../../utils/TransactionTracer'
+import { TransactionTracer } from '@prisma/engine-core'
+
 import type { PrismaPromise } from './PrismaPromise'
 
 /**
