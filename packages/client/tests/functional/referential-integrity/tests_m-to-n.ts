@@ -1,6 +1,6 @@
+import { checkIfEmpty } from '../_referential-integrity-utils/checkIfEmpty'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
-import { checkIfEmpty } from './_utils'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
