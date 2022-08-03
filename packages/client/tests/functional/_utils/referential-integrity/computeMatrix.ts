@@ -1,4 +1,4 @@
-import { Providers } from '../_utils/providers'
+import { Providers } from '../providers'
 
 type ComputeMatrix = {
   referentialIntegrity: string

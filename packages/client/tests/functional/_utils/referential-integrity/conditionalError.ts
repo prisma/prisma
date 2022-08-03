@@ -1,5 +1,5 @@
 import { O } from 'ts-toolbelt'
-import { Providers } from '../_utils/providers'
+import { Providers } from '../providers'
 
 type ReferentialIntegrity = 'prisma' | 'foreignKeys'
 

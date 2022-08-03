@@ -1,4 +1,4 @@
-import { checkIfEmpty } from '../_referential-integrity-utils/checkIfEmpty'
+import { checkIfEmpty } from '../_utils/referential-integrity/checkIfEmpty'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 

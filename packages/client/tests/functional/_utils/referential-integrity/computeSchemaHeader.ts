@@ -1,5 +1,5 @@
 import { match } from 'ts-pattern'
-import { Providers } from '../_utils/providers'
+import { Providers } from '../providers'
 
 export type ComputeSchemaHeader = {
   provider: Providers

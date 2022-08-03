@@ -1,4 +1,4 @@
-import { computeMatrix } from '../_referential-integrity-utils/computeMatrix'
+import { computeMatrix } from '../_utils/referential-integrity/computeMatrix'
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
 

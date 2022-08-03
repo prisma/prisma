@@ -1,5 +1,5 @@
-import { checkIfEmpty } from '../_referential-integrity-utils/checkIfEmpty'
-import { ConditionalError } from '../_referential-integrity-utils/conditionalError'
+import { checkIfEmpty } from '../_utils/referential-integrity/checkIfEmpty'
+import { ConditionalError } from '../_utils/referential-integrity/conditionalError'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
