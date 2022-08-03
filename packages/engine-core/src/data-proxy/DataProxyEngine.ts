@@ -271,13 +271,23 @@ export class DataProxyEngine extends Engine {
       const loadedEnvURL = this.env[envVar]
 
       if (loadedEnvURL === undefined) {
-        throw new Error(`Datasource "${name}" references an environment variable "${envVar}" that is not set`)
+        throw new InvalidDatasourceError(
+          `Datasource "${name}" references an environment variable "${envVar}" that is not set`,
+          {
+            clientVersion: this.clientVersion,
+          },
+        )
       }
 
       return loadedEnvURL
     }
 
-    throw new Error(`Datasource "${name}" specification is invalid: both value and fromEnvVar are null`)
+    throw new InvalidDatasourceError(
+      `Datasource "${name}" specification is invalid: both value and fromEnvVar are null`,
+      {
+        clientVersion: this.clientVersion,
+      },
+    )
   }
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>
