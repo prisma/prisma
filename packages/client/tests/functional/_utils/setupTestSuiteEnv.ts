@@ -97,19 +97,19 @@ export async function setupTestSuiteDatabase(
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
-  try {
-    const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
-    consoleInfoMock.mockRestore()
-  } catch (e) {
-    errors.push(e as Error)
+  // try {
+  const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
+  await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
+  consoleInfoMock.mockRestore()
+  // } catch (e) {
+  //   errors.push(e as Error)
 
-    if (errors.length > 2) {
-      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
-    } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
-    }
-  }
+  //   if (errors.length > 2) {
+  //     throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+  //   } else {
+  //     await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+  //   }
+  // }
 }
 
 /**
