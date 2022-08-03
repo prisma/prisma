@@ -332,11 +332,53 @@ testMatrix.setupTestSuite(
           )
         })
 
-        test('[update] categoriesOnPostsModel with non-existing postId should throw', async () => {
-          // TODO (prisma, *, Default | Cascade | Restrict | NoAction | SetNull for PostgreSQL):
-          // Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
-          await expect(
-            prisma[categoriesOnPostsModel].update({
+        testIf(isRI_foreignKeys)(
+          'RI=foreignKeys - [update] categoriesOnPostsModel with non-existing postId should throw',
+          async () => {
+            await expect(
+              prisma[categoriesOnPostsModel].update({
+                where: {
+                  postId_categoryId: {
+                    categoryId: '1-cat-a',
+                    postId: '1',
+                  },
+                },
+                data: {
+                  postId: '99',
+                },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+              }),
+            )
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          },
+        )
+        testIf(isRI_prisma)(
+          'RI=prisma - [update] categoriesOnPostsModel with non-existing postId should succeed',
+          async () => {
+            // TODO! Why is it behaving the same for all actions?
+            await prisma[categoriesOnPostsModel].update({
               where: {
                 postId_categoryId: {
                   categoryId: '1-cat-a',
@@ -346,39 +388,84 @@ testMatrix.setupTestSuite(
               data: {
                 postId: '99',
               },
-            }),
-          ).rejects.toThrowError(
-            conditionalError.snapshot({
-              foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+            })
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
+              {
+                categoryId: '1-cat-a',
+                postId: '99',
               },
-            }),
-          )
+              {
+                categoryId: '1-cat-b',
+                postId: '1',
+              },
+              {
+                categoryId: '2-cat-a',
+                postId: '2',
+              },
+              {
+                categoryId: '2-cat-b',
+                postId: '2',
+              },
+            ])
+          },
+        )
 
-          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-            expectedFindManyPostModelIfNoChange,
-          )
-          expect(
-            await prisma[categoryModel].findMany({
-              orderBy: { id: 'asc' },
-            }),
-          ).toEqual(expectedFindManyCategoryModelIfNoChange)
-          expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-            expectedFindManyCategoriesOnPostsModelIfNoChange,
-          )
-        })
+        testIf(isRI_foreignKeys)(
+          'RI=foreignKeys - [update] categoriesOnPostsModel with non-existing categoryId should throw',
+          async () => {
+            await expect(
+              prisma[categoriesOnPostsModel].update({
+                where: {
+                  postId_categoryId: {
+                    categoryId: '1-cat-a',
+                    postId: '1',
+                  },
+                },
+                data: {
+                  categoryId: '99',
+                },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+              }),
+            )
 
-        test('[update] categoriesOnPostsModel with non-existing categoryId should throw', async () => {
-          // TODO (prisma, *, Default | Cascade | Restrict | NoAction | SetNull for PostgreSQL):
-          // Resolved to value: {"categoryId": "99", "postId": "1"}
-          await expect(
-            prisma[categoriesOnPostsModel].update({
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          },
+        )
+        testIf(isRI_prisma)(
+          'RI=prisma - [update] categoriesOnPostsModel with non-existing categoryId should succeed',
+          async () => {
+            // TODO! Why is it behaving the same for all actions?
+            await prisma[categoriesOnPostsModel].update({
               where: {
                 postId_categoryId: {
                   categoryId: '1-cat-a',
@@ -388,33 +475,36 @@ testMatrix.setupTestSuite(
               data: {
                 categoryId: '99',
               },
-            }),
-          ).rejects.toThrowError(
-            conditionalError.snapshot({
-              foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-              },
-            }),
-          )
+            })
 
-          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-            expectedFindManyPostModelIfNoChange,
-          )
-          expect(
-            await prisma[categoryModel].findMany({
-              orderBy: { id: 'asc' },
-            }),
-          ).toEqual(expectedFindManyCategoryModelIfNoChange)
-          expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-            expectedFindManyCategoriesOnPostsModelIfNoChange,
-          )
-        })
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([
+              {
+                categoryId: '1-cat-b',
+                postId: '1',
+              },
+              {
+                categoryId: '2-cat-a',
+                postId: '2',
+              },
+              {
+                categoryId: '2-cat-b',
+                postId: '2',
+              },
+              {
+                categoryId: '99',
+                postId: '1',
+              },
+            ])
+          },
+        )
 
         describeIf(['DEFAULT', 'Cascade'].includes(onUpdate))(`onUpdate: DEFAULT, Cascade`, () => {
           test('[update] post id should succeed', async () => {
@@ -525,8 +615,7 @@ testMatrix.setupTestSuite(
 
         // TODO: these are the same tests as onUpdate: Restrict, different SQL Server message
         describeIf(['NoAction'].includes(onUpdate))(`onUpdate: NoAction`, () => {
-          test('[update] post id should throw', async () => {
-            // TODO (prisma, *, NoAction): Resolved to value: {"id": "3", "published": null}
+          testIf(isRI_foreignKeys)('RI=foreignKeys - [update] post id should throw', async () => {
             await expect(
               prisma[postModel].update({
                 where: {
@@ -562,9 +651,38 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
+          testIf(isRI_prisma)('RI=prisma - [update] post id should succeed', async () => {
+            await prisma[postModel].update({
+              where: {
+                id: '1',
+              },
+              data: {
+                id: '3',
+              },
+            })
 
-          test('[update] category id should throw', async () => {
-            // TODO (prisma, *, NoAction): Resolved to value: {"id": "1-cat-a-updated", "published": null}
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '2',
+                published: null,
+              },
+              {
+                // The update
+                id: '3',
+                published: null,
+              },
+            ])
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+
+          testIf(isRI_foreignKeys)('RI=foreignKeys - [update] category should throw', async () => {
             await expect(
               prisma[categoryModel].update({
                 where: {
@@ -596,6 +714,45 @@ testMatrix.setupTestSuite(
                 orderBy: { id: 'asc' },
               }),
             ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+          testIf(isRI_prisma)('RI=prisma - [update] category should succeed', async () => {
+            await prisma[categoryModel].update({
+              where: {
+                id: '1-cat-a',
+              },
+              data: {
+                id: '1-cat-a-updated',
+              },
+            })
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1-cat-a-updated',
+                published: null,
+              },
+              {
+                id: '1-cat-b',
+                published: null,
+              },
+              {
+                id: '2-cat-a',
+                published: null,
+              },
+              {
+                id: '2-cat-b',
+                published: null,
+              },
+            ])
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
@@ -810,81 +967,196 @@ testMatrix.setupTestSuite(
           })
         })
 
-        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
-          `onDelete: DEFAULT, Restrict, NoAction`,
-          () => {
-            test('[delete] post should throw', async () => {
-              // TODO (prisma, *, NoAction): Resolved to {"id": "1", "published": null}
-              await expect(
-                prisma[postModel].delete({
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]:
-                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                    [Providers.SQLSERVER]:
-                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                  },
-                  prisma:
-                    "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
-                }),
-              )
+        describeIf(['DEFAULT', 'Restrict'].includes(onDelete))(`onDelete: DEFAULT, Restrict`, () => {
+          test('[delete] post should throw', async () => {
+            await expect(
+              prisma[postModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+              }),
+            )
 
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-                expectedFindManyPostModelIfNoChange,
-              )
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual(expectedFindManyCategoryModelIfNoChange)
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-                expectedFindManyCategoriesOnPostsModelIfNoChange,
-              )
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+
+          test('[delete] category should throw', async () => {
+            // TODO (prisma, *, Restrict): "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models."
+            await expect(
+              prisma[categoryModel].delete({
+                where: { id: '1-cat-a' },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+              }),
+            )
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+        })
+
+        describeIf(['NoAction'].includes(onDelete))(`onDelete: NoAction`, () => {
+          testIf(isRI_foreignKeys)('RI=foreignKeys - [delete] post should throw', async () => {
+            await expect(
+              prisma[postModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+              }),
+            )
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+          testIf(isRI_prisma)('RI=prisma - [delete] post should succeed', async () => {
+            await prisma[postModel].delete({
+              where: { id: '1' },
             })
 
-            test('[delete] category should throw', async () => {
-              // TODO (prisma, *, Restrict): "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models."
-              // TODO (prisma, *, NoAction): Resolved to {"id": "1-cat-a", "published": null}
-              await expect(
-                prisma[categoryModel].delete({
-                  where: { id: '1-cat-a' },
-                }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]:
-                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                    [Providers.SQLSERVER]:
-                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                  },
-                  prisma:
-                    "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
-                }),
-              )
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '2',
+                published: null,
+              },
+            ])
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
 
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-                expectedFindManyPostModelIfNoChange,
-              )
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual(expectedFindManyCategoryModelIfNoChange)
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-                expectedFindManyCategoriesOnPostsModelIfNoChange,
-              )
+          testIf(isRI_foreignKeys)('RI=foreignKeys - [delete] category should throw', async () => {
+            await expect(
+              prisma[categoryModel].delete({
+                where: { id: '1-cat-a' },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+              }),
+            )
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual(expectedFindManyCategoryModelIfNoChange)
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+          testIf(isRI_prisma)('RI=prisma - [delete] category should succeed', async () => {
+            await prisma[categoryModel].delete({
+              where: { id: '1-cat-a' },
             })
-          },
-        )
+
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+              expectedFindManyPostModelIfNoChange,
+            )
+            expect(
+              await prisma[categoryModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1-cat-b',
+                published: null,
+              },
+              {
+                id: '2-cat-a',
+                published: null,
+              },
+              {
+                id: '2-cat-b',
+                published: null,
+              },
+            ])
+            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+              expectedFindManyCategoriesOnPostsModelIfNoChange,
+            )
+          })
+        })
 
         // TODO check why SetDefault works because we don't have @default in the schema
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
