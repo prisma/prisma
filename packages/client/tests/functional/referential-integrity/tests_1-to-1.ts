@@ -44,6 +44,9 @@ testMatrix.setupTestSuite(
 
     const { onDelete } = suiteConfig.referentialActions
     const { onUpdate } = suiteConfig.referentialActions
+    const isMongoDB = suiteConfig.provider === Providers.MONGODB
+    const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
+    const isRI_foreignKeys = !isRI_prisma
 
     /**
      * 1:1 relation
@@ -60,60 +63,54 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
-        testIf(suiteConfig.referentialIntegrity === 'prisma' || suiteConfig.provider === Providers.MONGODB)(
-          'RI=prisma [create] child with non existing parent should throw',
-          async () => {
-            await prisma[profileModel].create({
+        testIf(isRI_prisma)('RI=prisma [create] child with non existing parent should throw', async () => {
+          await prisma[profileModel].create({
+            data: {
+              id: '1',
+              userId: '1',
+            },
+          })
+
+          expect(
+            await prisma[profileModel].findMany({
+              orderBy: [{ id: 'asc' }],
+            }),
+          ).toEqual([
+            {
+              id: '1',
+              userId: '1',
+              enabled: null,
+            },
+          ])
+        })
+        testIf(isRI_foreignKeys)('RI=foreignKeys [create] child with non existing parent should throw', async () => {
+          await expect(
+            prisma[profileModel].create({
               data: {
                 id: '1',
                 userId: '1',
               },
-            })
-
-            expect(
-              await prisma[profileModel].findMany({
-                orderBy: [{ id: 'asc' }],
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                userId: '1',
-                enabled: null,
+            }),
+          ).rejects.toThrowError(
+            conditionalError.snapshot({
+              foreignKeys: {
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                [Providers.SQLSERVER]:
+                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
               },
-            ])
-          },
-        )
-        testIf(suiteConfig.referentialIntegrity !== 'prisma' && suiteConfig.provider !== Providers.MONGODB)(
-          '[create] child with non existing parent should throw',
-          async () => {
-            await expect(
-              prisma[profileModel].create({
-                data: {
-                  id: '1',
-                  userId: '1',
-                },
-              }),
-            ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
-            )
+            }),
+          )
 
-            expect(
-              await prisma[profileModel].findMany({
-                orderBy: [{ id: 'asc' }],
-              }),
-            ).toEqual([])
-          },
-        )
+          expect(
+            await prisma[profileModel].findMany({
+              orderBy: [{ id: 'asc' }],
+            }),
+          ).toEqual([])
+        })
 
         test('[create] child with undefined parent should throw with type error', async () => {
           await expect(
@@ -239,7 +236,7 @@ testMatrix.setupTestSuite(
         })
 
         // Not possible on MongoDB as _id is immutable
-        describeIf(suiteConfig.provider !== Providers.MONGODB)('mutate id', () => {
+        describeIf(!isMongoDB)('mutate id', () => {
           test('[upsert] child id with non-existing id should succeed', async () => {
             await prisma[profileModel].upsert({
               where: { id: '1' },
@@ -477,7 +474,7 @@ testMatrix.setupTestSuite(
 
           describeIf(['Restrict', 'NoAction'].includes(onUpdate))('onUpdate: Restrict, NoAction', () => {
             // foreignKeys
-            testIf(suiteConfig.provider !== Providers.MONGODB && suiteConfig.referentialIntegrity !== 'prisma')(
+            testIf(isRI_foreignKeys)(
               'RI=foreignKeys - [update] parent id with non-existing id should throw',
               async () => {
                 await expect(
@@ -520,137 +517,137 @@ testMatrix.setupTestSuite(
               },
             )
             // prisma - Restrict
-            testIf(
-              suiteConfig.provider === Providers.MONGODB ||
-                (suiteConfig.referentialIntegrity === 'prisma' && onUpdate === 'Restrict'),
-            )('RI=prisma - Restrict - [update] parent id with non-existing id should throw', async () => {
-              await expect(
-                prisma[userModel].update({
+            testIf(isRI_prisma && onUpdate === 'Restrict')(
+              'RI=prisma - Restrict - [update] parent id with non-existing id should throw',
+              async () => {
+                await expect(
+                  prisma[userModel].update({
+                    where: { id: '1' },
+                    data: {
+                      id: '3',
+                    },
+                  }),
+                ).rejects.toThrowError(
+                  conditionalError.snapshot({
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+                  }),
+                )
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
+            // prisma - NoAction
+            testIf(isRI_prisma && onUpdate === 'NoAction')(
+              'RI=prisma - NoAction - [update] parent id with non-existing id should suceed',
+              async () => {
+                await prisma[userModel].update({
                   where: { id: '1' },
                   data: {
                     id: '3',
                   },
-                }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  prisma:
-                    "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-                }),
-              )
+                })
 
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            })
-            // prisma - NoAction
-            testIf(
-              (suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma') &&
-                onUpdate === 'NoAction',
-            )('RI=prisma - NoAction - [update] parent id with non-existing id should suceed', async () => {
-              await prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  id: '3',
-                },
-              })
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '2',
-                  enabled: null,
-                },
-                {
-                  id: '3',
-                  enabled: null,
-                },
-              ])
-            })
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                  {
+                    id: '3',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
 
             // prisma - Restrict
-            testIf(
-              suiteConfig.provider === Providers.MONGODB ||
-                (suiteConfig.referentialIntegrity === 'prisma' && onUpdate === 'Restrict'),
-            )('RI=prisma - Restrict - [updateMany] parent id with non-existing id should throw', async () => {
-              await expect(
-                prisma[userModel].updateMany({
+            testIf(isRI_prisma && onUpdate === 'Restrict')(
+              'RI=prisma - Restrict - [updateMany] parent id with non-existing id should throw',
+              async () => {
+                await expect(
+                  prisma[userModel].updateMany({
+                    where: { id: '1' },
+                    data: {
+                      id: '3',
+                    },
+                  }),
+                ).rejects.toThrowError(
+                  conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+                  }),
+                )
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
+            // prisma - NoAction
+            testIf(isRI_prisma && onUpdate === 'NoAction')(
+              'RI=prisma - NoAction - [updateMany] parent id with non-existing id should succeed',
+              async () => {
+                await prisma[userModel].updateMany({
                   where: { id: '1' },
                   data: {
                     id: '3',
                   },
-                }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]:
-                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                    [Providers.SQLSERVER]:
-                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                })
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '2',
+                    enabled: null,
                   },
-                  prisma:
-                    "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-                }),
-              )
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            })
-            // prisma - NoAction
-            testIf(
-              (suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma') &&
-                onUpdate === 'NoAction',
-            )('RI=prisma - NoAction - [updateMany] parent id with non-existing id should succeed', async () => {
-              await prisma[userModel].updateMany({
-                where: { id: '1' },
-                data: {
-                  id: '3',
-                },
-              })
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '2',
-                  enabled: null,
-                },
-                {
-                  id: '3',
-                  enabled: null,
-                },
-              ])
-            })
+                  {
+                    id: '3',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
           })
 
           describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
@@ -1101,84 +1098,72 @@ testMatrix.setupTestSuite(
             },
           })
           // foreignKeys
-          testIf(suiteConfig.provider !== Providers.MONGODB && suiteConfig.referentialIntegrity !== 'prisma')(
-            'RI=foreignKeys - [delete] parent should throw',
-            async () => {
-              await expect(
-                prisma[userModel].delete({
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError(expectedError)
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            },
-          )
-          testIf(suiteConfig.provider !== Providers.MONGODB && suiteConfig.referentialIntegrity !== 'prisma')(
-            'RI=foreignKeys - [deleteMany] parents should throw',
-            async () => {
-              await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            },
-          )
-
-          // prisma
-          testIf(suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma')(
-            'RI=prisma - [delete] parent should succeed',
-            async () => {
-              await prisma[userModel].delete({
+          testIf(isRI_foreignKeys)('RI=foreignKeys - [delete] parent should throw', async () => {
+            await expect(
+              prisma[userModel].delete({
                 where: { id: '1' },
               }),
-                expect(
-                  await prisma[userModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '2',
-                    enabled: null,
-                  },
-                ])
-            },
-          )
-          testIf(suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma')(
-            'RI=prisma - [deleteMany] parents should succeed',
-            async () => {
-              await prisma[userModel].deleteMany()
+            ).rejects.toThrowError(expectedError)
 
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
+          })
+          testIf(isRI_foreignKeys)('RI=foreignKeys - [deleteMany] parents should throw', async () => {
+            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
+          })
+
+          // prisma
+          testIf(isRI_prisma)('RI=prisma - [delete] parent should succeed', async () => {
+            await prisma[userModel].delete({
+              where: { id: '1' },
+            }),
               expect(
                 await prisma[userModel].findMany({
                   orderBy: { id: 'asc' },
                 }),
-              ).toEqual([])
-            },
-          )
+              ).toEqual([
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+          })
+          testIf(isRI_prisma)('RI=prisma - [deleteMany] parents should succeed', async () => {
+            await prisma[userModel].deleteMany()
+
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([])
+          })
         })
 
         describeIf(['SetNull'].includes(onDelete))(`onDelete: SetNull`, () => {

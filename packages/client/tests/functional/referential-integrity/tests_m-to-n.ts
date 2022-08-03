@@ -107,12 +107,15 @@ testMatrix.setupTestSuite(
 
     const { onDelete } = suiteConfig.referentialActions
     const { onUpdate } = suiteConfig.referentialActions
+    const isMongoDB = suiteConfig.provider === Providers.MONGODB
+    const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
+    const isRI_foreignKeys = !isRI_prisma
 
     /**
      * m:n relationship
      */
 
-    describeIf(suiteConfig.provider !== Providers.MONGODB)('m:n mandatory (explicit) - SQL Databases', () => {
+    describeIf(!isMongoDB)('m:n mandatory (explicit) - SQL Databases', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
       const categoriesOnPostsModel = 'CategoriesOnPostsManyToMany'
@@ -155,7 +158,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        testIf(suiteConfig.referentialIntegrity === 'prisma')(
+        testIf(isRI_prisma)(
           '[create] categoriesOnPostsModel with non-existing post and category id should suceed with prisma emulation',
           async () => {
             expect(
@@ -174,7 +177,7 @@ testMatrix.setupTestSuite(
             ])
           },
         )
-        testIf(suiteConfig.referentialIntegrity !== 'prisma')(
+        testIf(isRI_foreignKeys)(
           '[create] categoriesOnPostsModel with non-existing post and category id should throw with foreignKeys',
           async () => {
             await expect(

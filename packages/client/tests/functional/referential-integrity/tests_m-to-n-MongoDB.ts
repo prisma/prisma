@@ -79,10 +79,12 @@ const expectedFindManyCategoryModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
+    const isMongoDB = suiteConfig.provider === Providers.MONGODB
+
     /**
      * m:n relationship
      */
-    describeIf(suiteConfig.provider === Providers.MONGODB)('m:n mandatory (explicit) - MongoDB', () => {
+    describeIf(isMongoDB)('m:n mandatory (explicit) - MongoDB', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
 

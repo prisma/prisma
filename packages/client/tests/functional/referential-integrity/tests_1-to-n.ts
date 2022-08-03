@@ -46,6 +46,9 @@ testMatrix.setupTestSuite(
 
     const { onDelete } = suiteConfig.referentialActions
     const { onUpdate } = suiteConfig.referentialActions
+    const isMongoDB = suiteConfig.provider === Providers.MONGODB
+    const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
+    const isRI_foreignKeys = !isRI_prisma
 
     /**
      * 1:n relationship
@@ -65,8 +68,8 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
-        testIf(suiteConfig.referentialIntegrity === 'prisma' || suiteConfig.provider === Providers.MONGODB)(
-          '[create] categoriesOnPostsModel with non-existing post and category id should suceed with prisma emulation',
+        testIf(isRI_prisma)(
+          'RI=prisma - [create] categoriesOnPostsModel with non-existing post and category id should suceed with prisma emulation',
           async () => {
             await prisma[postModel].create({
               data: {
@@ -87,37 +90,34 @@ testMatrix.setupTestSuite(
             ])
           },
         )
-        testIf(suiteConfig.referentialIntegrity !== 'prisma' && suiteConfig.provider !== Providers.MONGODB)(
-          '[create] child with non existing parent should throw',
-          async () => {
-            await expect(
-              prisma[postModel].create({
-                data: {
-                  id: '1',
-                  authorId: '1',
-                },
-              }),
-            ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
-            )
+        testIf(isRI_foreignKeys)('RI=foreignKeys [create] child with non existing parent should throw', async () => {
+          await expect(
+            prisma[postModel].create({
+              data: {
+                id: '1',
+                authorId: '1',
+              },
+            }),
+          ).rejects.toThrowError(
+            conditionalError.snapshot({
+              foreignKeys: {
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                [Providers.SQLSERVER]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+              },
+            }),
+          )
 
-            expect(
-              await prisma[postModel].findMany({
-                where: { authorId: '1' },
-              }),
-            ).toEqual([])
-          },
-        )
+          expect(
+            await prisma[postModel].findMany({
+              where: { authorId: '1' },
+            }),
+          ).toEqual([])
+        })
 
         test('[create] child with undefined parent should throw with type error', async () => {
           await expect(
@@ -279,7 +279,7 @@ testMatrix.setupTestSuite(
         })
 
         // Not possible on MongoDB as _id is immutable
-        describeIf(suiteConfig.provider !== Providers.MONGODB)('mutate id', () => {
+        describeIf(!isMongoDB)('mutate id', () => {
           describeIf(['DEFAULT', 'CASCADE'].includes(onUpdate))('onUpdate: DEFAULT, CASCADE', () => {
             test('[update] parent id with non-existing id should succeed', async () => {
               const user3 = await prisma[userModel].update({
@@ -492,7 +492,7 @@ testMatrix.setupTestSuite(
                   foreignKeys: {
                     [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                   },
                   prisma:
