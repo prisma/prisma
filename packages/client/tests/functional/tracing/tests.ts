@@ -11,9 +11,7 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
-import * as util from 'util'
 
-import { map } from '../../../../../helpers/blaze/map'
 import testMatrix from './_matrix'
 
 type Tree = {
@@ -77,13 +75,54 @@ testMatrix.setupTestSuite(({ provider }) => {
     inMemorySpanExporter.reset()
   })
 
+  function cleanSpanTreeForSnapshot(tree: Tree) {
+    return JSON.parse(JSON.stringify(tree), (key, value) => {
+      if (key === 'duration') {
+        return 'Xms'
+      }
+
+      if (key === 'parentSpanId') {
+        return '<parentSpanId>'
+      }
+
+      if (key === 'itx_id') {
+        return '<itxId>'
+      }
+
+      if (key === 'endTime') {
+        return '<endTime>'
+      }
+
+      if (key === 'startTime') {
+        return '<startTime>'
+      }
+
+      if (key === 'db.type') {
+        return '<dbType>'
+      }
+
+      if (key === 'db.statement') {
+        return '<dbStatement>'
+      }
+
+      if (key === 'resource') {
+        return undefined
+      }
+
+      if (key[0] === '_') {
+        return undefined
+      }
+
+      return value
+    })
+  }
+
   async function waitForSpanTree(): Promise<Tree> {
     /*
-        Spans comes thru logs and sometimes these tests
-        can be flaky without giving some buffer
-      */
-    const logBuffer = () => util.promisify(setTimeout)(500)
-    await logBuffer()
+      Spans come through logs and sometimes these tests can be flaky without
+      giving some buffer
+    */
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
     const spans = inMemorySpanExporter.getFinishedSpans()
     const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
@@ -103,6 +142,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
 
       const tree = await waitForSpanTree()
+
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('create')
@@ -158,6 +199,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
@@ -202,6 +245,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       email = newEmail
 
       const tree = await waitForSpanTree()
+
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('update')
@@ -264,6 +309,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
 
       const tree = await waitForSpanTree()
+
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('delete')
@@ -338,6 +385,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+
       expect(tree.span.name).toEqual('prisma:client:transaction')
       expect(tree.span.attributes['method']).toEqual('$transaction')
       expect(tree.children).toHaveLength(3)
@@ -383,6 +432,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+
       expect(tree.span.name).toEqual('prisma:client:transaction')
       expect(tree.span.attributes['method']).toEqual('$transaction')
       expect(tree.children).toHaveLength(3)
@@ -421,6 +472,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('queryRaw')
 
@@ -449,6 +502,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       await prisma.$executeRaw`SELECT 1 + 1;`
 
       const tree = await waitForSpanTree()
+
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('executeRaw')
@@ -486,6 +541,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     })
 
     const tree = await waitForSpanTree()
+
+    expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
     expect(tree.span.name).toEqual('create-user')
 
@@ -570,6 +627,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
@@ -646,6 +705,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
@@ -692,6 +753,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       await _prisma.$disconnect()
 
       const tree = await waitForSpanTree()
+
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:disconnect')
     })
