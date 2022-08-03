@@ -569,14 +569,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
 
-        const additionalHeaders: { traceparent?: string } = {}
+        const tracingHeaders: { traceparent?: string } = {}
 
         const tracingConfig = getTracingConfig(this)
         if (tracingConfig.enabled) {
-          additionalHeaders.traceparent = getTraceParent()
+          tracingHeaders.traceparent = getTraceParent()
         }
 
-        flags.push('--additional-headers', JSON.stringify(additionalHeaders))
+        flags.push('--tracing-headers', JSON.stringify(tracingHeaders))
 
         debug({ flags })
 
