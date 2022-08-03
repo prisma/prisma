@@ -689,10 +689,12 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                  [Providers.COCKROACHDB]: 'Null constraint violation on the fields: (`postId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]: 'Null constraint violation on the fields: (`postId`)',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+
+                  // TODO: the following providers throw a migration error
+                  [Providers.SQLSERVER]: '__SNAPSHOT__',
+                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
                 },
                 prisma: '__SNAPSHOT__',
               }),
@@ -725,10 +727,12 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                  [Providers.COCKROACHDB]: 'TODO',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]: 'TODO',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+
+                  // TODO: the following providers throw a migration error
+                  [Providers.SQLSERVER]: '__SNAPSHOT__',
+                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
                 },
               }),
             )
@@ -884,12 +888,13 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                  [Providers.COCKROACHDB]: 'TODO',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]: 'TODO',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+
+                  // TODO: the following providers throw a migration error
+                  [Providers.SQLSERVER]: '__SNAPSHOT__',
+                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
                 },
-                prisma: "",
               }),
             )
 
@@ -915,10 +920,12 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                  [Providers.COCKROACHDB]: 'TODO',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]: 'TODO',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+
+                  // TODO: the following providers throw a migration error
+                  [Providers.SQLSERVER]: '__SNAPSHOT__',
+                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
                 },
                 prisma: "__SNAPSHOT__",
               }),
