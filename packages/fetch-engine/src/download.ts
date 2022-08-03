@@ -48,6 +48,7 @@ export interface DownloadOptions {
   failSilent?: boolean
   ignoreCache?: boolean
   printVersion?: boolean
+  forceOverwrite?: boolean
 }
 
 const BINARY_TO_ENV_VAR = {
@@ -95,6 +96,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
     binaries: mapKeys(options.binaries, (key) => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
+    forceOverwrite: options.forceOverwrite ?? !!process.env.PRISMA_ENGINES_FORCE_OVERWRITE, // internal only env var only used for local setup,
   }
 
   // creates a matrix of binaries x binary targets
@@ -136,7 +138,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const shouldDownload =
       isSupported &&
       !job.envVarPath && // this is for custom binaries
-      (opts.ignoreCache || needsToBeDownloaded) // TODO: do we need ignoreCache?
+      (opts.ignoreCache || needsToBeDownloaded || opts.forceOverwrite) // TODO: do we need ignoreCache?
     if (needsToBeDownloaded && !isSupported) {
       throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom engine files were provided`)
     }
