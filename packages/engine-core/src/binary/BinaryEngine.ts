@@ -31,12 +31,12 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
-import { createSpan, getTraceParent, runInActiveSpan } from '../tracing'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
+import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
 
@@ -114,6 +114,7 @@ export class BinaryEngine extends Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
+  private tracingConfig: TracingConfig
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -136,6 +137,7 @@ export class BinaryEngine extends Engine {
     allowTriggerPanic,
     dirname,
     activeProvider,
+    tracingConfig,
   }: EngineConfig) {
     super()
 
@@ -148,6 +150,7 @@ export class BinaryEngine extends Engine {
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
+    this.tracingConfig = tracingConfig
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {
       // to prevent unhandled error events
@@ -485,12 +488,12 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
     }
 
-    const tracingConfig = getTracingConfig(this)
-    if (tracingConfig.enabled && !this.startPromise) {
-      return runInActiveSpan({ name: 'prisma:connect', callback: () => startFn() })
-    } else {
-      return startFn()
+    const spanOptions = {
+      name: 'connect',
+      enabled: this.tracingConfig.enabled && !this.startPromise,
     }
+
+    return runInChildSpan(spanOptions, startFn)
   }
 
   private getEngineEnvVars() {
@@ -571,8 +574,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const tracingHeaders: { traceparent?: string } = {}
 
-        const tracingConfig = getTracingConfig(this)
-        if (tracingConfig.enabled) {
+        if (this.tracingConfig.enabled) {
           tracingHeaders.traceparent = getTraceParent()
         }
 
@@ -633,9 +635,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               if (json.span === true) {
-                const tracingConfig = getTracingConfig(this)
-                if (tracingConfig.enabled) {
-                  createSpan(json as EngineSpanEvent)
+                if (this.tracingConfig.enabled === true) {
+                  void createSpan(json as EngineSpanEvent)
                 }
 
                 return
@@ -792,12 +793,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return this.stopPromise
     }
 
-    const tracingConfig = getTracingConfig(this)
-    if (tracingConfig.enabled) {
-      return runInActiveSpan({ name: 'prisma:disconnect', callback: () => stopFn() })
-    } else {
-      return stopFn()
+    const spanOptions = {
+      name: 'disconnect',
+      enabled: this.tracingConfig.enabled,
     }
+
+    return runInChildSpan(spanOptions, stopFn)
   }
 
   /**
@@ -1172,10 +1173,6 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       parseResponse,
     )
     return response.data
-  }
-
-  _hasPreviewFlag(feature: string): Boolean {
-    return !!this.previewFeatures?.includes(feature)
   }
 }
 

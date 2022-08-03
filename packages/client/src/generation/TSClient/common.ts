@@ -35,6 +35,7 @@ const {
   join,
   raw,
   Decimal,
+  Debug,
   objectEnumValues,
   makeStrictEnum
 } = require('${runtimeDir}/${runtimeName}')
