@@ -1,4 +1,5 @@
 import { checkIfEmpty } from '../_referential-integrity-utils/checkIfEmpty'
+import { ConditionalError } from '../_referential-integrity-utils/conditionalError'
 import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
@@ -99,9 +100,12 @@ const expectedFindManyCategoriesOnPostsModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    function conditionalError(errors: Record<Providers, string>): string {
-      return errors[suiteConfig.provider] || `TODO add error for ${suiteConfig.provider}`
-    }
+    const conditionalError = ConditionalError
+      .new()
+      .with('provider', suiteConfig.provider)
+      // @ts-ignore
+      .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
+
     const { onDelete } = suiteConfig.referentialActions
     const { onUpdate } = suiteConfig.referentialActions
 
@@ -182,15 +186,16 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
               }),
             )
 
@@ -252,6 +257,7 @@ testMatrix.setupTestSuite(
         })
 
         test('[update] (post) optional boolean field should succeed', async () => {
+          // TODO (prisma, *, Restrict): The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.
           await prisma[postModel].update({
             where: {
               id: '1',
@@ -283,6 +289,7 @@ testMatrix.setupTestSuite(
         })
 
         test('[update] (category): optional boolean field should succeed', async () => {
+          // TODO (prisma, *, Restrict): "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models."
           await prisma[categoryModel].update({
             where: {
               id: '1-cat-a',
@@ -323,8 +330,8 @@ testMatrix.setupTestSuite(
           )
         })
 
-        // RI=prisma - DEFAULT/Cascade/Restrict - PostgreSQL/CockroachDB/SQLServer/SQLite: Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
         test('[update] categoriesOnPostsModel with non-existing postId should throw', async () => {
+          // TODO (prisma, *, Default | Cascade | Restrict | NoAction): Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
           await expect(
             prisma[categoriesOnPostsModel].update({
               where: {
@@ -338,15 +345,16 @@ testMatrix.setupTestSuite(
               },
             }),
           ).rejects.toThrowError(
-            // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-            conditionalError({
-              [Providers.POSTGRESQL]:
-                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-              [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-              [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+            conditionalError.snapshot({
+              foreignKeys: {
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                [Providers.SQLSERVER]:
+                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+              },
             }),
           )
 
@@ -363,8 +371,8 @@ testMatrix.setupTestSuite(
           )
         })
 
-        // RI=prisma - DEFAULT/Cascade/Restrict - PostgreSQL/CockroachDB/SQLServer/SQLite: Resolved to value: {"categoryId": "99", "postId": "1"}
         test('[update] categoriesOnPostsModel with non-existing categoryId should throw', async () => {
+          // TODO (prisma, *, Default | Cascade | Restrict | NoAction): Resolved to value: {"categoryId": "99", "postId": "1"}
           await expect(
             prisma[categoriesOnPostsModel].update({
               where: {
@@ -378,15 +386,16 @@ testMatrix.setupTestSuite(
               },
             }),
           ).rejects.toThrowError(
-            // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-            conditionalError({
-              [Providers.POSTGRESQL]:
-                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-              [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-              [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+            conditionalError.snapshot({
+              foreignKeys: {
+                [Providers.POSTGRESQL]:
+                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                [Providers.SQLSERVER]:
+                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+              },
             }),
           )
 
@@ -513,6 +522,7 @@ testMatrix.setupTestSuite(
         // TODO: these are the same tests as onUpdate: Restrict, different SQL Server message
         describeIf(['NoAction'].includes(onUpdate))(`onUpdate: NoAction`, () => {
           test('[update] post id should throw', async () => {
+            // TODO (prisma, *, NoAction): Resolved to value: {"id": "3", "published": null}
             await expect(
               prisma[postModel].update({
                 where: {
@@ -523,15 +533,16 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
               }),
             )
 
@@ -549,6 +560,7 @@ testMatrix.setupTestSuite(
           })
 
           test('[update] category id should throw', async () => {
+            // TODO (prisma, *, NoAction): Resolved to value: {"id": "1-cat-a-updated", "published": null}
             await expect(
               prisma[categoryModel].update({
                 where: {
@@ -559,15 +571,16 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]:
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
               }),
             )
 
@@ -597,14 +610,16 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
-                [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+                prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
               }),
             )
 
@@ -632,14 +647,16 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
-                [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+                prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
               }),
             )
 
@@ -669,13 +686,15 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                // [Providers.COCKROACHDB]: 'TODO',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                // [Providers.SQLSERVER]: 'TODO',
-                [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                  [Providers.COCKROACHDB]: 'Null constraint violation on the fields: (`postId`)',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]: 'Null constraint violation on the fields: (`postId`)',
+                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+                },
+                prisma: '__SNAPSHOT__',
               }),
             )
 
@@ -703,13 +722,14 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                // [Providers.COCKROACHDB]: 'TODO',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                // [Providers.SQLSERVER]: 'TODO',
-                [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                  [Providers.COCKROACHDB]: 'TODO',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]: 'TODO',
+                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+                },
               }),
             )
 
@@ -782,23 +802,24 @@ testMatrix.setupTestSuite(
         describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
           `onDelete: DEFAULT, Restrict, NoAction`,
           () => {
-            // RI=prisma - NoAction - MySQL/SQLServer/CockroachDB/PostgreSQL: Resolved to {"id": "1", "published": null}
             test('[delete] post should throw', async () => {
+              // TODO (prisma, *, NoAction): Resolved to {"id": "1", "published": null}
               await expect(
                 prisma[postModel].delete({
                   where: { id: '1' },
                 }),
               ).rejects.toThrowError(
-                // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-                conditionalError({
-                  // Prisma: The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.
-                  [Providers.POSTGRESQL]:
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]:
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  },
+                  prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
                 }),
               )
 
@@ -815,23 +836,25 @@ testMatrix.setupTestSuite(
               )
             })
 
-            // RI=prisma - NoAction - MySQL/SQLServer/CockroachDB/PostgreSQL: Resolved to {"id": "1-cat-a", "published": null}
             test('[delete] category should throw', async () => {
+              // TODO (prisma, *, Restrict): "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models."
+              // TODO (prisma, *, NoAction): Resolved to {"id": "1-cat-a", "published": null}
               await expect(
                 prisma[categoryModel].delete({
                   where: { id: '1-cat-a' },
                 }),
               ).rejects.toThrowError(
-                // Prisma: The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.
-                // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-                conditionalError({
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]:
+                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                    [Providers.SQLSERVER]:
+                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  },
+                  prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
                 }),
               )
 
@@ -858,13 +881,15 @@ testMatrix.setupTestSuite(
                 where: { id: '1' },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                // [Providers.COCKROACHDB]: 'TODO',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                // [Providers.SQLSERVER]: 'TODO',
-                [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                  [Providers.COCKROACHDB]: 'TODO',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                  [Providers.SQLSERVER]: 'TODO',
+                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+                },
+                prisma: "",
               }),
             )
 
@@ -880,19 +905,22 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
+
           test('[delete] category should throw', async () => {
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
               }),
             ).rejects.toThrowError(
-              // @ts-expect-error: mongodb is tested in tests_m-to-n-MongoDB.ts
-              conditionalError({
-                [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                // [Providers.COCKROACHDB]: 'TODO',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                // [Providers.SQLSERVER]: 'TODO',
-                [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                  [Providers.COCKROACHDB]: 'TODO',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                  [Providers.SQLSERVER]: 'TODO',
+                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+                },
+                prisma: "__SNAPSHOT__",
               }),
             )
 
