@@ -30,8 +30,7 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { getTracingConfig } from '../common/utils/getTracingConfig'
-import { createSpan, getTraceParent, runInActiveSpan } from '../tracing'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
@@ -240,14 +239,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
-    if (!event) {
-      return
-    }
+    if (!event) return
 
     if ('span' in event) {
-      const tracingConfig = getTracingConfig(this)
-      if (tracingConfig.enabled) {
-        createSpan(event as EngineSpanEvent)
+      if (this.config.tracingConfig.enabled === true) {
+        void createSpan(event as EngineSpanEvent)
       }
 
       return
@@ -331,14 +327,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return
     }
 
-    const tracingConfig = getTracingConfig(this)
-
     const startFn = async () => {
       debug('library starting')
 
       try {
         const headers = {
-          ...(tracingConfig.enabled ? { traceparent: getTraceParent() } : {}),
+          traceparent: getTraceParent(),
         }
 
         await this.engine?.connect(JSON.stringify(headers))
@@ -361,11 +355,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       }
     }
 
-    if (tracingConfig.enabled) {
-      this.libraryStartingPromise = runInActiveSpan({ name: 'prisma:connect', callback: startFn })
-    } else {
-      this.libraryStartingPromise = startFn()
+    const spanConfig = {
+      name: 'connect',
+      enabled: this.config.tracingConfig.enabled,
     }
+
+    this.libraryStartingPromise = runInChildSpan(spanConfig, startFn)
 
     return this.libraryStartingPromise
   }
@@ -383,15 +378,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return
     }
 
-    const tracingConfig = getTracingConfig(this)
-
     const stopFn = async () => {
       await new Promise((r) => setTimeout(r, 5))
 
       debug('library stopping')
 
       const headers = {
-        ...(tracingConfig.enabled ? { traceparent: getTraceParent() } : {}),
+        traceparent: getTraceParent(),
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
@@ -402,11 +395,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       debug('library stopped')
     }
 
-    if (tracingConfig.enabled) {
-      this.libraryStoppingPromise = runInActiveSpan({ name: 'prisma:disconnect', callback: stopFn })
-    } else {
-      this.libraryStoppingPromise = stopFn()
+    const spanConfig = {
+      name: 'disconnect',
+      enabled: this.config.tracingConfig.enabled,
     }
+
+    this.libraryStoppingPromise = runInChildSpan(spanConfig, stopFn)
 
     return this.libraryStoppingPromise
   }
@@ -548,9 +542,5 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return responseString
     }
     return this.parseEngineResponse(responseString)
-  }
-
-  _hasPreviewFlag(feature: string): Boolean {
-    return !!this.config.previewFeatures?.includes(feature)
   }
 }
