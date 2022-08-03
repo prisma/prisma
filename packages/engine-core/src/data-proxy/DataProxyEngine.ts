@@ -1,6 +1,5 @@
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
-import { klona } from 'klona'
 
 import type { EngineConfig, EngineEventType, GetConfigResult, InlineDatasource } from '../common/Engine'
 import { Engine } from '../common/Engine'
@@ -244,21 +243,19 @@ export class DataProxyEngine extends Engine {
       return this.inlineDatasources
     }
 
-    const finalDatasources = klona(this.inlineDatasources)
+    const finalDatasources = { ...this.inlineDatasources }
 
     for (const override of this.config.datasources) {
-      const datasource = finalDatasources[override.name]
-
-      if (!datasource) {
+      if (!this.inlineDatasources[override.name]) {
         throw new Error(`Unknown datasource: ${override.name}`)
       }
 
-      if (override.url === undefined) {
-        continue
+      finalDatasources[override.name] = {
+        url: {
+          fromEnvVar: null,
+          value: override.url,
+        },
       }
-
-      datasource.url.fromEnvVar = null
-      datasource.url.value = override.url
     }
 
     return finalDatasources

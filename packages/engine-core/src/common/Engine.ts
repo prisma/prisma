@@ -10,7 +10,7 @@ export interface FilterConstructor {
 
 export type NullableEnvValue = {
   fromEnvVar: string | null
-  value: string | null
+  value?: string | null
 }
 
 export type InlineDatasource = {
