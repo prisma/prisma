@@ -1,6 +1,6 @@
-import { computeMatrix } from '../_utils/referential-integrity/computeMatrix'
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
+import { computeMatrix } from '../_utils/referential-integrity/computeMatrix'
 
 const RI = process.env.RI
 if (RI && RI !== 'prisma' && RI !== 'foreignKeys') {
@@ -48,8 +48,9 @@ const mongoDBMatrixBase = {
 export default defineMatrix(() => [
   [
     ...defaultMatrix,
-    
-    // mongodb starts here
+
+    // MongoDB starts here
+    // Note: SetDefault emulation is not implemented
     {
       ...mongoDBMatrixBase,
       referentialActions: {
@@ -71,18 +72,13 @@ export default defineMatrix(() => [
         onDelete: 'NoAction',
       },
     },
-    /*
     {
-      provider: Providers.MONGODB,
-      id: 'String @id @map("_id")',
-      referentialIntegrity,
+      ...mongoDBMatrixBase,
       referentialActions: {
-        // Note: on MongoDB SetDefault is not supported
-        onUpdate: onUpdate === 'SetDefault' ? '' : onUpdate,
-        onDelete: onDelete === 'SetDefault' ? '' : onDelete,
+        onUpdate: 'SetNull',
+        onDelete: 'SetNull',
       },
     },
-    */
   ],
   [
     {
