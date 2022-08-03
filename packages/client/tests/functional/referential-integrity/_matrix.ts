@@ -38,9 +38,39 @@ const onDelete: ReferentialActions | string = 'DEFAULT'
 
 const defaultMatrix = computeMatrix({ referentialIntegrity })
 
+const mongoDBMatrixBase = {
+  provider: Providers.MONGODB,
+  id: 'String @id @map("_id")',
+  referentialIntegrity,
+}
+
+// TODO: we can potentially add single entries with "SetNull" and "SetDefault" down here
 export default defineMatrix(() => [
   [
     ...defaultMatrix,
+    
+    // mongodb starts here
+    {
+      ...mongoDBMatrixBase,
+      referentialActions: {
+        onUpdate: 'DEFAULT',
+        onDelete: 'DEFAULT',
+      },
+    },
+    {
+      ...mongoDBMatrixBase,
+      referentialActions: {
+        onUpdate: 'Cascade',
+        onDelete: 'Cascade',
+      },
+    },
+    {
+      ...mongoDBMatrixBase,
+      referentialActions: {
+        onUpdate: 'NoAction',
+        onDelete: 'NoAction',
+      },
+    },
     /*
     {
       provider: Providers.MONGODB,
