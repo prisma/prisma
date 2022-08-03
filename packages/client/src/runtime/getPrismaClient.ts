@@ -1042,11 +1042,13 @@ new PrismaClient({
           model: internalParams.model,
         }
 
+        // span options for opentelemetry instrumentation
         const spanOptions = {
           middleware: {
             name: 'middleware',
             enabled: this._tracingConfig.middleware,
             attributes: { method: '$use' },
+            active: false,
           } as SpanOptions,
           operation: {
             name: 'operation',
@@ -1081,7 +1083,7 @@ new PrismaClient({
 
         return await runInChildSpan(spanOptions.operation, () => {
           if (NODE_CLIENT) {
-            // https://github.com/prisma/prisma/issues/3148 not for the data proxy
+            // https://github.com/prisma/prisma/issues/3148 not for edge client
             const asyncRes = new AsyncResource('prisma-client-request')
             return asyncRes.runInAsyncScope(() => consumer(params))
           }

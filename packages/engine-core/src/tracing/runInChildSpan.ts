@@ -1,6 +1,15 @@
-import { Context, context, Span, SpanOptions as _SpanOptions, trace } from '@opentelemetry/api'
+import { Context, context as _context, Span, SpanOptions as _SpanOptions, trace } from '@opentelemetry/api'
 
-export type SpanOptions = _SpanOptions & { name: string; enabled: boolean; context?: Context }
+export type SpanOptions = _SpanOptions & {
+  /** The name of the span */
+  name: string
+  /** Whether we trace it */
+  enabled: boolean
+  /** Whether it propagates context (?=true) */
+  active?: boolean
+  /** The context to append the span to */
+  context?: Context
+}
 
 /**
  * Executes and traces a function inside of a child span asynchronously.
@@ -11,13 +20,19 @@ export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, 
   if (options.enabled === false) return cb()
 
   const tracer = trace.getTracer('prisma')
+  const context = options.context ?? _context.active()
 
-  return tracer.startActiveSpan(
-    `prisma:client:${options.name}`,
-    options,
-    options.context ?? context.active(),
-    async (span) => {
-      return cb(span, context.active()).finally(() => span.end())
-    },
-  )
+  // these spans will not be nested by default even in recursive calls
+  // it's useful for showing middleware sequentially instead of nested
+  if (options.active === false) {
+    const span = tracer.startSpan(`prisma:client:${options.name}`, options, context)
+
+    return cb(span, context).finally(() => span.end())
+  }
+
+  // by default spans are "active", which means context is propagated in
+  // nested calls, which is useful for representing most of the calls
+  return tracer.startActiveSpan(`prisma:client:${options.name}`, options, context, async (span) => {
+    return cb(span, _context.active()).finally(() => span.end())
+  })
 }

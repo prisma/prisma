@@ -574,15 +574,17 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(3)
 
       const middleware1 = (tree.children || [])[0] as unknown as Tree
-      expect(middleware1.children).toHaveLength(1)
+      expect(middleware1.span.name).toEqual('prisma:client:middleware')
+      expect(middleware1.children).toHaveLength(0)
 
-      const middleware2 = (middleware1.children || [])[0] as unknown as Tree
-      expect(middleware2.children).toHaveLength(1)
+      const middleware2 = (tree.children || [])[1] as unknown as Tree
+      expect(middleware2.span.name).toEqual('prisma:client:middleware')
+      expect(middleware2.children).toHaveLength(0)
 
-      const engine = (middleware2.children || []).find(({ span }) => span.name === 'prisma:query_builder') as Tree
+      const engine = (tree.children || []).find(({ span }) => span.name === 'prisma:query_builder') as Tree
 
       const getConnection = (engine.children || [])[0]
       expect(getConnection.span.name).toEqual('prisma:connection')
