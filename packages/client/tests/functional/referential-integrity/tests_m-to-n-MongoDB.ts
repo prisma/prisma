@@ -154,7 +154,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        test.skip('[create] x connect with non existing x should throw', async () => {})
+        // test.skip('[create] x connect with non existing x should throw', async () => {})
       })
 
       describe('[update]', () => {
