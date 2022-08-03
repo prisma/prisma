@@ -17,6 +17,34 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
 
   for (let i = 1; i <= count; i++) {
     const id = i.toString()
+
+    prismaPromises.push(
+      prisma[userModel].create({
+        data: {
+          id,
+        },
+      })
+    )
+
+    prismaPromises.push(
+      prisma[postModel].create({
+        data: {
+          id: `${id}-post-a`,
+          authorId: id,
+        },
+      })
+    )
+
+    prismaPromises.push(
+      prisma[postModel].create({
+        data: {
+          id: `${id}-post-b`,
+          authorId: id,
+        },
+      })
+    )
+    
+    /*
     const prismaPromise = prisma[userModel].create({
       data: {
         id,
@@ -32,6 +60,7 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
     })
 
     prismaPromises.push(prismaPromise)
+    */
   }
 
   return await prisma.$transaction(prismaPromises)
@@ -171,22 +200,41 @@ testMatrix.setupTestSuite(
           })
         })
 
-        test('[create] nested child [createMany]', async () => {
-          const user1 = await prisma[userModel].create({
-            data: {
-              id: '1',
-              posts: {
-                createMany: {
-                  data: [{ id: '1' }, { id: '2' }],
+        describeIf(![Providers.SQLITE].includes(suiteConfig.provider))('not sqlite', () => {
+          // SQLite doesn't support createMany
+          test('[create] nested child [createMany]', async () => {
+            const user1 = await prisma[userModel].create({
+              data: {
+                id: '1',
+                posts: {
+                  createMany: {
+                    data: [{ id: '1' }, { id: '2' }],
+                  },
                 },
               },
-            },
-            include: { posts: true },
-          })
-          expect(user1).toEqual({
-            id: '1',
-            enabled: null,
-            posts: [
+              include: { posts: true },
+            })
+            expect(user1).toEqual({
+              id: '1',
+              enabled: null,
+              posts: [
+                {
+                  id: '1',
+                  authorId: '1',
+                },
+                {
+                  id: '2',
+                  authorId: '1',
+                },
+              ],
+            })
+  
+            expect(
+              await prisma[postModel].findMany({
+                where: { authorId: '1' },
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
               {
                 id: '1',
                 authorId: '1',
@@ -195,31 +243,15 @@ testMatrix.setupTestSuite(
                 id: '2',
                 authorId: '1',
               },
-            ],
-          })
-
-          expect(
-            await prisma[postModel].findMany({
-              where: { authorId: '1' },
-              orderBy: { id: 'asc' },
-            }),
-          ).toEqual([
-            {
+            ])
+            expect(
+              await prisma[userModel].findUniqueOrThrow({
+                where: { id: '1' },
+              }),
+            ).toEqual({
               id: '1',
-              authorId: '1',
-            },
-            {
-              id: '2',
-              authorId: '1',
-            },
-          ])
-          expect(
-            await prisma[userModel].findUniqueOrThrow({
-              where: { id: '1' },
-            }),
-          ).toEqual({
-            id: '1',
-            enabled: null,
+              enabled: null,
+            })
           })
         })
       })
