@@ -139,6 +139,10 @@ testMatrix.setupTestSuite(({ provider }) => {
         return undefined
       }
 
+      if (key === 'links') {
+        return value.map(() => ({ spanId: '<spanId>', traceId: '<traceId>' }))
+      }
+
       return value
     })
   }
