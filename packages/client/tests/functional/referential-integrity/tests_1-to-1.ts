@@ -476,9 +476,118 @@ testMatrix.setupTestSuite(
           })
 
           describeIf(['Restrict', 'NoAction'].includes(onUpdate))('onUpdate: Restrict, NoAction', () => {
-            test('[update] parent id with non-existing id should throw', async () => {
+            // foreignKeys
+            testIf(suiteConfig.provider !== Providers.MONGODB && suiteConfig.referentialIntegrity !== 'prisma')(
+              'RI=foreignKeys - [update] parent id with non-existing id should throw',
+              async () => {
+                await expect(
+                  prisma[userModel].update({
+                    where: { id: '1' },
+                    data: {
+                      id: '3',
+                    },
+                  }),
+                ).rejects.toThrowError(
+                  conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+                  }),
+                )
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
+            // prisma - Restrict
+            testIf(
+              suiteConfig.provider === Providers.MONGODB ||
+                (suiteConfig.referentialIntegrity === 'prisma' && onUpdate === 'Restrict'),
+            )('RI=prisma - Restrict - [update] parent id with non-existing id should throw', async () => {
               await expect(
                 prisma[userModel].update({
+                  where: { id: '1' },
+                  data: {
+                    id: '3',
+                  },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  prisma:
+                    "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+                }),
+              )
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            })
+            // prisma - NoAction
+            testIf(
+              (suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma') &&
+                onUpdate === 'NoAction',
+            )('RI=prisma - NoAction - [update] parent id with non-existing id should suceed', async () => {
+              await prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  id: '3',
+                },
+              })
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '2',
+                  enabled: null,
+                },
+                {
+                  id: '3',
+                  enabled: null,
+                },
+              ])
+            })
+
+            // prisma - Restrict
+            testIf(
+              suiteConfig.provider === Providers.MONGODB ||
+                (suiteConfig.referentialIntegrity === 'prisma' && onUpdate === 'Restrict'),
+            )('RI=prisma - Restrict - [updateMany] parent id with non-existing id should throw', async () => {
+              await expect(
+                prisma[userModel].updateMany({
                   where: { id: '1' },
                   data: {
                     id: '3',
@@ -515,30 +624,17 @@ testMatrix.setupTestSuite(
                 },
               ])
             })
-
-            test('[updateMany] parent id with non-existing id should throw', async () => {
-              await expect(
-                prisma[userModel].updateMany({
-                  where: { id: '1' },
-                  data: {
-                    id: '3',
-                  },
-                }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]:
-                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                    [Providers.SQLSERVER]:
-                      'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                  },
-                  prisma:
-                    "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-                }),
-              )
+            // prisma - NoAction
+            testIf(
+              (suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma') &&
+                onUpdate === 'NoAction',
+            )('RI=prisma - NoAction - [updateMany] parent id with non-existing id should succeed', async () => {
+              await prisma[userModel].updateMany({
+                where: { id: '1' },
+                data: {
+                  id: '3',
+                },
+              })
 
               expect(
                 await prisma[userModel].findMany({
@@ -546,11 +642,11 @@ testMatrix.setupTestSuite(
                 }),
               ).toEqual([
                 {
-                  id: '1',
+                  id: '2',
                   enabled: null,
                 },
                 {
-                  id: '2',
+                  id: '3',
                   enabled: null,
                 },
               ])
@@ -576,7 +672,8 @@ testMatrix.setupTestSuite(
                   prisma: {
                     [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                    //  referential-integrity.tests_1-to-1 (provider=mysql, id=String @id, referentialIntegrity=prisma, referentialActions={onUpdateNoAction,onDeleteNoAction}, previewFeatures=referentialIntegrity) › 1:1 mandatory (explicit) › [update] › mutate id › onUpdate: NoAction › [updateMany] parent id with existing id should throw
+                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                     [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
@@ -631,17 +728,40 @@ testMatrix.setupTestSuite(
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]:
-                        "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
+                        onUpdate === 'Restrict'
+                          ? // Restrict
+                            'Foreign key constraint failed on the field: `userId`'
+                          : // DEFAULT & SetNull
+                            /*
+                            Error occurred during query execution:
+                            ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                              code: 1761,
+                              message: \"Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone',
+                              key 'ProfileOneToOne_userId_key'\",
+                              state: \"23000\" })) })
+                            */
+                            `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
-                    prisma: {
-                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
-                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
-                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                      [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
-                    },
+                    prisma:
+                      suiteConfig.referentialActions.onUpdate === 'Restrict'
+                        ? // Restrict
+                          "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models."
+                        : // DEFAULT & SetNull
+                          {
+                            [Providers.POSTGRESQL]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the fields: (`id`)'
+                                : // DEFAULT
+                                  'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.MYSQL]:
+                              'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
+                            [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+                            [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
+                          },
                   }),
                 )
 
@@ -715,20 +835,44 @@ testMatrix.setupTestSuite(
                 ).rejects.toThrowError(
                   conditionalError.snapshot({
                     foreignKeys: {
+                      // SetNull
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]:
-                        "Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone', key 'ProfileOneToOne_userId_key'",
+                        onUpdate === 'Restrict'
+                          ? // Restrict
+                            'Foreign key constraint failed on the field: `userId`'
+                          : // DEFAULT & SetNull
+                            /*
+                            Error occurred during query execution:
+                            ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                              code: 1761, 
+                              message: \"Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone',
+                              key 'ProfileOneToOne_userId_key'\",
+                              state: \"23000\" })) })"
+                            */
+                            `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
-                    prisma: {
-                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
-                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
-                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                      [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
-                    },
+                    prisma:
+                      onUpdate === 'Restrict'
+                        ? // Restrict
+                          "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models."
+                        : // DEFAULT & SetNull
+                          {
+                            [Providers.POSTGRESQL]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the fields: (`id`)'
+                                : // DEFAULT
+                                  'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.MYSQL]:
+                              'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
+                            [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+                            [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
+                          },
                   }),
                 )
 
@@ -882,30 +1026,84 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
-          `onDelete: 'DEFAULT', 'Restrict', 'NoAction'`,
-          () => {
-            const expectedError = conditionalError.snapshot({
-              foreignKeys: {
-                [Providers.MONGODB]:
-                  "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-              },
-              prisma:
+        describeIf(['DEFAULT', 'Restrict'].includes(onDelete))(`onDelete: 'DEFAULT', 'Restrict'`, () => {
+          const expectedError = conditionalError.snapshot({
+            foreignKeys: {
+              [Providers.MONGODB]:
                 "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
-            })
+              [Providers.POSTGRESQL]:
+                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+              [Providers.SQLSERVER]:
+                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+            },
+            prisma:
+              "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+          })
 
-            test('[delete] parent should throw', async () => {
-              // this throws because "profileModel" has a mandatory relation with "userModel", hence
-              // we have a "onDelete: Restrict" situation by default
+          test('[delete] parent should throw', async () => {
+            // this throws because "profileModel" has a mandatory relation with "userModel", hence
+            // we have a "onDelete: Restrict" situation by default
+            await expect(
+              prisma[userModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(expectedError)
 
-              // MongoDB: onDelete: NoAction resolves with {"id": "1"}
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
+          })
+          test('[deleteMany] parents should throw', async () => {
+            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
+          })
+        })
+        describeIf(['NoAction'].includes(onDelete))(`onDelete: 'NoAction'`, () => {
+          const expectedError = conditionalError.snapshot({
+            foreignKeys: {
+              [Providers.MONGODB]:
+                "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
+              [Providers.POSTGRESQL]:
+                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+              [Providers.SQLSERVER]:
+                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+            },
+          })
+          // foreignKeys
+          testIf(suiteConfig.provider !== Providers.MONGODB && suiteConfig.referentialIntegrity !== 'prisma')(
+            'RI=foreignKeys - [delete] parent should throw',
+            async () => {
               await expect(
                 prisma[userModel].delete({
                   where: { id: '1' },
@@ -926,8 +1124,11 @@ testMatrix.setupTestSuite(
                   enabled: null,
                 },
               ])
-            })
-            test('[deleteMany] parents should throw', async () => {
+            },
+          )
+          testIf(suiteConfig.provider !== Providers.MONGODB && suiteConfig.referentialIntegrity !== 'prisma')(
+            'RI=foreignKeys - [deleteMany] parents should throw',
+            async () => {
               await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
 
               expect(
@@ -944,9 +1145,41 @@ testMatrix.setupTestSuite(
                   enabled: null,
                 },
               ])
-            })
-          },
-        )
+            },
+          )
+
+          // prisma
+          testIf(suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma')(
+            'RI=prisma - [delete] parent should succeed',
+            async () => {
+              await prisma[userModel].delete({
+                where: { id: '1' },
+              }),
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+            },
+          )
+          testIf(suiteConfig.provider === Providers.MONGODB || suiteConfig.referentialIntegrity === 'prisma')(
+            'RI=prisma - [deleteMany] parents should succeed',
+            async () => {
+              await prisma[userModel].deleteMany()
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([])
+            },
+          )
+        })
 
         describeIf(['SetNull'].includes(onDelete))(`onDelete: SetNull`, () => {
           const expectedError = conditionalError.snapshot({

@@ -64,7 +64,7 @@ testMatrix.setupTestSuite(
         await prisma.$disconnect()
       })
 
-      describe.only('[create]', () => {
+      describe('[create]', () => {
         testIf(suiteConfig.referentialIntegrity === 'prisma' || suiteConfig.provider === Providers.MONGODB)(
           '[create] categoriesOnPostsModel with non-existing post and category id should suceed with prisma emulation',
           async () => {
