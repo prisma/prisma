@@ -25,7 +25,7 @@
     "format": "prettier --write .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "prepare": "is-ci || husky install",
-    "pnpm:devPreinstall": "pnpm run --filter engines dev && PRISMA_ENGINES_FORCE_OVERWRITE=true pnpm run --filter engines postinstall"
+    "pnpm:devPreinstall": "pnpm run --filter engines dev"
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",

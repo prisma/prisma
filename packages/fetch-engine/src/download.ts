@@ -48,7 +48,6 @@ export interface DownloadOptions {
   failSilent?: boolean
   ignoreCache?: boolean
   printVersion?: boolean
-  forceOverwrite?: boolean
 }
 
 const BINARY_TO_ENV_VAR = {
@@ -96,7 +95,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
     binaries: mapKeys(options.binaries, (key) => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
-    forceOverwrite: options.forceOverwrite ?? !!process.env.PRISMA_ENGINES_FORCE_OVERWRITE, // internal only env var only used for local setup,
   }
 
   // creates a matrix of binaries x binary targets
@@ -138,7 +136,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const shouldDownload =
       isSupported &&
       !job.envVarPath && // this is for custom binaries
-      (opts.ignoreCache || needsToBeDownloaded || opts.forceOverwrite) // TODO: do we need ignoreCache?
+      (opts.ignoreCache || needsToBeDownloaded) // TODO: do we need ignoreCache?
     if (needsToBeDownloaded && !isSupported) {
       throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom engine files were provided`)
     }
@@ -293,19 +291,8 @@ async function binaryNeedsToBeDownloaded(
     }
   }
 
-  // If there is no cache and the file doesn't exist, we for sure need to download it
-  if (!targetExists) {
-    debug(`file ${job.targetFilePath} does not exist and must be downloaded`)
-    return true
-  }
-
-  // 3. If same platform, always check --version
-  if (job.binaryTarget === nativePlatform && job.binaryName !== BinaryType.libqueryEngine) {
-    const works = await checkVersionCommand(job.targetFilePath)
-    return !works
-  } // TODO: this is probably not useful anymore
-
-  return false
+  // if it's not cached, it needs to be downloaded
+  return true
 }
 
 export async function getVersion(enginePath: string): Promise<string> {
@@ -350,6 +337,7 @@ async function getCachedBinaryPath({
   const cachedTargetPath = path.join(cacheDir, binaryName)
 
   if (!fs.existsSync(cachedTargetPath)) {
+    console.log(cachedTargetPath)
     return null
   }
 

@@ -28,7 +28,7 @@
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest",
     "prepublishOnly": "pnpm run build",
-    "postinstall": "node scripts/postinstall.js"
+    "postinstall": "node dist/scripts/postinstall.js"
   },
   "files": [
     "dist",
