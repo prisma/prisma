@@ -48,6 +48,7 @@
     "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
     "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
     "test:mssql": "jest integration.mssql --maxConcurrency=8 --verbose",
+    "test:tidb": "jest integration.tidb --maxConcurrency=8 --verbose",
     "jest": "jest",
     "test": "jest --maxConcurrency=8 --verbose"
   },
