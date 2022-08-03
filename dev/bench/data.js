@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659524867674,
+  "lastUpdate": 1659532535154,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -114683,6 +114683,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.331875801086426,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3fae83486f79137f35ecb20d7365e1b789f57700",
+          "message": "test(client): Lock engine directory during setup (#14637)\n\nMultiple jest workers can run in parallel and when engine is not\r\ndownloaded yet, it is possible those downloads interfere with each other\r\n(for example, one worker might delete engine file which was about to be\r\nused by other worker). This than may cause test setup to hang and never\r\nfinish setup properly.\r\n\r\nFixed by locking directory for the duration of \"check if engine exists,\r\ndownload if not routine\" which ensures that there is always only one\r\ndownload running at the same time at the engine will be downloaded at\r\nmost once no matter how many workers we have.",
+          "timestamp": "2022-08-03T15:11:05+02:00",
+          "tree_id": "479a3dc61d49c32c2a64bb6ca2a52b9fa7bb01cd",
+          "url": "https://github.com/prisma/prisma/commit/3fae83486f79137f35ecb20d7365e1b789f57700"
+        },
+        "date": 1659532526188,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.31,
+            "range": "±6.93%",
+            "unit": "ops/sec",
+            "extra": "11 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.1,
+            "range": "±3.67%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.282078742980957,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.46815586090088,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.1669178009033203,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.48420715332031,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.33193588256836,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
