@@ -208,6 +208,10 @@ class DMMFSchemaHelper implements Pick<DMMF.Document, 'schema'> {
     }
   }
 
+  hasEnumInNamespace(enumName: string, namespace: 'prisma' | 'model'): boolean {
+    return this.schema.enumTypes[namespace]?.find((schemaEnum) => schemaEnum.name === enumName) !== undefined
+  }
+
   getMergedOutputTypeMap(): Dictionary<DMMF.OutputType> {
     return {
       ...keyBy(this.outputTypes.model, 'name'),

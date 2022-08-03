@@ -2,6 +2,7 @@ import indent from 'indent-string'
 
 import type { DMMF } from '../../runtime/dmmf-types'
 import { objectEnumNames } from '../../runtime/object-enums'
+import { strictEnumNames } from '../../runtime/strictEnum'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import type { ExportCollector } from './helpers'
@@ -21,9 +22,14 @@ export class Enum implements Generatable {
     return this.useNamespace && objectEnumNames.includes(this.type.name)
   }
 
+  private isStrictEnum(): boolean {
+    return this.useNamespace && strictEnumNames.includes(this.type.name)
+  }
+
   public toJS(): string {
     const { type } = this
-    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = makeEnum({
+    const factoryFunction = this.isStrictEnum() ? 'makeStrictEnum' : 'makeEnum'
+    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${factoryFunction}({
 ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
 });`
   }
