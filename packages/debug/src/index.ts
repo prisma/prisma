@@ -4,6 +4,12 @@ const MAX_LOGS = 100
 
 const debugArgsHistory: any[] = []
 
+// Patch the Node.js logger to use `console.debug` or `console.log` (similar to
+// the browser logger) in the Edge Client.
+if (typeof process !== 'undefined' && typeof process.stderr?.write !== 'function') {
+  debug.log = console.debug ?? console.log
+}
+
 /**
  * Wrapper on top of the original `Debug` to keep a history of the all last
  * {@link MAX_LOGS}. This is then used by {@link getLogs} to generate an error
