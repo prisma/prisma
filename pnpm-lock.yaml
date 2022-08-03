@@ -243,6 +243,7 @@ importers:
       '@types/mssql': 8.0.3
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
+      '@types/proper-lockfile': 4.1.2
       '@types/yeoman-generator': ^5.2.10
       arg: 5.0.2
       benchmark: 2.1.4
@@ -271,6 +272,7 @@ importers:
       pg: 8.7.3
       pkg-up: 3.1.0
       pluralize: 8.0.0
+      proper-lockfile: 4.1.2
       replace-string: 3.1.0
       resolve: 1.22.1
       rimraf: 3.0.2
@@ -317,6 +319,7 @@ importers:
       '@types/mssql': 8.0.3
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
+      '@types/proper-lockfile': 4.1.2
       '@types/yeoman-generator': 5.2.10
       arg: 5.0.2
       benchmark: 2.1.4
@@ -345,6 +348,7 @@ importers:
       pg: 8.7.3
       pkg-up: 3.1.0
       pluralize: 8.0.0
+      proper-lockfile: 4.1.2
       replace-string: 3.1.0
       resolve: 1.22.1
       rimraf: 3.0.2
@@ -3100,6 +3104,12 @@ packages:
     resolution: {integrity: sha512-HZBd99fKxRWpYCErtm2/yxUZv6/PBI9J7N4TNFffl5JbrYMHBwF25DjQGTW3b3jmXq+9P6/8fCIb2ee57BFfYA==}
     dependencies:
       '@types/node': 17.0.45
+    dev: true
+
+  /@types/proper-lockfile/4.1.2:
+    resolution: {integrity: sha512-kd4LMvcnpYkspDcp7rmXKedn8iJSCoa331zRRamUp5oanKt/CefbEGPQP7G89enz7sKD4bvsr8mHSsC8j5WOvA==}
+    dependencies:
+      '@types/retry': 0.12.0
     dev: true
 
   /@types/redis/2.8.32:
@@ -10126,6 +10136,14 @@ packages:
     dependencies:
       kleur: 3.0.3
       sisteransi: 1.0.5
+
+  /proper-lockfile/4.1.2:
+    resolution: {integrity: sha512-TjNPblN4BwAWMXU8s9AEz4JmQxnD1NNL7bNOY/AKUzyamc379FWASUhc/K1pL2noVb+XmZKLL68cjzLsiOAMaA==}
+    dependencies:
+      graceful-fs: 4.2.10
+      retry: 0.12.0
+      signal-exit: 3.0.7
+    dev: true
 
   /proto-list/1.2.4:
     resolution: {integrity: sha512-vtK/94akxsTMhe0/cbfpR+syPuszcuwhqVjJq26CuNDgFGj682oRBXOP5MJpv2r7JtE8MsiepGIqvvOTBwn2vA==}
