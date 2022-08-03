@@ -100,8 +100,7 @@ const expectedFindManyCategoriesOnPostsModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    const conditionalError = ConditionalError
-      .new()
+    const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       // @ts-ignore
       .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
@@ -331,7 +330,8 @@ testMatrix.setupTestSuite(
         })
 
         test('[update] categoriesOnPostsModel with non-existing postId should throw', async () => {
-          // TODO (prisma, *, Default | Cascade | Restrict | NoAction): Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
+          // TODO (prisma, *, Default | Cascade | Restrict | NoAction | SetNull for PostgreSQL):
+          // Resolved to value: {"categoryId": "1-cat-a", "postId": "99"}
           await expect(
             prisma[categoriesOnPostsModel].update({
               where: {
@@ -372,7 +372,8 @@ testMatrix.setupTestSuite(
         })
 
         test('[update] categoriesOnPostsModel with non-existing categoryId should throw', async () => {
-          // TODO (prisma, *, Default | Cascade | Restrict | NoAction): Resolved to value: {"categoryId": "99", "postId": "1"}
+          // TODO (prisma, *, Default | Cascade | Restrict | NoAction | SetNull for PostgreSQL):
+          // Resolved to value: {"categoryId": "99", "postId": "1"}
           await expect(
             prisma[categoriesOnPostsModel].update({
               where: {
@@ -578,7 +579,7 @@ testMatrix.setupTestSuite(
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                   [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 },
               }),
@@ -619,7 +620,8 @@ testMatrix.setupTestSuite(
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 },
-                prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
               }),
             )
 
@@ -656,7 +658,8 @@ testMatrix.setupTestSuite(
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 },
-                prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
               }),
             )
 
@@ -676,6 +679,8 @@ testMatrix.setupTestSuite(
 
         describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: SetNull, SetDefault`, () => {
           test('[update] post id should throw', async () => {
+            // TODO (prisma, *, SetNull for PostgreSQL):
+            // Resolved to value: {"id": "3", "published": null}
             await expect(
               prisma[postModel].update({
                 where: {
@@ -691,12 +696,10 @@ testMatrix.setupTestSuite(
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
-
                   // TODO: the following providers throw a migration error
                   [Providers.SQLSERVER]: '__SNAPSHOT__',
                   [Providers.COCKROACHDB]: '__SNAPSHOT__',
                 },
-                prisma: '__SNAPSHOT__',
               }),
             )
 
@@ -714,6 +717,8 @@ testMatrix.setupTestSuite(
           })
 
           test('[update] category id should throw', async () => {
+            // TODO (prisma, *, SetNull for PostgreSQL):
+            // Resolved to value: {"id": "1-cat-a-updated", "published": null}
             await expect(
               prisma[categoryModel].update({
                 where: {
@@ -729,7 +734,6 @@ testMatrix.setupTestSuite(
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
-
                   // TODO: the following providers throw a migration error
                   [Providers.SQLSERVER]: '__SNAPSHOT__',
                   [Providers.COCKROACHDB]: '__SNAPSHOT__',
@@ -816,14 +820,15 @@ testMatrix.setupTestSuite(
                 conditionalError.snapshot({
                   foreignKeys: {
                     [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                    [Providers.SQLSERVER]:
+                      'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                   },
-                  prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+                  prisma:
+                    "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
                 }),
               )
 
@@ -858,7 +863,8 @@ testMatrix.setupTestSuite(
                       'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                     [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                   },
-                  prisma: "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+                  prisma:
+                    "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
                 }),
               )
 
@@ -880,6 +886,7 @@ testMatrix.setupTestSuite(
         // TODO check why SetDefault works because we don't have @default in the schema
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
           test('[delete] post should throw', async () => {
+            // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1", "published": null}
             await expect(
               prisma[postModel].delete({
                 where: { id: '1' },
@@ -890,7 +897,6 @@ testMatrix.setupTestSuite(
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
-
                   // TODO: the following providers throw a migration error
                   [Providers.SQLSERVER]: '__SNAPSHOT__',
                   [Providers.COCKROACHDB]: '__SNAPSHOT__',
@@ -912,6 +918,7 @@ testMatrix.setupTestSuite(
           })
 
           test('[delete] category should throw', async () => {
+            // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1-cat-a", "published": null}
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
@@ -922,12 +929,10 @@ testMatrix.setupTestSuite(
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                   [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
-
                   // TODO: the following providers throw a migration error
                   [Providers.SQLSERVER]: '__SNAPSHOT__',
                   [Providers.COCKROACHDB]: '__SNAPSHOT__',
                 },
-                prisma: "__SNAPSHOT__",
               }),
             )
 
