@@ -7,13 +7,13 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.2.0-21.integration-tracing-more-fixes-ae7c377d84048fc7fc2e1a1f97780b1f2f3c41dd",
+    "@prisma/engines-version": "4.2.0-22.bc53ad47b04067b33d0a764fdc235113ca1268a0",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.2.197",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.6",
-    "@types/node": "16.11.45",
+    "@types/node": "16.11.47",
     "execa": "5.1.1",
     "jest": "28.1.3",
     "typescript": "4.7.3"

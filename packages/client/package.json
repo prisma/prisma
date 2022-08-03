@@ -140,7 +140,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.2.0-21.integration-tracing-more-fixes-ae7c377d84048fc7fc2e1a1f97780b1f2f3c41dd"
+    "@prisma/engines-version": "4.2.0-22.bc53ad47b04067b33d0a764fdc235113ca1268a0"
   },
   "sideEffects": false
 }
