@@ -14,7 +14,7 @@ importers:
       '@types/benchmark': 2.1.1
       '@types/glob': 7.2.0
       '@types/graphviz': 0.0.34
-      '@types/node': 14.18.22
+      '@types/node': 14.18.23
       '@types/node-fetch': ^2.6.1
       '@types/redis': 2.8.32
       '@types/resolve': 1.20.2
@@ -69,7 +69,7 @@ importers:
       '@types/benchmark': 2.1.1
       '@types/glob': 7.2.0
       '@types/graphviz': 0.0.34
-      '@types/node': 14.18.22
+      '@types/node': 14.18.23
       '@types/node-fetch': 2.6.2
       '@types/redis': 2.8.32
       '@types/resolve': 1.20.2
@@ -113,7 +113,7 @@ importers:
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.11
       staged-git-files: 1.3.0
-      ts-node: 10.8.1_v23lgcvrbkhrsqa7tnocl3euju
+      ts-node: 10.8.1_gqvhidmvmzakkqbagwo6oqbjnm
       ts-toolbelt: 9.6.0
       tty-browserify: 0.0.1
       typescript: 4.7.4
@@ -395,7 +395,7 @@ importers:
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.22
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       chalk: 4.1.2
       esbuild: 0.14.47
       execa: 5.1.1
@@ -427,9 +427,9 @@ importers:
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.22_@swc+core@1.2.204
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       esbuild: 0.14.47
-      jest: 28.1.3_@types+node@16.11.45
+      jest: 28.1.3_@types+node@16.11.47
       jest-junit: 14.0.0
       typescript: 4.7.4
 
@@ -442,7 +442,7 @@ importers:
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       execa: 5.1.1
       jest: 28.1.3
       typescript: 4.7.3
@@ -454,9 +454,9 @@ importers:
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22_@swc+core@1.2.197
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       execa: 5.1.1
-      jest: 28.1.3_@types+node@16.11.45
+      jest: 28.1.3_@types+node@16.11.47
       typescript: 4.7.3
 
   packages/fetch-engine:
@@ -467,7 +467,7 @@ importers:
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       '@types/node-fetch': 2.6.2
       '@types/progress': 2.0.5
       chalk: 4.1.2
@@ -512,11 +512,11 @@ importers:
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22_@swc+core@1.2.197
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       '@types/node-fetch': 2.6.2
       '@types/progress': 2.0.5
       del: 6.1.1
-      jest: 28.1.3_@types+node@16.11.45
+      jest: 28.1.3_@types+node@16.11.47
       strip-ansi: 6.0.1
       typescript: 4.7.3
 
@@ -559,7 +559,7 @@ importers:
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       jest: 28.1.3
       typescript: 4.7.3
     dependencies:
@@ -568,8 +568,8 @@ importers:
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22_@swc+core@1.2.197
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
-      jest: 28.1.3_@types+node@16.11.45
+      '@types/node': 16.11.47
+      jest: 28.1.3_@types+node@16.11.47
       typescript: 4.7.3
 
   packages/instrumentation:
@@ -578,7 +578,7 @@ importers:
       '@opentelemetry/instrumentation': ^0.31.0
       '@swc/core': 1.2.197
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
+      '@types/node': 16.11.47
       jest: 28.1.3
       jest-junit: 14.0.0
       typescript: 4.7.4
@@ -588,8 +588,8 @@ importers:
     devDependencies:
       '@swc/core': 1.2.197
       '@types/jest': 28.1.6
-      '@types/node': 16.11.45
-      jest: 28.1.3_@types+node@16.11.45
+      '@types/node': 16.11.47
+      jest: 28.1.3_@types+node@16.11.47
       jest-junit: 14.0.0
       typescript: 4.7.4
 
@@ -3056,8 +3056,8 @@ packages:
   /@types/node/12.20.55:
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
 
-  /@types/node/14.18.22:
-    resolution: {integrity: sha512-qzaYbXVzin6EPjghf/hTdIbnVW1ErMx8rPzwRNJhlbyJhu2SyqlvjGOY/tbUt6VFyzg56lROcOeSQRInpt63Yw==}
+  /@types/node/14.18.23:
+    resolution: {integrity: sha512-MhbCWN18R4GhO8ewQWAFK4TGQdBpXWByukz7cWyJmXhvRuCIaM/oWytGPqVmDzgEnnaIc9ss6HbU5mUi+vyZPA==}
     dev: true
 
   /@types/node/15.14.9:
@@ -11521,7 +11521,7 @@ packages:
       yargs-parser: 21.0.1
     dev: true
 
-  /ts-node/10.8.1_v23lgcvrbkhrsqa7tnocl3euju:
+  /ts-node/10.8.1_gqvhidmvmzakkqbagwo6oqbjnm:
     resolution: {integrity: sha512-Wwsnao4DQoJsN034wePSg5nZiw4YKXf56mPIAeD6wVmiv+RytNSWqc2f3fKvcUoV+Yn2+yocD71VOfQHbmVX4g==}
     hasBin: true
     peerDependencies:
@@ -11540,7 +11540,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.3
-      '@types/node': 14.18.22
+      '@types/node': 14.18.23
       acorn: 8.7.1
       acorn-walk: 8.2.0
       arg: 4.1.3
