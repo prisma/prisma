@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659503191556,
+  "lastUpdate": 1659512614569,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -114283,6 +114283,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.334123611450195,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "52275815+prisma-bot@users.noreply.github.com",
+            "name": "Prismo",
+            "username": "prisma-bot"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "257946772fca64c0f64d86341788e467837f9156",
+          "message": "chore(deps): update engines to 4.2.0-20.b007b4d5d0584317da24b7939ebf1cb0b2f5c314 (#14609)",
+          "timestamp": "2022-08-03T09:40:15+02:00",
+          "tree_id": "2cb601df08191a5c38f343943c31375fbc293ec2",
+          "url": "https://github.com/prisma/prisma/commit/257946772fca64c0f64d86341788e467837f9156"
+        },
+        "date": 1659512606250,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.01,
+            "range": "±6.25%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.27%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.281804084777832,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.464226722717285,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.1669178009033203,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.48027801513672,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.334100723266602,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
