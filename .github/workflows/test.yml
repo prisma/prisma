@@ -280,7 +280,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb tidb mssql
 
       - uses: pnpm/action-setup@v2.2.2
         with:
@@ -306,6 +306,7 @@ jobs:
           TEST_POSTGRES_BASE_URI: postgres://prisma:prisma@localhost:5432
           TEST_MYSQL_BASE_URI: mysql://root:root@localhost:3306
           TEST_MARIADB_BASE_URI: mysql://root:root@localhost:4306
+          TEST_TIDB_BASE_URI: mysql://root@localhost:4000
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
