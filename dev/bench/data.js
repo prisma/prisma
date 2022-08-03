@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659532535154,
+  "lastUpdate": 1659548071053,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -114763,6 +114763,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.33193588256836,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8298195f1fed4639ab4d7049a3f258d1bbae0d81",
+          "message": "fix(client): enable debug logging in edge and fix process.env access (#14537)\n\n- Forward `process.env.DEBUG` or `global.DEBUG` from the entry point of\r\n  the edge client to the runtime bundle as `process.env.DEBUG`. This\r\n  makes it possible to enable the debug logs during development using an\r\n  environment variable.\r\n\r\n- Patch the debug logger to make it work in the edge environment and use\r\n  `console.debug` or `console.log` instead of `process.stderr.write`.\r\n\r\n- Use uniform way of accessing the environment variables in the entry\r\n  point both for `DATABASE_URL` and `DEBUG` and fix incorrect\r\n  unconditional access to the `process` object which might not be\r\n  present.\r\n\r\nFixes https://github.com/prisma/prisma/issues/12681\r\nFixes https://github.com/prisma/prisma/issues/14536\r\nFixes https://github.com/prisma/prisma/issues/13771",
+          "timestamp": "2022-08-03T19:31:10+02:00",
+          "tree_id": "f931489a5f5bede6d64124728730b21215e95ef6",
+          "url": "https://github.com/prisma/prisma/commit/8298195f1fed4639ab4d7049a3f258d1bbae0d81"
+        },
+        "date": 1659548062667,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.65,
+            "range": "±6.64%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±5.16%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.283510208129883,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.46816539764404,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.48420715332031,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.332343101501465,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
