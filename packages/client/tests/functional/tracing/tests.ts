@@ -11,6 +11,7 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import * as util from 'util'
 
 import testMatrix from './_matrix'
@@ -796,6 +797,16 @@ testMatrix.setupTestSuite(({ provider }) => {
       const tree = await waitForSpanTree()
 
       expect(tree.span.name).toEqual('prisma:disconnect')
+
+      // No binary disconnect because we simply kill the process
+      if (getClientEngineType() === ClientEngineType.Binary) {
+        return
+      }
+
+      expect(tree.children).toHaveLength(1)
+
+      const engineDisconnect = (tree.children || [])[0]
+      expect(engineDisconnect.span.name).toEqual('prisma:engine:disconnect')
     })
   })
 })
