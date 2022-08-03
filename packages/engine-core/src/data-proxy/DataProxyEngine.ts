@@ -1,7 +1,7 @@
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
-import type { EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import type { EngineConfig, EngineEventType, GetConfigResult, InlineDatasource } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
@@ -14,8 +14,6 @@ import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 import { request } from './utils/request'
-// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
-// TODO this is an issue that we cannot share types from the client to other packages
 
 const MAX_RETRIES = 10
 
@@ -25,7 +23,7 @@ const P = Promise.resolve()
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
   private inlineSchemaHash: string
-  private inlineDatasources: any
+  private inlineDatasources: Record<string, InlineDatasource>
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }
@@ -208,16 +206,14 @@ export class DataProxyEngine extends Engine {
   }
 
   private extractHostAndApiKey() {
-    const mainDatasourceName = Object.keys(this.inlineDatasources)[0]
-    const mainDatasource = this.inlineDatasources[mainDatasourceName]
-    const mainDatasourceURL = mainDatasource?.url.value
-    const mainDatasourceEnv = mainDatasource?.url.fromEnvVar
-    const loadedEnvURL = this.env[mainDatasourceEnv]
-    const dataProxyURL = mainDatasourceURL ?? loadedEnvURL
+    const datasources = this.mergeOverriddenDatasources()
+    const mainDatasourceName = Object.keys(datasources)[0]
+    const mainDatasource = datasources[mainDatasourceName]
+    const dataProxyURL = this.resolveDatasourceURL(mainDatasourceName, mainDatasource)
 
     let url: URL
     try {
-      url = new URL(dataProxyURL ?? '')
+      url = new URL(dataProxyURL)
     } catch {
       throw new InvalidDatasourceError('Could not parse URL of the datasource', {
         clientVersion: this.clientVersion,
@@ -240,6 +236,58 @@ export class DataProxyEngine extends Engine {
     }
 
     return [host, apiKey]
+  }
+
+  private mergeOverriddenDatasources(): Record<string, InlineDatasource> {
+    if (this.config.datasources === undefined) {
+      return this.inlineDatasources
+    }
+
+    const finalDatasources = { ...this.inlineDatasources }
+
+    for (const override of this.config.datasources) {
+      if (!this.inlineDatasources[override.name]) {
+        throw new Error(`Unknown datasource: ${override.name}`)
+      }
+
+      finalDatasources[override.name] = {
+        url: {
+          fromEnvVar: null,
+          value: override.url,
+        },
+      }
+    }
+
+    return finalDatasources
+  }
+
+  private resolveDatasourceURL(name: string, datasource: InlineDatasource): string {
+    if (datasource.url.value) {
+      return datasource.url.value
+    }
+
+    if (datasource.url.fromEnvVar) {
+      const envVar = datasource.url.fromEnvVar
+      const loadedEnvURL = this.env[envVar]
+
+      if (loadedEnvURL === undefined) {
+        throw new InvalidDatasourceError(
+          `Datasource "${name}" references an environment variable "${envVar}" that is not set`,
+          {
+            clientVersion: this.clientVersion,
+          },
+        )
+      }
+
+      return loadedEnvURL
+    }
+
+    throw new InvalidDatasourceError(
+      `Datasource "${name}" specification is invalid: both value and fromEnvVar are null`,
+      {
+        clientVersion: this.clientVersion,
+      },
+    )
   }
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>

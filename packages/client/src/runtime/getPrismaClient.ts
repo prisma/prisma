@@ -410,6 +410,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             url,
           }))
 
+        // TODO: isn't it equivalent to just `inputDatasources` if the first argument is `[]`?
         const datasources = mergeBy([], inputDatasources, (source: any) => source.name)
 
         const engineConfig = internal.engine || {}
