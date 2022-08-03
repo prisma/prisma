@@ -746,6 +746,11 @@ testMatrix.setupTestSuite(({ provider }) => {
       const connect = (tree?.children || [])[0] as unknown as Tree
       expect(connect.span.name).toEqual('prisma:connect')
 
+      expect(connect.children).toHaveLength(1)
+
+      const engineConnect = (connect?.children || [])[0] as unknown as Tree
+      expect(engineConnect.span.name).toEqual('prisma:engine:connect')
+
       const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
