@@ -337,7 +337,6 @@ async function getCachedBinaryPath({
   const cachedTargetPath = path.join(cacheDir, binaryName)
 
   if (!fs.existsSync(cachedTargetPath)) {
-    console.log(cachedTargetPath)
     return null
   }
 
