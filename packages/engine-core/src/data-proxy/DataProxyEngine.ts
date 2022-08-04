@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
@@ -19,6 +20,8 @@ const MAX_RETRIES = 10
 
 // to defer the execution of promises in the constructor
 const P = Promise.resolve()
+
+const debug = Debug('prisma:client:dataproxyEngine')
 
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
@@ -50,6 +53,8 @@ export class DataProxyEngine extends Engine {
     this.remoteClientVersion = P.then(() => getClientVersion(this.config))
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
+
+    debug(`Data Proxy host: ${this.host}`)
 
     if (this.config.previewFeatures?.includes('tracing')) {
       throw new NotImplementedYetError('Tracing is not yet supported for Data Proxy', {
