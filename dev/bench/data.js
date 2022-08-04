@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659623037954,
+  "lastUpdate": 1659644855982,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -115406,6 +115406,37 @@ window.BENCHMARK_DATA = {
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ad43a3947b7d155723849c90db66c49d71feaa72",
+          "message": "fix(client): bundle types from @prisma/debug and @opentelemetry/api (#14655)",
+          "timestamp": "2022-08-04T10:24:56-10:00",
+          "tree_id": "ce7bf0f94eb41164a193936eac04591c2a53ae1f",
+          "url": "https://github.com/prisma/prisma/commit/ad43a3947b7d155723849c90db66c49d71feaa72"
+        },
+        "date": 1659644848409,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.8,
+            "range": "±6.41%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
           }
         ]
       }
