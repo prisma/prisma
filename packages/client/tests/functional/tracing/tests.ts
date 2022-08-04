@@ -93,6 +93,8 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(({ provider }) => {
+  jest.retryTimes(3)
+
   beforeEach(async () => {
     await prisma.$connect()
   })
