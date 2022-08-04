@@ -23,7 +23,7 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
         data: {
           id,
         },
-      })
+      }),
     )
 
     prismaPromises.push(
@@ -32,7 +32,7 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
           id: `${id}-post-a`,
           authorId: id,
         },
-      })
+      }),
     )
 
     prismaPromises.push(
@@ -41,9 +41,9 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
           id: `${id}-post-b`,
           authorId: id,
         },
-      })
+      }),
     )
-    
+
     /*
     const prismaPromise = prisma[userModel].create({
       data: {
@@ -228,7 +228,7 @@ testMatrix.setupTestSuite(
                 },
               ],
             })
-  
+
             expect(
               await prisma[postModel].findMany({
                 where: { authorId: '1' },
@@ -682,112 +682,113 @@ testMatrix.setupTestSuite(
 
         // test.skip('[deleteMany] parents should throw', async () => {})
 
-        describeIf(onDelete === 'DEFAULT')('onDelete: DEFAULT', () => {
-          test('[delete] parent should throw', async () => {
-            // this throws because "postModel" has a mandatory relation with "userModel", hence
-            // we have a "onDelete: Restrict" situation by default
+        describeIf(['DEFAULT', 'Restrict', 'NoAction'].includes(onDelete))(
+          'onDelete: DEFAULT, Restrict, NoAction',
+          () => {
+            test('[delete] parent should throw', async () => {
+              // this throws because "postModel" has a mandatory relation with "userModel", hence
+              // we have a "onDelete: Restrict" situation by default
 
-            await expect(
-              prisma[userModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.MONGODB]:
+              await expect(
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.MONGODB]:
+                      "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                    [Providers.POSTGRESQL]:
+                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                    [Providers.SQLSERVER]:
+                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  },
+                  prisma:
                     "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.SQLITE]:
-                    'Foreign key constraint failed on the field: `foreign key`',
+                }),
+              )
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
                 },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-              }),
-            )
-
-            expect(
-              await prisma[userModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                enabled: null,
-              },
-              {
-                id: '2',
-                enabled: null,
-              },
-            ])
-          })
-
-          test('[delete] a subset of children and then [delete] parent should throw', async () => {
-            await prisma[postModel].delete({
-              where: { id: '1-post-a' },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
             })
 
-            const postsFromDb = await prisma[postModel].findMany({
-              orderBy: { id: 'asc' },
-            })
-            expect(postsFromDb).toEqual([
-              {
-                id: '1-post-b',
-                authorId: '1',
-              },
-              {
-                id: '2-post-a',
-                authorId: '2',
-              },
-              {
-                id: '2-post-b',
-                authorId: '2',
-              },
-            ])
+            test('[delete] a subset of children and then [delete] parent should throw', async () => {
+              await prisma[postModel].delete({
+                where: { id: '1-post-a' },
+              })
 
-            await expect(
-              prisma[userModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.MONGODB]:
-                    "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                  [Providers.SQLITE]:
-                    'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-              }),
-            )
-
-            expect(
-              await prisma[userModel].findMany({
+              const postsFromDb = await prisma[postModel].findMany({
                 orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                enabled: null,
-              },
-              {
-                id: '2',
-                enabled: null,
-              },
-            ])
-          })
-        })
+              })
+              expect(postsFromDb).toEqual([
+                {
+                  id: '1-post-b',
+                  authorId: '1',
+                },
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ])
+
+              await expect(
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.MONGODB]:
+                      "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                    [Providers.POSTGRESQL]:
+                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                    [Providers.SQLSERVER]:
+                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                    [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                  },
+                  prisma:
+                    "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                }),
+              )
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            })
+          },
+        )
 
         describeIf(onDelete === 'Cascade')('onDelete: Cascade', () => {
           test('[delete] parent should succeed', async () => {
@@ -813,6 +814,45 @@ testMatrix.setupTestSuite(
               {
                 id: '2-post-b',
                 authorId: '2',
+              },
+            ])
+          })
+
+          test('[delete] a subset of children and then [delete] parent should succeed', async () => {
+            await prisma[postModel].delete({
+              where: { id: '1-post-a' },
+            })
+
+            const postsFromDb = await prisma[postModel].findMany({
+              orderBy: { id: 'asc' },
+            })
+            expect(postsFromDb).toEqual([
+              {
+                id: '1-post-b',
+                authorId: '1',
+              },
+              {
+                id: '2-post-a',
+                authorId: '2',
+              },
+              {
+                id: '2-post-b',
+                authorId: '2',
+              },
+            ])
+
+            await prisma[userModel].delete({
+              where: { id: '1' },
+            })
+
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '2',
+                enabled: null,
               },
             ])
           })
