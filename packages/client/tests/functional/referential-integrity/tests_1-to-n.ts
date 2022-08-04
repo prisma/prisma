@@ -385,6 +385,7 @@ testMatrix.setupTestSuite(
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                    [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
                   prisma: {
                     [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
@@ -526,6 +527,7 @@ testMatrix.setupTestSuite(
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                    [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
                   prisma:
                     "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
@@ -700,6 +702,8 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.SQLITE]:
+                    'Foreign key constraint failed on the field: `foreign key`',
                 },
                 prisma:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
@@ -760,6 +764,8 @@ testMatrix.setupTestSuite(
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  [Providers.SQLITE]:
+                    'Foreign key constraint failed on the field: `foreign key`',
                 },
                 prisma:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
