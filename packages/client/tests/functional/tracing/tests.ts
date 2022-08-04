@@ -114,6 +114,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       if (key === 'resource') return undefined
       if (key === 'spanId') return '<spanID>'
       if (key === 'traceId') return '<traceId>'
+      if (key === 'links') return value.map(() => ({ traceId: '<traceId>', spanId: '<spanId>' }))
 
       return value
     })
@@ -145,7 +146,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('create')
@@ -207,7 +208,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
@@ -260,7 +261,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('update')
@@ -330,7 +331,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('delete')
@@ -411,7 +412,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:transaction')
       expect(tree.span.attributes['method']).toEqual('$transaction')
@@ -458,7 +459,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:transaction')
       expect(tree.span.attributes['method']).toEqual('$transaction')
@@ -498,7 +499,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('queryRaw')
@@ -532,7 +533,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('executeRaw')
@@ -574,7 +575,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     const tree = await waitForSpanTree()
 
-    // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+    expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
     expect(tree.span.name).toEqual('create-user')
 
@@ -665,7 +666,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('create')
@@ -749,7 +750,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       const tree = await waitForSpanTree()
 
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
