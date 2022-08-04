@@ -828,12 +828,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -866,12 +861,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -1740,12 +1730,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -1778,12 +1763,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -2822,12 +2802,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -2860,12 +2835,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -3964,12 +3934,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -4002,12 +3967,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -5045,12 +5005,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -5083,12 +5038,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -6187,12 +6137,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
@@ -6225,12 +6170,7 @@ Object {
           span: Object {
             attributes: Object {},
             kind: 0,
-            links: Array [
-              Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
-              },
-            ],
+            links: Array [],
             name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },

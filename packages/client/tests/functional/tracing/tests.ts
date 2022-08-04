@@ -103,45 +103,17 @@ testMatrix.setupTestSuite(({ provider }) => {
 
   function cleanSpanTreeForSnapshot(tree: Tree) {
     return JSON.parse(JSON.stringify(tree), (key, value) => {
-      if (key === 'duration') {
-        return 'Xms'
-      }
-
-      if (key === 'parentSpanId') {
-        return '<parentSpanId>'
-      }
-
-      if (key === 'itx_id') {
-        return '<itxId>'
-      }
-
-      if (key === 'endTime') {
-        return '<endTime>'
-      }
-
-      if (key === 'startTime') {
-        return '<startTime>'
-      }
-
-      if (key === 'db.type') {
-        return '<dbType>'
-      }
-
-      if (key === 'db.statement') {
-        return '<dbStatement>'
-      }
-
-      if (key === 'resource') {
-        return undefined
-      }
-
-      if (key[0] === '_') {
-        return undefined
-      }
-
-      if (key === 'links') {
-        return value.map(() => ({ spanId: '<spanId>', traceId: '<traceId>' }))
-      }
+      if (key[0] === '_') return undefined
+      if (key === 'duration') return 'Xms'
+      if (key === 'parentSpanId') return '<parentSpanId>'
+      if (key === 'itx_id') return '<itxId>'
+      if (key === 'endTime') return '<endTime>'
+      if (key === 'startTime') return '<startTime>'
+      if (key === 'db.type') return '<dbType>'
+      if (key === 'db.statement') return '<dbStatement>'
+      if (key === 'resource') return undefined
+      if (key === 'spanId') return '<spanID>'
+      if (key === 'traceId') return '<traceId>'
 
       return value
     })
