@@ -124,7 +124,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       Spans come through logs and sometimes these tests can be flaky without
       giving some buffer
     */
-    await new Promise((resolve) => setTimeout(resolve, 500))
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
     const spans = inMemorySpanExporter.getFinishedSpans()
     const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
