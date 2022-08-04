@@ -24,8 +24,7 @@
     "lint": "eslint --fix --ext .ts .",
     "format": "prettier --write .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
-    "prepare": "is-ci || husky install",
-    "pnpm:devPreinstall": "pnpm run --filter engines dev"
+    "prepare": "is-ci || husky install"
   },
   "devDependencies": {
     "@sindresorhus/slugify": "1.1.2",
