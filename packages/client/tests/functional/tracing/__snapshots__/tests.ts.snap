@@ -830,8 +830,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -868,8 +871,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -1742,8 +1748,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -1780,8 +1789,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -2824,8 +2836,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -2862,8 +2877,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -3966,8 +3984,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -4004,8 +4025,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -5047,8 +5071,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -5085,8 +5112,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -6189,8 +6219,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
@@ -6227,8 +6260,11 @@ Object {
             kind: 0,
             links: Array [
               Object {
-                spanId: <spanId>,
-                traceId: <traceId>,
+                context: Object {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
               },
             ],
             name: prisma:engine:itx_query_builder,
