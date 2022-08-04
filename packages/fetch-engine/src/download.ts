@@ -100,10 +100,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   // creates a matrix of binaries x binary targets
   const binaryJobs = flatMap(Object.entries(opts.binaries), ([binaryName, targetFolder]: [string, string]) =>
     opts.binaryTargets.map((binaryTarget) => {
-      const fileName =
-        binaryName === BinaryType.libqueryEngine
-          ? getNodeAPIName(binaryTarget, 'fs')
-          : getBinaryName(binaryName, binaryTarget)
+      const fileName = getBinaryName(binaryName, binaryTarget)
       const targetFilePath = path.join(targetFolder, fileName)
       return {
         binaryName,
@@ -291,29 +288,47 @@ async function binaryNeedsToBeDownloaded(
     }
   }
 
-  // if it's not cached, it needs to be downloaded
-  return true
-}
+  // If there is no cache and the file doesn't exist, we for sure need to download it
+  if (!targetExists) {
+    debug(`file ${job.targetFilePath} does not exist and must be downloaded`)
 
-export async function getVersion(enginePath: string): Promise<string> {
-  const result = await execa(enginePath, ['--version'])
-
-  return result.stdout
-}
-
-export async function checkVersionCommand(enginePath: string): Promise<boolean> {
-  try {
-    const version = await getVersion(enginePath)
-
-    return version.length > 0
-  } catch (e) {
-    return false
+    return true
   }
+
+  // 3. If same platform, always check --version
+  if (job.binaryTarget === nativePlatform) {
+    const currentVersion = await getVersion(job.targetFilePath, job.binaryName)
+
+    if (currentVersion?.includes(version) === false) {
+      debug(`file ${job.targetFilePath} exists but its version is ${currentVersion} and we expect ${version}`)
+
+      return true
+    }
+  }
+
+  return false
+}
+
+export async function getVersion(enginePath: string, binaryName: string) {
+  try {
+    if (binaryName === BinaryType.libqueryEngine) {
+      await isNodeAPISupported()
+
+      const commitHash = require(enginePath).version().commit
+      return `${BinaryType.libqueryEngine} ${commitHash}`
+    } else {
+      const result = await execa(enginePath, ['--version'])
+
+      return result.stdout
+    }
+  } catch {}
+
+  return undefined
 }
 
 export function getBinaryName(binaryName: string, platform: Platform): string {
   if (binaryName === BinaryType.libqueryEngine) {
-    return `${getNodeAPIName(platform, 'url')}`
+    return `${getNodeAPIName(platform, 'fs')}`
   }
   const extension = platform === 'windows' ? '.exe' : ''
   return `${binaryName}-${platform}${extension}`
