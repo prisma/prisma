@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659644855982,
+  "lastUpdate": 1659657317453,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -115435,6 +115435,37 @@ window.BENCHMARK_DATA = {
             "name": "client generation ~50 Models",
             "value": 1.8,
             "range": "±6.41%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "118af81cb38433fc48b26cbb768607ca82251bbf",
+          "message": "test(client): Tracing Links (#14652)\n\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>",
+          "timestamp": "2022-08-04T13:52:31-10:00",
+          "tree_id": "86841af09ec10d4938eb89723ca6f356992b09fc",
+          "url": "https://github.com/prisma/prisma/commit/118af81cb38433fc48b26cbb768607ca82251bbf"
+        },
+        "date": 1659657308739,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.71,
+            "range": "±6.76%",
             "unit": "ops/sec",
             "extra": "13 samples"
           }
