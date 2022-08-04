@@ -90,6 +90,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         '@prisma/internals',
         '@prisma/engine-core',
         '@prisma/generator-helper',
+        '@opentelemetry/api',
       ],
       compiler: {
         tsconfigFilePath: 'tsconfig.build.json',
