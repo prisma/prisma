@@ -112,7 +112,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       if (key === 'db.type') return '<dbType>'
       if (key === 'db.statement') return '<dbStatement>'
       if (key === 'resource') return undefined
-      if (key === 'spanId') return '<spanID>'
+      if (key === 'spanId') return '<spanId>'
       if (key === 'traceId') return '<traceId>'
       if (key === 'links') return value.map(() => ({ traceId: '<traceId>', spanId: '<spanId>' }))
 
