@@ -35,7 +35,7 @@ import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
-import { createSpan, runInChildSpan } from '../tracing'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
@@ -572,15 +572,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
 
-        // TODO - This should be uncommended(and tested) when this PR is merged: https://github.com/prisma/prisma-engines/pull/3087
-        // const additionalHeaders: { traceparent?: string } = {}
+        const tracingHeaders: { traceparent?: string } = {}
 
-        // const tracingConfig = getTracingConfig(this)
-        // if (tracingConfig.enabled) {
-        //   additionalHeaders.traceparent = getTraceParent()
-        // }
+        if (this.tracingConfig.enabled) {
+          tracingHeaders.traceparent = getTraceParent()
+        }
 
-        // flags.push('--additional-headers', JSON.stringify(additionalHeaders))
+        flags.push('--tracing-headers', JSON.stringify(tracingHeaders))
 
         debug({ flags })
 
