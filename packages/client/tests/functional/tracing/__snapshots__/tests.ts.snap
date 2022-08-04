@@ -150,7 +150,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -309,7 +322,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -2156,7 +2182,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -2315,7 +2354,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -4417,7 +4469,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -4576,7 +4641,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -5565,7 +5643,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -5724,7 +5815,20 @@ Object {
     Object {
       children: Array [
         Object {
-          children: Array [],
+          children: Array [
+            Object {
+              children: Array [],
+              span: Object {
+                attributes: Object {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: Array [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
