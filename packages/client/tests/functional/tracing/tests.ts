@@ -114,7 +114,6 @@ testMatrix.setupTestSuite(({ provider }) => {
       if (key === 'resource') return undefined
       if (key === 'spanId') return '<spanId>'
       if (key === 'traceId') return '<traceId>'
-      if (key === 'links') return value.map(() => ({ traceId: '<traceId>', spanId: '<spanId>' }))
 
       return value
     })
