@@ -2,7 +2,6 @@ import { enginesVersion } from '@prisma/engines'
 import { download } from '@prisma/fetch-engine'
 import { ClientEngineType } from '@prisma/internals'
 import path from 'path'
-import lockfile from 'proper-lockfile'
 
 /**
  * Ensures the correct Query Engine (`node-api`/`binary`) is present. This is required as
@@ -13,34 +12,16 @@ import lockfile from 'proper-lockfile'
 export async function setupQueryEngine(clientEngineType: ClientEngineType) {
   const engineDownloadDir = path.join(__dirname, '..', '..', '..')
 
-  // Multiple jest workers can run this function at the same time we need to
-  // ensure that no 2 downloads run in parallel. In order to achieve that, we
-  // lock engine directory and do not unlock it again until download is done
-  let releaseLock: () => Promise<void> | undefined
-
-  try {
-    releaseLock = await lockfile.lock(engineDownloadDir, {
-      lockfilePath: path.join(engineDownloadDir, 'dir.lock'),
+  if (clientEngineType === ClientEngineType.Library) {
+    await download({
+      binaries: { 'libquery-engine': engineDownloadDir },
+      version: enginesVersion,
     })
-
-    if (clientEngineType === ClientEngineType.Library) {
-      await download({
-        binaries: { 'libquery-engine': engineDownloadDir },
-        version: enginesVersion,
-      })
-    } else if (clientEngineType === ClientEngineType.Binary) {
-      await download({
-        binaries: { 'query-engine': engineDownloadDir },
-        version: enginesVersion,
-      })
-    }
-  } catch (e) {
-    if (e.code !== 'ELOCKED') {
-      throw new Error(`Failed to download query engine for ${clientEngineType}`)
-    }
-  } finally {
-    // @ts-ignore
-    await releaseLock?.()
+  } else if (clientEngineType === ClientEngineType.Binary) {
+    await download({
+      binaries: { 'query-engine': engineDownloadDir },
+      version: enginesVersion,
+    })
   }
 }
 
