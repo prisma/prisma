@@ -299,7 +299,7 @@ async function binaryNeedsToBeDownloaded(
   if (job.binaryTarget === nativePlatform) {
     const currentVersion = await getVersion(job.targetFilePath, job.binaryName)
 
-    if (currentVersion?.includes(version) === false) {
+    if (currentVersion?.includes(version) !== true) {
       debug(`file ${job.targetFilePath} exists but its version is ${currentVersion} and we expect ${version}`)
 
       return true
