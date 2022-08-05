@@ -16,12 +16,13 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType) {
   // Multiple jest workers can run this function at the same time we need to
   // ensure that no 2 downloads run in parallel. In order to achieve that, we
   // lock engine directory and do not unlock it again until download is done
-  const releaseLock = await lockfile.lock(engineDownloadDir, {
-    lockfilePath: path.join(engineDownloadDir, 'dir.lock'),
-    retries: { forever: true },
-  })
+  let releaseLock: () => Promise<void> | undefined
 
   try {
+    releaseLock = await lockfile.lock(engineDownloadDir, {
+      lockfilePath: path.join(engineDownloadDir, 'dir.lock'),
+    })
+
     if (clientEngineType === ClientEngineType.Library) {
       await download({
         binaries: { 'libquery-engine': engineDownloadDir },
@@ -33,8 +34,13 @@ export async function setupQueryEngine(clientEngineType: ClientEngineType) {
         version: enginesVersion,
       })
     }
+  } catch (e) {
+    if (e.code !== 'ELOCKED') {
+      throw new Error(`Failed to download query engine for ${clientEngineType}`)
+    }
   } finally {
-    await releaseLock()
+    // @ts-ignore
+    await releaseLock?.()
   }
 }
 
