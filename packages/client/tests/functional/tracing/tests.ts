@@ -68,8 +68,6 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 let inMemorySpanExporter: InMemorySpanExporter
 
 beforeAll(() => {
-  jest.retryTimes(3)
-
   const contextManager = new AsyncHooksContextManager().enable()
   context.setGlobalContextManager(contextManager)
 
@@ -95,6 +93,8 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(({ provider }) => {
+  jest.retryTimes(3)
+
   beforeEach(async () => {
     await prisma.$connect()
   })
@@ -122,7 +122,11 @@ testMatrix.setupTestSuite(({ provider }) => {
   }
 
   async function waitForSpanTree(): Promise<Tree> {
-    await prisma.$disconnect() // needed to flush the logs
+    /*
+      Spans come through logs and sometimes these tests can be flaky without
+      giving some buffer
+    */
+    await new Promise((resolve) => setTimeout(resolve, 5000))
 
     const spans = inMemorySpanExporter.getFinishedSpans()
     const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
