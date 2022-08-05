@@ -465,8 +465,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingConfig: this._tracingConfig,
         }
 
-        debug(`clientVersion: ${config.clientVersion}`)
-        debug(`clientEngineType: ${this._clientEngineType}`)
+        debug('clientVersion', config.clientVersion)
+        debug('clientEngineType', this._dataProxy ? 'dataproxy' : this._clientEngineType)
+
+        if (this._dataProxy) {
+          const runtime = NODE_CLIENT ? 'Node.js' : 'edge'
+          debug(`using Data Proxy with ${runtime} runtime`)
+        }
 
         this._engine = this.getEngine()
         void this._getActiveProvider()
