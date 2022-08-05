@@ -250,7 +250,11 @@ List of directories in the monorepo
 - client
 - debug
 - engine-core
+- engines
+- fetch-engine
 - generator-helper
+- get-platform
+- instrumentation
 - integration-tests
 - internals
 - migrate
