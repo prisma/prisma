@@ -24,25 +24,19 @@ describe('download', () => {
     // or del glob pattern would not work on Windows
     await del(path.posix.join(dirname, '/**/*engine*'))
     await del(path.posix.join(dirname, '/**/prisma-fmt*'))
-
-    jest.resetModules()
   })
   afterEach(() => {
     delete process.env.PRISMA_QUERY_ENGINE_BINARY
   })
 
   test('download all current engines', async () => {
-    const baseDir = path.posix.join(dirname, 'all', CURRENT_ENGINES_HASH)
+    const baseDir = path.posix.join(dirname, 'all')
 
     const platform = await getPlatform()
     const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
-    const libqueryEnginePath = path.join(baseDir, getBinaryName(BinaryType.libqueryEngine, platform))
     const introspectionEnginePath = path.join(baseDir, getBinaryName(BinaryType.introspectionEngine, platform))
     const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.migrationEngine, platform))
     const prismaFmtPath = path.join(baseDir, getBinaryName(BinaryType.prismaFmt, platform))
-
-    await fs.promises.rm(baseDir, { recursive: true }).catch(() => {})
-    await fs.promises.mkdir(baseDir)
 
     await download({
       binaries: {
@@ -143,26 +137,19 @@ describe('download', () => {
 
     // Check that all engines hashes are the same
     expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
-    expect(await getVersion(libqueryEnginePath, BinaryType.libqueryEngine)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(introspectionEnginePath, BinaryType.introspectionEngine)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(migrationEnginePath, BinaryType.migrationEngine)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(prismaFmtPath, BinaryType.prismaFmt)).toContain(CURRENT_ENGINES_HASH)
-
-    await fs.promises.rm(baseDir, { recursive: true }).catch(() => {})
   })
 
   test('download all binaries & cache them', async () => {
-    const baseDir = path.posix.join(dirname, 'all', FIXED_ENGINES_HASH)
+    const baseDir = path.posix.join(dirname, 'all')
 
     const platform = await getPlatform()
     const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
-    const libqueryEnginePath = path.join(baseDir, getBinaryName(BinaryType.libqueryEngine, platform))
     const introspectionEnginePath = path.join(baseDir, getBinaryName(BinaryType.introspectionEngine, platform))
     const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.migrationEngine, platform))
     const prismaFmtPath = path.join(baseDir, getBinaryName(BinaryType.prismaFmt, platform))
-
-    await fs.promises.rm(baseDir, { recursive: true }).catch(() => {})
-    await fs.promises.mkdir(baseDir)
 
     const before0 = Date.now()
     await download({
@@ -466,9 +453,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
     expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toMatchInlineSnapshot(
       `"query-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
-    expect(await getVersion(libqueryEnginePath, BinaryType.libqueryEngine)).toMatchInlineSnapshot(
-      `"libquery-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
-    )
     expect(await getVersion(introspectionEnginePath, BinaryType.introspectionEngine)).toMatchInlineSnapshot(
       `"introspection-core da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
@@ -569,8 +553,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     // Using cache should be faster
     expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)
     expect(timeInMsToDownloadAllFromCache2).toBeLessThan(timeInMsToDownloadAll)
-
-    await fs.promises.rm(baseDir, { recursive: true }).catch(() => {})
   })
 
   test('auto heal corrupt engine binary', async () => {
