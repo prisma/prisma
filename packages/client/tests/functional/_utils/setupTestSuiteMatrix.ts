@@ -61,8 +61,7 @@ function setupTestSuiteMatrix(
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
         // the engines are downloaded only once during the initial globalSetup
-        await (global as any).libraryEngineSetup
-        await (global as any).binaryEngineSetup
+        await (global as any).queryEngineSetup
 
         process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
 

@@ -4,8 +4,7 @@ const fs = require('fs-extra')
 const { setupQueryEngine } = require('./setupQueryEngine')
 
 module.exports = () => {
-  global.libraryEngineSetup = setupQueryEngine('library')
-  global.binaryEngineSetup = setupQueryEngine('binary')
+  global.queryEngineSetup = setupQueryEngine()
 
   // we clear up all the files before we run the tests that are not type tests
   const ignorePatternsIndex = process.argv.indexOf('--testPathIgnorePatterns')
