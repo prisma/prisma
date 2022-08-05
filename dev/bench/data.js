@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659657317453,
+  "lastUpdate": 1659692679098,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -115468,6 +115468,37 @@ window.BENCHMARK_DATA = {
             "range": "±6.76%",
             "unit": "ops/sec",
             "extra": "13 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "959e0754c0a3f53c83a5fd45e23dfa46f60256a5",
+          "message": "fix(client): support JSON values without prototypes and constructors (#14480)\n\nFixes https://github.com/prisma/prisma/issues/14274\r\nFixes https://github.com/prisma/prisma/issues/14342",
+          "timestamp": "2022-08-05T11:42:07+02:00",
+          "tree_id": "c7b97a35aa65d0c1bca6a4ab9ad1323f88df4d53",
+          "url": "https://github.com/prisma/prisma/commit/959e0754c0a3f53c83a5fd45e23dfa46f60256a5"
+        },
+        "date": 1659692671258,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.99,
+            "range": "±5.83%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
           }
         ]
       }
