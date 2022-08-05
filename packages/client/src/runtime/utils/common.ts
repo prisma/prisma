@@ -193,7 +193,7 @@ export function isValidEnumValue(value: any, inputType?: DMMF.SchemaArgInputType
   // Check if it is an object-valued enum, and if it is, whether the provided
   // value is the correct singleton instance of the corresponding class.
   if (inputType?.namespace === 'prisma' && objectEnumNames.includes(enumType.name)) {
-    const name = value?.constructor.name
+    const name = value?.constructor?.name
     return typeof name === 'string' && objectEnumValues.instances[name] === value && enumType.values.includes(name)
   }
 
