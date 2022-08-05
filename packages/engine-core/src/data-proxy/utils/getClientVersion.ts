@@ -40,7 +40,7 @@ async function _getClientVersion(config: EngineConfig) {
     // because it's using the global "fetch"
     // eslint-disable-next-line @typescript-eslint/await-thenable
     const bodyAsText = await res.text()
-    debug('length of body fetched from unpkg.com:', bodyAsText.length)
+    debug('length of body fetched from unpkg.com', bodyAsText.length)
 
     let bodyAsJson
     try {
