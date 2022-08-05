@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659712998389,
+  "lastUpdate": 1659735398778,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -115736,6 +115736,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.345592498779297,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "38db28252b850d4296e5fb1c32d2ead27e3d7ca8",
+          "message": "fix(engine-core): don't log the whole package.json in data proxy logs (#14661)\n\nLog the size in JS characters instead.\r\n\r\nThe body is logged in the case of a JSON parsing error below in the code\r\n(i.e., previously it would have been logged twice in case of an error).\r\n\r\nCloses https://github.com/prisma/prisma/issues/14660\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>",
+          "timestamp": "2022-08-05T23:33:35+02:00",
+          "tree_id": "ac4d5dc325aa5f7b80b170594523c93addfa3c48",
+          "url": "https://github.com/prisma/prisma/commit/38db28252b850d4296e5fb1c32d2ead27e3d7ca8"
+        },
+        "date": 1659735391566,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.69,
+            "range": "±6.34%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.49%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2842302322387695,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.49140453338623,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.5074462890625,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.345609664916992,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
