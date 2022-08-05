@@ -36,7 +36,6 @@ export async function setupTestSuiteClient({
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
 
-  await setupQueryEngine(getClientEngineType(generator!))
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {

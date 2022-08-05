@@ -1,6 +1,10 @@
+import { BinaryType } from '@prisma/fetch-engine'
+import { ClientEngineType } from '@prisma/internals'
+
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
+import { setupQueryEngine } from './setupQueryEngine'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { MatrixOptions } from './types'
@@ -46,6 +50,9 @@ function setupTestSuiteMatrix(
   const suiteMeta = getTestSuiteMeta()
   const suiteConfig = getTestSuiteConfigs(suiteMeta)
   const testPlan = getTestSuitePlan(suiteMeta, suiteConfig)
+  const libraryEngineSetup = setupQueryEngine(ClientEngineType.Library)
+  const binaryEngineSetup = setupQueryEngine(ClientEngineType.Binary)
+
   checkMissingProviders({
     suiteConfig,
     suiteMeta,
@@ -59,6 +66,9 @@ function setupTestSuiteMatrix(
       const clients = [] as any[]
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
+        await libraryEngineSetup
+        await binaryEngineSetup
+
         process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
 
         globalThis['loaded'] = await setupTestSuiteClient({
