@@ -123,7 +123,6 @@ testMatrix.setupTestSuite(({ provider }) => {
 
   async function waitForSpanTree(): Promise<Tree> {
     await prisma.$disconnect() // needed to flush the logs
-    await new Promise((resolve) => setTimeout(resolve, 500))
 
     const spans = inMemorySpanExporter.getFinishedSpans()
     const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
