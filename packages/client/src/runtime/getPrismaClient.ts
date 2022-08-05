@@ -38,7 +38,7 @@ import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { Middlewares } from './MiddlewareHandler'
-import { makeDocument, transformDocument } from './query'
+import { Document, makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
@@ -1148,24 +1148,35 @@ new PrismaClient({
 
       const { isList } = field.outputType
       const typeName = getOutputTypeName(field.outputType.type)
-
       const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
       warnAboutRejectOnNotFound(rejectOnNotFound, jsModelName, action)
-      let document = makeDocument({
-        dmmf: this._dmmf,
-        rootField: rootField!,
-        rootTypeName: operation,
-        select: args,
-      })
 
-      document.validate(args, false, clientMethod, this._errorFormat, callsite)
+      let document: Document
 
-      document = transformDocument(document)
+      const serlizationFn = () => {
+        document = makeDocument({
+          dmmf: this._dmmf!,
+          rootField: rootField!,
+          rootTypeName: operation,
+          select: args,
+        })
+
+        document.validate(args, false, clientMethod, this._errorFormat, callsite)
+
+        document = transformDocument(document)
+      }
+
+      const spanOptions: SpanOptions = {
+        name: 'serialize',
+        enabled: this._tracingConfig.enabled,
+      }
+
+      await runInChildSpan(spanOptions, serlizationFn)
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
       if (Debug.enabled('prisma:client')) {
-        const query = String(document)
+        const query = String(document!)
         debug(`Prisma Client call:`)
         debug(
           `prisma.${clientMethod}(${printJsonWithErrors({
@@ -1182,7 +1193,7 @@ new PrismaClient({
       await lock /** @see {@link getLockCountPromise} */
 
       return this._fetcher.request({
-        document,
+        document: document!,
         clientMethod,
         typeName,
         dataPath,
