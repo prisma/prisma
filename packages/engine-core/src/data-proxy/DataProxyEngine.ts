@@ -54,7 +54,7 @@ export class DataProxyEngine extends Engine {
     this.headers = { Authorization: `Bearer ${apiKey}` }
     this.host = host
 
-    debug(`Data Proxy host: ${this.host}`)
+    debug('host', this.host)
 
     if (this.config.previewFeatures?.includes('tracing')) {
       throw new NotImplementedYetError('Tracing is not yet supported for Data Proxy', {
