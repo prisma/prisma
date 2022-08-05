@@ -67,6 +67,7 @@ describe('download', () => {
     const files = getFiles(baseDir).map((f) => f.name)
     expect(files).toMatchInlineSnapshot(`
       Array [
+        ".gitkeep",
         "introspection-engine-darwin",
         "introspection-engine-darwin-arm64",
         "introspection-engine-debian-openssl-1.0.x",
@@ -187,6 +188,10 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
     const files = getFiles(baseDir)
     expect(files).toMatchInlineSnapshot(`
       Array [
+        Object {
+          "name": ".gitkeep",
+          "size": 0,
+        },
         Object {
           "name": "introspection-engine-darwin",
           "size": 26609608,
