@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(
       expect(onQuery).toHaveBeenCalledWith({
         params: expect.any(String),
         query: expect.any(String),
-        target: 'mongodb_query_connector::query',
+        target: expect.any(String),
         timestamp: expect.any(Date),
       })
     })
