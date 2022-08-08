@@ -82,7 +82,6 @@ testMatrix.setupTestSuite(
             timestamp: expect.any(Date),
           },
         ],
-
         [
           {
             duration: expect.any(Number),
