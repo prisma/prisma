@@ -14,6 +14,8 @@ describe('BinaryEngine', () => {
       const engine = new BinaryEngine({
         flags: ['--flag-that-does-not-exist'],
         datamodelPath: path.join(__dirname, './runtime-tests/blog/schema.prisma'),
+        tracingConfig: { enabled: false, middleware: false },
+        env: {},
       })
       await engine.start()
     } catch (e) {

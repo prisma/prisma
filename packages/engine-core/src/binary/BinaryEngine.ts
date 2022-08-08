@@ -31,12 +31,12 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { createSpan } from '../common/utils/createSpan'
-import { getTracingConfig } from '../common/utils/getTracingConfig'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
+import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
 
@@ -114,6 +114,7 @@ export class BinaryEngine extends Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
+  private tracingConfig: TracingConfig
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -136,6 +137,7 @@ export class BinaryEngine extends Engine {
     allowTriggerPanic,
     dirname,
     activeProvider,
+    tracingConfig,
   }: EngineConfig) {
     super()
 
@@ -148,6 +150,7 @@ export class BinaryEngine extends Engine {
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
+    this.tracingConfig = tracingConfig
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {
       // to prevent unhandled error events
@@ -469,21 +472,28 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.stopPromise
     }
 
-    if (!this.startPromise) {
-      this.startCount++
-      this.startPromise = this.internalStart()
+    const startFn = async () => {
+      if (!this.startPromise) {
+        this.startCount++
+        this.startPromise = this.internalStart()
+      }
+
+      await this.startPromise
+
+      if (!this.child && !this.engineEndpoint) {
+        throw new PrismaClientUnknownRequestError(
+          `Can't perform request, as the Engine has already been stopped`,
+          this.clientVersion!,
+        )
+      }
     }
 
-    await this.startPromise
-
-    if (!this.child && !this.engineEndpoint) {
-      throw new PrismaClientUnknownRequestError(
-        `Can't perform request, as the Engine has already been stopped`,
-        this.clientVersion!,
-      )
+    const spanOptions = {
+      name: 'connect',
+      enabled: this.tracingConfig.enabled && !this.startPromise,
     }
 
-    return this.startPromise
+    return runInChildSpan(spanOptions, startFn)
   }
 
   private getEngineEnvVars() {
@@ -562,6 +572,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
 
+        const tracingHeaders: { traceparent?: string } = {}
+
+        if (this.tracingConfig.enabled) {
+          tracingHeaders.traceparent = getTraceParent()
+        }
+
+        flags.push('--tracing-headers', JSON.stringify(tracingHeaders))
+
         debug({ flags })
 
         const env = this.getEngineEnvVars()
@@ -617,9 +635,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               if (json.span === true) {
-                const tracingConfig = getTracingConfig(this)
-                if (tracingConfig.enabled) {
-                  createSpan(json as EngineSpanEvent)
+                if (this.tracingConfig.enabled === true) {
+                  void createSpan(json as EngineSpanEvent)
                 }
 
                 return
@@ -768,11 +785,20 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async stop(): Promise<void> {
-    if (!this.stopPromise) {
-      this.stopPromise = this._stop()
+    const stopFn = async () => {
+      if (!this.stopPromise) {
+        this.stopPromise = this._stop()
+      }
+
+      return this.stopPromise
     }
 
-    return this.stopPromise
+    const spanOptions = {
+      name: 'disconnect',
+      enabled: this.tracingConfig.enabled,
+    }
+
+    return runInChildSpan(spanOptions, stopFn)
   }
 
   /**
@@ -998,7 +1024,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
   async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
@@ -1008,6 +1034,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
+        isolation_level: arg?.isolationLevel,
       })
 
       const result = await Connection.onHttpError(
@@ -1146,10 +1173,6 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       parseResponse,
     )
     return response.data
-  }
-
-  _hasPreviewFlag(feature: string): Boolean {
-    return !!this.previewFeatures?.includes(feature)
   }
 }
 

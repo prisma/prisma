@@ -16,7 +16,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.2.0-10.a7370859a29d1da1fb77313857c210926d22396a",
+    "@prisma/engines-version": "4.2.0-29.95f81cc77c3f2ca6558156238c6d329842937528",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.2.204",
@@ -49,7 +49,7 @@
     "has-yarn": "2.1.0",
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
-    "mariadb": "3.0.0",
+    "mariadb": "3.0.1",
     "mssql": "8.1.2",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",

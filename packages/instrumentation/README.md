@@ -24,7 +24,7 @@ registerInstrumentations({
 })
 ```
 
-Dont forget to set `previewFeatures`:
+Don't forget to set `previewFeatures`:
 
 ```prisma
 generator client {
@@ -35,7 +35,7 @@ generator client {
 
 ## Jaeger
 
-Exporting traces to [Jaeger Tracing](jaegertracing.io).
+Exporting traces to [Jaeger Tracing](https://jaegertracing.io).
 
 ```ts
 import { context } from '@opentelemetry/api'
