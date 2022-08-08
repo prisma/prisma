@@ -63,7 +63,7 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
-        testIf(isRI_prisma)('RI=prisma [create] child with non existing parent should throw', async () => {
+        testIf(isRI_prisma)('RI=prisma [create] child with non existing parent should succeed', async () => {
           await prisma[profileModel].create({
             data: {
               id: '1',
