@@ -1,21 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`tracing (provider=cockroachdb) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=cockroachdb) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -1174,22 +1163,11 @@ Object {
 }
 `;
 
-exports[`tracing (provider=mongodb) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=mongodb) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -2032,22 +2010,11 @@ Object {
 }
 `;
 
-exports[`tracing (provider=mysql) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=mysql) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -3206,22 +3173,11 @@ Object {
 }
 `;
 
-exports[`tracing (provider=postgresql) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=postgresql) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -4380,22 +4336,11 @@ Object {
 }
 `;
 
-exports[`tracing (provider=sqlite) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=sqlite) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -5493,22 +5438,11 @@ Object {
 }
 `;
 
-exports[`tracing (provider=sqlserver) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=sqlserver) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
