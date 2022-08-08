@@ -1156,10 +1156,8 @@ new PrismaClient({
       const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
       warnAboutRejectOnNotFound(rejectOnNotFound, jsModelName, action)
 
-      let document: Document
-
       const serializationFn = () => {
-        document = makeDocument({
+        const document = makeDocument({
           dmmf: this._dmmf!,
           rootField: rootField!,
           rootTypeName: operation,
@@ -1168,7 +1166,7 @@ new PrismaClient({
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)
 
-        document = transformDocument(document)
+        return transformDocument(document)
       }
 
       const spanOptions: SpanOptions = {
@@ -1176,7 +1174,7 @@ new PrismaClient({
         enabled: this._tracingConfig.enabled,
       }
 
-      await runInChildSpan(spanOptions, serializationFn)
+      const document = await runInChildSpan(spanOptions, serializationFn)
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
@@ -1198,7 +1196,7 @@ new PrismaClient({
       await lock /** @see {@link getLockCountPromise} */
 
       return this._fetcher.request({
-        document: document!,
+        document,
         clientMethod,
         typeName,
         dataPath,
