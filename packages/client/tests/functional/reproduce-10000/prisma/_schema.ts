@@ -40,12 +40,12 @@ model Event {
 }
 
 model Session {
-  id          String @id
+  id          String
   name        String
   event       Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
   eventId     String   @map("event_id")
 
-  // @@id([id, eventId])
+  @@id([id, eventId])
   @@map("sessions")
 }
   `

@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
       })
 
       test('', async () => {
-        await prisma.event.create({
+        const events = await prisma.event.create({
           data: {
             id: 'prisma',
             name: 'prisma-bug',
@@ -32,13 +32,33 @@ testMatrix.setupTestSuite(
                 data: [
                   { id: 'g', name: 'github' },
                   { id: 'i', name: 'issue' },
-                ]
-              }
-            }
-          }
+                ],
+              },
+            },
+          },
+          include: { sessions: true },
         })
-        
-        await prisma.event.delete({ where: { id: 'prisma' }})
+        expect(events).toMatchObject({
+          id: 'prisma',
+          name: 'prisma-bug',
+          sessions: [
+            {
+              eventId: 'prisma',
+              id: 'g',
+              name: 'github',
+            },
+            {
+              eventId: 'prisma',
+              id: 'i',
+              name: 'issue',
+            },
+          ],
+        })
+
+        await prisma.event.delete({ where: { id: 'prisma' } })
+
+        const sessions = await prisma.session.findMany({ orderBy: { id: 'asc' } })
+        expect(sessions).toMatchObject([])
       })
     })
   },
