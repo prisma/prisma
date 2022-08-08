@@ -1153,7 +1153,7 @@ new PrismaClient({
 
       let document: Document
 
-      const serlizationFn = () => {
+      const serializationFn = () => {
         document = makeDocument({
           dmmf: this._dmmf!,
           rootField: rootField!,
@@ -1171,7 +1171,7 @@ new PrismaClient({
         enabled: this._tracingConfig.enabled,
       }
 
-      await runInChildSpan(spanOptions, serlizationFn)
+      await runInChildSpan(spanOptions, serializationFn)
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
