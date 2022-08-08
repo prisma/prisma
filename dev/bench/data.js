@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1659965097732,
+  "lastUpdate": 1659965855937,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -115855,6 +115855,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.15,
             "range": "±3.71%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2842302322387695,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.49140453338623,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.5074462890625,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.345609664916992,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1c21e6d23183f66782dd20aad4e1da26d86f079b",
+          "message": "test: Port fulltext search tests to new setup (#14522)\n\n* test: Port fulltext search tests to new setup\r\n\r\nClose prisma/client-planning#36\r\n\r\n* Try to fix tests on win & mac\r\n\r\n* Use autoincrement ids\r\n\r\nFor stable ordering of ranking test\r\n\r\n* fix(test): Use only first key-value pair from each dimension in suite name\r\n\r\nThis should be enough to keep names unambigous and helps to shorten the\r\npath.\r\n\r\n* Move index def into matrix",
+          "timestamp": "2022-08-08T15:34:27+02:00",
+          "tree_id": "f28499188ed7dac4937eb13f09eeedec257b427d",
+          "url": "https://github.com/prisma/prisma/commit/1c21e6d23183f66782dd20aad4e1da26d86f079b"
+        },
+        "date": 1659965847110,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.95,
+            "range": "±7.86%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.98%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
