@@ -416,6 +416,7 @@ importers:
       undici: 5.8.0
     dependencies:
       '@opentelemetry/api': 1.1.0
+      '@opentelemetry/core': 1.5.0_@opentelemetry+api@1.1.0
       '@opentelemetry/sdk-trace-base': 1.5.0_@opentelemetry+api@1.1.0
       '@prisma/debug': link:../debug
       '@prisma/engines': link:../engines
@@ -663,6 +664,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
+      '@prisma/prisma-fmt-wasm': 4.2.0-8.1900f76d9da8c905fb5b2d3fc3f778e02bd6b0e7
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.22
       '@types/jest': 28.1.6
@@ -675,6 +677,7 @@ importers:
       cli-truncate: 2.1.0
       dotenv: 16.0.1
       esbuild: 0.14.47
+      esbuild-copy-static-files: ^0.1.0
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
@@ -720,12 +723,14 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
+      '@prisma/prisma-fmt-wasm': 4.2.0-8.1900f76d9da8c905fb5b2d3fc3f778e02bd6b0e7
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
       dotenv: 16.0.1
+      esbuild-copy-static-files: 0.1.0
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
@@ -757,7 +762,7 @@ importers:
       tempy: 1.0.1
       terminal-link: 2.1.1
       tmp: 0.2.1
-      ts-pattern: 4.0.5
+      ts-pattern: 4.0.3
     devDependencies:
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.22_@swc+core@1.2.204
@@ -826,7 +831,7 @@ importers:
       prompts: 2.4.2
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-pattern: 4.0.5
+      ts-pattern: 4.0.3
     devDependencies:
       '@prisma/engines-version': 4.2.0-29.95f81cc77c3f2ca6558156238c6d329842937528
       '@prisma/generator-helper': link:../generator-helper
@@ -2225,10 +2230,9 @@ packages:
       '@opentelemetry/semantic-conventions': 1.5.0
     dev: false
 
-  /@opentelemetry/semantic-conventions/1.4.0:
-    resolution: {integrity: sha512-Hzl8soGpmyzja9w3kiFFcYJ7n5HNETpplY6cb67KR4QPlxp4FTTresO06qXHgHDhyIInmbLJXuwARjjpsKYGuQ==}
+  /@opentelemetry/semantic-conventions/1.5.0:
+    resolution: {integrity: sha512-wlYG/U6ddW1ilXslnDLLQYJ8nd97W8JJTTfwkGhubx6dzW6SUkd+N4/MzTjjyZlrHQunxHtkHFvVpUKiROvFDw==}
     engines: {node: '>=14'}
-    dev: true
 
   /@opentelemetry/semantic-conventions/1.5.0:
     resolution: {integrity: sha512-wlYG/U6ddW1ilXslnDLLQYJ8nd97W8JJTTfwkGhubx6dzW6SUkd+N4/MzTjjyZlrHQunxHtkHFvVpUKiROvFDw==}
@@ -2236,7 +2240,7 @@ packages:
 
   /@prisma/prisma-fmt-wasm/4.2.0-8.1900f76d9da8c905fb5b2d3fc3f778e02bd6b0e7:
     resolution: {integrity: sha512-SsZiiJ74FUIGh50rHfHB6DOZ+wQz02Zjk5gWlRdgHklvm4EO2JMiC2FCou2a1re2MRL3YVPeFFPtpV1/Td1bcg==}
-    dev: true
+    dev: false
 
   /@prisma/studio-common/0.469.0:
     resolution: {integrity: sha512-zkKBzFOIdbNcoM+4V3RCbCMUeauPSyZNRAn/pWrLh3C7/APCm1dX0LRfK3Zlo7B0Z/TP63KAqCNmWGWO8BPeOQ==}
@@ -2370,7 +2374,7 @@ packages:
     resolution: {integrity: sha512-vRnvsMtL9OxybA/Wun1ZhlDvB6MNs4Zujnina0VKdGk+yI6s87KUhdTcbAY6dQMZhQTLFiC1Lnv/BuwCKcCEug==}
     engines: {node: '>= 10'}
     dependencies:
-      '@swc/core': 1.2.204
+      '@swc/core': 1.2.218
     dev: true
 
   /@swc-node/register/1.5.1_typescript@4.7.4:
@@ -2947,7 +2951,7 @@ packages:
   /@types/cross-spawn/6.0.2:
     resolution: {integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: false
 
   /@types/debug/4.1.7:
@@ -3056,7 +3060,7 @@ packages:
   /@types/keyv/3.1.4:
     resolution: {integrity: sha512-BQ5aZNSCpj7D6K2ksrRCTmKRLEpnPvWDiLPfoGyhZ++8YtiK9d/3DBKPJgry359X/P1PfruyYwvnvwFjuEiEIg==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/mem-fs-editor/7.0.2:
@@ -3066,14 +3070,14 @@ packages:
       '@types/glob': 7.2.0
       '@types/json-schema': 7.0.11
       '@types/mem-fs': 1.1.2
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
       '@types/vinyl': 2.0.6
     dev: true
 
   /@types/mem-fs/1.1.2:
     resolution: {integrity: sha512-tt+4IoDO8/wmtaP2bHnB91c8AnzYtR9MK6NxfcZY9E3XgtmzOiFMeSXu3EZrBeevd0nJ87iGoUiFDGsb9QUvew==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
       '@types/vinyl': 2.0.6
     dev: true
 
@@ -3091,7 +3095,7 @@ packages:
   /@types/mssql/8.0.3:
     resolution: {integrity: sha512-jh1owWcsq/fdkVFrgNEgDOy4H82PCMF3OmTydfPabC8W4MgCPMTzBSbW7SMNcxz6mizGBkI8h72SwgQz7To64Q==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
       '@types/tedious': 4.0.8
       tarn: 3.0.2
     dev: true
@@ -3108,6 +3112,7 @@ packages:
 
   /@types/node/12.20.55:
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
+    dev: true
 
   /@types/node/14.18.23:
     resolution: {integrity: sha512-MhbCWN18R4GhO8ewQWAFK4TGQdBpXWByukz7cWyJmXhvRuCIaM/oWytGPqVmDzgEnnaIc9ss6HbU5mUi+vyZPA==}
@@ -3133,7 +3138,7 @@ packages:
   /@types/pg/8.6.5:
     resolution: {integrity: sha512-tOkGtAqRVkHa/PVZicq67zuujI4Oorfglsr2IbKofDwBSysnaqSx7W1mDqFqdkGE6Fbgh+PZAl0r/BWON/mozw==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
       pg-protocol: 1.5.0
       pg-types: 2.2.0
     dev: true
@@ -3173,7 +3178,7 @@ packages:
   /@types/responselike/1.0.0:
     resolution: {integrity: sha512-85Y2BjiufFzaMIlvJDvTTB8Fxl2xfLo4HgmHzVBz08w4wDePCTjYw66PdrolO0kzli3yam/YCgRufyo1DdQVTA==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/retry/0.12.0:
@@ -3213,7 +3218,7 @@ packages:
   /@types/through/0.0.30:
     resolution: {integrity: sha512-FvnCJljyxhPM3gkRgWmxmDZyAQSiBQQWLI0A0VFL0K7W1oRUrPJSqNO0NvTnLkBcotdlp3lKvaT0JrnyRDkzOg==}
     dependencies:
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/tunnel/0.0.3:
@@ -3225,7 +3230,7 @@ packages:
     resolution: {integrity: sha512-ayJ0iOCDNHnKpKTgBG6Q6JOnHTj9zFta+3j2b8Ejza0e4cvRyMn0ZoLEmbPrTHe5YYRlDYPvPWVdV4cTaRyH7g==}
     dependencies:
       '@types/expect': 1.20.4
-      '@types/node': 12.20.55
+      '@types/node': 17.0.45
     dev: true
 
   /@types/ws/8.5.3:
@@ -5087,6 +5092,10 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /esbuild-copy-static-files/0.1.0:
+    resolution: {integrity: sha512-KlpmYqANA1t2nZavEdItfcOjJC6wbHA21v35HJWN32DddGTWKNNGDKljUzbCPojmpD+wAw8/DXr5abJ4jFCE0w==}
+    dev: false
 
   /esbuild-darwin-64/0.14.47:
     resolution: {integrity: sha512-R6oaW0y5/u6Eccti/TS6c/2c1xYTb1izwK3gajJwi4vIfNs1s8B1dQzI1UiC9T61YovOQVuePDcfqHLT3mUZJA==}
@@ -10404,7 +10413,7 @@ packages:
       supports-preserve-symlinks-flag: 1.0.0
 
   /responselike/1.0.2:
-    resolution: {integrity: sha512-/Fpe5guzJk1gPqdJLJR5u7eG/gNY4nImjbRDaVWVMRhne55TCmj2i9Q+54PBRfatRC8v/rIiv9BN0pMd9OV5EQ==}
+    resolution: {integrity: sha1-kYcg7ztjHFZCvgaPFa3lpG9Loec=}
     dependencies:
       lowercase-keys: 1.0.1
     dev: true
@@ -11468,11 +11477,6 @@ packages:
 
   /ts-pattern/4.0.3:
     resolution: {integrity: sha512-OxQStbr1MKcYYz3YaXsFSBkMo3zjFODVkV8kaLfOak+sWSfx4B+jkOm/VoaWLhnMP+icnIcJ7ENYEnmpAv3jLg==}
-    dev: true
-
-  /ts-pattern/4.0.5:
-    resolution: {integrity: sha512-Bq44KCEt7JVaNLa148mBCJkcQf4l7jtLEBDuDdeuLynWDA+1a60P4D0rMkqSM9mOKLQbIWUddE9h3XKyKwBeqA==}
-    dev: false
 
   /ts-toolbelt/9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}

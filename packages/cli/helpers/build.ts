@@ -86,7 +86,7 @@ const cliBuildConfig: BuildOptions = {
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   external: ['@prisma/engines'],
-  plugins: [cliLifecyclePlugin, wasmModulePlugin],
+  plugins: [cliLifecyclePlugin /* wasmModulePlugin */],
   bundle: true,
 }
 

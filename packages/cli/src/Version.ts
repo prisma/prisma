@@ -10,11 +10,11 @@ import {
   getEnginesMetaInfo,
   getSchema,
   getSchemaPath,
+  getWASMVersion,
   HelpError,
   isError,
   loadEnvFile,
 } from '@prisma/internals'
-import prismaFmtWASM from '@prisma/prisma-fmt-wasm'
 import chalk from 'chalk'
 import { match, P } from 'ts-pattern'
 
@@ -90,13 +90,13 @@ export class Version implements Command {
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
-    const prismaFmtWASMVersion = prismaFmtWASM.version()
+    const prismaFmtVersion = getWASMVersion(BinaryType.prismaFmt)
 
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
-      ['Prisma Fmt WASM', prismaFmtWASMVersion],
+      ['Format WASM', `@prisma/prisma-fmt-wasm ${prismaFmtVersion}`],
 
       ...enginesRows,
 
