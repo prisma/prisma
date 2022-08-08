@@ -126,7 +126,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       Spans come through logs and sometimes these tests can be flaky without
       giving some buffer
     */
-    await new Promise((resolve) => setTimeout(resolve, 5000))
+    await new Promise((resolve) => setTimeout(resolve, 500))
 
     const spans = inMemorySpanExporter.getFinishedSpans()
     const rootSpan = spans.find((span) => !span.parentSpanId) as ReadableSpan
@@ -153,9 +153,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(2)
 
-      const engine = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       const getConnection = (engine.children || [])[0]
@@ -172,8 +175,8 @@ testMatrix.setupTestSuite(({ provider }) => {
         expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
         expect(dbQuery2.span.attributes['db.statement']).toContain('db.User.findOne(*)')
 
-        const serialize = (engine.children || [])[3]
-        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+        const engineSerialize = (engine.children || [])[3]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
         return
       }
@@ -192,8 +195,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-      const serialize = (engine.children || [])[4]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[4]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
       const dbQuery4 = (engine.children || [])[5]
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
@@ -215,9 +218,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(2)
 
-      const engine = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       const getConnection = (engine.children || [])[0]
@@ -230,8 +236,8 @@ testMatrix.setupTestSuite(({ provider }) => {
         expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
         expect(dbQuery1.span.attributes['db.statement']).toContain('db.User.findMany(*)')
 
-        const serialize = (engine.children || [])[2]
-        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+        const engineSerialize = (engine.children || [])[2]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
         return
       }
@@ -242,8 +248,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(select.span.name).toEqual('prisma:engine:db_query')
       expect(select.span.attributes['db.statement']).toContain('SELECT')
 
-      const serialize = (engine.children || [])[2]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[2]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
 
     test('update', async () => {
@@ -268,9 +274,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('update')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(2)
 
-      const engine = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       const getConnection = (engine.children || [])[0]
@@ -291,8 +300,8 @@ testMatrix.setupTestSuite(({ provider }) => {
         expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
         expect(dbQuery3.span.attributes['db.statement']).toContain('db.User.findOne(*)')
 
-        const serialize = (engine.children || [])[4]
-        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+        const engineSerialize = (engine.children || [])[4]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
         return
       }
@@ -315,8 +324,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('SELECT')
 
-      const serialize = (engine.children || [])[5]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[5]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
       const dbQuery5 = (engine.children || [])[6]
       expect(dbQuery5.span.name).toEqual('prisma:engine:db_query')
@@ -338,9 +347,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('delete')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(2)
 
-      const engine = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       const getConnection = (engine.children || [])[0]
@@ -361,8 +373,8 @@ testMatrix.setupTestSuite(({ provider }) => {
         expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
         expect(dbQuery3.span.attributes['db.statement']).toContain('db.User.deleteMany(*)')
 
-        const serialize = (engine.children || [])[4]
-        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+        const engineSerialize = (engine.children || [])[4]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
         return
       }
@@ -385,8 +397,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('DELETE')
 
-      const serialize = (engine.children || [])[5]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[5]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
       const dbQuery5 = (engine.children || [])[6]
       expect(dbQuery5.span.name).toEqual('prisma:engine:db_query')
@@ -505,9 +517,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('queryRaw')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(2)
 
-      const engine = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       expect(engine.children).toHaveLength(3)
@@ -519,8 +534,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery1.span.attributes['db.statement']).toEqual('SELECT 1 + 1;')
 
-      const serialize = (engine.children || [])[2]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[2]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
 
     test('$executeRaw', async () => {
@@ -539,9 +554,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('executeRaw')
 
-      expect(tree.children).toHaveLength(1)
+      expect(tree.children).toHaveLength(2)
 
-      const engine = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const engine = (tree?.children || [])[1] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       expect(engine.children).toHaveLength(3)
@@ -553,8 +571,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery1.span.attributes['db.statement']).toEqual('SELECT 1 + 1;')
 
-      const serialize = (engine.children || [])[2]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[2]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
   })
 
@@ -581,14 +599,15 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(tree.span.name).toEqual('create-user')
 
     const prismaSpan = (tree.children || [])[0]
-
     expect(prismaSpan.span.name).toEqual('prisma:client:operation')
     expect(prismaSpan.span.attributes['method']).toEqual('create')
     expect(prismaSpan.span.attributes['model']).toEqual('User')
+    expect(prismaSpan.children).toHaveLength(2)
 
-    expect(prismaSpan.children).toHaveLength(1)
+    const serialize = (prismaSpan?.children || [])[0] as unknown as Tree
+    expect(serialize.span.name).toEqual('prisma:client:serialize')
 
-    const engine = (prismaSpan?.children || [])[0] as unknown as Tree
+    const engine = (prismaSpan?.children || [])[1] as unknown as Tree
     expect(engine.span.name).toEqual('prisma:engine')
 
     const getConnection = (engine.children || [])[0]
@@ -605,8 +624,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery2.span.attributes['db.statement']).toContain('db.User.findOne(*)')
 
-      const serialize = (engine.children || [])[3]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[3]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
       return
     }
@@ -625,8 +644,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
     expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-    const serialize = (engine.children || [])[4]
-    expect(serialize.span.name).toEqual('prisma:engine:serialize')
+    const engineSerialize = (engine.children || [])[4]
+    expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
     const dbQuery4 = (engine.children || [])[5]
     expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
@@ -673,7 +692,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(3)
+      expect(tree.children).toHaveLength(10)
 
       const middleware1 = (tree.children || [])[0] as unknown as Tree
       expect(middleware1.span.name).toEqual('prisma:client:middleware')
@@ -732,11 +751,11 @@ testMatrix.setupTestSuite(({ provider }) => {
     // @ts-ignore
     let _prisma: PrismaClient
 
-    beforeAll(() => {
+    beforeEach(() => {
       _prisma = newPrismaClient()
     })
 
-    afterAll(async () => {
+    afterEach(async () => {
       await _prisma.$disconnect()
     })
 
@@ -757,9 +776,12 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(2)
+      expect(tree.children).toHaveLength(3)
 
-      const connect = (tree?.children || [])[0] as unknown as Tree
+      const serialize = (tree?.children || [])[0] as unknown as Tree
+      expect(serialize.span.name).toEqual('prisma:client:serialize')
+
+      const connect = (tree?.children || [])[1] as unknown as Tree
       expect(connect.span.name).toEqual('prisma:client:connect')
 
       expect(connect.children).toHaveLength(1)
@@ -767,7 +789,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       const engineConnect = (connect?.children || [])[0] as unknown as Tree
       expect(engineConnect.span.name).toEqual('prisma:engine:connect')
 
-      const engine = (tree?.children || [])[1] as unknown as Tree
+      const engine = (tree?.children || [])[2] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
 
       const getConnection = (engine.children || [])[0]
@@ -780,8 +802,8 @@ testMatrix.setupTestSuite(({ provider }) => {
         expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
         expect(dbQuery1.span.attributes['db.statement']).toContain('db.User.findMany(*)')
 
-        const serialize = (engine.children || [])[2]
-        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+        const engineSerialize = (engine.children || [])[2]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
         return
       }
@@ -792,8 +814,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(select.span.name).toEqual('prisma:engine:db_query')
       expect(select.span.attributes['db.statement']).toContain('SELECT')
 
-      const serialize = (engine.children || [])[2]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      const engineSerialize = (engine.children || [])[2]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
   })
 
