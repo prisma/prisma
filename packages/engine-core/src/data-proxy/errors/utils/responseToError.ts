@@ -1,5 +1,3 @@
-import Debug from '@prisma/debug'
-
 import type { RequestResponse } from '../../utils/request'
 import { BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
@@ -10,15 +8,11 @@ import { ServerError } from '../ServerError'
 import { UnauthorizedError } from '../UnauthorizedError'
 import { UsageExceededError } from '../UsageExceededError'
 
-const debug = Debug('prisma:client:dataproxyEngine')
-
 export async function responseToError(
   response: RequestResponse,
   clientVersion: string,
 ): Promise<DataProxyError | undefined> {
   if (response.ok) return undefined
-
-  debug('response status', response.status)
 
   const info = { clientVersion, response }
 
