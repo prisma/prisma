@@ -747,7 +747,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     })
   })
 
-  describe('Tracing connect', () => {
+  describe('tracing connect', () => {
     // @ts-ignore
     let _prisma: PrismaClient
 
@@ -759,7 +759,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       await _prisma.$disconnect()
     })
 
-    test('should trace the implict $connect call', async () => {
+    test('should trace the implicit $connect call', async () => {
       const email = faker.internet.email()
 
       await _prisma.user.findMany({
@@ -784,10 +784,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       const connect = (tree?.children || [])[1] as unknown as Tree
       expect(connect.span.name).toEqual('prisma:client:connect')
 
-      expect(connect.children).toHaveLength(1)
-
-      const engineConnect = (connect?.children || [])[0] as unknown as Tree
-      expect(engineConnect.span.name).toEqual('prisma:engine:connect')
+      expect(connect.children).toHaveLength(0)
 
       const engine = (tree?.children || [])[2] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')
@@ -819,7 +816,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     })
   })
 
-  describe('Tracing disconnect', () => {
+  describe('tracing disconnect', () => {
     // @ts-ignore
     let _prisma: PrismaClient
 
@@ -834,16 +831,6 @@ testMatrix.setupTestSuite(({ provider }) => {
       const tree = await waitForSpanTree()
 
       expect(tree.span.name).toEqual('prisma:client:disconnect')
-
-      // No binary disconnect because we simply kill the process
-      if (getClientEngineType() === ClientEngineType.Binary) {
-        return
-      }
-
-      expect(tree.children).toHaveLength(1)
-
-      const engineDisconnect = (tree.children || [])[0]
-      expect(engineDisconnect.span.name).toEqual('prisma:engine:disconnect')
     })
   })
 })

@@ -335,6 +335,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
           traceparent: getTraceParent(),
         }
 
+        // TODO: not used yet by the engine
         await this.engine?.connect(JSON.stringify(headers))
 
         this.libraryStarted = true
