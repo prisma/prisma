@@ -142,7 +142,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.2.0-31.659227f6781053b4a24d241ede6c3dd2d88d254f"
+    "@prisma/engines-version": "4.2.0-32.fix-dmmf-test-8dd177a7c20a62f107b8d21725f1c1b7461d563b"
   },
   "sideEffects": false
 }
