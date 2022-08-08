@@ -15,6 +15,7 @@ export async function formatSchema({ schemaPath, schema }: { schemaPath?: string
   }
 
   if (process.env.FORCE_PANIC_PRISMA_FMT) {
+    // TODO: this prints something like `${chalk.red('Error:')} unreachable`
     prismaFmtWASM.debug_panic()
   }
 
@@ -24,11 +25,11 @@ export async function formatSchema({ schemaPath, schema }: { schemaPath?: string
       throw new Error(`Schema at ${schemaPath} does not exist.`)
     }
 
-    // due to @typescript-eslint/require-await
-    schemaString = await fs.promises.readFile(schemaPath, 'utf8')
+    schemaString = fs.readFileSync(schemaPath, { encoding: 'utf8' })
   }
 
-  return format(schemaString || schema || '')
+  const formattedSchema = await format(schemaString || schema || '')
+  return formattedSchema
 }
 
 // Part of the LSP spec: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentFormattingParams
@@ -41,6 +42,12 @@ type DocumentFormattingParams = {
 }
 const defaultDocumentFormattingParams: DocumentFormattingParams = { options: { tabSize: 4, insertSpaces: true } }
 
-function format(schema: string, params: DocumentFormattingParams = defaultDocumentFormattingParams): string {
-  return prismaFmtWASM.format(schema, JSON.stringify(params))
+async function format(
+  schema: string,
+  params: DocumentFormattingParams = defaultDocumentFormattingParams,
+): Promise<string> {
+  const formattedSchema = prismaFmtWASM.format(schema, JSON.stringify(params))
+  debug.log(`Formatted schema:\n${formattedSchema}`)
+
+  return Promise.resolve(formattedSchema)
 }
