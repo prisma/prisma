@@ -3,7 +3,6 @@ import fs from 'fs'
 import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
-import { A } from 'ts-toolbelt'
 import { promisify } from 'util'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
@@ -49,13 +48,20 @@ const cliLifecyclePlugin: esbuild.Plugin = {
   },
 }
 
+/**
+ * Loading WASM modules in esbuild seems to be quite tricky, and none of the plugins/tutorials available online
+ * seem to cut it.
+ * Currently, we import WASM modules based on the following assumptions:
+ * - they're published on npm with a name like `@prisma/<package-name>-wasm`
+ * - they're installed in the `internals` package, where they're left unbundled
+ */
 const wasmModulePlugin: esbuild.Plugin = {
   name: 'wasm',
   setup(build) {
     // run on each import path in each module that esbuild builds
     build.onResolve({ filter: /@prisma\/.*-wasm$/ }, (args) => {
-      const cliPath = path.join(__dirname, '..')
-      const prismaWASMPath = path.join(cliPath, 'node_modules', args.path)
+      const internalsPath = path.join(__dirname, '..', '..', 'internals')
+      const prismaWASMPath = path.join(internalsPath, 'node_modules', args.path)
       const { main } = require(path.join(prismaWASMPath, 'package.json'))
       const modulePath = path.join(prismaWASMPath, main)
 
@@ -86,7 +92,7 @@ const cliBuildConfig: BuildOptions = {
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   external: ['@prisma/engines'],
-  plugins: [cliLifecyclePlugin /* wasmModulePlugin */],
+  plugins: [cliLifecyclePlugin, wasmModulePlugin],
   bundle: true,
 }
 

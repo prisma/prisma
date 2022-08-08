@@ -39,7 +39,9 @@ const wasmModulePlugin: esbuild.Plugin = {
 
 const internalsBuildConfig: BuildOptions = {
   name: 'default',
-  plugins: [wasmModulePlugin],
+  plugins: [
+    /* wasmModulePlugin */
+  ],
 }
 
 void build([internalsBuildConfig])
