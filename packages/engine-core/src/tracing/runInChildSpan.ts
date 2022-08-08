@@ -16,7 +16,7 @@ export type SpanOptions = _SpanOptions & {
  * @param options the options for the child span.
  * @returns
  */
-export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, context?: Context) => Promise<R>) {
+export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, context?: Context) => R | Promise<R>) {
   if (options.enabled === false) return cb()
 
   const tracer = trace.getTracer('prisma')
@@ -27,12 +27,20 @@ export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, 
   if (options.active === false) {
     const span = tracer.startSpan(`prisma:client:${options.name}`, options, context)
 
-    return cb(span, context).finally(() => span.end())
+    try {
+      return await cb(span, context)
+    } finally {
+      span.end()
+    }
   }
 
   // by default spans are "active", which means context is propagated in
   // nested calls, which is useful for representing most of the calls
   return tracer.startActiveSpan(`prisma:client:${options.name}`, options, context, async (span) => {
-    return cb(span, _context.active()).finally(() => span.end())
+    try {
+      return await cb(span, _context.active())
+    } finally {
+      span.end()
+    }
   })
 }
