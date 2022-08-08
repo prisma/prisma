@@ -1,5 +1,5 @@
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
@@ -39,16 +39,15 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteConfig = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfig)
-
+  const suiteConfigs = getTestSuiteConfigs(suiteMeta)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs)
   checkMissingProviders({
-    suiteConfig,
+    suiteConfigs,
     suiteMeta,
     options,
   })
@@ -60,7 +59,7 @@ function setupTestSuiteMatrix(
       const clients = [] as any[]
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
+        process.env = { ...setupTestSuiteDbURI(suiteConfig.matrixOptions), ...originalEnv }
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
@@ -95,7 +94,7 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       })
 
-      tests(suiteConfig, suiteMeta)
+      tests(suiteConfig.matrixOptions, suiteMeta)
     })
   }
 }

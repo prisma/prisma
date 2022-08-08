@@ -6,7 +6,7 @@ import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
-import type { TestSuiteConfig } from './getTestSuiteInfo'
+import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
@@ -18,13 +18,17 @@ const DB_NAME_VAR = 'PRISMA_DB_NAME'
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
   // we copy the minimum amount of files needed for the test suite
   await fs.copy(path.join(suiteMeta.testRoot, 'prisma'), path.join(suiteFolder, 'prisma'))
   await fs.mkdir(path.join(suiteFolder, suiteMeta.rootRelativeTestDir), { recursive: true })
-  await copyPreprocessed(suiteMeta.testPath, path.join(suiteFolder, suiteMeta.rootRelativeTestPath), suiteConfig)
+  await copyPreprocessed(
+    suiteMeta.testPath,
+    path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
+    suiteConfig.matrixOptions,
+  )
 }
 
 /**
@@ -39,7 +43,7 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
  * @param to
  * @param suiteConfig
  */
-async function copyPreprocessed(from: string, to: string, suiteConfig: TestSuiteConfig): Promise<void> {
+async function copyPreprocessed(from: string, to: string, suiteConfig: Record<string, string>): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
   const newContents = contents
@@ -65,7 +69,7 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: TestSuite
  * @param suiteConfig
  * @returns
  */
-function evaluateMagicComment(conditionFromComment: string, suiteConfig: TestSuiteConfig): boolean {
+function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
   const script = new Script(conditionFromComment)
   const value = script.runInNewContext({
     ...suiteConfig,
@@ -79,7 +83,11 @@ function evaluateMagicComment(conditionFromComment: string, suiteConfig: TestSui
  * @param suiteConfig
  * @param schema
  */
-export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig, schema: string) {
+export async function setupTestSuiteSchema(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig,
+  schema: string,
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   await fs.writeFile(schemaPath, schema)
@@ -92,7 +100,7 @@ export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig
  */
 export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
-  suiteConfig: TestSuiteConfig,
+  suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
@@ -119,7 +127,7 @@ export async function setupTestSuiteDatabase(
  */
 export async function dropTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
-  suiteConfig: TestSuiteConfig,
+  suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
@@ -144,7 +152,7 @@ export async function dropTestSuiteDatabase(
  * @param suiteConfig
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: TestSuiteConfig) {
+export function setupTestSuiteDbURI(suiteConfig: Record<string, string>) {
   const provider = suiteConfig['provider'] as Providers
   // we reuse the original db url but postfix it with a random string
   const dbId = cuid()

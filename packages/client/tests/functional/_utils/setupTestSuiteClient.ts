@@ -3,7 +3,7 @@ import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
 import { getDMMF } from '../../../src/generation/getDMMF'
-import type { TestSuiteConfig } from './getTestSuiteInfo'
+import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
   getTestSuitePreviewFeatures,
@@ -25,12 +25,12 @@ export async function setupTestSuiteClient({
   skipDb,
 }: {
   suiteMeta: TestSuiteMeta
-  suiteConfig: TestSuiteConfig
+  suiteConfig: NamedTestSuiteConfig
   skipDb?: boolean
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-  const previewFeatures = getTestSuitePreviewFeatures(suiteConfig)
-  const schema = await getTestSuiteSchema(suiteMeta, suiteConfig)
+  const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
+  const schema = await getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
@@ -54,7 +54,7 @@ export async function setupTestSuiteClient({
     clientVersion: '0.0.0',
     transpile: false,
     testMode: true,
-    activeProvider: suiteConfig['provider'] as string,
+    activeProvider: suiteConfig.matrixOptions['provider'] as string,
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
