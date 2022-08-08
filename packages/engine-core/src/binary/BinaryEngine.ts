@@ -578,7 +578,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           tracingHeaders.traceparent = getTraceParent()
         }
 
-        flags.push('--tracing-headers', JSON.stringify(tracingHeaders))
+        // TODO: not used yet by the engine
+        // flags.push('--tracing-headers', JSON.stringify(tracingHeaders))
 
         debug({ flags })
 
