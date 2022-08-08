@@ -516,6 +516,9 @@ testMatrix.setupTestSuite(
                 ])
               },
             )
+          })
+
+          describeIf(['Restrict'].includes(onUpdate))('onUpdate: Restrict', () => {
             // prisma - Restrict
             testIf(isRI_prisma && onUpdate === 'Restrict')(
               'RI=prisma - Restrict - [update] parent id with non-existing id should throw',
@@ -545,33 +548,6 @@ testMatrix.setupTestSuite(
                   },
                   {
                     id: '2',
-                    enabled: null,
-                  },
-                ])
-              },
-            )
-            // prisma - NoAction
-            testIf(isRI_prisma && onUpdate === 'NoAction')(
-              'RI=prisma - NoAction - [update] parent id with non-existing id should suceed',
-              async () => {
-                await prisma[userModel].update({
-                  where: { id: '1' },
-                  data: {
-                    id: '3',
-                  },
-                })
-
-                expect(
-                  await prisma[userModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '2',
-                    enabled: null,
-                  },
-                  {
-                    id: '3',
                     enabled: null,
                   },
                 ])
@@ -621,8 +597,39 @@ testMatrix.setupTestSuite(
                 ])
               },
             )
+          })
+
+          describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
             // prisma - NoAction
-            testIf(isRI_prisma && onUpdate === 'NoAction')(
+            testIf(isRI_prisma)(
+              'RI=prisma - NoAction - [update] parent id with non-existing id should suceed',
+              async () => {
+                await prisma[userModel].update({
+                  where: { id: '1' },
+                  data: {
+                    id: '3',
+                  },
+                })
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                  {
+                    id: '3',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
+
+            // prisma - NoAction
+            testIf(isRI_prisma)(
               'RI=prisma - NoAction - [updateMany] parent id with non-existing id should succeed',
               async () => {
                 await prisma[userModel].updateMany({
@@ -648,9 +655,7 @@ testMatrix.setupTestSuite(
                 ])
               },
             )
-          })
 
-          describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
             test('[updateMany] parent id with existing id should throw', async () => {
               await expect(
                 prisma[userModel].updateMany({
