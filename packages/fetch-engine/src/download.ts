@@ -295,7 +295,7 @@ async function binaryNeedsToBeDownloaded(
     return true
   }
 
-  // 3. If same platform, always check --version
+  // 3. If same platform, check --version and compare to expected version
   if (job.binaryTarget === nativePlatform) {
     const currentVersion = await getVersion(job.targetFilePath, job.binaryName)
 
