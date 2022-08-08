@@ -1,4 +1,4 @@
-import { getClientEngineType, getConfig, getPlatform, parseEnvValue } from '@prisma/internals'
+import { getConfig, parseEnvValue } from '@prisma/internals'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
@@ -10,7 +10,6 @@ import {
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
-import { setupQueryEngine } from './setupQueryEngine'
 import { setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
@@ -36,7 +35,6 @@ export async function setupTestSuiteClient({
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
 
-  await setupQueryEngine(getClientEngineType(generator!), await getPlatform())
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
