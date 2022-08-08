@@ -26,6 +26,7 @@ See [Prisma Generators](https://prismaio.notion.site/Prisma-Generators-a2cdf2622
 
 What the ... is DMMF? It's the Datamodel Meta Format. It is an AST (abstract syntax tree) of the datamodel in the form of JSON.  
 The whole Prisma Client is just generated based on the DMMF, which comes from the Rust engines.
+Note: the datamodel is contained in the Prisma schema file, along the datasource and generators blocks.
 
 > ⚠️ Note: The DMMF is a Prisma ORM internal API with no guarantees for stability to outside users. We might - and do - change the DMMF in potentially breaking ways between minor versions. 🐲
 

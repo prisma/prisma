@@ -1021,7 +1021,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }

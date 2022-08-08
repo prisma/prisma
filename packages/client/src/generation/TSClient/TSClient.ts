@@ -9,6 +9,7 @@ import { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildDMMF } from '../utils/buildDMMF'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
@@ -126,6 +127,7 @@ ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
+${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)

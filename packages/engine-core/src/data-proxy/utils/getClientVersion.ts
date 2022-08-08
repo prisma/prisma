@@ -36,7 +36,21 @@ async function _getClientVersion(config: EngineConfig) {
     const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)
     const res = await request(pkgURL, { clientVersion })
 
-    return (await res.json())['version'] as string
+    // we need to await for edge workers
+    // because it's using the global "fetch"
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    const bodyAsText = await res.text()
+    debug('length of body fetched from unpkg.com', bodyAsText.length)
+
+    let bodyAsJson
+    try {
+      bodyAsJson = JSON.parse(bodyAsText)
+    } catch (e) {
+      console.error('JSON.parse error: body fetched from unpkg.com: ', bodyAsText)
+      throw e
+    }
+
+    return bodyAsJson['version'] as string
   }
 
   // nothing matched, meaning that the provided version is invalid

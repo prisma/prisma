@@ -14,7 +14,7 @@ console.debug({ CURRENT_ENGINES_HASH })
 const FIXED_ENGINES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
-jest.setTimeout(120_000)
+jest.setTimeout(200_000)
 
 describe('download', () => {
   beforeEach(async () => {

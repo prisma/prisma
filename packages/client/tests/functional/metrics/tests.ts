@@ -1,9 +1,10 @@
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+type PrismaClient = import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 // @ts-ignore this is just for type checks
-declare let PrismaClient: typeof import('@prisma/client').PrismaClient
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(({ provider }) => {
   describe('empty', () => {
@@ -27,16 +28,16 @@ testMatrix.setupTestSuite(({ provider }) => {
     test('returns metrics in prometheus format', async () => {
       const metrics = await prisma.$metrics.prometheus()
 
-      expect(metrics).toContain('query_total_operations')
-      expect(metrics).toContain('query_total_queries')
-      expect(metrics).toContain('query_active_transactions')
-      expect(metrics).toContain('query_total_elapsed_time_ms_bucket')
+      expect(metrics).toContain('prisma_client_queries_total')
+      expect(metrics).toContain('prisma_datasource_queries_total')
+      expect(metrics).toContain('prisma_client_queries_active')
+      expect(metrics).toContain('prisma_client_queries_duration_histogram_ms_bucket')
 
       if (provider !== 'mongodb') {
-        expect(metrics).toContain('pool_wait_duration_ms_bucket')
-        expect(metrics).toContain('pool_active_connections')
-        expect(metrics).toContain('pool_idle_connections')
-        expect(metrics).toContain('pool_wait_count')
+        expect(metrics).toContain('prisma_client_queries_wait_histogram_ms_bucket')
+        expect(metrics).toContain('prisma_pool_connections_open')
+        expect(metrics).toContain('prisma_pool_connections_idle')
+        expect(metrics).toContain('prisma_client_queries_wait')
       }
     })
 
@@ -85,17 +86,8 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   describe('mutliple instances', () => {
-    let secondClient: typeof prisma
-
-    beforeAll(() => {
-      secondClient = new PrismaClient()
-    })
-
-    afterAll(async () => {
-      await secondClient.$disconnect()
-    })
-
     test('does not share metrics between 2 different instances of client', async () => {
+      const secondClient = newPrismaClient()
       await secondClient.user.create({
         data: {
           email: 'second-user@example.com',

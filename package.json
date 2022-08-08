@@ -3,11 +3,6 @@
   "name": "dev-env",
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "engines": {
     "node": ">=14.17",
     "pnpm": ">=7.3.0 <8"
@@ -37,7 +32,7 @@
     "@types/benchmark": "2.1.1",
     "@types/glob": "7.2.0",
     "@types/graphviz": "0.0.34",
-    "@types/node": "14.18.21",
+    "@types/node": "14.18.23",
     "@types/node-fetch": "^2.6.1",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.2",
@@ -54,7 +49,7 @@
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-jest": "26.5.3",
+    "eslint-plugin-jest": "26.7.0",
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-simple-import-sort": "7.0.0",
     "eventemitter3": "4.0.7",
@@ -86,6 +81,16 @@
     "tty-browserify": "0.0.1",
     "typescript": "4.7.4",
     "util": "0.12.4"
+  },
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "@octokit/core": ">=3"
+      }
+    },
+    "patchedDependencies": {
+      "node-fetch@2.6.7": "patches/node-fetch@2.6.7.patch"
+    }
   },
   "lint-staged": {
     "*.{md,yml,json}": "prettier --write",

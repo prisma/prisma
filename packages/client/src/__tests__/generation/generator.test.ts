@@ -40,6 +40,7 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
+      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
@@ -121,6 +122,7 @@ describe('generator', () => {
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
+        dataProxy: false,
       })
     } catch (e) {
       expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
@@ -171,6 +173,7 @@ describe('generator', () => {
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
+        dataProxy: false,
       })
     } catch (e) {
       doesnNotExistError = e
@@ -178,6 +181,35 @@ describe('generator', () => {
       expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
         `doesnotexist.prisma does not exist`,
       )
+    }
+  })
+
+  test('override client package', async () => {
+    const generator = await getGenerator({
+      schemaPath: path.join(__dirname, 'main-package-override.prisma'),
+      baseDir: __dirname,
+      printDownloadProgress: false,
+      skipDownload: true,
+      dataProxy: false,
+    })
+
+    try {
+      await expect(generator.generate()).rejects.toThrowErrorMatchingInlineSnapshot(`
+        Generating client into /client/src/__tests__/generation/__fixture__/@prisma/client is not allowed.
+        This package is used by \`prisma generate\` and overwriting its content is dangerous.
+
+        Suggestion:
+        In /client/src/__tests__/generation/main-package-override.prisma replace:
+
+        8 output   = "./__fixture__/@prisma/client"
+        with
+        8 output   = "./__fixture__/.prisma/client"
+
+        You won't need to change your imports.
+        Imports from \`@prisma/client\` will be automatically forwarded to \`.prisma/client\`
+      `)
+    } finally {
+      generator.stop()
     }
   })
 
@@ -200,6 +232,7 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
+      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
