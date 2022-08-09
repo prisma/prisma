@@ -939,7 +939,7 @@ testMatrix.setupTestSuite(
           // })
 
           test('[update] nested child [connect] should succeed if the relationship already existed', async () => {
-            await expect(
+            const user = await expect(
               prisma[userModel].update({
                 where: { id: '1' },
                 data: {
@@ -947,8 +947,17 @@ testMatrix.setupTestSuite(
                     connect: { id: '1' },
                   },
                 },
+                includes: { profile: true },
               }),
             )
+          
+            expect(user).toMatchObject({
+              id: '1',
+              profile: {
+                id: '1',
+                userId: '1',
+              },
+            })
           })
 
           // This is ok for 1-to-n and m-to-m
