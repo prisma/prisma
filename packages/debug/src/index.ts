@@ -1,8 +1,16 @@
 import debug from 'debug'
 
+import { Debug, Debugger } from './types'
+
 const MAX_LOGS = 100
 
 const debugArgsHistory: any[] = []
+
+// Patch the Node.js logger to use `console.debug` or `console.log` (similar to
+// the browser logger) in the Edge Client.
+if (typeof process !== 'undefined' && typeof process.stderr?.write !== 'function') {
+  debug.log = console.debug ?? console.log
+}
 
 /**
  * Wrapper on top of the original `Debug` to keep a history of the all last
@@ -33,7 +41,7 @@ function debugCall(namespace: string) {
     return debugNamespace('', ...args)
   }, debugNamespace)
 
-  return call as debug.Debugger
+  return call as Debugger
 }
 
 /**
@@ -41,7 +49,7 @@ function debugCall(namespace: string) {
  * that has utility properties on it. We provide our custom {@link debugCall},
  * and expose the original original api as-is.
  */
-const Debug = Object.assign(debugCall, debug)
+const Debug = Object.assign(debugCall, debug as Debug)
 
 /**
  * We can get the logs for all the last {@link MAX_LOGS} ${@link debugCall} that

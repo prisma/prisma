@@ -123,10 +123,6 @@ export async function generateInFolder({
           },
         }
 
-  // we make sure that we are in the project root
-  // this only applies to generated test clients
-  process.chdir(projectDir)
-
   await generateClient({
     binaryPaths,
     datamodel,

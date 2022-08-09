@@ -1,11 +1,12 @@
 import { faker } from '@faker-js/faker'
-import { exec } from 'child_process'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
+// @ts-ignore
+declare let Prisma: typeof import('@prisma/client').Prisma
 
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
@@ -21,25 +22,9 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expectTypeOf(record).not.toBeNullable()
   })
 
-  test('works with fluent api', async () => {
-    const posts = await prisma.user.findFirstOrThrow({ where: { email: existingEmail } }).posts()
-    expect(posts).toMatchInlineSnapshot(
-      [{ id: expect.any(String), authorId: expect.any(String) }],
-      `
-      Array [
-        Object {
-          authorId: Any<String>,
-          id: Any<String>,
-          title: How to exist?,
-        },
-      ]
-    `,
-    )
-  })
-
   test('throws if record was not found', async () => {
     const record = prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
-    await expect(record).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
+    await expect(record).rejects.toThrowError(new Prisma.NotFoundError('No User found'))
   })
 
   // TODO: it actually does not work this way, but neither does `rejectOnNotFound`.
@@ -91,14 +76,14 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
 
     await expect(record).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                                    Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-                                    /client/tests/functional/findFirstOrThrow/tests.ts:86:32
+      Invalid \`prisma.user.findFirstOrThrow()\` invocation in
+      /client/tests/functional/findFirstOrThrow/tests.ts:71:32
 
-                                       83 })
-                                       84 
-                                       85 test('does not accept rejectOnNotFound option', async () => {
-                                    →  86   const record = prisma.user.findFirstOrThrow(
-                                    'rejectOnNotFound' option is not supported
-                              `)
+         68 })
+         69 
+         70 test('does not accept rejectOnNotFound option', async () => {
+      →  71   const record = prisma.user.findFirstOrThrow(
+      'rejectOnNotFound' option is not supported
+    `)
   })
 })

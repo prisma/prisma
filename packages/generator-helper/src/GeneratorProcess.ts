@@ -18,6 +18,9 @@ export class GeneratorError extends Error {
     super(message)
     this.code = code
     this.data = data
+    if (data?.stack) {
+      this.stack = data.stack
+    }
   }
 }
 

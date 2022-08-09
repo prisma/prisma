@@ -88,7 +88,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -154,7 +154,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -184,6 +184,11 @@ jobs:
           TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
           TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
           TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+          TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+          TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
           NODE_OPTIONS: '--max-old-space-size=8096'
 
       - uses: codecov/codecov-action@v3
@@ -212,7 +217,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -279,7 +284,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -354,7 +359,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -426,7 +431,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -495,7 +500,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -542,7 +547,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -597,6 +602,62 @@ jobs:
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
 
+      - run: pnpm run test
+        name: 'get-platform'
+        working-directory: packages/get-platform
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/get-platform/src/__tests__/coverage/clover.xml
+          flags: get-platform,${{ matrix.os }},library,binary
+          name: get-platform-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'fetch-engine'
+        working-directory: packages/fetch-engine
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
+          flags: fetch-engine,${{ matrix.os }},library,binary
+          name: fetch-engine-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'engines'
+        working-directory: packages/engines
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/engines/src/__tests__/coverage/clover.xml
+          flags: engines,${{ matrix.os }},library,binary
+          name: engines-${{ matrix.os }}
+
+      - run: pnpm run test
+        name: 'instrumentation'
+        working-directory: packages/instrumentation
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/instrumentation/src/__tests__/coverage/clover.xml
+          flags: instrumentation,${{ matrix.os }},library,binary
+          name: instrumentation-${{ matrix.os }}
+
   #
   # Run all tests on macOS and Windows.
   #
@@ -627,7 +688,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [16]
+        node: [14]
         queryEngine: ['library', 'binary']
 
     steps:
@@ -651,7 +712,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -666,7 +727,7 @@ jobs:
 
       - name: Test packages/internals
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test --testTimeout=40000
         working-directory: packages/internals
         env:
           CI: true
@@ -683,7 +744,7 @@ jobs:
 
       - name: Test packages/client
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test-notypes -- --testTimeout=40000
+        run: pnpm run test:functional:code && pnpm run test-notypes --testTimeout=40000
         working-directory: packages/client
         env:
           CI: true
@@ -701,7 +762,7 @@ jobs:
 
       - name: Test packages/migrate
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test --testTimeout=40000
         working-directory: packages/migrate
         env:
           CI: true
@@ -718,7 +779,7 @@ jobs:
 
       - name: Test packages/cli
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
-        run: pnpm run test -- --testTimeout=40000
+        run: pnpm run test --testTimeout=40000
         working-directory: packages/cli
         env:
           CI: true
@@ -783,6 +844,57 @@ jobs:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
+
+      - name: Test packages/get-platform
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        run: pnpm run test
+        working-directory: packages/get-platform
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/get-platform/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        with:
+          files: ./packages/get-platform/src/__tests__/coverage/clover.xml
+          flags: get-platform,${{ matrix.os }},library,binary
+          name: get-platform-${{ matrix.os }}
+
+      - name: Test packages/fetch-engine
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        run: pnpm run test
+        working-directory: packages/fetch-engine
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/fetch-engine/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        with:
+          files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
+          flags: fetch-engine,${{ matrix.os }},library,binary
+          name: fetch-engine-${{ matrix.os }}
+
+      - name: Test packages/engines
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        run: pnpm run test
+        working-directory: packages/engines
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engines/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
+        with:
+          files: ./packages/engines/src/__tests__/coverage/clover.xml
+          flags: engines,${{ matrix.os }},library,binary
+          name: engines-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where where we have access to secrets.

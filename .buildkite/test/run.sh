@@ -16,10 +16,11 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
 fi
 
 # Install pnpm
-npm i --silent -g pnpm@6 --unsafe-perm # TODO: is this unsafe-perm needed?
+npm i --silent -g pnpm@7 --unsafe-perm
+# --usafe-perm to allow install scripts
 
 # Install packages
-pnpm i
+pnpm i --unsafe-perm
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
@@ -35,17 +36,11 @@ npm -v
 # See package.json setup script
 pnpm run setup
 
-echo "Start testing..."
-# Run test for all packages
-pnpm run test
 
 # New client test suite
 # 
-# TODO make make side effect free and isolated since it can right now, only be ran after `pnpm run test`
-# because it drops the postgresql `tests` database which result in the following error during `pnpm run test` if `test:functional` are run before
-# FAIL  src/__tests__/integration/postgresql/runtime.test.ts
-# FAIL  src/__tests__/integration/postgresql/introspection.test.ts
-#  error: database "tests" does not exist
-# Test Suites: 2 failed, 8 passed, 10 total
-# https://buildkite.com/prisma/release-prisma-typescript/builds/6514
-pnpm run test:functional --filter "@prisma/client"
+pnpm run --filter "@prisma/client" test:functional
+
+echo "Start testing..."
+# Run test for all packages
+pnpm run test

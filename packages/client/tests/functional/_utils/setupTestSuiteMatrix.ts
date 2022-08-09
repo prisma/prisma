@@ -1,5 +1,5 @@
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
@@ -39,25 +39,27 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteConfig = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfig)
+  const suiteConfigs = getTestSuiteConfigs(suiteMeta)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs)
   checkMissingProviders({
-    suiteConfig,
+    suiteConfigs,
     suiteMeta,
     options,
   })
+
   for (const { name, suiteConfig, skip } of testPlan) {
     const describeFn = skip ? describe.skip : describe
 
     describeFn(name, () => {
+      const clients = [] as any[]
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
+        process.env = { ...setupTestSuiteDbURI(suiteConfig.matrixOptions), ...originalEnv }
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
@@ -65,22 +67,34 @@ function setupTestSuiteMatrix(
           skipDb: options?.skipDb,
         })
 
-        globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()
-        globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']
+        globalThis['newPrismaClient'] = (...args) => {
+          const client = new global['loaded']['PrismaClient'](...args)
+          clients.push(client)
+          return client
+        }
+        if (!options?.skipDefaultClientInstance) {
+          globalThis['prisma'] = globalThis['newPrismaClient']()
+        }
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
       })
 
       afterAll(async () => {
-        !options?.skipDb && (await globalThis['prisma']?.$disconnect())
+        for (const client of clients) {
+          await client.$disconnect().catch(() => {
+            // sometimes we test connection errors. In that case,
+            // disconnect might also fail, so ignoring the error here
+          })
+        }
+        clients.length = 0
         !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig))
         process.env = originalEnv
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
-        delete globalThis['PrismaClient']
+        delete globalThis['newPrismaClient']
       })
 
-      tests(suiteConfig, suiteMeta)
+      tests(suiteConfig.matrixOptions, suiteMeta)
     })
   }
 }

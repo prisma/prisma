@@ -17,6 +17,7 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
+  EngineSpanEvent,
   QueryEngineBatchRequest,
   QueryEngineEvent,
   QueryEngineLogLevel,
@@ -29,7 +30,9 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -38,11 +41,16 @@ function isQueryEvent(event: QueryEngineEvent): event is QueryEngineQueryEvent {
   return event['item_type'] === 'query' && 'query' in event
 }
 function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
-  return event.level === 'error' && event['message'] === 'PANIC'
+  if ('level' in event) {
+    return event.level === 'error' && event['message'] === 'PANIC'
+  } else {
+    return false
+  }
 }
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
-const engines: LibraryEngine[] = []
+let engineInstanceCount = 0
+const exitHooks = new ExitHooks()
 
 export class LibraryEngine extends Engine {
   private engine?: QueryEngineInstance
@@ -65,10 +73,17 @@ export class LibraryEngine extends Engine {
   lastQuery?: string
   loggerRustPanic?: any
 
-  beforeExitListener?: (args?: any) => any
   versionInfo?: {
     commit: string
     version: string
+  }
+
+  get beforeExitListener() {
+    return exitHooks.getListener(this)
+  }
+
+  set beforeExitListener(listener: BeforeExitListener | undefined) {
+    exitHooks.setListener(this, listener)
   }
 
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
@@ -92,40 +107,39 @@ export class LibraryEngine extends Engine {
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    initHooks()
-    engines.push(this)
+    exitHooks.install()
     this.checkForTooManyEngines()
   }
 
   private checkForTooManyEngines() {
-    if (engines.length >= 10) {
-      const runningEngines = engines.filter((e) => e.engine)
-      if (runningEngines.length === 10) {
-        console.warn(
-          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
-        )
-      }
+    if (engineInstanceCount === 10) {
+      console.warn(
+        `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
+      )
     }
   }
 
-  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
-  async transaction(action: any, arg?: any) {
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
+
+    const headerStr = JSON.stringify(headers)
 
     let result: string | undefined
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
+        isolation_level: arg?.isolationLevel,
       })
 
-      result = await this.engine?.startTransaction(jsonOptions, '{}')
+      result = await this.engine?.startTransaction(jsonOptions, headerStr)
     } else if (action === 'commit') {
-      result = await this.engine?.commitTransaction(arg.id, '{}')
+      result = await this.engine?.commitTransaction(arg.id, headerStr)
     } else if (action === 'rollback') {
-      result = await this.engine?.rollbackTransaction(arg.id, '{}')
+      result = await this.engine?.rollbackTransaction(arg.id, headerStr)
     }
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
@@ -191,6 +205,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         this.QueryEngineConstructor = this.library.QueryEngine
       }
       try {
+        // Using strong reference to `this` inside of log callback will prevent
+        // this instance from being GCed while native engine is alive. At the same time,
+        // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
+        // to avoid this cycle
+        const weakThis = new WeakRef(this)
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
@@ -201,8 +220,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             logLevel: this.logLevel,
             configDir: this.config.cwd!,
           },
-          (err, log) => this.logger(err, log),
+          (log) => {
+            weakThis.deref()?.logger(log)
+          },
         )
+        engineInstanceCount++
       } catch (_e) {
         const e = _e as Error
         const error = this.parseInitError(e.message)
@@ -215,12 +237,17 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  private logger(err: string, log: string) {
-    if (err) {
-      throw err
-    }
+  private logger(log: string) {
     const event = this.parseEngineResponse<QueryEngineEvent | null>(log)
     if (!event) return
+
+    if ('span' in event) {
+      if (this.config.tracingConfig.enabled === true) {
+        void createSpan(event as EngineSpanEvent)
+      }
+
+      return
+    }
 
     event.level = event?.level.toLowerCase() ?? 'unknown'
     if (isQueryEvent(event)) {
@@ -287,77 +314,96 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async runBeforeExit() {
-    debug('runBeforeExit')
-    if (this.beforeExitListener) {
-      try {
-        await this.beforeExitListener()
-      } catch (e) {
-        console.error(e)
-      }
-    }
-  }
-
   async start(): Promise<void> {
     await this.libraryInstantiationPromise
     await this.libraryStoppingPromise
+
     if (this.libraryStartingPromise) {
       debug(`library already starting, this.libraryStarted: ${this.libraryStarted}`)
       return this.libraryStartingPromise
     }
-    if (!this.libraryStarted) {
-      this.libraryStartingPromise = new Promise((resolve, reject) => {
-        debug('library starting')
-        this.engine
-          ?.connect({ enableRawQueries: true })
-          .then(() => {
-            this.libraryStarted = true
-            debug('library started')
-            resolve()
-          })
-          .catch((err) => {
-            const error = this.parseInitError(err.message)
-            // The error message thrown by the query engine should be a stringified JSON
-            // if parsing fails then we just reject the error
-            if (typeof error === 'string') {
-              reject(err)
-            } else {
-              reject(new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code))
-            }
-          })
-          .finally(() => {
-            this.libraryStartingPromise = undefined
-          })
-      })
-      return this.libraryStartingPromise
+
+    if (this.libraryStarted) {
+      return
     }
+
+    const startFn = async () => {
+      debug('library starting')
+
+      try {
+        const headers = {
+          traceparent: getTraceParent(),
+        }
+
+        // TODO: not used yet by the engine
+        await this.engine?.connect(JSON.stringify(headers))
+
+        this.libraryStarted = true
+
+        debug('library started')
+      } catch (err) {
+        const error = this.parseInitError(err.message as string)
+
+        // The error message thrown by the query engine should be a stringified JSON
+        // if parsing fails then we just reject the error
+        if (typeof error === 'string') {
+          throw err
+        } else {
+          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+        }
+      } finally {
+        this.libraryStartingPromise = undefined
+      }
+    }
+
+    const spanConfig = {
+      name: 'connect',
+      enabled: this.config.tracingConfig.enabled,
+    }
+
+    this.libraryStartingPromise = runInChildSpan(spanConfig, startFn)
+
+    return this.libraryStartingPromise
   }
 
   async stop(): Promise<void> {
     await this.libraryStartingPromise
     await this.executingQueryPromise
+
     if (this.libraryStoppingPromise) {
       debug('library is already stopping')
       return this.libraryStoppingPromise
     }
 
-    if (this.libraryStarted) {
-      // eslint-disable-next-line no-async-promise-executor
-      this.libraryStoppingPromise = new Promise(async (resolve, reject) => {
-        try {
-          await new Promise((r) => setTimeout(r, 5))
-          debug('library stopping')
-          await this.engine?.disconnect()
-          this.libraryStarted = false
-          this.libraryStoppingPromise = undefined
-          debug('library stopped')
-          resolve()
-        } catch (err) {
-          reject(err)
-        }
-      })
-      return this.libraryStoppingPromise
+    if (!this.libraryStarted) {
+      return
     }
+
+    const stopFn = async () => {
+      await new Promise((r) => setTimeout(r, 5))
+
+      debug('library stopping')
+
+      const headers = {
+        traceparent: getTraceParent(),
+      }
+
+      await this.engine?.disconnect(JSON.stringify(headers))
+
+      this.libraryStarted = false
+      this.libraryStoppingPromise = undefined
+
+      debug('library stopped')
+    }
+
+    const spanConfig = {
+      name: 'disconnect',
+      enabled: this.config.tracingConfig.enabled,
+    }
+
+    this.libraryStoppingPromise = runInChildSpan(spanConfig, stopFn)
+
+    return this.libraryStoppingPromise
   }
 
   async getConfig(): Promise<ConfigMetaFormat> {
@@ -497,31 +543,5 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       return responseString
     }
     return this.parseEngineResponse(responseString)
-  }
-}
-
-function hookProcess(handler: string, exit = false) {
-  process.once(handler as any, async () => {
-    debug(`hookProcess received: ${handler}`)
-    for (const engine of engines) {
-      await engine.runBeforeExit()
-    }
-    engines.splice(0, engines.length)
-    // only exit, if only we are listening
-    // if there is another listener, that other listener is responsible
-    if (exit && process.listenerCount(handler) === 0) {
-      process.exit()
-    }
-  })
-}
-let hooksInitialized = false
-function initHooks() {
-  if (!hooksInitialized) {
-    hookProcess('beforeExit')
-    hookProcess('exit')
-    hookProcess('SIGINT', true)
-    hookProcess('SIGUSR2', true)
-    hookProcess('SIGTERM', true)
-    hooksInitialized = true
   }
 }

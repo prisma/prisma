@@ -116,7 +116,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
 
   /**
    * - load the query engine library
-   * - create a temporary datamodel file if one is not provided
+   * - create a temporary schema file if one is not provided
    * - run the "dmmf" command
    * - JSON-deserialize the "dmmf" output
    */
@@ -278,7 +278,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
            * to serialize big datamodels.
            */
           PRISMA_DML_PATH: tempDatamodelPath,
-          RUST_BACKTRACE: '1',
+          RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
           ...(process.env.NO_COLOR ? {} : { CLICOLOR_FORCE: '1' }),
         },
         maxBuffer: MAX_BUFFER,

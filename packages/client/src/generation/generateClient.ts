@@ -1,7 +1,7 @@
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/internals'
-import { ClientEngineType, getClientEngineType, getVersion } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getEngineVersion } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -11,6 +11,7 @@ import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 import { promisify } from 'util'
 
+import { name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
@@ -21,6 +22,13 @@ const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
 const copyFile = promisify(fs.copyFile)
 const stat = promisify(fs.stat)
+
+const GENERATED_PACKAGE_NAME = '.prisma/client'
+
+type OutputDeclaration = {
+  content: string
+  lineNumber: number
+}
 
 export class DenylistError extends Error {
   constructor(message: string) {
@@ -112,7 +120,7 @@ export async function buildClient({
   fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
   fileMap['package.json'] = JSON.stringify(
     {
-      name: '.prisma/client',
+      name: GENERATED_PACKAGE_NAME,
       main: 'index.js',
       types: 'index.d.ts',
       browser: 'index-browser.js',
@@ -275,7 +283,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       // If the target doesn't exist yet, copy it
       if (!targetFileSize) {
         if (fs.existsSync(filePath)) {
-          await copyFile(filePath, target)
+          await overwriteFile(filePath, target)
           continue
         } else {
           throw new Error(`File at ${filePath} is required but was not present`)
@@ -284,21 +292,21 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
       // If target !== source size, they're definitely different, copy it
       if (targetFileSize && sourceFileSize && targetFileSize !== sourceFileSize) {
-        await copyFile(filePath, target)
+        await overwriteFile(filePath, target)
         continue
       }
       const binaryName =
         clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
-        getVersion(filePath, binaryName).catch(() => null),
-        getVersion(target, binaryName).catch(() => null),
+        getEngineVersion(filePath, binaryName).catch(() => null),
+        getEngineVersion(target, binaryName).catch(() => null),
       ])
 
       if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
         // skip
       } else {
-        await copyFile(filePath, target)
+        await overwriteFile(filePath, target)
       }
     }
   }
@@ -419,7 +427,14 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
  * @param runtimeDirs overrides for the runtime directories
  * @returns
  */
-async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }: GenerateClientOptions) {
+async function getGenerationDirs({
+  testMode,
+  runtimeDirs,
+  generator,
+  outputDir,
+  datamodel,
+  schemaPath,
+}: GenerateClientOptions) {
   const useDefaultOutdir = testMode ? !runtimeDirs : !generator?.isCustomOutput
 
   const _runtimeDirs = {
@@ -429,6 +444,9 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
   }
 
   const finalOutputDir = useDefaultOutdir ? await getDefaultOutdir(outputDir) : outputDir
+  if (!useDefaultOutdir) {
+    await verifyOutputDirectory(finalOutputDir, datamodel, schemaPath)
+  }
 
   const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
   const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
@@ -438,4 +456,64 @@ async function getGenerationDirs({ testMode, runtimeDirs, generator, outputDir }
     finalOutputDir,
     projectRoot,
   }
+}
+
+async function verifyOutputDirectory(directory: string, datamodel: string, schemaPath: string) {
+  let content: string
+  try {
+    content = await fs.promises.readFile(path.join(directory, 'package.json'), 'utf8')
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      // no package.json exists, we are good
+      return
+    }
+    throw e
+  }
+  const { name } = JSON.parse(content)
+  if (name === clientPackageName) {
+    const message = [`Generating client into ${chalk.bold(directory)} is not allowed.`]
+    message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
+    message.push('')
+    message.push('Suggestion:')
+    const outputDeclaration = findOutputPathDeclaration(datamodel)
+
+    if (outputDeclaration && outputDeclaration.content.includes(clientPackageName)) {
+      const outputLine = outputDeclaration.content
+      message.push(`In ${chalk.bold(schemaPath)} replace:`)
+      message.push('')
+      message.push(
+        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.red(clientPackageName))}`,
+      )
+      message.push('with')
+
+      message.push(
+        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.green('.prisma/client'))}`,
+      )
+    } else {
+      message.push(
+        `Generate client into ${chalk.bold(replacePackageName(directory, chalk.green('.prisma/client')))} instead`,
+      )
+    }
+
+    message.push('')
+    message.push("You won't need to change your imports.")
+    message.push('Imports from `@prisma/client` will be automatically forwarded to `.prisma/client`')
+    const error = new Error(message.join('\n'))
+    throw error
+  }
+}
+
+function replacePackageName(directoryPath: string, replacement: string): string {
+  return directoryPath.replace(clientPackageName, replacement)
+}
+
+function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null {
+  const lines = datamodel.split(/\r?\n/)
+
+  for (const [i, line] of lines.entries()) {
+    if (/output\s*=/.test(line)) {
+      return { lineNumber: i + 1, content: line.trim() }
+    }
+  }
+  return null
 }

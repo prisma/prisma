@@ -91,6 +91,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         '@prisma/internals',
         '@prisma/engine-core',
         '@prisma/generator-helper',
+        '@prisma/debug',
       ],
       compiler: {
         tsconfigFilePath: 'tsconfig.build.json',
@@ -127,7 +128,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
 
 void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
   if (process.env.DEV !== 'true') {
-    bundleTypeDefinitions('declaration/client/src/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/client/src/runtime/index-browser', 'runtime/index-browser')
+    bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
+    bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')
   }
 })

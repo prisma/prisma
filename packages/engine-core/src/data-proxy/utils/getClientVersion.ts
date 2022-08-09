@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { version as engineVersion } from '@prisma/engines/package.json'
+import { devDependencies } from '@prisma/engines/package.json'
 
 import type { EngineConfig } from '../../common/Engine'
 import { NotImplementedYetError } from '../errors/NotImplementedYetError'
@@ -9,6 +9,8 @@ const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const debug = Debug('prisma:client:dataproxyEngine')
 
 async function _getClientVersion(config: EngineConfig) {
+  // TODO: now we can probably just use the client version instead
+  const engineVersion = devDependencies['@prisma/engines-version']
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides
@@ -34,7 +36,21 @@ async function _getClientVersion(config: EngineConfig) {
     const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)
     const res = await request(pkgURL, { clientVersion })
 
-    return (await res.json())['version'] as string
+    // we need to await for edge workers
+    // because it's using the global "fetch"
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    const bodyAsText = await res.text()
+    debug('length of body fetched from unpkg.com', bodyAsText.length)
+
+    let bodyAsJson
+    try {
+      bodyAsJson = JSON.parse(bodyAsText)
+    } catch (e) {
+      console.error('JSON.parse error: body fetched from unpkg.com: ', bodyAsText)
+      throw e
+    }
+
+    return bodyAsJson['version'] as string
   }
 
   // nothing matched, meaning that the provided version is invalid

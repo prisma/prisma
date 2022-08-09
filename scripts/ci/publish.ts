@@ -710,10 +710,10 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 }
 
 async function getEnginesCommit(): Promise<string> {
-  const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
+  const prisma2Path = path.resolve(process.cwd(), './packages/engines/package.json')
   const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
   // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.dependencies['@prisma/engines']?.split('.').slice(-1)[0]
+  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
 
   return engineVersion
 }
@@ -969,8 +969,8 @@ async function publishPackages(
         continue
       }
 
-      // @prisma/engines & @prisma/engines-version are published outside of this script
-      const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
+      // @prisma/engines-version is published outside of this script
+      const packagesNotToPublish = ['@prisma/engines-version']
       if (packagesNotToPublish.includes(pkgName)) {
         continue
       }
@@ -1021,7 +1021,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }
