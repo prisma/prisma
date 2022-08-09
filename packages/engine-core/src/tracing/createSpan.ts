@@ -1,4 +1,4 @@
-import { ROOT_CONTEXT, SpanContext, SpanKind, trace, TraceFlags } from '@opentelemetry/api'
+import { context, ROOT_CONTEXT, SpanContext, SpanKind, trace, TraceFlags } from '@opentelemetry/api'
 import { Span, Tracer } from '@opentelemetry/sdk-trace-base'
 
 import { EngineSpanEvent } from '../common/types/QueryEngine'
@@ -10,11 +10,14 @@ export async function createSpan(engineSpanEvent: EngineSpanEvent) {
 
   const tracer = trace.getTracer('prisma') as Tracer
 
+  // TODO: workaround for the engines always sending spans even when not traced
+  const traceFlags = trace.getSpan(context.active())?.spanContext().traceFlags
+
   engineSpanEvent.spans.forEach((engineSpan) => {
     const spanContext: SpanContext = {
       traceId: engineSpan.trace_id,
       spanId: engineSpan.span_id,
-      traceFlags: TraceFlags.SAMPLED,
+      traceFlags: traceFlags ?? TraceFlags.SAMPLED,
     }
 
     const links = engineSpan.links?.map((link) => {
@@ -22,7 +25,7 @@ export async function createSpan(engineSpanEvent: EngineSpanEvent) {
         context: {
           traceId: link.trace_id,
           spanId: link.span_id,
-          traceFlags: TraceFlags.SAMPLED,
+          traceFlags: traceFlags ?? TraceFlags.SAMPLED,
         },
       }
     })

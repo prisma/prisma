@@ -1,21 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`tracing (provider=cockroachdb) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=cockroachdb) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -87,6 +86,16 @@ exports[`tracing (provider=cockroachdb) tracing on $raw methods $executeRaw 1`] 
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -148,22 +157,19 @@ exports[`tracing (provider=cockroachdb) tracing on $raw methods $queryRaw 1`] = 
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -221,6 +227,16 @@ Object {
 exports[`tracing (provider=cockroachdb) tracing on crud methods create 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -320,22 +336,19 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods delete 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -443,6 +456,16 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods read 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -504,6 +527,16 @@ Object {
 exports[`tracing (provider=cockroachdb) tracing on crud methods update 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -615,7 +648,18 @@ exports[`tracing (provider=cockroachdb) tracing on transactions $transaction 1`]
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -629,7 +673,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -761,7 +816,18 @@ exports[`tracing (provider=cockroachdb) tracing on transactions interactive-tran
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -775,7 +841,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -949,6 +1026,16 @@ Object {
     Object {
       children: Array [
         Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        Object {
           children: Array [
             Object {
               children: Array [],
@@ -1080,6 +1167,88 @@ Object {
       },
     },
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -1174,22 +1343,21 @@ Object {
 }
 `;
 
-exports[`tracing (provider=mongodb) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=mongodb) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -1260,6 +1428,16 @@ Object {
 exports[`tracing (provider=mongodb) tracing on crud methods create 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -1334,6 +1512,16 @@ Object {
 exports[`tracing (provider=mongodb) tracing on crud methods delete 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -1421,6 +1609,16 @@ exports[`tracing (provider=mongodb) tracing on crud methods read 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -1482,6 +1680,16 @@ Object {
 exports[`tracing (provider=mongodb) tracing on crud methods update 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -1569,7 +1777,18 @@ exports[`tracing (provider=mongodb) tracing on transactions $transaction 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -1583,7 +1802,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -1691,7 +1921,18 @@ exports[`tracing (provider=mongodb) tracing on transactions interactive-transact
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -1705,7 +1946,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -1855,6 +2107,16 @@ Object {
     Object {
       children: Array [
         Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        Object {
           children: Array [
             Object {
               children: Array [],
@@ -1962,6 +2224,88 @@ Object {
       },
     },
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -2032,22 +2376,21 @@ Object {
 }
 `;
 
-exports[`tracing (provider=mysql) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=mysql) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -2119,6 +2462,16 @@ exports[`tracing (provider=mysql) tracing on $raw methods $executeRaw 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -2180,22 +2533,19 @@ exports[`tracing (provider=mysql) tracing on $raw methods $queryRaw 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -2253,6 +2603,16 @@ Object {
 exports[`tracing (provider=mysql) tracing on crud methods create 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -2352,22 +2712,19 @@ exports[`tracing (provider=mysql) tracing on crud methods delete 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -2475,6 +2832,16 @@ exports[`tracing (provider=mysql) tracing on crud methods read 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -2536,6 +2903,16 @@ Object {
 exports[`tracing (provider=mysql) tracing on crud methods update 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -2647,7 +3024,18 @@ exports[`tracing (provider=mysql) tracing on transactions $transaction 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -2661,7 +3049,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -2793,7 +3192,18 @@ exports[`tracing (provider=mysql) tracing on transactions interactive-transactio
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -2807,7 +3217,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -2981,6 +3402,16 @@ Object {
     Object {
       children: Array [
         Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        Object {
           children: Array [
             Object {
               children: Array [],
@@ -3112,6 +3543,88 @@ Object {
       },
     },
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -3206,22 +3719,21 @@ Object {
 }
 `;
 
-exports[`tracing (provider=postgresql) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=postgresql) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -3293,6 +3805,16 @@ exports[`tracing (provider=postgresql) tracing on $raw methods $executeRaw 1`] =
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -3354,22 +3876,19 @@ exports[`tracing (provider=postgresql) tracing on $raw methods $queryRaw 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -3427,6 +3946,16 @@ Object {
 exports[`tracing (provider=postgresql) tracing on crud methods create 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -3526,22 +4055,19 @@ exports[`tracing (provider=postgresql) tracing on crud methods delete 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -3649,6 +4175,16 @@ exports[`tracing (provider=postgresql) tracing on crud methods read 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -3710,6 +4246,16 @@ Object {
 exports[`tracing (provider=postgresql) tracing on crud methods update 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -3821,7 +4367,18 @@ exports[`tracing (provider=postgresql) tracing on transactions $transaction 1`] 
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -3835,7 +4392,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -3967,7 +4535,18 @@ exports[`tracing (provider=postgresql) tracing on transactions interactive-trans
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -3981,7 +4560,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -4155,6 +4745,16 @@ Object {
     Object {
       children: Array [
         Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        Object {
           children: Array [
             Object {
               children: Array [],
@@ -4286,6 +4886,88 @@ Object {
       },
     },
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -4380,22 +5062,21 @@ Object {
 }
 `;
 
-exports[`tracing (provider=sqlite) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=sqlite) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -4467,22 +5148,19 @@ exports[`tracing (provider=sqlite) tracing on $raw methods $queryRaw 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -4540,6 +5218,16 @@ Object {
 exports[`tracing (provider=sqlite) tracing on crud methods create 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -4639,22 +5327,19 @@ exports[`tracing (provider=sqlite) tracing on crud methods delete 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -4762,6 +5447,16 @@ exports[`tracing (provider=sqlite) tracing on crud methods read 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -4823,6 +5518,16 @@ Object {
 exports[`tracing (provider=sqlite) tracing on crud methods update 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -4934,7 +5639,18 @@ exports[`tracing (provider=sqlite) tracing on transactions $transaction 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -4948,7 +5664,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -5080,7 +5807,18 @@ exports[`tracing (provider=sqlite) tracing on transactions interactive-transacti
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -5094,7 +5832,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -5268,6 +6017,16 @@ Object {
     Object {
       children: Array [
         Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        Object {
           children: Array [
             Object {
               children: Array [],
@@ -5399,6 +6158,88 @@ Object {
       },
     },
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -5493,22 +6334,21 @@ Object {
 }
 `;
 
-exports[`tracing (provider=sqlserver) Tracing connect should trace the implict $connect call 1`] = `
+exports[`tracing (provider=sqlserver) tracing connect should trace the implicit $connect call 1`] = `
 Object {
   children: Array [
     Object {
-      children: Array [
-        Object {
-          children: Array [],
-          span: Object {
-            attributes: Object {},
-            kind: 0,
-            links: Array [],
-            name: prisma:engine:connect,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
       span: Object {
         attributes: Object {},
         kind: 0,
@@ -5580,6 +6420,16 @@ exports[`tracing (provider=sqlserver) tracing on $raw methods $executeRaw 1`] = 
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -5641,22 +6491,19 @@ exports[`tracing (provider=sqlserver) tracing on $raw methods $queryRaw 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -5714,6 +6561,16 @@ Object {
 exports[`tracing (provider=sqlserver) tracing on crud methods create 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -5813,22 +6670,19 @@ exports[`tracing (provider=sqlserver) tracing on crud methods delete 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
-          children: Array [
-            Object {
-              children: Array [],
-              span: Object {
-                attributes: Object {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: Array [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
+          children: Array [],
           span: Object {
             attributes: Object {
               db.type: <dbType>,
@@ -5936,6 +6790,16 @@ exports[`tracing (provider=sqlserver) tracing on crud methods read 1`] = `
 Object {
   children: Array [
     Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
       children: Array [
         Object {
           children: Array [],
@@ -5997,6 +6861,16 @@ Object {
 exports[`tracing (provider=sqlserver) tracing on crud methods update 1`] = `
 Object {
   children: Array [
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
     Object {
       children: Array [
         Object {
@@ -6108,7 +6982,18 @@ exports[`tracing (provider=sqlserver) tracing on transactions $transaction 1`] =
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -6122,7 +7007,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -6254,7 +7150,18 @@ exports[`tracing (provider=sqlserver) tracing on transactions interactive-transa
 Object {
   children: Array [
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: create,
@@ -6268,7 +7175,18 @@ Object {
       },
     },
     Object {
-      children: Array [],
+      children: Array [
+        Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
       span: Object {
         attributes: Object {
           method: findMany,
@@ -6442,6 +7360,16 @@ Object {
     Object {
       children: Array [
         Object {
+          children: Array [],
+          span: Object {
+            attributes: Object {},
+            kind: 0,
+            links: Array [],
+            name: prisma:client:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        Object {
           children: Array [
             Object {
               children: Array [],
@@ -6569,6 +7497,88 @@ Object {
         kind: 0,
         links: Array [],
         name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {
+          method: $use,
+        },
+        kind: 0,
+        links: Array [],
+        name: prisma:client:middleware,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    Object {
+      children: Array [],
+      span: Object {
+        attributes: Object {},
+        kind: 0,
+        links: Array [],
+        name: prisma:client:serialize,
         parentSpanId: <parentSpanId>,
       },
     },

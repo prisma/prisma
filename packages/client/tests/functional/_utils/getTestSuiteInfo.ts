@@ -1,13 +1,15 @@
 import path from 'path'
 
-import { map } from '../../../../../helpers/blaze/map'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
-export type TestSuiteMatrix = { [K in string]: string | Record<string, string> }[][]
-export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
+export type TestSuiteMatrix = { [K in string]: string }[][]
+export type NamedTestSuiteConfig = {
+  parametersString: string
+  matrixOptions: Record<string, string>
+}
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
@@ -17,16 +19,12 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   let name = ``
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  const suiteParams = Object.entries(suiteConfig)
-    .map(([key, value]) => `${key}=${value !== null && typeof value === 'object' ? JSON.stringify(value) : value}`)
-    .join(', ')
-
-  name += ` (${suiteParams})`
+  name += ` (${suiteConfig.parametersString})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')
@@ -37,10 +35,10 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
+export function getTestSuitePreviewFeatures(matrixOptions: Record<string, string>) {
   return [
-    ...(suiteConfig['providerFeatures']?.split(', ') ?? []),
-    ...(suiteConfig['previewFeatures']?.split(', ') ?? []),
+    ...(matrixOptions['providerFeatures']?.split(', ') ?? []),
+    ...(matrixOptions['previewFeatures']?.split(', ') ?? []),
   ]
 }
 
@@ -50,7 +48,7 @@ export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
   const suiteFolder = path.join(generatedFolder, suiteName)
@@ -64,7 +62,7 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
@@ -77,7 +75,7 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const prismaPath = path.join(suiteFolder, 'prisma')
 
@@ -89,12 +87,34 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteMeta
  * @returns
  */
-export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
+export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
   const rawMatrix = typeof matrixModule === 'function' ? matrixModule() : matrixModule.matrix()
 
-  return map(matrix(rawMatrix), (configs) => merge(configs))
+  return matrix(rawMatrix).map((configs) => ({
+    parametersString: getTestSuiteParametersString(configs),
+    matrixOptions: merge(configs),
+  }))
+}
+
+/**
+ * Returns "parameters string" part of the suite name
+ * - From each matrix dimension takes first key-value pair. Assumption is that first pair
+ * is what really distinguishes this particular suite and the rest are just additional options, related to that
+ * parameter and do need to be part of the suite name.
+ * - Computes "key1=value1,key2=value2" string from each dimension of the matrix
+ * @param configs
+ * @returns
+ */
+function getTestSuiteParametersString(configs: Record<string, string>[]) {
+  return configs
+    .map((config) => {
+      return Object.entries(config).map(
+        ([key, value]) => `${key}=${value !== null && typeof value === 'object' ? JSON.stringify(value) : value}`,
+      )
+    })
+    .join(', ')
 }
 
 /**
@@ -103,8 +123,8 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
-  return require(suiteMeta._schemaPath).default(suiteConfig)
+export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
+  return require(suiteMeta._schemaPath).default(matrixOptions)
 }
 
 /**
