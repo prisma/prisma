@@ -15,8 +15,7 @@ testMatrix.setupTestSuite(
     function conditionalError(errors: Record<Providers, string>): string {
       return errors[suiteConfig.provider] || `TODO add error for ${suiteConfig.provider}`
     }
-    const { onDelete } = suiteConfig.referentialActions
-    const { onUpdate } = suiteConfig.referentialActions
+    const { onDelete, onUpdate } = suiteConfig
 
     describe.only('issue 14271', () => {
       afterAll(async () => {

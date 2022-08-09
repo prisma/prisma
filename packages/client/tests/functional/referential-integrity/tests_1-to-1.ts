@@ -42,8 +42,7 @@ testMatrix.setupTestSuite(
       // @ts-ignore
       .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
 
-    const { onDelete } = suiteConfig.referentialActions
-    const { onUpdate } = suiteConfig.referentialActions
+    const { onDelete, onUpdate } = suiteConfig
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
     const isRI_foreignKeys = !isRI_prisma
@@ -747,7 +746,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
                     prisma:
-                      suiteConfig.referentialActions.onUpdate === 'Restrict'
+                      onUpdate === 'Restrict'
                         ? // Restrict
                           "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models."
                         : // DEFAULT & SetNull

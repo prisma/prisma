@@ -1,20 +1,18 @@
 type ComputeReferentialActionLine = {
-  referentialActions: {
-    onUpdate: string
-    onDelete: string
-  }
+  onUpdate: string
+  onDelete: string
 }
 
-export function computeReferentialActionLine({ referentialActions }: ComputeReferentialActionLine): string {
+export function computeReferentialActionLine({ onUpdate, onDelete }: ComputeReferentialActionLine): string {
   let referentialActionLine = ''
   const DEFAULT = 'DEFAULT'
-  
-  if (referentialActions.onUpdate && referentialActions.onUpdate !== DEFAULT) {
-    referentialActionLine += `, onUpdate: ${referentialActions.onUpdate}`
+
+  if (onUpdate && onUpdate !== DEFAULT) {
+    referentialActionLine += `, onUpdate: ${onUpdate}`
   }
-  
-  if (referentialActions.onDelete && referentialActions.onDelete !== DEFAULT) {
-    referentialActionLine += `, onDelete: ${referentialActions.onDelete}`
+
+  if (onDelete && onDelete !== DEFAULT) {
+    referentialActionLine += `, onDelete: ${onDelete}`
   }
 
   return referentialActionLine

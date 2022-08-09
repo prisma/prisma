@@ -35,10 +35,8 @@ export function computeMatrix({ referentialIntegrity, providersBlackList }: Comp
 
     return referentialActions.map((referentialAction) => ({
       ...entry,
-      referentialActions: {
-        onUpdate: referentialAction,
-        onDelete: referentialAction,
-      },
+      onUpdate: referentialAction,
+      onDelete: referentialAction,
     }))
   })
 

@@ -53,31 +53,23 @@ export default defineMatrix(() => [
     // Note: SetDefault emulation is not implemented
     {
       ...mongoDBMatrixBase,
-      referentialActions: {
-        onUpdate: 'DEFAULT',
-        onDelete: 'DEFAULT',
-      },
+      onUpdate: 'DEFAULT',
+      onDelete: 'DEFAULT',
     },
     {
       ...mongoDBMatrixBase,
-      referentialActions: {
-        onUpdate: 'Cascade',
-        onDelete: 'Cascade',
-      },
+      onUpdate: 'Cascade',
+      onDelete: 'Cascade',
     },
     {
       ...mongoDBMatrixBase,
-      referentialActions: {
-        onUpdate: 'NoAction',
-        onDelete: 'NoAction',
-      },
+      onUpdate: 'NoAction',
+      onDelete: 'NoAction',
     },
     {
       ...mongoDBMatrixBase,
-      referentialActions: {
-        onUpdate: 'SetNull',
-        onDelete: 'SetNull',
-      },
+      onUpdate: 'SetNull',
+      onDelete: 'SetNull',
     },
   ],
   [
