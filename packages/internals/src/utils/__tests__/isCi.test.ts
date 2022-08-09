@@ -13,7 +13,13 @@ jest.mock('is-ci', () => ({
 const temporarilySet = (object: any, prop: string, value: unknown) => {
   const original = object[prop]
   beforeEach(() => {
-    object[prop] = value
+    // If you set undefined in process.env it stringifies it, so we
+    // need special handling for that case of "unsetting" the process.env.
+    if (object === process.env && value === undefined) {
+      delete object[prop]
+    } else {
+      object[prop] = value
+    }
   })
   afterEach(() => {
     // If you set undefined in process.env it stringifies it, so we
@@ -51,8 +57,14 @@ describe('#isCi', () => {
       })
     })
 
-    test('returns false otherwise', () => {
-      expect(isCi()).toBe(false)
+    describe('outside a CI environment, with TTY', () => {
+      temporarilySet(process.stdin, 'isTTY', true)
+      temporarilySet(process.env, 'GITHUB_ACTIONS', undefined)
+
+      test('returns false', () => {
+        mockValue.mockReturnValueOnce(false)
+        expect(isCi()).toBe(false)
+      })
     })
   })
 })
