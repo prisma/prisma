@@ -105,8 +105,8 @@ testMatrix.setupTestSuite(
       // @ts-ignore
       .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
 
-    const { onDelete } = suiteConfig.referentialActions
-    const { onUpdate } = suiteConfig.referentialActions
+    const onUpdate = suiteConfig.onUpdate
+    const onDelete = suiteConfig.onDelete
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
     const isRI_foreignKeys = !isRI_prisma
