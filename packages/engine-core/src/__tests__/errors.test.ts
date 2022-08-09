@@ -1,15 +1,19 @@
 import Debug from '@prisma/debug'
+import { Headers } from 'node-fetch'
 import stripAnsi from 'strip-ansi'
 
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import { responseToError } from '../data-proxy/errors/utils/responseToError'
 import type { RequestResponse } from '../data-proxy/utils/request'
 
-const response = (body: Promise<any>, code?: number): RequestResponse => ({
+const response = (body: Promise<any>, code?: number, requestId?: string): RequestResponse => ({
   json: () => body,
   url: '',
   ok: false,
   status: code || 400,
+  headers: new Headers({
+    'PDP-Request-Id': requestId,
+  }),
 })
 
 describe('responseToError', () => {
@@ -100,6 +104,16 @@ describe('responseToError', () => {
         'Authentication failed against database server at `my-database.random-id.eu-west-1.rds.amazonaws.com`, the provided database credentials for `username` are not valid.\n\nPlease make sure to provide valid database credentials for the database server at `my-database.random-id.eu-west-1.rds.amazonaws.com`.',
       )
       expect(error.code).toEqual('P1000')
+    }
+  })
+
+  test('The PDP request Id is added to error messages if the header is present in the response', async () => {
+    expect.assertions(1)
+
+    try {
+      await responseToError(response(Promise.reject(), 404, 'some-request-id'), '')
+    } catch (error) {
+      expect(error.message).toEqual('... The request id is: some-request-id')
     }
   })
 })

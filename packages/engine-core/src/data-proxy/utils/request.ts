@@ -10,7 +10,7 @@ import { getJSRuntimeName } from './getJSRuntimeName'
 export type RequestOptions = O.Patch<{ headers?: { [k: string]: string }; body?: string }, RequestInit>
 export type RequestResponse = O.Required<
   O.Optional<O.Patch<{ text: () => string }, Response>>,
-  'text' | 'json' | 'url' | 'ok' | 'status'
+  'text' | 'json' | 'url' | 'ok' | 'status' | 'headers'
 >
 
 // fetch is global on edge runtime
