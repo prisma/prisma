@@ -407,7 +407,7 @@ importers:
       p-retry: 4.6.2
       strip-ansi: 6.0.1
       typescript: 4.7.4
-      undici: 5.8.0
+      undici: 5.8.2
     dependencies:
       '@opentelemetry/api': 1.1.0
       '@opentelemetry/sdk-trace-base': 1.5.0_@opentelemetry+api@1.1.0
@@ -422,7 +422,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      undici: 5.8.0
+      undici: 5.8.2
     devDependencies:
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.22_@swc+core@1.2.204
@@ -794,7 +794,7 @@ importers:
       make-dir: 3.1.0
       mariadb: 3.0.1
       mock-stdin: 1.0.0
-      mssql: 8.1.2
+      mssql: 8.1.3
       pg: 8.7.3
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -814,7 +814,7 @@ importers:
       indent-string: 4.0.0
       log-update: 4.0.0
       mariadb: 3.0.1
-      mssql: 8.1.2
+      mssql: 8.1.3
       pg: 8.7.3
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -2958,7 +2958,7 @@ packages:
   /@types/es-aggregate-error/1.0.2:
     resolution: {integrity: sha512-erqUpFXksaeR2kejKnhnjZjbFxUpGZx4Z7ydNL9ie8tEhXPiZTsLeUDJ6aR1F8j5wWUAtOAQWUqkc7givBJbBA==}
     dependencies:
-      '@types/node': 17.0.45
+      '@types/node': 18.6.3
 
   /@types/eslint/7.29.0:
     resolution: {integrity: sha512-VNcvioYDH8/FxaeTKkM4/TiTwt6pBV9E3OfGmvaw8tPl0rrHCJ4Ll15HRT+pMiFAf/MLQvAzC+6RzUMEL9Ceng==}
@@ -3117,7 +3117,6 @@ packages:
 
   /@types/node/18.6.3:
     resolution: {integrity: sha512-6qKpDtoaYLM+5+AFChLhHermMQxc3TOEFIDzrZLPRGHPrLEwqFkkT5Kx3ju05g6X7uDPazz3jHbKPX0KzCjntg==}
-    dev: true
 
   /@types/normalize-package-data/2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
@@ -3201,7 +3200,7 @@ packages:
   /@types/tunnel/0.0.3:
     resolution: {integrity: sha512-sOUTGn6h1SfQ+gbgqC364jLFBw2lnFqkgF3q0WovEHRLMrVD1sd5aufqi/aJObLekJO+Aq5z646U4Oxy6shXMA==}
     dependencies:
-      '@types/node': 17.0.45
+      '@types/node': 18.6.3
 
   /@types/vinyl/2.0.6:
     resolution: {integrity: sha512-ayJ0iOCDNHnKpKTgBG6Q6JOnHTj9zFta+3j2b8Ejza0e4cvRyMn0ZoLEmbPrTHe5YYRlDYPvPWVdV4cTaRyH7g==}
@@ -4008,7 +4007,7 @@ packages:
     dev: false
 
   /buffer-equal-constant-time/1.0.1:
-    resolution: {integrity: sha1-+OcRMvf/5uAaXJaXpMbz5I1cyBk=}
+    resolution: {integrity: sha512-zRpUiDwd/xk6ADqPMATG8vc9VPrkck7T07OIx0gnjmJAnHnTVXNQG3vfvWNuiZIkwu9KrKdA1iJKfsfTVxE6NA==}
 
   /buffer-from/1.1.2:
     resolution: {integrity: sha512-E+XQCRwSbaaiChtv6k6Dwgc+bx+Bs6vuKJHHl5kox/BaKbhiXzqQOwK4cO22yElGp2OCmjwVhT3HmxgyPGnJfQ==}
@@ -8957,6 +8956,23 @@ packages:
     transitivePeerDependencies:
       - encoding
       - supports-color
+    dev: true
+
+  /mssql/8.1.3:
+    resolution: {integrity: sha512-XGxNNNeKZMMTM71na2M4eLMkPWKckcfZtMiCKR1mLzN887x31NisekNhoBAoRpqizErUZxSW8gSDZc8PVig7Kw==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      '@tediousjs/connection-string': 0.3.0
+      commander: 9.4.0
+      debug: 4.3.4
+      rfdc: 1.3.0
+      tarn: 3.0.2
+      tedious: 14.7.0
+    transitivePeerDependencies:
+      - encoding
+      - supports-color
+    dev: false
 
   /multimatch/5.0.0:
     resolution: {integrity: sha512-ypMKuglUrZUD99Tk2bUQ+xNQj43lPEfAeX2o9cTteAmShXy2VHDJpuwu1o0xqoKCt9jLVAvwyFKdLTPXKAfJyA==}
@@ -11611,8 +11627,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici/5.8.0:
-    resolution: {integrity: sha512-1F7Vtcez5w/LwH2G2tGnFIihuWUlc58YidwLiCv+jR2Z50x0tNXpRRw7eOIJ+GvqCqIkg9SB7NWAJ/T9TLfv8Q==}
+  /undici/5.8.2:
+    resolution: {integrity: sha512-3KLq3pXMS0Y4IELV045fTxqz04Nk9Ms7yfBBHum3yxsTR4XNn+ZCaUbf/mWitgYDAhsplQ0B1G4S5D345lMO3A==}
     engines: {node: '>=12.18'}
     dev: false
 
