@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import { Headers } from 'node-fetch'
 import stripAnsi from 'strip-ansi'
 
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
@@ -12,7 +11,7 @@ const response = (body: Promise<any>, code?: number, requestId?: string): Reques
   ok: false,
   status: code || 400,
   headers: {
-    'PDP-Request-Id': requestId,
+    'Prisma-Request-Id': requestId,
   },
 })
 
