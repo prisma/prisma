@@ -42,7 +42,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "undici": "5.8.0"
+    "undici": "5.8.2"
   },
   "files": [
     "README.md",
