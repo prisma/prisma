@@ -16,7 +16,7 @@ import {
   TracingConfig,
 } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
+import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
@@ -1118,8 +1118,7 @@ new PrismaClient({
       otelParentCtx,
     }: InternalRequestParams) {
       if (this._dmmf === undefined) {
-        const dmmf = await this._getDmmf({ clientMethod, callsite })
-        this._dmmf = new DMMFHelper(getPrismaClientDMMF(dmmf))
+        this._dmmf = await this._getDmmf({ clientMethod, callsite })
       }
 
       let rootField: string | undefined
@@ -1215,13 +1214,14 @@ new PrismaClient({
       })
     }
 
-    private async _getDmmf(params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) {
+    private _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
       try {
-        return await this._engine.getDmmf()
+        const dmmf = await this._engine.getDmmf()
+        return new DMMFHelper(getPrismaClientDMMF(dmmf))
       } catch (error) {
         this._fetcher.handleRequestError({ ...params, error })
       }
-    }
+    })
 
     get $metrics(): MetricsClient {
       if (!this._hasPreviewFlag('metrics')) {
