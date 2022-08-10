@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
-import prismaFmtWASM from '@prisma/prisma-fmt-wasm'
 import fs from 'fs'
+
+import { prismaFmt as prismaFmtWASM } from '../wasm'
 
 const debug = Debug('prisma:formatSchema')
 

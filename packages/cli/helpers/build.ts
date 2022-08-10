@@ -41,47 +41,15 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       // we copy the contents from xdg-open to build
       await copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
 
+      const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
+
+      // TODO: create a glob helper for this to import all the wasm modules having pattern /^@prisma\/.*-wasm$/
+      const prismaWASMFile = path.join(wasmResolveDir, '@prisma', 'prisma-fmt-wasm', 'src', 'prisma_fmt_build_bg.wasm')
+      await copyFile(prismaWASMFile, './build/prisma_fmt_build_bg.wasm')
+
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
       chmodX('./build/index.js')
-    })
-  },
-}
-
-/**
- * Loading WASM modules in esbuild seems to be quite tricky, and none of the plugins/tutorials available online
- * seem to cut it.
- * Currently, we import WASM modules based on the following assumptions:
- * - they're published on npm with a name like `@prisma/<package-name>-wasm`
- * - they're installed in the `internals` package, where they're left unbundled
- */
-const wasmModulePlugin: esbuild.Plugin = {
-  name: 'wasm',
-  setup(build) {
-    // run on each import path in each module that esbuild builds
-    build.onResolve({ filter: /@prisma\/.*-wasm$/ }, (args) => {
-      const internalsPath = path.join(__dirname, '..', '..', 'internals')
-      const prismaWASMPath = path.join(internalsPath, 'node_modules', args.path)
-      const { main } = require(path.join(prismaWASMPath, 'package.json'))
-      const modulePath = path.join(prismaWASMPath, main)
-
-      return {
-        path: modulePath,
-        namespace: 'wasm-binary',
-      }
-    })
-
-    // run for each unique path/namespace pair that has not been marked as external
-    build.onLoad({ filter: /.*/, namespace: 'wasm-binary' }, async (args) => {
-      const contents = await fs.promises.readFile(args.path, 'utf8')
-
-      // otherwise it would look for wasm modules in './cli/build/'
-      const actualContents = contents.replace(/__dirname/g, `"${path.join(args.path, '..')}"`)
-
-      return {
-        contents: actualContents,
-        loader: 'js',
-      }
     })
   },
 }
@@ -92,7 +60,7 @@ const cliBuildConfig: BuildOptions = {
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
   external: ['@prisma/engines'],
-  plugins: [cliLifecyclePlugin, wasmModulePlugin],
+  plugins: [cliLifecyclePlugin],
   bundle: true,
 }
 
