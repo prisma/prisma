@@ -15,11 +15,10 @@ export abstract class DataProxyAPIError extends DataProxyError {
     this.response = info.response
 
     // add request id to response message if it is present in the response header
-    const requestId = this.response.headers?.get('PDP-Request-Id');
-    if(requestId){
-      const messageSuffix = `The request id is: ${requestId}`;
-      this.message = this.message + ' ' + messageSuffix;
+    const requestId = this.response.headers?.['PDP-Request-Id']
+    if (requestId) {
+      const messageSuffix = `(The request id was: ${requestId})`
+      this.message = this.message + ' ' + messageSuffix
     }
-    
   }
 }

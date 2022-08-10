@@ -11,9 +11,9 @@ const response = (body: Promise<any>, code?: number, requestId?: string): Reques
   url: '',
   ok: false,
   status: code || 400,
-  headers: new Headers({
+  headers: {
     'PDP-Request-Id': requestId,
-  }),
+  },
 })
 
 describe('responseToError', () => {
@@ -110,10 +110,15 @@ describe('responseToError', () => {
   test('The PDP request Id is added to error messages if the header is present in the response', async () => {
     expect.assertions(1)
 
-    try {
-      await responseToError(response(Promise.reject(), 404, 'some-request-id'), '')
-    } catch (error) {
-      expect(error.message).toEqual('... The request id is: some-request-id')
+    const errorJSON = {
+      EngineNotStarted: {
+        reason: 'SchemaMissing',
+      },
+    }
+
+    const error = await responseToError(response(Promise.resolve(errorJSON), 404, 'some-request-id'), '')
+    if (error) {
+      expect(error.message).toEqual('Schema needs to be uploaded (The request id was: some-request-id)')
     }
   })
 })
