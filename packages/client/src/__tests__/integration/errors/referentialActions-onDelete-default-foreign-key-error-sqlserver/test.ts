@@ -15,12 +15,13 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
     await generateTestClient()
     const { PrismaClient } = require('./node_modules/@prisma/client')
     prisma = new PrismaClient()
-  })
 
-  afterAll(async () => {
     await prisma.post.deleteMany()
     await prisma.profile.deleteMany()
     await prisma.user.deleteMany()
+  })
+
+  afterAll(async () => {
     await prisma.$disconnect()
   })
 
@@ -52,11 +53,11 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlserver/test.ts:0:0
 
-          41 expect(await prisma.user.findMany()).toHaveLength(1)
-          42 
-          43 try {
-        → 44   await prisma.user.delete(
-          Foreign key constraint failed on the field: \`PostDefaultOnDelete_authorId_fkey (index)\`
+          42 expect(await prisma.user.findMany()).toHaveLength(1)
+          43 
+          44 try {
+        → 45   await prisma.user.delete(
+          Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
       `)
     }
   })
