@@ -10,7 +10,7 @@ import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const { dependencies } = require('../../package.json')
+import { dependencies } from '../../package.json'
 
 export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
