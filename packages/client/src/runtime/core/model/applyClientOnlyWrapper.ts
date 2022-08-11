@@ -17,7 +17,7 @@ export function wrapRequest(
     return applyOrThrowWrapper(dmmfModelName, requestCallback)
   }
 
-  return assertNever(prop, 'Unknown wrapper name')
+  assertNever(prop, 'Unknown wrapper name')
 }
 
 function applyOrThrowWrapper(dmmfModelName: string, requestCallback: RequestCallback): RequestCallback {
