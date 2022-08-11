@@ -16,7 +16,8 @@ export const prismaFmt = new Proxy(_prismaFmt, {
     return match(prop)
       .with('version', () => () => {
         const engineName = 'prisma-fmt-wasm'
-        debug(`[${engineName}] original version is "${target[prop]()}"`)
+        const originalVersion = target[prop]()
+        debug(`[${engineName}] original version is "${originalVersion}"`)
         const overriddenVersion = getWASMVersion(BinaryType.prismaFmt)
         debug(`[${engineName}] overridden version is "${overriddenVersion}"`)
         return overriddenVersion
