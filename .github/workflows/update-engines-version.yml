@@ -82,6 +82,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -122,6 +123,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
 
