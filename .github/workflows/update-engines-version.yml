@@ -50,6 +50,7 @@ jobs:
           command: |
             echo 'Updating @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
+            pnpm update -r @prisma/prisma-fmt-wasm@${{ github.event.inputs.version }}
             echo 'Awesome - proceeding to make the PR'
 
       - name: Extract Engine Commit hash from version
