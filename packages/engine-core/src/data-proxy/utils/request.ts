@@ -9,9 +9,9 @@ import { getJSRuntimeName } from './getJSRuntimeName'
 // our implementation handles less
 export type RequestOptions = O.Patch<{ headers?: { [k: string]: string }; body?: string }, RequestInit>
 
-type Headers = Record<string | string[] | undefined>
+type Headers = Record<string, string | string[] | undefined>
 export type RequestResponse = O.Required<
-  O.Optional<O.Patch<{ text: () => string; headers: HeadersType }, Response>>,
+  O.Optional<O.Patch<{ text: () => string; headers: Headers }, Response>>,
   'text' | 'json' | 'url' | 'ok' | 'status'
 >
 
