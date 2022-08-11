@@ -3,6 +3,8 @@ import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 let prisma
 describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
   beforeAll(async () => {
