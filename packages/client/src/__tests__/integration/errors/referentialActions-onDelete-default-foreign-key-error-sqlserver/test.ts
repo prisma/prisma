@@ -52,10 +52,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlserver/test.ts:0:0
 
-          39 expect(await prisma.user.findMany()).toHaveLength(1)
-          40 
-          41 try {
-        → 42   await prisma.user.delete(
+          41 expect(await prisma.user.findMany()).toHaveLength(1)
+          42 
+          43 try {
+        → 44   await prisma.user.delete(
           Foreign key constraint failed on the field: \`PostDefaultOnDelete_authorId_fkey (index)\`
       `)
     }
