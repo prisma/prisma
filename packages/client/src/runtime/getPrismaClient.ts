@@ -21,7 +21,6 @@ import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
-import * as sqlTemplateTag from 'sql-template-tag'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
@@ -48,6 +47,7 @@ import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
+import * as sqlTemplateTag from './utils/sql-template-tag'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
 const debug = Debug('prisma:client')
