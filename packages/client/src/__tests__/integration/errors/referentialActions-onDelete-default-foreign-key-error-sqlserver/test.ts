@@ -9,7 +9,7 @@ let prisma
 describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
   beforeAll(async () => {
     await migrateDb({
-      connectionString: process.env.TEST_MSSQL_JDBC_URI!,
+      connectionString: process.env.TEST_MSSQL_JDBC_URI!.replace('master', 'referentialActions-onDelete-default'),
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
