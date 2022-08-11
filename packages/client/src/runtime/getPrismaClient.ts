@@ -25,8 +25,7 @@ import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import fs from 'fs'
 import path from 'path'
-import type { RawValue, Sql } from 'sql-template-tag'
-import sqltag from 'sql-template-tag'
+import * as sqlTemplateTag from 'sql-template-tag'
 
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
@@ -55,6 +54,7 @@ import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 
+const sqltag = sqlTemplateTag.default
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
 
@@ -73,7 +73,7 @@ function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
 // TODO also check/disallow for CREATE, DROP
 function checkAlter(
   query: string,
-  values: RawValue[],
+  values: sqlTemplateTag.RawValue[],
   invalidCall:
     | 'prisma.$executeRaw`<SQL>`'
     | 'prisma.$executeRawUnsafe(<SQL>, [...values])'
@@ -324,8 +324,8 @@ export interface Client {
   $connect()
   $disconnect()
   _runDisconnect()
-  $executeRaw(query: TemplateStringsArray | Sql, ...values: any[])
-  $queryRaw(query: TemplateStringsArray | Sql, ...values: any[])
+  $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
+  $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[])
   __internal_triggerPanic(fatal: boolean)
   $transaction(input: any, options?: any)
   _request(internalParams: InternalRequestParams): Promise<any>
@@ -604,8 +604,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     private $executeRawInternal(
       txId: string | number | undefined,
       lock: PromiseLike<void> | undefined,
-      query: string | TemplateStringsArray | Sql,
-      ...values: RawValue[]
+      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
     ) {
       // TODO Clean up types
       let queryString = ''
@@ -711,9 +711,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @param values
      * @returns
      */
-    $executeRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
+    $executeRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise((txId, lock) => {
-        if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
+        if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$executeRawInternal(txId, lock, query, ...values)
         }
 
@@ -735,7 +735,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param values
      * @returns
      */
-    $executeRawUnsafe(query: string, ...values: RawValue[]) {
+    $executeRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
       return createPrismaPromise((txId, lock) => {
         return this.$executeRawInternal(txId, lock, query, ...values)
       })
@@ -774,8 +774,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     private $queryRawInternal(
       txId: string | number | undefined,
       lock: PromiseLike<void> | undefined,
-      query: string | TemplateStringsArray | Sql,
-      ...values: RawValue[]
+      query: string | TemplateStringsArray | sqlTemplateTag.Sql,
+      ...values: sqlTemplateTag.RawValue[]
     ) {
       let queryString = ''
       let parameters: any = undefined
@@ -884,9 +884,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param values
      * @returns
      */
-    $queryRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
+    $queryRaw(query: TemplateStringsArray | sqlTemplateTag.Sql, ...values: any[]) {
       return createPrismaPromise((txId, lock) => {
-        if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
+        if ((query as TemplateStringsArray).raw !== undefined || (query as sqlTemplateTag.Sql).sql !== undefined) {
           return this.$queryRawInternal(txId, lock, query, ...values)
         }
 
@@ -908,7 +908,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param values
      * @returns
      */
-    $queryRawUnsafe(query: string, ...values: RawValue[]) {
+    $queryRawUnsafe(query: string, ...values: sqlTemplateTag.RawValue[]) {
       return createPrismaPromise((txId, lock) => {
         return this.$queryRawInternal(txId, lock, query, ...values)
       })
