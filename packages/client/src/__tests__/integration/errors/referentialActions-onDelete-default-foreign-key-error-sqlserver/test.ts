@@ -47,15 +47,15 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () 
     } catch (e) {
       expect(e.message).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.delete()\` invocation in
-/client/src/__tests__/integration/errors/default-onDelete-cascade-sqlserver/test.ts:41:31
+        Invalid \`prisma.user.delete()\` invocation in
+        /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlserver/test.ts:0:0
 
-  38 expect(await prisma.user.findMany()).toHaveLength(1)
-  39 
-  40 try {
-→ 41   await prisma.user.delete(
-  The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
-`)
+          39 expect(await prisma.user.findMany()).toHaveLength(1)
+          40 
+          41 try {
+        → 42   await prisma.user.delete(
+          Foreign key constraint failed on the field: \`PostDefaultOnDelete_authorId_fkey (index)\`
+      `)
     }
   })
 })
