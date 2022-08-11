@@ -22,6 +22,9 @@ services:
       # MariaDB
       - TEST_MARIADB_BASE_URI=mysql://root:root@mariadb:3306
       - TEST_MARIADB_URI=mysql://root:root@mariadb:3306/tests
+      # TiDB
+      - TEST_TIDB_BASE_URI=mysql://root@tidb:4000
+      - TEST_TIDB_URI=mysql://root@tidb:4000/tests
       # SQL Server
       - TEST_MSSQL_URI=mssql://SA:Pr1sm4_Pr1sm4@mssql:1433/master
       - TEST_MSSQL_JDBC_URI=sqlserver://mssql:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
@@ -58,6 +61,7 @@ services:
       - mysql
       - mysql_isolated
       - mariadb
+      - tidb
       - mssql
       - mongo
       - mongodb_migrate
@@ -124,6 +128,12 @@ services:
       - MYSQL_PASSWORD=prisma
     ports:
       - '4306:3306'
+
+  tidb:
+    image: pingcap/tidb:v6.1.0
+    restart: always
+    ports:
+      - '4000:4000'
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
