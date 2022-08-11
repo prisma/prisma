@@ -1,4 +1,4 @@
-import { getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteMeta, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import { MatrixOptions } from './types'
 
@@ -12,15 +12,15 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param options
  */
 export function checkMissingProviders({
-  suiteConfig,
+  suiteConfigs,
   suiteMeta,
   options,
 }: {
-  suiteConfig: TestSuiteConfig[]
+  suiteConfigs: NamedTestSuiteConfig[]
   suiteMeta: TestSuiteMeta
   options?: MatrixOptions
 }) {
-  const suiteConfigProviders = suiteConfig.map(({ provider }) => provider)
+  const suiteConfigProviders = suiteConfigs.map(({ matrixOptions: { provider } }) => provider)
 
   const missingProviders = Object.values(Providers).reduce((acc, provider) => {
     if (suiteConfigProviders.includes(provider)) return acc

@@ -6,7 +6,7 @@ import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { cleanupCache } from '../cleanupCache'
-import { checkVersionCommand, download, getBinaryName, getVersion } from '../download'
+import { BinaryType, download, getBinaryName, getVersion } from '../download'
 import { getFiles } from './__utils__/getFiles'
 
 const CURRENT_ENGINES_HASH = enginesVersion
@@ -25,24 +25,26 @@ describe('download', () => {
     await del(path.posix.join(dirname, '/**/*engine*'))
     await del(path.posix.join(dirname, '/**/prisma-fmt*'))
   })
-  afterEach(() => delete process.env.PRISMA_QUERY_ENGINE_BINARY)
+  afterEach(() => {
+    delete process.env.PRISMA_QUERY_ENGINE_BINARY
+  })
 
   test('download all current engines', async () => {
     const baseDir = path.posix.join(dirname, 'all')
 
     const platform = await getPlatform()
-    const queryEnginePath = path.join(baseDir, getBinaryName('query-engine', platform))
-    const introspectionEnginePath = path.join(baseDir, getBinaryName('introspection-engine', platform))
-    const migrationEnginePath = path.join(baseDir, getBinaryName('migration-engine', platform))
-    const prismafmtPath = path.join(baseDir, getBinaryName('prisma-fmt', platform))
+    const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
+    const introspectionEnginePath = path.join(baseDir, getBinaryName(BinaryType.introspectionEngine, platform))
+    const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.migrationEngine, platform))
+    const prismaFmtPath = path.join(baseDir, getBinaryName(BinaryType.prismaFmt, platform))
 
     await download({
       binaries: {
-        'libquery-engine': baseDir,
-        'query-engine': baseDir,
-        'introspection-engine': baseDir,
-        'migration-engine': baseDir,
-        'prisma-fmt': baseDir,
+        [BinaryType.libqueryEngine]: baseDir,
+        [BinaryType.queryEngine]: baseDir,
+        [BinaryType.introspectionEngine]: baseDir,
+        [BinaryType.migrationEngine]: baseDir,
+        [BinaryType.prismaFmt]: baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -135,28 +137,29 @@ describe('download', () => {
     `)
 
     // Check that all engines hashes are the same
-    expect(await getVersion(queryEnginePath)).toContain(CURRENT_ENGINES_HASH)
-    expect(await getVersion(introspectionEnginePath)).toContain(CURRENT_ENGINES_HASH)
-    expect(await getVersion(migrationEnginePath)).toContain(CURRENT_ENGINES_HASH)
-    expect(await getVersion(prismafmtPath)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(introspectionEnginePath, BinaryType.introspectionEngine)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(migrationEnginePath, BinaryType.migrationEngine)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(prismaFmtPath, BinaryType.prismaFmt)).toContain(CURRENT_ENGINES_HASH)
   })
 
   test('download all binaries & cache them', async () => {
     const baseDir = path.posix.join(dirname, 'all')
+
     const platform = await getPlatform()
-    const queryEnginePath = path.join(baseDir, getBinaryName('query-engine', platform))
-    const introspectionEnginePath = path.join(baseDir, getBinaryName('introspection-engine', platform))
-    const migrationEnginePath = path.join(baseDir, getBinaryName('migration-engine', platform))
-    const prismafmtPath = path.join(baseDir, getBinaryName('prisma-fmt', platform))
+    const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
+    const introspectionEnginePath = path.join(baseDir, getBinaryName(BinaryType.introspectionEngine, platform))
+    const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.migrationEngine, platform))
+    const prismaFmtPath = path.join(baseDir, getBinaryName(BinaryType.prismaFmt, platform))
 
     const before0 = Date.now()
     await download({
       binaries: {
-        'libquery-engine': baseDir,
-        'query-engine': baseDir,
-        'introspection-engine': baseDir,
-        'migration-engine': baseDir,
-        'prisma-fmt': baseDir,
+        [BinaryType.libqueryEngine]: baseDir,
+        [BinaryType.queryEngine]: baseDir,
+        [BinaryType.introspectionEngine]: baseDir,
+        [BinaryType.migrationEngine]: baseDir,
+        [BinaryType.prismaFmt]: baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -452,16 +455,16 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       ]
     `)
 
-    expect(await getVersion(queryEnginePath)).toMatchInlineSnapshot(
+    expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toMatchInlineSnapshot(
       `"query-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
-    expect(await getVersion(introspectionEnginePath)).toMatchInlineSnapshot(
+    expect(await getVersion(introspectionEnginePath, BinaryType.introspectionEngine)).toMatchInlineSnapshot(
       `"introspection-core da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
-    expect(await getVersion(migrationEnginePath)).toMatchInlineSnapshot(
+    expect(await getVersion(migrationEnginePath, BinaryType.migrationEngine)).toMatchInlineSnapshot(
       `"migration-engine-cli da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
-    expect(await getVersion(prismafmtPath)).toMatchInlineSnapshot(
+    expect(await getVersion(prismaFmtPath, BinaryType.prismaFmt)).toMatchInlineSnapshot(
       `"prisma-fmt da41d2bb3406da22087b849f0e911199ba4fbf11"`,
     )
 
@@ -588,10 +591,10 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
 
     expect(fs.existsSync(targetPath)).toBe(true)
 
-    expect(await checkVersionCommand(targetPath)).toBe(true)
+    expect(await getVersion(targetPath, BinaryType.queryEngine)).not.toBe(undefined)
   })
 
-  test('handle non-existent "binarTarget"', async () => {
+  test('handle non-existent "binaryTarget"', async () => {
     await expect(
       download({
         binaries: {
@@ -605,7 +608,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     )
   })
 
-  test('handle non-existent "binarTarget" with missing custom engine binary', async () => {
+  test('handle non-existent "binaryTarget" with missing custom engine binary', async () => {
     expect.assertions(1)
     process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
     try {
@@ -623,7 +626,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     }
   })
 
-  test('handle non-existent "binarTarget" with custom engine binary', async () => {
+  test('handle non-existent "binaryTarget" with custom engine binary', async () => {
     const e = await download({
       binaries: {
         'query-engine': __dirname,

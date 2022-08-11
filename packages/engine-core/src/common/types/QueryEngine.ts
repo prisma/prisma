@@ -44,6 +44,7 @@ export type EngineSpan = {
   start_time: string
   end_time: string
   attributes?: Record<string, string>
+  links?: { trace_id: string; span_id: string }[]
 }
 
 // Configuration
