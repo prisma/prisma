@@ -75,6 +75,7 @@ Or specify a Prisma schema path
       throw err
     }
 
+    // TODO: what's the point of this?
     await getDMMF({
       datamodel: output,
     })
