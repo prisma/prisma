@@ -287,7 +287,7 @@ testMatrix.setupTestSuite(
         })
 
         // Not possible on MongoDB as _id is immutable
-        describeIf(!isMongoDB)('mutate id', () => {
+        describeIf(!isMongoDB)('mutate id tests (skipped only for MongoDB)', () => {
           describeIf(['DEFAULT', 'CASCADE'].includes(onUpdate))('onUpdate: DEFAULT, CASCADE', () => {
             test('[update] parent id with non-existing id should succeed', async () => {
               await prisma[userModel].update({

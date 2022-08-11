@@ -236,7 +236,7 @@ testMatrix.setupTestSuite(
         })
 
         // Not possible on MongoDB as _id is immutable
-        describeIf(!isMongoDB)('mutate id', () => {
+        describeIf(!isMongoDB)('mutate id tests (skipped only for MongoDB)', () => {
           test('[upsert] child id with non-existing id should succeed', async () => {
             await prisma[profileModel].upsert({
               where: { id: '1' },

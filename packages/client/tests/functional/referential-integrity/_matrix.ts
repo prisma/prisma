@@ -20,22 +20,6 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 // Note: 'SetDefault' is making SQL Server crash badly
 //  const referentialActionsChoices = ['', 'Cascade', 'NoAction']
 
-// TODO: generate the referentialActions combinations matrix outside, and merge it to the defined matrix below
-type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
-
-const onUpdate: ReferentialActions | string = 'DEFAULT'
-const onDelete: ReferentialActions | string = 'DEFAULT'
-// const onUpdate: ReferentialActions | string = 'Cascade'
-// const onDelete: ReferentialActions | string = 'Cascade'
-// const onUpdate: ReferentialActions | string = 'Restrict'
-// const onDelete: ReferentialActions | string = 'Restrict'
-// const onUpdate: ReferentialActions | string = 'NoAction'
-// const onDelete: ReferentialActions | string = 'NoAction'
-// const onUpdate: ReferentialActions | string = 'SetNull'
-// const onDelete: ReferentialActions | string = 'SetNull'
-// const onUpdate: ReferentialActions | string = 'SetDefault'
-// const onDelete: ReferentialActions | string = 'SetDefault'
-
 const defaultMatrix = computeMatrix({ referentialIntegrity })
 
 const mongoDBMatrixBase = {
