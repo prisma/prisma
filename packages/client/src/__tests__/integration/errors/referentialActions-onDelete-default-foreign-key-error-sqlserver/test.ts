@@ -4,7 +4,7 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 let prisma
-describe('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
+describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
   beforeAll(async () => {
     await migrateDb({
       connectionString: process.env.TEST_MSSQL_JDBC_URI!,
