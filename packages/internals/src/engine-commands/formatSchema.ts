@@ -21,10 +21,11 @@ function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { s
   return !!schemaParams.schemaPath
 }
 
-// can be used by passing either
-// the schema as a string
-// or a path to the schema file
-// TODO: currently, we only use `schemaPath` in the cli
+/**
+ * Can be used by passing either the `schema` as a string, or a path `schemaPath` to the schema file.
+ * Passing `schema` will use the Rust binary, passing `schemaPath` will use the WASM engine.
+ * TODO: currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
+ */
 export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): Promise<string> {
   if (!schema && !schemaPath) {
     throw new Error(`Parameter schema or schemaPath must be passed.`)
@@ -38,7 +39,7 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
 
   const formattedSchema = await match({ schema, schemaPath } as FormatSchemaParams)
     .when(isSchemaOnly, async ({ schema: _schema }) => {
-      debug('using a schema string directly')
+      debug('using a schema string directly, using the Rust binary')
 
       const prismaFmtPath = await resolveBinary(BinaryType.prismaFmt)
       const showColors = !process.env.NO_COLOR && process.stdout.isTTY
@@ -57,7 +58,7 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
       return result.stdout
     })
     .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
-      debug('reading a schema from a file')
+      debug('reading a schema from a file, using the WASM engine')
 
       if (!fs.existsSync(_schemaPath)) {
         throw new Error(`Schema at ${schemaPath} does not exist.`)
@@ -72,18 +73,35 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
   return formattedSchema
 }
 
+type DocumentUri = string
+
+type TextDocument = {
+  /**
+   * The associated URI for this document. Most documents have the __file__-scheme, indicating that they
+   * represent files on disk. However, some documents may have other schemes indicating that they are not
+   * available on disk.
+   */
+  readonly uri: DocumentUri
+}
+
 // Part of the LSP spec: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentFormattingParams
 // These are only the parts we are interested in.
 type DocumentFormattingParams = {
+  textDocument: TextDocument
   options: {
-    tabSize: number // this is the only property currently considered by Rust
+    // this is the only property currently considered by Rust, the rest are ignored but are needed for successfully unmarshaling the `DocumentFormattingParams`
+    // and be compatible with the LSP spec.
+    // The WASM formatter may fail silently on unmarshaling errors (a `warn!` macro is used in the Rust code, but that's not propagated to WASM land).
+    tabSize: number
+
     insertSpaces: boolean
   }
 }
 
 const defaultDocumentFormattingParams: DocumentFormattingParams = {
+  textDocument: { uri: 'file:/dev/null' },
   options: {
-    tabSize: 4,
+    tabSize: 2,
     insertSpaces: true,
   },
 }
