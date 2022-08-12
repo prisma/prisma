@@ -8,8 +8,10 @@ import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
 export type RequestOptions = O.Patch<{ headers?: { [k: string]: string }; body?: string }, RequestInit>
+
+type Headers = Record<string, string | string[] | undefined>
 export type RequestResponse = O.Required<
-  O.Optional<O.Patch<{ text: () => string }, Response>>,
+  O.Optional<O.Patch<{ text: () => string; headers: Headers }, Response>>,
   'text' | 'json' | 'url' | 'ok' | 'status'
 >
 
@@ -78,6 +80,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage): Reque
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
+    headers: response.headers,
   }
 }
 
