@@ -41,7 +41,8 @@ model Like {
   post   Post   @relation(fields: [postId], references: [id])
 
   @@unique([userId, postId])
-}"
+}
+"
 `;
 
 exports[`format valid blog schemaPath 1`] = `
@@ -82,5 +83,6 @@ model Like {
   post   Post   @relation(fields: [postId], references: [id])
 
   @@unique([userId, postId])
-}"
+}
+"
 `;

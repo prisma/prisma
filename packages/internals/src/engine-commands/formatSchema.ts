@@ -1,15 +1,10 @@
 import Debug from '@prisma/debug'
-import { BinaryType } from '@prisma/fetch-engine'
-import execa from 'execa'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
-import { resolveBinary } from '../resolveBinary'
 import { prismaFmt } from '../wasm'
 
 const debug = Debug('prisma:formatSchema')
-
-const MAX_BUFFER = 1_000_000_000
 
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
 
@@ -24,7 +19,7 @@ function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { s
 /**
  * Can be used by passing either the `schema` as a string, or a path `schemaPath` to the schema file.
  * Passing `schema` will use the Rust binary, passing `schemaPath` will use the WASM engine.
- * TODO: currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
+ * Currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
  */
 export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): Promise<string> {
   if (!schema && !schemaPath) {
@@ -37,39 +32,24 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
     prismaFmt.debug_panic()
   }
 
-  const formattedSchema = await match({ schema, schemaPath } as FormatSchemaParams)
-    .when(isSchemaOnly, async ({ schema: _schema }) => {
-      debug('using a schema string directly, using the Rust binary')
-
-      const prismaFmtPath = await resolveBinary(BinaryType.prismaFmt)
-      const showColors = !process.env.NO_COLOR && process.stdout.isTTY
-      const options = {
-        env: {
-          RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
-          ...(showColors ? { CLICOLOR_FORCE: '1' } : {}),
-        },
-        maxBuffer: MAX_BUFFER,
-      } as execa.Options
-      const result = await execa(prismaFmtPath, ['format'], {
-        ...options,
-        input: schema,
-      })
-
-      return result.stdout
+  const schemaContent = match({ schema, schemaPath } as FormatSchemaParams)
+    .when(isSchemaOnly, ({ schema: _schema }) => {
+      debug('using a schema string directly')
+      return _schema
     })
-    .when(isSchemaPathOnly, async ({ schemaPath: _schemaPath }) => {
-      debug('reading a schema from a file, using the WASM engine')
+    .when(isSchemaPathOnly, ({ schemaPath: _schemaPath }) => {
+      debug('reading a schema from a file')
 
       if (!fs.existsSync(_schemaPath)) {
         throw new Error(`Schema at ${schemaPath} does not exist.`)
       }
-      const _schema = await fs.promises.readFile(_schemaPath, { encoding: 'utf8' })
-      return await formatWASM(_schema)
+
+      const _schema = fs.readFileSync(_schemaPath, { encoding: 'utf8' })
+      return _schema
     })
     .exhaustive()
 
-  debug(`formatted schema:\n${formattedSchema}`)
-
+  const formattedSchema = await formatWASM(schemaContent)
   return formattedSchema
 }
 
