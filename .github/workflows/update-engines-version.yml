@@ -40,6 +40,8 @@ jobs:
         run: |
           echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
+          echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to update the dependencies'
 
       - name: Update the engines dependencies
@@ -50,6 +52,8 @@ jobs:
           command: |
             echo 'Updating @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
+            echo 'Updating @prisma/prisma-fmt-wasm to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/prisma-fmt-wasm@${{ github.event.inputs.version }}
             echo 'Awesome - proceeding to make the PR'
 
       - name: Extract Engine Commit hash from version
@@ -81,6 +85,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -121,6 +126,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
 
