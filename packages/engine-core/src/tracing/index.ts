@@ -1,4 +1,4 @@
 export { createSpan } from './createSpan'
 export { getTraceParent } from './getTraceParent'
-export { runInActiveSpan, runInSpan } from './runInSpan'
-export { TransactionTracer } from './TransactionTracer'
+export { type TracingConfig, getTracingConfig } from './getTracingConfig'
+export { type SpanOptions, runInChildSpan } from './runInChildSpan'

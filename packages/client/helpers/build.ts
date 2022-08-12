@@ -87,9 +87,11 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
       bundledPackages: [
         'decimal.js',
         'sql-template-tag',
+        '@opentelemetry/api',
         '@prisma/internals',
         '@prisma/engine-core',
         '@prisma/generator-helper',
+        '@prisma/debug',
       ],
       compiler: {
         tsconfigFilePath: 'tsconfig.build.json',
