@@ -3,12 +3,17 @@ import path from 'path'
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
 let prisma
-// skipped because flaky https://buildkite.com/prisma/prisma2-publish/builds/4902#c94c9d75-8d51-4abe-a875-13fd2a4ee6fe/179-1114
-// errors with: `The table `dbo.UserDefaultOnDelete` does not exist in the current database.`
-// TODO unskip
-describe.skip('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
+const baseUri = process.env.TEST_MSSQL_JDBC_URI
+
+describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
   beforeAll(async () => {
+    process.env.TEST_MSSQL_JDBC_URI = process.env.TEST_MSSQL_JDBC_URI!.replace(
+      'master',
+      'referentialActions-onDelete-default',
+    )
     await migrateDb({
       connectionString: process.env.TEST_MSSQL_JDBC_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
@@ -16,13 +21,15 @@ describe.skip('referentialActions-onDelete-default-foreign-key-error(sqlserver)'
     await generateTestClient()
     const { PrismaClient } = require('./node_modules/@prisma/client')
     prisma = new PrismaClient()
-  })
 
-  afterAll(async () => {
     await prisma.post.deleteMany()
     await prisma.profile.deleteMany()
     await prisma.user.deleteMany()
+  })
+
+  afterAll(async () => {
     await prisma.$disconnect()
+    process.env.TEST_MSSQL_JDBC_URI = baseUri
   })
 
   test('delete 1 user, should error', async () => {
@@ -50,15 +57,15 @@ describe.skip('referentialActions-onDelete-default-foreign-key-error(sqlserver)'
     } catch (e) {
       expect(e.message).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.delete()\` invocation in
-/client/src/__tests__/integration/errors/default-onDelete-cascade-sqlserver/test.ts:41:31
+        Invalid \`prisma.user.delete()\` invocation in
+        /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlserver/test.ts:0:0
 
-  38 expect(await prisma.user.findMany()).toHaveLength(1)
-  39 
-  40 try {
-→ 41   await prisma.user.delete(
-  The change you are trying to make would violate the required relation 'PostToUser' between the \`Post\` and \`User\` models.
-`)
+           49 expect(await prisma.user.findMany()).toHaveLength(1)
+           50 
+           51 try {
+        →  52   await prisma.user.delete(
+          Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
+      `)
     }
   })
 })
