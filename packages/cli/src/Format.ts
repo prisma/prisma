@@ -1,5 +1,5 @@
 import type { Command } from '@prisma/internals'
-import { arg, ErrorArea, format, formatms, formatSchema, getDMMF, HelpError, RustPanic } from '@prisma/internals'
+import { arg, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -54,32 +54,15 @@ Or specify a Prisma schema path
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    let output: string | undefined
-
-    try {
-      output = await formatSchema({
-        schemaPath,
-      })
-    } catch (err) {
-      if (err.exitCode === 101 || err.stderr?.includes('panicked at')) {
-        throw new RustPanic(
-          /* message */ err.shortMessage,
-          /* rustStack */ err.stack,
-          /* request */ 'format',
-          ErrorArea.FMT_CLI,
-          schemaPath,
-          /* schema */ undefined,
-        )
-      }
-
-      throw err
-    }
+    let output = await formatSchema({ schemaPath })
 
     // TODO: what's the point of this?
     await getDMMF({
       datamodel: output,
     })
 
+    // TODO: this is technically not needed, as the EOL is added by the Rust engine already.
+    // Maybe it's needed to have the proper line terminator on Windows, though.
     output = output?.trimEnd() + os.EOL
 
     fs.writeFileSync(schemaPath, output)

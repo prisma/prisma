@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
+import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 
 const debug = Debug('prisma:formatSchema')
@@ -49,8 +50,21 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
     })
     .exhaustive()
 
-  const formattedSchema = await formatWASM(schemaContent)
-  return formattedSchema
+  try {
+    const formattedSchema = await formatWASM(schemaContent)
+    return formattedSchema
+  } catch (e: unknown) {
+    // the only possible error here is a Rust panic
+    const wasmError = e as Error
+    throw new RustPanic(
+      /* message */ wasmError.message,
+      /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+      /* request */ '@prisma/prisma-fmt-wasm format',
+      ErrorArea.FMT_CLI,
+      schemaPath,
+      schema,
+    )
+  }
 }
 
 type DocumentUri = string
