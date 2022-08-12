@@ -1,5 +1,3 @@
-import { TransactionTracer } from '../../../utils/TransactionTracer'
-
 /**
  * Prisma's `Promise` that is backwards-compatible. All additions on top of the
  * original `Promise` are optional so that it can be backwards-compatible.
@@ -36,9 +34,5 @@ export interface PrismaPromise<A> extends Promise<A> {
    * Called when executing a batch of regular tx
    * @param txId for regular tx ids
    */
-  requestTransaction?(
-    txId: number,
-    lock?: PromiseLike<void>,
-    transactionTracer?: TransactionTracer,
-  ): PromiseLike<unknown>
+  requestTransaction?(txId: number, lock?: PromiseLike<void>): PromiseLike<unknown>
 }

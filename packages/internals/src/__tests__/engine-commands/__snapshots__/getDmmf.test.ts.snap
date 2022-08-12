@@ -200,6 +200,29 @@ Object {
     "enumTypes": Object {
       "prisma": Array [
         Object {
+          "name": "QueryMode",
+          "values": Array [
+            "default",
+            "insensitive",
+          ],
+        },
+        Object {
+          "name": "SortOrder",
+          "values": Array [
+            "asc",
+            "desc",
+          ],
+        },
+        Object {
+          "name": "TransactionIsolationLevel",
+          "values": Array [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        Object {
           "name": "User1ScalarFieldEnum",
           "values": Array [
             "id",
@@ -215,20 +238,6 @@ Object {
             "firstName",
             "lastName",
             "isAdmin",
-          ],
-        },
-        Object {
-          "name": "SortOrder",
-          "values": Array [
-            "asc",
-            "desc",
-          ],
-        },
-        Object {
-          "name": "QueryMode",
-          "values": Array [
-            "default",
-            "insensitive",
           ],
         },
       ],
@@ -6745,10 +6754,10 @@ Object {
     "enumTypes": Object {
       "prisma": Array [
         Object {
-          "name": "UserScalarFieldEnum",
+          "name": "QueryMode",
           "values": Array [
-            "id",
-            "email",
+            "default",
+            "insensitive",
           ],
         },
         Object {
@@ -6759,10 +6768,19 @@ Object {
           ],
         },
         Object {
-          "name": "QueryMode",
+          "name": "TransactionIsolationLevel",
           "values": Array [
-            "default",
-            "insensitive",
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        Object {
+          "name": "UserScalarFieldEnum",
+          "values": Array [
+            "id",
+            "email",
           ],
         },
       ],
@@ -10472,10 +10490,26 @@ Object {
           ],
         },
         Object {
-          "name": "UserScalarFieldEnum",
+          "name": "QueryMode",
           "values": Array [
-            "id",
-            "email",
+            "default",
+            "insensitive",
+          ],
+        },
+        Object {
+          "name": "SortOrder",
+          "values": Array [
+            "asc",
+            "desc",
+          ],
+        },
+        Object {
+          "name": "TransactionIsolationLevel",
+          "values": Array [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
           ],
         },
         Object {
@@ -10497,17 +10531,10 @@ Object {
           ],
         },
         Object {
-          "name": "SortOrder",
+          "name": "UserScalarFieldEnum",
           "values": Array [
-            "asc",
-            "desc",
-          ],
-        },
-        Object {
-          "name": "QueryMode",
-          "values": Array [
-            "default",
-            "insensitive",
+            "id",
+            "email",
           ],
         },
       ],
@@ -22878,9 +22905,9 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `132028293`;
+exports[`getDMMF big schema 1`] = `132028407`;
 
-exports[`getDMMF chinook introspected schema 1`] = `884636`;
+exports[`getDMMF chinook introspected schema 1`] = `884750`;
 
 exports[`getDMMF simple model, mongodb 1`] = `
 Object {
@@ -23009,17 +23036,17 @@ Object {
           ],
         },
         Object {
-          "name": "SortOrder",
-          "values": Array [
-            "asc",
-            "desc",
-          ],
-        },
-        Object {
           "name": "QueryMode",
           "values": Array [
             "default",
             "insensitive",
+          ],
+        },
+        Object {
+          "name": "SortOrder",
+          "values": Array [
+            "asc",
+            "desc",
           ],
         },
       ],
@@ -26319,6 +26346,15 @@ Object {
           "values": Array [
             "asc",
             "desc",
+          ],
+        },
+        Object {
+          "name": "TransactionIsolationLevel",
+          "values": Array [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
           ],
         },
       ],
@@ -32836,6 +32872,13 @@ Object {
           ],
         },
         Object {
+          "name": "QueryMode",
+          "values": Array [
+            "default",
+            "insensitive",
+          ],
+        },
+        Object {
           "name": "SortOrder",
           "values": Array [
             "asc",
@@ -32843,10 +32886,12 @@ Object {
           ],
         },
         Object {
-          "name": "QueryMode",
+          "name": "TransactionIsolationLevel",
           "values": Array [
-            "default",
-            "insensitive",
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
           ],
         },
       ],
@@ -36278,6 +36323,16 @@ Object {
             "desc",
           ],
         },
+        Object {
+          "name": "TransactionIsolationLevel",
+          "values": Array [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+            "Snapshot",
+          ],
+        },
       ],
     },
     "inputObjectTypes": Object {
@@ -39666,6 +39721,12 @@ Object {
           "values": Array [
             "asc",
             "desc",
+          ],
+        },
+        Object {
+          "name": "TransactionIsolationLevel",
+          "values": Array [
+            "Serializable",
           ],
         },
       ],

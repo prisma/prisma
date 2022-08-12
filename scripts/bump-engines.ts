@@ -19,6 +19,8 @@ async function main() {
     version = 'latest'
   }
   await run(path.join(__dirname, '..'), `pnpm update -r @prisma/engines-version@${version}`)
+  await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines dev`)
+  await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines postinstall`)
 }
 
 void main()

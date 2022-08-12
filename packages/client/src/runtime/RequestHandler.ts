@@ -1,4 +1,6 @@
+import { Context, trace } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
+import { getTraceParent } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -33,6 +35,8 @@ export type RequestParams = {
   headers?: Record<string, string>
   transactionId?: string | number
   unpacker?: Unpacker
+  otelParentCtx?: Context
+  otelChildCtx?: Context
 }
 
 export type HandleErrorParams = {
@@ -46,12 +50,15 @@ export type Request = {
   runInTransaction?: boolean
   transactionId?: string | number
   headers?: Record<string, string>
+  otelParentCtx?: Context
+  otelChildCtx?: Context
 }
 
-function getRequestInfo(requests: Request[]) {
-  const txId = requests[0].transactionId
-  const inTx = requests[0].runInTransaction
-  const headers = requests[0].headers ?? {}
+function getRequestInfo(request: Request) {
+  const txId = request.transactionId
+  const inTx = request.runInTransaction
+  const headers = request.headers ?? {}
+  const traceparent = getTraceParent()
 
   // if the tx has a number for an id, then it's a regular batch tx
   const _inTx = typeof txId === 'number' && inTx ? true : undefined
@@ -59,6 +66,7 @@ function getRequestInfo(requests: Request[]) {
   const _txId = typeof txId === 'string' && inTx ? txId : undefined
 
   if (_txId !== undefined) headers.transactionId = _txId
+  if (traceparent !== undefined) headers.traceparent = traceparent
 
   return { inTx: _inTx, headers }
 }
@@ -73,13 +81,18 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const info = getRequestInfo(requests)
+        const info = getRequestInfo(requests[0])
         const queries = requests.map((r) => String(r.document))
+        const traceparent = getTraceParent(requests[0].otelParentCtx)
+
+        if (traceparent) info.headers.traceparent = traceparent
+        // TODO: pass the child information to QE for it to issue links to queries
+        // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
         return this.client._engine.requestBatch(queries, info.headers, info.inTx)
       },
       singleLoader: (request) => {
-        const info = getRequestInfo([request])
+        const info = getRequestInfo(request)
         const query = String(request.document)
 
         return this.client._engine.request(query, info.headers)
@@ -109,6 +122,8 @@ export class RequestHandler {
     headers,
     transactionId,
     unpacker,
+    otelParentCtx,
+    otelChildCtx,
   }: RequestParams) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -144,6 +159,8 @@ export class RequestHandler {
           runInTransaction,
           headers,
           transactionId,
+          otelParentCtx,
+          otelChildCtx,
         })
         data = result?.data
         elapsed = result?.elapsed

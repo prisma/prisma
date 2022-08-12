@@ -13,10 +13,12 @@ export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { objectEnumValues } from './object-enums'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
+export { makeStrictEnum } from './strictEnum'
 export type { DecimalJsLike } from './utils/decimalJsLike'
 export { findSync } from './utils/find'
 export { NotFoundError } from './utils/rejectOnNotFound'
 export { warnEnvConflicts } from './warnEnvConflicts'
+export { Debug } from '@prisma/debug'
 export {
   Engine,
   PrismaClientInitializationError,

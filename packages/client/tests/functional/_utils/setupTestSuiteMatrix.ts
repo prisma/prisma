@@ -1,11 +1,8 @@
-import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-base'
-
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta, TestSuiteConfig } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
-import { setupTracing } from './setupTracing'
 import { MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
@@ -42,21 +39,18 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta, tracer: InMemorySpanExporter) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteConfig = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfig)
+  const suiteConfigs = getTestSuiteConfigs(suiteMeta)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs)
   checkMissingProviders({
-    suiteConfig,
+    suiteConfigs,
     suiteMeta,
     options,
   })
-
-  // Tracing to happen top level because many different instances of OTEL will conflict(using global vars)
-  const inMemorySpanExporter = setupTracing()
 
   for (const { name, suiteConfig, skip } of testPlan) {
     const describeFn = skip ? describe.skip : describe
@@ -65,7 +59,7 @@ function setupTestSuiteMatrix(
       const clients = [] as any[]
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }
+        process.env = { ...setupTestSuiteDbURI(suiteConfig.matrixOptions), ...originalEnv }
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
@@ -100,7 +94,7 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       })
 
-      tests(suiteConfig, suiteMeta, inMemorySpanExporter)
+      tests(suiteConfig.matrixOptions, suiteMeta)
     })
   }
 }

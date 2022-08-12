@@ -736,14 +736,16 @@ async function tagEnginesRepo(
     const [major, minor] = patchBranch.split('.')
     const majorMinor = [major, minor].join('.')
     // ['3.2.0', '3.2.1']
-    const patchesPublished: string[] = JSON.parse(
+    const patchesPublished: string | string[] = JSON.parse(
       // TODO this line is useful for retrieving versions
       await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
     )
 
     console.log({ patchesPublished })
 
-    if (patchesPublished.length > 0) {
+    if (typeof patchesPublished === 'string') {
+      previousTag = patchesPublished
+    } else if (patchesPublished.length > 0) {
       // 3.2.0
       previousTag = patchesPublished.pop() as string
     } else {
