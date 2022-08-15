@@ -144,55 +144,64 @@ ${chalk.bold('Examples')}
 
     const migrationIdsApplied: string[] = []
 
-    if (devDiagnostic.action.tag === 'reset') {
-      if (!args['--force']) {
-        // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-          migrate.stop()
-          throw new MigrateDevEnvNonInteractiveError()
+    //
+    // "--create-only" now only creates the SQL files for the user review, it wont reset or apply anything.
+    // it wouldn't make sense, we are just wanting to "create only" the migration file... for review...
+    //
+    if (!args['--create-only']) {
+      if (devDiagnostic.action.tag === 'reset') {
+        if (!args['--force']) {
+          // We use prompts.inject() for testing in our CI
+          if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+            migrate.stop()
+            throw new MigrateDevEnvNonInteractiveError()
+          }
+
+          const dbInfo = await getDbInfo(schemaPath)
+          const confirmedReset = await this.confirmReset(dbInfo, devDiagnostic.action.reason)
+
+          console.info() // empty line
+
+          if (!confirmedReset) {
+            console.info('Reset cancelled.')
+            migrate.stop()
+            process.exit(0)
+            // For snapshot test, because exit() is mocked
+            return ``
+          }
         }
 
-        const dbInfo = await getDbInfo(schemaPath)
-        const confirmedReset = await this.confirmReset(dbInfo, devDiagnostic.action.reason)
-
-        console.info() // empty line
-
-        if (!confirmedReset) {
-          console.info('Reset cancelled.')
+        try {
+          // Do the reset
+          await migrate.reset()
+        } catch (e) {
           migrate.stop()
-          process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
+          throw e
         }
       }
 
       try {
-        // Do the reset
-        await migrate.reset()
+        const { appliedMigrationNames } = await migrate.applyMigrations()
+        migrationIdsApplied.push(...appliedMigrationNames)
+
+        // Inform user about applied migrations now
+        if (appliedMigrationNames.length > 0) {
+          console.info() // empty line
+          console.info(
+            `The following migration(s) have been applied:\n\n${chalk(
+              printFilesFromMigrationIds('migrations', appliedMigrationNames, {
+                'migration.sql': '',
+              }),
+            )}`,
+          )
+        }
       } catch (e) {
         migrate.stop()
         throw e
       }
-    }
-
-    try {
-      const { appliedMigrationNames } = await migrate.applyMigrations()
-      migrationIdsApplied.push(...appliedMigrationNames)
-
-      // Inform user about applied migrations now
-      if (appliedMigrationNames.length > 0) {
-        console.info() // empty line
-        console.info(
-          `The following migration(s) have been applied:\n\n${chalk(
-            printFilesFromMigrationIds('migrations', appliedMigrationNames, {
-              'migration.sql': '',
-            }),
-          )}`,
-        )
-      }
-    } catch (e) {
-      migrate.stop()
-      throw e
+    } else if (devDiagnostic.action.tag === 'reset') {
+      // display a warning just so the user knows what will happen once the "--create-only" flag is removed.
+      console.log('[!] A reset will be required before applying this migration!')
     }
 
     let evaluateDataLossResult: EngineResults.EvaluateDataLossOutput
