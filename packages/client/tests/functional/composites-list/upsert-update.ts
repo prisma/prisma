@@ -1,7 +1,7 @@
 import { faker } from '@faker-js/faker'
 
-import { setupTestSuite } from '../_matrix'
-import { commentListDataB } from '../_testData'
+import { setupTestSuite } from './_matrix'
+import { commentListDataB } from './_testData'
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
