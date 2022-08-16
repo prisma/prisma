@@ -45,7 +45,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('findUnique', async () => {
+    test('composite-index many fields', async () => {
       const response = await prisma.a.findUnique({
         where: {
           name_location_street_zipCode_city_name: {

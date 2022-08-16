@@ -39,7 +39,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('findUnique', async () => {
+    test('composite-index simple', async () => {
       const response = await prisma.a.findUnique({
         where: {
           location_address: {

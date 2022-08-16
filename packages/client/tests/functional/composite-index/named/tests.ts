@@ -11,37 +11,40 @@ testMatrix.setupTestSuite(
           {
             id: '1',
             name: 'foo',
-            locations: {
-              set: [
-                {
-                  address: 'a',
-                },
-                {
-                  address: 'b',
-                },
-              ],
+            location: {
+              set: {
+                address: 'a',
+              },
             },
           },
           {
             id: '2',
             name: 'bar',
-            locations: {
-              set: [
-                {
-                  address: 'c',
-                },
-              ],
+            location: {
+              set: {
+                address: 'b',
+              },
+            },
+          },
+          {
+            id: '3',
+            name: 'foo',
+            location: {
+              set: {
+                address: 'c',
+              },
             },
           },
         ],
       })
     })
 
-    test('findUnique', async () => {
+    test('composite-index named', async () => {
       const response = await prisma.a.findUnique({
         where: {
-          locations_address: {
-            locations: {
+          name_address: {
+            name: 'foo',
+            location: {
               address: 'a',
             },
           },
@@ -51,14 +54,9 @@ testMatrix.setupTestSuite(
       expect(response).toMatchObject({
         id: '1',
         name: 'foo',
-        locations: [
-          {
-            address: 'a',
-          },
-          {
-            address: 'b',
-          },
-        ],
+        location: {
+          address: 'a',
+        },
       })
     })
   },

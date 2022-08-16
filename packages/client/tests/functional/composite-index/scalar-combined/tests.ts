@@ -39,10 +39,10 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('findUnique', async () => {
+    test('composite-index scalar-combined', async () => {
       const response = await prisma.a.findUnique({
         where: {
-          name_address: {
+          name_location_address: {
             name: 'foo',
             location: {
               address: 'a',
