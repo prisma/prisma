@@ -133,7 +133,7 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Reco
 export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
-  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
   const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
