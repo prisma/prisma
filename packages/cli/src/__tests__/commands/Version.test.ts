@@ -116,10 +116,6 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
-  // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
-  // Currently, the engine version of @prisma/prisma-fmt-wasm isn't necessarily the same as the enginesVersion
-  str = str.replace(new RegExp('([0-9]+.[0-9]+.[0-9]+-[0-9]+.)([a-z0-9]{40})', 'g'), 'CLI_VERSION.ENGINE_VERSION')
-
   // replace engine version hash
   const defaultEngineVersion = enginesVersion
   const currentEngineVersion = versionOverride ?? enginesVersion

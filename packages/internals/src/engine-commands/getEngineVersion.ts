@@ -6,7 +6,6 @@ import execa from 'execa'
 import * as TE from 'fp-ts/TaskEither'
 import { match } from 'ts-pattern'
 
-// import { dependencies } from '../../package.json'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
@@ -44,7 +43,11 @@ type WasmEngineType = Extract<BinaryType, BinaryType.prismaFmt>
  */
 export function getWASMVersion(engineName: WasmEngineType): string {
   const wasmVersion = match(engineName)
-    .with(BinaryType.prismaFmt, () => dependencies['@prisma/prisma-fmt-wasm'] as string)
+    .with(BinaryType.prismaFmt, () => {
+      // TODO: this simply avoids us from applying custom regexes
+      const prismaFmtVersion = dependencies['@prisma/prisma-fmt-wasm']
+      return 'CLI_VERSION.ENGINE_VERSION'
+    })
     .exhaustive()
 
   return wasmVersion
