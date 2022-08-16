@@ -60,10 +60,14 @@ describe('version', () => {
 
   // Binary Tests
 
-  testIf(!useNodeAPI)('basic version', async () => {
-    const data = await ctx.cli('--version')
-    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
-  })
+  testIf(!useNodeAPI)(
+    'basic version',
+    async () => {
+      const data = await ctx.cli('--version')
+      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+    },
+    50000,
+  )
 
   testIf(!useNodeAPI)(
     'version with custom binaries',
