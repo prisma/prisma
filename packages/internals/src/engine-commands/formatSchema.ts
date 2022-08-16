@@ -28,9 +28,12 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
   }
 
   if (process.env.FORCE_PANIC_PRISMA_FMT) {
-    // TODO: this prints something like `${chalk.red('Error:')} unreachable`.
-    // Is it still useful to have this?
-    prismaFmt.debug_panic()
+    handleFormatPanic(
+      () => {
+        prismaFmt.debug_panic()
+      },
+      { schemaPath, schema } as FormatSchemaParams,
+    )
   }
 
   const schemaContent = match({ schema, schemaPath } as FormatSchemaParams)
@@ -50,11 +53,21 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
     })
     .exhaustive()
 
+  const formattedSchema = await handleFormatPanic(
+    () => {
+      // the only possible error here is a Rust panic
+      return formatWASM(schemaContent)
+    },
+    { schemaPath, schema } as FormatSchemaParams,
+  )
+
+  return formattedSchema
+}
+
+function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSchemaParams) {
   try {
-    const formattedSchema = await formatWASM(schemaContent)
-    return formattedSchema
+    return tryCb()
   } catch (e: unknown) {
-    // the only possible error here is a Rust panic
     const wasmError = e as Error
     throw new RustPanic(
       /* message */ wasmError.message,
