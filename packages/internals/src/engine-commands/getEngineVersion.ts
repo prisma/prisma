@@ -9,9 +9,6 @@ import { match } from 'ts-pattern'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { dependencies } = require('../../package.json')
-
 export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
     binaryName = getCliQueryEngineBinaryType()
@@ -45,7 +42,6 @@ export function getWASMVersion(engineName: WasmEngineType): string {
   const wasmVersion = match(engineName)
     .with(BinaryType.prismaFmt, () => {
       // TODO: this simply avoids us from applying custom regexes
-      const prismaFmtVersion = dependencies['@prisma/prisma-fmt-wasm']
       return 'CLI_VERSION.ENGINE_VERSION'
     })
     .exhaustive()
