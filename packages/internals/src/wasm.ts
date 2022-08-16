@@ -1,5 +1,4 @@
 import _prismaFmt from '@prisma/prisma-fmt-wasm'
-import { match } from 'ts-pattern'
 
 import { getWASMVersion } from './engine-commands/getEngineVersion'
 import { BinaryType } from './resolveBinary'
@@ -10,11 +9,13 @@ import { BinaryType } from './resolveBinary'
 
 export const prismaFmt = new Proxy(_prismaFmt, {
   get(target, prop) {
-    return match(prop)
-      .with('version', () => () => {
+    if (prop === 'version') {
+      return () => {
         const overriddenVersion = getWASMVersion(BinaryType.prismaFmt)
         return overriddenVersion
-      })
-      .otherwise(() => target[prop])
+      }
+    }
+
+    return target[prop]
   },
 })
