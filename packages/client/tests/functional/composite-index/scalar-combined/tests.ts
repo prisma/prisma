@@ -59,6 +59,19 @@ testMatrix.setupTestSuite(
         },
       })
     })
+
+    test('should throw runtime error if not all indexes are provided', async () => {
+      await expect(
+        async () =>
+          await prisma.a.findUnique({
+            where: {
+              name_location_address: {
+                name: 'foo',
+              },
+            },
+          }),
+      ).rejects.toThrowError('Argument location for where.name_location_address.location is missing')
+    })
   },
   {
     optOut: {
