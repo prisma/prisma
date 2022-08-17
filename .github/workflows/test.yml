@@ -265,7 +265,7 @@ jobs:
       - name: Find report comment
         uses: peter-evans/find-comment@v2
         id: fc
-        if: always()
+        if: ${{ always() && github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
