@@ -1,3 +1,5 @@
+/* eslint-disable jest/no-identical-title */
+
 import { jestContext } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
 import fs from 'fs'
@@ -9,7 +11,7 @@ const ctx = jestContext.new().assemble()
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-describe('empty-schema library', () => {
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('empty-schema library', () => {
   beforeEach(() => {
     ctx.fixture('empty-schema/prisma')
   })
@@ -76,7 +78,7 @@ DROP TABLE 'test-dbexecute';`
   })
 })
 
-describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('empty-schema binary', () => {
+describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'binary')('empty-schema binary', () => {
   beforeEach(() => {
     ctx.fixture('empty-schema/prisma')
   })
