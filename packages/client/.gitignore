@@ -2,10 +2,11 @@
 /declaration
 /generator-build
 /runtime
-/dir.lock
+/tests/memory/memory-report.html
 
 pnpm-lock.yaml
 *.tsbuildinfo
 junit.xml
 .DS_Store
 .generated
+*.db-journal

@@ -83,6 +83,7 @@ In the `prisma/prisma` repository we have a few places where you can write tests
 - **`client`**
   - `src/__tests__/*.test.ts` - Unit tests
   - `test/functional` - New functional tests setup
+  - `test/memory` - Memory leaks tests
   - `src/__tests__/integration/happy/**` - Legacy integration tests for the happy path. Please, write functional tests instead.
   - `src/__tests__/integration/errors/**` - Legacy integration tests for error cases. Please write functional tests instead.
   - `src/__tests__/types/**` - Tests for generated Client TS Types
@@ -334,6 +335,56 @@ prisma.$queryRaw`...`
 If JS expression, following `@ts-test-if:` evaluates to truthy value, `@ts-expect-error` will be
 inserted in its place during the generation. All parameters from the test matrix can be used within that
 expression.
+
+## Memory tests
+
+This suite tests client for memory leaks. It works by repeatedly running test code in a loop
+and monitoring V8 heap usage after every iteration. If it detects that memory usage grows
+with a rate higher than the threshold, it will report a memory leak and fail the test.
+
+To create a memory test you need 2 files:
+
+- schema, located in `tests/memory/<your-test-name>/prisma/schema.prisma` file, which will be
+  used for setting up the database.
+- test code, `tests/memory/<your-test-name>/test.ts`
+
+### Writing memory test
+
+Tests are created using `createMemoryTest` function:
+
+```ts
+import { createMemoryTest } from '../_utils/createMemoryTest'
+
+//@ts-ignore
+type PrismaModule = typeof import('./.generated/node_modules/@prisma/client')
+
+void createMemoryTest({
+  async prepare({ PrismaClient }: PrismaModule) {
+    const client = new PrismaClient()
+    await client.$connect()
+    return client
+  },
+  async run(client) {
+    await client.user.findMany()
+  },
+  async cleanup(client) {
+    await client.$disconnect()
+  },
+  iterations: 1500,
+})
+```
+
+`createMemoryTest` accepts following options:
+
+- `prepare(prismaModule)` is used for any setup code, needed by the test. It is executed only once. Return value of this function will be passed into `run` and `cleanup` methods.
+- `run(prepareResult)` - actual test code. It is expected that after executing this function, memory usage does not increase. This function is repeatedly executed in a loop while the test runs.
+- `cleanup(prepareResult)` used for cleaning up any work, done in `prepare` function.
+- `iterations` specifies the number of executions of `run` function, for which memory measurement will be done, default is 1000. On top of that, test setup also adds 100 iterations for warming up.
+
+### Running memory tests
+
+- `pnpm test:memory` for running whole test suite
+- `pnpm test:memory <test name>` for running single test
 
 ## CI - Continuous Integration
 

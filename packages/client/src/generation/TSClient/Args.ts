@@ -5,7 +5,6 @@ import { DMMF } from '../../runtime/dmmf-types'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
 
@@ -14,7 +13,6 @@ export class ArgsType implements Generatable {
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly action?: ClientModelAction,
-    protected readonly collector?: ExportCollector,
   ) {}
   public toTS(): string {
     const { action, args } = this
@@ -24,7 +22,6 @@ export class ArgsType implements Generatable {
     }
 
     const selectName = getSelectName(name)
-    this.collector?.addSymbol(selectName)
 
     const argsToGenerate: DMMF.SchemaArg[] = [
       {
@@ -51,7 +48,6 @@ export class ArgsType implements Generatable {
 
     if (hasRelationField) {
       const includeName = getIncludeName(name)
-      this.collector?.addSymbol(includeName)
       argsToGenerate.push({
         name: 'include',
         isRequired: false,
@@ -74,7 +70,6 @@ export class ArgsType implements Generatable {
 
     argsToGenerate.push(...args)
     const modelArgName = getModelArgName(name, action)
-    this.collector?.addSymbol(modelArgName)
     if (action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst) {
       return this.generateFindMethodArgs(action, name, argsToGenerate, modelArgName)
     } else if (action === 'findFirstOrThrow' || action === 'findUniqueOrThrow') {
@@ -147,7 +142,6 @@ export class MinimalArgsType implements Generatable {
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly collector?: ExportCollector,
   ) {}
   public toTS(): string {
     const { action, args } = this
@@ -158,8 +152,6 @@ export class MinimalArgsType implements Generatable {
     }
 
     const typeName = getModelArgName(name, action)
-
-    this.collector?.addSymbol(typeName)
 
     return `
 /**

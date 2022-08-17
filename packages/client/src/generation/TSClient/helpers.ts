@@ -95,13 +95,3 @@ export function getArgFieldJSDoc(
 export function escapeJson(str: string): string {
   return str.replace(/\\n/g, '\\\\n').replace(/\\r/g, '\\\\r').replace(/\\t/g, '\\\\t')
 }
-
-export class ExportCollector {
-  symbols: string[] = []
-  addSymbol(symbol: string) {
-    this.symbols.push(symbol)
-  }
-  getSymbols() {
-    return unique(this.symbols)
-  }
-}

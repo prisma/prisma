@@ -6,7 +6,6 @@ import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../
 import { buildComment } from '../utils/types/buildComment'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { wrapComment } from './helpers'
 
 export class ModelOutputField implements Generatable {
@@ -69,14 +68,9 @@ export class OutputField implements Generatable {
 export class OutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
-  constructor(
-    protected readonly dmmf: DMMFHelper,
-    protected readonly type: DMMF.OutputType,
-    protected readonly collector?: ExportCollector,
-  ) {
+  constructor(protected readonly dmmf: DMMFHelper, protected readonly type: DMMF.OutputType) {
     this.name = type.name
     this.fields = type.fields
-    collector?.addSymbol(this.name)
   }
   public toTS(): string {
     const { type } = this

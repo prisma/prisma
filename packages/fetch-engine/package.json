@@ -16,7 +16,7 @@
     "@prisma/engines-version": "4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270",
     "@swc/core": "1.2.197",
     "@swc/jest": "0.2.22",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/node": "16.11.49",
     "@types/node-fetch": "2.6.2",
     "@types/progress": "2.0.5",

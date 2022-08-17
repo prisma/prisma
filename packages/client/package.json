@@ -39,6 +39,7 @@
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
     "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
+    "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "node -r esbuild-register helpers/functional-test/run-tests.ts --types-only",
     "test-notypes": "jest --verbose --testPathIgnorePatterns src/__tests__/types/types.test.ts",
@@ -82,10 +83,10 @@
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.0.3",
-    "@types/node": "12.20.55",
+    "@types/node": "14.17.34",
     "@types/pg": "8.6.5",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
@@ -111,20 +112,21 @@
     "lz-string": "1.4.4",
     "make-dir": "3.1.0",
     "mariadb": "3.0.0",
-    "mssql": "8.1.2",
+    "mssql": "9.0.0",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
     "replace-string": "3.1.0",
     "resolve": "1.22.1",
     "rimraf": "3.0.2",
+    "simple-statistics": "7.7.6",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
     "sql-template-tag": "4.0.0",
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-jest": "28.0.7",
+    "ts-jest": "28.0.8",
     "ts-node": "10.8.1",
     "tsd": "0.21.0",
     "typescript": "4.7.4",
@@ -140,7 +142,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270"
+    "@prisma/engines-version": "4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e"
   },
   "sideEffects": false
 }

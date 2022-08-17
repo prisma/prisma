@@ -133,6 +133,9 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Reco
 export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
+  if (testPath === undefined) {
+    throw new Error(`getTestSuiteMeta can be executed only within jest test`)
+  }
   const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
