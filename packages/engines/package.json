@@ -12,7 +12,7 @@
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.2.197",
     "@swc/jest": "0.2.22",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/node": "16.11.49",
     "execa": "5.1.1",
     "jest": "28.1.3",

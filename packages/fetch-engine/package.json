@@ -16,7 +16,7 @@
     "@prisma/engines-version": "4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e",
     "@swc/core": "1.2.197",
     "@swc/jest": "0.2.22",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/node": "16.11.49",
     "@types/node-fetch": "2.6.2",
     "@types/progress": "2.0.5",

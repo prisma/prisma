@@ -29,7 +29,7 @@
     "@swc-node/register": "1.5.1",
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.22",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/node": "12.20.55",
     "esbuild": "0.14.47",
     "jest": "28.1.3",
