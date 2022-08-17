@@ -196,6 +196,104 @@ jobs:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+  #
+  # CLIENT (memory tests)
+  #
+  client-memory:
+    timeout-minutes: 15
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        queryEngine: ['library'] # TODO: binary engine is leaking at the moment
+        os: [buildjet-4vcpu-ubuntu-2004]
+        node: [14, 16, 18]
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test:memory
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - uses: actions/github-script@v6
+        if: ${{ failure() && github.event_name == 'pull_request' }}
+        id: upload-report
+        env:
+          NODE_VERSION: ${{ matrix.node }}
+        with:
+          github-token: ${{ secrets.BOT_TOKEN }}
+          script: |
+            const fs = require('fs')
+            const nodeVersion = process.env.NODE_VERSION
+            const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
+            const url = `https://prisma.github.io/ci-reports/${reportPath}`
+            const localReport = './packages/client/tests/memory/memory-report.html'
+            if (fs.existsSync(localReport)) {
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: 'prisma',
+                repo: 'ci-reports',
+                branch: 'gh-pages',
+                path: reportPath,
+                message: `Add memory results for PR ${context.issue.number}`,
+                content: fs.readFileSync(localReport, 'base64'),
+              });
+              console.log(`::set-output name=url::${url}`)
+            }
+
+      - name: Find report comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        if: always()
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
+
+      - name: Create or update remote comment (failure)
+        uses: peter-evans/create-or-update-comment@v2
+        if: ${{ failure() && steps.upload-report.outputs.url }}
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
+
+            ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
+          edit-mode: replace
+
+      - name: Create or update remote comment (success)
+        uses: peter-evans/create-or-update-comment@v2
+        if: ${{ success() && steps.fc.outputs.comment-id != '' }}
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
+
+            ✅ Success
+          edit-mode: replace
 
   #
   # CLIENT (types tests only)

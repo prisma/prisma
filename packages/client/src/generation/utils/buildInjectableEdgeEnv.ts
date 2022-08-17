@@ -38,12 +38,7 @@ function declareInjectableEdgeEnv(datasources: InternalDatasource[]) {
   const envVarNames = getSelectedEnvVarNames(datasources)
 
   for (const envVarName of envVarNames) {
-    // for cloudflare workers, an env var is a global js variable
-    const cfwEnv = `typeof global !== 'undefined' && global['${envVarName}']`
-    // for vercel edge functions, it's injected statically at build
-    const vercelEnv = `process.env.${envVarName}`
-
-    injectableEdgeEnv.parsed[envVarName] = `${cfwEnv} || ${vercelEnv} || undefined`
+    injectableEdgeEnv.parsed[envVarName] = getRuntimeEdgeEnvVar(envVarName)
   }
 
   // we make it json then remove the quotes to turn it into "code"
@@ -68,4 +63,17 @@ function getSelectedEnvVarNames(datasources: InternalDatasource[]) {
 
     return acc
   }, [] as string[])
+}
+
+/**
+ * Builds the expression to get the value of an environment variable at run time.
+ * @param envVarName Name of the environment variable
+ */
+export function getRuntimeEdgeEnvVar(envVarName: string) {
+  // for cloudflare workers, an env var is a global js variable
+  const cfwEnv = `typeof global !== 'undefined' && global['${envVarName}']`
+  // for vercel edge functions, it's injected statically at build
+  const nodeOrVercelEnv = `typeof process !== 'undefined' && process.env && process.env.${envVarName}`
+
+  return `${cfwEnv} || ${nodeOrVercelEnv} || undefined`
 }

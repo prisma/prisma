@@ -9,7 +9,7 @@ const baseUri = process.env.TEST_POSTGRES_URI
 
 describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-default-onDelete-Cascade'
+    process.env.TEST_POSTGRES_URI += 'referentialActions-onDelete-default'
     await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
     await migrateDb({
       connectionString: process.env.TEST_POSTGRES_URI!,
