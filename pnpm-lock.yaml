@@ -274,7 +274,7 @@ importers:
       replace-string: 3.1.0
       resolve: 1.22.1
       rimraf: 3.0.2
-      simple-statistics: ^7.7.5
+      simple-statistics: 7.7.6
       sort-keys: 4.2.0
       source-map-support: 0.5.21
       sql-template-tag: 4.0.0
@@ -349,7 +349,7 @@ importers:
       replace-string: 3.1.0
       resolve: 1.22.1
       rimraf: 3.0.2
-      simple-statistics: 7.7.5
+      simple-statistics: 7.7.6
       sort-keys: 4.2.0
       source-map-support: 0.5.21
       sql-template-tag: 4.0.0
@@ -10789,8 +10789,8 @@ packages:
   /signal-exit/3.0.7:
     resolution: {integrity: sha512-wnD2ZE+l+SPC/uoS0vXeE9L1+0wuaMqKlfz9AMUo38JsyLSBWSFcHR1Rri62LZc12vLr1gb3jl7iwQhgwpAbGQ==}
 
-  /simple-statistics/7.7.5:
-    resolution: {integrity: sha512-CYq683Yg2mb7M4mklQ6FtxEdsYeziGa2giaLvqXobfK1qVqZDKd7BIqLnngnKQSw9GsfNinbiScbfjc3IRWdQA==}
+  /simple-statistics/7.7.6:
+    resolution: {integrity: sha512-r1wIPpBsJ9/H2GdXiYfc06o7Rw4xvhtxwO/dMVSbcjmS3ayc43II1quxG7YD1wql2tr6a2Cm8aWKMnFkuNrj6A==}
     dev: true
 
   /sisteransi/1.0.5:
