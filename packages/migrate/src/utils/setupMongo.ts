@@ -7,10 +7,7 @@ export type SetupParams = {
 }
 
 export async function setupMongo(options: SetupParams): Promise<void> {
-  const { connectionString } = options
-  const { dirname } = options
-
-  console.log('connectionString', connectionString)
+  const { connectionString, dirname } = options
 
   // Connect to default db
   const dbDefault = mongo.createConnection(connectionString)
@@ -30,8 +27,7 @@ export async function setupMongo(options: SetupParams): Promise<void> {
 }
 
 export async function inspectMongo(options: SetupParams): Promise<any> {
-  const { connectionString } = options
-  const { dirname } = options
+  const { connectionString, dirname } = options
 
   const db = mongo.createConnection(connectionString)
 
