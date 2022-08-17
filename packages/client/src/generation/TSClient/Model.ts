@@ -37,7 +37,6 @@ import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { TS } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelOutputField, OutputType } from './Output'
@@ -52,7 +51,6 @@ export class Model implements Generatable {
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
-    protected readonly collector?: ExportCollector,
   ) {
     this.type = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(dmmf, this.type)
@@ -71,11 +69,11 @@ export class Model implements Generatable {
       }
 
       if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction))
       } else if (action === 'findRaw' || action === 'aggregateRaw') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction))
       } else if (action !== 'groupBy' && action !== 'aggregate') {
-        argsTypes.push(new ArgsType(field.args, this.type, action as ClientModelAction, this.collector))
+        argsTypes.push(new ArgsType(field.args, this.type, action as ClientModelAction))
       }
     }
 
@@ -185,17 +183,11 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
       aggregateTypes.push(countType)
     }
 
-    for (const aggregateType of aggregateTypes) {
-      this.collector?.addSymbol(aggregateType.name)
-    }
-
     const aggregateArgsName = getAggregateArgsName(model.name)
 
     const aggregateName = getAggregateName(model.name)
 
-    this.collector?.addSymbol(aggregateArgsName)
-
-    return `${aggregateTypes.map((type) => new SchemaOutputType(type, this.collector).toTS()).join('\n')}
+    return `${aggregateTypes.map((type) => new SchemaOutputType(type).toTS()).join('\n')}
 
 ${
   aggregateTypes.length > 1
@@ -222,7 +214,7 @@ ${
               ],
             })),
           }
-          return new InputType(newType, this.collector).toTS()
+          return new InputType(newType).toTS()
         })
         .join('\n')
     : ''
