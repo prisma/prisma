@@ -6,10 +6,10 @@ import execa from 'execa'
 import * as TE from 'fp-ts/TaskEither'
 import { match } from 'ts-pattern'
 
-// import { dependencies } from '../../package.json'
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
 
+// Note: using `import { dependencies } from '../../package.json'` here would break esbuild with seemingly unrelated errors.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { dependencies } = require('../../package.json')
 
