@@ -79,6 +79,7 @@ testMatrix.setupTestSuite(
         async () =>
           await prisma.a.findUnique({
             where: {
+              // @ts-ignore - we are asserting this will fail
               name_location_street_zipCode_city_name: {
                 name: 'foo',
               },

@@ -72,6 +72,7 @@ testMatrix.setupTestSuite(
         async () =>
           await prisma.a.findUnique({
             where: {
+              // @ts-ignore - we are asserting this will fail
               location_address_person_name: {
                 location: {
                   address: 'a',
