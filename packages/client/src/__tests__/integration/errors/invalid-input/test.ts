@@ -1,9 +1,8 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('invalid-input', async () => {
   expect.assertions(1)
-  await generateTestClient()
-  const { PrismaClient } = require('./node_modules/@prisma/client')
+  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   await prisma.user.deleteMany()
 
@@ -22,10 +21,10 @@ test('invalid-input', async () => {
       Invalid \`prisma.user.create()\` invocation in
       /client/src/__tests__/integration/errors/invalid-input/test.ts:0:0
 
-         8 await prisma.user.deleteMany()
-         9 
-        10 try {
-      → 11   await prisma.user.create({
+         7 await prisma.user.deleteMany()
+         8 
+         9 try {
+      → 10   await prisma.user.create({
                data: {
                  email: 'a@a.de',
                  posts: {

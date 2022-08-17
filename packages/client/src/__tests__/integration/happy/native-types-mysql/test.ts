@@ -1,11 +1,9 @@
+import Decimal from 'decimal.js'
 import path from 'path'
 
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
-
-let PrismaClient
-let Decimal
 
 beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-native-types'
@@ -14,12 +12,11 @@ beforeAll(async () => {
     connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
-  await generateTestClient()
-  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
-  Decimal = require('./node_modules/@prisma/client').Decimal
 })
 
 test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.a.deleteMany()
@@ -49,6 +46,8 @@ test('native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', async ()
 })
 
 test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.b.deleteMany()
@@ -107,6 +106,8 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
 })
 
 test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.c.deleteMany()
@@ -138,6 +139,8 @@ test('native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, LongText'
 })
 
 test('native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.d.deleteMany()
@@ -175,6 +178,8 @@ test('native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => 
 })
 
 test('native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, MediumBlob, LongBlob', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.e.deleteMany()

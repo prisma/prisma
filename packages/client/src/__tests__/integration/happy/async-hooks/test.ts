@@ -1,10 +1,9 @@
 import { executionAsyncId } from 'async_hooks'
 
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('async-hooks', async () => {
-  await generateTestClient()
-  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   let asyncId
   prisma.$use((params, next) => {

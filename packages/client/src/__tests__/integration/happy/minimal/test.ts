@@ -1,8 +1,7 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('minimal', async () => {
-  await generateTestClient()
-  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   const users = await prisma.user.findMany()
   await prisma.$disconnect()

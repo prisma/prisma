@@ -1,4 +1,4 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 let prisma, PrismaClient
 describe('modify-client', () => {
@@ -75,8 +75,7 @@ describe('modify-client', () => {
   })
 
   beforeAll(async () => {
-    await generateTestClient()
-    PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+    PrismaClient = await getTestClient()
     prisma = new PrismaClient()
   })
 

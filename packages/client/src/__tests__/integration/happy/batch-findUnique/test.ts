@@ -1,11 +1,10 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { sanitizeEvents } from '../../__helpers__/sanitizeEvents'
 
 let prisma
 
 beforeAll(async () => {
-  await generateTestClient()
-  const { PrismaClient } = require('./node_modules/@prisma/client')
+  const PrismaClient = await getTestClient()
   prisma = new PrismaClient({
     log: [
       {

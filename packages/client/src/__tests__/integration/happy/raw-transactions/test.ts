@@ -1,15 +1,10 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { sanitizeEvents } from '../../__helpers__/sanitizeEvents'
-
-let PrismaClient
-beforeAll(async () => {
-  await generateTestClient()
-  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
-})
 
 // describe, because we need to run them sequentially
 describe('transaction', () => {
   test('queryRaw', async () => {
+    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
         {
@@ -69,6 +64,7 @@ describe('transaction', () => {
   })
 
   test('queryRaw & updateMany 1', async () => {
+    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
         {
@@ -146,6 +142,7 @@ describe('transaction', () => {
   })
 
   test('queryRaw & updateMany 2', async () => {
+    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
         {
@@ -223,6 +220,7 @@ describe('transaction', () => {
   })
 
   test('executeRaw', async () => {
+    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
         {
@@ -276,6 +274,7 @@ describe('transaction', () => {
   })
 
   test('queryRaw & executeRaw in separate transactions', async () => {
+    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
         {
@@ -328,6 +327,7 @@ describe('transaction', () => {
   // will be fixed in https://github.com/prisma/prisma-engines/issues/1481
   /* eslint-disable-next-line jest/no-disabled-tests */
   test.skip('all mixed', async () => {
+    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient({
       log: [
         {

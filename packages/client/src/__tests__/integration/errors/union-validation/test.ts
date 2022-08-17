@@ -1,9 +1,8 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('union validation', async () => {
   expect.assertions(1)
-  await generateTestClient()
-  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
 
   try {
@@ -27,10 +26,10 @@ test('union validation', async () => {
       Invalid \`prisma.organization.create()\` invocation in
       /client/src/__tests__/integration/errors/union-validation/test.ts:0:0
 
-         7 const prisma = new PrismaClient()
-         8 
-         9 try {
-      → 10   await prisma.organization.create({
+         6 const prisma = new PrismaClient()
+         7 
+         8 try {
+      →  9   await prisma.organization.create({
                data: {
                  fullName: 'name',
                  accounts: {

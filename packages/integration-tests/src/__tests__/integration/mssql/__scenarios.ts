@@ -1,4 +1,5 @@
-import { Decimal } from '../../../../../client/runtime'
+import { Decimal } from 'decimal.js'
+
 import type { Input } from '../../__helpers__/integrationTest'
 
 export const scenarios = [
@@ -1215,13 +1216,7 @@ export const scenarios = [
         insert into exercises (distance) values (12.213);
       `,
     do: (client) => {
-      const a = client.exercises.findMany({ where: { distance: 12.213 } })
-      return a.then((x) => {
-        console.log('x[0].distance', x[0].distance)
-        console.log('x[0].distance.constructor', x[0].distance.constructor)
-        console.log('x[0].distance.constructor === Decimal', x[0].distance.constructor === Decimal)
-        return x
-      })
+      return client.exercises.findMany({ where: { distance: 12.213 } })
     },
     expect: [
       {

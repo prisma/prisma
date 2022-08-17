@@ -1,4 +1,5 @@
-import { Decimal } from '../../../../../client/runtime'
+import { Decimal } from 'decimal.js'
+
 import type { Input } from '../../__helpers__/integrationTest'
 
 export const scenarios = [

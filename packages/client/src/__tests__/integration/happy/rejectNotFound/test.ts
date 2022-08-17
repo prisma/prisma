@@ -1,4 +1,4 @@
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 const cases = {
   constructor: {
@@ -43,12 +43,6 @@ const cases = {
   },
 }
 
-let PrismaClient
-beforeAll(async () => {
-  await generateTestClient()
-  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
-})
-
 for (const constructorKey of Object.keys(cases.constructor)) {
   const constructor = cases.constructor[constructorKey]
   for (const method of Object.keys(cases.methods)) {
@@ -56,6 +50,7 @@ for (const constructorKey of Object.keys(cases.constructor)) {
     for (const valueKey of Object.keys(currentMethod)) {
       const value = currentMethod[valueKey]
       test(`rejectOnNotFound | constructor=${constructorKey} | ${method}=${value}`, async () => {
+        const PrismaClient = await getTestClient()
         const prisma = new PrismaClient({
           rejectOnNotFound: constructor,
         })

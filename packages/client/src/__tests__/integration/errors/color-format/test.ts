@@ -1,10 +1,9 @@
 import stripAnsi from 'strip-ansi'
 
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 
 test('client colorless errorFormat argument', async () => {
-  await generateTestClient()
-  const { PrismaClient } = require('./node_modules/@prisma/client')
+  const PrismaClient = await getTestClient()
   const client = new PrismaClient({ errorFormat: 'colorless' })
   try {
     await client.user.findMany({ wrong: 'x' })

@@ -14,8 +14,9 @@ import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
 
-import { getPrismaClient } from '../../runtime'
 import { getDMMF } from '../generation/getDMMF'
+import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
+import { getPrismaClient } from '../runtime/getPrismaClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
 
@@ -49,7 +50,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const outputDir = absSchemaDir
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
-  const options = {
+  const options: GetPrismaClientConfig = {
     document,
     generator,
     dirname: absSchemaDir,

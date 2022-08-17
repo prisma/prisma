@@ -1,11 +1,9 @@
+import Decimal from 'decimal.js'
 import path from 'path'
 
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
-
-let PrismaClient
-let Decimal
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-native-types-tests'
@@ -14,12 +12,11 @@ beforeAll(async () => {
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
-  await generateTestClient()
-  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
-  Decimal = require('./node_modules/@prisma/client').Decimal
 })
 
 test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, BigSerial', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.a.deleteMany()
@@ -70,6 +67,8 @@ test('native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, B
 })
 
 test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.b.deleteMany()
@@ -131,6 +130,8 @@ test('native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async (
 })
 
 test('native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.c.deleteMany()
@@ -171,6 +172,8 @@ test('native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async ()
 })
 
 test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.d.deleteMany()
@@ -204,6 +207,8 @@ test('native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
 })
 
 test('native-types-postgres E: Date, Time, Timestamp', async () => {
+  const PrismaClient = await getTestClient()
+
   const prisma = new PrismaClient()
 
   await prisma.e.deleteMany()

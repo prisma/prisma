@@ -1,16 +1,10 @@
 import { getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
-import { generateTestClient } from '../../../../utils/getTestClient'
+import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import { replaceTimeValues } from './__helpers__/replaceTimeValues'
-
-let PrismaClient
-beforeAll(async () => {
-  await generateTestClient()
-  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
-})
 
 beforeEach(async () => {
   process.env.TEST_POSTGRES_URI += '-logging-binary'
@@ -25,6 +19,8 @@ test('basic event logging - binary', async () => {
   if (getClientEngineType() !== 'binary') {
     return
   }
+
+  const PrismaClient = await getTestClient()
 
   const prisma = new PrismaClient({
     log: [
@@ -90,6 +86,8 @@ test('interactive transactions logging - binary', async () => {
   if (getClientEngineType() !== 'binary') {
     return
   }
+
+  const PrismaClient = await getTestClient()
 
   const prisma = new PrismaClient({
     log: [
