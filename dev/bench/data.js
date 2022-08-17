@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660712520265,
+  "lastUpdate": 1660725661660,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -118616,6 +118616,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.396425247192383,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3398d4f9241bc4a0b25201eb3e81b877346d82a1",
+          "message": "test: Introduce memory tests (#14693)\n\nSeparate test suite, not using jest.\r\nEach test is launched in a child process to avoid polluting the heap\r\nby test setup code itself as much as possible. It runs provdied scenario\r\nfor specified amounts of iterations, forcing garbage collection and measuring\r\nheap usage in the process. After child process is finsihed, main process then\r\ndetermines if there was a memory leak or not:\r\n\r\n- First, it fits gathered data into a straight line. This step is very\r\n  useful for filtering out the outliers/occasional spikes.\r\n- From the fitted line, it looks at the slope and compares it with the\r\n  threshold. If the slope is above the threshold, memory leak is\r\n  reported.\r\n\r\nIt also plots a graph of memory usage over time to help with debugging.\r\n\r\nFix #14298",
+          "timestamp": "2022-08-17T10:36:57+02:00",
+          "tree_id": "313721b26bd8d5c00ae69cbd52974bd8f8ea01ab",
+          "url": "https://github.com/prisma/prisma/commit/3398d4f9241bc4a0b25201eb3e81b877346d82a1"
+        },
+        "date": 1660725651280,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.51,
+            "range": "±5.02%",
+            "unit": "ops/sec",
+            "extra": "12 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±1.10%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2883682250976562,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.66352367401123,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.6795654296875,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.396549224853516,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
