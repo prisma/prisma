@@ -9,6 +9,7 @@ export {
 } from './core/metrics/MetricsClient'
 export { DMMFHelper as DMMFClass } from './dmmf'
 export { type BaseDMMF, DMMF } from './dmmf-types'
+export type { FieldRef } from './FieldRef'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { objectEnumValues } from './object-enums'

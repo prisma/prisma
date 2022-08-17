@@ -1161,6 +1161,7 @@ new PrismaClient({
           rootField: rootField!,
           rootTypeName: operation,
           select: args,
+          modelName: model,
         })
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)

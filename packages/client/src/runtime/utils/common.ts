@@ -5,6 +5,7 @@ import leven from 'js-levenshtein'
 
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
+import { FieldRefImpl } from '../FieldRef'
 import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
 import { isDecimalJsLike } from './decimalJsLike'
 
@@ -139,6 +140,10 @@ export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType):
 
   if (value instanceof ObjectEnumValue) {
     return value._getName()
+  }
+
+  if (value instanceof FieldRefImpl) {
+    return value._toGraphQLInputType()
   }
 
   if (Array.isArray(value)) {
