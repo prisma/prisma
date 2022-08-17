@@ -55,7 +55,7 @@ describe('version', () => {
         delete process[envVar]
       }
     },
-    50000,
+    50_000,
   )
 
   // Binary Tests
@@ -66,7 +66,7 @@ describe('version', () => {
       const data = await ctx.cli('--version')
       expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
     },
-    50000,
+    10_000,
   )
 
   testIf(!useNodeAPI)(
@@ -102,7 +102,7 @@ describe('version', () => {
         delete process[envVar]
       }
     },
-    50000,
+    50_000,
   )
 })
 
