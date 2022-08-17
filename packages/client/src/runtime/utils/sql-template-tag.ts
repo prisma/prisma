@@ -1,4 +1,10 @@
-// Wrapper script to work around the type bug of sql-template-tag@4.1.0
+// Wrapper script for modifying the type of sql-template-tag@4.1.0
+// TODO: We should remove this file when we upgrade sql-template-tag to 5.0.3 or above.
+// Note: The reason why we don't upgrade it now is that it publishes with ESM syntax.
+// We can upgrade it when we get rid of the use of `getTestClient` in testing.
+// See the below for more context:
+// - https://github.com/prisma/prisma/pull/11506
+// - https://github.com/prisma/prisma/pull/14589
 
 import { empty, join as joinOriginal, raw, Sql, sqltag as sqltagOriginal } from 'sql-template-tag'
 
