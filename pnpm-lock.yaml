@@ -616,7 +616,7 @@ importers:
       mssql: 9.0.0
       pg: 8.7.3
       replace-string: 3.1.0
-      sqlite-async: 1.1.5
+      sqlite-async: 1.1.3
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
@@ -643,7 +643,7 @@ importers:
       mssql: 9.0.0
       pg: 8.7.3
       replace-string: 3.1.0
-      sqlite-async: 1.1.5
+      sqlite-async: 1.1.3
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
@@ -10726,8 +10726,8 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
-  /sqlite-async/1.1.5:
-    resolution: {integrity: sha512-fgq22zIX4vml2K5isPYHDeQX1fzhmLTjXu0crC2lQRudyQnbxBLRx00sMylVFpTbqoCgNxbxrN6Qre28IiyM/Q==}
+  /sqlite-async/1.1.3:
+    resolution: {integrity: sha512-C71fZoTO7u355bTONhq9ncj4Ged3pXM0Un7oCDnrsCu7BPzITrCqTANP99XD7b6uGz4fY+RdgSPF/zVS7Iy9Tg==}
     dependencies:
       sqlite3: 5.0.11
     transitivePeerDependencies:
