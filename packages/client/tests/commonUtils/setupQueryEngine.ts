@@ -8,7 +8,7 @@ import path from 'path'
  * clients bypass this we need to ensure the correct engine is present.
  */
 export async function setupQueryEngine() {
-  const engineDownloadDir = path.join(__dirname, '..', '..', '..')
+  const engineDownloadDir = path.resolve(__dirname, '..', '..')
 
   await download({
     binaries: {
