@@ -8,7 +8,6 @@ import { ArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { TS } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { OutputType } from './Output'
 import { PayloadType } from './Payload'
 
@@ -17,7 +16,6 @@ export class Count implements Generatable {
     protected readonly type: DMMF.OutputType,
     protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
-    protected readonly collector?: ExportCollector,
   ) {}
   protected get argsTypes(): Generatable[] {
     const argsTypes: Generatable[] = []
