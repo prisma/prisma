@@ -161,8 +161,6 @@ ${chalk.bold('Examples')}
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
         }
       }
 
