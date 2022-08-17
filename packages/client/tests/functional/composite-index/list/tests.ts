@@ -61,6 +61,33 @@ testMatrix.setupTestSuite(
         ],
       })
     })
+
+    test('should throw if a nested list is duplicate', async () => {
+      const conflicting = {
+        set: [
+          {
+            address: 'a',
+          },
+        ],
+      }
+
+      await expect(async () => {
+        await prisma.a.createMany({
+          data: [
+            {
+              id: '5',
+              name: 'foo',
+              locations: conflicting,
+            },
+            {
+              id: '6',
+              name: 'bar',
+              locations: conflicting,
+            },
+          ],
+        })
+      }).rejects.toThrowError('Unique constraint failed on the constraint: `A_locations_address_key`')
+    })
   },
   {
     optOut: {
