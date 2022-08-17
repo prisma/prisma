@@ -28,7 +28,7 @@
     "jest": "28.1.3",
     "jest-junit": "14.0.0",
     "mariadb": "3.0.0",
-    "mssql": "8.1.2",
+    "mssql": "9.0.0",
     "pg": "8.7.3",
     "replace-string": "3.1.0",
     "sqlite-async": "1.1.3",
