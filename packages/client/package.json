@@ -63,11 +63,11 @@
     "@jest/test-sequencer": "28.1.3",
     "@microsoft/api-extractor": "7.25.2",
     "@opentelemetry/api": "1.1.0",
-    "@opentelemetry/context-async-hooks": "^1.4.0",
-    "@opentelemetry/instrumentation": "^0.30.0",
-    "@opentelemetry/resources": "^1.4.0",
+    "@opentelemetry/context-async-hooks": "1.5.0",
+    "@opentelemetry/instrumentation": "0.30.0",
+    "@opentelemetry/resources": "1.5.0",
     "@opentelemetry/sdk-trace-base": "1.4.0",
-    "@opentelemetry/semantic-conventions": "^1.4.0",
+    "@opentelemetry/semantic-conventions": "1.5.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "workspace:*",
@@ -87,7 +87,7 @@
     "@types/mssql": "8.0.3",
     "@types/node": "12.20.55",
     "@types/pg": "8.6.5",
-    "@types/yeoman-generator": "^5.2.10",
+    "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
@@ -128,8 +128,8 @@
     "ts-node": "10.8.1",
     "tsd": "0.21.0",
     "typescript": "4.7.4",
-    "yeoman-generator": "^5.6.1",
-    "yo": "^4.3.0"
+    "yeoman-generator": "5.7.0",
+    "yo": "4.3.0"
   },
   "peerDependencies": {
     "prisma": "*"
@@ -140,7 +140,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.3.0-1.fcc1617c18c96d316005aa4119c10ed8a96d78ec"
+    "@prisma/engines-version": "4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e"
   },
   "sideEffects": false
 }
