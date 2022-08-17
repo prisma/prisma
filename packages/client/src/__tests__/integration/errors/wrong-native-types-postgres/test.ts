@@ -1,11 +1,13 @@
 import path from 'path'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
 // We WANT to be able to do the async function without an await
 /* eslint-disable @typescript-eslint/require-await */
+
+let PrismaClient
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-wrong-native-types-tests'
@@ -14,11 +16,11 @@ beforeAll(async () => {
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
 })
 
 test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSerial, BigSerial', async () => {
-  const PrismaClient = await getTestClient()
-
   const prisma = new PrismaClient({ errorFormat: 'minimal' })
 
   await prisma.a.deleteMany()
@@ -53,8 +55,6 @@ test('wrong-native-types-postgres A: Integer, SmallInt, BigInt, Serial, SmallSer
 })
 
 test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', async () => {
-  const PrismaClient = await getTestClient()
-
   const prisma = new PrismaClient({ errorFormat: 'minimal' })
 
   await prisma.b.deleteMany()
@@ -87,8 +87,6 @@ test('wrong-native-types-postgres B: Real, DoublePrecision, Decimal, Numeric', a
 })
 
 test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async () => {
-  const PrismaClient = await getTestClient()
-
   const prisma = new PrismaClient({ errorFormat: 'minimal' })
 
   await prisma.c.deleteMany()
@@ -123,8 +121,6 @@ test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', as
 })
 
 test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
-  const PrismaClient = await getTestClient()
-
   const prisma = new PrismaClient({ errorFormat: 'minimal' })
 
   await prisma.d.deleteMany()
@@ -160,8 +156,6 @@ test('wrong-native-types-postgres D: Boolean, Bytes, Json, JsonB', async () => {
 })
 
 test('wrong-native-types-postgres E: Date, Time, Timestamp', async () => {
-  const PrismaClient = await getTestClient()
-
   const prisma = new PrismaClient({ errorFormat: 'minimal' })
 
   await prisma.e.deleteMany()

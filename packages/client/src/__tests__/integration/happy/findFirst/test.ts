@@ -1,7 +1,12 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
+
+let PrismaClient
+beforeAll(async () => {
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+})
 
 test('findFirst with a result', async () => {
-  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   const user = await prisma.user.findFirst()
   await prisma.$disconnect()
@@ -15,7 +20,6 @@ test('findFirst with a result', async () => {
 })
 
 test('findFirst without a result', async () => {
-  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   const user = await prisma.user.findFirst({
     where: {

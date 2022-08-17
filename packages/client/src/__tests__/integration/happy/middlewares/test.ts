@@ -1,9 +1,13 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
+
+let PrismaClient
+beforeAll(async () => {
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+})
 
 describe('middleware', () => {
   test('basic', async () => {
-    const PrismaClient = await getTestClient()
-
     const db = new PrismaClient()
 
     const allResults: any[] = []
@@ -25,7 +29,6 @@ describe('middleware', () => {
   })
 
   test('order', async () => {
-    const PrismaClient = await getTestClient()
     const db = new PrismaClient()
     const order: number[] = []
 
@@ -52,7 +55,6 @@ describe('middleware', () => {
   })
 
   test('engine middleware', async () => {
-    const PrismaClient = await getTestClient()
     const db = new PrismaClient()
 
     const engineResults: any[] = []
@@ -84,7 +86,6 @@ describe('middleware', () => {
   })
 
   test('modify params', async () => {
-    const PrismaClient = await getTestClient()
     const db = new PrismaClient()
 
     const user = await db.user.create({
@@ -114,7 +115,6 @@ describe('middleware', () => {
   })
 
   test('pass new params', async () => {
-    const PrismaClient = await getTestClient()
     const db = new PrismaClient()
 
     db.$use((params, next) => {
@@ -149,7 +149,6 @@ describe('middleware', () => {
   })
 
   test('count unpack', async () => {
-    const PrismaClient = await getTestClient()
     const db = new PrismaClient()
     db.$use((params, next) => next(params))
     const result = await db.user.count()
@@ -159,7 +158,6 @@ describe('middleware', () => {
   })
 
   test('count action', async () => {
-    const PrismaClient = await getTestClient()
     const db = new PrismaClient()
 
     let action: string | undefined

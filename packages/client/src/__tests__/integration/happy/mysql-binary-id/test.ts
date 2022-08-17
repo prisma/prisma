@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
@@ -14,7 +14,8 @@ beforeAll(async () => {
 })
 
 test('find by binary id', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
 
   await prisma.entry.deleteMany()

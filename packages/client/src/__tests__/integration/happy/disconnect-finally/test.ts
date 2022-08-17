@@ -1,9 +1,10 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 /* eslint-disable */
 
 test('disconnect-finally', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
 
   let res
   const prisma = new PrismaClient()

@@ -1,7 +1,7 @@
 import path from 'path'
 import sql from 'sql-template-tag'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
@@ -14,7 +14,8 @@ beforeAll(async () => {
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   prisma = new PrismaClient()
 })
 

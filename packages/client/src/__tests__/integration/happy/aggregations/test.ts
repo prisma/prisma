@@ -1,8 +1,13 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
+
+let PrismaClient
+beforeAll(async () => {
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+})
 
 describe('aggregations', () => {
   test('general', async () => {
-    const PrismaClient = await getTestClient()
     const prisma = new PrismaClient()
     expect.assertions(3)
     const result = await prisma.user.aggregate({

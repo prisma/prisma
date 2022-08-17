@@ -6,7 +6,7 @@ import path from 'path'
 import hash from 'string-hash'
 import VError, { MultiError } from 'verror'
 
-import { getTestClient } from '../../../../client/src/utils/getTestClient'
+import { generateInFolder } from '../../../../client/src/utils/generateInFolder'
 
 process.setMaxListeners(200)
 
@@ -239,7 +239,13 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
       const { ctx, state } = await setupScenario(kind, input, scenario)
       states[scenario.name] = state
 
-      const PrismaClient = await getTestClient(ctx.fs.cwd())
+      await generateInFolder({
+        projectDir: ctx.fs.cwd(),
+        useLocalRuntime: false,
+        transpile: true,
+        useBuiltRuntime: false,
+      })
+      const PrismaClient = require(path.join(ctx.fs.cwd(), 'node_modules', '@prisma', 'client')).PrismaClient
 
       state.prisma = new PrismaClient()
       await state.prisma.$connect()

@@ -1,4 +1,4 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 describe.skip('connection-limit-postgres', () => {
   // expect.assertions(1)
@@ -9,7 +9,8 @@ describe.skip('connection-limit-postgres', () => {
   })
 
   test('the client cannot query the db with 100 connections already open', async () => {
-    const PrismaClient = await getTestClient()
+    await generateTestClient()
+    const { PrismaClient } = require('./node_modules/@prisma/client')
     const connectionString = process.env.TEST_POSTGRES_ISOLATED_URI || 'postgres://prisma:prisma@localhost:5435/tests'
 
     for (let i = 0; i <= 100; i++) {

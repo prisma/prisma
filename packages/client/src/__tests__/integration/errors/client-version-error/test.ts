@@ -1,21 +1,22 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('client-version-error', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const { PrismaClient } = require('./node_modules/@prisma/client')
   const prisma = new PrismaClient()
   try {
     await prisma.user.findMany({ invalidArg: true })
   } catch (e) {
-    expect(e.clientVersion).toMatchInlineSnapshot(`client-test-version`)
+    expect(e.clientVersion).toMatchInlineSnapshot(`local`)
     expect(e).toMatchInlineSnapshot(`
 
       Invalid \`prisma.user.findMany()\` invocation in
       /client/src/__tests__/integration/errors/client-version-error/test.ts:0:0
 
-         4 const PrismaClient = await getTestClient()
-         5 const prisma = new PrismaClient()
-         6 try {
-      →  7   await prisma.user.findMany({
+         5 const { PrismaClient } = require('./node_modules/@prisma/client')
+         6 const prisma = new PrismaClient()
+         7 try {
+      →  8   await prisma.user.findMany({
                invalidArg: true
                ~~~~~~~~~~
              })

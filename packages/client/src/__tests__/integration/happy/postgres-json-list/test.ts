@@ -1,6 +1,6 @@
 import path from 'path'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
@@ -14,7 +14,8 @@ beforeAll(async () => {
 })
 
 test('postgres-json-list', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
 
   const prisma = new PrismaClient()
 

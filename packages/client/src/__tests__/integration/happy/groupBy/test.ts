@@ -1,9 +1,10 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 let prisma
 describe('groupBy', () => {
   beforeAll(async () => {
-    const PrismaClient = await getTestClient()
+    await generateTestClient()
+    const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
     prisma = new PrismaClient()
   })
 

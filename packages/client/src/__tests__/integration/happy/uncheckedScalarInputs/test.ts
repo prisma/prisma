@@ -2,13 +2,18 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 const copyFile = promisify(fs.copyFile)
 
+let PrismaClient
+beforeAll(async () => {
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+})
+
 test('uncheckedScalarInputs', async () => {
   await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
-  const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   await prisma.user.deleteMany()
   await prisma.post.deleteMany()

@@ -1,8 +1,10 @@
 import path from 'path'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
+
+let PrismaClient
 
 beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-scalar-list-test'
@@ -11,6 +13,8 @@ beforeAll(async () => {
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
 })
 
 async function setupData(prisma) {
@@ -36,8 +40,6 @@ async function setupData(prisma) {
 }
 
 test('scalar-list filter', async () => {
-  const PrismaClient = await getTestClient()
-
   const prisma = new PrismaClient()
   // 1. set up data
   await setupData(prisma)

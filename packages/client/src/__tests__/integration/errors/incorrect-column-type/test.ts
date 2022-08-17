@@ -1,8 +1,9 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('incorrect-column-type', async () => {
   expect.assertions(1)
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const { PrismaClient } = require('./node_modules/@prisma/client')
   const prisma = new PrismaClient({
     log: [
       {
@@ -17,10 +18,10 @@ test('incorrect-column-type', async () => {
           Invalid \`expect(prisma.user.findMany()\` invocation in
           /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:0:0
 
-            12   ],
-            13 })
-            14 
-          → 15 await expect(prisma.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(
+            13   ],
+            14 })
+            15 
+          → 16 await expect(prisma.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(
             Error converting field "name" of expected non-nullable type "String", found incompatible value of "123".
         `)
   await prisma.$disconnect()

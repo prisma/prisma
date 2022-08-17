@@ -2,7 +2,7 @@ import fs from 'fs'
 import path from 'path'
 import { promisify } from 'util'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 const copyFile = promisify(fs.copyFile)
 
@@ -10,7 +10,8 @@ test('atomic-operations', async () => {
   // start with a fresh db
   await copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
 
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
 
   const set = await prisma.user.update({

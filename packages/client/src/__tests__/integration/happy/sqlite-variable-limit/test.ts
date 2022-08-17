@@ -1,5 +1,5 @@
 // const pMap = require('p-map')
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 const zlib = require('zlib')
 const fs = require('fs')
@@ -8,7 +8,8 @@ const path = require('path')
 jest.setTimeout(50_000)
 
 test('sqlite-variable-limit', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
   const db = path.join(__dirname, 'dev.db')
   if (!fs.existsSync(db)) {

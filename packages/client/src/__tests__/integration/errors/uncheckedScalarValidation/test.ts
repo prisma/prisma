@@ -1,8 +1,9 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('uncheckedScalarInputs validation', async () => {
   expect.assertions(1)
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
 
   try {
@@ -39,10 +40,10 @@ test('uncheckedScalarInputs validation', async () => {
       Invalid \`prisma.trip.create()\` invocation in
       /client/src/__tests__/integration/errors/uncheckedScalarValidation/test.ts:0:0
 
-         6 const prisma = new PrismaClient()
-         7 
-         8 try {
-      →  9   await prisma.trip.create({
+         7 const prisma = new PrismaClient()
+         8 
+         9 try {
+      → 10   await prisma.trip.create({
                data: {
                  name: 'Trip 1',
                  description: 'This is a description',

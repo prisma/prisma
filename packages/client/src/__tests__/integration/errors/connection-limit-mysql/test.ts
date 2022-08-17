@@ -1,4 +1,4 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 describe.skip('connection-limit-mysql', () => {
   // TODO uncomment when remove SKIP
@@ -10,7 +10,8 @@ describe.skip('connection-limit-mysql', () => {
   })
 
   test('the client cannot query the db with 152 connections already open', async () => {
-    const PrismaClient = await getTestClient()
+    await generateTestClient()
+    const { PrismaClient } = require('./node_modules/@prisma/client')
     const connectionString = process.env.TEST_MYSQL_ISOLATED_URI || 'mysql://root:root@mysql:3306/tests'
 
     for (let i = 0; i <= 155; i++) {

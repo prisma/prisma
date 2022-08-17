@@ -1,8 +1,9 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 describe('middleware and transaction', () => {
   test('typeof await next()', async () => {
-    const PrismaClient = await getTestClient()
+    await generateTestClient()
+    const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
 
     const prisma = new PrismaClient()
     await prisma.user.deleteMany()

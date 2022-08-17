@@ -1,7 +1,8 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('distinct', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
 
   let result = await prisma.user.findMany({

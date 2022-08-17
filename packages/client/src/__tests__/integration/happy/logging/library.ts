@@ -1,10 +1,12 @@
 import { getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
 import { replaceTimeValues } from './__helpers__/replaceTimeValues'
+
+let PrismaClient
 
 beforeEach(async () => {
   process.env.TEST_POSTGRES_URI += '-logging-library'
@@ -13,14 +15,14 @@ beforeEach(async () => {
     connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
 })
 
 test('basic event logging - library', async () => {
   if (getClientEngineType() !== 'library') {
     return
   }
-
-  const PrismaClient = await getTestClient()
 
   const prisma = new PrismaClient({
     log: [
@@ -79,8 +81,6 @@ test('interactive transactions logging - library', async () => {
   if (getClientEngineType() !== 'library') {
     return
   }
-
-  const PrismaClient = await getTestClient()
 
   const prisma = new PrismaClient({
     log: [

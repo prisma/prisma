@@ -1,9 +1,14 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
 
+let PrismaClient
+beforeAll(async () => {
+  await generateTestClient()
+  PrismaClient = require('./node_modules/@prisma/client').PrismaClient
+})
+
 test('insensitive-postgresql', async () => {
-  const PrismaClient = await getTestClient()
   let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'
 
   originalConnectionString += '-insensitive-postgresql-feature-flag'

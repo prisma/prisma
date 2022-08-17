@@ -1,8 +1,9 @@
-import { getTestClient } from '../../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../../utils/getTestClient'
 import { EXIT_MESSAGE, READY_MESSAGE } from './constants'
 
 async function main() {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const { PrismaClient } = require('./node_modules/@prisma/client')
   const prisma = new PrismaClient()
 
   console.log(READY_MESSAGE)

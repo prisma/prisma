@@ -1,8 +1,9 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('missing-relation', async () => {
   expect.assertions(2)
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const { PrismaClient } = require('./node_modules/@prisma/client')
   const prisma = new PrismaClient()
   try {
     await prisma.post.findMany({
@@ -11,7 +12,7 @@ test('missing-relation', async () => {
       },
     })
   } catch (e) {
-    expect(e.message).toContain(`→  8   await prisma.post.findMany(`)
+    expect(e.message).toContain(`→  9   await prisma.post.findMany(`)
     expect(e.message).toContain(
       'Inconsistent query result: Field author is required to return data, got `null` instead.',
     )

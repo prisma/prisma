@@ -1,13 +1,14 @@
 import 'source-map-support/register'
 
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 /* eslint-disable */
 // X is here to have a different line count in the transpiled js and ts
 type X = {}
 
 test('source-map-support', async () => {
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
 
   await expect(

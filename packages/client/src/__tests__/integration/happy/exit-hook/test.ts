@@ -1,9 +1,10 @@
-import { getTestClient } from '../../../../utils/getTestClient'
+import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('exit-hook for sigint', async () => {
   expect.assertions(2)
 
-  const PrismaClient = await getTestClient()
+  await generateTestClient()
+  const PrismaClient = require('./node_modules/@prisma/client').PrismaClient
   const prisma = new PrismaClient()
 
   // set up beforeExit hook and make sure we have the result available outside
