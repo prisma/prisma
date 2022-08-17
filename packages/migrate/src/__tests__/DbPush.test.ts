@@ -1,6 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/internals'
-import prompt from 'prompts'
 import path from 'path'
+import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
 import { inspectMongo, setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
@@ -106,7 +106,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  describeIf(!Boolean(process.env.TEST_SKIP_MONGODB))('existing-db with mongodb', () => {
+  describeIf(!process.env.TEST_SKIP_MONGODB)('existing-db with mongodb', () => {
     const setupParams: SetupParams = {
       connectionString:
         process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB ||
@@ -114,7 +114,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'existing-db-warnings-mongodb'),
     }
 
-/*     beforeAll(async () => {
+    /*     beforeAll(async () => {
       process.stdout.write('beforeAll')
       await tearDownMongo(setupParams).catch((e) => {
         console.error(e)
@@ -127,14 +127,14 @@ describeIf(process.platform !== 'win32')('push', () => {
       })
     })
 
-/*     afterEach(async () => {
+    /*     afterEach(async () => {
       process.stdout.write('afterEach')
       await tearDownMongo(setupParams).catch((e) => {
         console.error(e)
       })
     }) */
 
-    it.only('dataloss warnings accepted (prompt)', async () => {
+    it('dataloss warnings accepted (prompt)', async () => {
       ctx.fixture('existing-db-warnings-mongodb')
 
       prompt.inject(['y'])
@@ -155,7 +155,6 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       const posts = await inspectMongo(setupParams)
       process.stdout.write('posts inspectMongo ' + posts)
-
     })
 
     it.skip('dataloss warnings cancelled (prompt)', async () => {
@@ -198,6 +197,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     })
   })
 
+  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings accepted (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
 
@@ -220,6 +220,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation()
@@ -243,6 +244,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(mockExit).toBeCalledWith(0)
   })
 
+  // eslint-disable-next-line jest/no-identical-title
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--accept-data-loss'])
