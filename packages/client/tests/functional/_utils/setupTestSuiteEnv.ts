@@ -1,5 +1,6 @@
 import { assertNever } from '@prisma/internals'
 import cuid from 'cuid'
+import execa from 'execa'
 import fs from 'fs-extra'
 import path from 'path'
 import { Script } from 'vm'
@@ -149,19 +150,36 @@ export async function dropTestSuiteDatabase(
   }
 }
 
+export type DatasourceInfo = {
+  envVarName: string
+  databaseUrl: string
+  dataProxyUrl?: string
+}
+
 /**
  * Generate a random string to be used as a test suite db url.
  * @param suiteConfig
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: Record<string, string>) {
+export function setupTestSuiteDbURI(suiteConfig: Record<string, string>): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
   // we reuse the original db url but postfix it with a random string
   const dbId = cuid()
   const envVarName = `DATABASE_URI_${provider}`
   const newURI = getDbUrl(provider).replace(DB_NAME_VAR, dbId)
 
-  return { [envVarName]: newURI }
+  let dataProxyUrl: string | undefined
+
+  if (process.env.DATA_PROXY) {
+    const { stdout } = execa.sync('mini-proxy', ['connection-string', '-u', newURI, '-e', envVarName])
+    dataProxyUrl = stdout.trim()
+  }
+
+  return {
+    envVarName,
+    databaseUrl: newURI,
+    dataProxyUrl,
+  }
 }
 
 /**

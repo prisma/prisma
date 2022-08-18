@@ -10,7 +10,7 @@ import {
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
-import { setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
+import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 /**
@@ -23,10 +23,12 @@ export async function setupTestSuiteClient({
   suiteMeta,
   suiteConfig,
   skipDb,
+  datasourceInfo,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   skipDb?: boolean
+  datasourceInfo: DatasourceInfo
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
@@ -38,8 +40,11 @@ export async function setupTestSuiteClient({
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
+    process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
     await setupTestSuiteDatabase(suiteMeta, suiteConfig)
   }
+
+  process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl
 
   await generateClient({
     datamodel: schema,
