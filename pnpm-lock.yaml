@@ -283,7 +283,7 @@ importers:
       strip-indent: 3.0.0
       ts-jest: 28.0.8
       ts-node: 10.9.1
-      tsd: 0.22.0
+      tsd: 0.21.0
       typescript: 4.7.4
       yeoman-generator: 5.7.0
       yo: 4.3.0
@@ -358,7 +358,7 @@ importers:
       strip-indent: 3.0.0
       ts-jest: 28.0.8_xc5h655djrkql4osj75yosjpya
       ts-node: 10.9.1_3uwxcvuwwd2fryn7t4o3voz5dq
-      tsd: 0.22.0
+      tsd: 0.21.0
       typescript: 4.7.4
       yeoman-generator: 5.7.0
       yo: 4.3.0
@@ -11469,9 +11469,9 @@ packages:
       strip-bom: 3.0.0
     dev: true
 
-  /tsd/0.22.0:
-    resolution: {integrity: sha512-NH+tfEDQ0Ze8gH7TorB6IxYybD+M68EYawe45YNVrbQcydNBfdQHP9IiD0QbnqmwNXrv+l9GAiULT68mo4q/xA==}
-    engines: {node: '>=14.16'}
+  /tsd/0.21.0:
+    resolution: {integrity: sha512-6DugCw1Q4H8HYwDT3itzgALjeDxN4RO3iqu7gRdC/YNVSCRSGXRGQRRasftL1uKDuKxlFffYKHv5j5G7YnKGxQ==}
+    engines: {node: '>=12'}
     hasBin: true
     dependencies:
       '@tsd/typescript': 4.7.4
