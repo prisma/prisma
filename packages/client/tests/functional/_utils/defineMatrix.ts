@@ -25,7 +25,7 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
    * Function for defining test schema. Must be used in your `prisma/_schema.ts`. Return value
    * of this function should be used as a default export of that module.
    *
-   * @param schemaCallback schema factory function. Receives all matrix paramters, used for the
+   * @param schemaCallback schema factory function. Receives all matrix parameters, used for the
    * specific test suite at the moment.
    */
   setupSchema(schemaCallback: SchemaCallback<MatrixT>): SchemaCallback<MatrixT>
