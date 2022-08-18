@@ -1,5 +1,3 @@
-import Debug from '@prisma/debug'
-import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
@@ -9,6 +7,8 @@ import makeDir from 'make-dir'
 import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
+
+import { plusX } from './utils/plusX'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)

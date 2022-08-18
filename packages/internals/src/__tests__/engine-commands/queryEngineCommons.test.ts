@@ -62,7 +62,6 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILi
 
     if (E.isRight(result)) {
       expect(result.right.NodeAPIQueryEngineLibrary).toBeTruthy()
-      expect(result.right.NodeAPIQueryEngineLibrary.QueryEngine).toBeTruthy()
     }
   })
 })
