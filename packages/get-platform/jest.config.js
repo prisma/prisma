@@ -4,7 +4,7 @@ module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: [forceTranspile()],
+  transformIgnorePatterns: [],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
