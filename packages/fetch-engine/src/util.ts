@@ -8,8 +8,6 @@ import path from 'path'
 
 import { BinaryType } from './download'
 
-const debug = Debug('prisma:cache-dir')
-
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
     const cacheDir = findCacheDir({ name: 'prisma', create: true })
@@ -33,6 +31,8 @@ export async function getRootCacheDir(): Promise<string | null> {
 }
 
 export async function getCacheDir(channel: string, version: string, platform: string): Promise<string | null> {
+  const debug = Debug('prisma:cache-dir')
+
   const rootCacheDir = await getRootCacheDir()
   if (!rootCacheDir) {
     return null
@@ -87,4 +87,18 @@ async function removeFileIfExists(filePath: string) {
       throw e
     }
   }
+}
+
+export function plusX(file: fs.PathLike): void {
+  const debug = Debug('plusX')
+
+  const s = fs.statSync(file)
+  const newMode = s.mode | 64 | 8 | 1
+  if (s.mode === newMode) {
+    debug(`Execution permissions of ${file} are fine`)
+    return
+  }
+  const base8 = newMode.toString(8).slice(-3)
+  debug(`Have to call plusX on ${file}`)
+  fs.chmodSync(file, base8)
 }

@@ -1,5 +1,5 @@
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, plusX } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
@@ -7,8 +7,6 @@ import makeDir from 'make-dir'
 import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
-
-import { plusX } from './utils/plusX'
 
 const readFile = promisify(fs.readFile)
 const writeFile = promisify(fs.writeFile)
