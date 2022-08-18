@@ -1,20 +1,13 @@
-import { getTestClient } from '../../../../../utils/getTestClient'
 import { EXIT_MESSAGE, READY_MESSAGE } from './constants'
 
-async function main() {
-  const PrismaClient = await getTestClient()
-  const prisma = new PrismaClient()
+import { PrismaClient } from '../node_modules/@prisma/client'
 
-  console.log(READY_MESSAGE)
+const prisma = new PrismaClient()
 
-  setTimeout(() => {
-    prisma.$disconnect()
-    console.log(EXIT_MESSAGE)
-    process.exit(0)
-  }, 1000)
-}
+console.log(READY_MESSAGE)
 
-main().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
+setTimeout(() => {
+  prisma.$disconnect()
+  console.log(EXIT_MESSAGE)
+  process.exit(0)
+}, 1000)
