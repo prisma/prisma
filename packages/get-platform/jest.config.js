@@ -1,5 +1,3 @@
-const forceTranspile = require('../../helpers/jest/forceTranspile')
-
 module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
