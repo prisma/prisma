@@ -52,6 +52,10 @@ function shouldSkipProvider(
     return true
   }
 
+  if (process.env.DATA_PROXY && provider === 'sqlite') {
+    return true
+  }
+
   return excludedProviders.includes(provider)
 }
 
