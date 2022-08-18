@@ -48,7 +48,7 @@ function setupTestSuiteMatrix(
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, options)
   checkMissingProviders({
     suiteConfigs,
     suiteMeta,

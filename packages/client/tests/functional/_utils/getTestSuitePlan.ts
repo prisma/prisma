@@ -1,5 +1,6 @@
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -20,12 +21,18 @@ type SuitePlanContext = {
  * @returns [test-suite-title: string, test-suite-config: object]
  */
 
-export function getTestSuitePlan(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig[]): TestPlanEntry[] {
+export function getTestSuitePlan(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig[],
+  options?: MatrixOptions,
+): TestPlanEntry[] {
   const context = buildPlanContext()
+
+  const shouldSkipAll = !!process.env.DATA_PROXY && !!options?.skipDataProxy
 
   return suiteConfig.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipProvider(context, namedConfig, configIndex),
+    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex),
     suiteConfig: namedConfig,
   }))
 }
