@@ -1,5 +1,8 @@
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
+// @ts-ignore this is just for type checks
+type PrismaClient = import('@prisma/client').PrismaClient
 // @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
