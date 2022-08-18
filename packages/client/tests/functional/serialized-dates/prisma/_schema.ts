@@ -24,7 +24,7 @@ export default testMatrix.setupSchema(({ provider }) => {
       id ${idForProvider(provider)}
       dateTime DateTime
       uuid String @default(uuid())
-      ${compatiableTypes}
+      ${compatibleTypes}
     }
   `
 })
