@@ -4,6 +4,70 @@ import type { Input } from '../../__helpers__/integrationTest'
 
 export const scenarios = [
   {
+    name: 'citext joins should respect case insensitivity by default',
+    up: `
+      CREATE EXTENSION IF NOT EXISTS citext;
+      
+      CREATE TABLE "CitextTest" (
+          "id" INTEGER NOT NULL,
+          "caseInsensitiveField" CITEXT,
+
+          CONSTRAINT "CitextTest_pkey" PRIMARY KEY ("id")
+      );
+
+      CREATE TABLE "JoinTableTest" (
+          "id" CITEXT NOT NULL,
+
+          CONSTRAINT "JoinTableTest_pkey" PRIMARY KEY ("id")
+      );
+
+      CREATE UNIQUE INDEX "CitextTest_caseInsensitiveField_key" ON "CitextTest"("caseInsensitiveField");
+
+      ALTER TABLE "CitextTest" ADD CONSTRAINT "CitextTest_caseInsensitiveField_fkey" FOREIGN KEY ("caseInsensitiveField") REFERENCES "JoinTableTest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+    `,
+    do: async (client) => {
+      const initialValue = 'cAsEiNsEnSiTiVe'
+
+      await client.JoinTableTest.create({
+        data: {
+          id: initialValue,
+        },
+      })
+      await client.CitextTest.create({
+        data: {
+          id: 1,
+          caseInsensitiveField: initialValue,
+        },
+      })
+      const fetchOriginalRow = () => {
+        return client.CitextTest.findUnique({
+          where: {
+            caseInsensitiveField: initialValue,
+          },
+          include: {
+            JoinTableTest: true,
+          },
+        })
+      }
+      const beforeUpdate = await fetchOriginalRow()
+      await client.CitextTest.update({
+        where: {
+          caseInsensitiveField: initialValue,
+        },
+        data: {
+          caseInsensitiveField: initialValue.toUpperCase(),
+        },
+        include: {
+          JoinTableTest: true,
+        },
+      })
+      const afterUpdate = await fetchOriginalRow()
+
+      expect(beforeUpdate.JoinTableTest.id).toEqual(initialValue)
+      expect(afterUpdate.JoinTableTest?.id).toEqual(initialValue)
+    },
+  },
+  {
     name: 'findUnique where PK',
     up: `
         create table teams (
