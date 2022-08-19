@@ -53,7 +53,7 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
     })
     .exhaustive()
 
-  const formattedSchema = await handleFormatPanic(
+  const formattedSchema = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
       return formatWASM(schemaContent)
@@ -61,7 +61,7 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
     { schemaPath, schema } as FormatSchemaParams,
   )
 
-  return formattedSchema
+  return Promise.resolve(formattedSchema)
 }
 
 function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSchemaParams) {
@@ -113,8 +113,8 @@ const defaultDocumentFormattingParams: DocumentFormattingParams = {
   },
 }
 
-async function formatWASM(schema: string): Promise<string> {
+function formatWASM(schema: string): string {
   const params: DocumentFormattingParams = defaultDocumentFormattingParams
   const formattedSchema = prismaFmt.format(schema, JSON.stringify(params))
-  return Promise.resolve(formattedSchema)
+  return formattedSchema
 }
