@@ -10,7 +10,7 @@ import { promisify } from 'util'
 import zlib from 'zlib'
 
 import { getProxyAgent } from './getProxyAgent'
-import { overwriteFile } from './util'
+import { overwriteFile } from './utils'
 
 const debug = Debug('prisma:downloadZip')
 const del = promisify(rimraf)
