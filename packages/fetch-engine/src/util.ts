@@ -90,7 +90,7 @@ async function removeFileIfExists(filePath: string) {
 }
 
 export function plusX(file: fs.PathLike): void {
-  const debug = Debug('plusX')
+  const debug = Debug('prisma:fetch-engine:plusX')
 
   const s = fs.statSync(file)
   const newMode = s.mode | 64 | 8 | 1
