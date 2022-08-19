@@ -16,13 +16,9 @@ exports[`sqlite existing-db-1-migration-conflict 3`] = ``;
 
 exports[`sqlite existing-db-brownfield 3`] = ``;
 
-exports[`sqlite existing-db-brownfield 4`] = ``;
-
 exports[`sqlite existing-db-histories-diverge 3`] = ``;
 
 exports[`sqlite existing-db-warnings 3`] = ``;
-
-exports[`sqlite existing-db-warnings 4`] = ``;
 
 exports[`sqlite old-migrate 3`] = ``;
 

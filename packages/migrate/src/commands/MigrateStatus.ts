@@ -7,6 +7,7 @@ import {
   getCommandWithExecutor,
   HelpError,
   isError,
+  link,
   loadEnvFile,
 } from '@prisma/internals'
 import chalk from 'chalk'
@@ -15,7 +16,6 @@ import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureCanConnectToDatabase } from '../utils/ensureDatabaseExists'
-import { HowToBaselineError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
@@ -162,7 +162,12 @@ ${diagnoseResult.history.unpersistedMigrationNames.join('\n')}`)
       //                 - Suggest calling `prisma migrate resolve --applied <migration-name>`
 
       if (listMigrationDirectoriesResult.migrations.length === 0) {
-        throw new HowToBaselineError().message
+        console.error(`The current database is not managed by Prisma Migrate.
+        
+Read more about how to baseline an existing production database:
+${link('https://pris.ly/d/migrate-baseline')}`)
+        // Exit 1 to signal that the status is not in sync
+        process.exit(1)
       } else {
         const migrationId = listMigrationDirectoriesResult.migrations.shift() as string
         console.error(`The current database is not managed by Prisma Migrate.
@@ -200,7 +205,8 @@ ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --rolled
 ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate resolve --applied "${failedMigrations[0]}"`))}
 
 Read more about how to resolve migration issues in a production database:
-https://pris.ly/d/migrate-resolve`)
+${link('https://pris.ly/d/migrate-resolve')}`)
+
       // Exit 1 to signal that the status is not in sync
       process.exit(1)
     } else {

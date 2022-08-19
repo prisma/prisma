@@ -34,6 +34,10 @@ describe('common', () => {
 describe('sqlite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
+
     const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 
@@ -43,6 +47,8 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(mockExit).toHaveBeenCalledWith(1)
+    mockExit.mockRestore()
   })
 
   it('existing-db-1-failed-migration', async () => {
@@ -152,11 +158,12 @@ describe('sqlite', () => {
 
   it('existing-db-brownfield', async () => {
     ctx.fixture('existing-db-brownfield')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
+
     const result = MigrateStatus.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Read more about how to baseline an existing production database:
-            https://pris.ly/d/migrate-baseline
-          `)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -165,16 +172,24 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      The current database is not managed by Prisma Migrate.
+              
+      Read more about how to baseline an existing production database:
+      https://pris.ly/d/migrate-baseline
+    `)
+    expect(mockExit).toHaveBeenCalledWith(1)
+    mockExit.mockRestore()
   })
 
   it('existing-db-warnings', async () => {
     ctx.fixture('existing-db-warnings')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
+
     const result = MigrateStatus.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            Read more about how to baseline an existing production database:
-            https://pris.ly/d/migrate-baseline
-          `)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -183,7 +198,14 @@ describe('sqlite', () => {
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      The current database is not managed by Prisma Migrate.
+              
+      Read more about how to baseline an existing production database:
+      https://pris.ly/d/migrate-baseline
+    `)
+    expect(mockExit).toHaveBeenCalledWith(1)
+    mockExit.mockRestore()
   })
 
   it('old-migrate', async () => {
