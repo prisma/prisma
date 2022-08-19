@@ -211,10 +211,7 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
       process.exit(1)
     } else {
       console.info() // empty line
-      if (unappliedMigrations.length > 0) {
-        // Exit 1 to signal that the status is not in sync
-        process.exit(1)
-      } else {
+      if (unappliedMigrations.length === 0) {
         // Exit 0 to signal that the status is in sync
         return `Database schema is up to date!`
       }

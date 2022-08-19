@@ -34,10 +34,6 @@ describe('common', () => {
 describe('sqlite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
-
     const result = MigrateStatus.new().parse(['--schema=./prisma/empty.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 
@@ -47,8 +43,6 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(mockExit).toHaveBeenCalledWith(1)
-    mockExit.mockRestore()
   })
 
   it('existing-db-1-failed-migration', async () => {
