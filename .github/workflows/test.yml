@@ -238,7 +238,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - uses: actions/github-script@v6
-        if: failure()
+        if: ${{ failure() && github.event_name == 'pull_request' }}
         id: upload-report
         env:
           NODE_VERSION: ${{ matrix.node }}
@@ -249,20 +249,23 @@ jobs:
             const nodeVersion = process.env.NODE_VERSION
             const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
             const url = `https://prisma.github.io/ci-reports/${reportPath}`
-            await github.rest.repos.createOrUpdateFileContents({
-              owner: 'prisma',
-              repo: 'ci-reports',
-              branch: 'gh-pages',
-              path: reportPath,
-              message: `Add memory results for PR ${context.issue.number}`,
-              content: fs.readFileSync('./packages/client/tests/memory/memory-report.html', 'base64'),
-            });
-            console.log(`::set-output name=url::${url}`)
+            const localReport = './packages/client/tests/memory/memory-report.html'
+            if (fs.existsSync(localReport)) {
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: 'prisma',
+                repo: 'ci-reports',
+                branch: 'gh-pages',
+                path: reportPath,
+                message: `Add memory results for PR ${context.issue.number}`,
+                content: fs.readFileSync(localReport, 'base64'),
+              });
+              console.log(`::set-output name=url::${url}`)
+            }
 
       - name: Find report comment
         uses: peter-evans/find-comment@v2
         id: fc
-        if: always()
+        if: ${{ always() && github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: 'github-actions[bot]'
@@ -270,7 +273,7 @@ jobs:
 
       - name: Create or update remote comment (failure)
         uses: peter-evans/create-or-update-comment@v2
-        if: failure()
+        if: ${{ failure() && steps.upload-report.outputs.url }}
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}

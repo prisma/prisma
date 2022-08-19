@@ -26,7 +26,7 @@
   "devDependencies": {
     "@swc/core": "1.2.204",
     "@swc/jest": "0.2.22",
-    "@types/jest": "28.1.6",
+    "@types/jest": "28.1.7",
     "@types/node": "12.20.55",
     "@types/resolve": "1.20.2",
     "esbuild": "0.14.47",
@@ -44,7 +44,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-fmt-wasm": "4.3.0-4.5e9130e7e83ff93e21f54a2e0d51f1a63cfdc932",
+    "@prisma/prisma-fmt-wasm": "4.3.0-18.a39215673171b87177b86233206a5d65f2558857",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "chalk": "4.1.2",
