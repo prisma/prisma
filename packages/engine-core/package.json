@@ -13,11 +13,11 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@swc/core": "1.2.204",
+    "@swc/core": "1.2.237",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.7",
     "@types/node": "16.11.49",
-    "esbuild": "0.14.47",
+    "esbuild": "0.15.5",
     "jest": "28.1.3",
     "jest-junit": "14.0.0",
     "typescript": "4.7.4"

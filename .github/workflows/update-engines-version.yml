@@ -36,13 +36,19 @@ jobs:
           node-version: '16'
 
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
-      - name: Check if version is available on npm
+      - name: Check if version of @prisma/engines-version is available on npm
         run: |
           echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
-          echo 'Awesome - proceeding to update the dependencies'
 
-      - name: Update the engines dependencies
+      - name: Check if version of @prisma/prisma-fmt-wasm is available on npm
+        # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
+        if: github.event.inputs.npmDistTag == 'latest'
+        run: |
+          echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
+
+      - name: Update the dependencies (@prisma/engines-version)
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 7
@@ -50,7 +56,17 @@ jobs:
           command: |
             echo 'Updating @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
-            echo 'Awesome - proceeding to make the PR'
+
+      - name: Update the dependencies (@prisma/prisma-fmt-wasm)
+        # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
+        if: github.event.inputs.npmDistTag == 'latest'
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 7
+          max_attempts: 3
+          command: |
+            echo 'Updating @prisma/prisma-fmt-wasm to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/prisma-fmt-wasm@${{ github.event.inputs.version }}
 
       - name: Extract Engine Commit hash from version
         id: extract-engine-commit-hash
@@ -81,16 +97,20 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
+      
       - name: PR url
         if: github.event.inputs.npmDistTag == 'latest'
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
+      
       - name: Sleep for 5 seconds
         if: github.event.inputs.npmDistTag == 'latest'
         run: sleep 5s
         shell: bash
+      
       - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: github.event.inputs.npmDistTag == 'latest' && steps.cpr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v1
@@ -121,6 +141,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
 

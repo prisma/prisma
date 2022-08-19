@@ -60,14 +60,14 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@faker-js/faker": "7.3.0",
+    "@faker-js/faker": "7.4.0",
     "@jest/test-sequencer": "28.1.3",
-    "@microsoft/api-extractor": "7.25.2",
+    "@microsoft/api-extractor": "7.29.2",
     "@opentelemetry/api": "1.1.0",
     "@opentelemetry/context-async-hooks": "1.5.0",
-    "@opentelemetry/instrumentation": "0.30.0",
+    "@opentelemetry/instrumentation": "0.31.0",
     "@opentelemetry/resources": "1.5.0",
-    "@opentelemetry/sdk-trace-base": "1.4.0",
+    "@opentelemetry/sdk-trace-base": "1.5.0",
     "@opentelemetry/semantic-conventions": "1.5.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
@@ -79,7 +79,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@swc-node/register": "1.5.1",
-    "@swc/core": "1.2.204",
+    "@swc/core": "1.2.237",
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
@@ -93,8 +93,8 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "cuid": "2.1.8",
-    "decimal.js": "10.3.1",
-    "esbuild": "0.14.47",
+    "decimal.js": "10.4.0",
+    "esbuild": "0.15.5",
     "execa": "5.1.1",
     "expect-type": "0.13.0",
     "flat-map-polyfill": "0.3.8",
@@ -111,7 +111,7 @@
     "klona": "2.0.5",
     "lz-string": "1.4.4",
     "make-dir": "3.1.0",
-    "mariadb": "3.0.0",
+    "mariadb": "3.0.1",
     "mssql": "9.0.0",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",
@@ -122,12 +122,12 @@
     "simple-statistics": "7.7.6",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
-    "sql-template-tag": "4.0.0",
+    "sql-template-tag": "5.0.3",
     "stacktrace-parser": "0.1.10",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "ts-jest": "28.0.8",
-    "ts-node": "10.8.1",
+    "ts-node": "10.9.1",
     "tsd": "0.21.0",
     "typescript": "4.7.4",
     "yeoman-generator": "5.7.0",
@@ -142,7 +142,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.3.0-15.57963ff63cd6949576084114808980809d9e2d9a"
+    "@prisma/engines-version": "4.3.0-19.6247f408d7e3d2824521d8af1266c1eb34ccb2e2"
   },
   "sideEffects": false
 }
