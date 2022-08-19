@@ -1,5 +1,6 @@
-import { PrismaClient } from '../node_modules/@prisma/client'
 import { EXIT_MESSAGE, READY_MESSAGE } from './constants'
+
+import { PrismaClient } from '../node_modules/@prisma/client'
 
 const prisma = new PrismaClient()
 
