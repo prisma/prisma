@@ -115,6 +115,7 @@ function setupTestSuiteMatrix(
           await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
         process.env = originalEnv
+        delete globalThis['datasourceInfo']
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
