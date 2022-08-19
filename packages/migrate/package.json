@@ -50,6 +50,7 @@
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
     "mariadb": "3.0.1",
+    "mongoose": "^6.5.0",
     "mssql": "9.0.0",
     "pg": "8.7.3",
     "pkg-up": "3.1.0",

@@ -17,7 +17,6 @@ export { makeStrictEnum } from './strictEnum'
 export type { DecimalJsLike } from './utils/decimalJsLike'
 export { findSync } from './utils/find'
 export { NotFoundError } from './utils/rejectOnNotFound'
-export { empty, join, raw, Sql, sqltag } from './utils/sql-template-tag'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export { Debug } from '@prisma/debug'
 export {
@@ -29,6 +28,7 @@ export {
 } from '@prisma/engine-core'
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'
+export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
 // ! export bundling fails for this dep, we work around it
 const decompressFromBase64 = lzString.decompressFromBase64
 export { decompressFromBase64 }
