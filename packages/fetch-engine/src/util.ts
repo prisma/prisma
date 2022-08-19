@@ -31,7 +31,7 @@ export async function getRootCacheDir(): Promise<string | null> {
 }
 
 export async function getCacheDir(channel: string, version: string, platform: string): Promise<string | null> {
-  const debug = Debug('prisma:cache-dir')
+  const debug = Debug('prisma:fetch-engine:cache-dir')
 
   const rootCacheDir = await getRootCacheDir()
   if (!rootCacheDir) {
