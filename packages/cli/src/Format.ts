@@ -54,16 +54,12 @@ Or specify a Prisma schema path
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    let output = await formatSchema({ schemaPath })
+    const output = await formatSchema({ schemaPath })
 
     // TODO: what's the point of this?
     await getDMMF({
       datamodel: output,
     })
-
-    // TODO: this is technically not needed, as the EOL is added by the Rust engine already.
-    // Maybe it's needed to have the proper line terminator on Windows, though.
-    output = output?.trimEnd() + os.EOL
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
