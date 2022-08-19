@@ -13,26 +13,24 @@ jest.mock('is-ci', () => ({
 const temporarilySet = (object: any, prop: string, value: unknown) => {
   const original = object[prop]
   beforeEach(() => {
-    // If you set undefined in process.env it stringifies it, so we
-    // need special handling for that case of "unsetting" the process.env.
-    if (object === process.env && value === undefined) {
-      delete object[prop]
-    } else {
-      object[prop] = value
-    }
+    setValueOnProcess(object, prop, value)
   })
   afterEach(() => {
-    // If you set undefined in process.env it stringifies it, so we
-    // need special handling for that case of "unsetting" the process.env.
-    if (object === process.env && original === undefined) {
-      delete object[prop]
-    } else {
-      object[prop] = original
-    }
+    setValueOnProcess(object, prop, original)
   })
 }
 
-describe('#isCi', () => {
+// If you set undefined in process.env it stringifies it, so we
+// need special handling for that case of "unsetting" the process.env.
+const setValueOnProcess = (object: any, prop: string, value: unknown) => {
+  if (object === process.env && value === undefined) {
+    delete object[prop]
+  } else {
+    object[prop] = value
+  }
+}
+
+describe('isCi', () => {
   describe('when outside a TTY environment', () => {
     temporarilySet(process.stdin, 'isTTY', false)
 
