@@ -179,8 +179,6 @@ ${chalk.bold.redBright('All data will be lost.')}
         console.info('Reset cancelled.')
         migrate.stop()
         process.exit(0)
-        // For snapshot test, because exit() is mocked
-        return ``
       }
 
       try {
@@ -229,8 +227,6 @@ ${chalk.bold.redBright('All data will be lost.')}
           console.info('Push cancelled.')
           migrate.stop()
           process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
         }
 
         try {

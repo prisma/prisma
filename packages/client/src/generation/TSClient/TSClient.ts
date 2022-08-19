@@ -23,7 +23,6 @@ import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
 import type { Generatable } from './Generatable'
-import { ExportCollector } from './helpers'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
@@ -149,25 +148,23 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       path.dirname(this.options.schemaPath),
     )
 
-    const collector = new ExportCollector()
-
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
       if (this.dmmf.outputTypeMap[modelOrType.name]) {
-        acc.push(new Model(modelOrType, this.dmmf, this.options.generator, collector))
+        acc.push(new Model(modelOrType, this.dmmf, this.options.generator))
       }
       return acc
     }, [] as Model[])
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, collector).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, collector).toTS())
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toTS())
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
-      .map((t) => new Count(t, this.dmmf, this.options.generator, collector))
+      .map((t) => new Count(t, this.dmmf, this.options.generator))
 
     const code = `
 /**
@@ -202,7 +199,6 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
-  collector,
 ).toTS()}
 
 ${prismaClientClass.toTS()}
@@ -245,16 +241,15 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      collector?.addSymbol(inputType.name)
-      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, collector).toTS())
+      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }).toTS())
     } else {
-      acc.push(new InputType(inputType, collector).toTS())
+      acc.push(new InputType(inputType).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
-${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, collector).toTS()).join('\n') ?? ''}
+${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType).toTS()).join('\n') ?? ''}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
