@@ -40,9 +40,9 @@ export function safeGetEngineVersion(enginePath?: string, binaryName?: BinaryTyp
 type WasmEngineType = Extract<BinaryType, BinaryType.prismaFmt>
 
 /**
- * Extract the npm/hash version of the given WASM engine.
+ * Extract the npm/hash version of the given Wasm engine.
  */
-export function getWASMVersion(engineName: WasmEngineType): string {
+export function getWasmVersion(engineName: WasmEngineType): string {
   const wasmVersion = match(engineName)
     .with(BinaryType.prismaFmt, () => dependencies['@prisma/prisma-fmt-wasm'] as string)
     .exhaustive()

@@ -19,7 +19,7 @@ function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { s
 
 /**
  * Can be used by passing either the `schema` as a string, or a path `schemaPath` to the schema file.
- * Passing `schema` will use the Rust binary, passing `schemaPath` will use the WASM engine.
+ * Passing `schema` will use the Rust binary, passing `schemaPath` will use the Wasm engine.
  * Currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
  */
 export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): Promise<string> {
@@ -56,7 +56,7 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
   const formattedSchema = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      return formatWASM(schemaContent)
+      return formatWasm(schemaContent)
     },
     { schemaPath, schema } as FormatSchemaParams,
   )
@@ -98,7 +98,7 @@ type DocumentFormattingParams = {
   options: {
     // this is the only property currently considered by Rust, the rest are ignored but are needed for successfully unmarshaling the `DocumentFormattingParams`
     // and be compatible with the LSP spec.
-    // The WASM formatter may fail silently on unmarshaling errors (a `warn!` macro is used in the Rust code, but that's not propagated to WASM land).
+    // The Wasm formatter may fail silently on unmarshaling errors (a `warn!` macro is used in the Rust code, but that's not propagated to Wasm land).
     tabSize: number
 
     insertSpaces: boolean
@@ -113,7 +113,7 @@ const defaultDocumentFormattingParams: DocumentFormattingParams = {
   },
 }
 
-function formatWASM(schema: string): string {
+function formatWasm(schema: string): string {
   const params: DocumentFormattingParams = defaultDocumentFormattingParams
   const formattedSchema = prismaFmt.format(schema, JSON.stringify(params))
   return formattedSchema
