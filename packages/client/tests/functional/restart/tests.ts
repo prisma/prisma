@@ -1,12 +1,12 @@
 import { faker } from '@faker-js/faker'
+// @ts-ignore this is just for typechecks
+import type { PrismaClient } from '@prisma/client'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { ChildProcess } from 'child_process'
 
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
-// @ts-ignore this is just for type checks
-type PrismaClient = import('@prisma/client').PrismaClient
-// @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 function waitForChildExit(child: ChildProcess): Promise<void> {
@@ -21,7 +21,6 @@ function waitForChildExit(child: ChildProcess): Promise<void> {
 }
 
 testMatrix.setupTestSuite(() => {
-  // @ts-ignore internal
   let client: PrismaClient
 
   afterEach(() => {
@@ -43,19 +42,17 @@ testMatrix.setupTestSuite(() => {
 
     await client.user.create({ data: { username } })
 
-    // @ts-ignore internal
-    const waiter1 = waitForChildExit(client._engine.child)
-    // @ts-ignore internal
-    client._engine.child.kill()
+    let child = (client as any)._engine.child as ChildProcess
+    const waiter1 = waitForChildExit(child)
+    child.kill()
     await waiter1
 
     const [found1] = await client.user.findMany({ where: { username } })
     expect(found1).toBeTruthy()
 
-    // @ts-ignore internal
-    const waiter2 = waitForChildExit(client._engine.child as ChildProcess)
-    // @ts-ignore internal
-    client._engine.child.kill()
+    child = (client as any)._engine.child as ChildProcess
+    const waiter2 = waitForChildExit(child)
+    child.kill()
     await waiter2
 
     const [found2] = await client.user.findMany({ where: { username } })
