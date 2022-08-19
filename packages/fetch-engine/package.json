@@ -14,7 +14,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
     "@prisma/engines-version": "4.3.0-19.6247f408d7e3d2824521d8af1266c1eb34ccb2e2",
-    "@swc/core": "1.2.197",
+    "@swc/core": "1.2.237",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.7",
     "@types/node": "16.11.49",
@@ -23,7 +23,7 @@
     "del": "6.1.1",
     "jest": "28.1.3",
     "strip-ansi": "6.0.1",
-    "typescript": "4.7.3"
+    "typescript": "4.7.4"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
