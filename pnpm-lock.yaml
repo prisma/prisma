@@ -771,7 +771,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.3.0-18.a39215673171b87177b86233206a5d65f2558857
+      '@prisma/engines-version': 4.3.0-19.6247f408d7e3d2824521d8af1266c1eb34ccb2e2
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -826,7 +826,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.3.0-18.a39215673171b87177b86233206a5d65f2558857
+      '@prisma/engines-version': 4.3.0-19.6247f408d7e3d2824521d8af1266c1eb34ccb2e2
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.2.204
@@ -2211,10 +2211,6 @@ packages:
   /@opentelemetry/semantic-conventions/1.5.0:
     resolution: {integrity: sha512-wlYG/U6ddW1ilXslnDLLQYJ8nd97W8JJTTfwkGhubx6dzW6SUkd+N4/MzTjjyZlrHQunxHtkHFvVpUKiROvFDw==}
     engines: {node: '>=14'}
-    dev: true
-
-  /@prisma/engines-version/4.3.0-18.a39215673171b87177b86233206a5d65f2558857:
-    resolution: {integrity: sha512-KC7zHj9fr5FYVsht8q1sMwxaSOWTSwJgD+Vib9jvJsPY3FG98nfpefV50UmvRNjxpTThJhv1aMRi/3EtdJdWuw==}
     dev: true
 
   /@prisma/engines-version/4.3.0-19.6247f408d7e3d2824521d8af1266c1eb34ccb2e2:
