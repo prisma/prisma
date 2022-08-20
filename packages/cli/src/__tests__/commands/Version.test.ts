@@ -55,19 +55,15 @@ describe('version', () => {
         delete process[envVar]
       }
     },
-    50_000,
+    50000,
   )
 
   // Binary Tests
 
-  testIf(!useNodeAPI)(
-    'basic version',
-    async () => {
-      const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
-    },
-    10_000,
-  )
+  testIf(!useNodeAPI)('basic version', async () => {
+    const data = await ctx.cli('--version')
+    expect(cleanSnapshot(data.stdout)).toMatchSnapshot()
+  })
 
   testIf(!useNodeAPI)(
     'version with custom binaries',
@@ -102,7 +98,7 @@ describe('version', () => {
         delete process[envVar]
       }
     },
-    50_000,
+    50000,
   )
 })
 
@@ -115,10 +111,6 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   // Query Engine (Node-API) : libquery-engine e996df5d66a2314d1da15d31047f9777fc2fbdd9 (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
   //                                                                                    ^^^^^^^^^^^^^^^^^^^
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
-
-  // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
-  // Currently, the engine version of @prisma/prisma-fmt-wasm isn't necessarily the same as the enginesVersion
-  str = str.replace(new RegExp('([0-9]+.[0-9]+.[0-9]+-[0-9]+.)([a-z0-9]{40})', 'g'), 'CLI_VERSION.ENGINE_VERSION')
 
   // replace engine version hash
   const defaultEngineVersion = enginesVersion

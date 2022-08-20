@@ -46,11 +46,11 @@ describeIf(process.platform !== 'win32')('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      Migration engine error:
-      Failed to delete SQLite database at \`dev.db\`.
-      No such file or directory (os error 2)
+Migration engine error:
+Failed to delete SQLite database at \`dev.db\`.
+No such file or directory (os error 2)
 
-    `)
+`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -106,14 +106,15 @@ describeIf(process.platform !== 'win32')('drop', () => {
 
   it('should be cancelled (prompt)', async () => {
     ctx.fixture('reset')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
     prompt.inject([new Error()]) // simulate cancel
 
     const result = DbDrop.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
+    await expect(result).resolves.toMatchInlineSnapshot(`
+            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
+
+          `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"

@@ -1,10 +1,11 @@
 'use strict'
+const forceTranspile = require('../../../../helpers/jest/forceTranspile')
 const os = require('os')
 
 module.exports = () => {
   const configCommon = {
     testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
-    transformIgnorePatterns: [],
+    transformIgnorePatterns: [forceTranspile()],
     reporters: [
       'default',
       [

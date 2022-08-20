@@ -1,10 +1,9 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore this is just for type checks
-import type { PrismaClient } from '@prisma/client'
 
 import testMatrix from './_matrix'
 
-declare let prisma: PrismaClient
+// @ts-ignore this is just for type checks
+declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(({ provider }) => {
   const tests = [
@@ -203,12 +202,14 @@ testMatrix.setupTestSuite(({ provider }) => {
           ],
         ]
       : []),
-  ] as Array<[string, (email: string) => any]>
+  ]
 
+  // @ts-ignore function defined in matrix
   describe.each(tests)('%s', (name, fn) => {
     const email = faker.internet.email()
     const createPromise = () => {
-      return fn(email)
+      // @ts-ignore function defined in matrix
+      return (fn as (email: string) => any)(email)
     }
 
     beforeEach(async () => {

@@ -574,6 +574,14 @@ async function publish() {
       // TODO this can be done by esbuild
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
+    // TODO: check if we really need GITHUB_CONTEXT
+    // TODO: this is not useful anymore, the logic is
+    if (!process.env.GITHUB_CONTEXT) {
+      const changes = await getLatestChanges()
+
+      console.log(chalk.bold(`Changed files:`))
+      console.log(changes.map((c) => `  ${c}`).join('\n'))
+    }
 
     let prismaVersion
     let tag: undefined | string

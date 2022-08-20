@@ -3,7 +3,6 @@ import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import path from 'path'
 
-import { generateTestClient } from '../../../../utils/getTestClient'
 import { EXIT_MESSAGE, READY_MESSAGE } from './__helpers__/constants'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
@@ -24,10 +23,6 @@ async function waitMessageOnStdout(child: ExecaChildProcess): Promise<string> {
 }
 
 describe('signals that should terminate the process', () => {
-  beforeAll(async () => {
-    await generateTestClient()
-  })
-
   test('SIGINT', async () => {
     const child = spawnChild()
     expect(await waitMessageOnStdout(child)).toBe(READY_MESSAGE)

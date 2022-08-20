@@ -833,7 +833,16 @@ export function selectionToFields(
       return acc
     }
 
-    if (field.outputType.location === 'scalar' && field.args.length === 0 && typeof value !== 'boolean') {
+    if (
+      typeof value !== 'boolean' &&
+      field.outputType.location === 'scalar' &&
+      field.name !== 'executeRaw' &&
+      field.name !== 'queryRaw' &&
+      field.name !== 'runCommandRaw' &&
+      outputType.name !== 'Query' &&
+      !name.startsWith('aggregate') &&
+      field.name !== 'count' // TODO: Find a cleaner solution
+    ) {
       acc.push(
         new Field({
           name,

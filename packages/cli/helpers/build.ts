@@ -41,13 +41,6 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       // we copy the contents from xdg-open to build
       await copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
 
-      // as a convention, we install all Prisma's WASM modules in the internals package
-      const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
-
-      // TODO: create a glob helper for this to import all the wasm modules having pattern /^@prisma\/.*-wasm$/
-      const prismaWASMFile = path.join(wasmResolveDir, '@prisma', 'prisma-fmt-wasm', 'src', 'prisma_fmt_build_bg.wasm')
-      await copyFile(prismaWASMFile, './build/prisma_fmt_build_bg.wasm')
-
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
       chmodX('./build/index.js')

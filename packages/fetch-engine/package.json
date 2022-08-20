@@ -13,7 +13,7 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@prisma/engines-version": "4.3.0-15.57963ff63cd6949576084114808980809d9e2d9a",
+    "@prisma/engines-version": "4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270",
     "@swc/core": "1.2.197",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.7",
@@ -23,7 +23,7 @@
     "del": "6.1.1",
     "jest": "28.1.3",
     "strip-ansi": "6.0.1",
-    "typescript": "4.7.4"
+    "typescript": "4.7.3"
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",

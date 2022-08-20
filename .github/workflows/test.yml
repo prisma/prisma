@@ -561,7 +561,6 @@ jobs:
           TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
           TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
           TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
-          TEST_MONGO_URI_MIGRATE_EXISTING_DB: 'mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin'
 
       - uses: codecov/codecov-action@v3
         with:

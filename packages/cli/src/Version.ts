@@ -13,7 +13,6 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  wasm,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import { match, P } from 'ts-pattern'
@@ -97,7 +96,6 @@ export class Version implements Command {
       ['Current platform', platform],
 
       ...enginesRows,
-      ['Format Wasm', `@prisma/prisma-fmt-wasm ${wasm.prismaFmt.version()}`],
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],

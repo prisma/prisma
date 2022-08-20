@@ -14,10 +14,16 @@ export function idForProvider(provider: string, options: Options = { includeDefa
       strs.push('@map("_id") @db.ObjectId')
 
       break
+    case 'cockroachdb':
+      if (options.includeDefault) {
+        strs.push('@default(cuid())')
+      }
+
+      break
 
     default:
       if (options.includeDefault) {
-        strs.push('@default(cuid())')
+        strs.push('@default(uuid())')
       }
 
       break

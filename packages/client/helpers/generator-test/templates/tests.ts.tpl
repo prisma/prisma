@@ -1,8 +1,7 @@
 import testMatrix from './_matrix'
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
 
-declare let prisma: PrismaClient
+// @ts-ignore this is just for type checks
+declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   test('example', () => {

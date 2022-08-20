@@ -32,10 +32,10 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
 }
 
 /**
- * Helper function for defining test matrix in a strongly typed way.
+ * Helper function for definining test matrix in a strongly typed way.
  * Should be used in your _matrix.ts file. Returns a helper class, that can later be used
  * for defining schema and test suite itself, while providing autocomplete and type checking
- * for matrix parameters.
+ * for matrix paramteters.
  * @param matrix matrix factory function
  * @returns helper for defining the suite and the prisma schema
  */

@@ -10,7 +10,8 @@ async function main() {
 }
 async function run(benchmarks: string[]) {
   for (const location of benchmarks) {
-    await execa.command(`node -r esbuild-register ${location}`, {
+    await execa.command(`pnpm ts-node ${location}`, {
+      cwd: path.join(__dirname, `..`),
       stdio: 'inherit',
     })
   }

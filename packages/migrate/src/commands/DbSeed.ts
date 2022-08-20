@@ -87,6 +87,8 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
       process.exit(1)
+      // For snapshot test, because exit() is mocked
+      return ``
     }
   }
 

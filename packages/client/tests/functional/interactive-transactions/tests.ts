@@ -1,12 +1,15 @@
-// @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
+import { PrismaClient } from '../../../../react-prisma/dist'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
+// @ts-ignore this is just for type checks
+type PrismaClient = import('@prisma/client').PrismaClient
 declare let prisma: PrismaClient
-declare let Prisma: typeof PrismaNamespace
+// @ts-ignore
+declare let Prisma: typeof import('@prisma/client').Prisma
+// @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))

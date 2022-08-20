@@ -5,7 +5,7 @@ import fetch from 'node-fetch'
 import pMap from 'p-map'
 
 import { getProxyAgent } from './getProxyAgent'
-import { getDownloadUrl } from './utils'
+import { getDownloadUrl } from './util'
 
 export async function getLatestTag(): Promise<any> {
   let branch = await getBranch()

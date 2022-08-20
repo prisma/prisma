@@ -142,7 +142,6 @@ export class MinimalArgsType implements Generatable {
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly generatedTypeName = getModelArgName(type.name, action),
   ) {}
   public toTS(): string {
     const { action, args } = this
@@ -152,11 +151,13 @@ export class MinimalArgsType implements Generatable {
       arg.comment = getArgFieldJSDoc(this.type, action, arg)
     }
 
+    const typeName = getModelArgName(name, action)
+
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName} = {
+export type ${typeName} = {
 ${indent(
   args
     .map((arg) => {

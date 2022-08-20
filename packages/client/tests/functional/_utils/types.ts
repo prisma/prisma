@@ -9,6 +9,6 @@ export type MatrixOptions = {
   skipDefaultClientInstance?: boolean
 }
 
-export type NewPrismaClient<T extends new (...args: any) => any> = (
+export type NewPrismaClient<T extends new (...args: any[]) => any> = (
   ...args: ConstructorParameters<T>
 ) => InstanceType<T>
