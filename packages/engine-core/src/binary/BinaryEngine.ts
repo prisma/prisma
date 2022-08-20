@@ -575,7 +575,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         const tracingHeaders: { traceparent?: string } = {}
 
         if (this.tracingConfig.enabled) {
-          tracingHeaders.traceparent = getTraceParent()
+          tracingHeaders.traceparent = getTraceParent({ tracingConfig: this.tracingConfig })
         }
 
         // TODO: not used yet by the engine
