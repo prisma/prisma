@@ -82,7 +82,7 @@ export class RequestHandler {
     this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const info = getRequestInfo(requests[0])
+        const info = getRequestInfo({ ...requests[0], tracingConfig: client._tracingConfig })
         const queries = requests.map((r) => String(r.document))
         const traceparent = getTraceParent({ context: requests[0].otelParentCtx, tracingConfig: client._tracingConfig })
 
@@ -93,7 +93,7 @@ export class RequestHandler {
         return this.client._engine.requestBatch(queries, info.headers, info.inTx)
       },
       singleLoader: (request) => {
-        const info = getRequestInfo(request)
+        const info = getRequestInfo({ ...request, tracingConfig: client._tracingConfig })
         const query = String(request.document)
 
         return this.client._engine.request(query, info.headers)
