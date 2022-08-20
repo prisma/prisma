@@ -17,7 +17,7 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new RequestHandler({
-      tracingConfig,
+      _tracingConfig: tracingConfig,
       $connect: () => Promise.resolve(),
       _engine: {
         // @ts-expect-error
@@ -133,7 +133,7 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new RequestHandler({
-      tracingConfig,
+      _tracingConfig: tracingConfig,
       $connect: () => Promise.resolve(),
       _engine: {
         // @ts-expect-error
@@ -238,7 +238,7 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new RequestHandler({
-      tracingConfig,
+      _tracingConfig: tracingConfig,
       $connect: () => Promise.resolve(),
       _engine: {
         // @ts-expect-error
