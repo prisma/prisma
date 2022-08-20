@@ -1,0 +1,14 @@
+datasource my_db {
+  provider = "mongodb"
+  url      = env("TEST_MONGO_URI_MIGRATE_EXISTING_DB")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
+}
+
+model Post {
+  id    Int @id @map("_id")
+  title String
+}
