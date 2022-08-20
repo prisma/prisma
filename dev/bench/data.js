@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1660829650710,
+  "lastUpdate": 1660994366446,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -119496,6 +119496,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.398117065429688,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6ed5fea60b44aa8667135ae4cb263217e097b164",
+          "message": "fix(client): Dates serialized without quotation marks (#14876)\n\n* test: quote deserializable dates\r\n\r\n* package: bump versions\r\n\r\n* Update packages/client/tests/functional/serialized-dates/prisma/_schema.ts\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\n* Update packages/client/tests/functional/serialized-dates/prisma/_schema.ts\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>\r\n\r\n* fix: type issues\r\n\r\n* fix: engines version\r\n\r\n* type: fixes\r\n\r\nCo-authored-by: Alexey Orlenko <alex@aqrln.net>",
+          "timestamp": "2022-08-20T12:16:29+01:00",
+          "tree_id": "f1bb853084f5644e381ba36dee5f4956935fbcf9",
+          "url": "https://github.com/prisma/prisma/commit/6ed5fea60b44aa8667135ae4cb263217e097b164"
+        },
+        "date": 1660994358566,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.03,
+            "range": "±19.04%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.90%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2960662841796875,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.66720104217529,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.68324279785156,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.399828910827637,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
