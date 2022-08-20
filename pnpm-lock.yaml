@@ -226,7 +226,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e
+      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -288,7 +288,7 @@ importers:
       yeoman-generator: 5.7.0
       yo: 4.3.0
     dependencies:
-      '@prisma/engines-version': 4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e
+      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
     devDependencies:
       '@faker-js/faker': 7.4.0
       '@jest/test-sequencer': 28.1.3
@@ -438,7 +438,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e
+      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.2.237
@@ -450,7 +450,7 @@ importers:
       typescript: 4.7.4
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e
+      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.2.237
@@ -2211,12 +2211,8 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
-  /@prisma/engines-version/4.3.0-13.6263eb57ecfe61a0fa05d847f7a34f3eba9fba5e:
-    resolution: {integrity: sha512-3HeR3S6lP5zjV2k+g85v3p+Q4rspfYOiJUBTPTMe3SV+KvSDH70Hktsm5OzM9O64xQmQGnn0bISksEmzwweCMA==}
-
   /@prisma/engines-version/4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270:
     resolution: {integrity: sha512-SgJYzoL2xcHvodZo0HRudVwYst5BNWbBHGoqbovajZeb20wV85hWuaRj2qgiSbLRgUwfkNxijzjzcyVoEbzoXg==}
-    dev: true
 
   /@prisma/prisma-fmt-wasm/4.3.0-18.a39215673171b87177b86233206a5d65f2558857:
     resolution: {integrity: sha512-uBJuUWUUbLFJ89MOHeR4kZyruJuEXRO2H+jgIDUdur4+BBeXxJZJ56wdnV5l5wcxeh9s/do7m9uFrR34WcpdxQ==}
