@@ -1,17 +1,18 @@
+// @ts-ignore
+import { PrismaClient } from '@prisma/client'
+
+import { QueryEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
-// @ts-ignore this is just for type checks
-type PrismaClient = import('@prisma/client').PrismaClient
 // @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   ({ provider }) => {
-    // @ts-ignore
-    let _prisma: PrismaClient
+    let _prisma: ReturnType<typeof newPrismaClient>
 
-    beforeAll(async () => {
+    beforeAll(() => {
       _prisma = newPrismaClient({
         log: [
           {
@@ -20,8 +21,6 @@ testMatrix.setupTestSuite(
           },
         ],
       })
-
-      await _prisma.$connect()
     })
 
     afterAll(async () => {
@@ -32,23 +31,30 @@ testMatrix.setupTestSuite(
       const date = new Date()
 
       let paramsString = ''
-      _prisma.$on('query' as any, (e) => {
-        if (e.query.includes('INSERT')) {
-          paramsString = e.params
+      _prisma.$on('query', (e) => {
+        const event = e as unknown as QueryEvent
+        if (event.query.includes('INSERT')) {
+          paramsString = event.params
         }
       })
 
-      await _prisma.user.create({
-        data: {
-          dateTime: date,
-          ...(provider !== 'sqlite'
-            ? {
-                date: date,
-                time: date,
-              }
-            : {}),
-        },
-      })
+      if (provider === 'sqlite') {
+        await _prisma.user.create({
+          // @ts-test-if: provider === 'sqlite'
+          data: {
+            dateTime: date,
+          },
+        })
+      } else {
+        await _prisma.user.create({
+          data: {
+            dateTime: date,
+            // @ts-test-if: provider !== 'sqlite'
+            date: date,
+            time: date,
+          },
+        })
+      }
 
       // This test is asserting that JSON.parse does not throw because quotes are used
       const params = JSON.parse(paramsString)
