@@ -4,7 +4,7 @@ module.exports = {
   },
   transformIgnorePatterns: [],
   testEnvironment: 'node',
-  testMatch: ['**/src/__tests__/**/*.test.ts'],
+  testMatch: ['**/*.test.ts'],
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
