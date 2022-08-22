@@ -142,7 +142,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270"
+    "@prisma/engines-version": "4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a"
   },
   "sideEffects": false
 }

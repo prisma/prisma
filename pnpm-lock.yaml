@@ -226,7 +226,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -288,7 +288,7 @@ importers:
       yeoman-generator: 5.7.0
       yo: 4.3.0
     dependencies:
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
     devDependencies:
       '@faker-js/faker': 7.4.0
       '@jest/test-sequencer': 28.1.3
@@ -438,7 +438,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.2.237
@@ -450,7 +450,7 @@ importers:
       typescript: 4.7.4
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.2.237
@@ -464,7 +464,7 @@ importers:
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22
@@ -510,7 +510,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@swc/core': 1.2.197
       '@swc/jest': 0.2.22_@swc+core@1.2.197
       '@types/jest': 28.1.7
@@ -773,7 +773,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -828,7 +828,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270
+      '@prisma/engines-version': 4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.2.237
@@ -2211,8 +2211,8 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
-  /@prisma/engines-version/4.3.0-7.feat-many-composite-unique-compound-f1fc590206e998566528f8b603475ea1f0a73270:
-    resolution: {integrity: sha512-SgJYzoL2xcHvodZo0HRudVwYst5BNWbBHGoqbovajZeb20wV85hWuaRj2qgiSbLRgUwfkNxijzjzcyVoEbzoXg==}
+  /@prisma/engines-version/4.3.0-20.cc9c0de770c0006e66f104c06e905b4635b3fd9a:
+    resolution: {integrity: sha512-Nz0mMF40hU+cIp4U14fSic6Q3DQqFBt2JJrTxEst0VlOD82RD4vBXq+/I3ln0qxbBOtzOTCkIonTrZlzHVi5bw==}
 
   /@prisma/prisma-fmt-wasm/4.3.0-18.a39215673171b87177b86233206a5d65f2558857:
     resolution: {integrity: sha512-uBJuUWUUbLFJ89MOHeR4kZyruJuEXRO2H+jgIDUdur4+BBeXxJZJ56wdnV5l5wcxeh9s/do7m9uFrR34WcpdxQ==}
