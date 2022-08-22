@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  () => {
     test('should assert that the error has the correct errorCode', async () => {
       expect.assertions(2)
 
