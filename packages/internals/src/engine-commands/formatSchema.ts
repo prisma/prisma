@@ -1,20 +1,17 @@
-import Debug from '@prisma/debug'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 
-const debug = Debug('prisma:formatSchema')
-
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
 
 function isSchemaOnly(schemaParams: FormatSchemaParams): schemaParams is { schema: string; schemaPath?: never } {
-  return !!schemaParams.schema
+  return Boolean(schemaParams.schema)
 }
 
 function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { schema?: never; schemaPath: string } {
-  return !!schemaParams.schemaPath
+  return Boolean(schemaParams.schemaPath)
 }
 
 /**
@@ -39,13 +36,8 @@ export async function formatSchema(
   }
 
   const schemaContent = match({ schema, schemaPath } as FormatSchemaParams)
-    .when(isSchemaOnly, ({ schema: _schema }) => {
-      debug('using a schema string directly')
-      return _schema
-    })
+    .when(isSchemaOnly, ({ schema: _schema }) => _schema)
     .when(isSchemaPathOnly, ({ schemaPath: _schemaPath }) => {
-      debug('reading a schema from a file')
-
       if (!fs.existsSync(_schemaPath)) {
         throw new Error(`Schema at ${schemaPath} does not exist.`)
       }
