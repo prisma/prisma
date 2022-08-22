@@ -100,17 +100,17 @@ jobs:
             |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
-      
+
       - name: PR url
         if: github.event.inputs.npmDistTag == 'latest'
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-      
+
       - name: Sleep for 5 seconds
         if: github.event.inputs.npmDistTag == 'latest'
         run: sleep 5s
         shell: bash
-      
+
       - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: github.event.inputs.npmDistTag == 'latest' && steps.cpr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v1
