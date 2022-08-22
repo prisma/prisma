@@ -56,7 +56,7 @@ Or specify a Prisma schema path
 
     const output = await formatSchema({ schemaPath })
 
-    // TODO: what's the point of this?
+    // Validate whether the formatted output is a valid schema
     await getDMMF({
       datamodel: output,
     })
