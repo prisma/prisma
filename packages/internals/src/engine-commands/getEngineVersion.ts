@@ -4,14 +4,9 @@ import { BinaryType } from '@prisma/fetch-engine'
 import { isNodeAPISupported } from '@prisma/get-platform'
 import execa from 'execa'
 import * as TE from 'fp-ts/TaskEither'
-import { match } from 'ts-pattern'
 
 import { resolveBinary } from '../resolveBinary'
 import { load } from '../utils/load'
-
-// Note: using `import { dependencies } from '../../package.json'` here would break esbuild with seemingly unrelated errors.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { dependencies } = require('../../package.json')
 
 export async function getEngineVersion(enginePath?: string, binaryName?: BinaryType): Promise<string> {
   if (!binaryName) {
@@ -35,17 +30,4 @@ export function safeGetEngineVersion(enginePath?: string, binaryName?: BinaryTyp
     () => getEngineVersion(enginePath, binaryName),
     (error) => error as Error,
   )
-}
-
-type WasmEngineType = Extract<BinaryType, BinaryType.prismaFmt>
-
-/**
- * Extract the npm/hash version of the given WASM engine.
- */
-export function getWASMVersion(engineName: WasmEngineType): string {
-  const wasmVersion = match(engineName)
-    .with(BinaryType.prismaFmt, () => dependencies['@prisma/prisma-fmt-wasm'] as string)
-    .exhaustive()
-
-  return wasmVersion
 }
