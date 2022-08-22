@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661175152332,
+  "lastUpdate": 1661181404179,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -119816,6 +119816,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.409945487976074,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "1ce4e5bbdfb9b5f7c0922ea639c26d18cb8c3fef",
+          "message": "feat(cli): use prisma fmt wasm for cli format (#14766)\n\n* feat(cli): add @prisma/prisma-fmt-wasm to version command\r\n\r\n* fix(test): fix version tests\r\n\r\n* chore: separated originalVersion in variable\r\n\r\n* Update packages/internals/src/engine-commands/getEngineVersion.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* feat(internals): formatSchema({ schemaPath }) now uses @prisma/prisma-fmt-wasm\r\n\r\n* chore: replaced require with import\r\n\r\n* ci: add hook to keep @prisma/prisma-fmt-wasm up to date\r\n\r\n* chore: probably fix ci on a file I haven't even touched\r\n\r\n* attempt\r\n\r\n* chore: updated update-engines-version workflow table\r\n\r\n* Update .github/workflows/update-engines-version.yml\r\n\r\n* chore: revert change on applyClientOnlyWrapper\r\n\r\n* fix: solve unmarshaling issue when using @prisma/prisma-fmt-wasm\r\n\r\n* ci: edit update-engines-version to support @prisma/prisma-fmt-wasm with @janpio\r\n\r\n* chore: increased jest timeout in Version.test.ts\r\n\r\n* feat(internals): stop using fmt binary\r\n\r\n* fix: add support for panics to @prisma/prisma-fmt-wasm\r\n\r\n* chore: updated @prisma/prisma-fmt-wasm\r\n\r\n* chore: updated pnpm-lock.yaml\r\n\r\n* chore: changed snapshot regex for 'version' command to address version bumping issue of @prisma/prisma-fmt-wasm\r\n\r\n* chore: removed timeout in 'version' test\r\n\r\n* chore: recovered timeout for 'version' test\r\n\r\n* chore: fix artificial-panic formatter tests\r\n\r\n* chore: removed noise\r\n\r\n* chore: normalized jest timeouts in Version.test.ts\r\n\r\n* ci: only bump prisma-fmt-wasm when npm tag is `latest`\r\n\r\n* chore: update @prisma/prisma-fmt-wasm version\r\n\r\n* internals: add performance optimization comment in wasm.ts\r\n\r\n* chore: update empty-schema test for format\r\n\r\n* cli(format): remove extra newline\r\n\r\n* chore: removed useless promise in formatWASM\r\n\r\n* chore: fix capitalization of WASM -> Wasm\r\n\r\n* feat(internals): add possibility to customize formatSchema options\r\n\r\n* cli: added comment to Format\r\n\r\n* test(internals): add comparison between binary and wasm formatter with input schemas of different spacing\r\n\r\n* chore: apply small nit comments\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-08-22T17:12:48+02:00",
+          "tree_id": "d2b8867a32f7d30655bd5017344c9e3b33ef2e4f",
+          "url": "https://github.com/prisma/prisma/commit/1ce4e5bbdfb9b5f7c0922ea639c26d18cb8c3fef"
+        },
+        "date": 1661181392858,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.71,
+            "range": "±5.46%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±3.38%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.2960519790649414,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.68480968475342,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.70085144042969,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.409966468811035,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
