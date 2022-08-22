@@ -19,10 +19,12 @@ function isSchemaPathOnly(schemaParams: FormatSchemaParams): schemaParams is { s
 
 /**
  * Can be used by passing either the `schema` as a string, or a path `schemaPath` to the schema file.
- * Passing `schema` will use the Rust binary, passing `schemaPath` will use the Wasm engine.
  * Currently, we only use `schemaPath` in the cli. Do we need to keep supporting `schema` as well?
  */
-export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): Promise<string> {
+export async function formatSchema(
+  { schemaPath, schema }: FormatSchemaParams,
+  inputFormattingOptions?: Partial<DocumentFormattingParams['options']>,
+): Promise<string> {
   if (!schema && !schemaPath) {
     throw new Error(`Parameter schema or schemaPath must be passed.`)
   }
@@ -53,10 +55,23 @@ export async function formatSchema({ schemaPath, schema }: FormatSchemaParams): 
     })
     .exhaustive()
 
+  const defaultFormattingOptions: DocumentFormattingParams['options'] = {
+    tabSize: 2,
+    insertSpaces: true,
+  }
+
+  const documentFormattingParams = {
+    textDocument: { uri: 'file:/dev/null' },
+    options: {
+      ...defaultFormattingOptions,
+      ...inputFormattingOptions,
+    },
+  } as DocumentFormattingParams
+
   const formattedSchema = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      return formatWasm(schemaContent)
+      return formatWasm(schemaContent, documentFormattingParams)
     },
     { schemaPath, schema } as FormatSchemaParams,
   )
@@ -105,16 +120,7 @@ type DocumentFormattingParams = {
   }
 }
 
-const defaultDocumentFormattingParams: DocumentFormattingParams = {
-  textDocument: { uri: 'file:/dev/null' },
-  options: {
-    tabSize: 2,
-    insertSpaces: true,
-  },
-}
-
-function formatWasm(schema: string): string {
-  const params: DocumentFormattingParams = defaultDocumentFormattingParams
-  const formattedSchema = prismaFmt.format(schema, JSON.stringify(params))
+function formatWasm(schema: string, documentFormattingParams: DocumentFormattingParams): string {
+  const formattedSchema = prismaFmt.format(schema, JSON.stringify(documentFormattingParams))
   return formattedSchema
 }

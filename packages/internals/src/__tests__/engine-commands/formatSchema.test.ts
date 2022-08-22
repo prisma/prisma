@@ -7,6 +7,78 @@ if (process.env.CI) {
   jest.setTimeout(20_000)
 }
 
+describe('format custom options', () => {
+  test('tabSize=2', async () => {
+    const formatted = await formatSchema(
+      {
+        schema: `
+        datasource db {
+         provider = "sqlite"
+         url  = "file:dev.db"
+        }
+        
+        model User {
+         id String @default(cuid()) @id
+         email String @unique
+         name String?
+         posts Post[]
+        }
+      `,
+      },
+      { tabSize: 2 },
+    )
+    expect(formatted).toMatchInlineSnapshot(`
+      "datasource db {
+        provider = \\"sqlite\\"
+        url      = \\"file:dev.db\\"
+      }
+
+      model User {
+        id    String  @id @default(cuid())
+        email String  @unique
+        name  String?
+        posts Post[]
+      }
+      "
+    `)
+  })
+
+  test('tabSize=4', async () => {
+    const formatted = await formatSchema(
+      {
+        schema: `
+        datasource db {
+         provider = "sqlite"
+         url  = "file:dev.db"
+        }
+        
+        model User {
+         id String @default(cuid()) @id
+         email String @unique
+         name String?
+         posts Post[]
+        }
+      `,
+      },
+      { tabSize: 4 },
+    )
+    expect(formatted).toMatchInlineSnapshot(`
+      "datasource db {
+          provider = \\"sqlite\\"
+          url      = \\"file:dev.db\\"
+      }
+
+      model User {
+          id    String  @id @default(cuid())
+          email String  @unique
+          name  String?
+          posts Post[]
+      }
+      "
+    `)
+  })
+})
+
 describe('format', () => {
   test('nothing', async () => {
     try {
