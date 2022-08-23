@@ -8,7 +8,10 @@ pnpm-debug.log
 sandbox
 .DS_Store
 
+introspection-engine*
 query-engine*
+migration-engine*
+prisma-fmt*
 libquery_engine*
 query_engine-windows.dll.node
 
@@ -41,3 +44,4 @@ reproductions/*
 
 dev.db
 junit.xml
+/output.txt

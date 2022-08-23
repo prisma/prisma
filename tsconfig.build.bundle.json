@@ -4,14 +4,17 @@
   "compilerOptions": {
     "paths": {
       "@prisma/client": ["./packages/client/src"],
-      "@prisma/sdk": ["./packages/sdk/src"],
-      "@prisma/sdk/dist/*": ["./packages/sdk/src/*"],
+      "@prisma/internals": ["./packages/internals/src"],
+      "@prisma/internals/dist/*": ["./packages/internals/src/*"],
       "@prisma/migrate": ["./packages/migrate/src"],
       "@prisma/generator-helper": ["./packages/generator-helper/src"],
       "@prisma/engine-core": ["./packages/engine-core/src"],
       "@prisma/engine-core/dist/*": ["./packages/engine-core/src/*"],
       "@prisma/debug": ["./packages/debug/src"],
-      "prisma": ["./packages/cli/src"]
+      "prisma": ["./packages/cli/src"],
+      "@prisma/get-platform": ["./packages/get-platform/src"],
+      "@prisma/fetch-engine": ["./packages/fetch-engine/src"],
+      "@prisma/engines": ["./packages/engines/src"]
     }
   }
 }

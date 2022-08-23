@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { generatorHandler } from '@prisma/generator-helper'
-import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType, parseEnvValue } from '@prisma/internals'
 
 import { externalToInternalDmmf } from '../runtime/externalToInternalDmmf'
 import { generateClient } from './generateClient'
@@ -23,7 +23,7 @@ if (process.argv[1] === __filename) {
       const requiredEngine = getClientEngineType(config) === ClientEngineType.Library ? 'libqueryEngine' : 'queryEngine'
       debug(`requiredEngine: ${requiredEngine}`)
       return {
-        defaultOutput: '.prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/main/cli/sdk/src/getGenerators.ts
+        defaultOutput: '.prisma/client', // the value here doesn't matter, as it's resolved in https://github.com/prisma/prisma/blob/88fe98a09092d8e53e51f11b730c7672c19d1bd4/packages/sdk/src/get-generators/getGenerators.ts
         prettyName: 'Prisma Client',
         requiresEngines: [requiredEngine],
         version: clientVersion,
@@ -40,7 +40,7 @@ if (process.argv[1] === __filename) {
 
       return generateClient({
         datamodel: options.datamodel,
-        datamodelPath: options.schemaPath,
+        schemaPath: options.schemaPath,
         binaryPaths: options.binaryPaths!,
         datasources: options.datasources,
         outputDir,
@@ -51,6 +51,7 @@ if (process.argv[1] === __filename) {
         clientVersion,
         transpile: true,
         activeProvider: options.datasources[0]?.activeProvider,
+        dataProxy: options.dataProxy,
       })
     },
   })

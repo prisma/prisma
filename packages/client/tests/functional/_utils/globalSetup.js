@@ -1,7 +1,11 @@
-import glob from 'globby'
-import fs from 'fs-extra'
+'use strict'
+const glob = require('globby')
+const fs = require('fs-extra')
+const { setupQueryEngine } = require('../../commonUtils/setupQueryEngine')
 
-module.exports = () => {
+module.exports = async () => {
+  await setupQueryEngine()
+
   // we clear up all the files before we run the tests that are not type tests
   const ignorePatternsIndex = process.argv.indexOf('--testPathIgnorePatterns')
   const ignorePatternsValue = process.argv[ignorePatternsIndex + 1]

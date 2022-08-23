@@ -1,15 +1,16 @@
 import type { ConnectorType } from '@prisma/generator-helper'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
   canConnectToDatabase,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   HelpError,
   link,
   logger,
   protocolToConnectorType,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import dotenv from 'dotenv'
 import fs from 'fs'
@@ -133,6 +134,8 @@ export class Init implements Command {
     if (isError(args) || args['--help']) {
       return this.help()
     }
+
+    await checkUnsupportedDataProxy('init', args, false)
 
     /**
      * Validation
@@ -259,7 +262,7 @@ export class Init implements Command {
         warnings.push(
           `${chalk.yellow(
             'warn',
-          )} You already have a .gitignore. Don't forget to exclude .env to not commit any secret.`,
+          )} You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
         )
       } else {
         console.error('Failed to write .gitignore file, reason: ', e)
@@ -269,7 +272,7 @@ export class Init implements Command {
     const steps: string[] = []
 
     if (provider === 'mongodb') {
-      steps.push(`Define models in the prisma.schema file.`)
+      steps.push(`Define models in the schema.prisma file.`)
     } else {
       steps.push(
         `Run ${chalk.green(

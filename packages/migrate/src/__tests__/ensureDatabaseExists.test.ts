@@ -1,4 +1,4 @@
-import { createDatabase, getConfig, getSchema, getSchemaPath, jestConsoleContext, jestContext } from '@prisma/sdk'
+import { createDatabase, getConfig, getSchema, getSchemaPath, jestConsoleContext, jestContext } from '@prisma/internals'
 
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 
@@ -13,7 +13,7 @@ it('can create database - sqlite', async () => {
 
 //
 // Would need logic to be reproducible
-// createDatabase is already tested in the sdk tests
+// createDatabase is already tested in the `@prisma/internals` tests
 //
 
 // it('can create database - postgresql', async () => {

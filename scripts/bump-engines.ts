@@ -18,10 +18,9 @@ async function main() {
     console.log(chalk`Defaulting to {dim latest}`)
     version = 'latest'
   }
-  await run(
-    path.join(__dirname, '..'),
-    `pnpm update -r @prisma/engines-version@${version} @prisma/engines@${version} @prisma/fetch-engine@${version} @prisma/get-platform@${version}`,
-  )
+  await run(path.join(__dirname, '..'), `pnpm update -r @prisma/engines-version@${version}`)
+  await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines dev`)
+  await run(path.join(__dirname, '..'), `pnpm run --filter @prisma/engines postinstall`)
 }
 
 void main()

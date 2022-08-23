@@ -1,5 +1,4 @@
 name: Benchmark
-# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
@@ -9,6 +8,19 @@ on:
       # - `pull_request` see below
       # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
       # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
+      - '*.md'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
+      - 'src/.buildkite/**'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - 'graphs/**'
+  pull_request:
+    paths-ignore:
       - '*.md'
       - '.devcontainer/**'
       - '.vscode/**'
@@ -33,7 +45,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.2
         with:
-          version: 6
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
@@ -53,6 +65,7 @@ jobs:
         run: pnpm run bench
 
       - name: Store benchmark result
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Benchmark.js Benchmark
@@ -68,11 +81,11 @@ jobs:
           alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@danstarns,@jkomyno'
 
       - name: 'Set current job url in SLACK_FOOTER env var'
-        if: ${{ failure() }}
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
 
       - name: Slack Notification on Failure
-        if: ${{ failure() }}
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_TITLE: 'Benchmark failed :x:'

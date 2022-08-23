@@ -71,6 +71,7 @@ export class Connection {
    * @param endpoint
    * @param headers
    * @param body
+   * @param parseResponse
    * @returns
    */
   async raw<R>(
@@ -78,7 +79,8 @@ export class Connection {
     endpoint: string,
     headers?: Dispatcher.DispatchOptions['headers'],
     body?: Dispatcher.DispatchOptions['body'],
-  ) {
+    parseResponse = true,
+  ): Promise<Result<R>> {
     assertHasPool(this._pool)
 
     const response = await this._pool.request({
@@ -91,13 +93,13 @@ export class Connection {
       body: body,
     })
 
-    const result: Result<R> = {
+    const bodyString = await getStream(response.body)
+
+    return {
       statusCode: response.statusCode,
       headers: response.headers,
-      data: JSON.parse(await getStream(response.body)) as R,
+      data: parseResponse ? JSON.parse(bodyString) : bodyString,
     }
-
-    return result
   }
 
   /**
@@ -105,14 +107,16 @@ export class Connection {
    * @param endpoint
    * @param body
    * @param headers
+   * @param parseResponse
    * @returns
    */
   post<R>(
     endpoint: string,
     body?: Dispatcher.DispatchOptions['body'],
     headers?: Dispatcher.DispatchOptions['headers'],
+    parseResponse?: boolean,
   ) {
-    return this.raw<R>('POST', endpoint, headers, body)
+    return this.raw<R>('POST', endpoint, headers, body, parseResponse)
   }
 
   /**

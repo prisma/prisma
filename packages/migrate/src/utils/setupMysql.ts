@@ -1,4 +1,4 @@
-import { uriToCredentials } from '@prisma/sdk'
+import { uriToCredentials } from '@prisma/internals'
 import fs from 'fs'
 import mariadb from 'mariadb'
 import path from 'path'

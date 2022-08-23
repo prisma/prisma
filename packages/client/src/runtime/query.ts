@@ -13,6 +13,7 @@ import type {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
+import { ObjectEnumValue } from './object-enums'
 import {
   getGraphQLType,
   getInputTypeName,
@@ -362,7 +363,7 @@ ${errorMessages}${missingArgsLegend}\n`
           `prisma.${this.children[0].name}`,
         )} is not a ${chalk.greenBright(
           wrapWithList(
-            stringifyGraphQLType(error.requiredType.bestFittingType.location),
+            stringifyGraphQLType(error.requiredType.bestFittingType.type),
             error.requiredType.bestFittingType.isList,
           ),
         )}.
@@ -673,7 +674,7 @@ export class Arg {
   constructor({ key, value, isEnum = false, error, schemaArg, inputType }: ArgOptions) {
     this.inputType = inputType
     this.key = key
-    this.value = value
+    this.value = value instanceof ObjectEnumValue ? value._getName() : value
     this.isEnum = isEnum
     this.error = error
     this.schemaArg = schemaArg
@@ -832,16 +833,7 @@ export function selectionToFields(
       return acc
     }
 
-    if (
-      typeof value !== 'boolean' &&
-      field.outputType.location === 'scalar' &&
-      field.name !== 'executeRaw' &&
-      field.name !== 'queryRaw' &&
-      field.name !== 'runCommandRaw' &&
-      outputType.name !== 'Query' &&
-      !name.startsWith('aggregate') &&
-      field.name !== 'count' // TODO: Find a cleaner solution
-    ) {
+    if (field.outputType.location === 'scalar' && field.args.length === 0 && typeof value !== 'boolean') {
       acc.push(
         new Field({
           name,
@@ -1096,7 +1088,7 @@ function getInvalidTypeArg(
 function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): boolean {
   const { type, isList } = inputType
   const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
-  const graphQLType = getGraphQLType(value, type)
+  const graphQLType = getGraphQLType(value, inputType)
 
   if (graphQLType === expectedType) {
     return true
@@ -1106,7 +1098,7 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if (expectedType === 'Json') {
+  if (expectedType === 'Json' && graphQLType !== 'Symbol' && !(value instanceof ObjectEnumValue)) {
     return true
   }
 

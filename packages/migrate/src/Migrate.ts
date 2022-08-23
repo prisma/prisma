@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/sdk'
+import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import logUpdate from 'log-update'
@@ -50,7 +50,7 @@ export class Migrate {
     return schemaPath
   }
 
-  public getDatamodel(): string {
+  public getPrismaSchema(): string {
     if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
 
     return fs.readFileSync(this.schemaPath, 'utf-8')
@@ -119,20 +119,20 @@ export class Migrate {
   public evaluateDataLoss(): Promise<EngineResults.EvaluateDataLossOutput> {
     if (!this.migrationsDirectoryPath) throw new Error('this.migrationsDirectoryPath is undefined')
 
-    const datamodel = this.getDatamodel()
+    const schema = this.getPrismaSchema()
 
     return this.engine.evaluateDataLoss({
       migrationsDirectoryPath: this.migrationsDirectoryPath,
-      prismaSchema: datamodel,
+      prismaSchema: schema,
     })
   }
 
   public async push({ force = false }: { force?: boolean }): Promise<EngineResults.SchemaPush> {
-    const datamodel = this.getDatamodel()
+    const schema = this.getPrismaSchema()
 
     const { warnings, unexecutable, executedSteps } = await this.engine.schemaPush({
       force,
-      schema: datamodel,
+      schema,
     })
 
     return {
@@ -155,6 +155,7 @@ export class Migrate {
       printDownloadProgress: true,
       version: enginesVersion,
       cliVersion: packageJson.version,
+      dataProxy: false,
     })
 
     for (const generator of generators) {

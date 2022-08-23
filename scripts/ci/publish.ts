@@ -574,14 +574,6 @@ async function publish() {
       // TODO this can be done by esbuild
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
-    // TODO: check if we really need GITHUB_CONTEXT
-    // TODO: this is not useful anymore, the logic is
-    if (!process.env.GITHUB_CONTEXT) {
-      const changes = await getLatestChanges()
-
-      console.log(chalk.bold(`Changed files:`))
-      console.log(changes.map((c) => `  ${c}`).join('\n'))
-    }
 
     let prismaVersion
     let tag: undefined | string
@@ -710,10 +702,10 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 }
 
 async function getEnginesCommit(): Promise<string> {
-  const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
+  const prisma2Path = path.resolve(process.cwd(), './packages/engines/package.json')
   const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
   // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.dependencies['@prisma/engines']?.split('.').slice(-1)[0]
+  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
 
   return engineVersion
 }
@@ -736,14 +728,16 @@ async function tagEnginesRepo(
     const [major, minor] = patchBranch.split('.')
     const majorMinor = [major, minor].join('.')
     // ['3.2.0', '3.2.1']
-    const patchesPublished: string[] = JSON.parse(
+    const patchesPublished: string | string[] = JSON.parse(
       // TODO this line is useful for retrieving versions
       await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
     )
 
     console.log({ patchesPublished })
 
-    if (patchesPublished.length > 0) {
+    if (typeof patchesPublished === 'string') {
+      previousTag = patchesPublished
+    } else if (patchesPublished.length > 0) {
       // 3.2.0
       previousTag = patchesPublished.pop() as string
     } else {
@@ -969,8 +963,8 @@ async function publishPackages(
         continue
       }
 
-      // @prisma/engines & @prisma/engines-version are published outside of this script
-      const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
+      // @prisma/engines-version is published outside of this script
+      const packagesNotToPublish = ['@prisma/engines-version']
       if (packagesNotToPublish.includes(pkgName)) {
         continue
       }
@@ -1021,7 +1015,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }

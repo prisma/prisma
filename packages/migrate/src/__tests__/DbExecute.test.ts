@@ -1,9 +1,10 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { DbExecute } from '../commands/DbExecute'
+import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -216,19 +217,19 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    it('should fail with P1014 error with --file --schema', async () => {
+    // TODO we could have a generic error code in prisma-engines for a "SQL error"
+    it('should fail with --file --schema if there is a database error', async () => {
       ctx.fixture('schema-only-sqlite')
-      expect.assertions(2)
+      expect.assertions(1)
 
       fs.writeFileSync('script.sql', 'DROP TABLE "test-doesnotexists";')
       try {
         await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       } catch (e) {
-        expect(e.code).toEqual('P1014')
         expect(e.message).toMatchInlineSnapshot(`
-          P1014
+          SQLite database error
+          no such table: test-doesnotexists
 
-          The underlying table for model \`test-doesnotexists\` does not exist.
 
         `)
       }
@@ -244,6 +245,7 @@ COMMIT;`,
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
+          SQLite database error
           near "ThisisnotSQL": syntax error
 
 
@@ -453,6 +455,199 @@ COMMIT;`,
     })
   })
 
+  describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+    const connectionString = (
+      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
+    ).replace('tests-migrate', 'tests-migrate-db-execute')
+
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
+
+    const setupParams = {
+      connectionString,
+      dirname: '',
+    }
+
+    beforeAll(async () => {
+      await setupCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    afterAll(async () => {
+      await tearDownCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    const sqlScript = `-- Drop & Create & Drop
+DROP SCHEMA IF EXISTS "test-dbexecute";
+CREATE SCHEMA "test-dbexecute";
+DROP SCHEMA "test-dbexecute";`
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    }, 10000)
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should use env var from .env file', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
+
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`26257\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
+
+            `)
+    }, 10000)
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass using a transaction with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync(
+        'script.sql',
+        `-- start a transaction
+BEGIN;
+
+${sqlScript}
+      
+-- commit changes    
+COMMIT;`,
+      )
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    }, 10000)
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass with empty --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    // Cockroachdb doesn't have the same limitation as Postgres, as it can drop and create a database
+    // with a single SQL script.
+    it('should succeed if DROP DATABASE with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(0)
+
+      fs.writeFileSync(
+        'script.sql',
+        `-- Drop & Create & Drop
+      DROP DATABASE IF EXISTS "test-dbexecute";
+      CREATE DATABASE "test-dbexecute";
+      DROP DATABASE "test-dbexecute";`,
+      )
+      try {
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with P1013 error with invalid url with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse([
+          '--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with P1013 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with P1001 error with unreachable url with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse([
+          '--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1001')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1001
+
+          Can't reach database server at \`doesnotexist\`:\`5432\`
+
+          Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+
+        `)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with invalid SQL error from database with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              db error: ERROR: at or near "thisisnotsqlitshouldfail": syntax error
+              DETAIL: source SQL:
+              ThisisnotSQLitshouldfail
+              ^
+
+
+            `)
+    })
+  })
+
   describe('mysql', () => {
     const connectionString = (
       process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
@@ -646,6 +841,7 @@ DROP DATABASE IF EXISTS "test-dbexecute";
 CREATE DATABASE "test-dbexecute";
 DROP DATABASE "test-dbexecute";`
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -662,6 +858,7 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -670,6 +867,7 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -689,6 +887,7 @@ COMMIT;`,
 
     // Limitation of sqlserver
     // DROP DATABASE statement cannot be used inside a user transaction.
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail if DROP DATABASE in a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -710,6 +909,7 @@ COMMIT;`,
             `)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -730,6 +930,8 @@ COMMIT;`,
         `)
       }
     })
+
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -748,6 +950,7 @@ COMMIT;`,
       }
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -771,6 +974,7 @@ COMMIT;`,
       }
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -783,6 +987,7 @@ COMMIT;`,
             `)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 

@@ -13,7 +13,7 @@
     "@prisma/get-platform"
   ],
   "constraints": {
-    "pnpm": "6"
+    "pnpm": "7"
   },
   "packageRules": [
     {
@@ -76,7 +76,8 @@
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
-      "updateTypes": ["patch", "minor"]
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "Studio",
@@ -92,12 +93,20 @@
     {
       "groupName": "Jest",
       "automerge": "true",
-      "matchPackagePatterns": [".*jest.*"]
+      "matchPackagePatterns": [".*jest.*"],
+      "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "sql-template-tag",
+      "packageNames": ["sql-template-tag"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
-      "packageNames": ["node-fetch"]
+      "packageNames": ["node-fetch"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "react-prisma",

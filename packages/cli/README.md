@@ -1,33 +1,80 @@
-# Prisma CLI &middot; [![npm version](https://img.shields.io/npm/v/prisma.svg?style=flat)](https://www.npmjs.com/package/prisma) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/prisma/prisma/blob/main/LICENSE) [![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
+<div align="center">
+  <h1>Prisma</h1>
+  <a href="https://www.npmjs.com/package/prisma"><img src="https://img.shields.io/npm/v/prisma.svg?style=flat" /></a>
+  <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
+  <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
+  <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+  <br />
+  <br />
+  <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/">Website</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/docs/">Docs</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://github.com/prisma/prisma-examples/">Examples</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://www.prisma.io/blog">Blog</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://slack.prisma.io/">Slack</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://twitter.com/prisma">Twitter</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://github.com/prisma/prisma1">Prisma 1</a>
+  <br />
+  <hr />
+</div>
 
-Learn more about Prisma in the [docs](https://www.prisma.io/docs/).
+## What is Prisma?
+
+Prisma is a **next-generation ORM** that consists of these tools:
+
+- [**Prisma Client**](https://www.prisma.io/docs/concepts/components/prisma-client): Auto-generated and type-safe query builder for Node.js & TypeScript
+- [**Prisma Migrate**](https://www.prisma.io/docs/concepts/components/prisma-migrate): Declarative data modeling & migration system
+- [**Prisma Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
+
+Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql) a gRPC API, or anything else that needs a database.
+
+> **Are you looking for Prisma 1? The Prisma 1 repository has been renamed to [`prisma/prisma1`](https://github.com/prisma/prisma1)**.
 
 ## Getting started
 
-Check out the [**Getting Started Quickstart**](https://www.prisma.io/docs/getting-started/quickstart).
+The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://www.prisma.io/docs/getting-started/quickstart-typescript).
 
-## Installation
+The Quickstart is based on a preconfigured SQLite database. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
 
-The Prisma CLI currently requires Node.js 12.6 (or higher).
-We recommend using [the latest Node.js LTS ("long-term support") release.](https://nodejs.org/en/about/releases/)
+- [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project-typescript-postgres)
+- [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres)
 
-### npm
+## Community
 
-```
-npm install prisma --save-dev
-```
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
-### Yarn
+## Security
 
-```
-yarn add prisma --dev
-```
+If you have a security issue to report, please contact us at [security@prisma.io](mailto:security@prisma.io?subject=[GitHub]%20Prisma%202%20Security%20Report%20).
 
-[Check out the docs for more information.](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-cli/installation)
+## Support
 
-## CLI Reference
+### Ask a question about Prisma
 
-[Check out the docs for Prisma CLI commands, arguments, and options.](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-cli/command-reference)
+You can ask questions and initiate [discussions](https://github.com/prisma/prisma/discussions/) about Prisma-related topics in the `prisma` repository on GitHub.
+
+👉 [**Ask a question**](https://github.com/prisma/prisma/discussions/new)
+
+### Create a bug report for Prisma
+
+If you see an error message or run into an issue, please make sure to create a bug report! You can find [best practices for creating bug reports](https://www.prisma.io/docs/support/creating-bug-reports) (like including additional debugging output) in the docs.
+
+👉 [**Create bug report**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=bug_report.md&title=)
+
+### Submit a feature request
+
+If Prisma currently doesn't have a certain feature, be sure to check out the [roadmap](https://www.prisma.io/docs/more/roadmap) to see if this is already planned for the future.
+
+If the feature on the roadmap is linked to a GitHub issue, please make sure to leave a +1 on the issue and ideally a comment with your thoughts about the feature!
+
+👉 [**Submit feature request**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
 ## Contributing
 

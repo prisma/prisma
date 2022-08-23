@@ -1,7 +1,8 @@
 import Debug from '@prisma/debug'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   getConfig,
@@ -11,7 +12,7 @@ import {
   isCi,
   isError,
   loadEnvFile,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import prompt from 'prompts'
@@ -90,6 +91,8 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    await checkUnsupportedDataProxy('migrate dev', args, true)
+
     if (args['--help']) {
       return this.help()
     }
@@ -158,8 +161,6 @@ ${chalk.bold('Examples')}
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
         }
       }
 
@@ -261,7 +262,7 @@ ${chalk.bold('Examples')}
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
       debug({ createMigrationResult })
 
@@ -327,6 +328,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
           if (successfulSeeding) {
             console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {
+            // TODO: Should we exit 1 here like in db seed and migrate reset?
             console.info() // empty line
           }
         } else {

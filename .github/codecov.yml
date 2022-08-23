@@ -1,4 +1,4 @@
-# Disable PR comments for now
+# Enable/Disable PR comments 
 comment: false
 
 # About `carryforward: true`
@@ -33,7 +33,23 @@ flags:
     carryforward: true
     paths:
       - packages/migrate/
-  sdk:
+  internals:
     carryforward: true
     paths:
-      - packages/sdk/
+      - packages/internals/
+  instrumentation:
+    carryforward: true
+    paths:
+      - packages/instrumentation/
+  get-platform:
+    carryforward: true
+    paths:
+      - packages/get-platform/
+  fetch-engine:
+    carryforward: true
+    paths:
+      - packages/fetch-engine/
+  engines:
+    carryforward: true
+    paths:
+      - packages/engines/

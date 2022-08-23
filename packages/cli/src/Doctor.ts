@@ -1,9 +1,9 @@
 import type { DMMF } from '@prisma/generator-helper'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
   canConnectToDatabase,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getConfig,
   getDMMF,
@@ -12,7 +12,8 @@ import {
   keyBy,
   loadEnvFile,
   pick,
-} from '@prisma/sdk'
+} from '@prisma/internals'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
@@ -63,6 +64,8 @@ ${chalk.bold('Examples')}
     if (args instanceof Error) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('doctor', args, true)
 
     if (args['--help']) {
       return this.help()

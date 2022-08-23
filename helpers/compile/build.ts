@@ -114,6 +114,10 @@ async function executeEsBuild(options: BuildOptions) {
 async function dependencyCheck(options: BuildOptions) {
   // we only check our dependencies for a full build
   if (process.env.DEV === 'true') return undefined
+  // Only run on test and publish pipelines on Buildkite
+  // Meaning we skip on GitHub Actions
+  // Because it's slow and runs for each job, during setup, making each job slower
+  if (process.env.CI && !process.env.BUILDKITE) return undefined
 
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
@@ -167,7 +171,7 @@ const watch =
     const restartWatcher = createWatcher(['./src/**/*'], config)
 
     // triggers quick rebuild on file change
-    const onChange = debounce(async () => {
+    const fastRebuild = debounce(async () => {
       const timeBefore = Date.now()
 
       // we handle possible rebuild exceptions
@@ -183,7 +187,7 @@ const watch =
     }, 10)
 
     // triggers a full rebuild on added file
-    const onAdd = debounce(async () => {
+    const fullRebuild = debounce(async () => {
       void changeWatcher.close() // stop all
 
       // only one watcher will do this task
@@ -193,8 +197,9 @@ const watch =
       }
     }, 10)
 
-    changeWatcher.on('change', onChange)
-    restartWatcher.once('add', onAdd)
+    changeWatcher.on('change', fastRebuild)
+    restartWatcher.once('add', fullRebuild)
+    restartWatcher.once('unlink', fullRebuild)
 
     return undefined
   }

@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 

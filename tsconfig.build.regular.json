@@ -2,7 +2,7 @@
   "compilerOptions": {
     "target": "es2018",
     "module": "commonjs",
-    "lib": ["es2018"],
+    "lib": ["es2018", "ES2021.WeakRef"],
     "esModuleInterop": true,
     "isolatedModules": true,
     "sourceMap": true,
@@ -17,7 +17,8 @@
     "skipDefaultLibCheck": true,
     "skipLibCheck": true,
 
-    "emitDeclarationOnly": true
+    "emitDeclarationOnly": true,
+    "resolveJsonModule": true
   },
   "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
 }

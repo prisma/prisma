@@ -1,5 +1,14 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isCi, isError, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isCi,
+  isError,
+  loadEnvFile,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import prompt from 'prompts'
 
@@ -63,6 +72,8 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    await checkUnsupportedDataProxy('migrate reset', args, true)
+
     if (args['--help']) {
       return this.help()
     }
@@ -108,8 +119,6 @@ ${chalk.bold('Examples')}
       if (!confirmation.value) {
         console.info('Reset cancelled.')
         process.exit(0)
-        // For snapshot test, because exit() is mocked
-        return ``
       }
     }
 
@@ -155,6 +164,8 @@ The following migration(s) have been applied:\n\n${chalk(
         const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
         if (successfulSeeding) {
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
+        } else {
+          process.exit(1)
         }
       } else {
         // Only used to help users to set up their seeds from old way to new package.json config

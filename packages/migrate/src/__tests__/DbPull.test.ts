@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
@@ -17,6 +17,9 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()).assemble()
+
+// To avoid the loading spinner locally
+process.env.CI = 'true'
 
 describe('common/sqlite', () => {
   test('basic introspection', async () => {
@@ -1113,7 +1116,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     const result = introspect.parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
             Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-            You can explicitely ignore and override your current local schema file with prisma db pull --force
+            You can explicitly ignore and override your current local schema file with prisma db pull --force
             Some information will be lost (relations, comments, mapped fields, @ignore...), follow https://github.com/prisma/prisma/issues/9585 for more info.
           `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)

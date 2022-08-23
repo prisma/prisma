@@ -9,7 +9,7 @@ import {
   getDMMF,
   getPackedPackage,
   mapPreviewFeatures,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
@@ -85,12 +85,18 @@ export async function generateInFolder({
 
   const platform = await getPlatform()
 
-  let runtimeDir
+  let runtimeDirs
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '../../runtime'))
+      runtimeDirs = {
+        node: path.relative(outputDir, path.join(__dirname, '../../runtime')),
+        edge: path.relative(outputDir, path.join(__dirname, '../../runtime/edge')),
+      }
     } else {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '../runtime'))
+      runtimeDirs = {
+        node: path.relative(outputDir, path.join(__dirname, '../runtime')),
+        edge: path.relative(outputDir, path.join(__dirname, '../runtime/edge')),
+      }
     }
   } else if (useBuiltRuntime) {
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
@@ -117,26 +123,22 @@ export async function generateInFolder({
           },
         }
 
-  // we make sure that we are in the project root
-  // this only applies to generated test clients
-  process.chdir(projectDir)
-
   await generateClient({
     binaryPaths,
     datamodel,
     dmmf,
     ...config,
     outputDir,
-    schemaDir: path.dirname(schemaPath),
-    runtimeDir,
+    runtimeDirs,
     transpile,
     testMode: true,
-    datamodelPath: schemaPath,
+    schemaPath,
     copyRuntime: false,
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
+    dataProxy: !!process.env.DATA_PROXY,
   })
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)

@@ -7,6 +7,8 @@ import { keys } from '../../../../../helpers/blaze/keys'
 import { map } from '../../../../../helpers/blaze/map'
 import { reduce } from '../../../../../helpers/blaze/reduce'
 
+const testsRoot = path.resolve(__dirname, '..')
+
 function getAllTestSuiteTypeChecks(fileNames: string[]) {
   const program = ts.createProgram(fileNames, {
     ...ts.convertCompilerOptionsFromJson(
@@ -35,9 +37,16 @@ function getAllTestSuiteTypeChecks(fileNames: string[]) {
 }
 
 describe('typescript', () => {
-  const suitePaths = glob.sync('./**/.generated/**/*.ts', {
-    ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema.ts'],
-  })
+  const suitePaths = glob
+    .sync('./**/.generated/**/*.ts', {
+      ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema.ts'],
+    })
+    // global.d.ts does not really needs typechecking, but
+    // since no sources import it directly, it has to be included
+    // in the source set in order for global `describeIf` and `testIf` to
+    // be discovered
+    .concat([path.resolve(__dirname, '..', 'globals.d.ts')])
+
   const suiteChecks = getAllTestSuiteTypeChecks(suitePaths)
   const suiteTable = map(suitePaths, (path) => [getTestSuiteDisplayName(path), path])
 
@@ -54,8 +63,8 @@ describe('typescript', () => {
 
 function getTestSuiteDisplayName(filePath: string) {
   const testDir = path.join(path.dirname(filePath), '..')
-  const testPath = path.relative(testDir, filePath)
-  const suiteName = testPath.replace(/\.generated/g, '')
+  const testPath = path.relative(testsRoot, filePath)
+  const suiteName = testPath.replace(/^.*\.generated\//g, '')
 
   return suiteName
 }

@@ -2,6 +2,12 @@ import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
 
+import {
+  type ClientModelAction,
+  allClientModelActions,
+  clientOnlyActions,
+  getDmmfActionName,
+} from '../../runtime/clientActions'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import {
@@ -31,7 +37,6 @@ import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { TS } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelOutputField, OutputType } from './Output'
@@ -46,18 +51,15 @@ export class Model implements Generatable {
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
-    protected readonly collector?: ExportCollector,
   ) {
     this.type = dmmf.outputTypeMap[model.name]
     this.outputType = new OutputType(dmmf, this.type)
     this.mapping = dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
   protected get argsTypes(): Generatable[] {
-    const { mapping } = this
-
     const argsTypes: Generatable[] = []
-    for (const action in DMMF.ModelAction) {
-      const fieldName = mapping?.[action]
+    for (const action of allClientModelActions) {
+      const fieldName = this.rootFieldNameForAction(action)
       if (!fieldName) {
         continue
       }
@@ -67,11 +69,11 @@ export class Model implements Generatable {
       }
 
       if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction))
       } else if (action === 'findRaw' || action === 'aggregateRaw') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction))
       } else if (action !== 'groupBy' && action !== 'aggregate') {
-        argsTypes.push(new ArgsType(field.args, this.type, action as DMMF.ModelAction, this.collector))
+        argsTypes.push(new ArgsType(field.args, this.type, action as ClientModelAction))
       }
     }
 
@@ -79,6 +81,11 @@ export class Model implements Generatable {
 
     return argsTypes
   }
+
+  private rootFieldNameForAction(action: ClientModelAction) {
+    return this.mapping?.[getDmmfActionName(action)]
+  }
+
   private getGroupByTypes() {
     const { model, mapping } = this
 
@@ -176,17 +183,11 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
       aggregateTypes.push(countType)
     }
 
-    for (const aggregateType of aggregateTypes) {
-      this.collector?.addSymbol(aggregateType.name)
-    }
-
     const aggregateArgsName = getAggregateArgsName(model.name)
 
     const aggregateName = getAggregateName(model.name)
 
-    this.collector?.addSymbol(aggregateArgsName)
-
-    return `${aggregateTypes.map((type) => new SchemaOutputType(type, this.collector).toTS()).join('\n')}
+    return `${aggregateTypes.map((type) => new SchemaOutputType(type).toTS()).join('\n')}
 
 ${
   aggregateTypes.length > 1
@@ -213,7 +214,7 @@ ${
               ],
             })),
           }
-          return new InputType(newType, this.collector).toTS()
+          return new InputType(newType).toTS()
         })
         .join('\n')
     : ''
@@ -331,7 +332,7 @@ ${new PayloadType(this.outputType!, !this.dmmf.typeMap[model.name]).toTS()}
 ${new ModelDelegate(this.outputType!, this.dmmf, this.generator).toTS()}
 
 // Custom InputTypes
-${this.argsTypes.map(TS).join('\n')}
+${this.argsTypes.map((gen) => TS(gen)).join('\n')}
 `
   }
 }
@@ -341,6 +342,25 @@ export class ModelDelegate implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly generator?: GeneratorConfig,
   ) {}
+
+  /**
+   * Returns all available non-aggregate or group actions
+   * Includes both dmmf and client-only actions
+   *
+   * @param availableActions
+   * @returns
+   */
+  private getNonAggregateActions(availableActions: ClientModelAction[]): ClientModelAction[] {
+    const actions = availableActions.filter((key) => key !== 'aggregate' && key !== 'groupBy') as ClientModelAction[]
+
+    for (const [clientOnlyAction, { wrappedAction }] of Object.entries(clientOnlyActions)) {
+      if (actions.includes(wrappedAction as DMMF.ModelAction)) {
+        actions.push(clientOnlyAction as ClientModelAction)
+      }
+    }
+    return actions
+  }
+
   public toTS(): string {
     const { fields, name } = this.outputType
 
@@ -351,10 +371,7 @@ export class ModelDelegate implements Generatable {
     const availableActions = mappingKeys.filter(
       (key) => key !== 'model' && key !== 'plural' && mapping[key],
     ) as DMMF.ModelAction[]
-    const filteredActions = availableActions.filter(
-      (key) => key !== 'aggregate' && key !== 'groupBy',
-    ) as DMMF.ModelAction[]
-
+    const nonAggregateActions = this.getNonAggregateActions(availableActions)
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
     return `\
@@ -370,7 +387,7 @@ ${
 }
 export interface ${name}Delegate<GlobalRejectSettings> {
 ${indent(
-  filteredActions
+  nonAggregateActions
     .map(
       (actionName): string =>
         `${getMethodJSDoc(actionName, mapping, modelOrType)}

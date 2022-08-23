@@ -1,5 +1,16 @@
-import type { Command } from '@prisma/sdk'
-import { arg, dropDatabase, format, getSchemaDir, HelpError, isCi, isError, link, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  dropDatabase,
+  format,
+  getSchemaDir,
+  HelpError,
+  isCi,
+  isError,
+  link,
+  loadEnvFile,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import prompt from 'prompts'
 
@@ -59,6 +70,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('db drop', args, true)
 
     if (args['--help']) {
       return this.help()

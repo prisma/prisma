@@ -2,6 +2,7 @@
 
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
+import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
 import {
   DbCommand,
   DbExecute,
@@ -17,7 +18,6 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/sdk'
 import chalk from 'chalk'
 import path from 'path'
 
@@ -31,7 +31,7 @@ import { Init } from './Init'
   When running bin.ts with ts-node with DEBUG="*"
   This error shows and blocks the execution
   Quick hack is to comment the Studio import and usage to use the CLI without building it...
-  prisma:cli Error: Cannot find module '@prisma/sdk'
+  prisma:cli Error: Cannot find module '@prisma/internals'
   prisma:cli Require stack:
   prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
 */
@@ -231,22 +231,45 @@ function handleIndividualError(error: Error): void {
  * `node_modules/@prisma/engines`
  */
 
+// macOS
 path.join(__dirname, '../../engines/query-engine-darwin')
 path.join(__dirname, '../../engines/introspection-engine-darwin')
+path.join(__dirname, '../../engines/migration-engine-darwin')
 path.join(__dirname, '../../engines/prisma-fmt-darwin')
+// Windows
+path.join(__dirname, '../../engines/query-engine-windows.exe')
+path.join(__dirname, '../../engines/introspection-engine-windows.exe')
+path.join(__dirname, '../../engines/migration-engine-windows.exe')
+path.join(__dirname, '../../engines/prisma-fmt-windows.exe')
 
+// Debian openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.0.x')
-
+// Debian openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.1.x')
+// Debian openssl-3.0.x
+path.join(__dirname, '../../engines/query-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../../engines/introspection-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../../engines/migration-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-3.0.x')
 
+// Red Hat Enterprise Linux openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.0.x')
-
+// Red Hat Enterprise Linux openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.1.x')
+// Red Hat Enterprise Linux openssl-3.0.x
+path.join(__dirname, '../../engines/query-engine-rhel-openssl-3.0.x')
+path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-3.0.x')
+path.join(__dirname, '../../engines/migration-engine-rhel-openssl-3.0.x')
+path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-3.0.x')

@@ -4,6 +4,7 @@ import indent from 'indent-string'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
@@ -32,10 +33,15 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
     return ''
   }
 
-  const txOptions = `{ maxWait?: number, timeout?: number }`
+  const txOptions = ['maxWait?: number', 'timeout?: number']
 
+  if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+    txOptions.push('isolationLevel?: Prisma.TransactionIsolationLevel')
+  }
+
+  const optionsType = `{${txOptions.join(', ')}}`
   return `
-  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: ${txOptions}): Promise<R>;`
+  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: ${optionsType}): Promise<R>;`
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
@@ -98,6 +104,26 @@ function executeRawDefinition(this: PrismaClientClass) {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
   $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;`
+}
+
+function metricDefinition(this: PrismaClientClass) {
+  if (!this.generator?.previewFeatures.includes('metrics')) {
+    return ''
+  }
+
+  return `
+  /**
+   * Gives access to the client metrics in json or prometheus format.
+   * 
+   * @example
+   * \`\`\`
+   * const metrics = await prisma.$metrics.json()
+   * // or
+   * const metrics = await prisma.$metrics.prometheus()
+   * \`\`\`
+   */
+  readonly $metrics: runtime.${runtimeImport('MetricsClient')};
+  `
 }
 
 function runCommandRawDefinition(this: PrismaClientClass) {
@@ -213,6 +239,7 @@ ${[
   batchingTransactionDefinition.bind(this)(),
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
+  metricDefinition.bind(this)(),
 ]
   .join('\n')
   .trim()}
@@ -268,7 +295,8 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 export interface PrismaClientOptions {
   /**
    * Configure findUnique/findFirst to throw an error if the query returns null. 
-   *  * @example
+   * @deprecated since 4.0.0. Use \`findUniqueOrThrow\`/\`findFirstOrThrow\` methods instead.
+   * @example
    * \`\`\`
    * // Reject on both findUnique/findFirst
    * rejectOnNotFound: true
@@ -280,7 +308,7 @@ export interface PrismaClientOptions {
    */
   rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
   /**
-   * Overwrites the datasource url from your prisma.schema file
+   * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
 

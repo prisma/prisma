@@ -1,11 +1,21 @@
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 
+import { TracingConfig } from '../tracing/getTracingConfig'
+import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
-// import type { InlineDatasources } from '../../../client/src/generation/utils/buildInlineDatasources'
 
 export interface FilterConstructor {
   new (config: EngineConfig): Engine
+}
+
+export type NullableEnvValue = {
+  fromEnvVar: string | null
+  value?: string | null
+}
+
+export type InlineDatasource = {
+  url: NullableEnvValue
 }
 
 // TODO Move shared logic in here
@@ -14,6 +24,7 @@ export abstract class Engine {
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
   abstract getConfig(): Promise<GetConfigResult>
+  abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
   abstract request<T>(
     query: string,
@@ -26,9 +37,20 @@ export abstract class Engine {
     transaction?: boolean,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
-  abstract transaction(action: 'start', options?: Transaction.Options): Promise<Transaction.Info>
-  abstract transaction(action: 'commit', info: Transaction.Info): Promise<void>
-  abstract transaction(action: 'rollback', info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'start',
+    headers: Transaction.TransactionHeaders,
+    options?: Transaction.Options,
+  ): Promise<Transaction.Info>
+  abstract transaction(action: 'commit', headers: Transaction.TransactionHeaders, info: Transaction.Info): Promise<void>
+  abstract transaction(
+    action: 'rollback',
+    headers: Transaction.TransactionHeaders,
+    info: Transaction.Info,
+  ): Promise<void>
+
+  abstract metrics(options: MetricsOptionsJson): Promise<Metrics>
+  abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
@@ -52,7 +74,7 @@ export interface EngineConfig {
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
-  env?: Record<string, string>
+  env: Record<string, string>
   flags?: string[]
   clientVersion?: string
   previewFeatures?: string[]
@@ -69,13 +91,19 @@ export interface EngineConfig {
    * The contents of the datasource url saved in a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineDatasources?: any
+  inlineDatasources?: Record<string, InlineDatasource>
 
   /**
    * The string hash that was produced for a given schema
    * @remarks only used for the purpose of data proxy
    */
   inlineSchemaHash?: string
+
+  /**
+   * The configuration object for enabling tracing
+   * @remarks enabling is determined by the client
+   */
+  tracingConfig: TracingConfig
 }
 
 export type GetConfigResult = {

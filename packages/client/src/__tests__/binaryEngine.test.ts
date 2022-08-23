@@ -1,5 +1,5 @@
 import { BinaryEngine } from '@prisma/engine-core'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 describe('BinaryEngine', () => {
@@ -14,6 +14,8 @@ describe('BinaryEngine', () => {
       const engine = new BinaryEngine({
         flags: ['--flag-that-does-not-exist'],
         datamodelPath: path.join(__dirname, './runtime-tests/blog/schema.prisma'),
+        tracingConfig: { enabled: false, middleware: false },
+        env: {},
       })
       await engine.start()
     } catch (e) {

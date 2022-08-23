@@ -1,36 +1,81 @@
-import crypto from 'crypto'
+import { assertNever } from '@prisma/internals'
+import cuid from 'cuid'
 import fs from 'fs-extra'
 import path from 'path'
+import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
-import type { TestSuiteConfig } from './getTestSuiteInfo'
+import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
+import { Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+
+const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
 /**
  * Copies the necessary files for the generated test suite folder.
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
   // we copy the minimum amount of files needed for the test suite
-  await fs.copy(path.join(suiteMeta.testDir, 'prisma'), path.join(suiteFolder, 'prisma'))
-  await copyWithImportsAdjust(
-    path.join(suiteMeta.testDir, suiteMeta.testFileName),
-    path.join(suiteFolder, suiteMeta.testFileName),
+  await fs.copy(path.join(suiteMeta.testRoot, 'prisma'), path.join(suiteFolder, 'prisma'))
+  await fs.mkdir(path.join(suiteFolder, suiteMeta.rootRelativeTestDir), { recursive: true })
+  await copyPreprocessed(
+    suiteMeta.testPath,
+    path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
+    suiteConfig.matrixOptions,
   )
-  await copyWithImportsAdjust(path.join(suiteMeta.testDir, '_matrix.ts'), path.join(suiteFolder, '_matrix.ts'))
-  await fs.copy(path.join(suiteMeta.testDir, 'package.json'), path.join(suiteFolder, 'package.json')).catch(() => {})
 }
 
-async function copyWithImportsAdjust(from: string, to: string): Promise<void> {
+/**
+ * Copies test file into generated subdirectory and pre-processes it
+ * in the following way:
+ *
+ * 1. Adjusts relative imports so they'll work from generated subfolder
+ * 2. Evaluates @ts-test-if magic comments and replaces them with @ts-expect-error
+ * if necessary
+ *
+ * @param from
+ * @param to
+ * @param suiteConfig
+ */
+async function copyPreprocessed(from: string, to: string, suiteConfig: Record<string, string>): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
-  const newContents = contents.replace(/'..\//g, "'../../../")
+  const newContents = contents
+    .replace(/'..\//g, "'../../../")
+    .replace(/'.\//g, "'../../")
+    .replace(/\/\/\s*@ts-ignore.+/g, '')
+    .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
+      if (!evaluateMagicComment(condition, suiteConfig)) {
+        return '// @ts-expect-error'
+      }
+      return match
+    })
+
   await fs.writeFile(to, newContents, 'utf8')
+}
+
+/**
+ * Evaluates the condition from @ts-test-if magic comment as
+ * a JS expression.
+ * All properties from suite config are available as variables
+ * within the expression.
+ *
+ * @param conditionFromComment
+ * @param suiteConfig
+ * @returns
+ */
+function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
+  const script = new Script(conditionFromComment)
+  const value = script.runInNewContext({
+    ...suiteConfig,
+  })
+  return Boolean(value)
 }
 
 /**
@@ -39,7 +84,11 @@ async function copyWithImportsAdjust(from: string, to: string): Promise<void> {
  * @param suiteConfig
  * @param schema
  */
-export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig, schema: string) {
+export async function setupTestSuiteSchema(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig,
+  schema: string,
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   await fs.writeFile(schemaPath, schema)
@@ -50,7 +99,11 @@ export async function setupTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function setupTestSuiteDatabase(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig,
+  errors: Error[] = [],
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -58,7 +111,13 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
+    errors.push(e as Error)
+
+    if (errors.length > 2) {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+    } else {
+      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+    }
   }
 }
 
@@ -67,7 +126,11 @@ export async function setupTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConf
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export async function dropTestSuiteDatabase(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig,
+  errors: Error[] = [],
+) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -75,7 +138,13 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
     await DbDrop.new().parse(['--schema', schemaPath, '--force', '--preview-feature'])
     consoleInfoMock.mockRestore()
   } catch (e) {
-    await dropTestSuiteDatabase(suiteMeta, suiteConfig) // retry logic
+    errors.push(e as Error)
+
+    if (errors.length > 2) {
+      throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
+    } else {
+      await dropTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+    }
   }
 }
 
@@ -84,12 +153,56 @@ export async function dropTestSuiteDatabase(suiteMeta: TestSuiteMeta, suiteConfi
  * @param suiteConfig
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: TestSuiteConfig) {
+export function setupTestSuiteDbURI(suiteConfig: Record<string, string>) {
+  const provider = suiteConfig['provider'] as Providers
   // we reuse the original db url but postfix it with a random string
-  const dbId = crypto.randomBytes(8).toString('hex')
-  const envVarName = `DATABASE_URI_${suiteConfig['provider']}`
-  const uriRegex = /(\w+:\/\/\w+:\w+@\w+:\d+\/)((?:\w|-)+)(.*)/g
-  const newURI = process.env[envVarName]?.replace(uriRegex, `$1$2${dbId}$3`)
+  const dbId = cuid()
+  const envVarName = `DATABASE_URI_${provider}`
+  const newURI = getDbUrl(provider).replace(DB_NAME_VAR, dbId)
 
   return { [envVarName]: newURI }
+}
+
+/**
+ * Returns configured database URL for specified provider
+ * @param provider
+ * @returns
+ */
+function getDbUrl(provider: Providers): string {
+  switch (provider) {
+    case Providers.SQLITE:
+      return `file:${DB_NAME_VAR}.db`
+    case Providers.MONGODB:
+      return requireEnvVariable('TEST_FUNCTIONAL_MONGO_URI')
+    case Providers.POSTGRESQL:
+      return requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI')
+    case Providers.MYSQL:
+      return requireEnvVariable('TEST_FUNCTIONAL_MYSQL_URI')
+    case Providers.COCKROACHDB:
+      return requireEnvVariable('TEST_FUNCTIONAL_COCKROACH_URI')
+    case Providers.SQLSERVER:
+      return requireEnvVariable('TEST_FUNCTIONAL_MSSQL_URI')
+    default:
+      assertNever(provider, `No URL for provider ${provider} configured`)
+  }
+}
+
+/**
+ * Gets the value of environment variable or throws error if it is not set
+ * @param varName
+ * @returns
+ */
+function requireEnvVariable(varName: string): string {
+  const value = process.env[varName]
+  if (!value) {
+    throw new Error(
+      `Required env variable ${varName} is not set. See https://github.com/prisma/prisma/blob/main/TESTING.md for instructions`,
+    )
+  }
+  if (!value.includes(DB_NAME_VAR)) {
+    throw new Error(
+      `Env variable ${varName} must include ${DB_NAME_VAR} placeholder. See https://github.com/prisma/prisma/blob/main/TESTING.md for instructions`,
+    )
+  }
+  return value
 }

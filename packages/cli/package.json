@@ -25,15 +25,10 @@
   },
   "homepage": "https://www.prisma.io",
   "author": "Tim Suchanek <suchanek@prisma.io>",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=12.6"
+    "node": ">=14.17"
   },
   "prisma": {
     "prismaCommit": "placeholder-for-commit-hash-replaced-during-publishing-in-publish-ts"
@@ -68,25 +63,25 @@
   "devDependencies": {
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
-    "@prisma/fetch-engine": "3.15.0-21.7fbd9965484ec56d2c496b4a8d5f882d4cbe614e",
+    "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
-    "@prisma/get-platform": "3.15.0-21.7fbd9965484ec56d2c496b4a8d5f882d4cbe614e",
+    "@prisma/get-platform": "workspace:*",
+    "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/sdk": "workspace:*",
-    "@prisma/studio": "0.461.0",
-    "@prisma/studio-server": "0.461.0",
-    "@swc/core": "1.2.189",
-    "@swc/jest": "0.2.21",
+    "@prisma/studio": "0.472.0",
+    "@prisma/studio-server": "0.472.0",
+    "@swc/core": "1.2.237",
+    "@swc/jest": "0.2.22",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "27.5.1",
+    "@types/jest": "28.1.7",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.5.3",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
     "debug": "4.3.4",
     "dotenv": "16.0.1",
-    "esbuild": "0.14.39",
+    "esbuild": "0.15.5",
     "execa": "5.1.1",
     "fast-deep-equal": "3.1.3",
     "fs-extra": "10.1.0",
@@ -94,8 +89,8 @@
     "get-port": "5.1.1",
     "global-dirs": "3.0.0",
     "is-installed-globally": "0.4.0",
-    "jest": "28.1.0",
-    "jest-junit": "13.2.0",
+    "jest": "28.1.3",
+    "jest-junit": "14.0.0",
     "line-replace": "2.0.1",
     "log-update": "4.0.0",
     "make-dir": "3.1.0",
@@ -107,8 +102,8 @@
     "rimraf": "3.0.2",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
-    "ts-pattern": "4.0.2",
-    "typescript": "4.7.2"
+    "ts-pattern": "4.0.5",
+    "typescript": "4.7.4"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -120,7 +115,7 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@prisma/engines": "3.15.0-21.7fbd9965484ec56d2c496b4a8d5f882d4cbe614e"
+    "@prisma/engines": "workspace:*"
   },
   "sideEffects": false
 }

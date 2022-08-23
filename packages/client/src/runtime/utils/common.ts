@@ -3,8 +3,9 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 
-import type { DMMFHelper } from '../dmmf'
+import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
+import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
@@ -84,6 +85,7 @@ export const JSTypeToGraphQLType = {
   string: 'String',
   boolean: 'Boolean',
   object: 'Json',
+  symbol: 'Symbol',
 }
 
 export function stringifyGraphQLType(type: string | DMMF.InputType | DMMF.SchemaEnum) {
@@ -107,7 +109,9 @@ const RFC_3339_REGEX =
 
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
 
-export function getGraphQLType(value: any, potentialType?: string | DMMF.SchemaEnum | DMMF.InputType): string {
+export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType): string {
+  const potentialType = inputType?.type
+
   if (value === null) {
     return 'null'
   }
@@ -129,9 +133,17 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.SchemaE
     return 'Bytes'
   }
 
+  if (isValidEnumValue(value, inputType)) {
+    return (potentialType as DMMF.SchemaEnum).name
+  }
+
+  if (value instanceof ObjectEnumValue) {
+    return value._getName()
+  }
+
   if (Array.isArray(value)) {
     let scalarTypes = value.reduce((acc, val) => {
-      const type = getGraphQLType(val, potentialType)
+      const type = getGraphQLType(val, inputType)
       if (!acc.includes(type)) {
         acc.push(type)
       }
@@ -161,14 +173,6 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.SchemaE
       return 'UUID'
     }
     const date = new Date(value)
-    if (
-      potentialType &&
-      typeof potentialType === 'object' &&
-      (potentialType as DMMF.SchemaEnum).values &&
-      (potentialType as DMMF.SchemaEnum).values.includes(value)
-    ) {
-      return potentialType.name
-    }
     if (date.toString() === 'Invalid Date') {
       return 'String'
     }
@@ -177,6 +181,24 @@ export function getGraphQLType(value: any, potentialType?: string | DMMF.SchemaE
     }
   }
   return JSTypeToGraphQLType[jsType]
+}
+
+export function isValidEnumValue(value: any, inputType?: DMMF.SchemaArgInputType) {
+  const enumType = inputType?.type
+
+  if (!isSchemaEnum(enumType)) {
+    return false
+  }
+
+  // Check if it is an object-valued enum, and if it is, whether the provided
+  // value is the correct singleton instance of the corresponding class.
+  if (inputType?.namespace === 'prisma' && objectEnumNames.includes(enumType.name)) {
+    const name = value?.constructor?.name
+    return typeof name === 'string' && objectEnumValues.instances[name] === value && enumType.values.includes(name)
+  }
+
+  // Regular string-valued enums
+  return typeof value === 'string' && enumType.values.includes(value)
 }
 
 export function graphQLToJSType(gql: string) {
@@ -399,7 +421,5 @@ export function isGroupByOutputName(type: string): boolean {
 }
 
 export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
-  return (
-    typeof type === 'object' && type.name && typeof type.name === 'string' && type.values && Array.isArray(type.values)
-  )
+  return typeof type === 'object' && type !== null && typeof type.name === 'string' && Array.isArray(type.values)
 }

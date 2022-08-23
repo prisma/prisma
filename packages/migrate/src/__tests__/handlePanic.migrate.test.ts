@@ -1,4 +1,4 @@
-import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/sdk'
+import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/internals'
 import fs from 'fs'
 import mkdir from 'make-dir'
 import { stdin } from 'mock-stdin'
@@ -109,7 +109,7 @@ describe('handlePanic migrate', () => {
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
     } catch (err) {
       // No to send error report
@@ -185,7 +185,7 @@ describe('handlePanic migrate', () => {
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: 'setup',
         draft: false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
     } catch (error) {
       expect(error).toMatchSnapshot()

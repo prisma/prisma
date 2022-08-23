@@ -1,5 +1,4 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/sdk'
+import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
 import chalk from 'chalk'
 
 import {
@@ -88,8 +87,6 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
       process.exit(1)
-      // For snapshot test, because exit() is mocked
-      return ``
     }
   }
 

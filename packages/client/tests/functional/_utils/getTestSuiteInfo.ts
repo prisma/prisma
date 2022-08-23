@@ -1,13 +1,15 @@
 import path from 'path'
 
-import { map } from '../../../../../helpers/blaze/map'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
 export type TestSuiteMatrix = { [K in string]: string }[][]
-export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
+export type NamedTestSuiteConfig = {
+  parametersString: string
+  matrixOptions: Record<string, string>
+}
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
@@ -17,22 +19,12 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   let name = ``
 
-  name += `${suiteMeta.testDirName.replace(/\\|\//, '.')}`
+  name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  name += ` (${suiteConfig['provider']})`
-
-  name += ` (`
-  if (suiteConfig['providerFeatures']) {
-    name += `${suiteConfig['providerFeatures']}`
-  }
-
-  if (suiteConfig['previewFeatures']) {
-    name += `${suiteConfig['previewFeatures']}`
-  }
-  name += `)`
+  name += ` (${suiteConfig.parametersString})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')
@@ -43,10 +35,10 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
+export function getTestSuitePreviewFeatures(matrixOptions: Record<string, string>) {
   return [
-    ...(suiteConfig['providerFeatures']?.split(', ') ?? []),
-    ...(suiteConfig['previewFeatures']?.split(', ') ?? []),
+    ...(matrixOptions['providerFeatures']?.split(', ') ?? []),
+    ...(matrixOptions['previewFeatures']?.split(', ') ?? []),
   ]
 }
 
@@ -56,7 +48,7 @@ export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
   const suiteFolder = path.join(generatedFolder, suiteName)
@@ -70,7 +62,7 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
@@ -83,7 +75,7 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const prismaPath = path.join(suiteFolder, 'prisma')
 
@@ -95,24 +87,33 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteMeta
  * @returns
  */
-export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
+export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
   const rawMatrix = typeof matrixModule === 'function' ? matrixModule() : matrixModule.matrix()
 
-  return map(matrix(rawMatrix), (configs) => merge(configs))
+  return matrix(rawMatrix).map((configs) => ({
+    parametersString: getTestSuiteParametersString(configs),
+    matrixOptions: merge(configs),
+  }))
 }
 
 /**
- * Get a jest-compatible test suite table from the test suite configs.
- * @param suiteMeta
- * @returns [test-suite-title: string, test-suite-config: object]
+ * Returns "parameters string" part of the suite name
+ * - From each matrix dimension takes first key-value pair. Assumption is that first pair
+ * is what really distinguishes this particular suite and the rest are just additional options, related to that
+ * parameter and do need to be part of the suite name.
+ * - Computes "key1=value1,key2=value2" string from each dimension of the matrix
+ * @param configs
+ * @returns
  */
-export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
-  return map(
-    getTestSuiteConfigs(suiteMeta),
-    (suiteConfig) => [getTestSuiteFullName(suiteMeta, suiteConfig), suiteConfig] as const,
-  )
+function getTestSuiteParametersString(configs: Record<string, string>[]) {
+  return configs
+    .map((config) => {
+      const firstKey = Object.keys(config)[0]
+      return `${firstKey}=${config[firstKey]}`
+    })
+    .join(', ')
 }
 
 /**
@@ -121,8 +122,8 @@ export function getTestSuiteTable(suiteMeta: TestSuiteMeta) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
-  return require(suiteMeta._schemaPath).default(suiteConfig)
+export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
+  return require(suiteMeta._schemaPath).default(matrixOptions)
 }
 
 /**
@@ -132,12 +133,33 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSu
 export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
-  const testDir = path.dirname(testPath)
-  const testDirName = testDir.replace(testsDir, '')
+  if (testPath === undefined) {
+    throw new Error(`getTestSuiteMeta can be executed only within jest test`)
+  }
+  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  const testRoot = path.join(testsDir, testRootDirName)
+  const rootRelativeTestPath = path.relative(testRoot, testPath)
+  const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
+  let testName
+  if (rootRelativeTestPath === 'tests.ts') {
+    testName = testRootDirName
+  } else {
+    testName = path.join(testRootDirName, rootRelativeTestDir, path.basename(testPath, '.ts'))
+  }
   const testFileName = path.basename(testPath)
-  const prismaPath = path.join(testDir, 'prisma')
-  const _matrixPath = path.join(testDir, '_matrix')
+  const prismaPath = path.join(testRoot, 'prisma')
+  const _matrixPath = path.join(testRoot, '_matrix')
   const _schemaPath = path.join(prismaPath, '_schema')
 
-  return { testPath, testDir, testDirName, testFileName, prismaPath, _matrixPath, _schemaPath }
+  return {
+    testName,
+    testPath,
+    testRoot,
+    rootRelativeTestPath,
+    rootRelativeTestDir,
+    testFileName,
+    prismaPath,
+    _matrixPath,
+    _schemaPath,
+  }
 }

@@ -1,7 +1,9 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
+import path from 'path'
 import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
+import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
 
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
@@ -70,7 +72,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -87,7 +89,7 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       SQLite database dev.db created at file:dev.db
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -104,6 +106,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings accepted (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
 
@@ -121,19 +124,22 @@ describeIf(process.platform !== 'win32')('push', () => {
 
 
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -149,6 +155,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(mockExit).toBeCalledWith(0)
   })
 
+  // eslint-disable-next-line jest/no-identical-title
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--accept-data-loss'])
@@ -162,7 +169,7 @@ describeIf(process.platform !== 'win32')('push', () => {
         • You are about to drop the \`Blog\` table, which is not empty (1 rows).
 
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -196,19 +203,21 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('unexecutable - drop cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -234,7 +243,7 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       The SQLite database "dev.db" from "file:dev.db" was successfully reset.
 
-      🚀  Your database is now in sync with your schema. Done in XXXms
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -246,15 +255,104 @@ describeIf(process.platform !== 'win32')('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                        ⚠️ We found changes that cannot be executed:
+      ⚠️ We found changes that cannot be executed:
 
-                                                                          • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+        • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                        Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-                                                                        All data will be lost.
-                                                                                
-                                                            `)
+      Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+      All data will be lost.
+              
+    `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () => {
+  const setupParams: SetupParams = {
+    connectionString:
+      process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB ||
+      'mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin',
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'existing-db-warnings-mongodb'),
+  }
+
+  beforeAll(async () => {
+    await tearDownMongo(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    await setupMongo(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownMongo(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  // eslint-disable-next-line jest/no-identical-title
+  it('dataloss warnings accepted (prompt)', async () => {
+    ctx.fixture('existing-db-warnings-mongodb')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+      Applying the following changes:
+
+      [+] Collection \`Post\`
+
+
+      🚀  Your database indexes are now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  // eslint-disable-next-line jest/no-identical-title
+  it('dataloss warnings cancelled (prompt)', async () => {
+    ctx.fixture('existing-db-warnings-mongodb')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+
+    prompt.inject([new Error()]) // simulate user cancellation
+
+    const result = DbPush.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+      Applying the following changes:
+
+      [+] Collection \`Post\`
+
+
+      🚀  Your database indexes are now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(mockExit).toBeCalledWith(0)
+  })
+
+  // eslint-disable-next-line jest/no-identical-title
+  it('--accept-data-loss flag', async () => {
+    ctx.fixture('existing-db-warnings-mongodb')
+    const result = DbPush.new().parse(['--accept-data-loss'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db"
+      Applying the following changes:
+
+      [+] Collection \`Post\`
+
+
+      🚀  Your database indexes are now in sync with your Prisma schema. Done in XXXms
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
