@@ -18,7 +18,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('empty-schema
 
   it('validate', async () => {
     await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
-      Get DMMF: Error while trying to read datamodel path
+      Error while trying to read datamodel path
       Details: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined
 
       Prisma CLI Version : 0.0.0
@@ -66,7 +66,7 @@ DROP TABLE 'test-dbexecute';`
 
   it('migrate dev', async () => {
     await expect(MigrateDev.new().parse([])).rejects.toMatchInlineSnapshot(`
-      Get DMMF: Error while trying to read datamodel path
+      Error while trying to read datamodel path
       Details: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined
 
       Prisma CLI Version : 0.0.0
