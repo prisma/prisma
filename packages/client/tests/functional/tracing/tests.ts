@@ -10,9 +10,12 @@ import {
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
+// @ts-ignore
+import { PrismaClient } from '@prisma/client'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 
 type Tree = {
@@ -59,10 +62,7 @@ function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
   return JSON.parse(simpleTree)
 }
 
-// @ts-ignore this is just for type checks
-type PrismaClient = import('@prisma/client').PrismaClient
 declare let prisma: PrismaClient
-// @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 let inMemorySpanExporter: InMemorySpanExporter

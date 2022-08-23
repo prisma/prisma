@@ -16,7 +16,7 @@ import { flatMap } from './flatMap'
 import { getHash } from './getHash'
 import { getLatestTag } from './getLatestTag'
 import { getBar } from './log'
-import { getCacheDir, getDownloadUrl, overwriteFile, plusX } from './util'
+import { getCacheDir, getDownloadUrl, overwriteFile, plusX } from './utils'
 
 const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
