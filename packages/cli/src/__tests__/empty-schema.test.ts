@@ -54,12 +54,8 @@ DROP TABLE 'test-dbexecute';`
   })
 
   it('format', async () => {
-    await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
-      Get DMMF: Error while trying to read datamodel path
-      Details: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined
-
-      Prisma CLI Version : 0.0.0
-    `)
+    const result = await Format.new().parse([])
+    expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
   })
 
   it('migrate reset', async () => {

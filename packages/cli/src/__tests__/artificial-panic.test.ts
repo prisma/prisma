@@ -71,7 +71,7 @@ describe('artificial-panic formatter', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`Command failed with exit code 101: prisma-engines-path debug-panic`)
+      expect(e).toMatchInlineSnapshot(`unreachable`)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
