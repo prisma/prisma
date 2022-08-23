@@ -216,6 +216,9 @@ ${link('https://pris.ly/d/migrate-resolve')}`)
         return `Database schema is up to date!`
       }
     }
+
+    // Only needed for the return type to match
+    return ''
   }
 
   public help(error?: string): string | HelpError {
