@@ -13,6 +13,7 @@ import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
+  createSchemaValidationError,
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
@@ -60,8 +61,6 @@ type GetConfigErrorInit = {
 
 export class GetConfigError extends Error {
   constructor(params: GetConfigErrorInit) {
-    const headline = chalk.redBright.bold('Get Config: ')
-
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
         const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
@@ -76,7 +75,7 @@ ${detailsHeader} ${message}`
       })
       .exhaustive()
 
-    super(addVersionDetailsToErrorMessage(`${headline}${constructedErrorMessage}`))
+    super(addVersionDetailsToErrorMessage(constructedErrorMessage))
   }
 }
 
@@ -136,7 +135,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
         },
         (e) => ({
           type: 'node-api' as const,
-          reason: 'Error while interacting with query-engine-node-api library',
+          reason: 'Error (query-engine-node-api library)',
           error: e as Error,
         }),
       )
@@ -188,7 +187,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
           return new GetConfigError({
             _tag: 'parsed',
             message: errorOutputAsJSON.message,
-            reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+            reason: createSchemaValidationError(e.reason),
             errorCode,
           })
         }),
@@ -260,7 +259,7 @@ async function getConfigBinary(options: GetConfigOptions) {
         },
         (e) => ({
           type: 'execa' as const,
-          reason: 'Error while interacting with query-engine binary',
+          reason: 'Error (query-engine binary)',
           error: e as execa.ExecaError,
         }),
       )
@@ -332,7 +331,7 @@ async function getConfigBinary(options: GetConfigOptions) {
           const getConfigErrorInit = match(errorOutputAsJSON)
             .with({ error_code: 'P1012' }, (eJSON) => {
               return {
-                reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+                reason: createSchemaValidationError(e.reason),
                 errorCode: eJSON.error_code,
               }
             })

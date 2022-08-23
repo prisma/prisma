@@ -138,3 +138,7 @@ export const createDebugErrorType =
   ({ type, reason, error }: { type: string; reason: string; error: Error }) => {
     debug(`error of type "${type}" in ${fnName}:\n`, { reason, error })
   }
+
+export function createSchemaValidationError(reason: string) {
+  return `${chalk.redBright.bold('Schema validation error')} - ${reason}`
+}

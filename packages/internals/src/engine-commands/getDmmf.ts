@@ -14,6 +14,7 @@ import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
+  createSchemaValidationError,
   loadNodeAPILibrary,
   preliminaryBinaryPipeline,
   preliminaryNodeAPIPipeline,
@@ -61,8 +62,6 @@ type GetDmmfErrorInit = {
 
 export class GetDmmfError extends Error {
   constructor(params: GetDmmfErrorInit) {
-    const headline = chalk.redBright.bold('Get DMMF: ')
-
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
         const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
@@ -77,7 +76,7 @@ ${detailsHeader} ${message}`
       })
       .exhaustive()
 
-    super(addVersionDetailsToErrorMessage(`${headline}${constructedErrorMessage}`))
+    super(addVersionDetailsToErrorMessage(constructedErrorMessage))
   }
 }
 
@@ -159,7 +158,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
           },
           (e) => ({
             type: 'node-api' as const,
-            reason: 'Error while interacting with query-engine-node-api library',
+            reason: 'Error (query-engine-node-api library)',
             error: e as Error,
             datamodel,
           }),
@@ -229,7 +228,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
           return new GetDmmfError({
             _tag: 'parsed',
             message: defaultMessage,
-            reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+            reason: createSchemaValidationError(e.reason),
             errorCode,
           })
         }),
@@ -301,7 +300,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         },
         (e) => ({
           type: 'execa' as const,
-          reason: 'Error while interacting with query-engine binary',
+          reason: 'Error (query-engine binary)',
           error: e as execa.ExecaError,
         }),
       )
@@ -415,7 +414,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
           return new GetDmmfError({
             _tag: 'parsed',
             message: defaultMessage,
-            reason: `${chalk.redBright.bold('Schema parsing')} - ${e.reason}`,
+            reason: createSchemaValidationError(e.reason),
             errorCode,
           })
         }),
