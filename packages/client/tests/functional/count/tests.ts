@@ -1,7 +1,9 @@
+// @ts-ignore
+import { PrismaClient } from '@prisma/client'
+
 import testMatrix from './_matrix'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
@@ -70,7 +72,7 @@ testMatrix.setupTestSuite(() => {
 
   test('select all false', async () => {
     const value = await prisma.user.count({
-      // @ts-ignore - TODO There is a bug here
+      // @ts-expect-error - TODO There is a bug here
       select: false, // count with no selection
     })
 
@@ -105,7 +107,7 @@ testMatrix.setupTestSuite(() => {
           email: true,
           age: true,
           name: true,
-          // @ts-ignore
+          // @ts-expect-error
           posts: true,
         },
       })

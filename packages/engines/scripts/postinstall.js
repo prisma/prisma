@@ -1,21 +1,19 @@
-const fs = require('fs')
 const path = require('path')
 
-// that's the normal path, when users get this package ready/installed
-if (fs.existsSync(path.join(__dirname, '../dist/scripts/postinstall.js'))) {
-  require(path.join(__dirname, '../dist/scripts/postinstall.js'))
-} else {
+const postInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'postinstall.js')
+
+try {
   // that's when we develop in the monorepo, `dist` does not exist yet
   // so we compile postinstall script and trigger it immediately after
-  const execa = require('execa')
+  if (require('../package.json').version === '0.0.0') {
+    const execa = require('execa')
+    const buildScriptPath = path.join(__dirname, '..', 'helpers', 'build.ts')
 
-  void execa.sync('node', ['-r', 'esbuild-register', path.join(__dirname, '../helpers/build.ts')], {
-    stdio: 'inherit',
-    cwd: path.join(__dirname, '..'),
-    env: {
-      DEV: true,
-    },
-  })
+    execa.sync('node', ['-r', 'esbuild-register', buildScriptPath], {
+      env: { DEV: true },
+    })
+  }
+} catch {}
 
-  require(path.join(__dirname, '../dist/scripts/postinstall.js'))
-}
+// that's the normal path, when users get this package ready/installed
+require(postInstallScriptPath)

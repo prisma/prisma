@@ -1,4 +1,3 @@
-import { InMemorySpanExporter } from '@opentelemetry/sdk-trace-base'
 import { U } from 'ts-toolbelt'
 
 import { TestSuiteMatrix } from './getTestSuiteInfo'
@@ -18,7 +17,7 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
    * and generic suite metadata as an arguments
    */
   setupTestSuite(
-    tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta, tracer: InMemorySpanExporter) => void,
+    tests: (suiteConfig: MergedMatrixParams<MatrixT>, suiteMeta: TestSuiteMeta) => void,
     options?: MatrixOptions,
   ): void
 
@@ -33,10 +32,10 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
 }
 
 /**
- * Helper function for definining test matrix in a strongly typed way.
+ * Helper function for defining test matrix in a strongly typed way.
  * Should be used in your _matrix.ts file. Returns a helper class, that can later be used
  * for defining schema and test suite itself, while providing autocomplete and type checking
- * for matrix paramteters.
+ * for matrix parameters.
  * @param matrix matrix factory function
  * @returns helper for defining the suite and the prisma schema
  */

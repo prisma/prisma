@@ -9,7 +9,7 @@ const baseUri = process.env.TEST_MYSQL_URI
 
 describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
   beforeAll(async () => {
-    process.env.TEST_MYSQL_URI += '-default-onDelete-Cascade'
+    process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-default'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
       connectionString: process.env.TEST_MYSQL_URI!,

@@ -574,14 +574,6 @@ async function publish() {
       // TODO this can be done by esbuild
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
-    // TODO: check if we really need GITHUB_CONTEXT
-    // TODO: this is not useful anymore, the logic is
-    if (!process.env.GITHUB_CONTEXT) {
-      const changes = await getLatestChanges()
-
-      console.log(chalk.bold(`Changed files:`))
-      console.log(changes.map((c) => `  ${c}`).join('\n'))
-    }
 
     let prismaVersion
     let tag: undefined | string
@@ -736,14 +728,16 @@ async function tagEnginesRepo(
     const [major, minor] = patchBranch.split('.')
     const majorMinor = [major, minor].join('.')
     // ['3.2.0', '3.2.1']
-    const patchesPublished: string[] = JSON.parse(
+    const patchesPublished: string | string[] = JSON.parse(
       // TODO this line is useful for retrieving versions
       await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
     )
 
     console.log({ patchesPublished })
 
-    if (patchesPublished.length > 0) {
+    if (typeof patchesPublished === 'string') {
+      previousTag = patchesPublished
+    } else if (patchesPublished.length > 0) {
       // 3.2.0
       previousTag = patchesPublished.pop() as string
     } else {

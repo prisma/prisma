@@ -161,8 +161,6 @@ ${chalk.bold('Examples')}
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
         }
       }
 
@@ -264,7 +262,7 @@ ${chalk.bold('Examples')}
         migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
         migrationName: migrationName || '',
         draft: args['--create-only'] ? true : false,
-        prismaSchema: migrate.getDatamodel(),
+        prismaSchema: migrate.getPrismaSchema(),
       })
       debug({ createMigrationResult })
 

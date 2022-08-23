@@ -1,11 +1,10 @@
 'use strict'
-const forceTranspile = require('../../../../helpers/jest/forceTranspile')
 const os = require('os')
 
 module.exports = () => {
   const configCommon = {
     testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
-    transformIgnorePatterns: [forceTranspile()],
+    transformIgnorePatterns: [],
     reporters: [
       'default',
       [
@@ -21,7 +20,7 @@ module.exports = () => {
     globalSetup: './_utils/globalSetup.js',
     snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
-    testTimeout: 40000,
+    testTimeout: 60000,
     collectCoverage: process.env.CI ? true : false,
   }
 

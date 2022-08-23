@@ -8,6 +8,7 @@ Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libq
 Migration Engine        : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
 Introspection Engine    : introspection-core ENGINE_VERSION (at sanitized_path/introspection-engine-TEST_PLATFORM)
 Format Binary           : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM)
+Format Wasm             : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
 `;
@@ -20,6 +21,7 @@ Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libq
 Migration Engine        : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM, resolved by PRISMA_MIGRATION_ENGINE_BINARY)
 Introspection Engine    : introspection-core ENGINE_VERSION (at sanitized_path/introspection-engine-TEST_PLATFORM, resolved by PRISMA_INTROSPECTION_ENGINE_BINARY)
 Format Binary           : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM, resolved by PRISMA_FMT_BINARY)
+Format Wasm             : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
 `;
@@ -32,6 +34,7 @@ Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-eng
 Migration Engine      : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
 Introspection Engine  : introspection-core ENGINE_VERSION (at sanitized_path/introspection-engine-TEST_PLATFORM)
 Format Binary         : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM)
+Format Wasm           : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
 `;
@@ -44,6 +47,7 @@ Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-eng
 Migration Engine      : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM, resolved by PRISMA_MIGRATION_ENGINE_BINARY)
 Introspection Engine  : introspection-core ENGINE_VERSION (at sanitized_path/introspection-engine-TEST_PLATFORM, resolved by PRISMA_INTROSPECTION_ENGINE_BINARY)
 Format Binary         : prisma-fmt ENGINE_VERSION (at sanitized_path/prisma-fmt-TEST_PLATFORM, resolved by PRISMA_FMT_BINARY)
+Format Wasm           : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
 `;

@@ -41,6 +41,9 @@ pnpm run setup
 # 
 pnpm run --filter "@prisma/client" test:functional
 
+# Client memory tests
+pnpm run --filter "@prisma/client" test:memory
+
 echo "Start testing..."
 # Run test for all packages
 pnpm run test

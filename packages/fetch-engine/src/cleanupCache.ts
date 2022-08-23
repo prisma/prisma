@@ -5,7 +5,7 @@ import path from 'path'
 import rimraf from 'rimraf'
 import { promisify } from 'util'
 
-import { getRootCacheDir } from './util'
+import { getRootCacheDir } from './utils'
 
 const debug = Debug('cleanupCache')
 const del = promisify(rimraf)

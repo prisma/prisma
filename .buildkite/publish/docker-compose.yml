@@ -30,6 +30,7 @@ services:
       # MongoDB
       - TEST_MONGO_URI=mongodb://root:prisma@mongo:27018/tests?authSource=admin
       - TEST_MONGO_URI_MIGRATE=mongodb://root:prisma@mongodb_migrate:27017/tests-migrate?authSource=admin
+      - TEST_MONGO_URI_MIGRATE_EXISTING_DB=mongodb://root:prisma@mongodb_migrate:27017/tests-migrate-existing-db?authSource=admin
       # CockroachDB
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/tests
       - TEST_COCKROACH_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate

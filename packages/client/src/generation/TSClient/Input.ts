@@ -5,7 +5,6 @@ import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } f
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { wrapComment } from './helpers'
 
 export class InputField implements Generatable {
@@ -130,10 +129,9 @@ function stringifyInputTypes(
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly collector?: ExportCollector) {}
+  constructor(protected readonly type: DMMF.InputType) {}
   public toTS(): string {
     const { type } = this
-    this.collector?.addSymbol(type.name)
 
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
