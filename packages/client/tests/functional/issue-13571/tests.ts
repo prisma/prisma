@@ -4,7 +4,7 @@ import testMatrix from './_matrix'
 declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(() => {
-  test('should return correct type when replication reproduction scenario', async () => {
+  test('should return correct type when using replication reproduction scenario', async () => {
     const testBoolean = Math.random() > 0.5
 
     const { id } = await prisma.user.create({
@@ -23,8 +23,8 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    // This is for typechecks
-    const casted: Boolean | undefined = testUser.bool
+    // This is for typechecks - this will be asserted in the test:functional:types test suite
+    const casted: Boolean | undefined = testUser!.bool
   })
 
   test('should return correct type when using reproduction scenario with ternary', async () => {
@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(() => {
           },
         })
 
-    // This is for typechecks
+    // This is for typechecks - this will be asserted in the test:functional:types test suite
     const casted: Boolean | undefined = testUser.bool
   })
 })
