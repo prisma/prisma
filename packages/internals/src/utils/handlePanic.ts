@@ -36,7 +36,7 @@ ${chalk.bold('Error reports never contain personal or other sensitive informatio
 ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
 `)
 
-  const { value: shouldSubmitReport } = await prompt({
+  const { value: shouldSubmitReport }: { value: boolean } = await prompt({
     type: 'select',
     name: 'value',
     message: 'Submit error report',
@@ -68,6 +68,20 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     }
   }
 
+  /*
+  Example flow:
+
+  1) Prompt: Would you like to submit an error report? (no)
+     Prompt: Would you like to create a Github issue? (yes | no)
+
+  2) Prompt: Would you like to submit an error report? (yes)
+     Would you like to create a Github issue? (automatically yes)
+  */
+
+  // Automatically create a Github issue if we already submitted an error report.
+  //
+  // TODO: does this still make sense? (If we already have an error report, it's better to manually create an issue
+  // from the error reporting dashboard, as it includes the schema file and other details, and it's monitored weekly)
   await wouldYouLikeToCreateANewIssue({
     prompt: !shouldSubmitReport,
     error,
