@@ -826,6 +826,9 @@ describe('sqlite', () => {
   it('one broken seed.js file', async () => {
     ctx.fixture('seed-sqlite-js')
     fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
 
     prompt.inject(['y'])
 
@@ -849,10 +852,10 @@ describe('sqlite', () => {
       Your database is now in sync with your schema.
 
       Running seed command \`node prisma/seed.js\` ...
-
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occured while running the seed command:`)
+    expect(mockExit).toBeCalledWith(1)
   })
 
   it('legacy seed (no config in package.json)', async () => {
