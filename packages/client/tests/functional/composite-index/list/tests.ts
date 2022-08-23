@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker'
+
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
@@ -37,7 +39,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('composite-index list', async () => {
+    test('should query the index and return correct data', async () => {
       const response = await prisma.a.findUnique({
         where: {
           locations_address: {
@@ -62,11 +64,11 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('should throw if a nested list is duplicate', async () => {
-      const conflicting = {
+    test('should throw index error when inserting duplicate', async () => {
+      const locations = {
         set: [
           {
-            address: 'a',
+            address: faker.address.secondaryAddress(),
           },
         ],
       }
@@ -75,14 +77,14 @@ testMatrix.setupTestSuite(
         await prisma.a.createMany({
           data: [
             {
-              id: '5',
+              id: faker.random.numeric(100).toString(),
               name: 'foo',
-              locations: conflicting,
+              locations,
             },
             {
-              id: '6',
+              id: faker.random.numeric(100).toString(),
               name: 'bar',
-              locations: conflicting,
+              locations,
             },
           ],
         })

@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker'
+
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
@@ -39,7 +41,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('composite-index simple', async () => {
+    test('should query the index and return correct data', async () => {
       const response = await prisma.a.findUnique({
         where: {
           location_address: {
@@ -57,6 +59,31 @@ testMatrix.setupTestSuite(
           address: 'a',
         },
       })
+    })
+
+    test('should throw index error when inserting duplicate', async () => {
+      const location = {
+        set: {
+          address: faker.address.secondaryAddress(),
+        },
+      }
+
+      await expect(async () => {
+        await prisma.a.createMany({
+          data: [
+            {
+              id: faker.random.numeric(100).toString(),
+              name: faker.name.firstName(),
+              location,
+            },
+            {
+              id: faker.random.numeric(100).toString(),
+              name: faker.name.firstName(),
+              location,
+            },
+          ],
+        })
+      }).rejects.toThrowError('Unique constraint failed on the constraint: `A_location_address_key')
     })
   },
   {

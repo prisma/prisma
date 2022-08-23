@@ -1,3 +1,5 @@
+import { faker } from '@faker-js/faker'
+
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
@@ -45,7 +47,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('composite-index many fields', async () => {
+    test('should query the index and return correct data', async () => {
       const response = await prisma.a.findUnique({
         where: {
           name_location_street_zipCode_city_name: {
@@ -86,6 +88,37 @@ testMatrix.setupTestSuite(
             },
           }),
       ).rejects.toThrowError('Argument location for where.name_location_street_zipCode_city_name.location is missing')
+    })
+
+    test('should throw index error when inserting duplicate', async () => {
+      const location = {
+        set: {
+          street: faker.address.street(),
+          zipCode: faker.address.zipCode(),
+          city: { name: faker.address.city() },
+        },
+      }
+
+      const name = faker.name.firstName()
+
+      await expect(async () => {
+        await prisma.a.createMany({
+          data: [
+            {
+              id: faker.random.numeric(100).toString(),
+              name,
+              location,
+            },
+            {
+              id: faker.random.numeric(100).toString(),
+              name,
+              location,
+            },
+          ],
+        })
+      }).rejects.toThrowError(
+        'Unique constraint failed on the constraint: `A_name_location_street_location_zipCode_location_city_name_key',
+      )
     })
   },
   {
