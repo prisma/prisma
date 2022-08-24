@@ -33,7 +33,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILi
   })
 
   it('error path, openssl', async () => {
-    const spyLoadTag = `Unable to require(\`/home/florian/zac-management/node_modules/.pnpm/prisma@4.0.0/node_modules/prisma/libquery_engine-debian-openssl-1.1.x.so.node\`)
+    const spyLoadTag = `Unable to require(\`/home/user/my-project/node_modules/.pnpm/prisma@4.0.0/node_modules/prisma/libquery_engine-debian-openssl-1.1.x.so.node\`)
 libssl.so.1.1: cannot open shared object file: No such file or directory`
 
     const spyLoad = jest.spyOn(loadUtils, 'load').mockImplementation((id: string) => {
