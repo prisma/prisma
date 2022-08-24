@@ -29,7 +29,7 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(serializeQueryEngineName(error.message)).toMatchInlineSnapshot(`
-        Get Config: Schema parsing - Error while interacting with query-engine-NORMALIZED
+        Schema validation error - Error (query-engine-NORMALIZED)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
           -->  schema.prisma:10
@@ -60,7 +60,7 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(serializeQueryEngineName(error.message)).toMatchInlineSnapshot(`
-              Get Config: Schema parsing - Error while interacting with query-engine-NORMALIZED
+              Schema validation error - Error (query-engine-NORMALIZED)
               Error code: P1012
               error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
                 -->  schema.prisma:2
