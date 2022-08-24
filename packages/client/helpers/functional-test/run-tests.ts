@@ -12,6 +12,7 @@ const args = arg(
     '--no-types': Boolean,
     '--types-only': Boolean,
     '--provider': [String],
+    '--data-proxy': Boolean,
     '-p': '--provider',
   },
   true,
@@ -28,6 +29,13 @@ if (args['--provider']) {
     process.exit(1)
   }
   jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
+}
+
+if (args['--data-proxy']) {
+  jestCli = jestCli.withEnv({
+    DATA_PROXY: 'true',
+    NODE_EXTRA_CA_CERTS: 'todo',
+  })
 }
 
 const codeTestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
