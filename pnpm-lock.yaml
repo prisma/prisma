@@ -409,7 +409,7 @@ importers:
       p-retry: 4.6.2
       strip-ansi: 6.0.1
       typescript: 4.7.4
-      undici: 5.8.2
+      undici: 5.10.0
     dependencies:
       '@opentelemetry/api': 1.1.0
       '@opentelemetry/sdk-trace-base': 1.5.0_@opentelemetry+api@1.1.0
@@ -424,7 +424,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      undici: 5.8.2
+      undici: 5.10.0
     devDependencies:
       '@swc/core': 1.2.237
       '@swc/jest': 0.2.22_@swc+core@1.2.237
@@ -799,8 +799,8 @@ importers:
       mariadb: 3.0.1
       mock-stdin: 1.0.0
       mongoose: ^6.5.0
-      mssql: 9.0.0
-      pg: 8.7.3
+      mssql: 9.0.1
+      pg: 8.8.0
       pkg-up: 3.1.0
       prompts: 2.4.2
       strip-ansi: 6.0.1
@@ -820,8 +820,8 @@ importers:
       log-update: 4.0.0
       mariadb: 3.0.1
       mongoose: 6.5.2
-      mssql: 9.0.0
-      pg: 8.7.3
+      mssql: 9.0.1
+      pg: 8.8.0
       pkg-up: 3.1.0
       prompts: 2.4.2
       strip-ansi: 6.0.1
@@ -8869,6 +8869,22 @@ packages:
       tedious: 15.0.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /mssql/9.0.1:
+    resolution: {integrity: sha512-rmBEPeUgZswvcclSc4s21WJCG0xqDYBas1MSnZepzDPvtNRgkx6f/gCm52EEo2djVtIXJgRq22m7gj7floz4Ng==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      '@tediousjs/connection-string': 0.4.1
+      commander: 9.4.0
+      debug: 4.3.4
+      rfdc: 1.3.0
+      tarn: 3.0.2
+      tedious: 15.0.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /multimatch/5.0.0:
     resolution: {integrity: sha512-ypMKuglUrZUD99Tk2bUQ+xNQj43lPEfAeX2o9cTteAmShXy2VHDJpuwu1o0xqoKCt9jLVAvwyFKdLTPXKAfJyA==}
@@ -9650,6 +9666,15 @@ packages:
       pg: '>=8.0'
     dependencies:
       pg: 8.7.3
+    dev: true
+
+  /pg-pool/3.5.2_pg@8.8.0:
+    resolution: {integrity: sha512-His3Fh17Z4eg7oANLob6ZvH8xIVen3phEZh2QuyrIl4dQSDVEabNducv6ysROKpDNPSD+12tONZVWfSgMvDD9w==}
+    peerDependencies:
+      pg: '>=8.0'
+    dependencies:
+      pg: 8.8.0
+    dev: false
 
   /pg-protocol/1.5.0:
     resolution: {integrity: sha512-muRttij7H8TqRNu/DxrAJQITO4Ac7RmX3Klyr/9mJEOBeIpgnF8f9jAfRz5d3XwQZl5qBjF9gLsUtMPJE0vezQ==}
@@ -9680,6 +9705,25 @@ packages:
       pg-protocol: 1.5.0
       pg-types: 2.2.0
       pgpass: 1.0.5
+    dev: true
+
+  /pg/8.8.0:
+    resolution: {integrity: sha512-UXYN0ziKj+AeNNP7VDMwrehpACThH7LUl/p8TDFpEUuSejCUIwGSfxpHsPvtM6/WXFy6SU4E5RG4IJV/TZAGjw==}
+    engines: {node: '>= 8.0.0'}
+    peerDependencies:
+      pg-native: '>=3.0.1'
+    peerDependenciesMeta:
+      pg-native:
+        optional: true
+    dependencies:
+      buffer-writer: 2.0.0
+      packet-reader: 1.0.0
+      pg-connection-string: 2.5.0
+      pg-pool: 3.5.2_pg@8.8.0
+      pg-protocol: 1.5.0
+      pg-types: 2.2.0
+      pgpass: 1.0.5
+    dev: false
 
   /pgpass/1.0.5:
     resolution: {integrity: sha512-FdW9r/jQZhSeohs1Z3sI1yxFQNFvMcnmfuj4WBMUTxOrAyLMaTcE1aAMBiTlbMNaXvBCQuVi0R7hd8udDSP7ug==}
@@ -11586,8 +11630,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici/5.8.2:
-    resolution: {integrity: sha512-3KLq3pXMS0Y4IELV045fTxqz04Nk9Ms7yfBBHum3yxsTR4XNn+ZCaUbf/mWitgYDAhsplQ0B1G4S5D345lMO3A==}
+  /undici/5.10.0:
+    resolution: {integrity: sha512-c8HsD3IbwmjjbLvoZuRI26TZic+TSEe8FPMLLOkN1AfYRhdjnKBU6yL+IwcSCbdZiX4e5t0lfMDLDCqj4Sq70g==}
     engines: {node: '>=12.18'}
     dev: false
 
