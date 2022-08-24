@@ -73,7 +73,7 @@ test('basic event logging - binary', async () => {
         Object {
           duration: 0,
           params: [0],
-          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
+          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1 /* traceparent=00-00-00-00 */,
           target: quaint::connector::metrics,
           timestamp: 1970-01-01T00:00:00.000Z,
         },
@@ -111,34 +111,34 @@ test('interactive transactions logging - binary', async () => {
   replaceTimeValues(onQuery)
 
   expect(onQuery.mock.calls).toMatchInlineSnapshot(`
-Array [
-  Array [
-    Object {
-      duration: 0,
-      params: [],
-      query: BEGIN,
-      target: quaint::connector::metrics,
-      timestamp: 1970-01-01T00:00:00.000Z,
-    },
-  ],
-  Array [
-    Object {
-      duration: 0,
-      params: [0],
-      query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
-      target: quaint::connector::metrics,
-      timestamp: 1970-01-01T00:00:00.000Z,
-    },
-  ],
-  Array [
-    Object {
-      duration: 0,
-      params: [],
-      query: COMMIT,
-      target: quaint::connector::metrics,
-      timestamp: 1970-01-01T00:00:00.000Z,
-    },
-  ],
-]
-`)
+    Array [
+      Array [
+        Object {
+          duration: 0,
+          params: [],
+          query: BEGIN,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+      Array [
+        Object {
+          duration: 0,
+          params: [0],
+          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1 /* traceparent=00-00-00-00 */,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+      Array [
+        Object {
+          duration: 0,
+          params: [],
+          query: COMMIT,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+    ]
+  `)
 })
