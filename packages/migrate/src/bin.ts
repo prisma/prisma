@@ -26,6 +26,10 @@ process.on('uncaughtException', (e) => {
 process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
+// Listen to Ctr + C and exit
+process.on('SIGINT', () => {
+  process.exit(130)
+})
 
 const commandArray = process.argv.slice(2)
 
@@ -54,22 +58,23 @@ async function main(): Promise<number> {
     }),
   })
 
-  // parse the arguments
+  // Execute the command
   const result = await cli.parse(commandArray)
+  // Did it error?
   if (result instanceof HelpError) {
     console.error(result)
-    return 1
+    // Like Bash
+    // return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
+    return 2
   } else if (isError(result)) {
     console.error(result)
     return 1
   }
-  console.log(result)
 
+  // Success
+  console.log(result)
   return 0
 }
-process.on('SIGINT', () => {
-  process.exit(1) // now the "exit" event will fire
-})
 
 /**
  * Run our program

@@ -2,7 +2,7 @@
 
 exports[`handlePanic when sendPanic fails, the user should be alerted by a reportFailedMessage 1`] = `
 "Oops, an unexpected error occured!
-
+test-message
 
 Please help us improve Prisma by submitting an error report.
 Error reports never contain personal or other sensitive information.

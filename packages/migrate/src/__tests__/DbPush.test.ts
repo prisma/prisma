@@ -139,7 +139,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -152,7 +152,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Push cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(0)
+    expect(mockExit).toBeCalledWith(130)
   })
 
   // eslint-disable-next-line jest/no-identical-title
@@ -217,7 +217,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     prompt.inject([new Error()]) // simulate user cancellation
 
     const result = DbPush.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -230,7 +230,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Push cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(0)
+    expect(mockExit).toBeCalledWith(130)
   })
 
   it('unexecutable - --force-reset', async () => {
@@ -318,7 +318,9 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
   // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
 
     prompt.inject([new Error()]) // simulate user cancellation
 
@@ -335,7 +337,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
       🚀  Your database indexes are now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(0)
+    expect(mockExit).toBeCalledWith(130)
   })
 
   // eslint-disable-next-line jest/no-identical-title

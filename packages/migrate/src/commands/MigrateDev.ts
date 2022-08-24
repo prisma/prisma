@@ -160,7 +160,8 @@ ${chalk.bold('Examples')}
         if (!confirmedReset) {
           console.info('Reset cancelled.')
           migrate.stop()
-          process.exit(0)
+          // Return SIGINT exit code to signal that the process was cancelled.
+          process.exit(130)
         }
       }
 
@@ -238,8 +239,10 @@ ${chalk.bold('Examples')}
         })
 
         if (!confirmation.value) {
+          console.info('Migration cancelled.')
           migrate.stop()
-          return `Migration cancelled.`
+          // Return SIGINT exit code to signal that the process was cancelled.
+          process.exit(130)
         }
       }
     }
@@ -249,8 +252,10 @@ ${chalk.bold('Examples')}
       const getMigrationNameResult = await getMigrationName(args['--name'])
 
       if (getMigrationNameResult.userCancelled) {
+        console.info(getMigrationNameResult.userCancelled)
         migrate.stop()
-        return getMigrationNameResult.userCancelled
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
       } else {
         migrationName = getMigrationNameResult.name
       }

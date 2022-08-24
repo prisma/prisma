@@ -436,7 +436,7 @@ describe('sqlite', () => {
 
     const result = MigrateDev.new().parse([])
 
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -459,7 +459,7 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(0)
+    expect(mockExit).toBeCalledWith(130)
   })
 
   it('edited migration and unapplied empty draft', async () => {
@@ -741,16 +741,20 @@ describe('sqlite', () => {
 
   it('existingdb: 1 warning from schema change (prompt no)', async () => {
     ctx.fixture('existing-db-1-warning')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
 
     prompt.inject([new Error()])
 
     const result = MigrateDev.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(`Migration cancelled.`)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
 
+      Migration cancelled.
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
@@ -759,6 +763,7 @@ describe('sqlite', () => {
                                                                                                                                                                                                                                                                                                                                                                     • You are about to drop the \`Blog\` table, which is not empty (2 rows).
                                                                                                                                                                                                                                             `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+    expect(mockExit).toBeCalledWith(130)
   })
 
   // TODO: Windows: snapshot test fails because of emoji.
