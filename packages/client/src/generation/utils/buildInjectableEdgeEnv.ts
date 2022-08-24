@@ -71,7 +71,7 @@ function getSelectedEnvVarNames(datasources: InternalDatasource[]) {
  */
 export function getRuntimeEdgeEnvVar(envVarName: string) {
   // for cloudflare workers, an env var is a global js variable
-  const cfwEnv = `typeof global !== 'undefined' && global['${envVarName}']`
+  const cfwEnv = `typeof globalThis !== 'undefined' && globalThis['${envVarName}']`
   // for vercel edge functions, it's injected statically at build
   const nodeOrVercelEnv = `typeof process !== 'undefined' && process.env && process.env.${envVarName}`
 
