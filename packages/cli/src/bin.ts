@@ -57,6 +57,10 @@ process.on('uncaughtException', (e) => {
 process.on('unhandledRejection', (e) => {
   debug(e)
 })
+// Listen to Ctr + C and exit
+process.on('SIGINT', () => {
+  process.exit(130)
+})
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
@@ -144,16 +148,21 @@ async function main(): Promise<number> {
       'telemetry',
     ],
   )
-  // parse the arguments
-  const result = await cli.parse(commandArray)
 
+  // Execute the command
+  const result = await cli.parse(commandArray)
+  // Did it error?
   if (result instanceof HelpError) {
     console.error(result.message)
-    return 1
+    // Like Bash
+    // return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
+    return 2
   } else if (isError(result)) {
     console.error(result)
     return 1
   }
+
+  // Success
   console.log(result)
 
   /**
@@ -175,10 +184,6 @@ async function main(): Promise<number> {
 
   return 0
 }
-
-process.on('SIGINT', () => {
-  process.exit(0) // now the "exit" event will fire
-})
 
 /**
  * Run our program
