@@ -93,7 +93,7 @@ export class RequestHandler {
         return this.client._engine.requestBatch(queries, info.headers, info.inTx)
       },
       singleLoader: (request) => {
-        const info = getRequestInfo({ ...request, tracingConfig: client._tracingConfig })
+        const info = getRequestInfo(request)
         const query = String(request.document)
 
         return this.client._engine.request(query, info.headers)
