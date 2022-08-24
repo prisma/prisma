@@ -70,7 +70,7 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/studio": "0.472.0",
     "@prisma/studio-server": "0.472.0",
-    "@swc/core": "1.2.237",
+    "@swc/core": "1.2.242",
     "@swc/jest": "0.2.22",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
