@@ -6,18 +6,12 @@ import { DMMFClass, makeDocument } from '../runtime'
 import { RequestHandler } from '../runtime/RequestHandler'
 
 describe('batching', () => {
-  const tracingConfig: TracingConfig = {
-    enabled: false,
-    middleware: false,
-  }
-
   test('basic batching', async () => {
     const dmmf = new DMMFClass(await getDMMF({ datamodel: blog }))
     const batches: any[] = []
     const requests: any[] = []
 
     const fetcher = new RequestHandler({
-      _tracingConfig: tracingConfig,
       $connect: () => Promise.resolve(),
       _engine: {
         // @ts-expect-error
@@ -133,7 +127,6 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new RequestHandler({
-      _tracingConfig: tracingConfig,
       $connect: () => Promise.resolve(),
       _engine: {
         // @ts-expect-error
@@ -238,7 +231,6 @@ describe('batching', () => {
     const requests: any[] = []
 
     const fetcher = new RequestHandler({
-      _tracingConfig: tracingConfig,
       $connect: () => Promise.resolve(),
       _engine: {
         // @ts-expect-error

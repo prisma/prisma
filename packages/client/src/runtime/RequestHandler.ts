@@ -52,7 +52,7 @@ export type Request = {
   headers?: Record<string, string>
   otelParentCtx?: Context
   otelChildCtx?: Context
-  tracingConfig: TracingConfig
+  tracingConfig?: TracingConfig
 }
 
 function getRequestInfo(request: Request) {

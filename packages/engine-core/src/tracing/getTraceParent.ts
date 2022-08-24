@@ -12,11 +12,11 @@ export function getTraceParent({
   tracingConfig,
 }: {
   context?: Context
-  tracingConfig: TracingConfig
+  tracingConfig?: TracingConfig
 }): string {
   const span = trace.getSpanContext(context ?? _context.active())
 
-  if (tracingConfig.enabled && span?.traceFlags === 1) {
+  if (tracingConfig?.enabled && span?.traceFlags === 1) {
     return `00-${span.traceId}-${span.spanId}-01`
   } else {
     // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
