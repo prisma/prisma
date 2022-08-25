@@ -48,6 +48,7 @@ export interface DownloadOptions {
   failSilent?: boolean
   ignoreCache?: boolean
   printVersion?: boolean
+  skipCacheIntegrityCheck?: boolean
 }
 
 const BINARY_TO_ENV_VAR = {
@@ -65,6 +66,7 @@ type BinaryDownloadJob = {
   fileName: string
   targetFilePath: string
   envVarPath: string | null
+  skipCacheIntegrityCheck: boolean
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
@@ -109,6 +111,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         fileName,
         targetFilePath,
         envVarPath: getBinaryEnvVarPath(binaryName),
+        skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
       }
     }),
   )
@@ -256,10 +259,17 @@ async function binaryNeedsToBeDownloaded(
   const cachedFile = await getCachedBinaryPath({
     ...job,
     version,
-    failSilent,
   })
 
   if (cachedFile) {
+    // for local development, when using `enginesOverride`
+    // we don't have the sha256 hash, so we can't check it
+    if (job.skipCacheIntegrityCheck === true) {
+      await overwriteFile(cachedFile, job.targetFilePath)
+
+      return false
+    }
+
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')

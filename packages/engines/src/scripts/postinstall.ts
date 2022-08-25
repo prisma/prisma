@@ -5,13 +5,14 @@ import type { Platform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 
+import { enginesOverride } from '../../package.json'
 import { getCliQueryEngineBinaryType } from '..'
 
 const debug = Debug('prisma:download')
 
-const binaryDir = path.join(__dirname, '../../')
+const baseDir = path.join(__dirname, '../../')
 
-const lockFile = path.join(binaryDir, 'download-lock')
+const lockFile = path.join(baseDir, 'download-lock')
 
 let createdLockFile = false
 async function main() {
@@ -26,18 +27,26 @@ async function main() {
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const binaries: BinaryDownloadConfiguration = {
-      [cliQueryEngineBinaryType]: binaryDir,
-      [BinaryType.migrationEngine]: binaryDir,
-      [BinaryType.introspectionEngine]: binaryDir,
-      [BinaryType.prismaFmt]: binaryDir,
+      [cliQueryEngineBinaryType]: baseDir,
+      [BinaryType.migrationEngine]: baseDir,
+      [BinaryType.introspectionEngine]: baseDir,
+      [BinaryType.prismaFmt]: baseDir,
+    }
+
+    let version = enginesVersion
+    if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
+      // if this is true the engines have been fetched before and already cached
+      // into .cache/prisma/master/_local_ for us to be able to use this version
+      version = '_local_'
     }
 
     await download({
+      version,
       binaries,
       showProgress: true,
-      version: enginesVersion,
       failSilent: true,
       binaryTargets: binaryTargets as Platform[],
+      skipCacheIntegrityCheck: version === '_local_',
     }).catch((e) => debug(e))
 
     cleanupLockFile()
