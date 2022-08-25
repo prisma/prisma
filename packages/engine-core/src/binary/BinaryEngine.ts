@@ -572,15 +572,6 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
 
-        const tracingHeaders: { traceparent?: string } = {}
-
-        if (this.tracingConfig.enabled) {
-          tracingHeaders.traceparent = getTraceParent()
-        }
-
-        // TODO: not used yet by the engine
-        // flags.push('--tracing-headers', JSON.stringify(tracingHeaders))
-
         debug({ flags })
 
         const env = this.getEngineEnvVars()

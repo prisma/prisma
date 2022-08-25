@@ -95,7 +95,7 @@ test('batch findUnique', async () => {
   expect(sanitizeEvents(queries)[queries.length - 1]).toMatchInlineSnapshot(`
     Object {
       params: ["234cba9a-5cd9-4e00-a285-9955eb3bdf8f","9d9b7fd0-bfce-4017-945c-0ffaee1eb5f0","ad291441-9ce9-4e9f-9cbb-9fcfe15ea519","d36a2dfe-d8fd-488d-973c-bb1b1b082014","e7b2f865-59a0-4303-aa82-c7f9c1f86806","13b817ae-401c-40a8-8609-0da43f462d2e","4240fe9d-e363-484d-ae21-3ed7dc5a17fd","48ad17bb-ed9b-4590-a782-30a4f2cfab4e","7e23d607-dc38-458a-ba2c-586abf498d78","70ab5a89-9ded-4394-95e3-5265b714a11d",-1,0],
-      query: SELECT \`main\`.\`User\`.\`id\`, \`main\`.\`User\`.\`email\`, \`main\`.\`User\`.\`age\`, \`main\`.\`User\`.\`name\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`id\` IN (?,?,?,?,?,?,?,?,?,?) LIMIT ? OFFSET ?,
+      query: SELECT \`main\`.\`User\`.\`id\`, \`main\`.\`User\`.\`email\`, \`main\`.\`User\`.\`age\`, \`main\`.\`User\`.\`name\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`id\` IN (?,?,?,?,?,?,?,?,?,?) LIMIT ? OFFSET ? /* traceparent=00-00-00-00 */,
       target: quaint::connector::metrics,
     }
   `)
