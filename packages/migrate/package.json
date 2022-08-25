@@ -16,10 +16,10 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.3.0-22.6be410e82fb9c9de89d9348ecd3d2d2359cc8aad",
+    "@prisma/engines-version": "4.3.0-28.4c3d4275ef72f6dc9eeaba7f9215da9e20c432d9",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
-    "@swc/core": "1.2.237",
+    "@swc/core": "1.2.242",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.7",
     "@types/node": "12.20.55",

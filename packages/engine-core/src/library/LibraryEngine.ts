@@ -332,7 +332,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
       try {
         const headers = {
-          traceparent: getTraceParent(),
+          traceparent: getTraceParent({ tracingConfig: this.config.tracingConfig }),
         }
 
         // TODO: not used yet by the engine
@@ -385,7 +385,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       debug('library stopping')
 
       const headers = {
-        traceparent: getTraceParent(),
+        traceparent: getTraceParent({ tracingConfig: this.config.tracingConfig }),
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
