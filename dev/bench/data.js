@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661433108225,
+  "lastUpdate": 1661442273154,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -121336,6 +121336,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.400094032287598,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "pierre",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "acd77282495f8dbbc2e850f0613c741901574f04",
+          "message": "fix(client): high-resolution time for engine spans (#14991)\n\n* fix(client): high-resolution time for engine spans\r\n\r\n* test: throw error if span time is 0\r\n\r\n* package: bump-engines 4.3.0-28.4c3d4275ef72f6dc9eeaba7f9215da9e20c432d9\r\n\r\n* package: bump @prisma/prisma-fmt-wasm\r\n\r\nCo-authored-by: daniel starns <danielstarns@hotmail.com>",
+          "timestamp": "2022-08-25T16:41:34+01:00",
+          "tree_id": "9531b6cdb52f94ca7bc4b82a756cb7dbad4b1424",
+          "url": "https://github.com/prisma/prisma/commit/acd77282495f8dbbc2e850f0613c741901574f04"
+        },
+        "date": 1661442264916,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.08,
+            "range": "±4.14%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±0.75%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.300143241882324,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.66108989715576,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.67713165283203,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.4000883102417,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
