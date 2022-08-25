@@ -33,7 +33,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE !== 'binary')('loadNodeAPILi
   })
 
   it('error path, openssl', async () => {
-    const spyLoadTag = `Unable to require(\`/home/user/my-project/node_modules/.pnpm/prisma@4.0.0/node_modules/prisma/libquery_engine-debian-openssl-1.1.x.so.node\`)
+    const spyLoadTag = `Unable to require(\`/app/node_modules/.pnpm/prisma@x.x.x/node_modules/prisma/libquery_engine-debian-openssl-1.1.x.so.node\`)
 libssl.so.1.1: cannot open shared object file: No such file or directory`
 
     const spyLoad = jest.spyOn(loadUtils, 'load').mockImplementation((id: string) => {
@@ -59,8 +59,8 @@ libssl.so.1.1: cannot open shared object file: No such file or directory`
   })
 
   it('error path, architecture or libc', async () => {
-    const spyLoadTag = `Unable to require(\`/app/node_modules/.pnpm/prisma@4.0.0/node_modules/prisma/libquery_engine-linux-arm64-openssl-1.1.x.so.node\`)
-Error relocating /app/node_modules/.pnpm/prisma@4.0.0/node_modules/prisma/libquery_engine-linux-arm64-openssl-1.1.x.so.node: __res_init: symbol not found`
+    const spyLoadTag = `Unable to require(\`/app/node_modules/.pnpm/prisma@x.x.x/node_modules/prisma/libquery_engine-linux-arm64-openssl-1.1.x.so.node\`)
+Error relocating /app/node_modules/.pnpm/prisma@x.x.x/node_modules/prisma/libquery_engine-linux-arm64-openssl-1.1.x.so.node: __res_init: symbol not found`
 
     const spyLoad = jest.spyOn(loadUtils, 'load').mockImplementation((id: string) => {
       throw new Error(spyLoadTag)
