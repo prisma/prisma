@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661410473293,
+  "lastUpdate": 1661422108202,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -120936,6 +120936,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.400477409362793,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "de2075f454da32b8d12ed94846d2565503927a80",
+          "message": "fix(client): Prisma Client always receive engine spans (#14910)\n\n* fix: Client always receive engine spans\r\n\r\n* test: Client always receive engine spans\r\n\r\n* fix: missing arg\r\n\r\n* fix: pass thru tracing config and update snapshots\r\n\r\n* fix: typo\r\n\r\n* add tracing reproduction\r\n\r\n* package: change to otlp http fixes unmet peer\r\n\r\n* Update packages/client/src/runtime/RequestHandler.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* Update packages/client/src/runtime/RequestHandler.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* test: update snapshots\r\n\r\n* refactor: remove unused workaround\r\n\r\n* refactor: make tracingConfig optional\r\n\r\nCo-authored-by: Pierre-Antoine Mills <pierreantoine.urvoy@gmail.com>",
+          "timestamp": "2022-08-25T11:04:35+01:00",
+          "tree_id": "ded45e2baa662c59bafc7bd75709834b7737cb88",
+          "url": "https://github.com/prisma/prisma/commit/de2075f454da32b8d12ed94846d2565503927a80"
+        },
+        "date": 1661422097076,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.89,
+            "range": "±5.07%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±1.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3001623153686523,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.66736125946045,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.68340301513672,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.400554656982422,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
