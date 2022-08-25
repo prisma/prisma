@@ -51,7 +51,7 @@ async function main(): Promise<number | void> {
     })
 
     if (!args['--no-mini-proxy']) {
-      const qePath = await getBinaryForDataProxy()
+      const qePath = await getBinaryForMiniProxy()
 
       // TODO: this won't be necessary when the package is on npm
       const miniProxyExecutable = path.join(__dirname, '..', 'mini-proxy', 'mini-proxy.js')
@@ -95,7 +95,7 @@ async function main(): Promise<number | void> {
   }
 }
 
-async function getBinaryForDataProxy(): Promise<string> {
+async function getBinaryForMiniProxy(): Promise<string> {
   if (process.env.PRISMA_QUERY_ENGINE_BINARY) {
     return process.env.PRISMA_QUERY_ENGINE_BINARY
   }
