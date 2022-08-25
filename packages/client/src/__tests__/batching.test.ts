@@ -1,3 +1,5 @@
+import { TracingConfig } from '@prisma/engine-core'
+
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'

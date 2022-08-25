@@ -984,7 +984,7 @@ new PrismaClient({
       callback: (client: Client) => Promise<unknown>
       options?: Options
     }) {
-      const headers = { traceparent: getTraceParent() }
+      const headers = { traceparent: getTraceParent({ tracingConfig: this._tracingConfig }) }
       const info = await this._engine.transaction('start', headers, options as Options)
 
       let result: unknown
