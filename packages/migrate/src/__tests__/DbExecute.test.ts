@@ -16,7 +16,6 @@ const exec = util.promisify(require('child_process').exec)
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
-const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
 describe('db execute', () => {
   describe('generic', () => {
@@ -134,10 +133,8 @@ DROP TABLE 'test-dbexecute';`
 
     // On Windows: snapshot output = "-- Drop & Create & Drop"
     testIf(process.platform !== 'win32')('should pass with --stdin --schema', async () => {
-      // macOS and Windows machine can be slow and fail the test
-      if (isMacOrWindowsCI) {
-        jest.setTimeout(30_000)
-      }
+      // This is a slow test and macOS machine can be even slower and fail the test
+      jest.setTimeout(30_000)
 
       ctx.fixture('schema-only-sqlite')
 
