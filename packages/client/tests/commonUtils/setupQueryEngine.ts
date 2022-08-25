@@ -1,5 +1,5 @@
 import { enginesVersion } from '@prisma/engines'
-import { download } from '@prisma/fetch-engine'
+import { BinaryPaths, download } from '@prisma/fetch-engine'
 import path from 'path'
 
 /**
@@ -7,7 +7,7 @@ import path from 'path'
  * normally the downloading of the required engine is done in `getGenerators`. As the test
  * clients bypass this we need to ensure the correct engine is present.
  */
-export function setupQueryEngine() {
+export function setupQueryEngine(): Promise<BinaryPaths> {
   const engineDownloadDir = path.resolve(__dirname, '..', '..')
 
   return download({
