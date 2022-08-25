@@ -61,7 +61,7 @@ exports[`interactive-transactions (provider=mysql) batching raw rollback 1`] = `
 Invalid \`prisma.$executeRaw()\` invocation:
 
 
-  Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'PRIMARY'\`
+  Raw query failed. Code: \`1062\`. Message: \`Duplicate entry '1' for key 'user.PRIMARY'\`
 `;
 
 exports[`interactive-transactions (provider=mysql) batching rollback 1`] = `
