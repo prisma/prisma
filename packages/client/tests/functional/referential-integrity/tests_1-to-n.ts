@@ -76,6 +76,8 @@ testMatrix.setupTestSuite(
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
+    const isPostgreSQL = suiteConfig.provider === Providers.POSTGRESQL
+    const isSQLite = suiteConfig.provider === Providers.SQLITE
     const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
     const isRI_foreignKeys = !isRI_prisma
 
@@ -873,6 +875,82 @@ testMatrix.setupTestSuite(
               },
             ])
           })
+
+          // Only test for foreignKeys
+          testIf(isRI_foreignKeys && (isPostgreSQL || isSQLite))(
+            'RI=foreignKeys - [delete] parent and child in "wrong" order a transaction when FK is DEFERRABLE should suceed',
+            async () => {
+              // NOT DEFERRABLE is the default.
+              // THE FK constraint needs to be
+              // DEFERRABLE with an INITIALLY DEFERRED or INITIALLY IMMEDIATE mode
+              // to have an effect with NO ACTION
+              // This is not supported by Prisma, so we use $executeRaw to set the constraint mode
+              //
+              // Feature request: https://github.com/prisma/prisma/issues/3502
+              // It only supported by
+              // SQLite: https://www.sqlite.org/foreignkeys.html
+              // PostgreSQL: https://www.postgresql.org/docs/current/sql-set-constraints.html
+              //
+              // Not supported in
+              // SQL Server https://docs.microsoft.com/en-us/openspecs/sql_standards/ms-tsqliso02/70d6050a-28c7-4fae-a205-200ccb363522
+              // MySQL https://dev.mysql.com/doc/refman/8.0/en/ansi-diff-foreign-keys.html
+              //
+              // Interesting article https://begriffs.com/posts/2017-08-27-deferrable-sql-constraints.html
+              //
+              if (isPostgreSQL) {
+                await prisma.$executeRaw`
+                  ALTER TABLE "PostOneToMany"
+                    ALTER CONSTRAINT "PostOneToMany_authorId_fkey" DEFERRABLE INITIALLY DEFERRED`
+              } else if (isSQLite) {
+                // Force enforcement of all foreign key constraints to be delayed until the outermost transaction is committed.
+                // https://www.sqlite.org/pragma.html#pragma_defer_foreign_keys
+                await prisma.$executeRaw`
+                  PRAGMA defer_foreign_keys = 1`
+              } else {
+                throw new Error('unexpected provider')
+              }
+
+              await prisma.$transaction([
+                // Deleting order does not matter anymore
+                // NoAction allows the check to be deffered until the transaction is committed
+                // (only when the FK set contraint is DEFERRABLE)
+                prisma[postModel].delete({
+                  where: { id: '1-post-a' },
+                }),
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+                prisma[postModel].delete({
+                  where: { id: '1-post-b' },
+                }),
+              ])
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+              expect(
+                await prisma[postModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ])
+            },
+          )
         })
 
         describeIf(onDelete === 'Cascade')('onDelete: Cascade', () => {
