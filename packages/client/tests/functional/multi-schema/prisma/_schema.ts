@@ -1,7 +1,7 @@
 import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, mapTabel }) => {
+export default testMatrix.setupSchema(({ provider, mapTable }) => {
   return /* Prisma */ `
     generator client {
       provider = "prisma-client-js"
@@ -20,7 +20,7 @@ export default testMatrix.setupSchema(({ provider, mapTabel }) => {
       posts Post[]
 
       @@schema("base")
-      ${mapTabel ? '@@map("some_table-1")' : ''}
+      ${mapTable ? '@@map("some_table-1")' : ''}
     }
 
     model Post {
@@ -30,7 +30,7 @@ export default testMatrix.setupSchema(({ provider, mapTabel }) => {
       author    User?    @relation(fields: [authorId], references: [id])
 
       @@schema("transactional")
-      ${mapTabel ? '@@map("some_table-2")' : ''}
+      ${mapTable ? '@@map("some_table-2")' : ''}
     }
   `
 })
