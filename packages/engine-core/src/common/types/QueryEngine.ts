@@ -41,8 +41,8 @@ export type EngineSpan = {
   trace_id: string
   span_id: string
   parent_span_id: string
-  start_time: string
-  end_time: string
+  start_time: [number, number]
+  end_time: [number, number]
   attributes?: Record<string, string>
   links?: { trace_id: string; span_id: string }[]
 }
