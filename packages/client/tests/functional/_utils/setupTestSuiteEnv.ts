@@ -1,12 +1,12 @@
 import { assertNever } from '@prisma/internals'
 import cuid from 'cuid'
-import execa from 'execa'
 import fs from 'fs-extra'
 import path from 'path'
 import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
+import * as miniProxy from '../../../helpers/mini-proxy'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
@@ -171,8 +171,11 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>): Dataso
   let dataProxyUrl: string | undefined
 
   if (process.env.DATA_PROXY) {
-    const { stdout } = execa.sync('mini-proxy', ['connection-string', '-u', newURI, '-e', envVarName])
-    dataProxyUrl = stdout.trim()
+    dataProxyUrl = miniProxy.generateConnectionString({
+      databaseUrl: newURI,
+      envVar: envVarName,
+      port: miniProxy.defaultServerConfig.port,
+    })
   }
 
   return {
