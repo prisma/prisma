@@ -133,9 +133,6 @@ DROP TABLE 'test-dbexecute';`
 
     // On Windows: snapshot output = "-- Drop & Create & Drop"
     testIf(process.platform !== 'win32')('should pass with --stdin --schema', async () => {
-      // This is a slow test and macOS machine can be even slower and fail the test
-      jest.setTimeout(30_000)
-
       ctx.fixture('schema-only-sqlite')
 
       const { stdout, stderr } = await exec(
@@ -146,7 +143,8 @@ DROP TABLE 'test-dbexecute';`
                   Script executed successfully.
 
               `)
-    })
+       // This is a slow test and macOS machine can be even slower and fail the test
+    }, 30_000)
 
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')
