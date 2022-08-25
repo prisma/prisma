@@ -3,12 +3,12 @@
 exports[`field-reference.json (provider=cockroachdb) wrong field type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/json/tests.ts:126:39
+/client/tests/functional/field-reference/json/tests.ts:0:0
 
-  123 })
-  124 
-  125 test('wrong field type', async () => {
-→ 126   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong field type', async () => {
+→ XX   const products = prisma.product.findMany({
           where: {
             properties1: {
               equals: prisma.product.fields.title
@@ -25,12 +25,12 @@ Argument equals: Got invalid value prisma.product.fields.title on prisma.findMan
 exports[`field-reference.json (provider=mongodb) wrong field type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/json/tests.ts:126:39
+/client/tests/functional/field-reference/json/tests.ts:0:0
 
-  123 })
-  124 
-  125 test('wrong field type', async () => {
-→ 126   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong field type', async () => {
+→ XX   const products = prisma.product.findMany({
           where: {
             properties1: {
               equals: prisma.product.fields.title
@@ -47,12 +47,12 @@ Argument equals: Got invalid value prisma.product.fields.title on prisma.findMan
 exports[`field-reference.json (provider=mysql) wrong field type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/json/tests.ts:126:39
+/client/tests/functional/field-reference/json/tests.ts:0:0
 
-  123 })
-  124 
-  125 test('wrong field type', async () => {
-→ 126   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong field type', async () => {
+→ XX   const products = prisma.product.findMany({
           where: {
             properties1: {
               equals: prisma.product.fields.title
@@ -69,12 +69,12 @@ Argument equals: Got invalid value prisma.product.fields.title on prisma.findMan
 exports[`field-reference.json (provider=postgresql) wrong field type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/json/tests.ts:126:39
+/client/tests/functional/field-reference/json/tests.ts:0:0
 
-  123 })
-  124 
-  125 test('wrong field type', async () => {
-→ 126   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong field type', async () => {
+→ XX   const products = prisma.product.findMany({
           where: {
             properties1: {
               equals: prisma.product.fields.title

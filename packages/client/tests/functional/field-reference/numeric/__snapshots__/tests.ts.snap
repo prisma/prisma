@@ -3,12 +3,12 @@
 exports[`field-reference.numeric (provider=cockroachdb, fieldType=BigInt) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -25,12 +25,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=cockroachdb, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -47,12 +47,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=cockroachdb, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -69,12 +69,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=mongodb, fieldType=BigInt) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -91,12 +91,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=mongodb, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -113,12 +113,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=mongodb, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -135,12 +135,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=mysql, fieldType=BigInt) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -157,12 +157,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=mysql, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -179,12 +179,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=mysql, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -201,12 +201,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=postgresql, fieldType=BigInt) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -223,12 +223,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=postgresql, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -245,12 +245,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=postgresql, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -267,12 +267,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=sqlite, fieldType=BigInt) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -289,12 +289,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=sqlite, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -311,12 +311,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=sqlite, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -333,12 +333,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=sqlserver, fieldType=BigInt) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -355,12 +355,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=sqlserver, fieldType=Float) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
@@ -377,12 +377,12 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 exports[`field-reference.numeric (provider=sqlserver, fieldType=Int) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
-/client/tests/functional/field-reference/numeric/tests.ts:90:37
+/client/tests/functional/field-reference/numeric/tests.ts:0:0
 
-  87 })
-  88 
-  89 test('wrong column numeric type', async () => {
-→ 90   const products = prisma.product.findMany({
+  XX })
+  XX 
+  XX test('wrong column numeric type', async () => {
+→ XX   const products = prisma.product.findMany({
          where: {
            quantity: {
              gt: prisma.product.fields.wrongType
