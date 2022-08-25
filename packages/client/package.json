@@ -62,7 +62,7 @@
   "devDependencies": {
     "@faker-js/faker": "7.4.0",
     "@jest/test-sequencer": "28.1.3",
-    "@microsoft/api-extractor": "7.29.2",
+    "@microsoft/api-extractor": "7.29.5",
     "@opentelemetry/api": "1.1.0",
     "@opentelemetry/context-async-hooks": "1.5.0",
     "@opentelemetry/instrumentation": "0.31.0",
@@ -79,14 +79,14 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@swc-node/register": "1.5.1",
-    "@swc/core": "1.2.237",
+    "@swc/core": "1.2.242",
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
     "@types/jest": "28.1.7",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "8.0.3",
-    "@types/node": "14.17.34",
+    "@types/mssql": "8.1.1",
+    "@types/node": "14.18.26",
     "@types/pg": "8.6.5",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
@@ -112,8 +112,8 @@
     "lz-string": "1.4.4",
     "make-dir": "3.1.0",
     "mariadb": "3.0.1",
-    "mssql": "9.0.0",
-    "pg": "8.7.3",
+    "mssql": "9.0.1",
+    "pg": "8.8.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
     "replace-string": "3.1.0",
@@ -142,7 +142,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.3.0-22.6be410e82fb9c9de89d9348ecd3d2d2359cc8aad"
+    "@prisma/engines-version": "4.3.0-28.4c3d4275ef72f6dc9eeaba7f9215da9e20c432d9"
   },
   "sideEffects": false
 }

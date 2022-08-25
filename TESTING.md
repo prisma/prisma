@@ -193,6 +193,25 @@ Test consists of the 3 files:
 - schema template `prisma/_schema.ts`
 - test suite `tests.ts`
 
+#### Nesting tests
+
+If you have related tests but different schemas, you can nest directories. For example, composite indexes have the following file structure:
+
+`composite-index/`
+
+1.  `list/`
+
+    - `test.ts`
+    - `_matrix.ts`
+    - `prisma/`
+      - `_schema.ts`
+
+2.  `named/`
+    - `test.ts`
+    - `_matrix.ts`
+    - `prisma/`
+      - ` _schema.ts`
+
 #### Test matrix
 
 `_matrix.ts` file defines parameters for generating test suites. It can have as many parameters as necessary, but at minimum, it should define at least one provider.

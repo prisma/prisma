@@ -109,6 +109,19 @@
       "schedule": ["before 8am on Wednesday"]
     },
     {
+      "groupName": "tsd",
+      "packageNames": ["tsd"]
+    },
+    {
+      "groupName": "sqlite-async",
+      "packageNames": ["sqlite-async"]
+    },
+    {
+      "groupName": "@swc/core for internals",
+      "paths": ["packages/internals/**"],
+      "packageNames": ["@swc/core"]
+    },
+    {
       "groupName": "react-prisma",
       "automerge": "true",
       "paths": ["packages/react-prisma/**"],
