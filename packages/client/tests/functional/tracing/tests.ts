@@ -13,7 +13,6 @@ import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 // @ts-ignore
 import { PrismaClient } from '@prisma/client'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -35,7 +34,19 @@ function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
   const simpleTree = JSON.stringify(
     tree,
     (key, value) => {
-      const keys = [
+      if (key === '_duration') {
+        const [, duration] = value as unknown as [number, number]
+
+        // https://github.com/prisma/prisma/issues/14614
+        // This number should always be greater than 0
+        if (duration === 0) {
+          throw new Error('span duration should contain high res time')
+        }
+
+        return undefined
+      }
+
+      const removedKeys = [
         'endTime',
         '_ended',
         '_spanContext',
@@ -50,7 +61,7 @@ function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
         '_duration',
       ]
 
-      if (keys.includes(key)) {
+      if (removedKeys.includes(key)) {
         return undefined
       } else {
         return value
@@ -106,7 +117,6 @@ testMatrix.setupTestSuite(({ provider }) => {
   function cleanSpanTreeForSnapshot(tree: Tree) {
     return JSON.parse(JSON.stringify(tree), (key, value) => {
       if (key[0] === '_') return undefined
-      if (key === 'duration') return 'Xms'
       if (key === 'parentSpanId') return '<parentSpanId>'
       if (key === 'itx_id') return '<itxId>'
       if (key === 'endTime') return '<endTime>'
