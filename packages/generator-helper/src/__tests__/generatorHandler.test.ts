@@ -61,6 +61,12 @@ function getExecutable(name: string): string {
 describe('generatorHandler', () => {
   // TODO: Windows: this test fails with timeout.
   testIf(process.platform !== 'win32')('exiting', async () => {
+    // It fails often and randomly on GitHub Actions with
+    // Received promise resolved instead of rejected
+    // Resolved to value: undefined
+    // So we retry it with the hope that it a retry would help
+    jest.retryTimes(3)
+
     const generator = new GeneratorProcess(getExecutable('exiting-executable'))
     await generator.init()
     try {

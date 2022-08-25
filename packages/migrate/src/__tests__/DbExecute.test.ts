@@ -16,6 +16,7 @@ const exec = util.promisify(require('child_process').exec)
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
 describe('db execute', () => {
   describe('generic', () => {
@@ -132,22 +133,23 @@ DROP TABLE 'test-dbexecute';`
     })
 
     // On Windows: snapshot output = "-- Drop & Create & Drop"
-    testIf(process.platform !== 'win32')(
-      'should pass with --stdin --schema',
-      async () => {
-        ctx.fixture('schema-only-sqlite')
+    testIf(process.platform !== 'win32')('should pass with --stdin --schema', async () => {
+      // macOS and Windows machine can be slow and fail the test
+      if (isMacOrWindowsCI) {
+        jest.setTimeout(30_000)
+      }
 
-        const { stdout, stderr } = await exec(
-          `echo "${sqlScript}" | ${pathToBin} db execute --stdin --schema=./prisma/schema.prisma`,
-        )
-        expect(stderr).toBeFalsy()
-        expect(stdout).toMatchInlineSnapshot(`
+      ctx.fixture('schema-only-sqlite')
+
+      const { stdout, stderr } = await exec(
+        `echo "${sqlScript}" | ${pathToBin} db execute --stdin --schema=./prisma/schema.prisma`,
+      )
+      expect(stderr).toBeFalsy()
+      expect(stdout).toMatchInlineSnapshot(`
                   Script executed successfully.
 
               `)
-      },
-      20_000,
-    )
+    })
 
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')

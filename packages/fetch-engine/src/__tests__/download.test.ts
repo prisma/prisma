@@ -13,8 +13,10 @@ const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
 const FIXED_ENGINES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
-jest.setTimeout(200_000)
+// Network can be slow, especially for macOS in CI.
+jest.setTimeout(300_000)
 
 describe('download', () => {
   beforeEach(async () => {
