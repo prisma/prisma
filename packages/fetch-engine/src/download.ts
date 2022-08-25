@@ -9,7 +9,6 @@ import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
 
-import { enginesOverride } from '../package.json'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
@@ -18,6 +17,8 @@ import { getHash } from './getHash'
 import { getLatestTag } from './getLatestTag'
 import { getBar } from './log'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
+
+const { enginesOverride } = require('../package.json')
 
 const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
