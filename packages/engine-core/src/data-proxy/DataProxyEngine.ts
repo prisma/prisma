@@ -113,6 +113,10 @@ export class DataProxyEngine extends Engine {
       clientVersion: this.clientVersion,
     })
 
+    if (!response.ok) {
+      debug('schema response status', response.status)
+    }
+
     const err = await responseToError(response, this.clientVersion)
 
     if (err) {
@@ -158,6 +162,10 @@ export class DataProxyEngine extends Engine {
         body: JSON.stringify(body),
         clientVersion: this.clientVersion,
       })
+
+      if (!response.ok) {
+        debug('graphql response status', response.status)
+      }
 
       const e = await responseToError(response, this.clientVersion)
 

@@ -25,15 +25,6 @@ ${link('https://pris.ly/d/migrate-upgrade')}`,
   }
 }
 
-export class HowToBaselineError extends Error {
-  constructor() {
-    super(
-      `Read more about how to baseline an existing production database:
-${link('https://pris.ly/d/migrate-baseline')}`,
-    )
-  }
-}
-
 export class DbPushForceFlagRenamedError extends Error {
   constructor() {
     super(

@@ -161,8 +161,6 @@ ${chalk.bold('Examples')}
           console.info('Reset cancelled.')
           migrate.stop()
           process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
         }
       }
 
@@ -330,8 +328,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
           if (successfulSeeding) {
             console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {
-            // TODO: Should we exit 1 here like in db seed and migrate reset?
-            console.info() // empty line
+            process.exit(1)
           }
         } else {
           // Only used to help users to set up their seeds from old way to new package.json config

@@ -4,7 +4,6 @@ import type { DMMF } from '../../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable } from '../../runtime/utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
 
 export class SchemaOutputField implements Generatable {
   constructor(protected readonly field: DMMF.SchemaField) {}
@@ -26,10 +25,9 @@ export class SchemaOutputField implements Generatable {
 export class SchemaOutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
-  constructor(protected readonly type: DMMF.OutputType, protected readonly collector?: ExportCollector) {
+  constructor(protected readonly type: DMMF.OutputType) {
     this.name = type.name
     this.fields = type.fields
-    collector?.addSymbol(this.name)
   }
   public toTS(): string {
     const { type } = this
