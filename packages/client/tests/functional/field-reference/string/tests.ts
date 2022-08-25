@@ -62,7 +62,7 @@ testMatrix.setupTestSuite(() => {
     await expect(products).rejects.toThrowErrorMatchingInlineSnapshot(`
 
       Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference-string/tests.ts:53:37
+      /client/tests/functional/field-reference/string/tests.ts:53:37
 
          50 })
          51 
@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(() => {
     await expect(products).rejects.toThrowErrorMatchingInlineSnapshot(`
 
       Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference-string/tests.ts:86:37
+      /client/tests/functional/field-reference/string/tests.ts:86:37
 
          83 })
          84 
@@ -128,7 +128,7 @@ testMatrix.setupTestSuite(() => {
     await expect(products).rejects.toThrowErrorMatchingInlineSnapshot(`
 
       Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference-string/tests.ts:119:37
+      /client/tests/functional/field-reference/string/tests.ts:119:37
 
         116 })
         117 

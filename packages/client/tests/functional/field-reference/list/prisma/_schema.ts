@@ -1,4 +1,4 @@
-import { idForProvider } from '../../_utils/idForProvider'
+import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -12,12 +12,12 @@ export default testMatrix.setupSchema(({ provider }) => {
     provider = "${provider}"
     url      = env("DATABASE_URI_${provider}")
   }
-  
+
   model Product {
     id ${idForProvider(provider)}
     title String
-    properties1 Json
-    properties2 Json?
+    quantity Int
+    forbiddenQuantities Int[]
   }
   `
 })

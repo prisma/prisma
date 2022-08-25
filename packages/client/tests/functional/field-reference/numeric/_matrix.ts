@@ -1,4 +1,4 @@
-import { defineMatrix } from '../_utils/defineMatrix'
+import { defineMatrix } from '../../_utils/defineMatrix'
 
 export default defineMatrix(() => [
   [
@@ -20,5 +20,11 @@ export default defineMatrix(() => [
     {
       provider: 'sqlserver',
     },
+  ],
+  [
+    { fieldType: 'Int', wrongFieldType: 'Float' },
+    { fieldType: 'BigInt', wrongFieldType: 'Int' },
+    { fieldType: 'Float', wrongFieldType: 'Int' },
+    /*{ fieldType: 'Decimal' }*/
   ],
 ])
