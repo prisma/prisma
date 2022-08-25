@@ -10,4 +10,9 @@ export default defineMatrix(() => [
       provider: 'sqlserver',
     },
   ],
+  [
+    {
+      mapTabel: 'true',
+    },
+  ],
 ])
