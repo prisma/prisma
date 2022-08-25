@@ -228,15 +228,15 @@ testMatrix.setupTestSuite(
 
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-      Invalid \`transactionBoundPrisma.user.create()\` invocation in
-      /client/tests/functional/interactive-transactions/tests.ts:0:0
+        Invalid \`transactionBoundPrisma.user.create()\` invocation in
+        /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-        XX })
-        XX 
-        XX const result = prisma.$transaction(async () => {
-      → XX   await transactionBoundPrisma.user.create(
-      Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
-    `)
+          XX })
+          XX 
+          XX const result = prisma.$transaction(async () => {
+        → XX   await transactionBoundPrisma.user.create(
+        Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
+      `)
 
       const users = await prisma.user.findMany()
 
