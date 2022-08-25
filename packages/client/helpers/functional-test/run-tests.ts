@@ -1,5 +1,7 @@
 import { arg, BinaryType, getPlatform } from '@prisma/internals'
-import https from 'https'
+import execa, { ExecaChildProcess } from 'execa'
+import fs from 'fs'
+import path from 'path'
 
 import { setupQueryEngine } from '../../tests/commonUtils/setupQueryEngine'
 import { Providers } from '../../tests/functional/_utils/providers'
@@ -16,6 +18,8 @@ const args = arg(
     '--types-only': Boolean,
     '--provider': [String],
     '--data-proxy': Boolean,
+    '--no-mini-proxy': Boolean,
+    '--mini-proxy-debug': Boolean,
     '-p': '--provider',
   },
   true,
@@ -24,7 +28,7 @@ const args = arg(
 
 async function main(): Promise<number | void> {
   let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js'])
-  let miniProxyServer: https.Server | undefined
+  let miniProxyProcess: ExecaChildProcess | undefined
 
   if (args['--provider']) {
     const providers = args['--provider'] as Providers[]
@@ -37,19 +41,28 @@ async function main(): Promise<number | void> {
   }
 
   if (args['--data-proxy']) {
+    if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
+      await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
+    }
+
     jestCli = jestCli.withEnv({
       DATA_PROXY: 'true',
       NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
     })
 
-    const qePath = await getBinaryForDataProxy()
+    if (!args['--no-mini-proxy']) {
+      const qePath = await getBinaryForDataProxy()
 
-    const serverConfig: miniProxy.ServerConfig = {
-      ...miniProxy.defaultServerConfig,
-      queryEngine: qePath,
+      // TODO: this won't be necessary when the package is on npm
+      const miniProxyExecutable = path.join(__dirname, '..', 'mini-proxy', 'mini-proxy.js')
+
+      miniProxyProcess = execa('node', [miniProxyExecutable, 'server', '-q', qePath], {
+        stdio: 'inherit',
+        env: {
+          DEBUG: args['--mini-proxy-debug'] ? 'mini-proxy:*' : process.env.DEBUG,
+        },
+      })
     }
-
-    miniProxyServer = await miniProxy.startServer(serverConfig)
   }
 
   const codeTestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
@@ -76,8 +89,8 @@ async function main(): Promise<number | void> {
     }
     throw error
   } finally {
-    if (miniProxyServer) {
-      miniProxyServer.close()
+    if (miniProxyProcess) {
+      miniProxyProcess.kill()
     }
   }
 }
