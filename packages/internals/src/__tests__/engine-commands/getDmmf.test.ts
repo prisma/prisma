@@ -166,6 +166,7 @@ describeIf(
            | 
 
         Validation Error Count: 2
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)
@@ -200,6 +201,7 @@ describeIf(
            | 
 
         Validation Error Count: 1
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)
@@ -368,6 +370,7 @@ describeIf(
            | 
 
         Validation Error Count: 3
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)

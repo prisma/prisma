@@ -11,7 +11,9 @@ const ctx = jestContext.new().assemble()
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
-describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('empty-schema library', () => {
+describeIf(
+  process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library' || process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === undefined,
+)('empty-schema library', () => {
   beforeEach(() => {
     ctx.fixture('empty-schema/prisma')
   })
@@ -20,6 +22,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE === 'library')('empty-schema
     await expect(Validate.new().parse([])).rejects.toMatchInlineSnapshot(`
       Error while trying to read datamodel path
       Details: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined
+      [Context: getDmmf]
 
       Prisma CLI Version : 0.0.0
     `)
@@ -68,6 +71,7 @@ DROP TABLE 'test-dbexecute';`
     await expect(MigrateDev.new().parse([])).rejects.toMatchInlineSnapshot(`
       Error while trying to read datamodel path
       Details: The "path" argument must be of type string or an instance of Buffer or URL. Received undefined
+      [Context: getDmmf]
 
       Prisma CLI Version : 0.0.0
     `)

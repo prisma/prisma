@@ -75,7 +75,10 @@ ${detailsHeader} ${message}`
       })
       .exhaustive()
 
-    super(addVersionDetailsToErrorMessage(constructedErrorMessage))
+    const errorMessageWithContext = `${constructedErrorMessage}
+[Context: getConfig]`
+
+    super(addVersionDetailsToErrorMessage(errorMessageWithContext))
   }
 }
 

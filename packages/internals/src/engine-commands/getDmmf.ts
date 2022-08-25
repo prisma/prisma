@@ -75,8 +75,10 @@ ${message}`
 ${detailsHeader} ${message}`
       })
       .exhaustive()
+    const errorMessageWithContext = `${constructedErrorMessage}
+[Context: getDmmf]`
 
-    super(addVersionDetailsToErrorMessage(constructedErrorMessage))
+    super(addVersionDetailsToErrorMessage(errorMessageWithContext))
   }
 }
 
