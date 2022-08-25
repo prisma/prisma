@@ -23,24 +23,40 @@ async function main() {
   }
 
   if (branch !== undefined) {
-    const enginesRepo = 'git@github.com:prisma/prisma-engines.git'
+    const enginesRepoUri = 'git@github.com:prisma/prisma-engines.git'
+    const enginesRepoDir = path.join(baseDir, 'dist', 'prisma-engines')
 
-    if (fs.existsSync(path.join(baseDir, 'dist', 'prisma-engines')) !== true) {
-      await execa('git', ['clone', enginesRepo, '--depth', '1', '--branch', branch], {
+    // we try to get the current branch name, it fails if repo isn't cloned
+    const currentBranch = await execa('git', ['branch', '--show-current'], {
+      cwd: enginesRepoDir,
+    }).catch(() => ({ failed: true, stdout: '' }))
+
+    // if the branch isn't the one we wanted or the repo hasn't been cloned
+    if (currentBranch.failed === true || currentBranch.stdout !== branch) {
+      await fs.promises.rm(enginesRepoDir, { recursive: true, force: true })
+
+      await execa('git', ['clone', enginesRepoUri, '--depth', '1', '--branch', branch], {
         cwd: path.join(baseDir, 'dist'),
         stdio: 'inherit',
       })
     }
 
-    console.log(`Building branch "${pkgJson?.enginesOverride?.git}"`)
-    await execa('cargo', ['build', '--release'], {
-      cwd: path.join(baseDir, 'dist', 'prisma-engines'),
+    // we make sure that we always have the latest changes from the branch
+    await execa('git', ['pull', 'origin', branch], {
+      cwd: enginesRepoDir,
       stdio: 'inherit',
     })
 
-    folder = path.join(baseDir, 'dist', 'prisma-engines', 'target', 'release')
+    // we use cargo to build all the engines for the branch we checked out
+    await execa('cargo', ['build', '--release'], {
+      cwd: enginesRepoDir,
+      stdio: 'inherit',
+    })
+
+    folder = path.join(enginesRepoDir, 'target', 'release')
   }
 
+  // we copy the engines from the compiled output folder to the cache dir
   if (folder !== undefined) {
     folder = path.isAbsolute(folder) ? folder : path.join(baseDir, folder)
     const libExt = binaryTarget.includes('windows') ? '.dll' : binaryTarget.includes('darwin') ? '.dylib' : '.so'
