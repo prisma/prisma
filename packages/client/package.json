@@ -142,7 +142,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.3.0-23.integration-tracing-high-res-time-727d86ca4ace27b862718bf9064f1f82269912c1"
+    "@prisma/engines-version": "4.3.0-28.4c3d4275ef72f6dc9eeaba7f9215da9e20c432d9"
   },
   "sideEffects": false
 }
