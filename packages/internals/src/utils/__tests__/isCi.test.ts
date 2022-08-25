@@ -1,68 +1,43 @@
 import { isCi } from '../isCi'
 
-// This allows us to override the return value of `is-ci`. The getter method
-// is required because the package exports a value, not a function, and we want
-// to be able to control it in tests.
-const mockValue = jest.fn().mockReturnValue(false)
-jest.mock('is-ci', () => ({
-  get isCi() {
-    return mockValue()
-  },
-}))
-
-const temporarilySet = (object: any, prop: string, value: unknown) => {
-  const original = object[prop]
-  beforeEach(() => {
-    setValueOnProcess(object, prop, value)
-  })
-  afterEach(() => {
-    setValueOnProcess(object, prop, original)
-  })
-}
-
-// If you set undefined in process.env it stringifies it, so we
-// need special handling for that case of "unsetting" the process.env.
-const setValueOnProcess = (object: any, prop: string, value: unknown) => {
-  if (object === process.env && value === undefined) {
-    delete object[prop]
-  } else {
-    object[prop] = value
-  }
-}
+const originalEnv = { ...process.env }
+const originalStdinisTTY = process.stdin.isTTY
 
 describe('isCi', () => {
-  describe('when outside a TTY environment', () => {
-    temporarilySet(process.stdin, 'isTTY', false)
+  beforeEach(async () => {
+    process.env = originalEnv
+    process.stdin.isTTY = originalStdinisTTY
+  })
+  afterAll(() => {
+    process.env = originalEnv
+    process.stdin.isTTY = originalStdinisTTY
+  })
 
-    test('returns false', () => {
-      expect(isCi()).toBe(true)
+  describe('in non TTY environment', () => {
+    process.stdin.isTTY = false
+
+    test('isCi should be false', () => {
+      expect(isCi()).toBe(false)
     })
   })
 
-  describe('when in TTY environment', () => {
-    temporarilySet(process.stdin, 'isTTY', true)
+  describe('in TTY environment', () => {
+    process.stdin.isTTY = true
 
-    test('when isCiLib tells us so', () => {
-      mockValue.mockReturnValueOnce(true)
+    test('with CI env var, isCi should be true', () => {
+      process.env.CI = '1'
       expect(isCi()).toBe(true)
     })
 
-    describe('with GitHub Actions env var', () => {
-      temporarilySet(process.env, 'GITHUB_ACTIONS', 'true')
-
-      test('returns true', () => {
-        expect(isCi()).toBe(true)
-      })
+    test('with GitHub Actions env var, isCi should be true', () => {
+      process.env.GITHUB_ACTIONS = 'true'
+      expect(isCi()).toBe(true)
     })
 
-    describe('outside a CI environment, with TTY', () => {
-      temporarilySet(process.stdin, 'isTTY', true)
-      temporarilySet(process.env, 'GITHUB_ACTIONS', undefined)
-
-      test('returns false', () => {
-        mockValue.mockReturnValueOnce(false)
-        expect(isCi()).toBe(false)
-      })
+    test('outside a CI environment, should return false', () => {
+      process.env.CI = undefined
+      process.env.GITHUB_ACTIONS = undefined
+      expect(isCi()).toBe(false)
     })
   })
 })

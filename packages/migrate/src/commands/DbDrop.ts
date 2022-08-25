@@ -8,6 +8,7 @@ import {
   HelpError,
   isCi,
   isError,
+  isInteractive,
   link,
   loadEnvFile,
 } from '@prisma/internals'
@@ -99,7 +100,8 @@ ${chalk.bold('Examples')}
 
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      // If not TTY or in CI we want to throw an error and not prompt.
+      if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
         throw new DbNeedsForceError('drop')
       }
 

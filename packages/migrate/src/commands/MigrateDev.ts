@@ -9,9 +9,10 @@ import {
   getDMMF,
   getSchemaPath,
   HelpError,
-  isCi,
+  isInteractive,
   isError,
   loadEnvFile,
+  isCi,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -147,7 +148,8 @@ ${chalk.bold('Examples')}
     if (devDiagnostic.action.tag === 'reset') {
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        // If not TTY or in CI we want to throw an error and not prompt.
+        if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
           migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
@@ -223,7 +225,8 @@ ${chalk.bold('Examples')}
 
       if (!args['--force']) {
         // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        // If not TTY or in CI we want to throw an error and not prompt.
+        if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
           migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }

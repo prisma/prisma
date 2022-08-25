@@ -5,6 +5,7 @@ import type { RustPanic } from '../panic'
 import { sendPanic } from '../sendPanic'
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
 import { isCi } from './isCi'
+import { isInteractive } from './isInteractive'
 import { link } from './link'
 
 export async function handlePanic(
@@ -13,7 +14,8 @@ export async function handlePanic(
   engineVersion: string,
   command: string,
 ): Promise<void> {
-  if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+  // If not TTY or in CI we want to throw an error and not prompt.
+  if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
     throw error
   }
 
