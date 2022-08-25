@@ -5,7 +5,6 @@ import type { Platform } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 
-import { enginesOverride } from '../../package.json'
 import { getCliQueryEngineBinaryType } from '..'
 
 const debug = Debug('prisma:download')
@@ -33,20 +32,12 @@ async function main() {
       [BinaryType.prismaFmt]: baseDir,
     }
 
-    let version = enginesVersion
-    if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
-      // if this is true the engines have been fetched before and already cached
-      // into .cache/prisma/master/_local_ for us to be able to use this version
-      version = '_local_'
-    }
-
     await download({
-      version,
       binaries,
+      version: enginesVersion,
       showProgress: true,
       failSilent: true,
       binaryTargets: binaryTargets as Platform[],
-      skipCacheIntegrityCheck: version === '_local_',
     }).catch((e) => debug(e))
 
     cleanupLockFile()

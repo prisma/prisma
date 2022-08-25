@@ -1,18 +1,17 @@
 import { BinaryType, getCacheDir } from '@prisma/fetch-engine'
+import { enginesOverride } from '@prisma/fetch-engine/package.json'
 import { getPlatform } from '@prisma/get-platform'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
 
 const baseDir = path.join(__dirname, '..', '..')
-const pkgJsonPath = path.join(baseDir, 'package.json')
 
 async function main() {
-  const pkgJson = require(pkgJsonPath)
   const binaryTarget = await getPlatform()
   const cacheDir = (await getCacheDir('master', '_local_', binaryTarget))!
-  const branch = pkgJson?.enginesOverride?.branch as string | undefined
-  let folder = pkgJson?.enginesOverride?.folder as string | undefined
+  const branch = enginesOverride?.['branch'] as string | undefined
+  let folder = enginesOverride?.['folder'] as string | undefined
 
   const engineCachePaths = {
     [BinaryType.queryEngine]: path.join(cacheDir, BinaryType.queryEngine),

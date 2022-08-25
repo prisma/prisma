@@ -9,6 +9,7 @@ import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
 
+import { enginesOverride } from '../package.json'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
@@ -70,6 +71,13 @@ type BinaryDownloadJob = {
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
+    // if this is true the engines have been fetched before and already cached
+    // into .cache/prisma/master/_local_ for us to be able to use this version
+    options.version = '_local_'
+    options.skipCacheIntegrityCheck = true
+  }
+
   // get platform
   const platform = await getPlatform()
   const os = await getos()
