@@ -30,8 +30,8 @@ function applyOrThrowWrapper(dmmfModelName: string, requestCallback: RequestCall
       throw new PrismaClientValidationError(`${stack}\n'rejectOnNotFound' option is not supported`)
     }
     const result = await requestCallback(requestParams)
-    if (result === null || result === undefined) {
-      throw new NotFoundError(`No ${dmmfModelName} found`)
+    if (result == null) {
+      throw new NotFoundError(dmmfModelName)
     }
     return result
   }

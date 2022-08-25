@@ -9,9 +9,12 @@ export type InstanceRejectOnNotFound =
   | Record<string, Record<string, RejectOnNotFound>> // { findFirst: {User: RejectOnNotFound} }
 
 export class NotFoundError extends Error {
-  constructor(message: string) {
-    super(message)
+  modelName: string;
+
+  constructor(modelName: string) {
+    super(`No ${modelName} found`)
     this.name = 'NotFoundError'
+    this.modelName = modelName
   }
 }
 
@@ -66,13 +69,11 @@ export function throwIfNotFound(
   rejectOnNotFound?: RejectOnNotFound,
 ) {
   if (rejectOnNotFound && !data && REGEX.exec(clientMethod)) {
-    if (typeof rejectOnNotFound === 'boolean' && rejectOnNotFound) {
-      throw new NotFoundError(`No ${typeName} found`)
-    } else if (typeof rejectOnNotFound === 'function') {
-      throw rejectOnNotFound(new NotFoundError(`No ${typeName} found`))
+    if (typeof rejectOnNotFound === 'function') {
+      throw rejectOnNotFound(new NotFoundError(typeName))
     } else if (isError(rejectOnNotFound)) {
       throw rejectOnNotFound
     }
-    throw new NotFoundError(`No ${typeName} found`)
+    throw new NotFoundError(typeName)
   }
 }

@@ -24,7 +24,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
 
   test('throws if record was not found', async () => {
     const record = prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
-    await expect(record).rejects.toThrowError(new Prisma.NotFoundError('No User found'))
+    await expect(record).rejects.toThrowError(new Prisma.NotFoundError('User'))
   })
 
   // TODO: it actually does not work this way, but neither does `rejectOnNotFound`.
