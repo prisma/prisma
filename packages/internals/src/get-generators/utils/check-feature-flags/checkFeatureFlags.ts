@@ -19,6 +19,10 @@ function checkForbiddenItxWithDataProxyFlag(config: ConfigMetaFormat, options: G
           throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('metrics'))
         }
 
+        if (feature.toLocaleLowerCase() === 'tracing'.toLocaleLowerCase()) {
+          throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('tracing'))
+        }
+
         if (feature.toLocaleLowerCase() === 'interactiveTransactions'.toLocaleLowerCase()) {
           throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('interactiveTransactions'))
         }
