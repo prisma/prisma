@@ -5,6 +5,7 @@ import {
   format,
   getSchemaPath,
   HelpError,
+  isCi,
   isError,
   isInteractive,
   loadEnvFile,
