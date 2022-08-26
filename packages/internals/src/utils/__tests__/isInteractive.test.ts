@@ -1,10 +1,9 @@
-import fs from 'fs'
 import { isInteractive } from '../isInteractive'
 
 const originalEnv = { ...process.env }
 
 describe('isInteractive', () => {
-  beforeEach(async () => {
+  beforeEach(() => {
     process.env = { ...originalEnv }
   })
   afterAll(() => {
