@@ -12,12 +12,20 @@ const allProviders = new Set(Object.values(Providers))
 const args = arg(
   process.argv.slice(2),
   {
+    // Update snapshots
     '-u': Boolean,
+    // Only run the tests, don't typecheck
     '--no-types': Boolean,
+    // Only typecheck, don't run the code tests
     '--types-only': Boolean,
+    // Restrict the list of providers
     '--provider': [String],
+    // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
-    '--no-mini-proxy': Boolean,
+    // Don't start the Mini-Proxy server, expect it to be started externally
+    // and listening on the default port.
+    '--no-mini-proxy-server': Boolean,
+    // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
     '-p': '--provider',
   },
@@ -49,7 +57,7 @@ async function main(): Promise<number | void> {
       NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
     })
 
-    if (!args['--no-mini-proxy']) {
+    if (!args['--no-mini-proxy-server']) {
       const qePath = await getBinaryForMiniProxy()
 
       miniProxyProcess = execa('mini-proxy', ['server', '-q', qePath], {
