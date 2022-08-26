@@ -14,7 +14,6 @@ packages/client/generator-build/
 packages/client/declaration/
 packages/client/runtime/
 packages/client/src/__tests__/types/
-packages/client/helpers/mini-proxy/
 
 # cli
 packages/cli/prisma-client/

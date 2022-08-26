@@ -1,11 +1,10 @@
 import { arg, BinaryType, getPlatform } from '@prisma/internals'
+import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
-import path from 'path'
 
 import { setupQueryEngine } from '../../tests/commonUtils/setupQueryEngine'
 import { Providers } from '../../tests/functional/_utils/providers'
-import * as miniProxy from '../mini-proxy'
 import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
@@ -53,10 +52,8 @@ async function main(): Promise<number | void> {
     if (!args['--no-mini-proxy']) {
       const qePath = await getBinaryForMiniProxy()
 
-      // TODO: this won't be necessary when the package is on npm
-      const miniProxyExecutable = path.join(__dirname, '..', 'mini-proxy', 'mini-proxy.js')
-
-      miniProxyProcess = execa('node', [miniProxyExecutable, 'server', '-q', qePath], {
+      miniProxyProcess = execa('mini-proxy', ['server', '-q', qePath], {
+        preferLocal: true,
         stdio: 'inherit',
         env: {
           DEBUG: args['--mini-proxy-debug'] ? 'mini-proxy:*' : process.env.DEBUG,

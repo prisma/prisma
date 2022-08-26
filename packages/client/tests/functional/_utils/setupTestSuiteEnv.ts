@@ -1,4 +1,5 @@
 import { assertNever } from '@prisma/internals'
+import * as miniProxy from '@prisma/mini-proxy'
 import cuid from 'cuid'
 import fs from 'fs-extra'
 import path from 'path'
@@ -6,7 +7,6 @@ import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
-import * as miniProxy from '../../../helpers/mini-proxy'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
