@@ -106,6 +106,8 @@ ${chalk.bold('Examples')}
     if (!args['--force']) {
       // We use prompts.inject() for testing in our CI
       // If not TTY or in CI we want to throw an error and not prompt.
+      // Prompting when non interactive is not possible.
+      // Prompting in CI would hang forever / until a timeout occurs.
       if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
         throw new MigrateResetEnvNonInteractiveError()
       }

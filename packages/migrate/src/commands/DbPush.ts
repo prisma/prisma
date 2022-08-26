@@ -156,6 +156,8 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
       // We use prompts.inject() for testing in our CI
       // If not TTY or in CI we want to throw an error and not prompt.
+      // Prompting when non interactive is not possible.
+      // Prompting in CI would hang forever / until a timeout occurs.
       if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
         migrate.stop()
         throw new Error(`${messages.join('\n')}\n
@@ -214,6 +216,8 @@ ${chalk.bold.redBright('All data will be lost.')}
       if (!args['--accept-data-loss']) {
         // We use prompts.inject() for testing in our CI
         // If not TTY or in CI we want to throw an error and not prompt.
+        // Prompting when non interactive is not possible.
+        // Prompting in CI would hang forever / until a timeout occurs.
         if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
           migrate.stop()
           throw new DbPushIgnoreWarningsWithFlagError()

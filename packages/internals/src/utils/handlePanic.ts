@@ -15,6 +15,8 @@ export async function handlePanic(
   command: string,
 ): Promise<void> {
   // If not TTY or in CI we want to throw an error and not prompt.
+  // Prompting when non interactive is not possible.
+  // Prompting in CI would hang forever / until a timeout occurs.
   if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
     throw error
   }
