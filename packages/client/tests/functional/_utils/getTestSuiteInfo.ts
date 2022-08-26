@@ -136,7 +136,7 @@ export function getTestSuiteMeta() {
   if (testPath === undefined) {
     throw new Error(`getTestSuiteMeta can be executed only within jest test`)
   }
-  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
   const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
