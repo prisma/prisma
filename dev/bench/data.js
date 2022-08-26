@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661521947157,
+  "lastUpdate": 1661533776225,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -121775,6 +121775,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.12,
             "range": "±4.61%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.299832344055176,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.68065166473389,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.696693420410156,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.401894569396973,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "f4962333dd7276f4430c99d1019829f07af50d7b",
+          "message": "feat(client): Multi Schema (#14986)\n\n* package: bump-engines to 4.3.0-25.qe-multi-schema-eb81cea0c7c7c3624102ebb6bcba12b8b8a602cc\r\n\r\n* test: curd coverage for multi-schema\r\n\r\n* revert: pkg changes\r\n\r\n* test: add table map\r\n\r\n* typo: *\r\n\r\n* package: bump engines 4.3.0-28.4c3d4275ef72f6dc9eeaba7f9215da9e20c432d9",
+          "timestamp": "2022-08-26T18:05:58+01:00",
+          "tree_id": "f9b587cfdeadaac664e5252963a952557e9a9b3b",
+          "url": "https://github.com/prisma/prisma/commit/f4962333dd7276f4430c99d1019829f07af50d7b"
+        },
+        "date": 1661533767303,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.78,
+            "range": "±5.87%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±3.02%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
