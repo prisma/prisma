@@ -13,6 +13,7 @@
     "directory": "packages/fetch-engine"
   },
   "bugs": "https://github.com/prisma/prisma/issues",
+  "enginesOverride": {},
   "devDependencies": {
     "@prisma/engines-version": "4.3.0-29.2773dca117cc01b10a8cc91445505396db69ae5f",
     "@swc/core": "1.2.242",

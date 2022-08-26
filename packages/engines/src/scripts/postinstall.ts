@@ -9,9 +9,9 @@ import { getCliQueryEngineBinaryType } from '..'
 
 const debug = Debug('prisma:download')
 
-const binaryDir = path.join(__dirname, '../../')
+const baseDir = path.join(__dirname, '../../')
 
-const lockFile = path.join(binaryDir, 'download-lock')
+const lockFile = path.join(baseDir, 'download-lock')
 
 let createdLockFile = false
 async function main() {
@@ -26,16 +26,16 @@ async function main() {
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
 
     const binaries: BinaryDownloadConfiguration = {
-      [cliQueryEngineBinaryType]: binaryDir,
-      [BinaryType.migrationEngine]: binaryDir,
-      [BinaryType.introspectionEngine]: binaryDir,
-      [BinaryType.prismaFmt]: binaryDir,
+      [cliQueryEngineBinaryType]: baseDir,
+      [BinaryType.migrationEngine]: baseDir,
+      [BinaryType.introspectionEngine]: baseDir,
+      [BinaryType.prismaFmt]: baseDir,
     }
 
     await download({
       binaries,
-      showProgress: true,
       version: enginesVersion,
+      showProgress: true,
       failSilent: true,
       binaryTargets: binaryTargets as Platform[],
     }).catch((e) => debug(e))

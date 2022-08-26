@@ -22,6 +22,7 @@
     "precommit": "lint-staged",
     "eslint": "eslint",
     "lint": "eslint --fix --ext .ts .",
+    "check-engines-override": "node -r esbuild-register scripts/check-engines-override.ts",
     "format": "prettier --write .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
     "prepare": "is-ci || husky install"
