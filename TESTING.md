@@ -420,7 +420,7 @@ You will need to have installed the Rust toolchain and just a few extra dependen
 
 - **Either, add a `branch` property to `enginesOverride`**
 
-  This will `git pull` the branch and build the engines from there.
+  This will `git pull` the [branch](https://github.com/prisma/prisma-engines) and build the engines from there.
 
   ```diff
     "enginesOverride": {
