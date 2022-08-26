@@ -104,22 +104,17 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const found = await prisma.user.findMany({
+      expect(await prisma.post.findMany({
         where: {
-          email: newEmail,
-          posts: {
-            some: {
-              title: newTitle,
-            },
-          },
-        },
-        select: {
-          email: true,
-          posts: true,
-        },
-      })
+          title: newTitle
+        }
+      })).toHaveLength(0)
 
-      expect(found).toHaveLength(0)
+      expect(await prisma.user.findMany({
+        where: {
+          email: newEmail
+        }
+      })).toHaveLength(0)
     })
   },
   {
