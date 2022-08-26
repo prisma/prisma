@@ -1,6 +1,7 @@
 {
   "name": "@prisma/debug",
   "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
