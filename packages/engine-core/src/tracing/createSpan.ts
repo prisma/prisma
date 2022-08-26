@@ -35,13 +35,13 @@ export async function createSpan(engineSpanEvent: EngineSpanEvent) {
       SpanKind.INTERNAL,
       engineSpan.parent_span_id,
       links,
-      parseInt(engineSpan.start_time),
+      engineSpan.start_time,
     )
 
     if (engineSpan.attributes) {
       span.setAttributes(engineSpan.attributes)
     }
 
-    span.end(parseInt(engineSpan.end_time))
+    span.end(engineSpan.end_time)
   })
 }
