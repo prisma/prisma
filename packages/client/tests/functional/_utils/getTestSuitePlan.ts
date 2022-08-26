@@ -28,7 +28,7 @@ export function getTestSuitePlan(
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const shouldSkipAll = !!process.env.DATA_PROXY && !!options?.skipDataProxy
+  const shouldSkipAll = Boolean(process.env.DATA_PROXY) && Boolean(options?.skipDataProxy)
 
   return suiteConfig.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
