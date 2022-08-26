@@ -12,7 +12,7 @@ export default defineMatrix(() => [
   ],
   [
     {
-      mapTable: 'true',
+      mapTable: true,
     },
   ],
 ])
