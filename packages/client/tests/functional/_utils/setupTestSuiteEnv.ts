@@ -157,13 +157,15 @@ export type DatasourceInfo = {
 }
 
 /**
- * Generate a random string to be used as a test suite db url.
+ * Generate a random string to be used as a test suite db name, and derive the
+ * corresponding database URL and, if required, Mini-Proxy connection string to
+ * that database.
+ *
  * @param suiteConfig
  * @returns
  */
 export function setupTestSuiteDbURI(suiteConfig: Record<string, string>): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
-  // we reuse the original db url but postfix it with a random string
   const dbId = cuid()
   const envVarName = `DATABASE_URI_${provider}`
   const newURI = getDbUrl(provider).replace(DB_NAME_VAR, dbId)
