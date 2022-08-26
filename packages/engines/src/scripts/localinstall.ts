@@ -25,7 +25,7 @@ async function main() {
     const enginesRepoUri = 'git@github.com:prisma/prisma-engines.git'
     const enginesRepoDir = path.join(baseDir, 'dist', 'prisma-engines')
 
-    // we try to get the current branch name, it fails if repo isn't cloned
+    // we try to get the engines branch name, it fails if repo isn't cloned
     const currentBranch = await execa('git', ['branch', '--show-current'], {
       cwd: enginesRepoDir,
     }).catch(() => ({ failed: true, stdout: '' }))
