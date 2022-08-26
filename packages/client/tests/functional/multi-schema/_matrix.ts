@@ -14,5 +14,8 @@ export default defineMatrix(() => [
     {
       mapTable: true,
     },
+    {
+      mapTable: false,
+    },
   ],
 ])
