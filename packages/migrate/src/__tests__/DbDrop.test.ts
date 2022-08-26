@@ -113,7 +113,7 @@ describeIf(process.platform !== 'win32')('drop', () => {
     prompt.inject([new Error()]) // simulate cancel
 
     const result = DbDrop.new().parse(['--preview-feature'])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 0`)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -122,7 +122,7 @@ describeIf(process.platform !== 'win32')('drop', () => {
       Drop cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(0)
+    expect(mockExit).toBeCalledWith(130)
   })
 
   it('should ask for --force if not provided if CI', async () => {
