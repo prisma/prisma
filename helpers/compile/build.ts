@@ -143,7 +143,7 @@ async function dependencyCheck(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
-  await transduce.async(options, dependencyCheck)
+  void transduce.async(options, dependencyCheck)
 
   return transduce.async(
     createBuildOptions(options),

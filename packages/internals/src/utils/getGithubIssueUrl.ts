@@ -82,17 +82,16 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
      */
     const shouldOpenWait = isWindows() || isWSL
     await open(url, { wait: shouldOpenWait })
+  } else {
+    // Return SIGINT exit code to signal that the process was cancelled.
+    process.exit(130)
   }
 }
 
 const issueTemplate = (platform: string, options: IssueOptions) => {
   return stripAnsi(`
-Hi Prisma Team! Prisma Migrate just crashed. ${
-    options.reportId
-      ? `This is the report:
-  Report Id: ${options.reportId}`
-      : ''
-  }
+Hi Prisma Team! The following command just crashed.
+${options.reportId ? `The report Id is: ${options.reportId}` : ''}
 
 ## Command
 
@@ -111,6 +110,5 @@ Hi Prisma Team! Prisma Migrate just crashed. ${
 \`\`\`
 ${options.error}
 \`\`\`
-
 `)
 }
