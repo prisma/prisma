@@ -63,11 +63,15 @@ export async function setupTestSuiteClient({
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
+      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
     },
     projectRoot: suiteFolderPath,
     dataProxy: !!process.env.DATA_PROXY,
   })
 
-  return require(path.join(suiteFolderPath, 'node_modules/@prisma/client'))
+  const clientPath = process.env.DATA_PROXY_EDGE_CLIENT
+    ? 'node_modules/@prisma/client/edge'
+    : 'node_modules/@prisma/client'
+
+  return require(path.join(suiteFolderPath, clientPath))
 }

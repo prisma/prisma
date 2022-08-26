@@ -22,6 +22,8 @@ const args = arg(
     '--provider': [String],
     // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
+    // Use edge client (requires --data-proxy)
+    '--edge-client': Boolean,
     // Don't start the Mini-Proxy server, expect it to be started externally
     // and listening on the default port.
     '--no-mini-proxy-server': Boolean,
@@ -56,6 +58,12 @@ async function main(): Promise<number | void> {
       DATA_PROXY: 'true',
       NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
     })
+
+    if (args['--edge-client']) {
+      jestCli = jestCli.withEnv({
+        DATA_PROXY_EDGE_CLIENT: 'true',
+      })
+    }
 
     if (!args['--no-mini-proxy-server']) {
       const qePath = await getBinaryForMiniProxy()
