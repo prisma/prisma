@@ -3,9 +3,9 @@
 This package allows using the Prisma Client in a React Server Component.
 It is a thin wrapper around `@prisma/client`.
 
-**This is highly experimental. Don't use this in any real application**
-
+⚠️ **Warning**: **This is highly experimental. Don't use this in any real application**
 We just publish this early for demonstration purposes.
+Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
 
 # This is unstable
 
