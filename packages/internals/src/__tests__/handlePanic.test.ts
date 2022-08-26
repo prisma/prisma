@@ -37,9 +37,7 @@ describe('handlePanic', () => {
 
   beforeEach(async () => {
     jest.resetModules() // most important - it clears the cache
-    process.env = { ...OLD_ENV } // make a copy
-    // Simulate CI environment
-    process.env.GITHUB_ACTIONS = 'true'
+    process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
     process.cwd = () => testRootDir
     await mkdir(testRootDir)
   })

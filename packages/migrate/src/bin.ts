@@ -27,7 +27,7 @@ process.on('unhandledRejection', (e, promise) => {
   console.log(String(e), String(promise))
 })
 // Listen to Ctr + C and exit
-process.on('SIGINT', () => {
+process.once('SIGINT', () => {
   process.exit(130)
 })
 

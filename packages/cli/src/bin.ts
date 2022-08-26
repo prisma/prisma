@@ -58,7 +58,7 @@ process.on('unhandledRejection', (e) => {
   debug(e)
 })
 // Listen to Ctr + C and exit
-process.on('SIGINT', () => {
+process.once('SIGINT', () => {
   process.exit(130)
 })
 
