@@ -153,10 +153,11 @@ async function main(): Promise<number> {
   const result = await cli.parse(commandArray)
   // Did it error?
   if (result instanceof HelpError) {
-    console.error(result.message)
-    // Like Bash
-    // return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
-    return 2
+    console.error(result)
+    // TODO: We could do like Bash (and other)
+    // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
+    // https://tldp.org/LDP/abs/html/exitcodes.html
+    return 1
   } else if (isError(result)) {
     console.error(result)
     return 1
