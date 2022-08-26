@@ -37,7 +37,7 @@ describe('handlePanic', () => {
 
   beforeEach(async () => {
     jest.resetModules() // most important - it clears the cache
-    process.env = { ...OLD_ENV } // make a copy
+    process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
     process.cwd = () => testRootDir
     await mkdir(testRootDir)
   })
@@ -101,8 +101,9 @@ describe('handlePanic', () => {
     const engineVersion = 'test-engine-version'
     const rustStackTrace = 'test-rustStack'
     const command = 'test-command'
-
     const sendPanicTag = 'send-panic-failed'
+
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
 
     const spySendPanic = jest
       .spyOn(sendPanicUtils, 'sendPanic')
@@ -133,6 +134,7 @@ describe('handlePanic', () => {
     expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
+    expect(mockExit).toBeCalledWith(1)
     spySendPanic.mockRestore()
   })
 })
