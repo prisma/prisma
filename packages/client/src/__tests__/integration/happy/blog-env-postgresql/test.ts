@@ -1,5 +1,3 @@
-import execa from 'execa'
-
 import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
@@ -20,17 +18,6 @@ test('Blog fixture: Postgres', async () => {
   }
 
   await setupPostgres(SetupParams).catch((e) => console.error(e))
-
-  if (process.env.DATA_PROXY) {
-    const { stdout } = await execa('mini-proxy', [
-      'connection-string',
-      '-u',
-      originalConnectionString,
-      '-e',
-      'TEST_POSTGRES_URI',
-    ])
-    originalConnectionString = stdout.trim()
-  }
 
   const requests: any[] = []
   const errorLogs: any[] = []
