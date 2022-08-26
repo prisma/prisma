@@ -252,7 +252,6 @@ ${chalk.bold('Examples')}
       const getMigrationNameResult = await getMigrationName(args['--name'])
 
       if (getMigrationNameResult.userCancelled) {
-        console.info(getMigrationNameResult.userCancelled)
         migrate.stop()
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
