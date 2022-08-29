@@ -9,6 +9,7 @@ import { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { inputTypeNeedsGenericModelArg, needsGenericModelArg } from '../utils'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildDMMF } from '../utils/buildDMMF'
@@ -22,6 +23,7 @@ import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
+import { FieldRefInput } from './FieldRefInput'
 import type { Generatable } from './Generatable'
 import { InputType } from './Input'
 import { Model } from './Model'
@@ -162,6 +164,8 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toTS())
 
+    const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
+
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
       .map((t) => new Count(t, this.dmmf, this.options.generator))
@@ -225,7 +229,16 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
 // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
 ${prismaEnums.join('\n\n')}
+${
+  fieldRefs.length > 0
+    ? `
+/**
+ * Field references 
+ */
 
+${fieldRefs.join('\n\n')}`
+    : ''
+}
 /**
  * Deep Input Types
  */
@@ -233,9 +246,12 @@ ${prismaEnums.join('\n\n')}
 ${this.dmmf.inputObjectTypes.prisma
   .reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
+      const needsGeneric = inputTypeNeedsGenericModelArg(inputType)
+      const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
+      const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
-      const baseName = `Required<${inputType.name}Base>`
-      acc.push(`export type ${inputType.name} = 
+      const baseName = `Required<${innerName}>`
+      acc.push(`export type ${typeName} = 
   | PatchUndefined<
       Either<${baseName}, Exclude<keyof ${baseName}, 'path'>>,
       ${baseName}
