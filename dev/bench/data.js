@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661756498810,
+  "lastUpdate": 1661770360970,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -122056,6 +122056,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.402007102966309,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "83100ad037a223d8ad747bf348308890831c956d",
+          "message": "feat(client): Integrate field references (#14982)\n\n* feat(client): Integrate field references\r\n\r\nIntegrates engine changes from prisma/prisma-engines#3088.\r\n\r\nGenerates new kinds of types from DMMF: field references. Those\r\ntypes are generic and parametrized with 2 parameters:\r\n- Model name\r\n- Type name\r\nThose 2 generic types allow us to have compile-time error in case\r\nincorrect/incompatible column reference is used.\r\n\r\nAs a result of this change, some of the input types have also became\r\ngeneric. Logic for deciding if type needs generic `$PrismaModel`\r\nparamter is following:\r\n- if `meta.source` property is set, type never requires generic\r\n  parameter. This new property was added to DMMF to indicate that the\r\n  type is derived from specific model. If that's the case, we know which\r\n  model field references use for sure and don't need generic parameters\r\n- Otherwise, if input type has any fields that accept field references,\r\n  it requires generic paramters. This logic also applies to nested\r\n  object types: if object type needs generic parameter, all objects\r\n  including the field of this type will need one as well, unless\r\n  `meta.source` is known.\r\n\r\nIn runtime, `model.fields` implemented as a proxy, returning\r\nwrapper objects for references. For runtime validation, we also need to\r\nknow model name, this particular field refers to.\r\n\r\nFixes #14664\r\n\r\n* Use nested tests structure\r\n\r\n* package: bump-engines 4.3.0-30.feat-column-comparison-1f0b45043e4b824d5d4d9bc32a8819ae9d658bb6\r\n\r\n* test: update snapshot\r\n\r\n* bump engines\r\n\r\n* Update packages/client/src/runtime/core/model/applyModel.ts\r\n\r\nCo-authored-by: pierre <pierreantoine.urvoy@gmail.com>\r\n\r\n* Address some of the review comments\r\n\r\n* Fix type tests\r\n\r\n* Update snapshots\r\n\r\nCo-authored-by: Daniel Starns <danielstarns@hotmail.com>\r\nCo-authored-by: Pierre-Antoine Mills <pierreantoine.urvoy@gmail.com>",
+          "timestamp": "2022-08-29T12:48:58+02:00",
+          "tree_id": "dd2918e2a5fdcace13397ccbd4739dedfedc36a1",
+          "url": "https://github.com/prisma/prisma/commit/83100ad037a223d8ad747bf348308890831c956d"
+        },
+        "date": 1661770349590,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.92,
+            "range": "±4.57%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±2.20%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.309436798095703,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.94128704071045,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.780771255493164,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.95704650878906,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.49881362915039,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
