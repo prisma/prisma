@@ -19,6 +19,7 @@ import {
   getCountAggregateInputName,
   getCountAggregateOutputName,
   getFieldArgName,
+  getFieldRefsTypeName,
   getGroupByArgsName,
   getGroupByName,
   getGroupByPayloadName,
@@ -39,12 +40,13 @@ import type { Generatable } from './Generatable'
 import { TS } from './Generatable'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
+import { ModelFieldRefs } from './ModelFieldRefs'
 import { ModelOutputField, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
 
 export class Model implements Generatable {
-  protected outputType?: OutputType
+  protected outputType: OutputType
   protected type: DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   constructor(
@@ -273,10 +275,6 @@ ${indent(
   public toTS(): string {
     const { model, outputType } = this
 
-    if (!outputType) {
-      return ''
-    }
-
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
       ? `\nexport type ${getIncludeName(model.name)} = {
@@ -327,9 +325,11 @@ ${indent(
 )}
 }
 ${includeType}
-${new PayloadType(this.outputType!, !this.dmmf.typeMap[model.name]).toTS()}
+${new PayloadType(this.outputType, !this.dmmf.typeMap[model.name]).toTS()}
 
-${new ModelDelegate(this.outputType!, this.dmmf, this.generator).toTS()}
+${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
+
+${new ModelFieldRefs(this.generator, this.outputType).toTS()}
 
 // Custom InputTypes
 ${this.argsTypes.map((gen) => TS(gen)).join('\n')}
@@ -374,6 +374,16 @@ export class ModelDelegate implements Generatable {
     const nonAggregateActions = this.getNonAggregateActions(availableActions)
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
+
+    let fieldsProxy = ''
+    if (this.generator?.previewFeatures.includes('fieldReference')) {
+      fieldsProxy = `
+  /**
+   * Fields of the ${name} model
+   */
+  readonly fields: ${getFieldRefsTypeName(name)};
+`
+    }
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
@@ -488,6 +498,7 @@ ${
       )}<T> : PrismaPromise<InputErrors>`
     : ''
 }
+${fieldsProxy}
 }
 
 /**

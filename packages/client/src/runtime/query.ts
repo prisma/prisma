@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
 
+import { FieldRefImpl } from './core/model/FieldRef'
 import type { /*dmmf, */ DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import type {
@@ -39,6 +40,10 @@ import { printStack } from './utils/printStack'
 import stringifyObject from './utils/stringifyObject'
 
 const tab = 2
+
+type MakeDocumentContext = {
+  modelName?: string
+}
 
 export class Document {
   constructor(public readonly type: 'query' | 'mutation', public readonly children: Field[]) {
@@ -610,6 +615,10 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     return JSON.stringify(value.toString('base64'))
   }
 
+  if (value instanceof FieldRefImpl) {
+    return `{ _ref: ${JSON.stringify(value.name)}}`
+  }
+
   if (Object.prototype.toString.call(value) === '[object BigInt]') {
     return value.toString()
   }
@@ -774,9 +783,10 @@ export interface DocumentInput {
   rootTypeName: 'query' | 'mutation'
   rootField: string
   select?: any
+  modelName?: string
 }
 
-export function makeDocument({ dmmf, rootTypeName, rootField, select }: DocumentInput): Document {
+export function makeDocument({ dmmf, rootTypeName, rootField, select, modelName }: DocumentInput): Document {
   if (!select) {
     select = {}
   }
@@ -791,7 +801,10 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select }: Document
     },
     name: rootTypeName,
   }
-  const children = selectionToFields(dmmf, { [rootField]: select }, fakeRootField, [rootTypeName])
+  const context = {
+    modelName,
+  }
+  const children = selectionToFields(dmmf, { [rootField]: select }, fakeRootField, [rootTypeName], context)
   return new Document(rootTypeName, children) as any
 }
 
@@ -805,6 +818,7 @@ export function selectionToFields(
   selection: any,
   schemaField: DMMF.SchemaField,
   path: string[],
+  context: MakeDocumentContext,
 ): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
@@ -866,6 +880,7 @@ export function selectionToFields(
       ? objectToArgs(
           argsWithoutIncludeAndSelect,
           transformedField,
+          context,
           [],
           typeof field === 'string' ? undefined : (field.outputType.type as DMMF.OutputType),
         )
@@ -1028,7 +1043,7 @@ export function selectionToFields(
     }
 
     const children =
-      select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name]) : undefined
+      select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name], context) : undefined
 
     acc.push(new Field({ name, args, children, schemaField: field }))
 
@@ -1085,9 +1100,9 @@ function getInvalidTypeArg(
 }
 
 // TODO: Refactor
-function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): boolean {
-  const { type, isList } = inputType
-  const expectedType = wrapWithList(stringifyGraphQLType(type), isList)
+function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, context: MakeDocumentContext): boolean {
+  const { isList } = inputType
+  const expectedType = getExpectedType(inputType, context)
   const graphQLType = getGraphQLType(value, inputType)
 
   if (graphQLType === expectedType) {
@@ -1098,7 +1113,12 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
     return true
   }
 
-  if (expectedType === 'Json' && graphQLType !== 'Symbol' && !(value instanceof ObjectEnumValue)) {
+  if (
+    expectedType === 'Json' &&
+    graphQLType !== 'Symbol' &&
+    !(value instanceof ObjectEnumValue) &&
+    !(value instanceof FieldRefImpl)
+  ) {
     return true
   }
 
@@ -1187,6 +1207,14 @@ function hasCorrectScalarType(value: any, arg: DMMF.SchemaArg, inputType: DMMF.S
   return false
 }
 
+function getExpectedType(inputType: DMMF.SchemaArgInputType, context: MakeDocumentContext, isList = inputType.isList) {
+  let type = stringifyGraphQLType(inputType.type)
+  if (inputType.location === 'fieldRefTypes' && context.modelName) {
+    type += `<${context.modelName}>`
+  }
+  return wrapWithList(type, isList)
+}
+
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
 
 function isValidDecimalListInput(graphQLType: string, value: any[]): boolean {
@@ -1202,7 +1230,7 @@ function isDecimalString(value: string): boolean {
   return /^\-?(\d+(\.\d*)?|\.\d+)(e[+-]?\d+)?$/i.test(value)
 }
 
-function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
+function valueToArg(key: string, value: any, arg: DMMF.SchemaArg, context: MakeDocumentContext): Arg | null {
   /**
    * Go through the possible union input types.
    * Stop on the first successful one
@@ -1212,7 +1240,7 @@ function valueToArg(key: string, value: any, arg: DMMF.SchemaArg): Arg | null {
   const argsWithErrors: { arg: Arg; errors: ArgError[] }[] = []
 
   for (const inputType of arg.inputTypes) {
-    maybeArg = tryInferArgs(key, value, arg, inputType)
+    maybeArg = tryInferArgs(key, value, arg, inputType, context)
     if (maybeArg?.collectErrors().length === 0) {
       return maybeArg
     }
@@ -1299,7 +1327,13 @@ function sum(n: number[]): number {
  * @param arg
  * @param inputType
  */
-function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg | null {
+function tryInferArgs(
+  key: string,
+  value: any,
+  arg: DMMF.SchemaArg,
+  inputType: DMMF.SchemaArgInputType,
+  context: MakeDocumentContext,
+): Arg | null {
   if (typeof value === 'undefined') {
     // the arg is undefined and not required - we're fine
     if (!arg.isRequired) {
@@ -1387,7 +1421,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
 
         return new Arg({
           key,
-          value: val === null ? null : objectToArgs(val, inputType.type, arg.inputTypes),
+          value: val === null ? null : objectToArgs(val, inputType.type, context, arg.inputTypes),
           isEnum: inputType.location === 'enumTypes',
           error,
           inputType,
@@ -1395,7 +1429,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
         })
       }
     } else {
-      return scalarToArg(key, value, arg, inputType)
+      return scalarToArg(key, value, arg, inputType, context)
     }
   }
 
@@ -1413,7 +1447,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
 
   if (inputType.location === 'enumTypes' || inputType.location === 'scalar') {
     // if no value is incorrect
-    return scalarToArg(key, value, arg, inputType)
+    return scalarToArg(key, value, arg, inputType, context)
   }
 
   const argInputType = inputType.type as DMMF.InputType
@@ -1445,7 +1479,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
 
   if (!Array.isArray(value)) {
     for (const nestedArgInputType of arg.inputTypes) {
-      const args = objectToArgs(value, nestedArgInputType.type as DMMF.InputType)
+      const args = objectToArgs(value, nestedArgInputType.type as DMMF.InputType, context)
       if (args.collectErrors().length === 0) {
         return new Arg({
           key,
@@ -1467,7 +1501,7 @@ function tryInferArgs(key: string, value: any, arg: DMMF.SchemaArg, inputType: D
       if (typeof v !== 'object' || !value) {
         return getInvalidTypeArg(key, v, arg, inputType)
       }
-      return objectToArgs(v, argInputType)
+      return objectToArgs(v, argInputType, context)
     }),
     isEnum: false,
     inputType,
@@ -1488,8 +1522,14 @@ export function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType
   return true
 }
 
-function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DMMF.SchemaArgInputType): Arg {
-  if (hasCorrectScalarType(value, arg, inputType)) {
+function scalarToArg(
+  key: string,
+  value: any,
+  arg: DMMF.SchemaArg,
+  inputType: DMMF.SchemaArgInputType,
+  context: MakeDocumentContext,
+): Arg {
+  if (hasCorrectScalarType(value, inputType, context)) {
     return new Arg({
       key,
       value,
@@ -1504,9 +1544,13 @@ function scalarToArg(key: string, value: any, arg: DMMF.SchemaArg, inputType: DM
 function objectToArgs(
   initialObj: any,
   inputType: DMMF.InputType,
+  context: MakeDocumentContext,
   possibilities?: DMMF.SchemaArgInputType[],
   outputType?: DMMF.OutputType,
 ): Args {
+  if (inputType.meta?.source) {
+    context = { modelName: inputType.meta.source }
+  }
   // filter out undefined values and treat them if they weren't provided
   const obj = cleanObject(initialObj)
   const { fields: args, fieldMap } = inputType
@@ -1538,7 +1582,7 @@ function objectToArgs(
       return acc
     }
 
-    const arg = valueToArg(argName, value, schemaArg)
+    const arg = valueToArg(argName, value, schemaArg, context)
 
     if (arg) {
       acc.push(arg)
