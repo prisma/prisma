@@ -29,13 +29,20 @@ export function getTestSuitePlan(
 ): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  const shouldSkipAll = clientMeta.dataProxy && Boolean(options?.skipDataProxy)
+  const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
 
   return suiteConfig.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
     skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
     suiteConfig: namedConfig,
   }))
+}
+
+function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
+  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
+    return false
+  }
+  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
 }
 
 function shouldSkipProvider(

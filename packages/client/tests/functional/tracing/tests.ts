@@ -842,6 +842,9 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipDataProxy: true,
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: 'Tracing is not supported with Data Proxy yet',
+    },
   },
 )

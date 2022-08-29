@@ -7,7 +7,10 @@ export type MatrixOptions = {
   }
   skipDb?: boolean
   skipDefaultClientInstance?: boolean
-  skipDataProxy?: boolean
+  skipDataProxy?: {
+    runtimes: ClientRuntime[]
+    reason: string
+  }
 }
 
 export type NewPrismaClient<T extends new (...args: any) => any> = (

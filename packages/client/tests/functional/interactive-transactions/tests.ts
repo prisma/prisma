@@ -735,6 +735,9 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipDataProxy: true,
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: 'Interactive transactions are not supported with Data Proxy yet',
+    },
   },
 )
