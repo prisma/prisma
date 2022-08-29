@@ -78,6 +78,10 @@ async function main(): Promise<number | void> {
     }
   }
 
+  if (args['--edge-client'] && !args['--data-proxy']) {
+    throw new Error('--edge-client is only available when --data-proxy is used')
+  }
+
   const codeTestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
 
   try {
