@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
 
+import { FieldRefImpl } from './core/model/FieldRef'
 import type { /*dmmf, */ DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import type {
@@ -13,7 +14,6 @@ import type {
   InvalidArgError,
   InvalidFieldError,
 } from './error-types'
-import { FieldRefImpl } from './FieldRef'
 import { ObjectEnumValue } from './object-enums'
 import {
   getGraphQLType,
@@ -1113,7 +1113,12 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
     return true
   }
 
-  if (expectedType === 'Json' && graphQLType !== 'Symbol' && !(value instanceof ObjectEnumValue)) {
+  if (
+    expectedType === 'Json' &&
+    graphQLType !== 'Symbol' &&
+    !(value instanceof ObjectEnumValue) &&
+    !(value instanceof FieldRefImpl)
+  ) {
     return true
   }
 

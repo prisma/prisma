@@ -1,6 +1,6 @@
 'use strict'
 
-import { FieldRefImpl } from '../FieldRef'
+import { FieldRefImpl } from '../core/model/FieldRef'
 import { ObjectEnumValue } from '../object-enums'
 import { lowerCase } from './common'
 

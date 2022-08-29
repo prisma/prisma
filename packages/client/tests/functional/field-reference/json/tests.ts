@@ -99,12 +99,12 @@ testMatrix.setupTestSuite(
         data: [
           {
             title: 'potato',
-            properties1: { tags: ['potato'] },
+            properties1: { object: { meta: { tags: ['potato'] } } },
             properties2: 'potato',
           },
           {
             title: 'apple',
-            properties1: { tags: ['red', 'tasty'] },
+            properties1: { object: { meta: { tags: ['red', 'tasty'] } } },
             properties2: 'not potato',
           },
         ],
@@ -113,13 +113,46 @@ testMatrix.setupTestSuite(
         where: {
           properties1: {
             // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb'
-            path: ['tags'],
+            path: ['object', 'meta', 'tags'],
             array_contains: prisma.product.fields.properties2,
           },
         },
       })
 
       expect(products).toEqual([expect.objectContaining({ title: 'potato' })])
+    })
+
+    test('wrong field type', async () => {
+      const products = prisma.product.findMany({
+        where: {
+          properties1: {
+            // @ts-expect-error
+            equals: prisma.product.fields.title,
+          },
+        },
+      })
+
+      await expect(products).rejects.toMatchInlineSnapshot(`
+
+        Invalid \`prisma.product.findMany()\` invocation in
+        /client/tests/functional/field-reference/json/tests.ts:126:39
+
+          123 })
+          124 
+          125 test('wrong field type', async () => {
+        → 126   const products = prisma.product.findMany({
+                  where: {
+                    properties1: {
+                      equals: prisma.product.fields.title
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                    }
+                  }
+                })
+
+        Argument equals: Got invalid value prisma.product.fields.title on prisma.findManyProduct. Provided StringFieldRefInput<Product>, expected Json or JsonFieldRefInput.
+
+
+      `)
     })
   },
   {

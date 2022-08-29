@@ -1,7 +1,7 @@
 import { DMMF } from '@prisma/generator-helper'
 import { keyBy } from '@prisma/internals'
 
-import { FieldRefImpl } from '../../FieldRef'
+import { FieldRefImpl } from './FieldRef'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 export type FieldProxy = {

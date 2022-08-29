@@ -3,9 +3,9 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 
+import { FieldRefImpl } from '../core/model/FieldRef'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
-import { FieldRefImpl } from '../FieldRef'
 import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
 import { isDecimalJsLike } from './decimalJsLike'
 
