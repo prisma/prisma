@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661542989074,
+  "lastUpdate": 1661756498810,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -121976,6 +121976,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.401894569396973,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "90f50e7246b2e74c3a0e939c86966b48d553b5cb",
+          "message": "fix(internals): improve error messages removing false positives and internal details (#14512)\n\n* fix(internals): improved error message that was previously only targeting openssl\r\n\r\n* chore: cut down internal details from getConfig/getDmmf\r\n\r\n* chore: cut down getDMMF in test\r\n\r\n* chore: cut down getDMMF in client test\r\n\r\n* chore: cut down getConfig in migrate test\r\n\r\n* Update packages/internals/src/__tests__/engine-commands/queryEngineCommons.test.ts\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* chore: minor sanitization in queryEngineCommons.test.ts\r\n\r\n* internals: added meta contextual information for getConfig and getDmmf at the bottom of the error, before the CLI version\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-08-29T08:57:55+02:00",
+          "tree_id": "f5d9727ecce0b83bf3997cddcff055c2e481e74f",
+          "url": "https://github.com/prisma/prisma/commit/90f50e7246b2e74c3a0e939c86966b48d553b5cb"
+        },
+        "date": 1661756489395,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.82,
+            "range": "±5.87%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±2.05%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3003921508789062,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.68065166473389,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7804889678955078,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.696693420410156,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.402007102966309,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
