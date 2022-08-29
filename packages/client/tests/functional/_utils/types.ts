@@ -13,3 +13,10 @@ export type MatrixOptions = {
 export type NewPrismaClient<T extends new (...args: any) => any> = (
   ...args: ConstructorParameters<T>
 ) => InstanceType<T>
+
+export type ClientRuntime = 'node' | 'edge'
+
+export type ClientMeta = {
+  dataProxy: boolean
+  runtime: 'node' | 'edge'
+}

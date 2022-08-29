@@ -11,7 +11,7 @@ declare let Prisma: typeof PrismaNamespace
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: existingEmail, posts: { create: { title: 'How to exist?' } } } })
   })
@@ -42,7 +42,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(record).toBeNull()
   })
 
-  testIf(!process.env.DATA_PROXY)('works with interactive transactions', async () => {
+  testIf(!clientMeta.dataProxy)('works with interactive transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({ data: { email: newEmail } })

@@ -4,9 +4,9 @@ import path from 'path'
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { setupTestSuiteClient } from './setupTestSuiteClient'
+import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
-import { MatrixOptions } from './types'
+import { ClientMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
@@ -42,13 +42,15 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta, clientMeta: ClientMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
+  const clientMeta = getClientMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, options)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+
   checkMissingProviders({
     suiteConfigs,
     suiteMeta,
@@ -60,7 +62,7 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
-      const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions)
+      const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
@@ -71,6 +73,7 @@ function setupTestSuiteMatrix(
           suiteConfig,
           skipDb: options?.skipDb,
           datasourceInfo,
+          clientMeta,
         })
 
         globalThis['newPrismaClient'] = (...args) => {
@@ -121,7 +124,7 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       })
 
-      tests(suiteConfig.matrixOptions, suiteMeta)
+      tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
     })
   }
 }

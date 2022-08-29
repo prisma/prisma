@@ -12,6 +12,7 @@ import {
 } from './getTestSuiteInfo'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, ClientRuntime } from './types'
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -24,11 +25,13 @@ export async function setupTestSuiteClient({
   suiteConfig,
   skipDb,
   datasourceInfo,
+  clientMeta,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   skipDb?: boolean
   datasourceInfo: DatasourceInfo
+  clientMeta: ClientMeta
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
@@ -37,7 +40,7 @@ export async function setupTestSuiteClient({
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
 
-  await setupTestSuiteFiles(suiteMeta, suiteConfig)
+  await setupTestSuiteFiles(suiteMeta, suiteConfig, clientMeta)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
@@ -66,12 +69,30 @@ export async function setupTestSuiteClient({
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
     },
     projectRoot: suiteFolderPath,
-    dataProxy: !!process.env.DATA_PROXY,
+    dataProxy: clientMeta.dataProxy,
   })
 
-  const clientPath = process.env.DATA_PROXY_EDGE_CLIENT
-    ? 'node_modules/@prisma/client/edge'
-    : 'node_modules/@prisma/client'
+  const clientPathForRuntime: Record<ClientRuntime, string> = {
+    node: 'node_modules/@prisma/client',
+    edge: 'node_modules/@prisma/client/edge',
+  }
 
-  return require(path.join(suiteFolderPath, clientPath))
+  return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+}
+
+/**
+ * Get `ClientMeta` from the environment variables
+ */
+export function getClientMeta(): ClientMeta {
+  const dataProxy = Boolean(process.env.DATA_PROXY)
+  const edge = Boolean(process.env.DATA_PROXY_EDGE_CLIENT)
+
+  if (edge && !dataProxy) {
+    throw new Error('Edge client requires Data Proxy')
+  }
+
+  return {
+    dataProxy,
+    runtime: edge ? 'edge' : 'node',
+  }
 }

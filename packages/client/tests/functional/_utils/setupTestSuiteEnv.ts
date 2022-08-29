@@ -11,6 +11,7 @@ import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -18,8 +19,13 @@ const DB_NAME_VAR = 'PRISMA_DB_NAME'
  * Copies the necessary files for the generated test suite folder.
  * @param suiteMeta
  * @param suiteConfig
+ * @param clientMeta
  */
-export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
+export async function setupTestSuiteFiles(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig,
+  clientMeta: ClientMeta,
+) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
   // we copy the minimum amount of files needed for the test suite
@@ -29,6 +35,7 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
     suiteMeta.testPath,
     path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
     suiteConfig.matrixOptions,
+    clientMeta,
   )
 }
 
@@ -43,8 +50,14 @@ export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig:
  * @param from
  * @param to
  * @param suiteConfig
+ * @param clientMeta
  */
-async function copyPreprocessed(from: string, to: string, suiteConfig: Record<string, string>): Promise<void> {
+async function copyPreprocessed(
+  from: string,
+  to: string,
+  suiteConfig: Record<string, string>,
+  clientMeta: ClientMeta,
+): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
   const newContents = contents
@@ -53,7 +66,7 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
     .replace(/'..\/..\/node_modules/g, "'./node_modules")
     .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
-      if (!evaluateMagicComment(condition, suiteConfig)) {
+      if (!evaluateMagicComment(condition, suiteConfig, clientMeta)) {
         return '// @ts-expect-error'
       }
       return match
@@ -70,12 +83,18 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
  *
  * @param conditionFromComment
  * @param suiteConfig
+ * @param clientMeta
  * @returns
  */
-function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
+function evaluateMagicComment(
+  conditionFromComment: string,
+  suiteConfig: Record<string, string>,
+  clientMeta: ClientMeta,
+): boolean {
   const script = new Script(conditionFromComment)
   const value = script.runInNewContext({
     ...suiteConfig,
+    clientMeta,
   })
   return Boolean(value)
 }
@@ -162,9 +181,10 @@ export type DatasourceInfo = {
  * that database.
  *
  * @param suiteConfig
+ * @param clientMeta
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: Record<string, string>): DatasourceInfo {
+export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
   const dbId = cuid()
   const envVarName = `DATABASE_URI_${provider}`
@@ -172,7 +192,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>): Dataso
 
   let dataProxyUrl: string | undefined
 
-  if (process.env.DATA_PROXY) {
+  if (clientMeta.dataProxy) {
     dataProxyUrl = miniProxy.generateConnectionString({
       databaseUrl: newURI,
       envVar: envVarName,
