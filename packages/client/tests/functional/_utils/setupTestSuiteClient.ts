@@ -85,7 +85,7 @@ export async function setupTestSuiteClient({
  */
 export function getClientMeta(): ClientMeta {
   const dataProxy = Boolean(process.env.DATA_PROXY)
-  const edge = Boolean(process.env.DATA_PROXY_EDGE_CLIENT)
+  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
 
   if (edge && !dataProxy) {
     throw new Error('Edge client requires Data Proxy')

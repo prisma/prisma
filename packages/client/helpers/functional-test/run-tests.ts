@@ -61,7 +61,7 @@ async function main(): Promise<number | void> {
 
     if (args['--edge-client']) {
       jestCli = jestCli.withEnv({
-        DATA_PROXY_EDGE_CLIENT: 'true',
+        TEST_DATA_PROXY_EDGE_CLIENT: 'true',
       })
     }
 
