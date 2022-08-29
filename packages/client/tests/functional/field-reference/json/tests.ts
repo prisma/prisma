@@ -132,27 +132,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(products).rejects.toMatchInlineSnapshot(`
-
-        Invalid \`prisma.product.findMany()\` invocation in
-        /client/tests/functional/field-reference/json/tests.ts:126:39
-
-          123 })
-          124 
-          125 test('wrong field type', async () => {
-        → 126   const products = prisma.product.findMany({
-                  where: {
-                    properties1: {
-                      equals: prisma.product.fields.title
-                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                    }
-                  }
-                })
-
-        Argument equals: Got invalid value prisma.product.fields.title on prisma.findManyProduct. Provided StringFieldRefInput<Product>, expected Json or JsonFieldRefInput.
-
-
-      `)
+      await expect(products).rejects.toMatchSnapshot()
     })
   },
   {
