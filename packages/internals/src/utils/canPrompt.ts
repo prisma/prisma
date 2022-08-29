@@ -8,4 +8,5 @@ import { isInteractive } from './isInteractive'
 // Prompting in CI would hang forever / until a timeout occurs.
 export const canPrompt = (): boolean => {
   // Note: We use prompts.inject() for testing prompts in our CI
-  return (Boolean((prompt as any)._injected?.length) === true || (isInteractive() && !isCi()))
+  return Boolean((prompt as any)._injected?.length) === true || (isInteractive() && !isCi())
+}
