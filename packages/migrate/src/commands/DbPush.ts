@@ -1,14 +1,13 @@
 import {
   arg,
+  canPrompt,
   checkUnsupportedDataProxy,
   Command,
   format,
   formatms,
   getCommandWithExecutor,
   HelpError,
-  isCi,
   isError,
-  isInteractive,
   loadEnvFile,
   logger,
   protocolToConnectorType,
@@ -154,11 +153,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       }
       console.info() // empty line
 
-      // We use prompts.inject() for testing in our CI
-      // If not TTY or in CI we want to throw an error and not prompt.
-      // Prompting when non interactive is not possible.
-      // Prompting in CI would hang forever / until a timeout occurs.
-      if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         migrate.stop()
         throw new Error(`${messages.join('\n')}\n
 Use the --force-reset flag to drop the database before push like ${chalk.bold.greenBright(
@@ -214,11 +209,7 @@ ${chalk.bold.redBright('All data will be lost.')}
       console.info() // empty line
 
       if (!args['--accept-data-loss']) {
-        // We use prompts.inject() for testing in our CI
-        // If not TTY or in CI we want to throw an error and not prompt.
-        // Prompting when non interactive is not possible.
-        // Prompting in CI would hang forever / until a timeout occurs.
-        if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
+        if (!canPrompt()) {
           migrate.stop()
           throw new DbPushIgnoreWarningsWithFlagError()
         }

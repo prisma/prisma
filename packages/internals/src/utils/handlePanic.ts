@@ -3,9 +3,8 @@ import prompt from 'prompts'
 
 import type { RustPanic } from '../panic'
 import { sendPanic } from '../sendPanic'
+import { canPrompt } from './canPrompt'
 import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
-import { isCi } from './isCi'
-import { isInteractive } from './isInteractive'
 import { link } from './link'
 
 export async function handlePanic(
@@ -14,10 +13,7 @@ export async function handlePanic(
   engineVersion: string,
   command: string,
 ): Promise<void> {
-  // If not TTY or in CI we want to throw an error and not prompt.
-  // Prompting when non interactive is not possible.
-  // Prompting in CI would hang forever / until a timeout occurs.
-  if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
+  if (!canPrompt()) {
     throw error
   }
 

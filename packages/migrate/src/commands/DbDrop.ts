@@ -1,14 +1,13 @@
 import {
   arg,
+  canPrompt,
   checkUnsupportedDataProxy,
   Command,
   dropDatabase,
   format,
   getSchemaDir,
   HelpError,
-  isCi,
   isError,
-  isInteractive,
   link,
   loadEnvFile,
 } from '@prisma/internals'
@@ -99,11 +98,7 @@ ${chalk.bold('Examples')}
     console.info() // empty line
 
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      // If not TTY or in CI we want to throw an error and not prompt.
-      // Prompting when non interactive is not possible.
-      // Prompting in CI would hang forever / until a timeout occurs.
-      if ((!isInteractive() || isCi()) && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         throw new DbNeedsForceError('drop')
       }
 
