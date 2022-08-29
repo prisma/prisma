@@ -39,7 +39,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
   const fieldsProxyEnabled = client._engineConfig.previewFeatures?.includes('fieldReference')
   const ownKeys = getOwnKeys(client, dmmfModelName)
   const baseObject = {} // <-- user mutations go in there
-  let fieldsProxy: FieldProxy | null = null
+  let fieldsProxy: FieldProxy | undefined
 
   // we construct a proxy that acts as the model interface
   return new Proxy(baseObject, {
