@@ -349,7 +349,7 @@ describe('dmmf', () => {
       await getDMMF({ datamodel })
     } catch (e) {
       expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing - Error while interacting with query-engine-NORMALIZED
+        Schema validation error - Error (query-engine-NORMALIZED)
         Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14
@@ -362,6 +362,7 @@ describe('dmmf', () => {
            | 
 
         Validation Error Count: 1
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0
       `)

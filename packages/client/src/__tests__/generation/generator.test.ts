@@ -126,7 +126,7 @@ describe('generator', () => {
       })
     } catch (e) {
       expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Get DMMF: Schema parsing - Error while interacting with query-engine-NORMALIZED
+        Schema validation error - Error (query-engine-NORMALIZED)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
@@ -146,6 +146,7 @@ describe('generator', () => {
            | 
 
         Validation Error Count: 2
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0
       `)
