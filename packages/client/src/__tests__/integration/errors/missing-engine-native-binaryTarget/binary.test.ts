@@ -39,31 +39,31 @@ test('missing-engine-native-binaryTarget: binary', async () => {
     await prisma.user.findMany()
   }).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-          Invalid \`prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/binary.test.ts:0:0
+    Invalid \`prisma.user.findMany()\` invocation in
+    /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/binary.test.ts:0:0
 
-            36 })
-            37 
-            38 await expect(async () => {
-          → 39   await prisma.user.findMany(
-            Query engine binary for current platform "TEST_PLATFORM" could not be found.
-          This probably happens, because you built Prisma Client on a different platform.
-          (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
+      36 })
+      37 
+      38 await expect(async () => {
+    → 39   await prisma.user.findMany(
+    Query engine binary for current platform "TEST_PLATFORM" could not be found.
+    This probably happens, because you built Prisma Client on a different platform.
+    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
 
-          Searched Locations:
+    Searched Locations:
 
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
-            /tmp/prisma-engines
-            /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
+      /tmp/prisma-engines
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
 
-          You already added the platform "native" to the "generator" block
-          in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
-          but something went wrong. That's suboptimal.
+    You already added the platform "native" to the "generator" block
+    in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
+    but something went wrong. That's suboptimal.
 
-          Please create an issue at https://github.com/prisma/prisma/issues/new
-        `)
+    Please create an issue at https://github.com/prisma/prisma/issues/new
+  `)
 })
