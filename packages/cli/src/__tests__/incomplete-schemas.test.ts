@@ -48,23 +48,29 @@ describe('[wasm] incomplete-schemas', () => {
     })
 
     it('format', async () => {
-      await expect(Format.new().parse([])).rejects.toMatchInlineSnapshot(`
-        Schema validation error - Error (query-engine-node-api library)
-        Error code: P1012
-        error: Argument "url" is missing in data source block "db".
-          -->  schema.prisma:3
-           | 
-         2 | 
-         3 | datasource db {
-         4 |   provider = "postgresql"
-         5 | }
-           | 
+      expect.assertions(1)
 
-        Validation Error Count: 1
-        [Context: getDmmf]
+      try {
+        await Format.new().parse([])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
+          Schema validation error - Error (query-engine-NORMALIZED)
+          Error code: P1012
+          error: Argument "url" is missing in data source block "db".
+            -->  schema.prisma:3
+             | 
+           2 | 
+           3 | datasource db {
+           4 |   provider = "postgresql"
+           5 | }
+             | 
 
-        Prisma CLI Version : 0.0.0
-      `)
+          Validation Error Count: 1
+          [Context: getDmmf]
+
+          Prisma CLI Version : 0.0.0
+        `)
+      }
     })
   })
 
