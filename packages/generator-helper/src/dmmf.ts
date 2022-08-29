@@ -166,7 +166,7 @@ export namespace DMMF {
     documentation?: string
   }
 
-  type TypeRefCommon = {
+  export type TypeRefCommon = {
     isList: boolean
     namespace?: FieldNamespace
   }
