@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661776705573,
+  "lastUpdate": 1661784967402,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -122296,6 +122296,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.501513481140137,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "d4e397ef893ce3e530adcbf5ea0d9e7bb1e101e2",
+          "message": "refactor: Refactor `printStack` function (#14265)\n\n1. Add unit tests\r\n2. Rename function to `createErrorMessageWithContext`, it describes what\r\nit is doing a little bit better\r\n3. Split context code snippet manipulation into `SourceFileSlice` class\r\n4. Pull in arguments printing into the function and make function return\r\n   string\r\n5. Append error message to the function result within the function.\r\n6. Split function into one that prepares template parameters and one\r\nthat prints them so that the structure of the message will be a little\r\nbit more clear\r\n7. Remove a bunch of unused options\r\n8. Make `showColors: false` actually skip colors\r\n9. Build regexp for matching a code dynamicall from the list of all\r\n   known actions\r\n10. Make `CallSite` a class and shift responsibility of determining\r\nspecific file location to it\r\n\r\nCo-authored-by: Jan Piotrowski <piotrowski+github@gmail.com>",
+          "timestamp": "2022-08-29T16:52:40+02:00",
+          "tree_id": "01a1b976b38c28aa68163530951dc8c2c6ef86ca",
+          "url": "https://github.com/prisma/prisma/commit/d4e397ef893ce3e530adcbf5ea0d9e7bb1e101e2"
+        },
+        "date": 1661784959147,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.05,
+            "range": "±5.31%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.18%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3142967224121094,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.93471050262451,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.780771255493164,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.950469970703125,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.50245475769043,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
