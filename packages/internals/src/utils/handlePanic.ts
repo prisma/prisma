@@ -75,4 +75,7 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     engineVersion,
     command,
   })
+
+  // Signal that there was an error
+  process.exit(1)
 }

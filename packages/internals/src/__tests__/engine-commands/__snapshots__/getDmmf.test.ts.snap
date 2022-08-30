@@ -242,6 +242,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -374,6 +375,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User1",
+          },
           "name": "User1WhereInput",
         },
         Object {
@@ -715,6 +719,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User1",
+          },
           "name": "User1ScalarWhereWithAggregatesInput",
         },
         Object {
@@ -847,6 +854,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User2",
+          },
           "name": "User2WhereInput",
         },
         Object {
@@ -1188,6 +1198,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User2",
+          },
           "name": "User2ScalarWhereWithAggregatesInput",
         },
         Object {
@@ -6785,6 +6798,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -6881,6 +6895,9 @@ Object {
               "name": "email",
             },
           ],
+          "meta": Object {
+            "source": "User",
+          },
           "name": "UserWhereInput",
         },
         Object {
@@ -7133,6 +7150,9 @@ Object {
               "name": "email",
             },
           ],
+          "meta": Object {
+            "source": "User",
+          },
           "name": "UserScalarWhereWithAggregatesInput",
         },
         Object {
@@ -10539,6 +10559,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -10690,6 +10711,9 @@ Object {
               "name": "published",
             },
           ],
+          "meta": Object {
+            "source": "Post",
+          },
           "name": "PostWhereInput",
         },
         Object {
@@ -11044,6 +11068,9 @@ Object {
               "name": "published",
             },
           ],
+          "meta": Object {
+            "source": "Post",
+          },
           "name": "PostScalarWhereWithAggregatesInput",
         },
         Object {
@@ -11153,6 +11180,9 @@ Object {
               "name": "posts",
             },
           ],
+          "meta": Object {
+            "source": "User",
+          },
           "name": "UserWhereInput",
         },
         Object {
@@ -11430,6 +11460,9 @@ Object {
               "name": "email",
             },
           ],
+          "meta": Object {
+            "source": "User",
+          },
           "name": "UserScalarWhereWithAggregatesInput",
         },
         Object {
@@ -11562,6 +11595,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User1",
+          },
           "name": "User1WhereInput",
         },
         Object {
@@ -11903,6 +11939,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User1",
+          },
           "name": "User1ScalarWhereWithAggregatesInput",
         },
         Object {
@@ -12035,6 +12074,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User2",
+          },
           "name": "User2WhereInput",
         },
         Object {
@@ -12376,6 +12418,9 @@ Object {
               "name": "isAdmin",
             },
           ],
+          "meta": Object {
+            "source": "User2",
+          },
           "name": "User2ScalarWhereWithAggregatesInput",
         },
         Object {
@@ -18339,6 +18384,9 @@ Object {
               "name": "published",
             },
           ],
+          "meta": Object {
+            "source": "Post",
+          },
           "name": "PostScalarWhereInput",
         },
         Object {
@@ -22905,9 +22953,9 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `132028407`;
+exports[`getDMMF big schema 1`] = `132318758`;
 
-exports[`getDMMF chinook introspected schema 1`] = `884750`;
+exports[`getDMMF chinook introspected schema 1`] = `885639`;
 
 exports[`getDMMF simple model, mongodb 1`] = `
 Object {
@@ -23051,6 +23099,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -23147,6 +23196,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AWhereInput",
         },
         Object {
@@ -23399,6 +23451,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AScalarWhereWithAggregatesInput",
         },
         Object {
@@ -26359,6 +26414,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -26455,6 +26511,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AWhereInput",
         },
         Object {
@@ -26707,6 +26766,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AScalarWhereWithAggregatesInput",
         },
         Object {
@@ -29758,6 +29820,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -29854,6 +29917,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AWhereInput",
         },
         Object {
@@ -30106,6 +30172,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AScalarWhereWithAggregatesInput",
         },
         Object {
@@ -32896,6 +32965,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -32992,6 +33062,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AWhereInput",
         },
         Object {
@@ -33244,6 +33317,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AScalarWhereWithAggregatesInput",
         },
         Object {
@@ -36335,6 +36411,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -36431,6 +36508,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AWhereInput",
         },
         Object {
@@ -36683,6 +36763,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AScalarWhereWithAggregatesInput",
         },
         Object {
@@ -39731,6 +39814,7 @@ Object {
         },
       ],
     },
+    "fieldRefTypes": Object {},
     "inputObjectTypes": Object {
       "prisma": Array [
         Object {
@@ -39827,6 +39911,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AWhereInput",
         },
         Object {
@@ -40079,6 +40166,9 @@ Object {
               "name": "name",
             },
           ],
+          "meta": Object {
+            "source": "A",
+          },
           "name": "AScalarWhereWithAggregatesInput",
         },
         Object {

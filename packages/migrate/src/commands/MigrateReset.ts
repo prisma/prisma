@@ -117,7 +117,8 @@ ${chalk.bold('Examples')}
 
       if (!confirmation.value) {
         console.info('Reset cancelled.')
-        process.exit(0)
+        // Return SIGINT exit code to signal that the process was cancelled
+        process.exit(130)
       }
     }
 

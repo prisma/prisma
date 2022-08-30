@@ -1,13 +1,14 @@
 {
   "name": "@prisma/engines",
   "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.3.0-29.2773dca117cc01b10a8cc91445505396db69ae5f",
+    "@prisma/engines-version": "4.3.0-32.c875e43600dfe042452e0b868f7a48b817b9640b",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.2.242",

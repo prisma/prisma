@@ -5,6 +5,7 @@ import path from 'path'
 import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
+import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 
 export enum Projection {
   select = 'select',
@@ -147,6 +148,10 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
     default:
       assertNever(action, 'Unknown action')
   }
+}
+
+export function getFieldRefsTypeName(name: string) {
+  return `${name}FieldRefs`
 }
 
 export function getDefaultArgName(dmmf: DMMFHelper, modelName: string, action: DMMF.ModelAction): string {
@@ -343,4 +348,92 @@ export function unique<T>(arr: T[]): T[] {
   }
 
   return result
+}
+
+/**
+ * Determines if arg types need generic <$PrismaModel> argument added.
+ * Essentially, performs breadth-first search for any fieldRefTypes that
+ * do not have corresponding `meta.source` defined.
+ *
+ * @param type
+ * @returns
+ */
+export function needsGenericModelArg(type: DMMF.SchemaArgInputType) {
+  /**
+   * We perform a breadth-first traverse of the types graphs here
+   * For that, we keep 2 lists:
+   * - `toVisit` is a list of types we'd need to check next
+   * - `visited` is a list of types we've already checked and do not need to check
+   * again. This list is necessary for dealing with recursive types (TypeA has a
+   * field of TypeB, TypeB has a field of TypeC, TypeC has a field of Type A).
+   *
+   * For each item in the `toVisit` list we check following:
+   * - if it is a type we've already seen then we have a recursive object type. In that case,
+   * we'll decide on generic type based on other fields of input type
+   * - if it is a field reference, current type and all the types up to the one we started
+   * with needs a generic argument
+   * - if current type is an object and meta.source is known, we don't need generic arguments -
+   * even if we have field references inside, `meta.source` tells us exactly which model should
+   * we use.
+   * - if current type is an object and meta.source is not known, we need to check all the fields
+   * of the current type. Type will require generic arguments if any of it's fields does.
+   */
+  const toVisit = [type]
+  const visited = new Set<string>()
+
+  let current: DMMF.SchemaArgInputType | undefined
+  while ((current = toVisit.shift())) {
+    const name = getTypeName(current)
+    if (visited.has(name)) {
+      continue
+    }
+    visited.add(name)
+
+    if (current.location === 'fieldRefTypes') {
+      return true
+    }
+
+    if (current.location === 'inputObjectTypes' && typeof current.type === 'object') {
+      const inputType = current.type as DMMF.InputType
+      if (!inputType.fields) {
+        continue
+      }
+
+      if (inputType.meta?.source) {
+        // if source is defined, we know model for sure and do not need generic argument
+        continue
+      }
+
+      for (const field of inputType.fields) {
+        toVisit.push(...field.inputTypes)
+      }
+    }
+  }
+
+  return false
+}
+
+export function inputTypeNeedsGenericModelArg(inputType: DMMF.InputType) {
+  return needsGenericModelArg({ type: inputType, location: 'inputObjectTypes', isList: false })
+}
+
+function getTypeName(type: DMMF.SchemaArgInputType) {
+  if (type.location === 'scalar' || type.location === 'fieldRefTypes') {
+    return type.type as string
+  }
+  return (type.type as DMMF.InputType).name
+}
+
+export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
+  let typeName: string
+  if (typeof type.type === 'string') {
+    typeName = type.type
+  } else {
+    typeName = type.type.name
+  }
+  if (type.isList) {
+    typeName += '[]'
+  }
+
+  return `'${typeName}'`
 }

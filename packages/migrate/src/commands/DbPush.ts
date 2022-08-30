@@ -177,7 +177,8 @@ ${chalk.bold.redBright('All data will be lost.')}
       if (!confirmation.value) {
         console.info('Reset cancelled.')
         migrate.stop()
-        process.exit(0)
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
       }
 
       try {
@@ -224,7 +225,8 @@ ${chalk.bold.redBright('All data will be lost.')}
         if (!confirmation.value) {
           console.info('Push cancelled.')
           migrate.stop()
-          process.exit(0)
+          // Return SIGINT exit code to signal that the process was cancelled.
+          process.exit(130)
         }
 
         try {

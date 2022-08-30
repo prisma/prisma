@@ -3,6 +3,7 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
 
+import { FieldRefImpl } from '../core/model/FieldRef'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
@@ -139,6 +140,10 @@ export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType):
 
   if (value instanceof ObjectEnumValue) {
     return value._getName()
+  }
+
+  if (value instanceof FieldRefImpl) {
+    return value._toGraphQLInputType()
   }
 
   if (Array.isArray(value)) {

@@ -8,11 +8,12 @@ import {
   isClientOnlyAction,
 } from '../../clientActions'
 import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
+import { getCallSite } from '../../utils/CallSite'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
-import { getCallSite } from '../utils/getCallSite'
 import { applyAggregates } from './applyAggregates'
 import { wrapRequest } from './applyClientOnlyWrapper'
+import { applyFieldsProxy, FieldProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
 import type { UserArgs } from './UserArgs'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
@@ -34,14 +35,20 @@ const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 export function applyModel(client: Client, dmmfModelName: string) {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
+  const model = client._baseDmmf.modelMap[dmmfModelName]
+  const fieldsProxyEnabled = client._engineConfig.previewFeatures?.includes('fieldReference')
   const ownKeys = getOwnKeys(client, dmmfModelName)
   const baseObject = {} // <-- user mutations go in there
+  let fieldsProxy: FieldProxy | undefined
 
   // we construct a proxy that acts as the model interface
   return new Proxy(baseObject, {
-    get(target, prop: string): F.Return<ModelAction> | undefined {
+    get(target, prop: string): F.Return<ModelAction> | FieldProxy | undefined {
       // only allow actions that are valid and available for this model
       if (prop in target || typeof prop === 'symbol') return target[prop]
+      if (prop === 'fields' && fieldsProxyEnabled) {
+        return (fieldsProxy ??= applyFieldsProxy(model))
+      }
       if (!isValidActionName(client, dmmfModelName, prop)) return undefined
       const dmmfActionName = getDmmfActionName(prop as ClientModelAction)
 

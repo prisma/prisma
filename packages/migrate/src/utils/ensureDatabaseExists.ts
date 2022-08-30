@@ -222,7 +222,8 @@ export async function askToCreateDb(
   if (response.value) {
     await createDatabase(connectionString, schemaDir)
   } else {
-    process.exit(0)
+    // Return SIGINT exit code to signal that the process was cancelled.
+    process.exit(130)
   }
 }
 

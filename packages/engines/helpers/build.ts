@@ -9,6 +9,14 @@ const postinstallBuildConfig: BuildOptions = {
   bundle: true,
 }
 
+// we define the config for localinstall
+const localinstallBuildConfig: BuildOptions = {
+  name: 'localinstall',
+  entryPoints: ['src/scripts/localinstall.ts'],
+  outfile: 'dist/scripts/localinstall',
+  bundle: true,
+}
+
 // we define the config for the default
 const defaultBuildConfig: BuildOptions = {
   name: 'default',
@@ -17,4 +25,4 @@ const defaultBuildConfig: BuildOptions = {
   bundle: true,
 }
 
-void build([postinstallBuildConfig, defaultBuildConfig])
+void build([postinstallBuildConfig, localinstallBuildConfig, defaultBuildConfig])

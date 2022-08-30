@@ -1,6 +1,7 @@
 {
   "name": "react-prisma",
   "version": "0.0.5",
+  "description": "Experimental wrapper around `@prisma/client` for React Server Components",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",

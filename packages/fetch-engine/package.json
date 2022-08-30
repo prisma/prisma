@@ -1,6 +1,7 @@
 {
   "name": "@prisma/fetch-engine",
   "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -12,8 +13,9 @@
     "directory": "packages/fetch-engine"
   },
   "bugs": "https://github.com/prisma/prisma/issues",
+  "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.3.0-29.2773dca117cc01b10a8cc91445505396db69ae5f",
+    "@prisma/engines-version": "4.3.0-32.c875e43600dfe042452e0b868f7a48b817b9640b",
     "@swc/core": "1.2.242",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.7",

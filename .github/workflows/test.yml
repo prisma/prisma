@@ -109,7 +109,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run lint
+      - run: pnpm run lint && pnpm run check-engines-override
         working-directory: ./
 
   #
