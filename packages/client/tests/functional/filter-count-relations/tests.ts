@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 const email = faker.internet.email()
 const title = faker.lorem.sentence()
 
-testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
     const { id: groupId } = await prisma.group.create({
       data: { title },
@@ -114,7 +114,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   // with other databases. Investigate why it happens and check if it still
   // reproducible after Mini-Proxy starts using the Query Engine server instead
   // of the Query Engine CLI.
-  testIf(!clientMeta.dataProxy)('nested relation', async () => {
+  testIf(!clientMeta.dataProxy || suiteConfig.provider !== 'mongodb')('nested relation', async () => {
     const group = await prisma.group.findFirst({
       where: { title },
       select: {
