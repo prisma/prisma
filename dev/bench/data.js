@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661784967402,
+  "lastUpdate": 1661872259688,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -122376,6 +122376,86 @@ window.BENCHMARK_DATA = {
           {
             "name": "dotPlusAtPrismaClientFolder.zip size",
             "value": 14.50245475769043,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "333dd87a87983e00fb1ea2742fc662b7c59d307a",
+          "message": "test(client): Sanitize error snapshots (#15000)\n\nIntroduce custom jest matchers that sanitize output of\r\n`printError` function. I opted for custom matcher instead of\r\nadding this functionality to default snapshot serializer because there\r\nmight be some cases, where we actually want to see the line numbers in\r\nthe snapshots (#14265 is one example). This won't be possible if line\r\nnumbers are always sanitized.\r\n\r\nClose #14321",
+          "timestamp": "2022-08-30T17:07:09+02:00",
+          "tree_id": "e18281a84fbaed32621d90f121ff27995a2a490c",
+          "url": "https://github.com/prisma/prisma/commit/333dd87a87983e00fb1ea2742fc662b7c59d307a"
+        },
+        "date": 1661872248459,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.8,
+            "range": "±6.21%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.13,
+            "range": "±3.12%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3144168853759766,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.93471050262451,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.780771255493164,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.950469970703125,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.5024995803833,
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
