@@ -27,7 +27,7 @@ describe('can-not-connect-to-database', () => {
           13   expect.assertions(1)
           14   try {
         → 15     await prisma.user.findUnique(
-          Can't reach database server at \`localhost\`:\`5444\`
+        Can't reach database server at \`localhost\`:\`5444\`
 
         Please make sure your database server is running at \`localhost\`:\`5444\`.
       `)

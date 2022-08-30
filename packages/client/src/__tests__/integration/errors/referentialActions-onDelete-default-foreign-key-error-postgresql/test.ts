@@ -60,7 +60,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
           46 
           47 try {
         → 48   await prisma.user.delete(
-          Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
+        Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
       `)
     }
   })

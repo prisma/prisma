@@ -115,6 +115,10 @@ test('wrong-native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', as
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+          Invalid \`prisma.c.create()\` invocation:
+
+
           Error occurred during query execution:
           ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: ToSql(4), cause: Some(Error { kind: ConversionError("Unexpected character for bits input. Expected only 1 and 0."), original_code: None, original_message: None }) }) })
         `)
