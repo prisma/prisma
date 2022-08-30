@@ -109,14 +109,11 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     })
   })
 
-  // TODO: fails in 60% of cases with Data Proxy (Mini-Proxy).
-  //
-  // 1. Investigate if it happens with the real Data Proxy when
-  //    filteredRelationCount is released.
-  // 2. Investigate why it happens with the Mini-Proxy and if it's
-  //    still reproducible after Mini-Proxy starts using the Query
-  //    Engine server instead of the Query Engine CLI.
-  //
+  // TODO: fails in 60% of cases with Mini-Proxy and MongoDB due to different
+  // order of users in the result. Doesn't happen with the real Data Proxy or
+  // with other databases. Investigate why it happens and check if it still
+  // reproducible after Mini-Proxy starts using the Query Engine server instead
+  // of the Query Engine CLI.
   testIf(!clientMeta.dataProxy)('nested relation', async () => {
     const group = await prisma.group.findFirst({
       where: { title },
