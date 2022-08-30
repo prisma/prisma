@@ -74,16 +74,6 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
       rejectOnNotFound: false,
     })
 
-    await expect(record).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
-      /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
-
-        XX })
-        XX 
-        XX test('does not accept rejectOnNotFound option', async () => {
-      → XX   const record = prisma.user.findUniqueOrThrow(
-      'rejectOnNotFound' option is not supported
-    `)
+    await expect(record).rejects.toMatchPrismaErrorSnapshot()
   })
 })

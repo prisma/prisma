@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite(({ runtime }) => {
   beforeAll(async () => {
     await prisma.product.create({
       data: {
@@ -58,27 +58,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference/string/tests.ts:0:0
-
-        XX })
-        XX 
-        XX test('wrong field type', async () => {
-      → XX   const products = prisma.product.findMany({
-               where: {
-                 string: {
-                   equals: prisma.product.fields.notString
-                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                 }
-               }
-             })
-
-      Argument equals: Got invalid value prisma.product.fields.notString on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected String or StringFieldRefInput.
-
-
-    `)
+    await expect(products).rejects.toMatchPrismaErrorSnapshot()
   })
 
   test('wrong model', async () => {
@@ -91,27 +71,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference/string/tests.ts:0:0
-
-        XX })
-        XX 
-        XX test('wrong model', async () => {
-      → XX   const products = prisma.product.findMany({
-               where: {
-                 string: {
-                   equals: prisma.otherModel.fields.string
-                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                 }
-               }
-             })
-
-      Argument equals: Got invalid value prisma.otherModel.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<OtherModel>, expected String or StringFieldRefInput.
-
-
-    `)
+    await expect(products).rejects.toMatchPrismaErrorSnapshot()
   })
 
   test('wrong identical model', async () => {
@@ -124,26 +84,6 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference/string/tests.ts:0:0
-
-        XX })
-        XX 
-        XX test('wrong identical model', async () => {
-      → XX   const products = prisma.product.findMany({
-                where: {
-                  string: {
-                    equals: prisma.identicalToProduct.fields.string
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                  }
-                }
-              })
-
-      Argument equals: Got invalid value prisma.identicalToProduct.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<IdenticalToProduct>, expected String or StringFieldRefInput.
-
-
-    `)
+    await expect(products).rejects.toMatchPrismaErrorSnapshot()
   })
 })
