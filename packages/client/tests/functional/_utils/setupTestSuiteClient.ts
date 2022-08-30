@@ -40,7 +40,7 @@ export async function setupTestSuiteClient({
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
 
-  await setupTestSuiteFiles(suiteMeta, suiteConfig, clientMeta)
+  await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl

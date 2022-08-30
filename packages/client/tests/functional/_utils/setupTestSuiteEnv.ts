@@ -19,13 +19,8 @@ const DB_NAME_VAR = 'PRISMA_DB_NAME'
  * Copies the necessary files for the generated test suite folder.
  * @param suiteMeta
  * @param suiteConfig
- * @param clientMeta
  */
-export async function setupTestSuiteFiles(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig,
-  clientMeta: ClientMeta,
-) {
+export async function setupTestSuiteFiles(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
 
   // we copy the minimum amount of files needed for the test suite
@@ -35,7 +30,6 @@ export async function setupTestSuiteFiles(
     suiteMeta.testPath,
     path.join(suiteFolder, suiteMeta.rootRelativeTestPath),
     suiteConfig.matrixOptions,
-    clientMeta,
   )
 }
 
@@ -50,14 +44,8 @@ export async function setupTestSuiteFiles(
  * @param from
  * @param to
  * @param suiteConfig
- * @param clientMeta
  */
-async function copyPreprocessed(
-  from: string,
-  to: string,
-  suiteConfig: Record<string, string>,
-  clientMeta: ClientMeta,
-): Promise<void> {
+async function copyPreprocessed(from: string, to: string, suiteConfig: Record<string, string>): Promise<void> {
   // we adjust the relative paths to work from the generated folder
   const contents = await fs.readFile(from, 'utf8')
   const newContents = contents
@@ -66,7 +54,7 @@ async function copyPreprocessed(
     .replace(/'..\/..\/node_modules/g, "'./node_modules")
     .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
-      if (!evaluateMagicComment(condition, suiteConfig, clientMeta)) {
+      if (!evaluateMagicComment(condition, suiteConfig)) {
         return '// @ts-expect-error'
       }
       return match
@@ -83,18 +71,12 @@ async function copyPreprocessed(
  *
  * @param conditionFromComment
  * @param suiteConfig
- * @param clientMeta
  * @returns
  */
-function evaluateMagicComment(
-  conditionFromComment: string,
-  suiteConfig: Record<string, string>,
-  clientMeta: ClientMeta,
-): boolean {
+function evaluateMagicComment(conditionFromComment: string, suiteConfig: Record<string, string>): boolean {
   const script = new Script(conditionFromComment)
   const value = script.runInNewContext({
     ...suiteConfig,
-    clientMeta,
   })
   return Boolean(value)
 }
