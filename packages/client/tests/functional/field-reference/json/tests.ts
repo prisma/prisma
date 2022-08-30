@@ -132,7 +132,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(products).rejects.toMatchSnapshot()
+      await expect(products).rejects.toMatchPrismaErrorSnapshot()
     })
   },
   {

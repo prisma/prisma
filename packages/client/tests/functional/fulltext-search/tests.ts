@@ -92,7 +92,7 @@ testMatrix.setupTestSuite(
           throw error
         })
 
-      await expect(result).rejects.toThrowErrorMatchingSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
     })
 
     test('order by relevance on a single field', async () => {
