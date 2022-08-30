@@ -27,6 +27,10 @@ const args = arg(
     // Don't start the Mini-Proxy server, expect it to be started externally
     // and listening on the default port.
     '--no-mini-proxy-server': Boolean,
+    // Don't override NODE_EXTRA_CA_CERTS. Useful if a custom mini-proxy
+    // server you start is not the one in node_modules. You then need to run
+    // `eval $(mini-proxy env)` in your shell before starting the tests.
+    '--no-mini-proxy-default-ca': Boolean,
     // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
     '-p': '--provider',
@@ -56,8 +60,13 @@ async function main(): Promise<number | void> {
 
     jestCli = jestCli.withEnv({
       DATA_PROXY: 'true',
-      NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
     })
+
+    if (!args['--no-mini-proxy-default-ca']) {
+      jestCli = jestCli.withEnv({
+        NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
+      })
+    }
 
     if (args['--edge-client']) {
       jestCli = jestCli.withEnv({
