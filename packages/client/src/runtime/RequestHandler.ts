@@ -1,6 +1,6 @@
-import { Context, trace } from '@opentelemetry/api'
+import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent } from '@prisma/engine-core'
+import { getTraceParent, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -14,7 +14,8 @@ import type { Client, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
 import type { Document } from './query'
 import { Args, unpack } from './query'
-import { printStack } from './utils/printStack'
+import { CallSite } from './utils/CallSite'
+import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import type { RejectOnNotFound } from './utils/rejectOnNotFound'
 import { throwIfNotFound } from './utils/rejectOnNotFound'
 
@@ -27,7 +28,7 @@ export type RequestParams = {
   typeName: string
   isList: boolean
   clientMethod: string
-  callsite?: string
+  callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
   runInTransaction?: boolean
   engineHook?: EngineMiddleware
@@ -42,7 +43,7 @@ export type RequestParams = {
 export type HandleErrorParams = {
   error: any
   clientMethod: string
-  callsite?: string
+  callsite?: CallSite
 }
 
 export type Request = {
@@ -52,13 +53,14 @@ export type Request = {
   headers?: Record<string, string>
   otelParentCtx?: Context
   otelChildCtx?: Context
+  tracingConfig?: TracingConfig
 }
 
 function getRequestInfo(request: Request) {
   const txId = request.transactionId
   const inTx = request.runInTransaction
   const headers = request.headers ?? {}
-  const traceparent = getTraceParent()
+  const traceparent = getTraceParent({ tracingConfig: request.tracingConfig })
 
   // if the tx has a number for an id, then it's a regular batch tx
   const _inTx = typeof txId === 'number' && inTx ? true : undefined
@@ -83,7 +85,7 @@ export class RequestHandler {
       batchLoader: (requests) => {
         const info = getRequestInfo(requests[0])
         const queries = requests.map((r) => String(r.document))
-        const traceparent = getTraceParent(requests[0].otelParentCtx)
+        const traceparent = getTraceParent({ context: requests[0].otelParentCtx, tracingConfig: client._tracingConfig })
 
         if (traceparent) info.headers.traceparent = traceparent
         // TODO: pass the child information to QE for it to issue links to queries
@@ -149,7 +151,7 @@ export class RequestHandler {
             document,
             runInTransaction,
           },
-          (params) => this.dataloader.request(params),
+          (params) => this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig }),
         )
         data = result.data
         elapsed = result.elapsed
@@ -161,6 +163,7 @@ export class RequestHandler {
           transactionId,
           otelParentCtx,
           otelChildCtx,
+          tracingConfig: this.client._tracingConfig,
         })
         data = result?.data
         elapsed = result?.elapsed
@@ -185,13 +188,13 @@ export class RequestHandler {
 
     let message = error.message
     if (callsite) {
-      const { stack } = printStack({
+      message = createErrorMessageWithContext({
         callsite,
         originalMethod: clientMethod,
-        onUs: error.isPanic,
+        isPanic: error.isPanic,
         showColors: this.client._errorFormat === 'pretty',
+        message,
       })
-      message = `${stack}\n  ${error.message}`
     }
 
     message = this.sanitizeMessage(message)

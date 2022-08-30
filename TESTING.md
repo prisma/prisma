@@ -193,6 +193,25 @@ Test consists of the 3 files:
 - schema template `prisma/_schema.ts`
 - test suite `tests.ts`
 
+#### Nesting tests
+
+If you have related tests but different schemas, you can nest directories. For example, composite indexes have the following file structure:
+
+`composite-index/`
+
+1.  `list/`
+
+    - `test.ts`
+    - `_matrix.ts`
+    - `prisma/`
+      - `_schema.ts`
+
+2.  `named/`
+    - `test.ts`
+    - `_matrix.ts`
+    - `prisma/`
+      - ` _schema.ts`
+
 #### Test matrix
 
 `_matrix.ts` file defines parameters for generating test suites. It can have as many parameters as necessary, but at minimum, it should define at least one provider.
@@ -384,6 +403,42 @@ void createMemoryTest({
 
 - `pnpm test:memory` for running whole test suite
 - `pnpm test:memory <test name>` for running single test
+
+## How to use custom engines
+
+By default, you get the engines that are downloaded on postinstall in `@prisma/engines` thanks to `@prisma/engines-version`.
+
+However, you may want to use a custom engine via from a branch in [`prisma/prisma-engines`](https://github.com/prisma/prisma-engines), or one that you've built locally.
+
+### Prerequisites
+
+You will need to have installed the Rust toolchain and just a few extra dependencies. See [Building Prisma Engines](https://github.com/prisma/prisma-engines#building-prisma-engines).
+
+### Using custom engines
+
+1. Edit `prisma/packages/fetch-engine/package.json`
+
+- **Either, add a `branch` property to `enginesOverride`**
+
+  This will `git pull` the [branch](https://github.com/prisma/prisma-engines) and build the engines from there.
+
+  ```diff
+    "enginesOverride": {
+  +    "branch": "feat/column-comparison",
+    }
+  ```
+
+- **Or, add a `folder` property to `enginesOverride`**
+
+  This will copy the engines from the folder where you've built them.
+
+  ```diff
+    "enginesOverride": {
+  +    "folder": "/home/john/dev/prisma/prisma-engines/target/release"
+    }
+  ```
+
+2. Run `pnpm install` again to propagate the new engines.
 
 ## CI - Continuous Integration
 
