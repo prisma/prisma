@@ -581,7 +581,7 @@ importers:
   packages/instrumentation:
     specifiers:
       '@opentelemetry/api': ^1.1.0
-      '@opentelemetry/instrumentation': ^0.31.0
+      '@opentelemetry/instrumentation': ^0.32.0
       '@swc/core': 1.2.242
       '@types/jest': 28.1.8
       '@types/node': 16.11.56
@@ -590,7 +590,7 @@ importers:
       typescript: 4.7.4
     dependencies:
       '@opentelemetry/api': 1.1.0
-      '@opentelemetry/instrumentation': 0.31.0_@opentelemetry+api@1.1.0
+      '@opentelemetry/instrumentation': 0.32.0_@opentelemetry+api@1.1.0
     devDependencies:
       '@swc/core': 1.2.242
       '@types/jest': 28.1.8
@@ -674,12 +674,12 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
-      dotenv: 16.0.1
+      dotenv: 16.0.2
       esbuild: 0.15.5
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fp-ts: 2.12.2
+      fp-ts: 2.12.3
       fs-extra: 10.1.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
@@ -726,11 +726,11 @@ importers:
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       cli-truncate: 2.1.0
-      dotenv: 16.0.1
+      dotenv: 16.0.2
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fp-ts: 2.12.2
+      fp-ts: 2.12.3
       fs-extra: 10.1.0
       fs-jetpack: 4.3.1
       global-dirs: 3.0.0
@@ -2334,6 +2334,14 @@ packages:
     engines: {node: '>=14'}
     dependencies:
       '@opentelemetry/api': 1.1.0
+    dev: true
+
+  /@opentelemetry/api-metrics/0.32.0:
+    resolution: {integrity: sha512-g1WLhpG8B6iuDyZJFRGsR+JKyZ94m5LEmY2f+duEJ9Xb4XRlLHrZvh6G34OH6GJ8iDHxfHb/sWjJ1ZpkI9yGMQ==}
+    engines: {node: '>=14'}
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+    dev: false
 
   /@opentelemetry/api/1.1.0:
     resolution: {integrity: sha512-hf+3bwuBwtXsugA2ULBc95qxrOqP2pOekLz34BJhcAKawt94vfeNyUKpYc0lZQ/3sCP6LqRa7UAdHA7i5UODzQ==}
@@ -2370,6 +2378,22 @@ packages:
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@opentelemetry/instrumentation/0.32.0_@opentelemetry+api@1.1.0:
+    resolution: {integrity: sha512-y6ADjHpkUz/v1nkyyYjsQa/zorhX+0qVGpFvXMcbjU4sHnBnC02c6wcc93sIgZfiQClIWo45TGku1KQxJ5UUbQ==}
+    engines: {node: '>=14'}
+    peerDependencies:
+      '@opentelemetry/api': ^1.0.0
+    dependencies:
+      '@opentelemetry/api': 1.1.0
+      '@opentelemetry/api-metrics': 0.32.0
+      require-in-the-middle: 5.2.0
+      semver: 7.3.7
+      shimmer: 1.2.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: false
 
   /@opentelemetry/resources/1.5.0_@opentelemetry+api@1.1.0:
     resolution: {integrity: sha512-YeEfC6IY54U3xL3P2+UAiom+r50ZF2jM0J47RV5uTFGF19Xjd5zazSwDPgmxtAd6DwLX0/5S5iqrsH4nEXMYoA==}
@@ -5074,6 +5098,12 @@ packages:
   /dotenv/16.0.1:
     resolution: {integrity: sha512-1K6hR6wtk2FviQ4kEiSjFiH5rpzEVi8WW0x96aztHVMhEspNpc4DVOUTEHtEva5VThQ8IaBX1Pe4gSzpVVUsKQ==}
     engines: {node: '>=12'}
+    dev: true
+
+  /dotenv/16.0.2:
+    resolution: {integrity: sha512-JvpYKUmzQhYoIFgK2MOnF3bciIZoItIIoryihy0rIA+H4Jy0FmgyKYAHCTN98P5ybGSJcIFbh6QKeJdtZd1qhA==}
+    engines: {node: '>=12'}
+    dev: false
 
   /downgrade-root/1.2.2:
     resolution: {integrity: sha512-K/QnPfqybcxP6rriuM17fnaQ/zDnG0hh8ISbm9szzIqZSI4wtfaj4D5oL6WscT2xVFQ3kDISZrrgeUtd+rW8pQ==}
@@ -6374,8 +6404,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /fp-ts/2.12.2:
-    resolution: {integrity: sha512-v8J7ud+nTkP5Zz17GhpCsY19wiRbB9miuj61nBcCJyDpu52zs9Z4O7OLDfYoKFQMJ9EsSZA7W1vRgC1d3jy5qw==}
+  /fp-ts/2.12.3:
+    resolution: {integrity: sha512-8m0XvW8kZbfnJOA4NvSVXu95mLbPf4LQGwQyqVukIYS4KzSNJiyKSmuZUmbVHteUi6MGkAJGPb0goPZqI+Tsqg==}
     dev: false
 
   /fresh/0.5.2:
@@ -8078,7 +8108,7 @@ packages:
       pretty-format: 28.1.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_wnthe3wpvemabwkegm2j7dd6ky
+      ts-node: 10.9.1_tdxs57fmzxgd6tra2fpgyzfxla
     transitivePeerDependencies:
       - supports-color
     dev: true
