@@ -66,6 +66,22 @@ const envVarNotFoundValidationError = `
   Prisma CLI Version : 0.0.0
   `
 
+const urlMustStartWithProtocolValidationError = `
+ Schema validation error - Error (query-engine-NORMALIZED)
+ Error code: P1012
+ error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
+   -->  schema.prisma:5
+    | 
+  4 |   provider = "postgresql"
+  5 |   url      = env("SOME_DEFINED_INVALID_URL")
+    | 
+
+ Validation Error Count: 1
+ [Context: getConfig]
+
+ Prisma CLI Version : 0.0.0
+  `
+
 const couldNotFindDatasourceError = `Couldn't find a datasource in the schema.prisma file`
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
@@ -73,6 +89,17 @@ There is no datasource in the schema.
 `
 
 describe('[wasm] incomplete-schemas', () => {
+  describe('datasource-block-url-env-set-invalid', () => {
+    beforeEach(() => {
+      ctx.fixture('incomplete-schemas/datasource-block-url-env-set-invalid/prisma')
+    })
+
+    it('format', async () => {
+      const result = await Format.new().parse([])
+      expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+    })
+  })
+
   describe('datasource-block-url-env-unset', () => {
     beforeEach(() => {
       ctx.fixture('incomplete-schemas/datasource-block-url-env-unset/prisma')
@@ -115,6 +142,89 @@ describe('[wasm] incomplete-schemas', () => {
 })
 
 describe('[normalized library/binary] incomplete-schemas', () => {
+  describe('datasource-block-url-env-set-invalid', () => {
+    beforeEach(() => {
+      ctx.fixture('incomplete-schemas/datasource-block-url-env-set-invalid/prisma')
+    })
+
+    it('validate', async () => {
+      expect.assertions(1)
+      try {
+        await Validate.new().parse([])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
+          urlMustStartWithProtocolValidationError,
+        )
+      }
+    })
+
+    it('db push', async () => {
+      expect.assertions(1)
+      try {
+        await DbPush.new().parse([])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
+          urlMustStartWithProtocolValidationError,
+        )
+      }
+    })
+
+    it('db pull', async () => {
+      expect.assertions(1)
+      try {
+        await DbPull.new().parse([])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
+          urlMustStartWithProtocolValidationError,
+        )
+      }
+    })
+
+    it('db execute', async () => {
+      fs.writeFileSync('script.sql', dbExecuteSQLScript)
+      expect.assertions(1)
+
+      try {
+        await DbExecute.new().parse(['--file=./script.sql'])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
+          P1012
+
+          error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
+            -->  schema.prisma:5
+             | 
+           4 |   provider = "postgresql"
+           5 |   url      = env("SOME_DEFINED_INVALID_URL")
+             | 
+
+
+        `)
+      }
+    })
+
+    it('migrate reset', async () => {
+      expect.assertions(1)
+      try {
+        await MigrateReset.new().parse([])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
+          urlMustStartWithProtocolValidationError,
+        )
+      }
+    })
+
+    it('migrate dev', async () => {
+      expect.assertions(1)
+      try {
+        await MigrateDev.new().parse([])
+      } catch (e) {
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
+          urlMustStartWithProtocolValidationError,
+        )
+      }
+    })
+  })
+
   describe('datasource-block-url-env-unset', () => {
     beforeEach(() => {
       ctx.fixture('incomplete-schemas/datasource-block-url-env-unset/prisma')
