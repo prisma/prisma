@@ -12,7 +12,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
-      '@types/glob': 7.2.0
+      '@types/glob': 8.0.0
       '@types/graphviz': 0.0.34
       '@types/node': 14.18.26
       '@types/node-fetch': 2.6.2
@@ -67,7 +67,7 @@ importers:
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
-      '@types/glob': 7.2.0
+      '@types/glob': 8.0.0
       '@types/graphviz': 0.0.34
       '@types/node': 14.18.26
       '@types/node-fetch': 2.6.2
@@ -3173,6 +3173,13 @@ packages:
 
   /@types/glob/7.2.0:
     resolution: {integrity: sha512-ZUxbzKl0IfJILTS6t7ip5fQQM/J3TJYubDm3nMbgubNNYS62eXeUpoLUC8/7fJNiFYHTrGPQn7hspDUzIHX3UA==}
+    dependencies:
+      '@types/minimatch': 3.0.5
+      '@types/node': 17.0.45
+    dev: true
+
+  /@types/glob/8.0.0:
+    resolution: {integrity: sha512-l6NQsDDyQUVeoTynNpC9uRvCUint/gSUXQA2euwmTuWGvPY5LSDUu6tkCtJB2SvGQlJQzLaKqcGZP4//7EDveA==}
     dependencies:
       '@types/minimatch': 3.0.5
       '@types/node': 17.0.45
