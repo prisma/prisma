@@ -1,7 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-describe.skip('connection-limit-postgres', () => {
-  // expect.assertions(1)
+describe('connection-limit-postgres', () => {
+  expect.assertions(1)
+
   const clients: any[] = []
 
   afterAll(async () => {
@@ -10,12 +11,11 @@ describe.skip('connection-limit-postgres', () => {
 
   test('the client cannot query the db with 100 connections already open', async () => {
     const PrismaClient = await getTestClient()
-    const connectionString = process.env.TEST_POSTGRES_ISOLATED_URI || 'postgres://prisma:prisma@localhost:5435/tests'
 
     for (let i = 0; i <= 100; i++) {
       const client = new PrismaClient({
         datasources: {
-          db: { url: connectionString },
+          db: { url: process.env.TEST_POSTGRES_ISOLATED_URI },
         },
       })
       clients.push(client)

@@ -1,8 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
-describe.skip('connection-limit-mysql', () => {
-  // TODO uncomment when remove SKIP
-  // expect.assertions(1)
+describe('connection-limit-mysql', () => {
+  expect.assertions(1)
+
   const clients: any[] = []
 
   afterAll(async () => {
@@ -11,12 +11,11 @@ describe.skip('connection-limit-mysql', () => {
 
   test('the client cannot query the db with 152 connections already open', async () => {
     const PrismaClient = await getTestClient()
-    const connectionString = process.env.TEST_MYSQL_ISOLATED_URI || 'mysql://root:root@mysql:3306/tests'
 
     for (let i = 0; i <= 155; i++) {
       const client = new PrismaClient({
         datasources: {
-          db: { url: connectionString },
+          db: { url: process.env.TEST_MYSQL_ISOLATED_URI },
         },
       })
       clients.push(client)
