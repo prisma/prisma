@@ -38,6 +38,7 @@ services:
       # Functonal test URLS
       - TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MYSQL_URI=mysql://root:root@mysql:3306/PRISMA_DB_NAME
+      - TEST_FUNCTIONAL_MARIADB_URI=mysql://root:root@mariadb:4306/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MSSQL_URI=sqlserver://mssql:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_FUNCTIONAL_MONGO_URI=mongodb://root:prisma@mongo:27018/PRISMA_DB_NAME?authSource=admin
       - TEST_FUNCTIONAL_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/PRISMA_DB_NAME
