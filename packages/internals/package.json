@@ -61,7 +61,6 @@
     "global-dirs": "3.0.0",
     "globby": "11.1.0",
     "has-yarn": "2.1.0",
-    "is-ci": "3.0.1",
     "is-windows": "^1.0.2",
     "is-wsl": "^2.2.0",
     "make-dir": "3.1.0",

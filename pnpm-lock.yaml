@@ -685,7 +685,6 @@ importers:
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
-      is-ci: 3.0.1
       is-windows: ^1.0.2
       is-wsl: ^2.2.0
       jest: 28.1.3
@@ -737,7 +736,6 @@ importers:
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
-      is-ci: 3.0.1
       is-windows: 1.0.2
       is-wsl: 2.2.0
       make-dir: 3.1.0
@@ -4441,6 +4439,7 @@ packages:
 
   /ci-info/3.3.2:
     resolution: {integrity: sha512-xmDt/QIAdeZ9+nfdPsaBCpMvHNLFiLdjj59qjqn+6iPe6YmHGQ35sBnQ8uslRBXFmXkiZQOJRjvQeoGppoTjjg==}
+    dev: true
 
   /cjs-module-lexer/1.2.2:
     resolution: {integrity: sha512-cOU9usZw8/dXIXKtwa8pM0OTJQuJkxMN6w30csNRUerHfeQ5R6U3kkU/FtJeIf3M202OHfY2U8ccInBG7/xogA==}
@@ -7207,6 +7206,7 @@ packages:
     hasBin: true
     dependencies:
       ci-info: 3.3.2
+    dev: true
 
   /is-core-module/2.9.0:
     resolution: {integrity: sha512-+5FPy5PnwmO3lvfMb0AsoPaBG+5KHUI0wYFXOtYPnVVVspTFUuMZNfNaNVRt3FZadstu2c8x23vykRW/NBoU6A==}
@@ -8071,7 +8071,7 @@ packages:
       pretty-format: 28.1.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_tdxs57fmzxgd6tra2fpgyzfxla
+      ts-node: 10.9.1_wnthe3wpvemabwkegm2j7dd6ky
     transitivePeerDependencies:
       - supports-color
     dev: true
