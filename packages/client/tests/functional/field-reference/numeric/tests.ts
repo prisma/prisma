@@ -96,6 +96,6 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(products).rejects.toThrowErrorMatchingSnapshot()
+    await expect(products).rejects.toMatchPrismaErrorSnapshot()
   })
 })

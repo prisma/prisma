@@ -174,7 +174,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
     })
 
-    await expect(result).rejects.toThrowErrorMatchingSnapshot()
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
     const users = await prisma.user.findMany()
 
@@ -203,7 +203,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
       Invalid \`transactionBoundPrisma.user.create()\` invocation in
-      /client/tests/functional/interactive-transactions/tests.ts:192:41
+      /client/tests/functional/interactive-transactions/tests.ts:0:0
 
         189 })
         190 
@@ -257,7 +257,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       }),
     ])
 
-    await expect(result).rejects.toThrowErrorMatchingSnapshot()
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
     const users = await prisma.user.findMany()
 
@@ -301,7 +301,7 @@ testMatrix.setupTestSuite(({ provider }) => {
               prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
             ])
 
-      await expect(result).rejects.toThrowErrorMatchingSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
       const users = await prisma.user.findMany()
 
