@@ -2,6 +2,7 @@ import indent from 'indent-string'
 
 import { ClientModelAction } from '../../runtime/clientActions'
 import { DMMF } from '../../runtime/dmmf-types'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
@@ -12,6 +13,7 @@ export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly action?: ClientModelAction,
   ) {}
   public toTS(): string {
@@ -81,7 +83,7 @@ export class ArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${modelArgName} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }
@@ -103,7 +105,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB
  * ${name} base type for ${action} actions
  */
 export type ${baseTypeName} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
@@ -141,6 +143,7 @@ export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly action?: DMMF.ModelAction,
     protected readonly generatedTypeName = getModelArgName(type.name, action),
   ) {}
@@ -161,7 +164,7 @@ ${indent(
   args
     .map((arg) => {
       const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, false, noEnumerable).toTS()
+      return new InputField(arg, false, noEnumerable, this.genericsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,

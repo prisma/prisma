@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 
-import { needsGenericModelArg } from './utils'
+import { GenericArgsInfo } from './GenericsArgsInfo'
 
 function inputObjectType(name: string, fields: DMMF.SchemaArg[], meta?: { source: string }): DMMF.SchemaArgInputType {
   return {
@@ -42,20 +42,23 @@ function fieldRef(name: string): DMMF.SchemaArgInputType {
 
 describe('needsGenericModelArg', () => {
   test('is true for field ref', () => {
-    expect(needsGenericModelArg(fieldRef('IntRef'))).toBe(true)
+    const argsInfo = new GenericArgsInfo()
+    expect(argsInfo.needsGenericModelArg(fieldRef('IntRef'))).toBe(true)
   })
 
   test('is false for object that does not contain field refs', () => {
+    const argsInfo = new GenericArgsInfo()
     expect(
-      needsGenericModelArg(
+      argsInfo.needsGenericModelArg(
         inputObjectType('InputType', [field('someField', [scalar('Int')]), field('someOtherField', [scalar('Int')])]),
       ),
     ).toBe(false)
   })
 
   test('is true for object that contains field refs', () => {
+    const argsInfo = new GenericArgsInfo()
     expect(
-      needsGenericModelArg(
+      argsInfo.needsGenericModelArg(
         inputObjectType('InputType', [
           field('someField', [scalar('Int')]),
           field('someOtherField', [fieldRef('IntRef')]),
@@ -65,8 +68,9 @@ describe('needsGenericModelArg', () => {
   })
 
   test('is false if object containing nested field has source defined', () => {
+    const argsInfo = new GenericArgsInfo()
     expect(
-      needsGenericModelArg(
+      argsInfo.needsGenericModelArg(
         inputObjectType(
           'InputType',
           [field('someField', [scalar('Int')]), field('someOtherField', [fieldRef('IntRef')])],
@@ -77,8 +81,9 @@ describe('needsGenericModelArg', () => {
   })
 
   test('is true for object that contains deeply nested field ref', () => {
+    const argsInfo = new GenericArgsInfo()
     expect(
-      needsGenericModelArg(
+      argsInfo.needsGenericModelArg(
         inputObjectType('InputType', [
           field('someField', [scalar('Int')]),
           field('someOtherField', [
@@ -92,20 +97,22 @@ describe('needsGenericModelArg', () => {
   })
 
   test('types with recursion does not require generic if no other field does', () => {
+    const argsInfo = new GenericArgsInfo()
     const type = inputObjectType('RecursiveType', [])
 
     ;(type.type as DMMF.InputType).fields.push(field('recursiveField', [type]))
     ;(type.type as DMMF.InputType).fields.push(field('otherField', [scalar('Int')]))
 
-    expect(needsGenericModelArg(type)).toBe(false)
+    expect(argsInfo.needsGenericModelArg(type)).toBe(false)
   })
 
   test('types with recursion require generic if any other field does', () => {
+    const argsInfo = new GenericArgsInfo()
     const type = inputObjectType('RecursiveType', [])
 
     ;(type.type as DMMF.InputType).fields.push(field('recursiveField', [type]))
     ;(type.type as DMMF.InputType).fields.push(field('otherField', [fieldRef('IntRef')]))
 
-    expect(needsGenericModelArg(type)).toBe(true)
+    expect(argsInfo.needsGenericModelArg(type)).toBe(true)
   })
 })
