@@ -150,7 +150,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mariadb mysql mysql_isolated mssql mongo cockroachdb
 
       - uses: pnpm/action-setup@v2.2.2
         with:
