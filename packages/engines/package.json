@@ -8,7 +8,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.4.0-1.a906a785bf911e110e2fb3dc66c8bdc7be469070",
+    "@prisma/engines-version": "4.4.0-2.446706ba730225c736247e76c67e1fba482024bb",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.2.242",
