@@ -17,8 +17,8 @@
     "@types/node": "16.11.56",
     "typescript": "4.7.4",
     "jest": "28.1.3",
-    "jest-junit": "14.0.0",
-    "@types/jest": "28.1.7"
+    "jest-junit": "14.0.1",
+    "@types/jest": "28.1.8"
   },
   "dependencies": {
     "@opentelemetry/instrumentation": "^0.31.0",
