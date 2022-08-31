@@ -1,8 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('connection-limit-mysql', () => {
-  expect.assertions(1)
-
   const clients: any[] = []
 
   afterAll(async () => {
@@ -10,6 +8,7 @@ describe('connection-limit-mysql', () => {
   })
 
   test('the client cannot query the db with 152 connections already open', async () => {
+    expect.assertions(1)
     const PrismaClient = await getTestClient()
 
     for (let i = 0; i <= 155; i++) {

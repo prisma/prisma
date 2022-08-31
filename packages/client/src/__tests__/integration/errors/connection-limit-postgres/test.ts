@@ -1,8 +1,6 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('connection-limit-postgres', () => {
-  expect.assertions(1)
-
   const clients: any[] = []
 
   afterAll(async () => {
@@ -10,6 +8,7 @@ describe('connection-limit-postgres', () => {
   })
 
   test('the client cannot query the db with 100 connections already open', async () => {
+    expect.assertions(1)
     const PrismaClient = await getTestClient()
 
     for (let i = 0; i <= 100; i++) {
