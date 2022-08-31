@@ -131,7 +131,7 @@ Note that the installation of this package invokes the `prisma generate` command
 After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/.prisma/client` get updated:
 
 ```
-prisma generate
+npx prisma generate
 ```
 
 Refer to the documentation for more information about ["generating the Prisma client"](https://www.prisma.io/docs/concepts/components/prisma-client/generating-prisma-client).
