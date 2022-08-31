@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
 import {
   arg,
+  canPrompt,
   checkUnsupportedDataProxy,
   Command,
   format,
@@ -9,7 +10,6 @@ import {
   getDMMF,
   getSchemaPath,
   HelpError,
-  isCi,
   isError,
   loadEnvFile,
 } from '@prisma/internals'
@@ -146,8 +146,7 @@ ${chalk.bold('Examples')}
 
     if (devDiagnostic.action.tag === 'reset') {
       if (!args['--force']) {
-        // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        if (!canPrompt()) {
           migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
@@ -223,8 +222,7 @@ ${chalk.bold('Examples')}
       console.info() // empty line
 
       if (!args['--force']) {
-        // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        if (!canPrompt()) {
           migrate.stop()
           throw new MigrateDevEnvNonInteractiveError()
         }
