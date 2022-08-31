@@ -11,7 +11,7 @@ importers:
     specifiers:
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
-      '@types/benchmark': 2.1.1
+      '@types/benchmark': 2.1.2
       '@types/glob': 7.2.0
       '@types/graphviz': 0.0.34
       '@types/node': 14.18.26
@@ -66,7 +66,7 @@ importers:
     devDependencies:
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
-      '@types/benchmark': 2.1.1
+      '@types/benchmark': 2.1.2
       '@types/glob': 7.2.0
       '@types/graphviz': 0.0.34
       '@types/node': 14.18.26
@@ -2719,8 +2719,8 @@ packages:
       '@babel/types': 7.18.8
     dev: true
 
-  /@types/benchmark/2.1.1:
-    resolution: {integrity: sha512-XmdNOarpSSxnb3DE2rRFOFsEyoqXLUL+7H8nSGS25vs+JS0018bd+cW5Ma9vdlkPmoTHSQ6e8EUFMFMxeE4l+g==}
+  /@types/benchmark/2.1.2:
+    resolution: {integrity: sha512-EDKtLYNMKrig22jEvhXq8TBFyFgVNSPmDF2b9UzJ7+eylPqdZVo17PCUMkn1jP6/1A/0u78VqYC6VrX6b8pDWA==}
     dev: true
 
   /@types/cross-spawn/6.0.2:
