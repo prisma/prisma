@@ -148,7 +148,7 @@ describeIf(
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+        "Schema validation error - Error (query-engine-node-api library)
         Error code: P1012
         error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-id field even though the datasource does not support this.
           -->  schema.prisma:7
@@ -166,6 +166,7 @@ describeIf(
            | 
 
         Validation Error Count: 2
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)
@@ -189,7 +190,7 @@ describeIf(
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+        "Schema validation error - Error (query-engine-node-api library)
         Error code: P1012
         error: Error parsing attribute \\"@default\\": The \`autoincrement()\` default value is used on a non-indexed field even though the datasource does not support this.
           -->  schema.prisma:7
@@ -200,6 +201,7 @@ describeIf(
            | 
 
         Validation Error Count: 1
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)
@@ -346,7 +348,7 @@ describeIf(
       await getDMMF({ datamodel })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "Get DMMF: Schema parsing - Error while interacting with query-engine-node-api library
+        "Schema validation error - Error (query-engine-node-api library)
         Error code: P1012
         error: Field \\"id\\" is already defined on model \\"User\\".
           -->  schema.prisma:12
@@ -368,6 +370,7 @@ describeIf(
            | 
 
         Validation Error Count: 3
+        [Context: getDmmf]
 
         Prisma CLI Version : 0.0.0"
       `)

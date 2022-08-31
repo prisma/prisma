@@ -1,6 +1,7 @@
 {
   "name": "@prisma/engine-core",
   "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
   "license": "Apache-2.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -15,11 +16,11 @@
   "devDependencies": {
     "@swc/core": "1.2.242",
     "@swc/jest": "0.2.22",
-    "@types/jest": "28.1.7",
+    "@types/jest": "28.1.8",
     "@types/node": "16.11.56",
     "esbuild": "0.15.5",
     "jest": "28.1.3",
-    "jest-junit": "14.0.0",
+    "jest-junit": "14.0.1",
     "typescript": "4.7.4"
   },
   "scripts": {

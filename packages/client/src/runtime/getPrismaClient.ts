@@ -31,7 +31,6 @@ import { applyModels } from './core/model/applyModels'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type { PrismaPromise } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { getCallSite } from './core/utils/getCallSite'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
@@ -40,6 +39,7 @@ import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParam
 import { Middlewares } from './MiddlewareHandler'
 import { makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
+import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
 import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
@@ -168,7 +168,7 @@ export type InternalRequestParams = {
    * for warnings or error messages
    */
   jsModelName?: string
-  callsite?: string // TODO what is this
+  callsite?: CallSite
   /** Headers metadata that will be passed to the Engine */
   headers?: Record<string, string> // TODO what is this
   transactionId?: string | number
@@ -1161,6 +1161,7 @@ new PrismaClient({
           rootField: rootField!,
           rootTypeName: operation,
           select: args,
+          modelName: model,
         })
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)

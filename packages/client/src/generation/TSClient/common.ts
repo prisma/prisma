@@ -528,6 +528,11 @@ type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
  */
 type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
+
+export import FieldRef = runtime.FieldRef
+
+type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
+
 ${
   !hideFetcher
     ? `class PrismaClientFetcher {

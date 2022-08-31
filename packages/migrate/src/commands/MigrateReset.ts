@@ -1,11 +1,11 @@
 import {
   arg,
+  canPrompt,
   checkUnsupportedDataProxy,
   Command,
   format,
   getSchemaPath,
   HelpError,
-  isCi,
   isError,
   loadEnvFile,
 } from '@prisma/internals'
@@ -103,8 +103,7 @@ ${chalk.bold('Examples')}
 
     console.info() // empty line
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         throw new MigrateResetEnvNonInteractiveError()
       }
 
@@ -118,7 +117,8 @@ ${chalk.bold('Examples')}
 
       if (!confirmation.value) {
         console.info('Reset cancelled.')
-        process.exit(0)
+        // Return SIGINT exit code to signal that the process was cancelled
+        process.exit(130)
       }
     }
 

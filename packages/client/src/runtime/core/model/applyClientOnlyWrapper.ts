@@ -3,7 +3,7 @@ import { assertNever } from '@prisma/internals'
 import { ClientOnlyModelAction } from '../../clientActions'
 import { InternalRequestParams } from '../../getPrismaClient'
 import { PrismaClientValidationError } from '../../query'
-import { printStack } from '../../utils/printStack'
+import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
 import { NotFoundError } from '../../utils/rejectOnNotFound'
 
 type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown>
@@ -23,11 +23,12 @@ export function wrapRequest(
 function applyOrThrowWrapper(dmmfModelName: string, requestCallback: RequestCallback): RequestCallback {
   return async (requestParams) => {
     if ('rejectOnNotFound' in requestParams.args) {
-      const { stack } = printStack({
+      const message = createErrorMessageWithContext({
         originalMethod: requestParams.clientMethod,
         callsite: requestParams.callsite,
+        message: "'rejectOnNotFound' option is not supported",
       })
-      throw new PrismaClientValidationError(`${stack}\n'rejectOnNotFound' option is not supported`)
+      throw new PrismaClientValidationError(message)
     }
     const result = await requestCallback(requestParams)
     if (result === null || result === undefined) {
