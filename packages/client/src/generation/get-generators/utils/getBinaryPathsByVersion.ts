@@ -3,10 +3,10 @@ import type { BinaryDownloadConfiguration, DownloadOptions } from '@prisma/fetch
 import { download } from '@prisma/fetch-engine'
 import type { BinaryPaths, BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
+import { mapKeys } from '@prisma/internals'
 import makeDir from 'make-dir'
 import path from 'path'
 
-import { mapKeys } from '../../utils/mapKeys'
 import type { GetBinaryPathsByVersionInput } from '../getGenerators'
 import { binaryTypeToEngineType } from '../utils/binaryTypeToEngineType'
 import { engineTypeToBinaryType } from '../utils/engineTypeToBinaryType'

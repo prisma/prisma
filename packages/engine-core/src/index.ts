@@ -8,6 +8,7 @@ export { PrismaClientKnownRequestError } from './common/errors/PrismaClientKnown
 export { PrismaClientRustPanicError } from './common/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './common/errors/PrismaClientUnknownRequestError'
 export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from './common/types/Metrics'
+export type { ConfigMetaFormat } from './common/types/QueryEngine'
 export type { IsolationLevel, Options, TransactionHeaders } from './common/types/Transaction'
 export { getInternalDatamodelJson } from './common/utils/getInternalDatamodelJson'
 export { getOriginalBinaryTargetsValue, printGeneratorConfig } from './common/utils/printGeneratorConfig'

@@ -61,6 +61,7 @@
     "prisma2": "build/index.js"
   },
   "devDependencies": {
+    "@prisma/engines-version": "4.4.0-3.88f6ab88e559ef52ab26bc98f1da15200e0c25b4",
     "@prisma/client": "workspace:*",
     "@prisma/debug": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",

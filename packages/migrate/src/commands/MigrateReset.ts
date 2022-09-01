@@ -22,9 +22,19 @@ import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
+type ConstructorInput = {
+  tryToRunGenerate: (args: { schemaPath?: string }) => Promise<void>
+}
+
 export class MigrateReset implements Command {
-  public static new(): MigrateReset {
-    return new MigrateReset()
+  private tryToRunGenerate: (args: { schemaPath?: string }) => Promise<void>
+
+  public static new(input: ConstructorInput): MigrateReset {
+    return new MigrateReset(input)
+  }
+
+  constructor({ tryToRunGenerate }: ConstructorInput) {
+    this.tryToRunGenerate = tryToRunGenerate
   }
 
   private static help = format(`
@@ -152,7 +162,7 @@ The following migration(s) have been applied:\n\n${chalk(
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await this.tryToRunGenerate({ schemaPath })
     }
 
     // Run if not skipped

@@ -19,4 +19,4 @@ async function resolvePkg(id: string, options: _resolve.AsyncOpts) {
   return resolvedPath && path.dirname(resolvedPath)
 }
 
-export { resolve, resolvePkg }
+export { resolvePkg }

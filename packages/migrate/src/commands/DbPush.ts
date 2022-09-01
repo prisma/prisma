@@ -22,9 +22,19 @@ import { DbPushForceFlagRenamedError, DbPushIgnoreWarningsWithFlagError } from '
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
+type ConstructorInput = {
+  tryToRunGenerate: (args: { schemaPath?: string }) => Promise<void>
+}
+
 export class DbPush implements Command {
-  public static new(): DbPush {
-    return new DbPush()
+  private tryToRunGenerate: (args: { schemaPath?: string }) => Promise<void>
+
+  public static new(input: ConstructorInput): DbPush {
+    return new DbPush(input)
+  }
+
+  constructor({ tryToRunGenerate }: ConstructorInput) {
+    this.tryToRunGenerate = tryToRunGenerate
   }
 
   private static help = format(`
@@ -262,7 +272,7 @@ ${chalk.bold.redBright('All data will be lost.')}
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await this.tryToRunGenerate({ schemaPath })
     }
 
     return ``

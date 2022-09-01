@@ -1,4 +1,5 @@
-import type { ConfigMetaFormat } from '../../../engine-commands'
+import type { ConfigMetaFormat } from '@prisma/engine-core'
+
 import { GetGeneratorOptions } from '../../getGenerators'
 import { forbiddenPreviewFeatureWithDataProxyFlagMessage } from './forbiddenItxWithProxyFlagMessage'
 

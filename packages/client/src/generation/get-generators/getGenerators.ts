@@ -6,27 +6,32 @@ import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
+import {
+  extractPreviewFeatures,
+  getConfig,
+  getDMMF,
+  mapPreviewFeatures,
+  missingDatasource,
+  missingModelMessage,
+  missingModelMessageMongoDB,
+  parseBinaryTargetsEnvValue,
+  parseEnvValue,
+  pick,
+  printConfigWarnings,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF } from '..'
-import { Generator } from '../Generator'
 import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
 import { predefinedGeneratorResolvers } from '../predefinedGeneratorResolvers'
-import { resolveOutput } from '../resolveOutput'
-import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
-import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
-import { missingDatasource } from '../utils/missingDatasource'
-import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
-import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
-import { pick } from '../utils/pick'
-import { printConfigWarnings } from '../utils/printConfigWarnings'
+import { Generator } from './Generator'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
+import { resolveOutput } from './utils/resolveOutput'
 
 const debug = Debug('prisma:getGenerators')
 

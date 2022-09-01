@@ -58,3 +58,6 @@ if (process.argv[1] === __filename) {
 }
 
 export { dmmfToTypes, externalToInternalDmmf, getDMMF }
+export { getGeneratorSuccessMessage } from './get-generators/cli/getGeneratorSuccessMessage'
+export { Generator } from './get-generators/Generator'
+export { getGenerators } from './get-generators/getGenerators'

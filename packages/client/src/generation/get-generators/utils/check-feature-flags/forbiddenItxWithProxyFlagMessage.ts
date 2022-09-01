@@ -1,6 +1,5 @@
+import { link } from '@prisma/internals'
 import chalk from 'chalk'
-
-import { link } from '../../../utils/link'
 
 export const forbiddenPreviewFeatureWithDataProxyFlagMessage = (previewFeatureName: string) => `
 ${chalk.green(previewFeatureName)} preview feature is not yet available with ${chalk.green('--data-proxy')}.

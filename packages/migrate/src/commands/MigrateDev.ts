@@ -34,9 +34,19 @@ import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndR
 
 const debug = Debug('prisma:migrate:dev')
 
+type ConstructorInput = {
+  tryToRunGenerate: (args: { schemaPath?: string }) => Promise<void>
+}
+
 export class MigrateDev implements Command {
-  public static new(): MigrateDev {
-    return new MigrateDev()
+  private tryToRunGenerate: (args: { schemaPath?: string }) => Promise<void>
+
+  public static new(input: ConstructorInput): MigrateDev {
+    return new MigrateDev(input)
+  }
+
+  constructor({ tryToRunGenerate }: ConstructorInput) {
+    this.tryToRunGenerate = tryToRunGenerate
   }
 
   private static help = format(`
@@ -310,7 +320,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
 
     // Run if not skipped
     if (!process.env.PRISMA_MIGRATE_SKIP_GENERATE && !args['--skip-generate']) {
-      await migrate.tryToRunGenerate()
+      await this.tryToRunGenerate({ schemaPath })
       console.info() // empty line
     }
 

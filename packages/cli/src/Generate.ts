@@ -1,11 +1,10 @@
+import { Generator, getGenerators } from '@prisma/client/generator-build'
 import { enginesVersion } from '@prisma/engines'
 import {
   arg,
   Command,
   format,
-  Generator,
   getCommandWithExecutor,
-  getGenerators,
   getGeneratorSuccessMessage,
   getPlatform,
   HelpError,

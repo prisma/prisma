@@ -1,17 +1,10 @@
-import Debug from '@prisma/debug'
-import { enginesVersion } from '@prisma/engines-version'
-import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
-import chalk from 'chalk'
+import { getSchemaPathSync } from '@prisma/internals'
 import fs from 'fs'
-import logUpdate from 'log-update'
 import path from 'path'
 
 import { MigrateEngine } from './MigrateEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
-
-const debug = Debug('prisma:migrate')
-const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
   public engine: MigrateEngine
@@ -140,39 +133,5 @@ export class Migrate {
       warnings,
       unexecutable,
     }
-  }
-
-  public async tryToRunGenerate(): Promise<void> {
-    if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
-
-    const message: string[] = []
-
-    console.info() // empty line
-    logUpdate(`Running generate... ${chalk.dim('(Use --skip-generate to skip the generators)')}`)
-
-    const generators = await getGenerators({
-      schemaPath: this.schemaPath,
-      printDownloadProgress: true,
-      version: enginesVersion,
-      cliVersion: packageJson.version,
-      dataProxy: false,
-    })
-
-    for (const generator of generators) {
-      logUpdate(`Running generate... - ${generator.getPrettyName()}`)
-
-      const before = Date.now()
-      try {
-        await generator.generate()
-        const after = Date.now()
-        message.push(getGeneratorSuccessMessage(generator, after - before))
-        generator.stop()
-      } catch (e: any) {
-        message.push(`${e.message}`)
-        generator.stop()
-      }
-    }
-
-    logUpdate(message.join('\n'))
   }
 }

@@ -37,6 +37,7 @@ import { Init } from './Init'
 */
 import { Studio } from './Studio'
 import { Telemetry } from './Telemetry'
+import { tryToRunGenerate } from './tryToRunGenerate'
 import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
 import { detectPrisma1 } from './utils/detectPrisma1'
 import { printUpdateMessage } from './utils/printUpdateMessage'
@@ -106,17 +107,17 @@ async function main(): Promise<number> {
     {
       init: Init.new(),
       migrate: MigrateCommand.new({
-        dev: MigrateDev.new(),
+        dev: MigrateDev.new({ tryToRunGenerate }),
         status: MigrateStatus.new(),
         resolve: MigrateResolve.new(),
-        reset: MigrateReset.new(),
+        reset: MigrateReset.new({ tryToRunGenerate }),
         deploy: MigrateDeploy.new(),
         diff: MigrateDiff.new(),
       }),
       db: DbCommand.new({
         execute: DbExecute.new(),
         pull: DbPull.new(),
-        push: DbPush.new(),
+        push: DbPush.new({ tryToRunGenerate }),
         // drop: DbDrop.new(),
         seed: DbSeed.new(),
       }),
