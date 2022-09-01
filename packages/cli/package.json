@@ -103,7 +103,7 @@
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
     "ts-pattern": "4.0.5",
-    "typescript": "4.7.4"
+    "typescript": "4.8.2"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
