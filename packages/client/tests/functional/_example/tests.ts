@@ -4,7 +4,7 @@ import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
 import testMatrix from './_matrix'
 
 // @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: import('./node_modules/@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
