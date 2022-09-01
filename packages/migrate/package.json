@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.4.0-3.88f6ab88e559ef52ab26bc98f1da15200e0c25b4",
+    "@prisma/engines-version": "4.4.0-5.b92d74444c1c0298714e9b140a85dd714b8dc7c4",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.2.242",
@@ -34,7 +34,7 @@
     "make-dir": "3.1.0",
     "mock-stdin": "1.0.0",
     "tempy": "1.0.1",
-    "typescript": "4.7.4"
+    "typescript": "4.8.2"
   },
   "peerDependencies": {
     "@prisma/generator-helper": "*",

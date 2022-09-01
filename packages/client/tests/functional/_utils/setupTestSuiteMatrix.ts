@@ -1,5 +1,8 @@
+import fs from 'fs-extra'
+import path from 'path'
+
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
@@ -52,6 +55,7 @@ function setupTestSuiteMatrix(
     options,
   })
 
+  let hasCopiedGeneratedFilesInNodeModulesRoot = false
   for (const { name, suiteConfig, skip } of testPlan) {
     const describeFn = skip ? describe.skip : describe
 
@@ -76,6 +80,19 @@ function setupTestSuiteMatrix(
           globalThis['prisma'] = globalThis['newPrismaClient']()
         }
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
+      })
+
+      // for better dx, copy the first generated client into the test suite root
+      beforeAll(async () => {
+        if (hasCopiedGeneratedFilesInNodeModulesRoot === false) {
+          hasCopiedGeneratedFilesInNodeModulesRoot = true
+
+          const lastSuiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+          const lastSuiteNodeModuleFolderPath = path.join(lastSuiteFolderPath, 'node_modules')
+          const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
+
+          await fs.copy(lastSuiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true, overwrite: true })
+        }
       })
 
       afterAll(async () => {

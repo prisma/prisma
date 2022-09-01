@@ -49,6 +49,7 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
   const newContents = contents
     .replace(/'..\//g, "'../../../")
     .replace(/'.\//g, "'../../")
+    .replace(/'..\/..\/node_modules/g, "'./node_modules")
     .replace(/\/\/\s*@ts-ignore.+/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
       if (!evaluateMagicComment(condition, suiteConfig)) {

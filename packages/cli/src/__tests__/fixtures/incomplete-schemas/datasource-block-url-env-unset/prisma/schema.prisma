@@ -1,0 +1,6 @@
+// the schema has a `datasource db` block with an undefined env url
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SOME_UNDEFINED_DB")
+}

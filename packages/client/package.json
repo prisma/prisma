@@ -83,6 +83,7 @@
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
+    "@types/fs-extra": "9.0.13",
     "@types/jest": "28.1.8",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.1",
@@ -131,7 +132,7 @@
     "ts-jest": "28.0.8",
     "ts-node": "10.9.1",
     "tsd": "0.21.0",
-    "typescript": "4.7.4",
+    "typescript": "4.8.2",
     "yeoman-generator": "5.7.0",
     "yo": "4.3.0"
   },
@@ -144,7 +145,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-3.88f6ab88e559ef52ab26bc98f1da15200e0c25b4"
+    "@prisma/engines-version": "4.4.0-5.b92d74444c1c0298714e9b140a85dd714b8dc7c4"
   },
   "sideEffects": false
 }
