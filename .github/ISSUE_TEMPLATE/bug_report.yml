@@ -57,7 +57,7 @@ body:
       description: In which environment does the problem occur?
       value: |
         - OS: <!--[e.g. macOS, Windows, Debian, CentOS, ...]-->
-        - Database: <!--[PostgreSQL, MySQL (PlanetScale?), MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
+        - Database: <!--[PostgreSQL, MySQL, PlanetScale, MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
         - Node.js version: <!--[Run `node -v` to see your Node.js version]-->
     validations:
       required: true
