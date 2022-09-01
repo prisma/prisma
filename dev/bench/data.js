@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662024125978,
+  "lastUpdate": 1662028601338,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -123419,6 +123419,93 @@ window.BENCHMARK_DATA = {
             "range": "±0.00%",
             "unit": "MB",
             "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "6b1a5fa724dd9c5ff92a477f2f6472df99734d50",
+          "message": "Fix perfromance regression in generate (#15122)\n\nIn #14982, we introduced generic input types and a function for\r\ndetermining if particular input type needs generic argument. That\r\nfunction traversed whole type graph starting with given types in search\r\nfor field references. It did not do any caching, so if particular type\r\nwas encountered multiple types in different relations, whole traversal\r\nhappened each time.\r\n\r\nFixed by replacing that helper function with a class with a built-in\r\ncache for results. Now, each type would be checked at most once.\r\n\r\nFix #15109",
+          "timestamp": "2022-09-01T12:33:08+02:00",
+          "tree_id": "ad11b1e7add5301deca353c1b2850339857d043d",
+          "url": "https://github.com/prisma/prisma/commit/6b1a5fa724dd9c5ff92a477f2f6472df99734d50"
+        },
+        "date": 1662028593195,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.08,
+            "range": "±5.33%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.75%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.316741943359375,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.93513011932373,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.780771255493164,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.950889587402344,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.502219200134277,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.47,
+            "range": "±4.43%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
           }
         ]
       }
