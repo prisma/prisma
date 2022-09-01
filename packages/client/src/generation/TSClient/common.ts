@@ -360,12 +360,8 @@ type IsObject<T extends any> = T extends Array<any>
 ? False
 : T extends Date
 ? False
-${
-  generator?.previewFeatures.includes('denoDeploy')
-    ? ''
-    : `: T extends Buffer
-? False`
-}
+: T extends Uint8Array
+? False
 : T extends BigInt
 ? False
 : T extends object
