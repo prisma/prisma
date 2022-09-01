@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1661960423818,
+  "lastUpdate": 1662020536128,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -123215,6 +123215,86 @@ window.BENCHMARK_DATA = {
             "name": "typescript compilation ~50 Models",
             "value": 0.14,
             "range": "±2.12%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3143434524536133,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.93513011932373,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.780771255493164,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.950889587402344,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.501704216003418,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "jkomyno@users.noreply.github.com",
+            "name": "Alberto Schiabel",
+            "username": "jkomyno"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8110f2ceb008169fcaa6eef99850290448b61808",
+          "message": "test(cli): empty-schema -> incomplete-schemas (#15059)\n\n* test(cli): empty-schema -> incomplete-schemas\r\n\r\n* test(cli): grouped incomplete-schemas test cases\r\n\r\n* chore: add fixtures for incomplete-schemas tests\r\n\r\n* chore: normalized format test in incomplete-schemas\r\n\r\n* Chore: extracted repeated error messages\r\n\r\n* test(cli): add datasource-block-url-env-set-invalid tests to incomplete-schemas suite",
+          "timestamp": "2022-09-01T10:18:53+02:00",
+          "tree_id": "20ce3f3f8921adf682d3c527182c126d71b2a8d9",
+          "url": "https://github.com/prisma/prisma/commit/8110f2ceb008169fcaa6eef99850290448b61808"
+        },
+        "date": 1662020525145,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.98,
+            "range": "±5.06%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.34%",
             "unit": "ops/sec",
             "extra": "5 samples"
           },
