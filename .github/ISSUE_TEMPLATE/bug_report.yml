@@ -36,15 +36,22 @@ body:
       description: Your Prisma schema, Prisma Client queries, ...
       value: |
         <!-- Do not include your database credentials when sharing your Prisma schema! -->
+        ```prisma
+        // Add your schema.prisma
+        ```
+
+        ```ts
+        // Add your TypeScript code
+        ```
     validations:
       required: true
   - type: textarea
     attributes:
       label: Environment & setup
-      description: In which environment does the problem occur
+      description: In which environment does the problem occur?
       value: |
-        - OS: <!--[e.g. Mac OS, Windows, Debian, CentOS, ...]-->
-        - Database: <!--[PostgreSQL, MySQL, MariaDB or SQLite]-->
+        - OS: <!--[e.g. macOS, Windows, Debian, CentOS, ...]-->
+        - Database: <!--[PostgreSQL, MySQL (PlanetScale?), MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
         - Node.js version: <!--[Run `node -v` to see your Node.js version]-->
     validations:
       required: true
