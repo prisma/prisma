@@ -131,7 +131,11 @@ ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)
+Object.assign(exports, Prisma)${
+      this.options.generator?.previewFeatures.includes('denoDeploy')
+        ? '\nexport { exports as default, Prisma, PrismaClient }'
+        : ''
+    }
 ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code

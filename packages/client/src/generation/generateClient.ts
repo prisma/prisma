@@ -135,6 +135,16 @@ export async function buildClient({
     fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
   }
 
+  if (generator?.previewFeatures.includes('denoDeploy')) {
+    // We use modified version of edge.js in denoDeploy mode.
+    fileMap['edge.js'] = await JS(edgeTsClient, true)
+    fileMap['edge.ts'] = `import 'https://deno.land/std@0.152.0/dotenv/load.ts'
+import './deno-polyfill.js'
+// @deno-types="./index.d.ts"
+export * from './edge.js'`
+    fileMap['deno-polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
+  }
+
   return {
     fileMap, // a map of file names to their contents
     prismaClientDmmf: document, // the DMMF document

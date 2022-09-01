@@ -9,10 +9,31 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-}: TSClientOptions): string => `
+  generator,
+}: TSClientOptions): string => `${generator?.previewFeatures.includes('denoDeploy') ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  browser
+  generator?.previewFeatures.includes('denoDeploy')
+    ? `
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  NotFoundError,
+  decompressFromBase64,
+  getPrismaClient,
+  sqltag,
+  empty,
+  join,
+  raw,
+  Decimal,
+  Debug,
+  objectEnumValues,
+  makeStrictEnum    
+} from '${runtimeDir}/edge-esm.js'`
+    : browser
     ? `
 const {
   Decimal,
@@ -95,8 +116,16 @@ In case this error is unexpected for you, please report it in https://github.com
   return fnc
 }
 
-export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+export const commonCodeTS = ({
+  runtimeDir,
+  runtimeName,
+  clientVersion,
+  engineVersion,
+  generator,
+}: TSClientOptions) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}${
+    generator?.previewFeatures.includes('denoDeploy') ? '.d.ts' : ''
+  }';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
@@ -331,8 +360,12 @@ type IsObject<T extends any> = T extends Array<any>
 ? False
 : T extends Date
 ? False
-: T extends Buffer
-? False
+${
+  generator?.previewFeatures.includes('denoDeploy')
+    ? ''
+    : `: T extends Buffer
+? False`
+}
 : T extends BigInt
 ? False
 : T extends object
