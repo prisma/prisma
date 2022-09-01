@@ -46,7 +46,7 @@ body:
         ```
 
         ```ts
-        // Add your TypeScript code
+        // Add your code using Prisma Client
         ```
     validations:
       required: true
