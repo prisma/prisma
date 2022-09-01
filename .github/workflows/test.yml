@@ -225,7 +225,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mysql_isolated mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
       - uses: pnpm/action-setup@v2.2.2
         with:
