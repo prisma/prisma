@@ -331,7 +331,7 @@ type IsObject<T extends any> = T extends Array<any>
 ? False
 : T extends Date
 ? False
-: T extends Buffer
+: T extends Uint8Array
 ? False
 : T extends BigInt
 ? False

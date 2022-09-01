@@ -19,7 +19,7 @@
     "esbuild": "0.15.5",
     "jest": "28.1.3",
     "jest-junit": "14.0.1",
-    "typescript": "4.7.4"
+    "typescript": "4.8.2"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

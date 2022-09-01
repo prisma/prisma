@@ -75,7 +75,7 @@ ${indent(
 )}
 }
 
-${new PayloadType(outputType, false).toTS()}
+${new PayloadType(outputType, this.dmmf, false).toTS()}
 
 
 
