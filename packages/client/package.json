@@ -83,6 +83,7 @@
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
+    "@types/fs-extra": "9.0.13",
     "@types/jest": "28.1.8",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.1",
