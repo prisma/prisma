@@ -136,13 +136,22 @@ export async function buildClient({
   }
 
   if (generator?.previewFeatures.includes('denoDeploy')) {
-    // We use modified version of edge.js in denoDeploy mode.
-    fileMap['edge.js'] = await JS(edgeTsClient, true)
-    fileMap['edge.ts'] = `import 'https://deno.land/std@0.152.0/dotenv/load.ts'
-import './deno-polyfill.js'
+    // we create a client that is fit for edge runtimes
+    const denoTsClient = new TSClient({
+      ...tsClientOptions,
+      dataProxy: true, // edge only works w/ data proxy
+      runtimeName: 'edge',
+      runtimeDir: runtimeDirs.edge,
+      denoDeploy: true,
+    })
+
+    fileMap['deno/edge.js'] = await JS(denoTsClient, true)
+    fileMap['deno/index.d.ts'] = await TS(denoTsClient)
+    fileMap['deno/edge.ts'] = `import 'https://deno.land/std@0.152.0/dotenv/load.ts'
+import './polyfill.js'
 // @deno-types="./index.d.ts"
 export * from './edge.js'`
-    fileMap['deno-polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
+    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
   }
 
   return {

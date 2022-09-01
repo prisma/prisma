@@ -261,7 +261,7 @@ You will need a Prisma Data Proxy connection string. See documentation: ${link('
           hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
 ${chalk.dim('```')}
 ${highlightTS(`\
-import { PrismaClient } from '${importPath}/edge.ts'`)}
+import { PrismaClient } from '${importPath}/deno/edge.ts'`)}
 ${chalk.dim('```')}
 
 You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}

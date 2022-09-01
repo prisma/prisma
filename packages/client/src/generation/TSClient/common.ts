@@ -9,11 +9,11 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-  generator,
-}: TSClientOptions): string => `${generator?.previewFeatures.includes('denoDeploy') ? 'const exports = {}' : ''}
+  denoDeploy,
+}: TSClientOptions): string => `${denoDeploy ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  generator?.previewFeatures.includes('denoDeploy')
+  denoDeploy
     ? `
 import {
   PrismaClientKnownRequestError,
@@ -31,8 +31,8 @@ import {
   Decimal,
   Debug,
   objectEnumValues,
-  makeStrictEnum    
-} from '${runtimeDir}/edge-esm.js'`
+  makeStrictEnum
+} from '../${runtimeDir}/edge-esm.js'`
     : browser
     ? `
 const {
@@ -121,11 +121,9 @@ export const commonCodeTS = ({
   runtimeName,
   clientVersion,
   engineVersion,
-  generator,
+  denoDeploy,
 }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}${
-    generator?.previewFeatures.includes('denoDeploy') ? '.d.ts' : ''
-  }';
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}${denoDeploy ? '.d.ts' : ''}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
