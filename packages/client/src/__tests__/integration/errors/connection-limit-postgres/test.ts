@@ -5,17 +5,20 @@ describe('connection-limit-postgres', () => {
   const clients: any[] = []
 
   afterAll(async () => {
-    try {
-      await Promise.all(clients.map((c) => c.$disconnect()))
-    } catch (e) {
-      // When using the binary engine the error is thrown here :thinking:
-      if (getClientEngineType() === ClientEngineType.Binary) {
+    if (getClientEngineType() === ClientEngineType.Binary) {
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect.assertions(1)
+      try {
+        await Promise.all(clients.map((c) => c.$disconnect()))
+      } catch (e) {
+        // When using the binary engine the error is thrown here :thinking:
+        // eslint-disable-next-line jest/no-standalone-expect
         expect(e.message).toMatchInlineSnapshot(
           `Error querying the database: db error: FATAL: sorry, too many clients already`,
         )
-      } else {
-        throw e
       }
+    } else {
+      await Promise.all(clients.map((c) => c.$disconnect()))
     }
   })
 
