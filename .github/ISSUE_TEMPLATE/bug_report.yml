@@ -1,6 +1,7 @@
+# https://docs.github.com/en/communities/using-templates-to-encourage-useful-issues-and-pull-requests/configuring-issue-templates-for-your-repository
 name: Bug report
 description: Create a bug report to help us improve Prisma
-labels: 'kind/bug'
+labels: ['kind/bug', 'bug/1-unconfirmed']
 body:
   - type: markdown
     attributes:
@@ -8,12 +9,14 @@ body:
         Thanks for helping us improve Prisma! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by setting the `DEBUG="*"` environment variable and enabling additional logging output in Prisma Client.
         Learn more about the best practices for writing a bug report here: https://pris.ly/d/bug-reports
   - type: textarea
+    id: description
     attributes:
       label: Bug description
       description: A clear and concise description of what the bug is.
     validations:
       required: true
   - type: textarea
+    id: steps
     attributes:
       label: How to reproduce
       description: Steps to reproduce the behavior
@@ -27,10 +30,12 @@ body:
     validations:
       required: true
   - type: textarea
+    id: expected
     attributes:
       label: Expected behavior
       description: A clear and concise description of what you expected to happen.
   - type: textarea
+    id: prisma-info
     attributes:
       label: Prisma information
       description: Your Prisma schema, Prisma Client queries, ...
@@ -46,6 +51,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: environment
     attributes:
       label: Environment & setup
       description: In which environment does the problem occur?
@@ -56,6 +62,7 @@ body:
     validations:
       required: true
   - type: textarea
+    id: prisma-version
     attributes:
       label: Prisma Version
       description: Run `prisma -v` to see your Prisma version and paste it between the ´´´
