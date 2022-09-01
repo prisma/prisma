@@ -1,4 +1,5 @@
 import prompt from 'prompts'
+
 import { isCi } from './isCi'
 import { isInteractive } from './isInteractive'
 
