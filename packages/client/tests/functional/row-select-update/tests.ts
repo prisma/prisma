@@ -20,7 +20,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
   })
 
-  test('updateMany', async () => {
+  test.failing('updateMany', async () => {
     const fn = async () => {
       // we get our concurrent resource at some point in time
       const resource = (await prisma.resource.findFirst())!
@@ -49,7 +49,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  test('update', async () => {
+  test.failing('update', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
@@ -66,7 +66,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  test('deleteMany', async () => {
+  test.failing('deleteMany', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
@@ -91,7 +91,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
 
-  test('delete', async () => {
+  test.failing('delete', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
 
@@ -109,6 +109,24 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
 
       // sending requests in parallel but with update first
       await Promise.allSettled([_update, _delete])
+    }
+
+    await Promise.all([fn(), fn(), fn(), fn(), fn()])
+
+    expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
+  })
+
+  test.failing('upsert', async () => {
+    const fn = async () => {
+      const resource = (await prisma.resource.findFirst())!
+
+      expect(resource).toMatchObject({ occStamp: 0 })
+
+      await prisma.resource.upsert({
+        where: { occStamp: resource.occStamp },
+        update: { occStamp: { increment: 1 } },
+        create: {},
+      })
     }
 
     await Promise.all([fn(), fn(), fn(), fn(), fn()])
