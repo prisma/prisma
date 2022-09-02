@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { isDecimalJsLike, stringifyDecimalJsLike } from '../runtime/utils/decimalJsLike'
+import { isDecimalJsLike, stringifyDecimalJsLike } from './decimalJsLike'
 
 describe('isDecimalJsLike', () => {
   test('true for decimal.js instance', () => {
@@ -71,7 +71,7 @@ describe('isDecimalJsLike', () => {
 
 describe('stringifyDecimalJsLike', () => {
   test('stringifies Decimal instance', () => {
-    expect(stringifyDecimalJsLike(new Decimal('12.3'))).toBe('12.3')
+    expect(stringifyDecimalJsLike(new Decimal('12.3'))).toBe('"12.3"')
   })
 
   test('stringifies Decimal-like instance', () => {
@@ -80,6 +80,6 @@ describe('stringifyDecimalJsLike', () => {
       e: 1,
       s: 1,
     }
-    expect(stringifyDecimalJsLike(object)).toBe('12.3')
+    expect(stringifyDecimalJsLike(object)).toBe('"12.3"')
   })
 })

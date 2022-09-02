@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     describe('possible inputs', () => {
       beforeAll(async () => {
         await prisma.user.create({
@@ -83,7 +83,8 @@ testMatrix.setupTestSuite(
       })
 
       // https://github.com/prisma/prisma/issues/5925
-      test.failing('preserves precision when writing shorter numbers to to db', async () => {
+      // fails on sqlite, because sqlite decimal is actually a float
+      testIf(provider !== 'sqlite')('preserves precision when writing shorter numbers to to db', async () => {
         await prisma.user.create({
           data: { money: new Prisma.Decimal('8.7') },
         })
