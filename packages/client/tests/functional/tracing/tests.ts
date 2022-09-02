@@ -10,12 +10,12 @@ import {
   SimpleSpanProcessor,
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
-// @ts-ignore
-import { PrismaClient } from '@prisma/client'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 type Tree = {
   span: ReadableSpan
@@ -466,7 +466,6 @@ testMatrix.setupTestSuite(({ provider }) => {
     test('interactive-transactions', async () => {
       const email = faker.internet.email()
 
-      // @ts-ignore
       await prisma.$transaction(async (client) => {
         await client.user.create({
           data: {
@@ -663,7 +662,6 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   describe('tracing with middleware', () => {
-    // @ts-ignore
     let _prisma: PrismaClient
 
     beforeAll(async () => {
@@ -758,7 +756,6 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   describe('tracing connect', () => {
-    // @ts-ignore
     let _prisma: PrismaClient
 
     beforeEach(() => {
@@ -827,7 +824,6 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   describe('tracing disconnect', () => {
-    // @ts-ignore
     let _prisma: PrismaClient
 
     beforeAll(async () => {

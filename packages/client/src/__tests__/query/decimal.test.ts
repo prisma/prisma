@@ -31,7 +31,7 @@ test('allows to pass it decimal instance', () => {
   expect(document.toString()).toMatchInlineSnapshot(`
     query {
       findManyUser(where: {
-        money: 123456789.12334
+        money: "123456789.12334"
       }) {
         id
         money
@@ -102,7 +102,7 @@ test('allows to pass it decimal-like object', () => {
   expect(document.toString()).toMatchInlineSnapshot(`
     query {
       findManyUser(where: {
-        money: 12.5
+        money: "12.5"
       }) {
         id
         money
@@ -125,8 +125,8 @@ test('allows to pass it decimal array', () => {
       findManyUser(where: {
         money: {
           in: [
-            12.34,
-            56.78
+            "12.34",
+            "56.78"
           ]
         }
       }) {
@@ -170,8 +170,8 @@ test('allows to pass it decimal-like objects array', () => {
       findManyUser(where: {
         money: {
           in: [
-            12.34,
-            56.78
+            "12.34",
+            "56.78"
           ]
         }
       }) {
