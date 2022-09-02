@@ -13,16 +13,9 @@ export default testMatrix.setupSchema(({ provider, providerFeatures }) => {
       url      = env("DATABASE_URI_${provider}")
     }
     
-    model User {
-      id    ${idForProvider(provider)}
-      posts Post[]
-    }
-
-    model Post {
+    model Resource {
       id       ${idForProvider(provider)}
-      content  String
-      author   User @relation(fields: [authorId], references: [id])
-      authorId ${idTypeForProvider(provider)}
+      occStamp Int @default(0) @unique
     }
   `
 })

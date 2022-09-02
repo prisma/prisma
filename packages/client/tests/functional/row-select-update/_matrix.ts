@@ -24,7 +24,7 @@ export default defineMatrix(() => [
     },
     {
       provider: 'mongodb',
-      providerFeatures: '"mongoDb", ',
+      providerFeatures: '"mongoDb"',
     },
   ],
 ])
