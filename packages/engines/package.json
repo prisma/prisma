@@ -11,7 +11,7 @@
     "@prisma/engines-version": "4.4.0-6.ecd18e861c87d2df92b2f686f88210a2c66ef5e1",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@swc/core": "1.2.242",
+    "@swc/core": "1.2.246",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
     "@types/node": "16.11.56",
