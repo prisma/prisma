@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662107024883,
+  "lastUpdate": 1662132390023,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -123852,6 +123852,93 @@ window.BENCHMARK_DATA = {
             "name": "client generation 100 models with relations",
             "value": 0.56,
             "range": "±4.88%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "4898c94e8682b8e3641b7ded0f040e059f5780ab",
+          "message": "fix(client): Fix some of the precision issues with small decimals (#15157)\n\nOne of the reasons for decimal precision loss is serializing and parsing\r\nthem as floats when sending over to the engine. Serializing them as\r\nstrings fixes those kinds of issues.\r\n\r\nNote that it does not fixes all cases of precision loss yet: there is\r\nanother, separate issue, where precision will be lost after certain\r\namount of digits. This PR does not fixes those.\r\n\r\nFix #5925",
+          "timestamp": "2022-09-02T17:22:46+02:00",
+          "tree_id": "a3a63c0345c3d1b0655e4dddec210ef95fcc9f03",
+          "url": "https://github.com/prisma/prisma/commit/4898c94e8682b8e3641b7ded0f040e059f5780ab"
+        },
+        "date": 1662132381540,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.92,
+            "range": "±4.97%",
+            "unit": "ops/sec",
+            "extra": "14 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±1.58%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3254194259643555,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.93894863128662,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7845897674560547,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.950889587402344,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.503617286682129,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.43,
+            "range": "±4.16%",
             "unit": "ops/sec",
             "extra": "7 samples"
           }
