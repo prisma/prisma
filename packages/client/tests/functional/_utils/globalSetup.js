@@ -12,7 +12,7 @@ module.exports = async () => {
 
   if (ignorePatternsValue === 'typescript') {
     glob
-      .sync('./**/.generated/', {
+      .sync(['./tests/functional/**/.generated/', './tests/functional/**/node_modules/'], {
         onlyDirectories: true,
         dot: true,
       })
