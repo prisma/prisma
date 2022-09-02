@@ -85,12 +85,12 @@ function setupTestSuiteMatrix(
       beforeAll(async () => {
         const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
 
-        if ((await fs.pathExists(rootNodeModuleFolderPath)) === false) {
-          const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
-          const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
+        const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+        const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
 
-          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
-        }
+        await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true }).catch((e) => {
+          if (e.code !== 'EEXIST') throw e
+        })
       })
 
       afterAll(async () => {
