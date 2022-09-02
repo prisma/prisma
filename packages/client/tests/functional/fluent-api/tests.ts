@@ -1,12 +1,13 @@
 import { faker } from '@faker-js/faker'
 
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 const email = faker.internet.email()
 const title = faker.lorem.sentence()
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   beforeEach(async () => {
