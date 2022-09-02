@@ -43,7 +43,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await Promise.all([fn(), fn(), fn(), fn(), fn()])
 
     // if OCC worked correctly, then the occStamp should be `1`
-    // because our where clause clearly specified to update if `0`
+    // because our where clause specified to ONLY update if `0`
 
     // this shows that the update query engine query is not atomic
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
