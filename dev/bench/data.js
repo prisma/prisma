@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1662045766481,
+  "lastUpdate": 1662106886984,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -123680,6 +123680,93 @@ window.BENCHMARK_DATA = {
             "range": "±3.81%",
             "unit": "ops/sec",
             "extra": "6 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "ed44db9ea49869dfdaf9f0a6a2445b376148f5c3",
+          "message": "test: Add memory test for createMany (#15136)\n\n* test: Add memory test for create many\r\n\r\nUnsuccesful attempt to reproduce leak, reported in #8500.\r\n\r\nTest uses smaller bathch size then reported for the execution time sake,\r\nbut it does not reproduce with a larger batch.\r\n\r\n* Update .github/workflows/test.yml\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\n* Update .buildkite/test/run.sh\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>\r\n\r\nCo-authored-by: Joël Galeran <Jolg42@users.noreply.github.com>",
+          "timestamp": "2022-09-02T10:18:15+02:00",
+          "tree_id": "662c51c70262e786cb729ee62c304c6478b35aa4",
+          "url": "https://github.com/prisma/prisma/commit/ed44db9ea49869dfdaf9f0a6a2445b376148f5c3"
+        },
+        "date": 1662106878645,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.21,
+            "range": "±5.38%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±3.11%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3253583908081055,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.93894863128662,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7845897674560547,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.950889587402344,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.503609657287598,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.49,
+            "range": "±5.23%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
           }
         ]
       }
