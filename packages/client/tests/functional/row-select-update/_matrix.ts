@@ -2,10 +2,10 @@ import { defineMatrix } from '../_utils/defineMatrix'
 
 export default defineMatrix(() => [
   [
-    {
-      provider: 'sqlite',
-      providerFeatures: '',
-    },
+    // {
+    //   provider: 'sqlite',
+    //   providerFeatures: '',
+    // },
     {
       provider: 'postgresql',
       providerFeatures: '',
@@ -14,17 +14,17 @@ export default defineMatrix(() => [
       provider: 'mysql',
       providerFeatures: '',
     },
-    {
-      provider: 'sqlserver',
-      providerFeatures: '',
-    },
-    {
-      provider: 'cockroachdb',
-      providerFeatures: '',
-    },
-    {
-      provider: 'mongodb',
-      providerFeatures: '"mongoDb"',
-    },
+    // {
+    //   provider: 'sqlserver',
+    //   providerFeatures: '',
+    // },
+    // {
+    //   provider: 'cockroachdb',
+    //   providerFeatures: '',
+    // },
+    // {
+    //   provider: 'mongodb',
+    //   providerFeatures: '"mongoDb"',
+    // },
   ],
 ])
