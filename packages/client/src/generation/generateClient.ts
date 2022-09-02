@@ -241,6 +241,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
+  if (generator?.previewFeatures.includes('denoDeploy')) {
+    await makeDir(path.join(outputDir, 'deno'))
+  }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
   // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
