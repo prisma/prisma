@@ -2,11 +2,11 @@ import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
-
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
 // @ts-ignore
-declare let Prisma: typeof import('@prisma/client').Prisma
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
