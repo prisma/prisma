@@ -32,7 +32,7 @@ import {
   Debug,
   objectEnumValues,
   makeStrictEnum
-} from '../${runtimeDir}/edge-esm.js'`
+} from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
 const {
@@ -116,14 +116,8 @@ In case this error is unexpected for you, please report it in https://github.com
   return fnc
 }
 
-export const commonCodeTS = ({
-  runtimeDir,
-  runtimeName,
-  clientVersion,
-  engineVersion,
-  denoDeploy,
-}: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}${denoDeploy ? '.d.ts' : ''}';
+export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
 declare const prisma: unique symbol
 export type PrismaPromise<A> = Promise<A> & {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
