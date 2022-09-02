@@ -1,9 +1,9 @@
-// @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace

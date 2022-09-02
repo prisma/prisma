@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore this is just for type checks
-import type { PrismaClient } from '@prisma/client'
 
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 

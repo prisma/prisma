@@ -1,9 +1,10 @@
 import { PrismaClientInitializationError } from '@prisma/engine-core'
 
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(

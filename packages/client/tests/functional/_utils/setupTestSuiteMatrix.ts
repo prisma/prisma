@@ -1,5 +1,8 @@
+import fs from 'fs-extra'
+import path from 'path'
+
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
@@ -76,6 +79,23 @@ function setupTestSuiteMatrix(
           globalThis['prisma'] = globalThis['newPrismaClient']()
         }
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
+      })
+
+      // for better type dx, copy a client into the test suite root node_modules
+      // this is so that we can have intellisense for the client in the test suite
+      beforeAll(() => {
+        const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
+
+        // reserve the node_modules so that parallel tests suites don't conflict
+        fs.mkdir(rootNodeModuleFolderPath, async (error) => {
+          if (error !== null && error.code !== 'EEXIST') throw error // unknown error
+          if (error !== null && error.code === 'EEXIST') return // already reserved
+
+          const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+          const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
+
+          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
+        })
       })
 
       afterAll(async () => {
