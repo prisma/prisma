@@ -13,7 +13,7 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@swc/core": "1.2.242",
+    "@swc/core": "1.2.246",
     "@types/node": "16.11.56",
     "typescript": "4.8.2",
     "jest": "28.1.3",
