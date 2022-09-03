@@ -52,7 +52,7 @@
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-jest": "26.9.0",
     "eslint-plugin-prettier": "4.2.1",
-    "eslint-plugin-simple-import-sort": "7.0.0",
+    "eslint-plugin-simple-import-sort": "8.0.0",
     "eventemitter3": "4.0.7",
     "execa": "5.1.1",
     "glob": "8.0.3",
