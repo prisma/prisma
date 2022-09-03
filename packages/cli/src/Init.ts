@@ -107,7 +107,7 @@ export class Init implements Command {
   ${chalk.bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB
+  --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlserver, mongodb
                   --url   Define a custom datasource url
 
   ${chalk.bold('Examples')}
