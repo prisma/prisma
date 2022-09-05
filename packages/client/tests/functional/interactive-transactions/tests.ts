@@ -114,6 +114,27 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   /**
+   * Transactions should fail and rollback if a value is thrown within
+   */
+  test('rollback throw value', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      throw 'you better rollback now'
+    })
+
+    await expect(result).rejects.toThrow(`you better rollback now`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
    * A transaction might fail if it's called inside another transaction
    * //! this works only for postgresql
    */
@@ -205,10 +226,10 @@ testMatrix.setupTestSuite(({ provider }) => {
       Invalid \`transactionBoundPrisma.user.create()\` invocation in
       /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-        189 })
-        190 
-        191 const result = prisma.$transaction(async () => {
-      → 192   await transactionBoundPrisma.user.create(
+        210 })
+        211 
+        212 const result = prisma.$transaction(async () => {
+      → 213   await transactionBoundPrisma.user.create(
       Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
     `)
 
@@ -599,7 +620,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
     }
 
-    testIsolationLevel('read commited', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
+    testIsolationLevel('read committed', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
       await prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
@@ -612,7 +633,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       await expect(prisma.user.findMany()).resolves.toHaveLength(1)
     })
 
-    testIsolationLevel('read uncommited', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
+    testIsolationLevel('read uncommitted', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
       await prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
