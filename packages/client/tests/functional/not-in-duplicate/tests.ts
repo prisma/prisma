@@ -45,7 +45,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
   })
 
-  test('findMany', async () => {
+  test('count in', async () => {
     const count = await prisma.friend.count({
       where: {
         userId: userId1,
@@ -55,6 +55,19 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    console.log(count)
+    expect(count).toBe(1)
+  })
+
+  test('count not in', async () => {
+    const count = await prisma.friend.count({
+      where: {
+        userId: userId1,
+        friendId: {
+          notIn: [userId2, userId2],
+        },
+      },
+    })
+
+    expect(count).toBe(0)
   })
 }, {})
