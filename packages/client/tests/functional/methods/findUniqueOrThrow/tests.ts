@@ -80,9 +80,9 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
       /client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
 
-        XX })
         XX 
-        XX test('does not accept rejectOnNotFound option', async () => {
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
       → XX   const record = prisma.user.findUniqueOrThrow(
       'rejectOnNotFound' option is not supported
     `)
