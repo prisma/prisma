@@ -1,6 +1,24 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`field-reference.numeric (provider=cockroachdb, fieldType=BigInt) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=cockroachdb, fieldType=BigInt, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected BigInt or BigIntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=cockroachdb, fieldType=BigInt, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -22,7 +40,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=cockroachdb, fieldType=Float) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=cockroachdb, fieldType=Float, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected Float or FloatFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=cockroachdb, fieldType=Float, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -44,7 +80,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=cockroachdb, fieldType=Int) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=cockroachdb, fieldType=Int, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided FloatFieldRefInput<Product>, expected Int or IntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=cockroachdb, fieldType=Int, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -66,7 +120,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=mongodb, fieldType=BigInt) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=mongodb, fieldType=BigInt, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected BigInt or BigIntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=mongodb, fieldType=BigInt, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -88,7 +160,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=mongodb, fieldType=Float) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=mongodb, fieldType=Float, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected Float or FloatFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=mongodb, fieldType=Float, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -110,7 +200,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=mongodb, fieldType=Int) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=mongodb, fieldType=Int, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided FloatFieldRefInput<Product>, expected Int or IntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=mongodb, fieldType=Int, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -132,7 +240,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=mysql, fieldType=BigInt) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=mysql, fieldType=BigInt, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected BigInt or BigIntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=mysql, fieldType=BigInt, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -154,7 +280,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=mysql, fieldType=Float) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=mysql, fieldType=Float, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected Float or FloatFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=mysql, fieldType=Float, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -176,7 +320,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=mysql, fieldType=Int) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=mysql, fieldType=Int, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided FloatFieldRefInput<Product>, expected Int or IntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=mysql, fieldType=Int, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -198,7 +360,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=postgresql, fieldType=BigInt) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=postgresql, fieldType=BigInt, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected BigInt or BigIntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=postgresql, fieldType=BigInt, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -220,7 +400,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=postgresql, fieldType=Float) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=postgresql, fieldType=Float, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected Float or FloatFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=postgresql, fieldType=Float, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -242,7 +440,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=postgresql, fieldType=Int) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=postgresql, fieldType=Int, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided FloatFieldRefInput<Product>, expected Int or IntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=postgresql, fieldType=Int, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -264,7 +480,7 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=sqlite, fieldType=BigInt) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=sqlite, fieldType=BigInt, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -286,7 +502,7 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=sqlite, fieldType=Float) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=sqlite, fieldType=Float, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -308,7 +524,7 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=sqlite, fieldType=Int) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=sqlite, fieldType=Int, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -330,7 +546,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=sqlserver, fieldType=BigInt) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=sqlserver, fieldType=BigInt, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected BigInt or BigIntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=sqlserver, fieldType=BigInt, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -352,7 +586,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=sqlserver, fieldType=Float) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=sqlserver, fieldType=Float, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected Float or FloatFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=sqlserver, fieldType=Float, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
@@ -374,7 +626,25 @@ Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findMan
 
 `;
 
-exports[`field-reference.numeric (provider=sqlserver, fieldType=Int) wrong column numeric type 1`] = `
+exports[`field-reference.numeric (provider=sqlserver, fieldType=Int, runtime=edge) wrong column numeric type 1`] = `
+
+Invalid \`prisma.product.findMany()\` invocation:
+
+{
+  where: {
+    quantity: {
+      gt: prisma.product.fields.wrongType
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    }
+  }
+}
+
+Argument gt: Got invalid value prisma.product.fields.wrongType on prisma.findManyProduct. Provided FloatFieldRefInput<Product>, expected Int or IntFieldRefInput.
+
+
+`;
+
+exports[`field-reference.numeric (provider=sqlserver, fieldType=Int, runtime=node) wrong column numeric type 1`] = `
 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0

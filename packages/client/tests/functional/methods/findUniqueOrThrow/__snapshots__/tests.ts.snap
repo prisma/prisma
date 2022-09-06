@@ -1,0 +1,113 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`methods.findUniqueOrThrow (provider=cockroachdb, runtime=edge) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation:
+
+
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=cockroachdb, runtime=node) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+/client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
+
+  XX })
+  XX 
+  XX test('does not accept rejectOnNotFound option', async () => {
+→ XX   const record = prisma.user.findUniqueOrThrow(
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=mongodb, runtime=edge) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation:
+
+
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=mongodb, runtime=node) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+/client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
+
+  XX })
+  XX 
+  XX test('does not accept rejectOnNotFound option', async () => {
+→ XX   const record = prisma.user.findUniqueOrThrow(
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=mysql, runtime=edge) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation:
+
+
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=mysql, runtime=node) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+/client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
+
+  XX })
+  XX 
+  XX test('does not accept rejectOnNotFound option', async () => {
+→ XX   const record = prisma.user.findUniqueOrThrow(
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=postgresql, runtime=edge) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation:
+
+
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=postgresql, runtime=node) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+/client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
+
+  XX })
+  XX 
+  XX test('does not accept rejectOnNotFound option', async () => {
+→ XX   const record = prisma.user.findUniqueOrThrow(
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=sqlite, runtime=node) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+/client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
+
+  XX })
+  XX 
+  XX test('does not accept rejectOnNotFound option', async () => {
+→ XX   const record = prisma.user.findUniqueOrThrow(
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=sqlserver, runtime=edge) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation:
+
+
+'rejectOnNotFound' option is not supported
+`;
+
+exports[`methods.findUniqueOrThrow (provider=sqlserver, runtime=node) does not accept rejectOnNotFound option 1`] = `
+
+Invalid \`prisma.user.findUniqueOrThrow()\` invocation in
+/client/tests/functional/methods/findUniqueOrThrow/tests.ts:0:0
+
+  XX })
+  XX 
+  XX test('does not accept rejectOnNotFound option', async () => {
+→ XX   const record = prisma.user.findUniqueOrThrow(
+'rejectOnNotFound' option is not supported
+`;
