@@ -25,3 +25,13 @@ export function idForProvider(provider: string, options: Options = { includeDefa
 
   return strs.join(' ')
 }
+
+export function idForProviderType(provider: string) {
+  switch (provider) {
+    case 'mongodb':
+      return 'String @db.ObjectId'
+
+    default:
+      return 'String'
+  }
+}
