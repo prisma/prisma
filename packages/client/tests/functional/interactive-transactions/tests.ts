@@ -60,6 +60,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     await expect(result).rejects.toMatchObject({
       message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      code: 'P2028',
+      clientVersion: '0.0.0',
     })
 
     expect(await prisma.user.findMany()).toHaveLength(0)
@@ -127,7 +129,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       throw 'you better rollback now'
     })
 
-    await expect(result).rejects.toThrow(`you better rollback now`)
+    await expect(result).rejects.toMatchInlineSnapshot(`you better rollback now`)
 
     const users = await prisma.user.findMany()
 
@@ -217,19 +219,21 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
     })
 
-    1
     await expect(result).rejects.toMatchObject({
       message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      code: 'P2028',
+      clientVersion: '0.0.0',
     })
+
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
       Invalid \`transactionBoundPrisma.user.create()\` invocation in
       /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-        210 })
-        211 
-        212 const result = prisma.$transaction(async () => {
-      → 213   await transactionBoundPrisma.user.create(
+        212 })
+        213 
+        214 const result = prisma.$transaction(async () => {
+      → 215   await transactionBoundPrisma.user.create(
       Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
     `)
 
@@ -700,6 +704,11 @@ testMatrix.setupTestSuite(({ provider }) => {
           isolationLevel: 'NotAValidLevel',
         },
       )
+
+      await expect(result).rejects.toMatchObject({
+        code: 'P2023',
+        clientVersion: '0.0.0',
+      })
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
         `Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\``,
