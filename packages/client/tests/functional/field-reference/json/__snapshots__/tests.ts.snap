@@ -5,9 +5,9 @@ exports[`field-reference.json (provider=cockroachdb) wrong field type 1`] = `
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/json/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX test('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {
@@ -27,9 +27,9 @@ exports[`field-reference.json (provider=mongodb) wrong field type 1`] = `
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/json/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX test('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {
@@ -49,9 +49,9 @@ exports[`field-reference.json (provider=mysql) wrong field type 1`] = `
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/json/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX test('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {
@@ -71,9 +71,9 @@ exports[`field-reference.json (provider=postgresql) wrong field type 1`] = `
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/json/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX test('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {

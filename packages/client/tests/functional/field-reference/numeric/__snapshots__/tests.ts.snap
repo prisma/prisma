@@ -5,9 +5,9 @@ exports[`field-reference.numeric (provider=cockroachdb, fieldType=BigInt) wrong 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -27,9 +27,9 @@ exports[`field-reference.numeric (provider=cockroachdb, fieldType=Float) wrong c
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -49,9 +49,9 @@ exports[`field-reference.numeric (provider=cockroachdb, fieldType=Int) wrong col
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -71,9 +71,9 @@ exports[`field-reference.numeric (provider=mongodb, fieldType=BigInt) wrong colu
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -93,9 +93,9 @@ exports[`field-reference.numeric (provider=mongodb, fieldType=Float) wrong colum
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -115,9 +115,9 @@ exports[`field-reference.numeric (provider=mongodb, fieldType=Int) wrong column 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -137,9 +137,9 @@ exports[`field-reference.numeric (provider=mysql, fieldType=BigInt) wrong column
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -159,9 +159,9 @@ exports[`field-reference.numeric (provider=mysql, fieldType=Float) wrong column 
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -181,9 +181,9 @@ exports[`field-reference.numeric (provider=mysql, fieldType=Int) wrong column nu
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -203,9 +203,9 @@ exports[`field-reference.numeric (provider=postgresql, fieldType=BigInt) wrong c
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -225,9 +225,9 @@ exports[`field-reference.numeric (provider=postgresql, fieldType=Float) wrong co
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -247,9 +247,9 @@ exports[`field-reference.numeric (provider=postgresql, fieldType=Int) wrong colu
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -269,9 +269,9 @@ exports[`field-reference.numeric (provider=sqlite, fieldType=BigInt) wrong colum
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -291,9 +291,9 @@ exports[`field-reference.numeric (provider=sqlite, fieldType=Float) wrong column
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -313,9 +313,9 @@ exports[`field-reference.numeric (provider=sqlite, fieldType=Int) wrong column n
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -335,9 +335,9 @@ exports[`field-reference.numeric (provider=sqlserver, fieldType=BigInt) wrong co
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -357,9 +357,9 @@ exports[`field-reference.numeric (provider=sqlserver, fieldType=Float) wrong col
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -379,9 +379,9 @@ exports[`field-reference.numeric (provider=sqlserver, fieldType=Int) wrong colum
 Invalid \`prisma.product.findMany()\` invocation in
 /client/tests/functional/field-reference/numeric/tests.ts:0:0
 
+  XX })
   XX 
-  XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX test('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {

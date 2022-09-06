@@ -64,9 +64,9 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
+        XX })
         XX 
-        XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong field type', async () => {
+        XX test('wrong field type', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -98,9 +98,9 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
+        XX })
         XX 
-        XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong model', async () => {
+        XX test('wrong model', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -132,9 +132,9 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
+        XX })
         XX 
-        XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong identical model', async () => {
+        XX test('wrong identical model', async () => {
       → XX   const products = prisma.product.findMany({
                 where: {
                   string: {
