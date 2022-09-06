@@ -11,7 +11,7 @@ declare let Prisma: typeof PrismaNamespace
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
 
-testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: existingEmail, posts: { create: { title: 'How to exist?' } } } })
   })
@@ -67,8 +67,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     })
   })
 
-  // TODO: Edge: skipped because of the error snapshot
-  testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
+  test('does not accept rejectOnNotFound option', async () => {
     const record = prisma.user.findFirstOrThrow({
       where: { email: existingEmail },
       // @ts-expect-error passing not supported option on purpose

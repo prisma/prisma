@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
+testMatrix.setupTestSuite(() => {
   beforeAll(async () => {
     await prisma.product.create({
       data: {
@@ -48,8 +48,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     ])
   })
 
-  // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong field type', async () => {
+  test('wrong field type', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -82,8 +81,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     `)
   })
 
-  // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong model', async () => {
+  test('wrong model', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -116,8 +114,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     `)
   })
 
-  // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong identical model', async () => {
+  test('wrong identical model', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
