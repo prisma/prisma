@@ -20,6 +20,7 @@ const args = arg(
     '--types-only': Boolean,
     // Restrict the list of providers
     '--provider': [String],
+    '-p': '--provider',
     // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
     // Use edge client (requires --data-proxy)
@@ -33,7 +34,6 @@ const args = arg(
     '--no-mini-proxy-default-ca': Boolean,
     // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
-    '-p': '--provider',
   },
   true,
   true,
