@@ -45,7 +45,26 @@ testMatrix.setupTestSuite(
               json: Prisma.DbNull,
             },
           }),
-        ).rejects.toMatchPrismaErrorSnapshot()
+        ).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                    Invalid \`prisma.requiredJsonField.create()\` invocation in
+                    /client/tests/functional/json-null-types/tests.ts:0:0
+
+                      XX 
+                      XX test('DbNull', async () => {
+                      XX   await expect(
+                    → XX     prisma.requiredJsonField.create({
+                               data: {
+                                 json: Prisma.DbNull
+                                       ~~~~~~~~~~~~~
+                               }
+                             })
+
+                    Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
+                    → Possible values: JsonNullValueInput.JsonNull
+
+
+                `)
       })
     })
 
@@ -64,7 +83,26 @@ testMatrix.setupTestSuite(
               json: new Prisma.NullTypes.JsonNull(),
             },
           }),
-        ).rejects.toMatchPrismaErrorSnapshot()
+        ).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+          Invalid \`prisma.requiredJsonField.create()\` invocation in
+          /client/tests/functional/json-null-types/tests.ts:0:0
+
+            XX 
+            XX test('custom instances are not allowed', async () => {
+            XX   await expect(
+          → XX     prisma.requiredJsonField.create({
+                     data: {
+                       json: new Prisma.NullTypes.JsonNull()
+                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                     }
+                   })
+
+          Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
+          → Possible values: JsonNullValueInput.JsonNull
+
+
+        `)
       })
     })
   },

@@ -27,12 +27,4 @@ export default defineMatrix(() => [
     { fieldType: 'Float', wrongFieldType: 'Int' },
     /*{ fieldType: 'Decimal' }*/
   ],
-  [
-    {
-      runtime: 'node',
-    },
-    {
-      runtime: 'edge',
-    },
-  ],
 ])

@@ -27,12 +27,4 @@ export default defineMatrix(() => [
       badQuery: 'John <--> Smith',
     },
   ],
-  [
-    {
-      runtime: 'node',
-    },
-    {
-      runtime: 'edge',
-    },
-  ],
 ])

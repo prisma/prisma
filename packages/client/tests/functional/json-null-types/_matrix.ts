@@ -12,12 +12,4 @@ export default defineMatrix(() => [
       provider: 'cockroachdb',
     },
   ],
-  [
-    {
-      runtime: 'node',
-    },
-    {
-      runtime: 'edge',
-    },
-  ],
 ])

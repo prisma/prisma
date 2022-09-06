@@ -21,12 +21,4 @@ export default defineMatrix(() => [
       provider: 'sqlserver',
     },
   ],
-  [
-    {
-      runtime: 'node',
-    },
-    {
-      runtime: 'edge',
-    },
-  ],
 ])

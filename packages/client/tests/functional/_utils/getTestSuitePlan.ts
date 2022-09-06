@@ -33,10 +33,7 @@ export function getTestSuitePlan(
 
   return suiteConfig.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip:
-      shouldSkipAll ||
-      shouldSkipProvider(context, namedConfig, configIndex, clientMeta) ||
-      shouldSkipRuntime(namedConfig, clientMeta),
+    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
     suiteConfig: namedConfig,
   }))
 }
@@ -76,19 +73,6 @@ function shouldSkipProvider(
   }
 
   return excludedProviders.includes(provider)
-}
-
-function shouldSkipRuntime(config: NamedTestSuiteConfig, clientMeta: ClientMeta): boolean {
-  const runtime = config.matrixOptions['runtime']?.toLocaleLowerCase()
-
-  if (!runtime) {
-    // nothing to skip if there is no "runtime" dimension in the matrix
-    return false
-  }
-
-  // otherwise, only run the tests corresponding to the client configuration
-  // and mark the others as skipped
-  return clientMeta.runtime !== runtime
 }
 
 function buildPlanContext(): SuitePlanContext {
