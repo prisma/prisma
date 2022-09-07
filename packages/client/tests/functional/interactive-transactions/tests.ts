@@ -129,7 +129,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       throw 'you better rollback now'
     })
 
-    await expect(result).rejects.toMatchInlineSnapshot(`you better rollback now`)
+    await expect(result).rejects.toBe(`you better rollback now`)
 
     const users = await prisma.user.findMany()
 
@@ -225,7 +225,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       clientVersion: '0.0.0',
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+    await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
       Invalid \`transactionBoundPrisma.user.create()\` invocation in
       /client/tests/functional/interactive-transactions/tests.ts:0:0
