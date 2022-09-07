@@ -998,7 +998,6 @@ new PrismaClient({
         // it went bad, then we rollback the transaction
         await this._engine.transaction('rollback', headers, info).catch(() => {})
 
-        e.clientVersion = this._clientVersion
         throw e // silent rollback, throw original error
       }
 

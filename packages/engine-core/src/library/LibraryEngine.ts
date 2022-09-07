@@ -9,6 +9,7 @@ import fs from 'fs'
 import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { RequestError } from '../common/errors/types/RequestError'
@@ -144,7 +145,14 @@ export class LibraryEngine extends Engine {
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
-    if (response.error_code) throw response
+    if (response.error_code) {
+      throw new PrismaClientKnownRequestError(
+        response.message as string,
+        response.error_code as string,
+        this.config.clientVersion as string,
+        response.meta,
+      )
+    }
 
     return response as Tx.Info | undefined
   }
