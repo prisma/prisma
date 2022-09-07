@@ -135,7 +135,7 @@ export async function buildClient({
     fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
   }
 
-  if (generator?.previewFeatures.includes('denoDeploy')) {
+  if (generator?.previewFeatures.includes('denoDeploy') && !!globalThis.Deno) {
     // we create a client that is fit for edge runtimes
     const denoTsClient = new TSClient({
       ...tsClientOptions,
@@ -241,7 +241,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
-  if (generator?.previewFeatures.includes('denoDeploy')) {
+  if (generator?.previewFeatures.includes('denoDeploy') && !!globalThis.Deno) {
     await makeDir(path.join(outputDir, 'deno'))
   }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?

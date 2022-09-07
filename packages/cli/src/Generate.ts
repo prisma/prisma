@@ -207,7 +207,7 @@ Please run \`prisma generate\` manually.`
       let hint = ''
       if (prismaClientJSGenerator) {
         const generator = prismaClientJSGenerator.options?.generator
-        const isDenoDeploy = generator?.previewFeatures.includes('denoDeploy')
+        const isDenoDeploy = generator?.previewFeatures.includes('denoDeploy') && !!globalThis.Deno
         if (isDenoDeploy && !generator?.isCustomOutput) {
           throw new Error(`Can't find output dir for generator ${chalk.bold(
             generator?.name,
