@@ -1031,14 +1031,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const result = await Connection.onHttpError(
         this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
-        transactionHttpErrorHandler,
+        (result) => this.transactionHttpErrorHandler(result),
       )
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
+        this.transactionHttpErrorHandler(result),
+      )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), transactionHttpErrorHandler)
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
+        this.transactionHttpErrorHandler(result),
+      )
     }
 
     return undefined
@@ -1166,6 +1170,20 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
     )
     return response.data
   }
+
+  /**
+   * Decides how to handle error responses for transactions
+   * @param result
+   */
+  transactionHttpErrorHandler<R>(result: Result<R>): never {
+    const response = result.data as { [K: string]: unknown }
+    throw new PrismaClientKnownRequestError(
+      response.message as string,
+      response.error_code as string,
+      this.clientVersion as string,
+      response.meta,
+    )
+  }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
@@ -1209,14 +1227,6 @@ function initHooks() {
     hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
-}
-
-/**
- * Decides how to handle error responses for transactions
- * @param result
- */
-function transactionHttpErrorHandler<R>(result: Result<R>): never {
-  throw result.data
 }
 
 /**
