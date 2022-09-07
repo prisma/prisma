@@ -28,7 +28,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty OR', async () => {
+  test.failing('findFirst with WHERE + empty OR', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: {},
@@ -38,7 +38,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND in OR', async () => {
+  test.failing('findFirst with WHERE + empty AND in OR', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: {
@@ -62,7 +62,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty OR list', async () => {
+  test.failing('findFirst with WHERE + empty OR list', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: [],
@@ -72,7 +72,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND list in OR', async () => {
+  test.failing('findFirst with WHERE + empty AND list in OR', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: {
@@ -84,7 +84,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND in OR list', async () => {
+  test.failing('findFirst with WHERE + empty AND in OR list', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: [
@@ -98,7 +98,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND list in OR list', async () => {
+  test.failing('findFirst with WHERE + empty AND list in OR list', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: [
@@ -162,7 +162,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty OR + empty object', async () => {
+  test.failing('findFirst with WHERE + empty OR + empty object', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: {
@@ -174,7 +174,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND in OR + empty object', async () => {
+  test.failing('findFirst with WHERE + empty AND in OR + empty object', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: {
@@ -202,7 +202,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty OR list + empty object', async () => {
+  test.failing('findFirst with WHERE + empty OR list + empty object', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: [
@@ -216,7 +216,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND list in OR + empty object', async () => {
+  test.failing('findFirst with WHERE + empty AND list in OR + empty object', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: {
@@ -232,7 +232,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND in OR list + empty object', async () => {
+  test.failing('findFirst with WHERE + empty AND in OR list + empty object', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: [
@@ -248,7 +248,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(data).not.toBeNull()
   })
 
-  test('findFirst with WHERE + empty AND list in OR list + empty object', async () => {
+  test.failing('findFirst with WHERE + empty AND list in OR list + empty object', async () => {
     const data = await prisma.resource.findFirst({
       where: {
         OR: [
