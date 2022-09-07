@@ -230,10 +230,10 @@ testMatrix.setupTestSuite(({ provider }) => {
       Invalid \`transactionBoundPrisma.user.create()\` invocation in
       /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-        212 })
-        213 
-        214 const result = prisma.$transaction(async () => {
-      → 215   await transactionBoundPrisma.user.create(
+        XX })
+        XX 
+        XX const result = prisma.$transaction(async () => {
+      → XX   await transactionBoundPrisma.user.create(
       Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
     `)
 
