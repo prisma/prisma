@@ -33,7 +33,7 @@
     "@types/benchmark": "2.1.2",
     "@types/glob": "8.0.0",
     "@types/graphviz": "0.0.34",
-    "@types/node": "14.18.26",
+    "@types/node": "14.18.27",
     "@types/node-fetch": "2.6.2",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.2",
