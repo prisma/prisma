@@ -22,9 +22,9 @@ export default defineMatrix(() => [
       provider: 'cockroachdb',
       providerFeatures: '',
     },
-    {
-      provider: 'mongodb',
-      providerFeatures: '"mongoDb"',
-    },
+    // {
+    //   provider: 'mongodb',
+    //   providerFeatures: '"mongoDb"',
+    // },
   ],
 ])
