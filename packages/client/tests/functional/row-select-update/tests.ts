@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
       await prisma.resource.deleteMany()
     })
 
-    test.failing('updateMany', async () => {
+    test('updateMany', async () => {
       const fn = async () => {
         // we get our concurrent resource at some point in time
         const resource = (await prisma.resource.findFirst())!
@@ -47,7 +47,7 @@ testMatrix.setupTestSuite(
       expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
     })
 
-    test.failing('update', async () => {
+    test('update', async () => {
       const fn = async () => {
         const resource = (await prisma.resource.findFirst())!
 
@@ -64,57 +64,22 @@ testMatrix.setupTestSuite(
       expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
     })
 
-    test.failing('deleteMany', async () => {
-      const fn = async () => {
-        const resource = (await prisma.resource.findFirst())!
-
-        expect(resource).toMatchObject({ occStamp: 0 })
-
-        const _update = prisma.resource.updateMany({
-          where: { occStamp: resource.occStamp },
-          data: { occStamp: { increment: 1 } },
+    test('deleteMany', async () => {
+      const fn = async (): Promise<number> => {
+        const result = await prisma.resource.deleteMany({
+          where: { occStamp: 0 },
         })
 
-        // with OCC working, this should have had no effect
-        const _delete = prisma.resource.deleteMany({
-          where: { occStamp: resource.occStamp },
-        })
-
-        // sending requests in parallel but with update first
-        await Promise.allSettled([_update, _delete])
+        return result.count
       }
 
-      await Promise.allSettled([fn(), fn(), fn(), fn(), fn()])
+      const results = await Promise.all([fn(), fn(), fn(), fn(), fn()])
+      const totalCount = results.reduce((acc, result) => acc + result, 0)
 
-      expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
+      expect(totalCount).toBe(1)
     })
 
-    test.failing('delete', async () => {
-      const fn = async () => {
-        const resource = (await prisma.resource.findFirst())!
-
-        expect(resource).toMatchObject({ occStamp: 0 })
-
-        const _update = prisma.resource.update({
-          where: { occStamp: resource.occStamp },
-          data: { occStamp: { increment: 1 } },
-        })
-
-        // with OCC working, this should have had no effect
-        const _delete = prisma.resource.delete({
-          where: { occStamp: resource.occStamp },
-        })
-
-        // sending requests in parallel but with update first
-        await Promise.allSettled([_update, _delete])
-      }
-
-      await Promise.allSettled([fn(), fn(), fn(), fn(), fn()])
-
-      expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
-    })
-
-    test.failing('upsert', async () => {
+    test('upsert', async () => {
       const fn = async () => {
         const resource = (await prisma.resource.findFirst())!
 
@@ -133,9 +98,10 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    optOut: {
-      from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver'],
-      reason: 'sqlserver fails but is flaky and sqlite/mongodb/cockroachdb have no issues',
-    },
+    // skipDefaultClientInstance: true,
+    // optOut: {
+    //   from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver'],
+    //   reason: 'sqlserver fails but is flaky and sqlite/mongodb/cockroachdb have no issues',
+    // },
   },
 )
