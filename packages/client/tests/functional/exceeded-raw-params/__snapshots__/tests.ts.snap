@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`exceeded-raw-params (provider=cockroachdb) lots of raw parameters 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+Raw query failed. Code: \`N/A\`. Message: \`N/A\`
+`;
+
+exports[`exceeded-raw-params (provider=mysql) lots of raw parameters 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+Raw query failed. Code: \`N/A\`. Message: \`N/A\`
+`;
+
+exports[`exceeded-raw-params (provider=postgresql) lots of raw parameters 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+Raw query failed. Code: \`N/A\`. Message: \`N/A\`
+`;
+
+exports[`exceeded-raw-params (provider=sqlserver) lots of raw parameters 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+Raw query failed. Code: \`8003\`. Message: \`The incoming request has too many parameters. The server supports a maximum of 2100 parameters. Reduce the number of parameters and resend the request.\`
+`;
