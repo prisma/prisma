@@ -62,10 +62,11 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
-      const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
+        const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+
         globalThis['datasourceInfo'] = datasourceInfo
 
         globalThis['loaded'] = await setupTestSuiteClient({
@@ -113,6 +114,7 @@ function setupTestSuiteMatrix(
         }
         clients.length = 0
         if (!options?.skipDb) {
+          const datasourceInfo = globalThis['datasourceInfo']
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
