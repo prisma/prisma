@@ -125,6 +125,23 @@ test('with matching source file, but without matching call at the line', () => {
                   `)
 })
 
+test('with matching source file, but non-existing line number', () => {
+  mockFile('/project/some-file.js', 'someCode()')
+  expect(
+    createErrorMessageWithContext({
+      originalMethod: 'model.findFirst',
+      callsite: mockCallsite('/project/some-file.js', 10, 1),
+      message: 'What a terrible failure!',
+    }),
+  ).toMatchInlineSnapshot(`
+
+    Invalid \`prisma.model.findFirst()\` invocation:
+
+
+    What a terrible failure!
+  `)
+})
+
 test('with matching source line, but without {', () => {
   mockFile('/project/some-file.js', 'prisma.model.findFirst(getParameters())')
   expect(

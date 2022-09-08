@@ -76,8 +76,8 @@ function getTemplateParameters(
 
   const contextFirstLine = Math.max(1, callLocation.lineNumber - 3)
   let source = SourceFileSlice.read(callLocation.fileName)?.slice(contextFirstLine, callLocation.lineNumber)
-  if (source) {
-    const invocationLine = source.lineAt(callLocation.lineNumber)
+  const invocationLine = source?.lineAt(callLocation.lineNumber)
+  if (source && invocationLine) {
     const invocationLineIndent = getIndent(invocationLine)
     const invocationCallCode = findPrismaActionCall(invocationLine)
     if (!invocationCallCode) {
