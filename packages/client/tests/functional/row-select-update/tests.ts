@@ -96,6 +96,58 @@ testMatrix.setupTestSuite(
 
       expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
     })
+
+    testRepeat(10)('concurrent updateMany + deleteMany', async () => {
+      const fn = async () => {
+        const resource = (await prisma.resource.findFirst())!
+
+        expect(resource).toMatchObject({ occStamp: 0 })
+
+        const _update = prisma.resource.updateMany({
+          where: { occStamp: resource.occStamp },
+          data: { occStamp: { increment: 1 } },
+        })
+
+        // with OCC working, this should have had no effect
+        const _delete = prisma.resource.deleteMany({
+          where: { occStamp: resource.occStamp },
+        })
+
+        // sending requests in parallel but with update first
+        await Promise.allSettled([_update, _delete])
+      }
+
+      await Promise.allSettled([fn(), fn(), fn(), fn(), fn()])
+
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
+    })
+
+    testRepeat(10)('concurrent update + delete', async () => {
+      const fn = async () => {
+        const resource = (await prisma.resource.findFirst())!
+
+        expect(resource).toMatchObject({ occStamp: 0 })
+
+        const _update = prisma.resource.update({
+          where: { occStamp: resource.occStamp },
+          data: { occStamp: { increment: 1 } },
+        })
+
+        // with OCC working, this should have had no effect
+        const _delete = prisma.resource.delete({
+          where: { occStamp: resource.occStamp },
+        })
+
+        // sending requests in parallel but with update first
+        await Promise.allSettled([_update, _delete])
+      }
+
+      await Promise.allSettled([fn(), fn(), fn(), fn(), fn()])
+
+      // eslint-disable-next-line jest/no-standalone-expect
+      expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
+    })
   },
   {
     // skipDefaultClientInstance: true,
