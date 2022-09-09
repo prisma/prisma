@@ -1,8 +1,8 @@
 {
   "name": "@prisma/generator-helper",
   "version": "0.0.0",
+  "description": "This package is intended for Prisma's internal use",
   "main": "dist/index.js",
-  "module": "esm/dist/index.mjs",
   "types": "dist/index.d.ts",
   "typings": "dist/index.d.ts",
   "license": "Apache-2.0",
@@ -13,11 +13,6 @@
   },
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "homepage": "https://www.prisma.io",
-  "maintainers": [
-    "Joël Galeran <galeran@prisma.io>",
-    "Pierre-Antoine Mills <mills@prisma.io>",
-    "Alexey Orlenko <orlenko@prisma.io>"
-  ],
   "bugs": "https://github.com/prisma/prisma/issues",
   "dependencies": {
     "@prisma/debug": "workspace:*",
@@ -28,19 +23,20 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "prepublishOnly": "pnpm run build",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "pnpm run build"
   },
   "devDependencies": {
-    "@swc/core": "1.2.141",
-    "@swc/jest": "0.2.17",
-    "@types/jest": "27.4.1",
-    "@types/node": "12.20.47",
-    "esbuild": "0.13.14",
-    "jest": "27.5.1",
-    "jest-junit": "13.0.0",
-    "ts-node": "10.4.0",
-    "typescript": "4.5.4"
+    "@swc-node/register": "1.5.1",
+    "@swc/core": "1.2.248",
+    "@swc/jest": "0.2.22",
+    "@types/jest": "28.1.8",
+    "@types/node": "12.20.55",
+    "esbuild": "0.15.7",
+    "jest": "28.1.3",
+    "jest-junit": "14.0.1",
+    "ts-node": "10.9.1",
+    "typescript": "4.8.2"
   },
   "files": [
     "README.md",

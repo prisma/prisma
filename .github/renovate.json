@@ -3,15 +3,19 @@
   "extends": ["config:base", ":disableRateLimiting"],
   "schedule": ["at any time"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln"],
+  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",
     "@prisma/engines",
     "@prisma/engines-version",
     "@prisma/fetch-engine",
-    "@prisma/get-platform"
+    "@prisma/get-platform",
+    "@prisma/prisma-fmt-wasm"
   ],
+  "constraints": {
+    "pnpm": "7"
+  },
   "packageRules": [
     {
       "groupName": "devDependencies (non-major)",
@@ -29,10 +33,52 @@
       "schedule": ["before 8am on Wednesday"]
     },
     {
+      "groupName": "ESM devDependencies & dependencies (major)",
+      "depTypeList": ["dependencies", "devDependencies"],
+      "updateTypes": ["major"],
+      "matchPackageNames": [
+        "get-port",
+        "is-obj",
+        "is-regexp",
+        "mongo",
+        "p-reduce",
+        "postgres",
+        "sort-keys",
+        "node.js",
+        "@sindresorhus/slugify",
+        "chalk",
+        "cli-truncate",
+        "escape-string-regexp",
+        "execa",
+        "find-up",
+        "get-stdin",
+        "globby",
+        "has-yarn",
+        "indent-string",
+        "log-update",
+        "new-github-issue-url",
+        "node-fetch",
+        "ora",
+        "p-map",
+        "p-retry",
+        "pkg-up",
+        "read-pkg-up",
+        "replace-string",
+        "string-width",
+        "strip-ansi",
+        "strip-indent",
+        "temp-write",
+        "tempy",
+        "terminal-link"
+      ],
+      "schedule": ["before 8am on Wednesday"]
+    },
+    {
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
-      "updateTypes": ["patch", "minor"]
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "Studio",
@@ -46,14 +92,35 @@
       "updateTypes": ["patch", "minor"]
     },
     {
-      "groupName": "jest",
+      "groupName": "Jest",
       "automerge": "true",
-      "packageNames": ["jest", "@types/jest", "ts-jest"]
+      "matchPackagePatterns": [".*jest.*"],
+      "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "sql-template-tag",
+      "packageNames": ["sql-template-tag"],
+      "updateTypes": ["patch", "minor"],
+      "schedule": ["before 8am on Wednesday"]
     },
     {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
-      "packageNames": ["node-fetch"]
+      "packageNames": ["node-fetch"],
+      "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "tsd",
+      "packageNames": ["tsd"]
+    },
+    {
+      "groupName": "sqlite-async",
+      "packageNames": ["sqlite-async"]
+    },
+    {
+      "groupName": "@swc/core for internals",
+      "paths": ["packages/internals/**"],
+      "packageNames": ["@swc/core"]
     },
     {
       "groupName": "react-prisma",
@@ -61,6 +128,12 @@
       "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
       "schedule": ["before 8am on Wednesday"]
+    },
+    {
+      "groupName": "react-prisma peerDependencies: react >=17",
+      "paths": ["packages/react-prisma/**"],
+      "matchDepTypes": ["peerDependencies"],
+      "rangeStrategy": "widen"
     }
   ]
 }

@@ -8,11 +8,11 @@ We also encourage you to join our sprawling [community](https://www.prisma.io/co
 
 ## Contributing Code
 
-Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines)
+Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Engines' code written in Rust [it's there](https://github.com/prisma/prisma-engines))
 
 ## General Prerequisites
 
-1. Install Node.js `>=12.6` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Install Node.js `>=14` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 
    - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
 
@@ -26,15 +26,15 @@ https://github.com/direnv/direnv/blob/master/docs/installation.md
 Copy paste these commands to install the global dependencies:
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
-nvm install 14
-npm install --global pnpm@6 ts-node
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+nvm install 16
+npm install --global pnpm@7 ts-node
 # For direnv see https://github.com/direnv/direnv/blob/master/docs/installation.md
 ```
 
 ## General Setup
 
-To setup and build all the packages, follow these steps:
+To set up and build all the packages, follow these steps:
 
 ```bash
 git clone https://github.com/prisma/prisma.git
@@ -93,7 +93,7 @@ pnpx prisma generate && pnpx ts-node index.ts
   cd reproductions
   mkdir my-repro
   cd my-repro
-  pnpm init -y
+  pnpm init
   pnpm add ../../packages/client
   pnpm add -D ../../packages/cli
   pnpm add -D typescript ts-node
@@ -244,17 +244,21 @@ List of types:
 - test: Adding missing or correcting existing tests
 - chore: Changes to the build process or auxiliary tools and libraries such as documentation generation
 
-List of packages:
+List of directories in the monorepo
 
 - cli
 - client
 - debug
 - engine-core
+- engines
+- fetch-engine
 - generator-helper
+- get-platform
+- instrumentation
+- integration-tests
+- internals
 - migrate
 - react-prisma
-- sdk
-- tests
 
 ## Legal
 

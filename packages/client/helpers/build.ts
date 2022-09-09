@@ -5,13 +5,17 @@ import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
 
+const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
+const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+
 // we define the config for runtime
-const runtimeBuildConfig: BuildOptions = {
+const nodeRuntimeBuildConfig: BuildOptions = {
+  name: 'runtime',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/index',
   bundle: true,
   define: {
-    'globalThis.NOT_PRISMA_DATA_PROXY': 'true',
+    NODE_CLIENT: 'true',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -19,46 +23,51 @@ const runtimeBuildConfig: BuildOptions = {
 
 // we define the config for browser
 const browserBuildConfig: BuildOptions = {
+  name: 'browser',
   entryPoints: ['src/runtime/index-browser.ts'],
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
 }
 
-// we define the config for proxy
-const proxyBuildConfig: BuildOptions = {
+// we define the config for edge
+const edgeRuntimeBuildConfig: BuildOptions = {
+  name: 'edge',
   entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/proxy',
+  outfile: 'runtime/edge',
   bundle: true,
   minify: true,
   legalComments: 'none',
   define: {
     // that helps us to tree-shake unused things out
-    'globalThis.NOT_PRISMA_DATA_PROXY': 'false',
+    NODE_CLIENT: 'false',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
   plugins: [
-    fillPlugin(
-      {
-        // TODO no tree shaking on wrapper pkgs
-        '@prisma/get-platform': { contents: '' },
-        // removes un-needed code out of `chalk`
-        'supports-color': { contents: '' },
-        // these can not be exported any longer
-        './warnEnvConflicts': { contents: '' },
-        './utils/find': { contents: '' },
+    fillPlugin({
+      // we remove eval and Function for vercel
+      eval: { define: 'undefined' },
+      Function: {
+        define: 'fn',
+        inject: functionPolyfillPath,
       },
-      // we only trigger it on the first step (esm)
-      // because that is where tree-shaking happens
-      (options) => options.format === 'esm',
-    ),
+
+      // TODO no tree shaking on wrapper pkgs
+      '@prisma/get-platform': { contents: '' },
+      // removes un-needed code out of `chalk`
+      'supports-color': { contents: '' },
+      // these can not be exported any longer
+      './warnEnvConflicts': { contents: '' },
+      './utils/find': { contents: '' },
+    }),
   ],
   logLevel: 'error',
 }
 
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
+  name: 'generator',
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
@@ -79,12 +88,18 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         'decimal.js',
         'sql-template-tag',
         '@opentelemetry/api',
-        '@prisma/sdk',
+        '@prisma/internals',
         '@prisma/engine-core',
         '@prisma/generator-helper',
+        '@prisma/debug',
       ],
       compiler: {
         tsconfigFilePath: 'tsconfig.build.json',
+        overrideTsconfig: {
+          compilerOptions: {
+            paths: {}, // bug with api extract + paths
+          },
+        },
       },
       dtsRollup: {
         enabled: true,
@@ -111,10 +126,9 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
   }
 }
 
-void build([generatorBuildConfig, runtimeBuildConfig, browserBuildConfig, proxyBuildConfig]).then(() => {
+void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
   if (process.env.DEV !== 'true') {
     bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/runtime/index', 'runtime/proxy')
     bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')
   }
 })

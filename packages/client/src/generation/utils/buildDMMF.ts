@@ -1,19 +1,25 @@
-import { ClientEngineType } from '@prisma/sdk'
+import { DMMF } from '@prisma/generator-helper'
 import lzString from 'lz-string'
+
+import { escapeJson } from '../TSClient/helpers'
 
 /**
  * Creates the necessary declarations to embed the generated DMMF into the
- * generated client. It compresses the DMMF for the data proxy engine.
- * @param engineType
+ * generated client. It compresses the DMMF for the data proxy engine. For
+ * data proxy, the full DMMF is exported, otherwise `schema` is removed.
+ * @param dataProxy
  * @param dmmf
  * @returns
  */
-export function buildDMMF(engineType: ClientEngineType, dmmf: string) {
-  if (engineType === ClientEngineType.DataProxy) {
-    return buildCompressedDMMF(dmmf)
+export function buildDMMF(dataProxy: boolean | undefined, dmmf: DMMF.Document) {
+  if (dataProxy === true) {
+    const dmmfString = escapeJson(JSON.stringify(dmmf))
+    return buildCompressedDMMF(dmmfString)
   }
 
-  return buildUncompressedDMMF(dmmf)
+  const { datamodel, mappings } = dmmf
+  const dmmfString = escapeJson(JSON.stringify({ datamodel, mappings }))
+  return buildUncompressedDMMF(dmmfString)
 }
 
 /**

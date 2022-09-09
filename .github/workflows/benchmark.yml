@@ -1,5 +1,4 @@
 name: Benchmark
-# Run on push only for main, if not it will trigger push & pull_request on PRs at the same time
 on:
   push:
     branches:
@@ -20,6 +19,19 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
+  pull_request:
+    paths-ignore:
+      - '*.md'
+      - '.devcontainer/**'
+      - '.vscode/**'
+      - 'docs/**'
+      - 'examples/**'
+      - 'LICENSE'
+      - '.github/CODEOWNERS'
+      - 'src/.buildkite/**'
+      - '.dockerignore'
+      - 'scripts/ci/publish.ts'
+      - 'graphs/**'
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma benchmark.yml'
@@ -28,19 +40,22 @@ jobs:
   benchmark:
     name: all
     runs-on: ubuntu-latest
+    # Only run on main repo (not on forks)
+    # This avoids notifications to be sent to `alert-comment-cc-users`, see below
+    if: github.repository == 'prisma/prisma'
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.1
+      - uses: pnpm/action-setup@v2.2.2
         with:
-          version: latest
+          version: 7
 
       - uses: actions/setup-node@v3
         with:
           cache: 'pnpm'
           node-version: '16'
 
-      - run: bash .github/workflows/setup.sh
+      - run: bash .github/workflows/scripts/setup.sh
         env:
           CI: true
           SKIP_GIT: true
@@ -53,6 +68,7 @@ jobs:
         run: pnpm run bench
 
       - name: Store benchmark result
+        if: ${{ github.ref == 'refs/heads/main' }}
         uses: rhysd/github-action-benchmark@v1
         with:
           name: Benchmark.js Benchmark
@@ -65,14 +81,14 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@Jolg42,@millsp'
+          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@danstarns,@jkomyno'
 
       - name: 'Set current job url in SLACK_FOOTER env var'
-        if: ${{ failure() }}
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
 
       - name: Slack Notification on Failure
-        if: ${{ failure() }}
+        if: ${{ failure() && github.ref == 'refs/heads/main' }}
         uses: rtCamp/action-slack-notify@v2.2.0
         env:
           SLACK_TITLE: 'Benchmark failed :x:'

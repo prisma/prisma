@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es2018",
+    "module": "commonjs",
+    "lib": ["es2018", "ES2021.WeakRef"],
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "sourceMap": true,
+    "declaration": true,
+
+    "strict": true,
+    "noImplicitAny": false,
+    "noUncheckedIndexedAccess": false,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "useUnknownInCatchVariables": false,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true,
+
+    "emitDeclarationOnly": true,
+    "resolveJsonModule": true
+  },
+  "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
+}

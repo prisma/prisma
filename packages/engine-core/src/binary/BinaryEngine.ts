@@ -1,10 +1,10 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import type { ConnectorType, GeneratorConfig } from '@prisma/generator-helper'
+import type { ConnectorType, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import type { ChildProcessByStdio } from 'child_process'
+import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
@@ -24,17 +24,19 @@ import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnow
 import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
-import type { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
-import type { QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { fixBinaryTargets, getRandomString, plusX } from '../common/utils/util'
+import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
+import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
+import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
 
@@ -89,6 +91,7 @@ export class BinaryEngine extends Engine {
   private lastRustError?: RustError
   private socketPath?: string
   private getConfigPromise?: Promise<GetConfigResult>
+  private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
   private dirname?: string
@@ -111,6 +114,7 @@ export class BinaryEngine extends Engine {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
+  private tracingConfig: TracingConfig
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -133,6 +137,7 @@ export class BinaryEngine extends Engine {
     allowTriggerPanic,
     dirname,
     activeProvider,
+    tracingConfig,
   }: EngineConfig) {
     super()
 
@@ -145,6 +150,7 @@ export class BinaryEngine extends Engine {
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
+    this.tracingConfig = tracingConfig
     this.logEmitter = new EventEmitter()
     this.logEmitter.on('error', () => {
       // to prevent unhandled error events
@@ -161,7 +167,7 @@ export class BinaryEngine extends Engine {
     initHooks()
 
     // See also warnOnDeprecatedFeatureFlag at
-    // https://github.com/prisma/prisma/blob/main/packages/sdk/src/engine-commands/getDmmf.ts#L179
+    // https://github.com/prisma/prisma/blob/9e5cc5bfb9ef0eb8251ab85a56302e835f607711/packages/sdk/src/engine-commands/getDmmf.ts#L179
     const removedFlags = [
       'middlewares',
       'aggregateApi',
@@ -308,7 +314,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   private handlePanic(): void {
-    this.child?.kill()
+    if (this.child) {
+      this.stopPromise = killProcessAndWait(this.child)
+    }
     if (this.currentRequestPromise?.cancel) {
       this.currentRequestPromise.cancel()
     }
@@ -464,32 +472,36 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.stopPromise
     }
 
-    if (!this.startPromise) {
-      this.startCount++
-      this.startPromise = this.internalStart()
+    const startFn = async () => {
+      if (!this.startPromise) {
+        this.startCount++
+        this.startPromise = this.internalStart()
+      }
+
+      await this.startPromise
+
+      if (!this.child && !this.engineEndpoint) {
+        throw new PrismaClientUnknownRequestError(
+          `Can't perform request, as the Engine has already been stopped`,
+          this.clientVersion!,
+        )
+      }
     }
 
-    await this.startPromise
-
-    if (!this.child && !this.engineEndpoint) {
-      throw new PrismaClientUnknownRequestError(
-        `Can't perform request, as the Engine has already been stopped`,
-        this.clientVersion!,
-      )
+    const spanOptions = {
+      name: 'connect',
+      enabled: this.tracingConfig.enabled && !this.startPromise,
     }
 
-    return this.startPromise
+    return runInChildSpan(spanOptions, startFn)
   }
 
   private getEngineEnvVars() {
     const env: any = {
       PRISMA_DML_PATH: this.datamodelPath,
-      RUST_BACKTRACE: '1',
-      RUST_LOG: 'info',
     }
 
     if (this.logQueries || this.logLevel === 'info') {
-      env.RUST_LOG = 'info'
       if (this.logQueries) {
         env.LOG_QUERIES = 'true'
       }
@@ -507,6 +519,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       ...this.env, // user-provided env vars
       ...process.env,
       ...env,
+      // use value from process.env or use default
+      RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
+      RUST_LOG: process.env.RUST_LOG ?? 'info',
     }
   }
 
@@ -546,7 +561,13 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = ['--enable-raw-queries', ...this.flags, ...additionalFlag]
+        const flags = [
+          '--enable-raw-queries',
+          '--enable-metrics',
+          '--enable-open-telemetry',
+          ...this.flags,
+          ...additionalFlag,
+        ]
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
@@ -572,7 +593,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
               debug(json)
               this.setError(json)
               if (this.engineStartDeferred) {
-                const err = new PrismaClientInitializationError(json.message, this.clientVersion!)
+                const err = new PrismaClientInitializationError(json.message, this.clientVersion!, json.error_code)
                 this.engineStartDeferred.reject(err)
               }
             }
@@ -585,9 +606,11 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         byline(this.child.stdout).on('data', (msg) => {
           const data = String(msg)
+
           try {
             const json = JSON.parse(data)
             debug('stdout', getMessage(json))
+
             if (
               this.engineStartDeferred &&
               json.level === 'INFO' &&
@@ -603,6 +626,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
             // they could also be a RustError, which has is_panic
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
+              if (json.span === true) {
+                if (this.tracingConfig.enabled === true) {
+                  void createSpan(json as EngineSpanEvent)
+                }
+
+                return
+              }
+
               const log = convertLog(json)
               // boolean cast needed, because of TS. We return ` is RustLog`, useful in other context, but not here
               const logIsRustErrorLog: boolean = isRustErrorLog(log)
@@ -746,11 +777,20 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async stop(): Promise<void> {
-    if (!this.stopPromise) {
-      this.stopPromise = this._stop()
+    const stopFn = async () => {
+      if (!this.stopPromise) {
+        this.stopPromise = this._stop()
+      }
+
+      return this.stopPromise
     }
 
-    return this.stopPromise
+    const spanOptions = {
+      name: 'disconnect',
+      enabled: this.tracingConfig.enabled,
+    }
+
+    return runInChildSpan(spanOptions, stopFn)
   }
 
   /**
@@ -834,6 +874,26 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     const env = await this.getEngineEnvVars()
 
     const result = await execa(prismaPath, ['cli', 'get-config'], {
+      env: omit(env, ['PORT']),
+      cwd: this.cwd,
+    })
+
+    return JSON.parse(result.stdout)
+  }
+
+  async getDmmf(): Promise<DMMF.Document> {
+    if (!this.getDmmfPromise) {
+      this.getDmmfPromise = this._getDmmf()
+    }
+    return this.getDmmfPromise
+  }
+
+  private async _getDmmf(): Promise<DMMF.Document> {
+    const prismaPath = await this.getPrismaPath()
+
+    const env = await this.getEngineEnvVars()
+
+    const result = await execa(prismaPath, ['--enable-raw-queries', 'cli', 'dmmf'], {
       env: omit(env, ['PORT']),
       cwd: this.cwd,
     })
@@ -952,31 +1012,37 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   /**
    * Send START, COMMIT, or ROLLBACK to the Query Engine
    * @param action START, COMMIT, or ROLLBACK
+   * @param headers headers for tracing
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', info: Tx.Info): Promise<undefined>
-  async transaction(action: any, arg?: any) {
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
     if (action === 'start') {
       const jsonOptions = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
         timeout: arg?.timeout ?? 5000, // default
+        isolation_level: arg?.isolationLevel,
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions),
-        transactionHttpErrorHandler,
+        this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
+        (result) => this.transactionHttpErrorHandler(result),
       )
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
+        this.transactionHttpErrorHandler(result),
+      )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), transactionHttpErrorHandler)
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
+        this.transactionHttpErrorHandler(result),
+      )
     }
 
     return undefined
@@ -1090,6 +1156,34 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
 
     return false
   }
+
+  async metrics(options: MetricsOptionsJson): Promise<Metrics>
+  async metrics(options: MetricsOptionsPrometheus): Promise<string>
+  async metrics({ format, globalLabels }: EngineMetricsOptions): Promise<string | Metrics> {
+    await this.start()
+    const parseResponse = format === 'json'
+    const response = await this.connection.post<string | Metrics>(
+      `/metrics?format=${encodeURIComponent(format)}`,
+      JSON.stringify(globalLabels),
+      null,
+      parseResponse,
+    )
+    return response.data
+  }
+
+  /**
+   * Decides how to handle error responses for transactions
+   * @param result
+   */
+  transactionHttpErrorHandler<R>(result: Result<R>): never {
+    const response = result.data as { [K: string]: unknown }
+    throw new PrismaClientKnownRequestError(
+      response.message as string,
+      response.error_code as string,
+      this.clientVersion as string,
+      response.meta,
+    )
+  }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
@@ -1136,14 +1230,6 @@ function initHooks() {
 }
 
 /**
- * Decides how to handle error responses for transactions
- * @param result
- */
-function transactionHttpErrorHandler<R>(result: Result<R>): never {
-  throw result.data
-}
-
-/**
  * Takes runtime data headers and turns it into QE HTTP headers
  * @param headers to transform
  * @returns
@@ -1161,4 +1247,11 @@ function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Incomi
 
     return acc
   }, {} as IncomingHttpHeaders)
+}
+
+function killProcessAndWait(childProcess: ChildProcess): Promise<void> {
+  return new Promise((resolve) => {
+    childProcess.once('exit', resolve)
+    childProcess.kill()
+  })
 }

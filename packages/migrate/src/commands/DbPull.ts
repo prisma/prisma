@@ -1,6 +1,8 @@
-import type { Command, IntrospectionSchemaVersion, IntrospectionWarnings } from '@prisma/sdk'
 import {
   arg,
+  checkUnsupportedDataProxy,
+  Command,
+  createSpinner,
   drawBox,
   format,
   formatms,
@@ -10,17 +12,21 @@ import {
   getSchemaPath,
   HelpError,
   IntrospectionEngine,
+  IntrospectionSchemaVersion,
+  IntrospectionWarnings,
   link,
   loadEnvFile,
   protocolToConnectorType,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
+import { match } from 'ts-pattern'
 
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
-import { ConnectorType, printDatasources } from '../utils/printDatasources'
+import type { ConnectorType } from '../utils/printDatasources'
+import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
 
 export class DbPull implements Command {
@@ -66,8 +72,8 @@ Set composite types introspection depth to 2 levels
 
 `)
 
-  private urlToDatasource(url: string): string {
-    const provider = protocolToConnectorType(`${url.split(':')[0]}:`)
+  private urlToDatasource(url: string, defaultProvider?: ConnectorType): string {
+    const provider = defaultProvider || protocolToConnectorType(`${url.split(':')[0]}:`)
     return printDatasources([
       {
         config: {},
@@ -92,16 +98,13 @@ Set composite types introspection depth to 2 levels
       '--clean': Boolean,
     })
 
-    const log = (...messages): void => {
-      if (!args['--print']) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
-        console.info(...messages)
-      }
-    }
+    const spinnerFactory = createSpinner(!args['--print'])
 
     if (args instanceof Error) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('db pull', args, !args['--url'])
 
     if (args['--help']) {
       return this.help()
@@ -148,22 +151,45 @@ Set composite types introspection depth to 2 levels
       throw new NoSchemaFoundError()
     }
 
-    let schema: string | null = null
+    /**
+     * When `schemaPath` is set:
+     * - read the schema file from disk
+     * - in case `url` is also set, embed the URL to the schema's datasource without overriding the provider.
+     *   This is especially useful to distinguish CockroachDB from Postgres datasources.
+     *
+     * When `url` is set, and `schemaPath` isn't:
+     * - create a minimal schema with a datasource block from the given URL.
+     *   CockroachDB URLs are however mapped to the `postgresql` provider, as those URLs are indistinguishable from Postgres URLs.
+     *
+     * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
+     */
+    const schema = await match({ url, schemaPath })
+      .when(
+        (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
+        async (input) => {
+          const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
 
-    // Makes sure we have a schema to pass to the engine
-    if (url) {
-      if (schemaPath) {
-        schema = this.urlToDatasource(url)
-        const rawSchema = fs.readFileSync(schemaPath, 'utf-8')
-        schema += removeDatasource(rawSchema)
-      } else {
-        schema = this.urlToDatasource(url)
-      }
-    } else if (schemaPath) {
-      schema = fs.readFileSync(schemaPath, 'utf-8')
-    } else {
-      throw new Error('Could not find a `schema.prisma` file')
-    }
+          if (input.url) {
+            const config = await getConfig({
+              datamodel: rawSchema,
+              ignoreEnvVarErrors: true,
+            })
+            const provider = config.datasources[0]?.provider
+            const schema = `${this.urlToDatasource(input.url, provider)}${removeDatasource(rawSchema)}`
+            return schema
+          }
+
+          return rawSchema
+        },
+      )
+      .when(
+        (input): input is { url: string; schemaPath: null } => input.url !== undefined,
+        (input) => {
+          const schema = this.urlToDatasource(input.url)
+          return Promise.resolve(schema)
+        },
+      )
+      .run()
 
     // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
@@ -178,8 +204,8 @@ Set composite types introspection depth to 2 levels
       const isReintrospection = modelMatch
 
       if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
-        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider (Preview).
-You can explicitely ignore and override your current local schema file with ${chalk.green(
+        throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
+You can explicitly ignore and override your current local schema file with ${chalk.green(
           getCommandWithExecutor('prisma db pull --force'),
         )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
@@ -196,7 +222,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       !args['--url'] && schemaPath
         ? ` based on datasource defined in ${chalk.underline(path.relative(process.cwd(), schemaPath))}`
         : ''
-    log(`\nIntrospecting${basedOn} …`)
+    const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
     const before = Date.now()
     let introspectionSchema = ''
@@ -209,6 +235,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       introspectionWarnings = introspectionResult.warnings
       introspectionSchemaVersion = introspectionResult.version
     } catch (e: any) {
+      introspectionSpinner.failure()
       if (e.code === 'P4001') {
         if (introspectionSchema.trim() === '') {
           throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
@@ -234,6 +261,9 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
       } else if (e.code === 'P1012') {
         // Schema Parsing Error
         console.info() // empty line
+
+        // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
+        // '--url' argument is different than the one written in the schema.prisma file.
         throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually, use ${chalk.green(
@@ -305,7 +335,7 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
           })
         : ''
 
-      log(`\n✔ Introspected ${modelsAndTypesCountMessage} into ${chalk.underline(
+      introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${chalk.underline(
         path.relative(process.cwd(), schemaPath),
       )} in ${chalk.bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
       ${chalk.keyword('orange')(introspectionWarningsMessage)}

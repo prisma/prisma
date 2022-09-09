@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 
 import { MigrateResolve } from '../commands/MigrateResolve'
 
@@ -49,14 +49,14 @@ describe('sqlite', () => {
   it('should fail if no sqlite db - empty schema', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse(['--schema=./prisma/empty.prisma', '--applied=something_applied'])
-    await expect(result).rejects.toMatchInlineSnapshot(`P1003: SQLite database file doesn't exist`)
+    await expect(result).rejects.toMatchInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   //
@@ -104,8 +104,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   //
@@ -142,8 +142,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
   it('--rolled-back works if migration is already rolled back', async () => {
@@ -161,8 +161,8 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -183,8 +183,8 @@ describe('postgresql', () => {
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "my_db": PostgreSQL database "mydb", schema "public" at "doesnotexist:5432"
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 })
 
@@ -193,7 +193,6 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   it('should fail if no db - invalid url', async () => {
     ctx.fixture('schema-only-cockroachdb')
-    jest.setTimeout(10_000)
 
     const result = MigrateResolve.new().parse(['--schema=./prisma/invalid-url.prisma', '--applied=something_applied'])
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -203,10 +202,12 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
           `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/invalid-url.prisma
       Datasource "db": CockroachDB database "clustername.defaultdb", schema "public" at "something.cockroachlabs.cloud:26257"
     `)
-    expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
-  })
+
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  }, 10_000)
 })

@@ -1,6 +1,6 @@
 const path = require('path')
 const globalDirs = require('global-dirs')
-const { drawBox } = require('@prisma/sdk/dist/utils/drawBox')
+const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
 const isInstalledGlobally = require('is-installed-globally')
 
 const BOLD = '\u001b[1m'
@@ -39,13 +39,15 @@ const b = (str) => BOLD + str + RESET
 const white = (str) => WHITE_BRIGHT + str + RESET
 
 export function main() {
+  // process.version (e.g. `v16.0.0`)
   const nodeVersions = process.version.split('.')
+  // `.slice(1)` removes `v` from `v16`
   const nodeMajorVersion = parseInt(nodeVersions[0].slice(1))
   const nodeMinorVersion = parseInt(nodeVersions[1])
-  if (nodeMajorVersion < 12 || (nodeMajorVersion === 12 && nodeMinorVersion < 6)) {
+  if (nodeMajorVersion < 14 || (nodeMajorVersion === 14 && nodeMinorVersion < 17)) {
     console.error(
       drawBox({
-        str: `Prisma only supports Node.js >= 12.6`,
+        str: `Prisma only supports Node.js >= 14.17`,
         verticalPadding: 1,
         horizontalPadding: 3,
       }),

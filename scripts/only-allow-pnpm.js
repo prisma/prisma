@@ -13,8 +13,8 @@ function pmFromUserAgent(userAgent) {
   const pmSpec = userAgent.split(' ')[0]
   const separatorPos = pmSpec.lastIndexOf('/')
   return {
-    name: pmSpec.substr(0, separatorPos),
-    version: pmSpec.substr(separatorPos + 1),
+    name: pmSpec.substring(0, separatorPos),
+    version: pmSpec.slice(separatorPos + 1),
   }
 }
 

@@ -1,0 +1,21 @@
+#!/usr/bin/env node
+
+const { generatorHandler } = require('@prisma/generator-helper')
+
+generatorHandler({
+  async onGenerate() {
+    console.log('Logging in onGenerate should be fine')
+    await new Promise((r) => {
+      setTimeout(r, 100)
+    })
+  },
+  onManifest() {
+    console.log('Logging in onManifest should be fine')
+    return {
+      defaultOutput: 'default-output',
+      denylist: ['SomeForbiddenType'],
+      prettyName: 'This is a pretty pretty name',
+      requiresEngines: ['queryEngine', 'migrationEngine'],
+    }
+  },
+})

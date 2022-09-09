@@ -1,5 +1,12 @@
-import type { DatabaseCredentials } from '@prisma/sdk'
-import { canConnectToDatabase, createDatabase, getConfig, getSchema, getSchemaDir, uriToCredentials } from '@prisma/sdk'
+import type { DatabaseCredentials } from '@prisma/internals'
+import {
+  canConnectToDatabase,
+  createDatabase,
+  getConfig,
+  getSchema,
+  getSchemaDir,
+  uriToCredentials,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import type execa from 'execa'
 import prompt from 'prompts'
@@ -148,7 +155,9 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
         if (activeDatasource.provider === 'cockroachdb') {
           databaseProvider = 'CockroachDB'
         }
-        return `${dbType} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
+        return `${databaseProvider} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(
+          getDbLocation(credentials),
+        )}`
       } else {
         // SQL Server case, never reached?
         return `${schemaWord} created.`
@@ -213,7 +222,8 @@ export async function askToCreateDb(
   if (response.value) {
     await createDatabase(connectionString, schemaDir)
   } else {
-    process.exit(0)
+    // Return SIGINT exit code to signal that the process was cancelled.
+    process.exit(130)
   }
 }
 

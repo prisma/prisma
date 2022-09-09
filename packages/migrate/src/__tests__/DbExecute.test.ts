@@ -1,8 +1,10 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
+import stripAnsi from 'strip-ansi'
 
 import { DbExecute } from '../commands/DbExecute'
+import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -17,20 +19,27 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('db execute', () => {
   describe('generic', () => {
-    it('--preview-feature flag is required', async () => {
+    it('should trigger a warning if --preview-feature is provided', async () => {
       ctx.fixture('empty')
+      expect.assertions(3)
 
-      const result = DbExecute.new().parse([])
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `This command is in Preview. Use the --preview-feature flag to use it like prisma db execute --preview-feature`,
-      )
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      try {
+        await DbExecute.new().parse(['--preview-feature', '--file=./doesnotexists.sql', '--schema=1'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+        expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
+      }
+
+      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+        prisma:warn "prisma db execute" was in Preview and is now Generally Available.
+        You can now remove the --preview-feature flag.
+      `)
     })
 
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--preview-feature'])
+      const result = DbExecute.new().parse([])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                           Either --stdin or --file must be provided.
                           See \`prisma db execute -h\`
@@ -40,7 +49,7 @@ describe('db execute', () => {
     it('should fail if both --file and --stdin are provided', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--preview-feature', '--file=1', '--stdin'])
+      const result = DbExecute.new().parse(['--file=1', '--stdin'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                           --stdin and --file cannot be used at the same time. Only 1 must be provided. 
                           See \`prisma db execute -h\`
@@ -50,7 +59,7 @@ describe('db execute', () => {
     it('should fail if missing --schema and --url', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--preview-feature', '--file=1'])
+      const result = DbExecute.new().parse(['--file=1'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                           Either --url or --schema must be provided.
                           See \`prisma db execute -h\`
@@ -60,7 +69,7 @@ describe('db execute', () => {
     it('should fail if both --schema and --url are provided', async () => {
       ctx.fixture('empty')
 
-      const result = DbExecute.new().parse(['--preview-feature', '--stdin', '--schema=1', '--url=1'])
+      const result = DbExecute.new().parse(['--stdin', '--schema=1', '--url=1'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
                           --url and --schema cannot be used at the same time. Only 1 must be provided.
                           See \`prisma db execute -h\`
@@ -72,7 +81,7 @@ describe('db execute', () => {
       expect.assertions(2)
 
       try {
-        await DbExecute.new().parse(['--preview-feature', '--file=./doesnotexists.sql', '--schema=1'])
+        await DbExecute.new().parse(['--file=./doesnotexists.sql', '--schema=1'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
@@ -85,7 +94,7 @@ describe('db execute', () => {
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--file=./script.sql', '--schema=./doesnoexists.schema'])
+        await DbExecute.new().parse(['--file=./script.sql', '--schema=./doesnoexists.schema'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`Provided --schema at ./doesnoexists.schema doesn't exist.`)
@@ -98,11 +107,7 @@ describe('db execute', () => {
       ctx.fixture('schema-only-mongodb')
 
       fs.writeFileSync('script.js', 'Something for MongoDB')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.js',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.js'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               dbExecute is not supported on MongoDB
 
@@ -122,37 +127,30 @@ DROP TABLE 'test-dbexecute';`
       ctx.fixture('empty')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url=file:./dev.db', '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url=file:./dev.db', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
     // On Windows: snapshot output = "-- Drop & Create & Drop"
-    testIf(process.platform !== 'win32')(
-      'should pass with --stdin --schema',
-      async () => {
-        ctx.fixture('schema-only-sqlite')
+    testIf(process.platform !== 'win32')('should pass with --stdin --schema', async () => {
+      ctx.fixture('schema-only-sqlite')
 
-        const { stdout, stderr } = await exec(
-          `echo "${sqlScript}" | ${pathToBin} db execute --preview-feature --stdin --schema=./prisma/schema.prisma`,
-        )
-        expect(stderr).toBeFalsy()
-        expect(stdout).toMatchInlineSnapshot(`
+      const { stdout, stderr } = await exec(
+        `echo "${sqlScript}" | ${pathToBin} db execute --stdin --schema=./prisma/schema.prisma`,
+      )
+      expect(stderr).toBeFalsy()
+      expect(stdout).toMatchInlineSnapshot(`
                   Script executed successfully.
 
               `)
-      },
-      20_000,
-    )
+       // This is a slow test and macOS machine can be even slower and fail the test
+    }, 30_000)
 
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -169,11 +167,7 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -181,7 +175,7 @@ COMMIT;`,
       ctx.fixture('introspection/sqlite')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url=file:dev.db', '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -189,7 +183,7 @@ COMMIT;`,
       ctx.fixture('introspection/sqlite')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--preview-feature', '--url=file:dev.db', '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url=file:dev.db', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -199,7 +193,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -216,23 +210,23 @@ COMMIT;`,
       ctx.fixture('introspection/sqlite')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url=file:doesnotexists.db', '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url=file:doesnotexists.db', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    it('should fail with P1014 error with --file --schema', async () => {
+    // TODO we could have a generic error code in prisma-engines for a "SQL error"
+    it('should fail with --file --schema if there is a database error', async () => {
       ctx.fixture('schema-only-sqlite')
-      expect.assertions(2)
+      expect.assertions(1)
 
       fs.writeFileSync('script.sql', 'DROP TABLE "test-doesnotexists";')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       } catch (e) {
-        expect(e.code).toEqual('P1014')
         expect(e.message).toMatchInlineSnapshot(`
-          P1014
+          SQLite database error
+          no such table: test-doesnotexists
 
-          The underlying table for model \`test-doesnotexists\` does not exist.
 
         `)
       }
@@ -244,10 +238,11 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', 'ThisisnotSQL,itshouldfail')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
+          SQLite database error
           near "ThisisnotSQL": syntax error
 
 
@@ -290,11 +285,7 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -302,11 +293,7 @@ DROP SCHEMA "test-dbexecute";`
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/using-dotenv.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'])
       await expect(result).rejects.toMatchInlineSnapshot(`
               P1001
 
@@ -330,11 +317,7 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -342,7 +325,7 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url', connectionString, '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -350,7 +333,7 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse(['--preview-feature', '--url', connectionString, '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -370,7 +353,7 @@ COMMIT;`,
       DROP DATABASE "test-dbexecute";`,
       )
       try {
-        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toContain('ERROR: DROP DATABASE cannot')
@@ -384,7 +367,6 @@ COMMIT;`,
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
-          '--preview-feature',
           '--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb',
           '--file=./script.sql',
         ])
@@ -404,7 +386,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -423,7 +405,6 @@ COMMIT;`,
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
-          '--preview-feature',
           '--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
           '--file=./script.sql',
         ])
@@ -446,13 +427,13 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', 'DROP DATABASE "test-doesnotexists";')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--schema=./prisma/schema.prisma', '--file=./script.sql'])
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1003')
         expect(e.message).toMatchInlineSnapshot(`
           P1003
 
-          Database \`tests-migrate-db-execute.public\` does not exist on the database server at \`localhost:5432\`.
+          Database \`test-doesnotexists\` does not exist on the database server at \`localhost:5432\`.
 
         `)
       }
@@ -462,13 +443,202 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
 
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               db error: ERROR: syntax error at or near "ThisisnotSQLitshouldfail"
+
+
+            `)
+    })
+  })
+
+  describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+    const connectionString = (
+      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
+    ).replace('tests-migrate', 'tests-migrate-db-execute')
+
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
+
+    const setupParams = {
+      connectionString,
+      dirname: '',
+    }
+
+    beforeAll(async () => {
+      await setupCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    afterAll(async () => {
+      await tearDownCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    const sqlScript = `-- Drop & Create & Drop
+DROP SCHEMA IF EXISTS "test-dbexecute";
+CREATE SCHEMA "test-dbexecute";
+DROP SCHEMA "test-dbexecute";`
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    }, 10000)
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should use env var from .env file', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
+
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`26257\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
+
+            `)
+    }, 10000)
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass using a transaction with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync(
+        'script.sql',
+        `-- start a transaction
+BEGIN;
+
+${sqlScript}
+      
+-- commit changes    
+COMMIT;`,
+      )
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    }, 10000)
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should pass with empty --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    // Cockroachdb doesn't have the same limitation as Postgres, as it can drop and create a database
+    // with a single SQL script.
+    it('should succeed if DROP DATABASE with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(0)
+
+      fs.writeFileSync(
+        'script.sql',
+        `-- Drop & Create & Drop
+      DROP DATABASE IF EXISTS "test-dbexecute";
+      CREATE DATABASE "test-dbexecute";
+      DROP DATABASE "test-dbexecute";`,
+      )
+      try {
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with P1013 error with invalid url with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse([
+          '--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with P1013 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with P1001 error with unreachable url with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse([
+          '--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1001')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1001
+
+          Can't reach database server at \`doesnotexist\`:\`5432\`
+
+          Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+
+        `)
+      }
+    })
+
+    // eslint-disable-next-line jest/no-identical-title
+    it('should fail with invalid SQL error from database with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+              db error: ERROR: at or near "thisisnotsqlitshouldfail": syntax error
+              DETAIL: source SQL:
+              ThisisnotSQLitshouldfail
+              ^
 
 
             `)
@@ -509,11 +679,7 @@ DROP DATABASE \`test-dbexecute\`;`
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -522,11 +688,7 @@ DROP DATABASE \`test-dbexecute\`;`
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Query was empty
 
@@ -547,11 +709,7 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -559,7 +717,7 @@ COMMIT;`,
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url', connectionString, '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -570,7 +728,6 @@ COMMIT;`,
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
-          '--preview-feature',
           '--url=mysql://johndoe::::////::randompassword@doesnotexist:3306/mydb',
           '--file=./script.sql',
         ])
@@ -590,7 +747,7 @@ COMMIT;`,
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -609,7 +766,6 @@ COMMIT;`,
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
-          '--preview-feature',
           '--url=mysql://johndoe:randompassword@doesnotexist:3306/mydb',
           '--file=./script.sql',
         ])
@@ -630,11 +786,7 @@ COMMIT;`,
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', 'DROP DATABASE `test-doesnotexists`;')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Can't drop database 'test-doesnotexists'; database doesn't exist
 
@@ -646,11 +798,7 @@ COMMIT;`,
       ctx.fixture('schema-only-mysql')
 
       fs.writeFileSync('script.sql', 'This is not SQL, it should fail')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'This is not SQL, it should fail' at line 1
 
@@ -690,15 +838,12 @@ DROP DATABASE IF EXISTS "test-dbexecute";
 CREATE DATABASE "test-dbexecute";
 DROP DATABASE "test-dbexecute";`
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
@@ -706,22 +851,20 @@ DROP DATABASE "test-dbexecute";`
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', '')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', sqlScript)
-      const result = DbExecute.new().parse(['--preview-feature', '--url', jdbcConnectionString, '--file=./script.sql'])
+      const result = DbExecute.new().parse(['--url', jdbcConnectionString, '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -735,16 +878,13 @@ SELECT 1
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
     // Limitation of sqlserver
     // DROP DATABASE statement cannot be used inside a user transaction.
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail if DROP DATABASE in a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -758,11 +898,7 @@ ${sqlScript}
 -- commit changes    
 COMMIT;`,
       )
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               DROP DATABASE statement cannot be used inside a user transaction.
 
@@ -770,6 +906,7 @@ COMMIT;`,
             `)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -777,7 +914,6 @@ COMMIT;`,
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
-          '--preview-feature',
           '--url=sqlserver://doesnotexist:1433;;;;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
           '--file=./script.sql',
         ])
@@ -791,13 +927,15 @@ COMMIT;`,
         `)
       }
     })
+
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
 
       fs.writeFileSync('script.sql', '-- empty')
       try {
-        await DbExecute.new().parse(['--preview-feature', '--url=invalidurl', '--file=./script.sql'])
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
       } catch (e) {
         expect(e.code).toEqual('P1013')
         expect(e.message).toMatchInlineSnapshot(`
@@ -809,6 +947,7 @@ COMMIT;`,
       }
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -816,7 +955,6 @@ COMMIT;`,
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
-          '--preview-feature',
           '--url=sqlserver://doesnotexist:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;',
           '--file=./script.sql',
         ])
@@ -833,15 +971,12 @@ COMMIT;`,
       }
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', 'DROP DATABASE "test-doesnotexists";')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Cannot drop the database 'test-doesnotexists', because it does not exist or you do not have permission.
 
@@ -849,15 +984,12 @@ COMMIT;`,
             `)
     })
 
+    // eslint-disable-next-line jest/no-identical-title
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
-      const result = DbExecute.new().parse([
-        '--preview-feature',
-        '--schema=./prisma/schema.prisma',
-        '--file=./script.sql',
-      ])
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Could not find stored procedure 'ThisisnotSQLitshouldfail'.
 

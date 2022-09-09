@@ -1,33 +1,26 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
-import type { Command } from '@prisma/sdk'
+import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
-  engineEnvVarMap,
   format,
+  formatTable,
   getConfig,
+  getEnginesMetaInfo,
   getSchema,
   getSchemaPath,
-  getVersion,
   HelpError,
   isError,
   loadEnvFile,
-  resolveBinary,
-} from '@prisma/sdk'
+  wasm,
+} from '@prisma/internals'
 import chalk from 'chalk'
-import fs from 'fs'
-import path from 'path'
+import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
-
-interface BinaryInfo {
-  path: string
-  version: string
-  fromEnvVar?: string
-}
 
 /**
  * $ prisma version
@@ -73,11 +66,28 @@ export class Version implements Command {
 
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-    const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
-    const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
-    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
-    const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
+
+    const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
+
+    const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
+      return match(engineMetaInfo)
+        .with({ 'query-engine': P.select() }, (currEngineInfo) => {
+          return [
+            `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
+            currEngineInfo,
+          ]
+        })
+        .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
+          return ['Migration Engine', currEngineInfo]
+        })
+        .with({ 'introspection-engine': P.select() }, (currEngineInfo) => {
+          return ['Introspection Engine', currEngineInfo]
+        })
+        .with({ 'format-binary': P.select() }, (currEngineInfo) => {
+          return ['Format Binary', currEngineInfo]
+        })
+        .exhaustive()
+    })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -85,16 +95,22 @@ export class Version implements Command {
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
-      [
-        `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
-        this.printBinaryInfo(queryEngine),
-      ],
-      ['Migration Engine', this.printBinaryInfo(migrationEngine)],
-      ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
-      ['Format Binary', this.printBinaryInfo(fmtBinary)],
-      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
+
+      ...enginesRows,
+      ['Format Wasm', `@prisma/prisma-fmt-wasm ${wasm.prismaFmtVersion}`],
+
+      ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
+
+    /**
+     * If reading Rust engines metainfo (like their git hash) failed, display the errors to stderr,
+     * and let Node.js exit naturally, but with error code 1.
+     */
+    if (enginesMetaInfoErrors.length > 0) {
+      process.exitCode = 1
+      enginesMetaInfoErrors.forEach((e) => console.error(e))
+    }
 
     const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
@@ -103,7 +119,7 @@ export class Version implements Command {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
 
-    return this.printTable(rows, args['--json'])
+    return formatTable(rows, { json: args['--json'] })
   }
 
   private async getFeatureFlags(schemaPath: string | null): Promise<string[]> {
@@ -126,36 +142,6 @@ export class Version implements Command {
     return []
   }
 
-  private printBinaryInfo({ path: absolutePath, version, fromEnvVar }: BinaryInfo): string {
-    const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
-    return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
-  }
-
-  private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
-    const envVar = engineEnvVarMap[binaryName]
-    const pathFromEnv = process.env[envVar]
-    if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv, binaryName)
-      return { version, path: pathFromEnv, fromEnvVar: envVar }
-    }
-
-    const binaryPath = await resolveBinary(binaryName)
-    const version = await getVersion(binaryPath, binaryName)
-    return { path: binaryPath, version }
-  }
-
-  private printTable(rows: string[][], json = false): string {
-    if (json) {
-      const result = rows.reduce((acc, [name, value]) => {
-        acc[slugify(name)] = value
-        return acc
-      }, {})
-      return JSON.stringify(result, null, 2)
-    }
-    const maxPad = rows.reduce((acc, curr) => Math.max(acc, curr[0].length), 0)
-    return rows.map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`).join('\n')
-  }
-
   public help(error?: string): string | HelpError {
     if (error) {
       return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Version.help}`)
@@ -163,8 +149,4 @@ export class Version implements Command {
 
     return Version.help
   }
-}
-
-function slugify(str: string): string {
-  return str.toString().toLowerCase().replace(/\s+/g, '-')
 }

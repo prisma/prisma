@@ -1,0 +1,18 @@
+datasource my_db {
+    provider = "sqlite"
+    url      = env("SQLITE_URL")
+}
+
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["extendedIndexes"]
+}
+
+generator something {
+    provider = "something"
+}
+
+model Blog {
+    id        Int @id
+    viewCount Int
+}

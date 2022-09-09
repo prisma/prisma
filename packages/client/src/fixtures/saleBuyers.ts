@@ -1,4 +1,4 @@
-export const saleBuyers = /* GraphQL */ `
+export const saleBuyers = /* Prisma */ `
 datasource db {
   provider = "postgresql"
   url      = "postgresql://localhost:5432/db"
@@ -13,12 +13,12 @@ generator client {
 model Buyer {
   id    String  @id @default(cuid())
   name  String?
-  sales Sale[]  @relation("BuyersOnSale", references: [id])
+  sales Sale[]  @relation("BuyersOnSale")
 }
 
 model Sale {
   id     String    @id @default(cuid())
   date   DateTime?
-  buyers Buyer[]   @relation("BuyersOnSale", references: [id])
+  buyers Buyer[]   @relation("BuyersOnSale")
 }
 `

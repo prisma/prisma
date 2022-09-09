@@ -1,5 +1,14 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isCi, isError, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  canPrompt,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isError,
+  loadEnvFile,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import prompt from 'prompts'
 
@@ -63,6 +72,8 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    await checkUnsupportedDataProxy('migrate reset', args, true)
+
     if (args['--help']) {
       return this.help()
     }
@@ -92,8 +103,7 @@ ${chalk.bold('Examples')}
 
     console.info() // empty line
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         throw new MigrateResetEnvNonInteractiveError()
       }
 
@@ -107,9 +117,8 @@ ${chalk.bold('Examples')}
 
       if (!confirmation.value) {
         console.info('Reset cancelled.')
-        process.exit(0)
-        // For snapshot test, because exit() is mocked
-        return ``
+        // Return SIGINT exit code to signal that the process was cancelled
+        process.exit(130)
       }
     }
 
@@ -155,9 +164,11 @@ The following migration(s) have been applied:\n\n${chalk(
         const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
         if (successfulSeeding) {
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
+        } else {
+          process.exit(1)
         }
       } else {
-        // Only used to help users to setup their seeds from old way to new package.json config
+        // Only used to help users to set up their seeds from old way to new package.json config
         const schemaPath = await getSchemaPath(args['--schema'])
         // we don't want to output the returned warning message
         // but we still want to run it for `legacyTsNodeScriptWarning()`

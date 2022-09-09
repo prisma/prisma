@@ -1,4 +1,9 @@
 'use strict'
+
+import { FieldRefImpl } from '../core/model/FieldRef'
+import { ObjectEnumValue } from '../object-enums'
+import { lowerCase } from './common'
+
 const isRegexp = require('is-regexp')
 const isObj = require('is-obj')
 const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols').default
@@ -65,6 +70,7 @@ const stringifyObject = (input, options?: any, pad?: any) => {
       typeof input === 'boolean' ||
       typeof input === 'function' ||
       typeof input === 'symbol' ||
+      input instanceof ObjectEnumValue ||
       isRegexp(input)
     ) {
       return String(input)
@@ -72,6 +78,10 @@ const stringifyObject = (input, options?: any, pad?: any) => {
 
     if (input instanceof Date) {
       return `new Date('${input.toISOString()}')`
+    }
+
+    if (input instanceof FieldRefImpl) {
+      return `prisma.${lowerCase(input.modelName)}.fields.${input.name}`
     }
 
     if (Array.isArray(input)) {

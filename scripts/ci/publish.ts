@@ -505,6 +505,10 @@ async function publish() {
     throw new Error(`Missing env var GITHUB_TOKEN`)
   }
 
+  if (!process.env.BUILDKITE_BRANCH) {
+    throw new Error(`Missing env var BUILDKITE_BRANCH`)
+  }
+
   if (process.env.DRY_RUN) {
     console.log(chalk.blue.bold(`\nThe DRY_RUN env var is set, so we'll do a dry run!\n`))
     args['--dry-run'] = true
@@ -551,12 +555,12 @@ async function publish() {
     args['--publish'] = true
   }
 
-  // makes sure that only 1 publish job runs at a time
+  // makes sure that only have 1 publish job running at a time
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
     console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
     const before = Date.now()
-    unlock = await acquireLock() // TODO: problem lock might not work for more than 2 jobs
+    unlock = await acquireLock(process.env.BUILDKITE_BRANCH) // TODO: problem lock might not work for more than 2 jobs
     const after = Date.now()
     console.log(`Acquired lock after ${after - before}ms`)
   }
@@ -570,18 +574,10 @@ async function publish() {
       // TODO this can be done by esbuild
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
-    // TODO: check if we really need GITHUB_CONTEXT
-    // TODO: this is not useful anymore, the logic is
-    if (!process.env.GITHUB_CONTEXT) {
-      const changes = await getLatestChanges()
-
-      console.log(chalk.bold(`Changed files:`))
-      console.log(changes.map((c) => `  ${c}`).join('\n'))
-    }
 
     let prismaVersion
     let tag: undefined | string
-    let tagForE2ECheck: undefined | string
+    let tagForEcosystemTestsCheck: undefined | string
 
     const patchBranch = getPatchBranch()
     console.log({ patchBranch })
@@ -600,7 +596,7 @@ async function publish() {
       prismaVersion = await getNewPatchDevVersion(packages, patchBranch)
       tag = 'patch-dev'
       if (args['--release']) {
-        tagForE2ECheck = 'patch-dev' //?
+        tagForEcosystemTestsCheck = 'patch-dev' //?
         prismaVersion = args['--release']
         tag = 'latest'
       }
@@ -608,7 +604,7 @@ async function publish() {
       // TODO:Where each patch branch goes
       prismaVersion = args['--release']
       tag = 'latest'
-      tagForE2ECheck = 'dev'
+      tagForEcosystemTestsCheck = 'dev'
     } else {
       prismaVersion = await getNewDevVersion(packages)
       tag = 'dev'
@@ -617,7 +613,7 @@ async function publish() {
     console.log({
       patchBranch,
       tag,
-      tagForE2ECheck,
+      tagForEcosystemTestsCheck,
       prismaVersion,
     })
 
@@ -641,19 +637,19 @@ async function publish() {
     }
 
     if (!dryRun && args['--test']) {
-      console.log(chalk.bold('\nTesting packages'))
+      console.log(chalk.bold('\nTesting all packages...'))
       await testPackages(packages, getPublishOrder(packages))
     }
 
     if (args['--publish'] || dryRun) {
       if (args['--release']) {
-        if (!tagForE2ECheck) {
-          throw new Error(`tagForE2ECheck missing`)
+        if (!tagForEcosystemTestsCheck) {
+          throw new Error(`tagForEcosystemTestsCheck missing`)
         }
-        const passing = await areEndToEndTestsPassing(tagForE2ECheck)
-        if (!passing && !process.env.SKIP_E2E_CHECK) {
-          throw new Error(`We can't release, as the e2e tests are not passing for the ${tag} npm tag!
-Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
+        const passing = await areEcosystemTestsPassing(tagForEcosystemTestsCheck)
+        if (!passing && !process.env.SKIP_ECOSYSTEMTESTS_CHECK) {
+          throw new Error(`We can't release, as the ecosystem-tests are not passing for the ${tag} npm tag!
+Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workflow%3Atest+branch%3A${tag}`)
         }
       }
 
@@ -706,10 +702,10 @@ Check them out at https://github.com/prisma/e2e-tests/actions?query=workflow%3At
 }
 
 async function getEnginesCommit(): Promise<string> {
-  const prisma2Path = path.resolve(process.cwd(), './packages/cli/package.json')
+  const prisma2Path = path.resolve(process.cwd(), './packages/engines/package.json')
   const pkg = JSON.parse(await fs.readFile(prisma2Path, 'utf-8'))
   // const engineVersion = pkg.prisma.version
-  const engineVersion = pkg.dependencies['@prisma/engines']?.split('.').slice(-1)[0]
+  const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
 
   return engineVersion
 }
@@ -732,14 +728,16 @@ async function tagEnginesRepo(
     const [major, minor] = patchBranch.split('.')
     const majorMinor = [major, minor].join('.')
     // ['3.2.0', '3.2.1']
-    const patchesPublished: string[] = JSON.parse(
+    const patchesPublished: string | string[] = JSON.parse(
       // TODO this line is useful for retrieving versions
       await runResult('.', `npm view @prisma/client@${majorMinor} version --json`),
     )
 
     console.log({ patchesPublished })
 
-    if (patchesPublished.length > 0) {
+    if (typeof patchesPublished === 'string') {
+      previousTag = patchesPublished
+    } else if (patchesPublished.length > 0) {
       // 3.2.0
       previousTag = patchesPublished.pop() as string
     } else {
@@ -945,15 +943,15 @@ async function publishPackages(
       ),
     )
     if (!dryRun) {
-      console.log(chalk.red('Are you absolutely sure you want to do this? We wait for 10secs just in case...'))
+      console.log(chalk.red('Are you sure you want to do this? We wait for 10s just in case...'))
       await new Promise((r) => {
-        setTimeout(r, 10000)
+        setTimeout(r, 10_000)
       })
     }
   } else if (!dryRun) {
-    console.log(`\nGiving you 5sec to review the changes...`)
+    console.log(`\nGiving you 5s to review the changes...`)
     await new Promise((r) => {
-      setTimeout(r, 5000)
+      setTimeout(r, 5_000)
     })
   }
 
@@ -965,8 +963,8 @@ async function publishPackages(
         continue
       }
 
-      // @prisma/engines & @prisma/engines-version are published outside of this script
-      const packagesNotToPublish = ['@prisma/engines', '@prisma/engines-version']
+      // @prisma/engines-version is published outside of this script
+      const packagesNotToPublish = ['@prisma/engines-version']
       if (packagesNotToPublish.includes(pkgName)) {
         continue
       }
@@ -977,6 +975,9 @@ async function publishPackages(
 
       console.log(`\nPublishing ${chalk.magentaBright(`${pkgName}@${newVersion}`)} ${chalk.dim(`on ${tag}`)}`)
 
+      // Why is this needed?
+      // Was introduced in the first version of this script on Apr 14, 2020
+      // https://github.com/prisma/prisma/commit/7d6a26c1777c59ee945356687673102de4b1fe55#diff-51cd3eaba5264dc956e45fabcc02d5d21d8a8c473bd1bd00a297f9f4550c115bR790-R797
       const prismaDeps = [...pkg.uses, ...pkg.usesDev]
       if (prismaDeps.length > 0) {
         await pRetry(
@@ -992,6 +993,7 @@ async function publishPackages(
         )
       }
 
+      // set the version in package.json for current package
       await writeVersion(pkgDir, newVersion, dryRun)
 
       // For package `prisma`, get latest commit hash (that is being released)
@@ -1003,13 +1005,17 @@ async function publishPackages(
         })
       }
 
-      if (process.env.BUILDKITE) {
-        await run(pkgDir, `pnpm run build`, dryRun)
-      }
-
       const skipPackages: string[] = []
       if (!skipPackages.includes(pkgName)) {
-        await run(pkgDir, `pnpm publish --no-git-checks --tag ${tag}`, dryRun)
+        /*
+         *  About `--no-git-checks`
+         *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
+         *  The next checks will happen:
+         *  - The current branch is your publish branch. The publish branch is `master` by default. This is configurable through the `publish-branch` setting.
+         *  - Your working directory is clean (there are no uncommitted changes).
+         *  - The branch is up-to-date.
+         */
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }
@@ -1065,7 +1071,7 @@ async function publishPackages(
   }
 }
 
-async function acquireLock(): Promise<() => void> {
+async function acquireLock(branch: string): Promise<() => void> {
   const before = Date.now()
   if (!process.env.REDIS_URL) {
     console.log(chalk.bold.red(`REDIS_URL missing. Setting dummy lock`))
@@ -1082,7 +1088,7 @@ async function acquireLock(): Promise<() => void> {
   const lock = promisify(require('redis-lock')(client))
 
   // get a lock of max 15 min
-  const cb = await lock('prisma2-build', 15 * 60 * 1000)
+  const cb = await lock(`prisma2-build-${branch}`, 15 * 60 * 1000)
   return async () => {
     cb()
     console.log(`Lock removed after ${Date.now() - before}ms`)
@@ -1135,8 +1141,8 @@ async function getPrismaBranch(): Promise<string | undefined> {
   return undefined
 }
 
-async function areEndToEndTestsPassing(tag: string): Promise<boolean> {
-  let svgUrl = 'https://github.com/prisma/e2e-tests/workflows/test/badge.svg?branch='
+async function areEcosystemTestsPassing(tag: string): Promise<boolean> {
+  let svgUrl = 'https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg?branch='
 
   if (tag === 'patch-dev') {
     svgUrl += tag

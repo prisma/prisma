@@ -1,6 +1,5 @@
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["mongodb"]
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -15,7 +14,7 @@ model Post {
   content   String?
   published Boolean  @default(false)
   author    User     @relation(fields: [authorId], references: [id])
-  authorId  Int
+  authorId  String
 }
 
 model User {
@@ -56,6 +55,7 @@ type Embed {
   embedEmbedList     EmbedEmbed[]
   requiredEmbedEmbed EmbedEmbed
   optionalEmbedEmbed EmbedEmbed?
+  scalarList         Int[]        @default([1])
 }
 
 type EmbedEmbed {
@@ -120,7 +120,7 @@ model ManyRequired {
   id  String       @id @default(auto()) @map("_id") @db.ObjectId
   one OneOptional? @relation(fields: [oneOptionalId], references: [id])
 
-  oneOptionalId   Int?
+  oneOptionalId   String?
   int             Int
   optionalInt     Int?
   float           Float
@@ -139,7 +139,7 @@ model OptionalSide1 {
   id   String         @id @default(auto()) @map("_id") @db.ObjectId
   opti OptionalSide2? @relation(fields: [optionalSide2Id], references: [id])
 
-  optionalSide2Id Int?            @unique
+  optionalSide2Id String?         @unique
   int             Int
   optionalInt     Int?
   float           Float
@@ -192,11 +192,9 @@ model A {
 }
 
 model B {
-  id       String  @id @default(auto()) @map("_id") @db.ObjectId
-  float    Float // @db.Real
-  dFloat   Float // @db.DoublePrecision
-  decFloat Decimal // @db.Decimal(2, 1)
-  numFloat Decimal // @db.Decimal(10, 6)
+  id     String @id @default(auto()) @map("_id") @db.ObjectId
+  float  Float // @db.Real
+  dFloat Float // @db.DoublePrecision
 }
 
 model C {
@@ -216,6 +214,7 @@ model D {
   xml   String // @db.Xml
   json  Json // @db.Json
   jsonb Json // @db.JsonB
+  list  Int[]   @default([1, 2, 3])
 }
 
 model E {

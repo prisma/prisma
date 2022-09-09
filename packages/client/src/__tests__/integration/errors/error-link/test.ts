@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 
@@ -21,17 +21,21 @@ test('error-link', async () => {
   })
 
   await expect(db.__internal_triggerPanic(true)).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Query engine debug fatal error, shutting down.
 
-          This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
+    Invalid \`prisma.queryRaw()\` invocation:
 
-          TEST_GITHUB_LINK
 
-          If you want the Prisma team to look into it, please open the link above 🙏
-          To increase the chance of success, please post your schema and a snippet of
-          how you used Prisma Client in the issue. 
+    Query engine debug fatal error, shutting down.
 
-        `)
+    This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
+
+    TEST_GITHUB_LINK
+
+    If you want the Prisma team to look into it, please open the link above 🙏
+    To increase the chance of success, please post your schema and a snippet of
+    how you used Prisma Client in the issue. 
+
+  `)
 
   db.$disconnect()
 })

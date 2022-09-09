@@ -1,0 +1,199 @@
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_COCKROACH_URI_MIGRATE")
+}
+
+// Thanks to Sid for this schema 100
+// WAFT = with_all_field_types
+// WOFT = with_optional_field_types
+// WART = with_all_relation_types
+// RT = relation_target
+
+model with_all_field_types {
+  id            Int                    @id
+  string        String
+  number        Int
+  float         Float
+  boolean       Boolean
+  datetime      DateTime
+  json          Json
+  decimal       Decimal
+  bytes         Bytes
+  bigint        BigInt
+  string_list   String[]
+  number_list   Int[]
+  float_list    Float[]
+  boolean_list  Boolean[]
+  datetime_list DateTime[]
+  // json_list     Json[]
+  decimal_list  Decimal[]
+  bytes_list    Bytes[]
+  bigint_list   BigInt[]
+  enum          enum_target
+  enum_list     enum_target[]
+  relation      relation_target?       @relation("WAFT_RT")
+  relation_list relation_list_target[]
+}
+
+model with_optional_field_types {
+  id       Int              @id
+  string   String?
+  number   Int?
+  boolean  Boolean?
+  float    Float?
+  datetime DateTime?
+  json     Json?
+  decimal  Decimal?
+  bytes    Bytes?
+  bigint   BigInt?
+  enum     enum_target?
+  relation relation_target? @relation("WOFT_RT")
+}
+
+model with_all_relation_types {
+  id                 Int                    @id
+  name               String
+  to_simple_id       relation_target?       @relation("WART_RT")
+  to_simple_id_list  relation_list_target[]
+  to_simple_unique   with_unique?           @relation("WART_WU")
+  // to_simple_unique_list is impossible because m-n relations cannot be applied to models without an @id field
+  to_multiple_unique with_multiple_unique?  @relation("WART_WMU")
+  // to_multiple_unique_list is impossible because m-n relations cannot be applied to models without an @id field
+  to_compound_id     with_compound_id?      @relation("WART_WCI")
+  // to_compound_id_list is impossible because m-n relations cannot be applied to models without an @id field
+  to_compound_unique with_compound_unique?  @relation("WART_WCU")
+  // to_compound_unique_list_id_list is impossible because m-n relations cannot be applied to models without an @id field
+}
+
+model relation_target {
+  id                        Int                        @id
+  name                      String
+  //
+  WAFT_id                   Int?                       @unique
+  with_all_field_types      with_all_field_types?      @relation("WAFT_RT", fields: [WAFT_id], references: [id])
+  //
+  WOFT_id                   Int?                       @unique
+  with_optional_field_types with_optional_field_types? @relation("WOFT_RT", fields: [WOFT_id], references: [id])
+  // WART
+  WART_id                   Int?                       @unique
+  with_all_relation_types   with_all_relation_types?   @relation("WART_RT", fields: [WART_id], references: [id])
+}
+
+model relation_list_target {
+  id                      Int                       @id
+  name                    String
+  // WAFT
+  with_all_field_types    with_all_field_types[]
+  // WART
+  with_all_relation_types with_all_relation_types[]
+}
+
+model with_all_field_defaults {
+  id       BigInt      @id @default(autoincrement())
+  string   String      @default("Default String")
+  number   Int         @default(42)
+  float    Float       @default(13.37)
+  boolean  Boolean     @default(true)
+  datetime DateTime    @default(now())
+  json     Json        @default("{ \"foo\": \"bar\"}")
+  decimal  Decimal     @default(134.55)
+  bytes    Bytes       @default("c3VoIGR1ZGUK")
+  bigint   BigInt      @default(11028481809756)
+  enum     enum_target @default(VALUE5)
+}
+
+model with_lots_of_data {
+  id   Int    @id
+  name String
+}
+
+model with_id_and_unique {
+  id   Int    @id
+  name String @unique
+}
+
+model with_unique {
+  id                      Int                      @unique
+  name                    String
+  WART_id                 Int?                     @unique
+  with_all_relation_types with_all_relation_types? @relation("WART_WU", fields: [WART_id], references: [id])
+}
+
+model with_multiple_unique {
+  id                      Int                      @unique
+  name                    String                   @unique
+  WART_id                 Int?                     @unique
+  with_all_relation_types with_all_relation_types? @relation("WART_WMU", fields: [WART_id], references: [id])
+}
+
+model with_compound_id {
+  id                      Int
+  name                    String
+  WART_id                 Int?                     @unique
+  with_all_relation_types with_all_relation_types? @relation("WART_WCI", fields: [WART_id], references: [id])
+
+  @@id([id, name])
+}
+
+model with_compound_unique {
+  id                      Int
+  name                    String
+  WART_id                 Int?                     @unique
+  with_all_relation_types with_all_relation_types? @relation("WART_WCU", fields: [WART_id], references: [id])
+
+  @@unique([id, name])
+}
+
+model with_native_types {
+  id              Int      @id
+  text            String   @db.String
+  char            String   @db.Char(256)
+
+  // TODO: this is not supported, but it's still suggested by the VSCode extension
+  // varchar         String   @db.VarChar(5)
+
+  bit             String   @db.Bit(5)
+  varbit          String   @db.VarBit(5)
+  uuid            String   @db.Uuid
+  inet            String   @db.Inet
+  // citext          String   @db.Citext
+  boolean         Boolean  @db.Bool
+  integer         Int      @db.Int4
+  smallint        Int      @db.Int2
+  oid             Int      @db.Oid
+  bigint          BigInt   @db.Int8
+  real            Float    @db.Float4
+  doubleprecision Float    @db.Float8
+  decimal         Decimal  @db.Decimal(3, 3)
+  time            DateTime @db.Time
+  timestamp       DateTime @db.Timestamp
+  timestamptz     DateTime @db.Timestamptz
+  date            DateTime @db.Date
+  jsonb           Json     @db.JsonB
+  bita            String   @db.Bit
+  bitb            String   @db.Bit(5)
+}
+
+model with_unsupported {
+  id          Int                    @id
+  unsupported Unsupported("integer")
+}
+
+model ignored {
+  id Int @id
+
+  @@ignore
+}
+
+enum enum_target {
+  VALUE1
+  VALUE2
+  VALUE3
+  VALUE4
+  VALUE5
+  VALUE6
+  VALUE7
+  VALUE8
+  VALUE9
+  VALUE10
+}

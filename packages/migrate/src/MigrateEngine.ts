@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
-import type { MigrateEngineLogLine } from '@prisma/sdk'
-import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/sdk'
+import type { MigrateEngineLogLine } from '@prisma/internals'
+import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/internals'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
@@ -172,7 +172,7 @@ export class MigrateEngine {
     return new Promise(async (resolve, reject) => {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { PWD, ...rest } = process.env
+        const { PWD, ...processEnv } = process.env
         const binaryPath = await resolveBinary(BinaryType.migrationEngine)
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args: string[] = []
@@ -192,10 +192,11 @@ export class MigrateEngine {
           cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
-            ...rest,
-            SERVER_ROOT: this.projectDir,
+            // The following environment variables can be overridden by the user.
             RUST_LOG: 'info',
             RUST_BACKTRACE: '1',
+            // Take env values from process.env (willl override values set before)
+            ...processEnv,
           },
         })
 

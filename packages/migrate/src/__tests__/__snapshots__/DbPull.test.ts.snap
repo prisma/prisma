@@ -1,5 +1,40 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`MongoDB basic introspection --url 2`] = `
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
+}
+
+type UsersHobbies {
+  name            String
+  /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+  numberOrString2 Json?
+  objects         UsersHobbiesObjects[]
+  tags            String[]
+}
+
+type UsersHobbiesObjects {
+  name            String
+  /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+  numberOrString3 Json
+  tags            String[]
+}
+
+model users {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  admin           Boolean
+  email           String
+  hobbies         UsersHobbies[]
+  name            String
+  /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+  numberOrString1 Json
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
@@ -28,6 +63,272 @@ model jobs {
   customer_id Int?
   description String?   @db.VarChar(200)
   created_at  DateTime?
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (no schema) --url 2`] = `
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://prisma@localhost:26257/tests"
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with cockroach schema) --url  2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = "postgresql://prisma@localhost:26257/tests"
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with cockroach schema, cockroachdb native types) --url  2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = "postgresql://prisma@localhost:26257/tests"
+}
+
+model Post {
+  id                String  @id
+  title             String
+  content           String?
+  authorId          String?
+  exampleChar       String? @db.Char(1)
+  exampleCharLength String? @db.Char(16)
+  exampleBit        String? @db.Bit(1)
+  exampleBitLength  String? @db.Bit(16)
+  User              User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email") @db.String(32)
+  name  String? @db.String(32)
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with cockroachdb schema) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_COCKROACH_URI")
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with cockroachdb schema, cockroachdb native types) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_COCKROACH_URI")
+}
+
+model Post {
+  id                String  @id
+  title             String
+  content           String?
+  authorId          String?
+  exampleChar       String? @db.Char(1)
+  exampleCharLength String? @db.Char(16)
+  exampleBit        String? @db.Bit(1)
+  exampleBitLength  String? @db.Bit(16)
+  User              User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email") @db.String(32)
+  name  String? @db.String(32)
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with postgresql schema) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_COCKROACH_URI")
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with postgresql schema, cockroachdb native types) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_COCKROACH_URI")
+}
+
+model Post {
+  id                String  @id
+  title             String  @db.VarChar
+  content           String?
+  authorId          String? @db.VarChar
+  exampleChar       String? @db.Char(1)
+  exampleCharLength String? @db.Char(16)
+  exampleBit        String? @db.Bit(1)
+  exampleBitLength  String? @db.Bit(16)
+  User              User?   @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String? @db.VarChar(32)
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
 }
 
 
@@ -114,7 +415,7 @@ model User {
 
 exports[`common/sqlite basic introspection with invalid --url - empty host 2`] = ``;
 
-exports[`common/sqlite basic introspection with invalid --url 2`] = ``;
+exports[`common/sqlite basic introspection with invalid --url if schema is unspecified 2`] = ``;
 
 exports[`common/sqlite introspection --force 2`] = `
 generator client {
@@ -201,7 +502,7 @@ model AwesomeProfile {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`common/sqlite should succeed when schema is invalid and using --force 5`] = `
+exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"

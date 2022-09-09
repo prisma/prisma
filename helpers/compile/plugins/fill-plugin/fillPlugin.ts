@@ -137,7 +137,7 @@ const load = loader({})
  */
 const fillPlugin = (
   fillerOverrides: Fillers,
-  triggerPredicate: (options: esbuild.BuildOptions) => boolean,
+  triggerPredicate: (options: esbuild.BuildOptions) => boolean = () => true,
 ): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
@@ -191,14 +191,14 @@ const fillPlugin = (
       process: {
         inject: path.join(__dirname, 'fillers', 'process.ts'),
       },
-      global: {
-        define: '{}',
-      },
-      globalThis: {
-        define: '{}',
-      },
 
       // not needed
+      // global: {
+      //   define: '{}',
+      // },
+      // globalThis: {
+      //   define: '{}',
+      // },
       // console: { },
       // __dirname: { },
       // __filename: { },

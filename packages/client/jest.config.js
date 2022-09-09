@@ -1,5 +1,8 @@
 module.exports = {
-  preset: 'ts-jest',
+  transform: {
+    '^.+\\.(m?j|t)s$': '@swc/jest',
+  },
+  transformIgnorePatterns: [],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
@@ -12,9 +15,11 @@ module.exports = {
     '<rootDir>/runtime-dist/',
     '<rootDir>/sandbox/',
     '<rootDir>/scripts/',
+    '<rootDir>/tests/memory',
     '<rootDir>/src/__tests__/benchmarks/',
     '<rootDir>/src/__tests__/types/.*/test.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
+    '<rootDir>/src/__tests__/generation/__fixture__',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema-mongo/generated-dmmf.ts',
     '__helpers__/',
     'node_modules/',
@@ -24,8 +29,8 @@ module.exports = {
     'index.test-d.ts',
     '.bench.ts',
   ],
-  collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
+  collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*', '!src/**/*.test.ts'],
+  snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
   testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
   reporters: [

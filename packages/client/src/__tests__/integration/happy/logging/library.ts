@@ -1,4 +1,4 @@
-import { getClientEngineType } from '@prisma/sdk'
+import { getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
@@ -66,7 +66,68 @@ test('basic event logging - library', async () => {
         Object {
           duration: 0,
           params: [0],
-          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
+          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1 /* traceparent=00-00-00-00 */,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+    ]
+  `)
+})
+
+test('interactive transactions logging - library', async () => {
+  if (getClientEngineType() !== 'library') {
+    return
+  }
+
+  const PrismaClient = await getTestClient()
+
+  const prisma = new PrismaClient({
+    log: [
+      {
+        emit: 'event',
+        level: 'query',
+      },
+    ],
+  })
+
+  const onQuery = jest.fn()
+
+  prisma.$on('query', onQuery)
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.findMany()
+  })
+
+  await prisma.$disconnect()
+
+  replaceTimeValues(onQuery)
+
+  expect(onQuery.mock.calls).toMatchInlineSnapshot(`
+    Array [
+      Array [
+        Object {
+          duration: 0,
+          params: [],
+          query: BEGIN,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+      Array [
+        Object {
+          duration: 0,
+          params: [0],
+          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1 /* traceparent=00-00-00-00 */,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+      Array [
+        Object {
+          duration: 0,
+          params: [],
+          query: COMMIT,
           target: quaint::connector::metrics,
           timestamp: 1970-01-01T00:00:00.000Z,
         },

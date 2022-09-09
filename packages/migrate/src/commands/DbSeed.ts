@@ -1,5 +1,4 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/sdk'
+import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
 import chalk from 'chalk'
 
 import {
@@ -69,7 +68,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
     if (!seedCommandFromPkgJson) {
-      // Only used to help users to setup their seeds from old way to new package.json config
+      // Only used to help users to set up their seeds from old way to new package.json config
       const schemaPath = await getSchemaPath(args['--schema'])
 
       const message = await verifySeedConfigAndReturnMessage(schemaPath)
@@ -88,8 +87,6 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
       process.exit(1)
-      // For snapshot test, because exit() is mocked
-      return ``
     }
   }
 

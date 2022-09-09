@@ -1,5 +1,15 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getCommandWithExecutor, getSchemaPath, HelpError, isError, link, loadEnvFile } from '@prisma/sdk'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getCommandWithExecutor,
+  getSchemaPath,
+  HelpError,
+  isError,
+  loadEnvFile,
+  logger,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import getStdin from 'get-stdin'
@@ -7,12 +17,11 @@ import path from 'path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
-import { DbExecuteNeedsPreviewFeatureFlagError } from '../utils/errors'
 
 const helpOptions = format(
   `${chalk.bold('Usage')}
 
-${chalk.dim('$')} prisma db execute --preview-feature [options]
+${chalk.dim('$')} prisma db execute [options]
 
 ${chalk.bold('Options')}
 
@@ -27,7 +36,6 @@ ${chalk.italic('Script input, only 1 must be provided:')}
 
 ${chalk.bold('Flags')}
 
---preview-feature    Run Preview Prisma commands
 --stdin              Use the terminal standard input as the script to be executed`,
 )
 
@@ -38,11 +46,6 @@ export class DbExecute implements Command {
 
   private static help = format(`
 ${process.platform === 'win32' ? '' : chalk.bold('📝 ')}Execute native commands to your database
-
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
-    `${chalk.green(`prisma db execute`)} is currently in Preview (${link('https://pris.ly/d/preview')}).
-There may be bugs and it's not recommended to use it in production environments.`,
-  )}
 
 This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
     `--schema`,
@@ -60,22 +63,19 @@ ${helpOptions}
 ${chalk.bold('Examples')}
  
   Execute the content of a SQL script file to the datasource URL taken from the schema
-  ${chalk.dim('$')} prisma db execute 
-    --preview-feature \\
+  ${chalk.dim('$')} prisma db execute
     --file ./script.sql \\
     --schema schema.prisma
 
   Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
     prisma db execute \\
-    --preview-feature \\
     --stdin \\
     --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
   ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
     prisma db execute \\
-    --preview-feature \\
     --stdin \\
     --url="mysql://root:root@localhost/mydb"
 `)
@@ -100,12 +100,15 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    await checkUnsupportedDataProxy('db execute', args, !args['--url'])
+
     if (args['--help']) {
       return this.help()
     }
 
-    if (!args['--preview-feature']) {
-      throw new DbExecuteNeedsPreviewFeatureFlagError()
+    if (args['--preview-feature']) {
+      logger.warn(`"prisma db execute" was in Preview and is now Generally Available.
+You can now remove the ${chalk.red('--preview-feature')} flag.`)
     }
 
     loadEnvFile(args['--schema'], false)

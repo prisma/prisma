@@ -1,5 +1,5 @@
-import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, unknownCommand } from '@prisma/sdk'
+import type { Command, Commands } from '@prisma/internals'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import chalk from 'chalk'
 
 export class DbCommand implements Command {
@@ -23,11 +23,7 @@ ${chalk.bold('Commands')}
      pull   Pull the state from the database to the Prisma schema using introspection
      push   Push the state from Prisma schema to the database during prototyping
      seed   Seed your database
-  execute   Execute native commands to your database (Preview)
-
-${chalk.bold('Flag')}
-
-  --preview-feature   Run Preview Prisma commands
+  execute   Execute native commands to your database
 
 ${chalk.bold('Examples')}
 
@@ -40,8 +36,8 @@ ${chalk.bold('Examples')}
   Run \`prisma db seed\`
   ${chalk.dim('$')} prisma db seed
 
-  Run \`prisma db execute\` (Preview)
-  ${chalk.dim('$')} prisma db execute --preview-feature
+  Run \`prisma db execute\`
+  ${chalk.dim('$')} prisma db execute
 `)
 
   private constructor(private readonly cmds: Commands) {}

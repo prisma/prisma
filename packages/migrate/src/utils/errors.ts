@@ -1,4 +1,4 @@
-import { getCommandWithExecutor, link } from '@prisma/sdk'
+import { getCommandWithExecutor, link } from '@prisma/internals'
 import chalk from 'chalk'
 
 export class NoSchemaFoundError extends Error {
@@ -21,15 +21,6 @@ export class OldMigrateDetectedError extends Error {
 
 Read more about how to upgrade to the new version of Migrate:
 ${link('https://pris.ly/d/migrate-upgrade')}`,
-    )
-  }
-}
-
-export class HowToBaselineError extends Error {
-  constructor() {
-    super(
-      `Read more about how to baseline an existing production database:
-${link('https://pris.ly/d/migrate-baseline')}`,
     )
   }
 }
@@ -92,26 +83,6 @@ export class DbNeedsForceError extends Error {
     super(
       `Use the --force flag to use the ${subcommand} command in an unnattended environment like ${chalk.bold.greenBright(
         getCommandWithExecutor(`prisma db ${subcommand} --force --preview-feature`),
-      )}`,
-    )
-  }
-}
-
-export class DbExecuteNeedsPreviewFeatureFlagError extends Error {
-  constructor() {
-    super(
-      `This command is in Preview. Use the --preview-feature flag to use it like ${chalk.bold.greenBright(
-        getCommandWithExecutor(`prisma db execute --preview-feature`),
-      )}`,
-    )
-  }
-}
-
-export class MigrateDiffNeedsPreviewFeatureFlagError extends Error {
-  constructor() {
-    super(
-      `This command is in Preview. Use the --preview-feature flag to use it like ${chalk.bold.greenBright(
-        getCommandWithExecutor(`prisma migrate diff --preview-feature`),
       )}`,
     )
   }

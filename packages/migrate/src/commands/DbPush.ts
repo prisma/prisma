@@ -1,15 +1,17 @@
-import type { Command } from '@prisma/sdk'
 import {
   arg,
+  canPrompt,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   formatms,
   getCommandWithExecutor,
   HelpError,
-  isCi,
   isError,
   loadEnvFile,
   logger,
-} from '@prisma/sdk'
+  protocolToConnectorType,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import prompt from 'prompts'
 
@@ -75,6 +77,8 @@ ${chalk.bold('Examples')}
     if (isError(args)) {
       return this.help(args.message)
     }
+
+    await checkUnsupportedDataProxy('db push', args, true)
 
     if (args['--help']) {
       return this.help()
@@ -149,8 +153,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       }
       console.info() // empty line
 
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         migrate.stop()
         throw new Error(`${messages.join('\n')}\n
 Use the --force-reset flag to drop the database before push like ${chalk.bold.greenBright(
@@ -174,9 +177,8 @@ ${chalk.bold.redBright('All data will be lost.')}
       if (!confirmation.value) {
         console.info('Reset cancelled.')
         migrate.stop()
-        process.exit(0)
-        // For snapshot test, because exit() is mocked
-        return ``
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
       }
 
       try {
@@ -208,8 +210,7 @@ ${chalk.bold.redBright('All data will be lost.')}
       console.info() // empty line
 
       if (!args['--accept-data-loss']) {
-        // We use prompts.inject() for testing in our CI
-        if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+        if (!canPrompt()) {
           migrate.stop()
           throw new DbPushIgnoreWarningsWithFlagError()
         }
@@ -224,9 +225,8 @@ ${chalk.bold.redBright('All data will be lost.')}
         if (!confirmation.value) {
           console.info('Push cancelled.')
           migrate.stop()
-          process.exit(0)
-          // For snapshot test, because exit() is mocked
-          return ``
+          // Return SIGINT exit code to signal that the process was cancelled.
+          process.exit(130)
         }
 
         try {
@@ -245,10 +245,18 @@ ${chalk.bold.redBright('All data will be lost.')}
     if (!wasDatabaseReset && migration.warnings.length === 0 && migration.executedSteps === 0) {
       console.info(`\nThe database is already in sync with the Prisma schema.`)
     } else {
+      const migrationTimeMessage = `Done in ${formatms(Date.now() - before)}`
+      const rocketEmoji = process.platform === 'win32' ? '' : '🚀  '
+      const migrationSuccessStdMessage = 'Your database is now in sync with your Prisma schema.'
+      const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
+
+      // this is safe, as if the protocol was unknown, we would have already exited the program with an error
+      const provider = protocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
+
       console.info(
-        `\n${
-          process.platform === 'win32' ? '' : '🚀  '
-        }Your database is now in sync with your schema. Done in ${formatms(Date.now() - before)}`,
+        `\n${rocketEmoji}${
+          provider === 'mongodb' ? migrationSuccessMongoMessage : migrationSuccessStdMessage
+        } ${migrationTimeMessage}`,
       )
     }
 

@@ -1,7 +1,7 @@
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
 
-export const recommender = /* GraphQL */ `
+export const recommender = /* Prisma */ `
 datasource db {
   provider = "sqlite"
   url      = "file:./dev.db"
@@ -20,7 +20,7 @@ model Article {
 
 model Link {
   id        Int      @id
-  articleId Int
+  articleId Int      @unique
   article   Article  @relation(fields: [articleId], references: [id])
   postedAt  DateTime
 }

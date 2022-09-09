@@ -1,9 +1,11 @@
-import type { Command, Commands } from '@prisma/sdk'
-import { arg, format, HelpError, isError, logger, unknownCommand } from '@prisma/sdk'
 import chalk from 'chalk'
 
+import type { Command, Commands } from '../../internals/src'
+import { arg, format, HelpError, isError, logger, unknownCommand } from '../../internals/src'
+
 /**
- * CLI command
+ * Convenient Migrate CLI command, not public facing
+ * see public one in packages/cli/ directory
  */
 export class CLI implements Command {
   static new(cmds: Commands): CLI {
@@ -11,6 +13,7 @@ export class CLI implements Command {
   }
   private constructor(private readonly cmds: Commands) {}
 
+  // eslint-disable-next-line @typescript-eslint/require-await
   async parse(argv: string[]): Promise<string | Error> {
     const args = arg(argv, {
       '--help': Boolean,

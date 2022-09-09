@@ -46,7 +46,7 @@ The fastest way to get started with Prisma is by following the [**Quickstart (5 
 The Quickstart is based on a preconfigured SQLite database. You can also get started with your own database (PostgreSQL and MySQL) by following one of these guides:
 
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project-typescript-postgres)
-- [Setup a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres)
+- [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres)
 
 ## How does Prisma work
 
@@ -256,5 +256,5 @@ Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/mai
 
 - Prisma Tests Status:  
   [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=main)](https://buildkite.com/prisma/prisma2-test)
-- E2E Tests Status:  
-  [![Actions Status](https://github.com/prisma/prisma2-e2e-tests/workflows/test/badge.svg)](https://github.com/prisma/prisma2-e2e-tests/actions)
+- Ecosystem Tests Status:  
+  [![Actions Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions)

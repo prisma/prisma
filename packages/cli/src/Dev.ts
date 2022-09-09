@@ -1,5 +1,5 @@
-import type { Command } from '@prisma/sdk'
-import { format } from '@prisma/sdk'
+import type { Command } from '@prisma/internals'
+import { format } from '@prisma/internals'
 import chalk from 'chalk'
 
 export class Dev implements Command {

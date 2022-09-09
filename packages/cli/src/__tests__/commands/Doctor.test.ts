@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 
 import { Doctor } from '../../Doctor'
 
@@ -17,7 +17,7 @@ it('should fail when db is missing', async () => {
   ctx.fixture('schema-db-out-of-sync')
   ctx.fs.remove('dev.db')
   const result = Doctor.new().parse([])
-  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`P1003: SQLite database file doesn't exist`)
+  await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`P1003: Database dev.db does not exist at dev.db`)
 })
 
 it('should fail when Prisma schema is missing', async () => {
@@ -35,7 +35,7 @@ it('should fail when db is empty', async () => {
   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
           P4001
 
-          The introspected database was empty: file:dev.db
+          The introspected database was empty.
 
         `)
 })

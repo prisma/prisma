@@ -17,11 +17,11 @@ export function count(client: Client, userArgs: UserArgs | undefined, modelActio
   if (typeof select === 'object') {
     // we transpose the original select field into the _count field
     return aggregate(client, { ..._userArgs, _count: select }, (p) =>
-      modelAction({ ...p, unpacker: (data) => p.unpacker?.(data)['_count'] }),
+      modelAction({ ...p, action: 'count', unpacker: (data) => p.unpacker?.(data)['_count'] }),
     ) // for count selects, return the relevant part of the result
   } else {
     return aggregate(client, { ..._userArgs, _count: { _all: true } }, (p) =>
-      modelAction({ ...p, unpacker: (data) => p.unpacker?.(data)['_count']['_all'] }),
+      modelAction({ ...p, action: 'count', unpacker: (data) => p.unpacker?.(data)['_count']['_all'] }),
     ) // for simple counts, just return the result that is a number
   }
 }

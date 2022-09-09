@@ -26,13 +26,20 @@
 
 > Please help us improve Prisma Migrate by creating [issues](https://github.com/prisma/prisma/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us.
 
+---
+
+⚠️ **Warning**: This package is intended for Prisma's internal use.
+Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
+
+If you are using this package, it would be helpful if you could help us gain an understanding where, how and why you are using it. Your feedback will be valuable to us to define a better API. Please share this information at https://github.com/prisma/prisma/discussions/13877 - Thanks!
+
 ## Documentation
 
 You can find more info about Prisma Migrate in the [Prisma documentation](https://www.prisma.io/docs/concepts/components/prisma-migrate). Here are the most relevant pages from the docs:
 
 - [Prisma Migrate](https://www.prisma.io/docs/concepts/components/prisma-migrate)
 - [Add Prisma Migrate to an existing project](https://www.prisma.io/docs/guides/prisma-guides/prisma-migrate-guides/add-prisma-migrate-to-a-project)
-- [Setup a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres) (15 min)
+- [Set up a new project from scratch with Prisma Migrate](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres) (15 min)
 - [Prisma schema](https://www.prisma.io/docs/concepts/components/prisma-schema)
 - [Data model](https://www.prisma.io/docs/concepts/components/prisma-schema/data-model)
 - [Relations](https://www.prisma.io/docs/concepts/components/prisma-schema/relations)

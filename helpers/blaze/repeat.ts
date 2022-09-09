@@ -1,12 +1,15 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type { F, L } from 'ts-toolbelt'
 
 /**
  * An accumulable function can be passed its output as input
  */
-type Accumulable<P, R> = (arg0: R, ...rest: P[]) => R
+export type Accumulable<P, R> = (arg0: R, ...rest: P[]) => R
 
 /**
- * Repeat an [[Accumulable]] function
+ * Repeat an {@link Accumulable} function.
+ *
  * @param f to be repeated until...
  * @param again return false to exit
  * @returns

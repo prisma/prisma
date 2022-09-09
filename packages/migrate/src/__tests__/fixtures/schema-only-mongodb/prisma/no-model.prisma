@@ -5,5 +5,4 @@ datasource my_db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["mongoDb"]
 }

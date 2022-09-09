@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/sdk'
+import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/internals'
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
@@ -18,7 +18,7 @@ const readFileAsync = promisify(fs.readFile)
 export async function verifySeedConfigAndReturnMessage(schemaPath: string | null): Promise<string | undefined> {
   const cwd = process.cwd()
 
-  // Detect if seed files are next to prisma.schema file
+  // Detect if seed files are next to schema.prisma file
   const detected = detectSeedFiles(cwd, schemaPath)
 
   const prismaConfig = await getPrismaConfigFromPackageJson(cwd)

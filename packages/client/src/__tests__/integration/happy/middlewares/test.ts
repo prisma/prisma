@@ -21,7 +21,7 @@ describe('middleware', () => {
 
     expect(allResults).toEqual([[], []])
 
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('order', async () => {
@@ -48,7 +48,7 @@ describe('middleware', () => {
 
     expect(order).toEqual([1, 2, 3, 4, 1, 2, 3, 4])
 
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('engine middleware', async () => {
@@ -80,7 +80,7 @@ describe('middleware', () => {
     expect(typeof engineResults[0].elapsed).toEqual('number')
     expect(typeof engineResults[1].elapsed).toEqual('number')
 
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('modify params', async () => {
@@ -110,7 +110,7 @@ describe('middleware', () => {
     expect(u.id).toBe(user.id)
     await db.user.deleteMany()
 
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('pass new params', async () => {
@@ -145,7 +145,7 @@ describe('middleware', () => {
     expect(user.name).toBe('set from middleware')
 
     await db.user.deleteMany()
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('count unpack', async () => {
@@ -155,6 +155,22 @@ describe('middleware', () => {
     const result = await db.user.count()
     expect(typeof result).toBe('number')
 
-    db.$disconnect()
+    await db.$disconnect()
+  })
+
+  test('count action', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
+
+    let action: string | undefined
+    db.$use((params, next) => {
+      action = params.action
+      return next(params)
+    })
+
+    await db.user.count()
+    expect(action).toBe('count')
+
+    await db.$disconnect()
   })
 })

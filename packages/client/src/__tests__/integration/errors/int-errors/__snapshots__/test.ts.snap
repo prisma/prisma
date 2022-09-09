@@ -7,24 +7,16 @@ Argument age: Got invalid value 'thisisastringwith30characters' on prisma.update
 
 exports[`int-errors overflow-int 1`] = `
 
-Invalid \`prisma.user.update()\` invocation in
-/client/src/__tests__/integration/errors/int-errors/test.ts:0:0
+Invalid \`prisma.user.update()\` invocation:
 
-   54 
-   55 test('overflow-int', async () => {
-   56   try {
-→  57     await prisma.user.update(
-  Value out of range for the type. Out of range value for column 'age' at row 1
+
+Value out of range for the type. Out of range value for column 'age' at row 1
 `;
 
 exports[`int-errors signed-int 1`] = `
 
-Invalid \`prisma.user.update()\` invocation in
-/client/src/__tests__/integration/errors/int-errors/test.ts:0:0
+Invalid \`prisma.user.update()\` invocation:
 
-   68 
-   69 test('signed-int', async () => {
-   70   try {
-→  71     await prisma.user.update(
-  Value out of range for the type. Out of range value for column 'age' at row 1
+
+Value out of range for the type. Out of range value for column 'age' at row 1
 `;
