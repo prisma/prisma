@@ -1,12 +1,12 @@
 import {
   arg,
+  canPrompt,
   checkUnsupportedDataProxy,
   Command,
   dropDatabase,
   format,
   getSchemaDir,
   HelpError,
-  isCi,
   isError,
   link,
   loadEnvFile,
@@ -98,8 +98,7 @@ ${chalk.bold('Examples')}
     console.info() // empty line
 
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         throw new DbNeedsForceError('drop')
       }
 

@@ -628,7 +628,7 @@ export type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  GlobalReject = 'rejectOnNotFound' extends keyof T
+  GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
     : false
       > {
@@ -1120,7 +1120,7 @@ export namespace Prisma {
   ? False
   : T extends Date
   ? False
-  : T extends Buffer
+  : T extends Uint8Array
   ? False
   : T extends BigInt
   ? False
@@ -1316,6 +1316,11 @@ export namespace Prisma {
    * Exclude all keys with underscores
    */
   type ExcludeUnderscoreKeys<T extends string> = T extends \`_\${string}\` ? never : T
+
+
+  export import FieldRef = runtime.FieldRef
+
+  type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
   class PrismaClientFetcher {
     private readonly prisma;
@@ -1779,25 +1784,21 @@ export namespace Prisma {
     ? never
     : S extends EmbedArgs
     ?'include' extends U
-    ? Embed  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['include'][P]>>  :
-        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['include'][P]> :
-        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['include'][P]> | null :  never
-  } 
+    ? Embed 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['select'][P]>>  :
-        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> :
-        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> | null :  P extends keyof Embed ? Embed[P] : never
+        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<Exclude<S['select'], undefined | null>[P]> :
+        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof Embed ? Embed[P] : never
   } 
     : Embed
   : Embed
 
 
 
-  export interface EmbedDelegate<GlobalRejectSettings> {
+  export interface EmbedDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
 
 
 
@@ -1857,6 +1858,8 @@ export namespace Prisma {
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
 
+
+
   // Custom InputTypes
 
   /**
@@ -1910,7 +1913,8 @@ export namespace Prisma {
 
 
 
-  export interface EmbedEmbedDelegate<GlobalRejectSettings> {
+  export interface EmbedEmbedDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
 
 
 
@@ -1964,6 +1968,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -2177,12 +2183,12 @@ export namespace Prisma {
     ?'include' extends U
     ? Post  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'author' ? UserGetPayload<S['include'][P]> :  never
+        P extends 'author' ? UserGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'author' ? UserGetPayload<S['select'][P]> :  P extends keyof Post ? Post[P] : never
+        P extends 'author' ? UserGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof Post ? Post[P] : never
   } 
     : Post
   : Post
@@ -2194,7 +2200,7 @@ export namespace Prisma {
     }
   >
 
-  export interface PostDelegate<GlobalRejectSettings> {
+  export interface PostDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one Post that matches the filter.
      * @param {PostFindUniqueArgs} args - Arguments to find a Post
@@ -2558,6 +2564,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, PostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -2607,6 +2614,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -3281,16 +3290,16 @@ export namespace Prisma {
     ?'include' extends U
     ? User  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'posts' ? Array < PostGetPayload<S['include'][P]>>  :
-        P extends 'embedHolder' ? EmbedHolderGetPayload<S['include'][P]> :
-        P extends '_count' ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'posts' ? Array < PostGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<Exclude<S['include'], undefined | null>[P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'posts' ? Array < PostGetPayload<S['select'][P]>>  :
-        P extends 'embedHolder' ? EmbedHolderGetPayload<S['select'][P]> :
-        P extends '_count' ? UserCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof User ? User[P] : never
+        P extends 'posts' ? Array < PostGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<Exclude<S['select'], undefined | null>[P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof User ? User[P] : never
   } 
     : User
   : User
@@ -3302,7 +3311,7 @@ export namespace Prisma {
     }
   >
 
-  export interface UserDelegate<GlobalRejectSettings> {
+  export interface UserDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one User that matches the filter.
      * @param {UserFindUniqueArgs} args - Arguments to find a User
@@ -3666,6 +3675,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -3717,6 +3727,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -4266,20 +4278,17 @@ export namespace Prisma {
     ?'include' extends U
     ? EmbedHolder  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'embedList' ? Array < EmbedGetPayload<S['include'][P]>>  :
-        P extends 'requiredEmbed' ? EmbedGetPayload<S['include'][P]> :
-        P extends 'optionalEmbed' ? EmbedGetPayload<S['include'][P]> | null :
-        P extends 'User' ? Array < UserGetPayload<S['include'][P]>>  :
-        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'User' ? Array < UserGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'embedList' ? Array < EmbedGetPayload<S['select'][P]>>  :
-        P extends 'requiredEmbed' ? EmbedGetPayload<S['select'][P]> :
-        P extends 'optionalEmbed' ? EmbedGetPayload<S['select'][P]> | null :
-        P extends 'User' ? Array < UserGetPayload<S['select'][P]>>  :
-        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
+        P extends 'embedList' ? Array < EmbedGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends 'requiredEmbed' ? EmbedGetPayload<Exclude<S['select'], undefined | null>[P]> :
+        P extends 'optionalEmbed' ? EmbedGetPayload<Exclude<S['select'], undefined | null>[P]> | null :
+        P extends 'User' ? Array < UserGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
   } 
     : EmbedHolder
   : EmbedHolder
@@ -4291,7 +4300,7 @@ export namespace Prisma {
     }
   >
 
-  export interface EmbedHolderDelegate<GlobalRejectSettings> {
+  export interface EmbedHolderDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one EmbedHolder that matches the filter.
      * @param {EmbedHolderFindUniqueArgs} args - Arguments to find a EmbedHolder
@@ -4655,6 +4664,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, EmbedHolderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmbedHolderGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -4710,6 +4720,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -5370,14 +5382,14 @@ export namespace Prisma {
     ?'include' extends U
     ? M  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'n' ? Array < NGetPayload<S['include'][P]>>  :
-        P extends '_count' ? MCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'n' ? Array < NGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'n' ? Array < NGetPayload<S['select'][P]>>  :
-        P extends '_count' ? MCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof M ? M[P] : never
+        P extends 'n' ? Array < NGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof M ? M[P] : never
   } 
     : M
   : M
@@ -5389,7 +5401,7 @@ export namespace Prisma {
     }
   >
 
-  export interface MDelegate<GlobalRejectSettings> {
+  export interface MDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one M that matches the filter.
      * @param {MFindUniqueArgs} args - Arguments to find a M
@@ -5753,6 +5765,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, MGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -5802,6 +5815,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -6462,14 +6477,14 @@ export namespace Prisma {
     ?'include' extends U
     ? N  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'm' ? Array < MGetPayload<S['include'][P]>>  :
-        P extends '_count' ? NCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'm' ? Array < MGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'm' ? Array < MGetPayload<S['select'][P]>>  :
-        P extends '_count' ? NCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof N ? N[P] : never
+        P extends 'm' ? Array < MGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof N ? N[P] : never
   } 
     : N
   : N
@@ -6481,7 +6496,7 @@ export namespace Prisma {
     }
   >
 
-  export interface NDelegate<GlobalRejectSettings> {
+  export interface NDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one N that matches the filter.
      * @param {NFindUniqueArgs} args - Arguments to find a N
@@ -6845,6 +6860,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, NGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -6894,6 +6910,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -7550,14 +7568,14 @@ export namespace Prisma {
     ?'include' extends U
     ? OneOptional  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'many' ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
-        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
+        P extends 'many' ? Array < ManyRequiredGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'many' ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
-        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof OneOptional ? OneOptional[P] : never
+        P extends 'many' ? Array < ManyRequiredGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof OneOptional ? OneOptional[P] : never
   } 
     : OneOptional
   : OneOptional
@@ -7569,7 +7587,7 @@ export namespace Prisma {
     }
   >
 
-  export interface OneOptionalDelegate<GlobalRejectSettings> {
+  export interface OneOptionalDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one OneOptional that matches the filter.
      * @param {OneOptionalFindUniqueArgs} args - Arguments to find a OneOptional
@@ -7933,6 +7951,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, OneOptionalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -7982,6 +8001,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -8644,12 +8665,12 @@ export namespace Prisma {
     ?'include' extends U
     ? ManyRequired  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'one' ? OneOptionalGetPayload<S['include'][P]> | null :  never
+        P extends 'one' ? OneOptionalGetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'one' ? OneOptionalGetPayload<S['select'][P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
+        P extends 'one' ? OneOptionalGetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
   } 
     : ManyRequired
   : ManyRequired
@@ -8661,7 +8682,7 @@ export namespace Prisma {
     }
   >
 
-  export interface ManyRequiredDelegate<GlobalRejectSettings> {
+  export interface ManyRequiredDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one ManyRequired that matches the filter.
      * @param {ManyRequiredFindUniqueArgs} args - Arguments to find a ManyRequired
@@ -9025,6 +9046,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, ManyRequiredGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -9074,6 +9096,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -9736,12 +9760,12 @@ export namespace Prisma {
     ?'include' extends U
     ? OptionalSide1  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'opti' ? OptionalSide2GetPayload<S['include'][P]> | null :  never
+        P extends 'opti' ? OptionalSide2GetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'opti' ? OptionalSide2GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
+        P extends 'opti' ? OptionalSide2GetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
   } 
     : OptionalSide1
   : OptionalSide1
@@ -9753,7 +9777,7 @@ export namespace Prisma {
     }
   >
 
-  export interface OptionalSide1Delegate<GlobalRejectSettings> {
+  export interface OptionalSide1Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one OptionalSide1 that matches the filter.
      * @param {OptionalSide1FindUniqueArgs} args - Arguments to find a OptionalSide1
@@ -10117,6 +10141,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, OptionalSide1GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -10166,6 +10191,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -10820,12 +10847,12 @@ export namespace Prisma {
     ?'include' extends U
     ? OptionalSide2  & {
     [P in TrueKeys<S['include']>]:
-        P extends 'opti' ? OptionalSide1GetPayload<S['include'][P]> | null :  never
+        P extends 'opti' ? OptionalSide1GetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
   } 
     : 'select' extends U
     ? {
     [P in TrueKeys<S['select']>]:
-        P extends 'opti' ? OptionalSide1GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
+        P extends 'opti' ? OptionalSide1GetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
   } 
     : OptionalSide2
   : OptionalSide2
@@ -10837,7 +10864,7 @@ export namespace Prisma {
     }
   >
 
-  export interface OptionalSide2Delegate<GlobalRejectSettings> {
+  export interface OptionalSide2Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one OptionalSide2 that matches the filter.
      * @param {OptionalSide2FindUniqueArgs} args - Arguments to find a OptionalSide2
@@ -11201,6 +11228,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, OptionalSide2GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -11250,6 +11278,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -11861,7 +11891,7 @@ export namespace Prisma {
     }
   >
 
-  export interface ADelegate<GlobalRejectSettings> {
+  export interface ADelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one A that matches the filter.
      * @param {AFindUniqueArgs} args - Arguments to find a A
@@ -12225,6 +12255,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, AGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -12273,6 +12304,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -12816,7 +12849,7 @@ export namespace Prisma {
     }
   >
 
-  export interface BDelegate<GlobalRejectSettings> {
+  export interface BDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one B that matches the filter.
      * @param {BFindUniqueArgs} args - Arguments to find a B
@@ -13180,6 +13213,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, BGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -13228,6 +13262,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -13765,7 +13801,7 @@ export namespace Prisma {
     }
   >
 
-  export interface CDelegate<GlobalRejectSettings> {
+  export interface CDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one C that matches the filter.
      * @param {CFindUniqueArgs} args - Arguments to find a C
@@ -14129,6 +14165,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, CGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -14177,6 +14214,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -14736,7 +14775,7 @@ export namespace Prisma {
     }
   >
 
-  export interface DDelegate<GlobalRejectSettings> {
+  export interface DDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one D that matches the filter.
      * @param {DFindUniqueArgs} args - Arguments to find a D
@@ -15100,6 +15139,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, DGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -15148,6 +15188,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 
@@ -15661,7 +15703,7 @@ export namespace Prisma {
     }
   >
 
-  export interface EDelegate<GlobalRejectSettings> {
+  export interface EDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
      * Find zero or one E that matches the filter.
      * @param {EFindUniqueArgs} args - Arguments to find a E
@@ -16025,6 +16067,7 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, EGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : PrismaPromise<InputErrors>
+
   }
 
   /**
@@ -16073,6 +16116,8 @@ export namespace Prisma {
      */
     finally(onfinally?: (() => void) | undefined | null): Promise<T>;
   }
+
+
 
   // Custom InputTypes
 

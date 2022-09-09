@@ -1,7 +1,8 @@
 import testMatrix from './_matrix'
-
 // @ts-ignore
-declare let prisma: import('@prisma/client').PrismaClient
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
@@ -32,9 +33,9 @@ testMatrix.setupTestSuite(
         },
       ])
 
-      // @ts-ignore
+      // @ts-test-if: false
       expect(testModel[0].bInt_list[0] === BigInt('-1234')).toBe(true)
-      // @ts-ignore
+      // @ts-test-if: false
       expect(testModel[0].bInt_list[1] === BigInt('1234')).toBe(true)
     })
   },

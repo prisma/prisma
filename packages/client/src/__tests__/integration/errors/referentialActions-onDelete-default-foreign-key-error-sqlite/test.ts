@@ -54,7 +54,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => 
           40 
           41 try {
         → 42   await prisma.user.delete(
-          Foreign key constraint failed on the field: \`foreign key\`
+        Foreign key constraint failed on the field: \`foreign key\`
       `)
     }
   })

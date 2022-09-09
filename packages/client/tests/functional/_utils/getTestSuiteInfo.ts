@@ -5,7 +5,7 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
-export type TestSuiteMatrix = { [K in string]: string }[][]
+export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string>
@@ -140,7 +140,7 @@ export function getTestSuiteMeta() {
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
   const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
-  let testName
+  let testName: string
   if (rootRelativeTestPath === 'tests.ts') {
     testName = testRootDirName
   } else {

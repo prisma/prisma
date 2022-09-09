@@ -1,9 +1,9 @@
-// @ts-ignore
-import { PrismaClient } from '@prisma/client'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
@@ -36,7 +36,7 @@ testMatrix.setupTestSuite(() => {
       }))()
 
     const prismaClient2 = newPrismaClient({
-      // @ts-ignore
+      // @ts-test-if: false
       __internal: {
         engine: {
           endpoint: internalURL,

@@ -1,6 +1,7 @@
 const path = require('path')
 
 const postInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'postinstall.js')
+const localInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'localinstall.js')
 
 try {
   // that's when we develop in the monorepo, `dist` does not exist yet
@@ -12,6 +13,8 @@ try {
     execa.sync('node', ['-r', 'esbuild-register', buildScriptPath], {
       env: { DEV: true },
     })
+
+    require(localInstallScriptPath) // may install engines overrides
   }
 } catch {}
 

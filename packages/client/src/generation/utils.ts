@@ -5,6 +5,7 @@ import path from 'path'
 import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
+import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 
 export enum Projection {
   select = 'select',
@@ -147,6 +148,10 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
     default:
       assertNever(action, 'Unknown action')
   }
+}
+
+export function getFieldRefsTypeName(name: string) {
+  return `${name}FieldRefs`
 }
 
 export function getDefaultArgName(dmmf: DMMFHelper, modelName: string, action: DMMF.ModelAction): string {
@@ -343,4 +348,18 @@ export function unique<T>(arr: T[]): T[] {
   }
 
   return result
+}
+
+export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
+  let typeName: string
+  if (typeof type.type === 'string') {
+    typeName = type.type
+  } else {
+    typeName = type.type.name
+  }
+  if (type.isList) {
+    typeName += '[]'
+  }
+
+  return `'${typeName}'`
 }

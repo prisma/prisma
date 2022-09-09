@@ -193,15 +193,15 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     // https://github.com/prisma/prisma/issues/11885
     await expect(post).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.post.create()\` invocation in
-            /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
+      Invalid \`prisma.post.create()\` invocation in
+      /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
 
-              179 })
-              180 
-              181 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
-            → 182   const post = prisma.post.create(
-              Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
-          `)
+        179 })
+        180 
+        181 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+      → 182   const post = prisma.post.create(
+      Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
+    `)
   })
 
   test('should throw Malformed ObjectID error for: _id', async () => {

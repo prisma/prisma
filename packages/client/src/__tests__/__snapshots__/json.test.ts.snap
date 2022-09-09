@@ -71,7 +71,7 @@ Invalid \`prisma.user()\` invocation:
 
 Unknown arg \`hello\` in where.json.hello for type JsonFilter. Did you mean \`lt\`? Available args:
 type JsonFilter {
-  equals?: JsonNullValueFilter | Json
+  equals?: Json | JsonNullValueFilter
   path?: List<String>
   string_contains?: String
   string_starts_with?: String
@@ -83,7 +83,7 @@ type JsonFilter {
   lte?: Json
   gt?: Json
   gte?: Json
-  not?: JsonNullValueFilter | Json
+  not?: Json | JsonNullValueFilter
 }
 
 

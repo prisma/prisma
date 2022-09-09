@@ -1,7 +1,6 @@
-// @ts-ignore
-import { PrismaClient } from '@prisma/client'
-
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 

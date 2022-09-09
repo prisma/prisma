@@ -7,6 +7,7 @@ export {
   type Metrics,
   MetricsClient,
 } from './core/metrics/MetricsClient'
+export type { FieldRef } from './core/model/FieldRef'
 export { DMMFHelper as DMMFClass } from './dmmf'
 export { type BaseDMMF, DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'

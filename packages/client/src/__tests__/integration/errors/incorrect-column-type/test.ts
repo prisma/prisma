@@ -14,14 +14,14 @@ test('incorrect-column-type', async () => {
 
   await expect(prisma.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-          Invalid \`expect(prisma.user.findMany()\` invocation in
-          /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:0:0
+    Invalid \`expect(prisma.user.findMany()\` invocation in
+    /client/src/__tests__/integration/errors/incorrect-column-type/test.ts:0:0
 
-            12   ],
-            13 })
-            14 
-          → 15 await expect(prisma.user.findMany()).rejects.toThrowErrorMatchingInlineSnapshot(
-            Error converting field "name" of expected non-nullable type "String", found incompatible value of "123".
-        `)
+      12   ],
+      13 })
+      14 
+    → 15 await expect(prisma.user.findMany(
+    Error converting field "name" of expected non-nullable type "String", found incompatible value of "123".
+  `)
   await prisma.$disconnect()
 })

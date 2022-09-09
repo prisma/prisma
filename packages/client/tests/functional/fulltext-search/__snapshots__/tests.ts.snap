@@ -3,25 +3,25 @@
 exports[`fulltext-search (provider=mysql) bad query 1`] = `
 
 Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:82:10
+/client/tests/functional/fulltext-search/tests.ts:0:0
 
-   79 
-   80 testIf(process.platform !== 'win32')('bad query', async () => {
-   81   const result = prisma.user
-→  82     .findMany(
-  Error occurred during query execution:
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
+  XX   const result = prisma.user
+→ XX     .findMany(
+Error occurred during query execution:
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })) })
 `;
 
 exports[`fulltext-search (provider=postgresql) bad query 1`] = `
 
 Invalid \`.findMany()\` invocation in
-/client/tests/functional/fulltext-search/tests.ts:82:10
+/client/tests/functional/fulltext-search/tests.ts:0:0
 
-   79 
-   80 testIf(process.platform !== 'win32')('bad query', async () => {
-   81   const result = prisma.user
-→  82     .findMany(
-  Error occurred during query execution:
+  XX // TODO: Edge: skipped because of the error snapshot
+  XX testIf(process.platform !== 'win32' && clientMeta.runtime !== 'edge')('bad query', async () => {
+  XX   const result = prisma.user
+→ XX     .findMany(
+Error occurred during query execution:
 ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error in tsquery: \\"John Smith\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }) })
 `;

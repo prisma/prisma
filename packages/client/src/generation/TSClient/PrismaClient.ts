@@ -184,7 +184,7 @@ export class PrismaClientClass implements Generatable {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  GlobalReject = 'rejectOnNotFound' extends keyof T
+  GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
     : false
       > {
