@@ -78,6 +78,7 @@
     "@prisma/instrumentation": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@prisma/mini-proxy": "0.1.1",
     "@swc-node/register": "1.5.1",
     "@swc/core": "1.2.248",
     "@swc/jest": "0.2.22",

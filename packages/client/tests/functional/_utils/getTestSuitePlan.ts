@@ -1,5 +1,6 @@
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string
@@ -20,20 +21,35 @@ type SuitePlanContext = {
  * @returns [test-suite-title: string, test-suite-config: object]
  */
 
-export function getTestSuitePlan(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig[]): TestPlanEntry[] {
+export function getTestSuitePlan(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig[],
+  clientMeta: ClientMeta,
+  options?: MatrixOptions,
+): TestPlanEntry[] {
   const context = buildPlanContext()
+
+  const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
 
   return suiteConfig.map((namedConfig, configIndex) => ({
     name: getTestSuiteFullName(suiteMeta, namedConfig),
-    skip: shouldSkipProvider(context, namedConfig, configIndex),
+    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
     suiteConfig: namedConfig,
   }))
+}
+
+function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
+  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
+    return false
+  }
+  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
 }
 
 function shouldSkipProvider(
   { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
+  clientMeta: ClientMeta,
 ): boolean {
   const provider = config.matrixOptions['provider'].toLocaleLowerCase()
   if (updateSnapshots === 'inline' && configIndex > 0) {
@@ -49,6 +65,10 @@ function shouldSkipProvider(
   }
 
   if (includedProviders && !includedProviders.includes(provider)) {
+    return true
+  }
+
+  if (clientMeta.dataProxy && provider === 'sqlite') {
     return true
   }
 

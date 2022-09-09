@@ -7,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const prisma: PrismaClient
 
 const name = faker.lorem.sentence()
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   beforeAll(async () => {
     const { id: storeId } = await prisma.store.create({
       data: { name },
@@ -86,7 +86,8 @@ testMatrix.setupTestSuite(() => {
     expect(store?.products).toEqual([expect.objectContaining({ title: 'Rice' })])
   })
 
-  test('wrong column numeric type', async () => {
+  // TODO: Edge: skipped because of the error snapshot
+  testIf(runtime !== 'edge')('wrong column numeric type', async () => {
     const products = prisma.product.findMany({
       where: {
         quantity: {
