@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/10229
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  () => {
     test('should assert that the error has the correct errorCode', async () => {
       expect.assertions(2)
 
@@ -32,6 +32,10 @@ testMatrix.setupTestSuite(
         mongodb: times out and dont throw
         sqlserver: returns undefined
       `,
+    },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: 'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --data-proxy is used',
     },
   },
 )

@@ -233,6 +233,7 @@ importers:
       '@prisma/instrumentation': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
+      '@prisma/mini-proxy': 0.1.1
       '@swc-node/register': 1.5.1
       '@swc/core': 1.2.248
       '@swc/jest': 0.2.22
@@ -311,6 +312,7 @@ importers:
       '@prisma/instrumentation': link:../instrumentation
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
+      '@prisma/mini-proxy': 0.1.1
       '@swc-node/register': 1.5.1_typescript@4.8.2
       '@swc/core': 1.2.248
       '@swc/jest': 0.2.22_@swc+core@1.2.248
@@ -2452,6 +2454,12 @@ packages:
 
   /@prisma/engines-version/4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71:
     resolution: {integrity: sha512-4S80O9hbIblF/QTvUqCpKlOpWVSXuBtmm1sP7oDv8vB+rpYE5MRevgcLZZZ4cO6MzMSqooXlSYx4RDrCvS9ZCA==}
+
+  /@prisma/mini-proxy/0.1.1:
+    resolution: {integrity: sha512-6eWf2beFm1kzej9VYYaGePrLAUN1XnTrYoXjllvByQc8g8ZBkIOZPyl8mz59f9nyqTMmAVXnsa/EUXJIN6tRRg==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    dev: true
 
   /@prisma/prisma-fmt-wasm/4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71:
     resolution: {integrity: sha512-nQlSb+rYpoP6GByFVeaO5Sz0qdArHni2hUvl6lo9gY2f/gN9iMDvNY1/eKP6CQGz+v+twuZ0QjhN8beMV52Lvg==}
