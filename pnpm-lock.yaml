@@ -215,6 +215,7 @@ importers:
   packages/client:
     specifiers:
       '@faker-js/faker': 7.5.0
+      '@fast-check/jest': 1.0.1
       '@jest/test-sequencer': 28.1.3
       '@microsoft/api-extractor': 7.30.0
       '@opentelemetry/api': 1.2.0
@@ -295,6 +296,7 @@ importers:
       '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
     devDependencies:
       '@faker-js/faker': 7.5.0
+      '@fast-check/jest': 1.0.1_jest@28.1.3
       '@jest/test-sequencer': 28.1.3
       '@microsoft/api-extractor': 7.30.0
       '@opentelemetry/api': 1.2.0
@@ -1407,6 +1409,15 @@ packages:
   /@faker-js/faker/7.5.0:
     resolution: {integrity: sha512-8wNUCCUHvfvI0gQpDUho/3gPzABffnCn5um65F8dzQ86zz6dlt4+nmAA7PQUc8L+eH+9RgR/qzy5N/8kN0Ozdw==}
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
+    dev: true
+
+  /@fast-check/jest/1.0.1_jest@28.1.3:
+    resolution: {integrity: sha512-2k38LAEawqyKnsXvqNBrCByRKHELXBRGBxZV4Q4hVZsDb9Smf9anYc8zv184PvF4+gtMDzWlKRy6YCWDldf41Q==}
+    peerDependencies:
+      jest: '>=25.1.0'
+    dependencies:
+      fast-check: 3.1.3
+      jest: 28.1.3_xc7e6zqhmfcb36negqemvaoche
     dev: true
 
   /@gar/promisify/1.1.3:
@@ -5902,6 +5913,13 @@ packages:
     engines: {'0': node >=0.6.0}
     dev: true
 
+  /fast-check/3.1.3:
+    resolution: {integrity: sha512-IFY7xJrOUktiC1ZnaJdrinaRpFgDZtURRPwzAiOhL8eyt2NbBTHNF1CO7vZUla1BoUeJVI7gLnTQA+Lko0T2dQ==}
+    engines: {node: '>=8.0.0'}
+    dependencies:
+      pure-rand: 5.0.3
+    dev: true
+
   /fast-deep-equal/3.1.3:
     resolution: {integrity: sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==}
     dev: true
@@ -7763,7 +7781,7 @@ packages:
       pretty-format: 28.1.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_yq5kowb2etp2erqoehlw75t5my
+      ts-node: 10.9.1_6alqzg4rqhu35gglgmsoqcaeqm
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -10679,6 +10697,10 @@ packages:
   /punycode/2.1.1:
     resolution: {integrity: sha512-XRsRjdf+j5ml+y/6GKHPZbrF/8p2Yga0JPtdqTIY2Xe5ohJPD9saDJJLPvp9+NSBprVvevdXZybnj2cv8OEd0A==}
     engines: {node: '>=6'}
+
+  /pure-rand/5.0.3:
+    resolution: {integrity: sha512-9N8x1h8dptBQpHyC7aZMS+iNOAm97WMGY0AFrguU1cpfW3I5jINkWe5BIY5md0ofy+1TCIELsVcm/GJXZSaPbw==}
+    dev: true
 
   /qs/6.5.3:
     resolution: {integrity: sha512-qxXIEh4pCGfHICj1mAJQ2/2XVZkjCDTcEgfoSQxc/fYivUZxTkk7L3bDBJSoNrEzXI17oUO5Dp07ktqE5KzczA==}
