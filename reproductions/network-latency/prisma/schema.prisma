@@ -1,0 +1,69 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["tracing"]
+}
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://xxxxxx:xxxxxx@xxxxxx.rds.amazonaws.com:5432/xxxxxx"
+}
+
+model One {
+  id    Int     @default(autoincrement()) @id
+  next Two[]
+}
+
+model Two {
+  id    Int     @default(autoincrement()) @id
+  previous One @relation(fields: [id], references: [id])
+  next Three[]
+}
+
+model Three {
+  id    Int     @default(autoincrement()) @id
+  previous Two @relation(fields: [id], references: [id])
+  next Four[]
+}
+
+model Four {
+  id    Int     @default(autoincrement()) @id
+  previous Three @relation(fields: [id], references: [id])
+  next Five[]
+}
+
+model Five {
+  id    Int     @default(autoincrement()) @id
+  previous Four @relation(fields: [id], references: [id])
+  next Six[]
+}
+
+model Six {
+  id    Int     @default(autoincrement()) @id
+  previous Five @relation(fields: [id], references: [id])
+  next Seven[]
+}
+
+
+model Seven {
+  id    Int     @default(autoincrement()) @id
+  previous Six @relation(fields: [id], references: [id])
+  next Eight[]
+}
+
+model Eight {
+  id    Int     @default(autoincrement()) @id
+  previous Seven @relation(fields: [id], references: [id])
+  next Nine[]
+}
+
+model Nine {
+  id    Int     @default(autoincrement()) @id
+  previous Eight @relation(fields: [id], references: [id])
+  next Ten[]
+}
+
+model Ten {
+  id    Int     @default(autoincrement()) @id
+  previous Nine @relation(fields: [id], references: [id])
+  value String
+}
