@@ -226,7 +226,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -292,7 +292,7 @@ importers:
       yeoman-generator: 5.7.0
       yo: 4.3.0
     dependencies:
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
     devDependencies:
       '@faker-js/faker': 7.5.0
       '@jest/test-sequencer': 28.1.3
@@ -446,7 +446,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.2.248
@@ -458,7 +458,7 @@ importers:
       typescript: 4.8.2
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.2.248
@@ -472,7 +472,7 @@ importers:
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.2.248
       '@swc/jest': 0.2.22
@@ -518,7 +518,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@swc/core': 1.2.248
       '@swc/jest': 0.2.22_@swc+core@1.2.248
       '@types/jest': 28.1.8
@@ -779,7 +779,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -834,7 +834,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71
+      '@prisma/engines-version': 4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.2.248
@@ -2452,8 +2452,8 @@ packages:
     resolution: {integrity: sha512-aPfcBeLErM/PPiAuAbNFLN5sNbZLc3KZlar27uohllN8Zs6jJbHyJU1y7cMA6W/zuq+thkaG8mujiS+3iD/FWQ==}
     engines: {node: '>=14'}
 
-  /@prisma/engines-version/4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71:
-    resolution: {integrity: sha512-4S80O9hbIblF/QTvUqCpKlOpWVSXuBtmm1sP7oDv8vB+rpYE5MRevgcLZZZ4cO6MzMSqooXlSYx4RDrCvS9ZCA==}
+  /@prisma/engines-version/4.4.0-16.integration-occ-fixes-8612-b5c3cc192c1d804e50d6502866c2cbf8c9e5ae4d:
+    resolution: {integrity: sha512-6uLNdvNfF8HjenSGWPPsl09OxDhmK2i/kVRExWTlsni7APRosme1VF+10fvvkqGR/3z9Oy+XmsppbafbdsA0hA==}
 
   /@prisma/mini-proxy/0.1.1:
     resolution: {integrity: sha512-6eWf2beFm1kzej9VYYaGePrLAUN1XnTrYoXjllvByQc8g8ZBkIOZPyl8mz59f9nyqTMmAVXnsa/EUXJIN6tRRg==}
