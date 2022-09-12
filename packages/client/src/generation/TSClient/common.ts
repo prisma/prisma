@@ -9,10 +9,31 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-}: TSClientOptions): string => `
+  denoDeploy,
+}: TSClientOptions): string => `${denoDeploy ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  browser
+  denoDeploy
+    ? `
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  NotFoundError,
+  decompressFromBase64,
+  getPrismaClient,
+  sqltag,
+  empty,
+  join,
+  raw,
+  Decimal,
+  Debug,
+  objectEnumValues,
+  makeStrictEnum
+} from '${runtimeDir}/edge-esm.js'`
+    : browser
     ? `
 const {
   Decimal,

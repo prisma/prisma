@@ -146,7 +146,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71"
+    "@prisma/engines-version": "4.4.0-4.integration-deno-preview-flag-3c1168fbf77b17ded4f89a480e467eddb5302d77"
   },
   "sideEffects": false
 }
