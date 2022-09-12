@@ -1,4 +1,4 @@
-import { permutations } from '../../../../../../helpers/blaze/permutations'
+import { permutations } from '../../../../../helpers/blaze/permutations'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -34,7 +34,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: this is a bug
-    test.failing('create with a string and a string that looks like a date', async () => {
+    test('create with a string and a string that looks like a date', async () => {
       await expectCreateToSucceed(['hello', '2022-09-06T16:31:16.269Z'])
       await expectCreateToSucceed(['2022-09-06T16:31:16.269Z', 'hello'])
     })
@@ -51,13 +51,13 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: this is a bug
-    test.failing('create with a date and uuid', async () => {
+    test('create with a date and uuid', async () => {
       await expectCreateToSucceed(['2022-09-06T16:31:16.269Z', '4464dcac-809d-4f01-8642-81d637cd7cdd'])
       await expectCreateToSucceed(['2690FE4B-BB1C-4278-8022-9C029C2248C8', '2021-09-14T00:00:00.000Z'])
     })
 
     // TODO: this is a bug
-    test.failing('create with a string, date and uuid', async () => {
+    test('create with a string, date and uuid', async () => {
       const words = ['hello', '2022-09-06T16:31:16.269Z', '4464dcac-809d-4f01-8642-81d637cd7cdd']
 
       // Check all possible permutations because there are six possible GraphQL

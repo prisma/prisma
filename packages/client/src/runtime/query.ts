@@ -1118,23 +1118,7 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
     return true
   }
 
-  if (graphQLType === 'List<Int>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if (graphQLType === 'List<BigInt | Int>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if (graphQLType === 'List<Int | BigInt>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
   if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
-    return true
-  }
-
-  if (isValidDecimalListInput(graphQLType, value) && expectedType === 'List<Decimal>') {
     return true
   }
 
@@ -1142,22 +1126,13 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
   }
-  if (graphQLType === 'List<DateTime>' && expectedType === 'List<String>') {
-    return true
-  }
 
   // UUID is a subset of string
   if (graphQLType === 'UUID' && expectedType === 'String') {
     return true
   }
-  if (graphQLType === 'List<UUID>' && expectedType === 'List<String>') {
-    return true
-  }
 
   if (graphQLType === 'String' && expectedType === 'ID') {
-    return true
-  }
-  if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
     return true
   }
 
@@ -1165,25 +1140,13 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
     return true
   }
 
-  if (
-    expectedType === 'List<String>' &&
-    (graphQLType === 'List<String | UUID>' || graphQLType === 'List<UUID | String>')
-  ) {
-    return true
-  }
-
   // Int is a subset of Float
   if (graphQLType === 'Int' && expectedType === 'Float') {
     return true
   }
-  if (graphQLType === 'List<Int>' && expectedType === 'List<Float>') {
-    return true
-  }
+
   // Int is a subset of Long
   if (graphQLType === 'Int' && expectedType === 'Long') {
-    return true
-  }
-  if (graphQLType === 'List<Int>' && expectedType === 'List<Long>') {
     return true
   }
 
@@ -1194,6 +1157,11 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
 
   if (value === null) {
     return true
+  }
+
+  if (inputType.isList && Array.isArray(value)) {
+    // when it's a list, we check that all the conditions above are met within that list
+    return value.every((v) => hasCorrectScalarType(v, { ...inputType, isList: false }, context))
   }
 
   return false
@@ -1208,14 +1176,6 @@ function getExpectedType(inputType: DMMF.SchemaArgInputType, context: MakeDocume
 }
 
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
-
-function isValidDecimalListInput(graphQLType: string, value: any[]): boolean {
-  return (
-    graphQLType === 'List<Int>' ||
-    graphQLType === 'List<Float>' ||
-    (graphQLType === 'List<String>' && value.every(isDecimalString))
-  )
-}
 
 function isDecimalString(value: string): boolean {
   // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L116
