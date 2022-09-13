@@ -1136,10 +1136,6 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
     return true
   }
 
-  if (graphQLType === 'List<String>' && expectedType === 'List<Json>') {
-    return true
-  }
-
   // Int is a subset of Float
   if (graphQLType === 'Int' && expectedType === 'Float') {
     return true
