@@ -8,26 +8,32 @@ declare let prisma: PrismaClient
  * Regression test for comment of #11740
  */
 testMatrix.setupTestSuite(() => {
-  test('stored query triggered twice should fail but not exit process', async () => {
-    const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
+  testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+    'stored query triggered twice should fail but not exit process',
+    async () => {
+      const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
 
-    const result = prisma.$transaction([query, query])
+      const result = prisma.$transaction([query, query])
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
-  })
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    },
+  )
 
-  test('stored query trigger .requestTransaction twice should fail', async () => {
-    const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
+  testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
+    'stored query trigger .requestTransaction twice should fail',
+    async () => {
+      const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
 
-    const fn = async () => {
-      await (query as any).requestTransaction()
-      await (query as any).requestTransaction()
-    }
+      const fn = async () => {
+        await (query as any).requestTransaction()
+        await (query as any).requestTransaction()
+      }
 
-    await expect(fn()).rejects.toMatchPrismaErrorSnapshot()
-  })
+      await expect(fn()).rejects.toMatchPrismaErrorSnapshot()
+    },
+  )
 
-  test('no multiple resolves should happen', async () => {
+  testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')('no multiple resolves should happen', async () => {
     const mockMultipleResolve = jest.fn()
 
     process.on('multipleResolves', mockMultipleResolve)
