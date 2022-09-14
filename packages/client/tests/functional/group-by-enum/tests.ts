@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
  * groupBy on enum fields
  */
 testMatrix.setupTestSuite(
-  ({ provider }, suiteMeta) => {
+  ({ provider }) => {
     beforeAll(async () => {
       if (provider !== 'mysql') {
         await prisma.resource.create({
@@ -43,13 +43,21 @@ testMatrix.setupTestSuite(
     })
 
     /* eslint-disable jest/no-standalone-expect */
-    testIf(provider !== 'mysql').failing('groupBy on enumArray field', async () => {
+    testIf(provider !== 'mysql')('groupBy on enumArray field', async () => {
       const result = await prisma.resource.groupBy({
         // @ts-test-if: provider !== 'mysql'
         by: ['enumArray'],
       })
 
-      expect(result).toMatchInlineSnapshot()
+      expect(result).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            enumArray: Array [
+              A,
+            ],
+          },
+        ]
+      `)
     })
   },
   {
