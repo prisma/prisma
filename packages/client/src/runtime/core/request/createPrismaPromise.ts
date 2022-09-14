@@ -13,10 +13,15 @@ export function createPrismaPromise(
   callback: (txId?: string | number, lock?: PromiseLike<void>) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   let promise: PrismaPromise<unknown> | undefined
-  const _callback = (txId?: string | number, lock?: PromiseLike<void>) => {
+  const _callback = (txId?: string | number, lock?: PromiseLike<void>, cached = true) => {
     try {
-      // we allow the callback to be executed only one time
-      return (promise ??= callback(txId, lock))
+      // promises cannot be triggered twice after resolving
+      if (cached === true) {
+        return (promise ??= callback(txId, lock))
+      }
+
+      // but for for batch tx we need to trigger them again
+      return callback(txId, lock)
     } catch (error) {
       // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
@@ -35,7 +40,7 @@ export function createPrismaPromise(
       return _callback(txId, undefined).finally(onFinally, txId)
     },
     requestTransaction(txId: number, lock?: PromiseLike<void>) {
-      const promise = _callback(txId, lock)
+      const promise = _callback(txId, lock, false)
 
       if (promise.requestTransaction) {
         // we want to have support for nested promises
