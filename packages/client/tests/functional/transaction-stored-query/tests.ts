@@ -37,6 +37,7 @@ testMatrix.setupTestSuite(() => {
     const result = prisma.$transaction([query, query])
 
     await expect(result).rejects.toMatchPrismaErrorSnapshot()
+
     expect(mockMultipleResolve).toHaveBeenCalledTimes(0)
   })
 })
