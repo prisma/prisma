@@ -5,7 +5,8 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 /**
- * Regression test for comment of #11740
+ * Regression test for #11740 & comment
+ * Stored queries in variables for batched tx
  */
 testMatrix.setupTestSuite(() => {
   testIf(process.env.PRISMA_CLIENT_ENGINE_TYPE !== 'binary')(
