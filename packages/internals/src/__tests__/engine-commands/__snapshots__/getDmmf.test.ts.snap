@@ -362,7 +362,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolFilter",
+                  "type": "BooleanFilter",
                 },
                 Object {
                   "isList": false,
@@ -706,7 +706,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolWithAggregatesFilter",
+                  "type": "BooleanWithAggregatesFilter",
                 },
                 Object {
                   "isList": false,
@@ -841,7 +841,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolFilter",
+                  "type": "BooleanFilter",
                 },
                 Object {
                   "isList": false,
@@ -1185,7 +1185,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolWithAggregatesFilter",
+                  "type": "BooleanWithAggregatesFilter",
                 },
                 Object {
                   "isList": false,
@@ -2404,6 +2404,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -2493,7 +2505,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -2501,7 +2513,7 @@ Object {
               "name": "not",
             },
           ],
-          "name": "BoolFilter",
+          "name": "BooleanFilter",
         },
         Object {
           "constraints": Object {
@@ -3039,6 +3051,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -3167,7 +3191,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolWithAggregatesFilter",
+                  "type": "NestedBooleanWithAggregatesFilter",
                 },
               ],
               "isNullable": false,
@@ -3193,7 +3217,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -3206,7 +3230,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -3214,7 +3238,7 @@ Object {
               "name": "_max",
             },
           ],
-          "name": "BoolWithAggregatesFilter",
+          "name": "BooleanWithAggregatesFilter",
         },
         Object {
           "constraints": Object {
@@ -3810,6 +3834,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -3886,7 +3922,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -3894,7 +3930,7 @@ Object {
               "name": "not",
             },
           ],
-          "name": "NestedBoolFilter",
+          "name": "NestedBooleanFilter",
         },
         Object {
           "constraints": Object {
@@ -4283,6 +4319,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -4398,7 +4446,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolWithAggregatesFilter",
+                  "type": "NestedBooleanWithAggregatesFilter",
                 },
               ],
               "isNullable": false,
@@ -4424,7 +4472,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -4437,7 +4485,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -4445,7 +4493,7 @@ Object {
               "name": "_max",
             },
           ],
-          "name": "NestedBoolWithAggregatesFilter",
+          "name": "NestedBooleanWithAggregatesFilter",
         },
       ],
     },
@@ -7645,6 +7693,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -8130,6 +8190,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -8519,6 +8591,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -8953,6 +9037,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -10698,7 +10794,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolFilter",
+                  "type": "BooleanFilter",
                 },
                 Object {
                   "isList": false,
@@ -11055,7 +11151,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolWithAggregatesFilter",
+                  "type": "BooleanWithAggregatesFilter",
                 },
                 Object {
                   "isList": false,
@@ -11582,7 +11678,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolFilter",
+                  "type": "BooleanFilter",
                 },
                 Object {
                   "isList": false,
@@ -11926,7 +12022,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolWithAggregatesFilter",
+                  "type": "BooleanWithAggregatesFilter",
                 },
                 Object {
                   "isList": false,
@@ -12061,7 +12157,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolFilter",
+                  "type": "BooleanFilter",
                 },
                 Object {
                   "isList": false,
@@ -12405,7 +12501,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolWithAggregatesFilter",
+                  "type": "BooleanWithAggregatesFilter",
                 },
                 Object {
                   "isList": false,
@@ -14415,6 +14511,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -14504,7 +14612,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -14512,7 +14620,7 @@ Object {
               "name": "not",
             },
           ],
-          "name": "BoolFilter",
+          "name": "BooleanFilter",
         },
         Object {
           "constraints": Object {
@@ -15076,6 +15184,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -15204,7 +15324,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolWithAggregatesFilter",
+                  "type": "NestedBooleanWithAggregatesFilter",
                 },
               ],
               "isNullable": false,
@@ -15230,7 +15350,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -15243,7 +15363,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -15251,7 +15371,7 @@ Object {
               "name": "_max",
             },
           ],
-          "name": "BoolWithAggregatesFilter",
+          "name": "BooleanWithAggregatesFilter",
         },
         Object {
           "constraints": Object {
@@ -17096,6 +17216,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -17172,7 +17304,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -17180,7 +17312,7 @@ Object {
               "name": "not",
             },
           ],
-          "name": "NestedBoolFilter",
+          "name": "NestedBooleanFilter",
         },
         Object {
           "constraints": Object {
@@ -17569,6 +17701,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -17684,7 +17828,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolWithAggregatesFilter",
+                  "type": "NestedBooleanWithAggregatesFilter",
                 },
               ],
               "isNullable": false,
@@ -17710,7 +17854,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -17723,7 +17867,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "NestedBoolFilter",
+                  "type": "NestedBooleanFilter",
                 },
               ],
               "isNullable": false,
@@ -17731,7 +17875,7 @@ Object {
               "name": "_max",
             },
           ],
-          "name": "NestedBoolWithAggregatesFilter",
+          "name": "NestedBooleanWithAggregatesFilter",
         },
         Object {
           "constraints": Object {
@@ -18371,7 +18515,7 @@ Object {
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "BoolFilter",
+                  "type": "BooleanFilter",
                 },
                 Object {
                   "isList": false,
@@ -22953,9 +23097,9 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `132318758`;
+exports[`getDMMF big schema 1`] = `132319254`;
 
-exports[`getDMMF chinook introspected schema 1`] = `885639`;
+exports[`getDMMF chinook introspected schema 1`] = `886631`;
 
 exports[`getDMMF simple model, mongodb 1`] = `
 Object {
@@ -23874,6 +24018,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -24359,6 +24515,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -24679,6 +24847,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -25113,6 +25293,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -27261,6 +27453,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -27733,6 +27937,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -28109,6 +28325,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -28543,6 +28771,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -30562,6 +30802,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -31034,6 +31286,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -31341,6 +31605,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -31775,6 +32051,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -33812,6 +34100,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -34297,6 +34597,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -34686,6 +34998,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -35120,6 +35444,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -37258,6 +37594,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -37730,6 +38078,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -38106,6 +38466,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -38540,6 +38912,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -40628,6 +41012,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -41100,6 +41496,18 @@ Object {
               ],
               "isNullable": false,
               "isRequired": false,
+              "name": "equals",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
               "name": "contains",
             },
             Object {
@@ -41476,6 +41884,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
@@ -41910,6 +42330,18 @@ Object {
               "isNullable": false,
               "isRequired": false,
               "name": "gte",
+            },
+            Object {
+              "inputTypes": Array [
+                Object {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "equals",
             },
             Object {
               "inputTypes": Array [
