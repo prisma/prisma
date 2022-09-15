@@ -16695,7 +16695,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter | Date | string
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
-    published?: BoolFilter | boolean
+    published?: BooleanFilter | boolean
     author?: XOR<UserRelationFilter, UserWhereInput>
     authorId?: StringFilter | string
   }
@@ -16734,7 +16734,7 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter | Date | string
     title?: StringWithAggregatesFilter | string
     content?: StringNullableWithAggregatesFilter | string | null
-    published?: BoolWithAggregatesFilter | boolean
+    published?: BooleanWithAggregatesFilter | boolean
     authorId?: StringWithAggregatesFilter | string
   }
 
@@ -16752,10 +16752,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
     posts?: PostListRelationFilter
     embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
     embedHolderId?: StringFilter | string
@@ -16823,10 +16823,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
     embedHolderId?: StringWithAggregatesFilter | string
   }
 
@@ -16837,7 +16837,7 @@ export namespace Prisma {
     id?: StringFilter | string
     time?: DateTimeFilter | Date | string
     text?: StringFilter | string
-    boolean?: BoolFilter | boolean
+    boolean?: BooleanFilter | boolean
     embedList?: XOR<EmbedCompositeListFilter, Enumerable<EmbedObjectEqualityInput>>
     requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
     optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
@@ -16876,7 +16876,7 @@ export namespace Prisma {
     id?: StringWithAggregatesFilter | string
     time?: DateTimeWithAggregatesFilter | Date | string
     text?: StringWithAggregatesFilter | string
-    boolean?: BoolWithAggregatesFilter | boolean
+    boolean?: BooleanWithAggregatesFilter | boolean
   }
 
   export type MWhereInput = {
@@ -16894,10 +16894,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type MOrderByWithRelationInput = {
@@ -16958,10 +16958,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
   }
 
   export type NWhereInput = {
@@ -16979,10 +16979,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type NOrderByWithRelationInput = {
@@ -17043,10 +17043,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
   }
 
   export type OneOptionalWhereInput = {
@@ -17063,10 +17063,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type OneOptionalOrderByWithRelationInput = {
@@ -17124,10 +17124,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
   }
 
   export type ManyRequiredWhereInput = {
@@ -17145,10 +17145,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type ManyRequiredOrderByWithRelationInput = {
@@ -17209,10 +17209,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
   }
 
   export type OptionalSide1WhereInput = {
@@ -17230,10 +17230,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type OptionalSide1OrderByWithRelationInput = {
@@ -17295,10 +17295,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
   }
 
   export type OptionalSide2WhereInput = {
@@ -17315,10 +17315,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type OptionalSide2OrderByWithRelationInput = {
@@ -17376,10 +17376,10 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter | string | null
     json?: JsonWithAggregatesFilter
     optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
+    boolean?: BooleanWithAggregatesFilter | boolean
+    optionalBoolean?: BooleanNullableWithAggregatesFilter | boolean | null
   }
 
   export type AWhereInput = {
@@ -17531,7 +17531,7 @@ export namespace Prisma {
     OR?: Enumerable<DWhereInput>
     NOT?: Enumerable<DWhereInput>
     id?: StringFilter | string
-    bool?: BoolFilter | boolean
+    bool?: BooleanFilter | boolean
     byteA?: BytesFilter | Buffer
     xml?: StringFilter | string
     json?: JsonFilter
@@ -17573,7 +17573,7 @@ export namespace Prisma {
     OR?: Enumerable<DScalarWhereWithAggregatesInput>
     NOT?: Enumerable<DScalarWhereWithAggregatesInput>
     id?: StringWithAggregatesFilter | string
-    bool?: BoolWithAggregatesFilter | boolean
+    bool?: BooleanWithAggregatesFilter | boolean
     byteA?: BytesWithAggregatesFilter | Buffer
     xml?: StringWithAggregatesFilter | string
     json?: JsonWithAggregatesFilter
@@ -18881,9 +18881,9 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type BoolFilter = {
+  export type BooleanFilter = {
     equals?: boolean
-    not?: NestedBoolFilter | boolean
+    not?: NestedBooleanFilter | boolean
   }
 
   export type UserRelationFilter = {
@@ -18969,12 +18969,12 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type BoolWithAggregatesFilter = {
+  export type BooleanWithAggregatesFilter = {
     equals?: boolean
-    not?: NestedBoolWithAggregatesFilter | boolean
+    not?: NestedBooleanWithAggregatesFilter | boolean
     _count?: NestedIntFilter
-    _min?: NestedBoolFilter
-    _max?: NestedBoolFilter
+    _min?: NestedBooleanFilter
+    _max?: NestedBooleanFilter
   }
 
   export type IntFilter = {
@@ -19046,24 +19046,24 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type EnumABeautifulEnumFilter = {
+  export type Enum(ABeautifulEnum)Filter = {
     equals?: ABeautifulEnum
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
-    not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
+    not?: NestedEnum(ABeautifulEnum)Filter | ABeautifulEnum
   }
 
-  export type EnumABeautifulEnumNullableFilter = {
+  export type Enum(ABeautifulEnum)NullableFilter = {
     equals?: ABeautifulEnum | null
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
-    not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+    not?: NestedEnum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
     isSet?: boolean
   }
 
-  export type BoolNullableFilter = {
+  export type BooleanNullableFilter = {
     equals?: boolean | null
-    not?: NestedBoolNullableFilter | boolean | null
+    not?: NestedBooleanNullableFilter | boolean | null
     isSet?: boolean
   }
 
@@ -19241,33 +19241,33 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type EnumABeautifulEnumWithAggregatesFilter = {
+  export type Enum(ABeautifulEnum)WithAggregatesFilter = {
     equals?: ABeautifulEnum
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
-    not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    not?: NestedEnum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
-    _min?: NestedEnumABeautifulEnumFilter
-    _max?: NestedEnumABeautifulEnumFilter
+    _min?: NestedEnum(ABeautifulEnum)Filter
+    _max?: NestedEnum(ABeautifulEnum)Filter
   }
 
-  export type EnumABeautifulEnumNullableWithAggregatesFilter = {
+  export type Enum(ABeautifulEnum)NullableWithAggregatesFilter = {
     equals?: ABeautifulEnum | null
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
-    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    not?: NestedEnum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
-    _min?: NestedEnumABeautifulEnumNullableFilter
-    _max?: NestedEnumABeautifulEnumNullableFilter
+    _min?: NestedEnum(ABeautifulEnum)NullableFilter
+    _max?: NestedEnum(ABeautifulEnum)NullableFilter
     isSet?: boolean
   }
 
-  export type BoolNullableWithAggregatesFilter = {
+  export type BooleanNullableWithAggregatesFilter = {
     equals?: boolean | null
-    not?: NestedBoolNullableWithAggregatesFilter | boolean | null
+    not?: NestedBooleanNullableWithAggregatesFilter | boolean | null
     _count?: NestedIntNullableFilter
-    _min?: NestedBoolNullableFilter
-    _max?: NestedBoolNullableFilter
+    _min?: NestedBooleanNullableFilter
+    _max?: NestedBooleanNullableFilter
     isSet?: boolean
   }
 
@@ -20434,9 +20434,9 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type NestedBoolFilter = {
+  export type NestedBooleanFilter = {
     equals?: boolean
-    not?: NestedBoolFilter | boolean
+    not?: NestedBooleanFilter | boolean
   }
 
   export type NestedStringWithAggregatesFilter = {
@@ -20511,12 +20511,12 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type NestedBoolWithAggregatesFilter = {
+  export type NestedBooleanWithAggregatesFilter = {
     equals?: boolean
-    not?: NestedBoolWithAggregatesFilter | boolean
+    not?: NestedBooleanWithAggregatesFilter | boolean
     _count?: NestedIntFilter
-    _min?: NestedBoolFilter
-    _max?: NestedBoolFilter
+    _min?: NestedBooleanFilter
+    _max?: NestedBooleanFilter
   }
 
   export type NestedFloatFilter = {
@@ -20542,24 +20542,24 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type NestedEnumABeautifulEnumFilter = {
+  export type NestedEnum(ABeautifulEnum)Filter = {
     equals?: ABeautifulEnum
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
-    not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
+    not?: NestedEnum(ABeautifulEnum)Filter | ABeautifulEnum
   }
 
-  export type NestedEnumABeautifulEnumNullableFilter = {
+  export type NestedEnum(ABeautifulEnum)NullableFilter = {
     equals?: ABeautifulEnum | null
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
-    not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+    not?: NestedEnum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
     isSet?: boolean
   }
 
-  export type NestedBoolNullableFilter = {
+  export type NestedBooleanNullableFilter = {
     equals?: boolean | null
-    not?: NestedBoolNullableFilter | boolean | null
+    not?: NestedBooleanNullableFilter | boolean | null
     isSet?: boolean
   }
 
@@ -20652,33 +20652,33 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type NestedEnumABeautifulEnumWithAggregatesFilter = {
+  export type NestedEnum(ABeautifulEnum)WithAggregatesFilter = {
     equals?: ABeautifulEnum
     in?: Enumerable<ABeautifulEnum>
     notIn?: Enumerable<ABeautifulEnum>
-    not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
+    not?: NestedEnum(ABeautifulEnum)WithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
-    _min?: NestedEnumABeautifulEnumFilter
-    _max?: NestedEnumABeautifulEnumFilter
+    _min?: NestedEnum(ABeautifulEnum)Filter
+    _max?: NestedEnum(ABeautifulEnum)Filter
   }
 
-  export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
+  export type NestedEnum(ABeautifulEnum)NullableWithAggregatesFilter = {
     equals?: ABeautifulEnum | null
     in?: Enumerable<ABeautifulEnum> | null
     notIn?: Enumerable<ABeautifulEnum> | null
-    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
+    not?: NestedEnum(ABeautifulEnum)NullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
-    _min?: NestedEnumABeautifulEnumNullableFilter
-    _max?: NestedEnumABeautifulEnumNullableFilter
+    _min?: NestedEnum(ABeautifulEnum)NullableFilter
+    _max?: NestedEnum(ABeautifulEnum)NullableFilter
     isSet?: boolean
   }
 
-  export type NestedBoolNullableWithAggregatesFilter = {
+  export type NestedBooleanNullableWithAggregatesFilter = {
     equals?: boolean | null
-    not?: NestedBoolNullableWithAggregatesFilter | boolean | null
+    not?: NestedBooleanNullableWithAggregatesFilter | boolean | null
     _count?: NestedIntNullableFilter
-    _min?: NestedBoolNullableFilter
-    _max?: NestedBoolNullableFilter
+    _min?: NestedBooleanNullableFilter
+    _max?: NestedBooleanNullableFilter
     isSet?: boolean
   }
 
@@ -20687,7 +20687,7 @@ export namespace Prisma {
     OR?: Enumerable<EmbedWhereInput>
     NOT?: Enumerable<EmbedWhereInput>
     text?: StringFilter | string
-    boolean?: BoolFilter | boolean
+    boolean?: BooleanFilter | boolean
     embedEmbedList?: XOR<EmbedEmbedCompositeListFilter, Enumerable<EmbedEmbedObjectEqualityInput>>
     requiredEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput>
     optionalEmbedEmbed?: XOR<EmbedEmbedNullableCompositeFilter, EmbedEmbedObjectEqualityInput> | null
@@ -20906,7 +20906,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter | Date | string
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
-    published?: BoolFilter | boolean
+    published?: BooleanFilter | boolean
     authorId?: StringFilter | string
   }
 
@@ -21040,10 +21040,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
     embedHolderId?: StringFilter | string
   }
 
@@ -21116,10 +21116,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type MCreateWithoutNInput = {
@@ -21191,10 +21191,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type ManyRequiredCreateWithoutOneInput = {
@@ -21268,10 +21268,10 @@ export namespace Prisma {
     optionalString?: StringNullableFilter | string | null
     json?: JsonFilter
     optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    enum?: Enum(ABeautifulEnum)Filter | ABeautifulEnum
+    optionalEnum?: Enum(ABeautifulEnum)NullableFilter | ABeautifulEnum | null
+    boolean?: BooleanFilter | boolean
+    optionalBoolean?: BooleanNullableFilter | boolean | null
   }
 
   export type OneOptionalCreateWithoutManyInput = {
@@ -21793,7 +21793,7 @@ export namespace Prisma {
     OR?: Enumerable<EmbedEmbedWhereInput>
     NOT?: Enumerable<EmbedEmbedWhereInput>
     text?: StringFilter | string
-    boolean?: BoolFilter | boolean
+    boolean?: BooleanFilter | boolean
   }
 
   export type EmbedEmbedUpdateManyInput = {
