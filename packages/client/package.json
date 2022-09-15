@@ -147,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71"
+    "@prisma/engines-version": "4.4.0-25.integration-occ-fixes-8612-3589323e15f56a9d7f8ec753bbe124025ac1b452"
   },
   "sideEffects": false
 }
