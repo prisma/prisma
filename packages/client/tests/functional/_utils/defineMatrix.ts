@@ -8,8 +8,15 @@ type MergedMatrixParams<MatrixT extends TestSuiteMatrix> = U.IntersectOf<MatrixT
 
 type SchemaCallback<MatrixT extends TestSuiteMatrix> = (suiteConfig: MergedMatrixParams<MatrixT>) => string
 
+type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
+  /** Allows to exclude certain matrix dimensions from tests */
+  exclude?: (config: MergedMatrixParams<MatrixT>) => boolean
+}
+
 export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
   matrix: () => MatrixT
+
+  matrixOptions?: DefineMatrixOptions<MatrixT>
   /**
    * Function for defining test suite. Must be used in your `tests.ts` file.
    *
@@ -39,9 +46,13 @@ export interface MatrixTestHelper<MatrixT extends TestSuiteMatrix> {
  * @param matrix matrix factory function
  * @returns helper for defining the suite and the prisma schema
  */
-export function defineMatrix<MatrixT extends TestSuiteMatrix>(matrix: () => MatrixT): MatrixTestHelper<MatrixT> {
+export function defineMatrix<MatrixT extends TestSuiteMatrix>(
+  matrix: () => MatrixT,
+  options?: DefineMatrixOptions<MatrixT>,
+): MatrixTestHelper<MatrixT> {
   return {
     matrix,
+    matrixOptions: options,
     setupTestSuite: setupTestSuiteMatrix as MatrixTestHelper<MatrixT>['setupTestSuite'],
     setupSchema(schemaCallback) {
       return schemaCallback
