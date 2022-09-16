@@ -3,6 +3,8 @@ import { sanitizeEvents } from '../../__helpers__/sanitizeEvents'
 
 let prisma
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 beforeAll(async () => {
   const PrismaClient = await getTestClient()
   prisma = new PrismaClient({

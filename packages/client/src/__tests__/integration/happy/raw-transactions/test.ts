@@ -1,6 +1,8 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 import { sanitizeEvents } from '../../__helpers__/sanitizeEvents'
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 // describe, because we need to run them sequentially
 describe('transaction', () => {
   test('queryRaw', async () => {
