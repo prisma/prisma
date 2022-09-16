@@ -3,12 +3,6 @@ import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
 
 test('Blog fixture: Postgres', async () => {
-  await generateTestClient()
-
-  const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
-
-  const { PrismaClientValidationError, prismaVersion } = Prisma
-
   let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'
   originalConnectionString += '-blog-env-postgresql'
 
@@ -18,6 +12,12 @@ test('Blog fixture: Postgres', async () => {
   }
 
   await setupPostgres(SetupParams).catch((e) => console.error(e))
+
+  await generateTestClient()
+
+  const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
+
+  const { PrismaClientValidationError, prismaVersion } = Prisma
 
   const requests: any[] = []
   const errorLogs: any[] = []

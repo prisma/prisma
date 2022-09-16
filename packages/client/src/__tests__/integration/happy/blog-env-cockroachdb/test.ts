@@ -14,10 +14,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
   const errorLogs: any[] = []
 
   beforeAll(async () => {
-    await generateTestClient()
-    const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
-    PrismaHelpers = Prisma
-
     let originalConnectionString = process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests'
     originalConnectionString += '-blog-env-cockroachdb'
 
@@ -27,6 +23,10 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
     }
 
     await setupPostgres(setupParams)
+
+    await generateTestClient()
+    const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
+    PrismaHelpers = Prisma
 
     prisma = new PrismaClient({
       errorFormat: 'colorless',
