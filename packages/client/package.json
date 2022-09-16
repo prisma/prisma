@@ -147,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71"
+    "@prisma/engines-version": "4.4.0-28.feat-batch-isolation-level-6a098eca831b9d3cf008d71133236e5a7782d523"
   },
   "sideEffects": false
 }
