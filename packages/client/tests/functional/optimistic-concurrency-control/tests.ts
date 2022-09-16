@@ -27,6 +27,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       // for this resource, we tell the database to update it
       await prisma.resource.updateMany({
+        // TODO: add count
         where: { occStamp: resource.occStamp },
         data: { occStamp: { increment: 1 } },
       })
