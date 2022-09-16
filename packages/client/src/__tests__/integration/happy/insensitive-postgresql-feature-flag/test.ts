@@ -2,6 +2,8 @@ import { getTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
 
+jest.retryTimes(3)
+
 test('insensitive-postgresql', async () => {
   const PrismaClient = await getTestClient()
   let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'

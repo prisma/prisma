@@ -6,6 +6,8 @@ import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
+jest.retryTimes(3)
+
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () => {
   let prisma: any = null
   let PrismaHelpers: any = null

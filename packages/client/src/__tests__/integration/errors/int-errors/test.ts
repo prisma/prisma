@@ -2,6 +2,8 @@ import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupMysql'
 import { setupMysql, tearDownMysql } from '../../../../utils/setupMysql'
 
+jest.retryTimes(3)
+
 describe('int-errors', () => {
   let prisma
   let SetupParams: SetupParams
