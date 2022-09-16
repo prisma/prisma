@@ -22,6 +22,7 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
   await db.connect()
   await db.query(schema)
   await db.end()
+  await new Promise((r) => setTimeout(r, 1000))
 }
 
 export async function tearDownPostgres(connectionString: string) {
