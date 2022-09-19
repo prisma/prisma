@@ -108,7 +108,7 @@ describe('transaction', () => {
         },
         Object {
           params: ["A"],
-          query: SELECT \`main\`.\`User\`.\`id\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`name\` = ?,
+          query: SELECT \`main\`.\`User\`.\`id\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`name\` = ? /* traceparent=00-00-00-00 */,
           target: quaint::connector::metrics,
         },
         Object {
@@ -181,7 +181,7 @@ describe('transaction', () => {
         },
         Object {
           params: ["A"],
-          query: SELECT \`main\`.\`User\`.\`id\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`name\` = ?,
+          query: SELECT \`main\`.\`User\`.\`id\` FROM \`main\`.\`User\` WHERE \`main\`.\`User\`.\`name\` = ? /* traceparent=00-00-00-00 */,
           target: quaint::connector::metrics,
         },
         Object {
