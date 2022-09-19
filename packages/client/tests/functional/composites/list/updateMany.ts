@@ -125,7 +125,7 @@ setupTestSuite(() => {
     expect(comment).toEqual({ count: 1 })
   })
 
-  test('updateMany', async () => {
+  test.skip('updateMany', async () => {
     const comment = await prisma.commentRequiredList.updateMany({
       where: { id },
       data: {
@@ -147,7 +147,7 @@ setupTestSuite(() => {
     expect(comment).toEqual({ count: 1 })
   })
 
-  test('deleteMany', async () => {
+  test.skip('deleteMany', async () => {
     const comment = await prisma.commentRequiredList.updateMany({
       where: { id },
       data: {

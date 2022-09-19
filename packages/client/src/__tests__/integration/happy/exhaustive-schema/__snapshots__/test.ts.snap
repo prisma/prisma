@@ -15527,7 +15527,7 @@ export namespace Prisma {
     text?: StringFilter | string
     bit?: StringFilter | string
     vBit?: StringFilter | string
-    uuid?: StringFilter | string
+    uuid?: UuidFilter | string
   }
 
   export type COrderByWithRelationInput = {
@@ -15567,7 +15567,7 @@ export namespace Prisma {
     text?: StringWithAggregatesFilter | string
     bit?: StringWithAggregatesFilter | string
     vBit?: StringWithAggregatesFilter | string
-    uuid?: StringWithAggregatesFilter | string
+    uuid?: UuidWithAggregatesFilter | string
   }
 
   export type DWhereInput = {
@@ -17885,6 +17885,18 @@ export namespace Prisma {
     _max?: NestedDecimalFilter
   }
 
+  export type UuidFilter = {
+    equals?: string
+    in?: Enumerable<string>
+    notIn?: Enumerable<string>
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    mode?: QueryMode
+    not?: NestedUuidFilter | string
+  }
+
   export type CCountOrderByAggregateInput = {
     id?: SortOrder
     char?: SortOrder
@@ -17913,6 +17925,21 @@ export namespace Prisma {
     bit?: SortOrder
     vBit?: SortOrder
     uuid?: SortOrder
+  }
+
+  export type UuidWithAggregatesFilter = {
+    equals?: string
+    in?: Enumerable<string>
+    notIn?: Enumerable<string>
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    mode?: QueryMode
+    not?: NestedUuidWithAggregatesFilter | string
+    _count?: NestedIntFilter
+    _min?: NestedStringFilter
+    _max?: NestedStringFilter
   }
 
   export type BytesFilter = {
@@ -18671,6 +18698,31 @@ export namespace Prisma {
     _sum?: NestedDecimalFilter
     _min?: NestedDecimalFilter
     _max?: NestedDecimalFilter
+  }
+
+  export type NestedUuidFilter = {
+    equals?: string
+    in?: Enumerable<string>
+    notIn?: Enumerable<string>
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    not?: NestedUuidFilter | string
+  }
+
+  export type NestedUuidWithAggregatesFilter = {
+    equals?: string
+    in?: Enumerable<string>
+    notIn?: Enumerable<string>
+    lt?: string
+    lte?: string
+    gt?: string
+    gte?: string
+    not?: NestedUuidWithAggregatesFilter | string
+    _count?: NestedIntFilter
+    _min?: NestedStringFilter
+    _max?: NestedStringFilter
   }
 
   export type NestedBytesFilter = {
