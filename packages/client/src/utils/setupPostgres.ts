@@ -21,6 +21,7 @@ export async function setupPostgres(options: SetupParams): Promise<void> {
 
   await db.connect()
   await db.query(schema)
+  console.log(await db.query(`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`))
   await db.end()
 }
 
