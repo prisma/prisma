@@ -10,7 +10,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
   let prisma: any = null
   let PrismaHelpers: any = null
   let setupParams: any = null
-  const requests: any[] = []
   const errorLogs: any[] = []
 
   beforeAll(async () => {
@@ -30,29 +29,21 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
 
     prisma = new PrismaClient({
       errorFormat: 'colorless',
-      __internal: {
-        measurePerformance: true,
-        hooks: {
-          beforeRequest: (request) => requests.push(request),
-        },
-      },
       datasources: {
         db: {
           url: originalConnectionString,
         },
       },
-      log: [
-        {
-          emit: 'event',
-          level: 'error',
-        },
-      ],
     })
   })
 
   afterAll(async () => {
     await prisma.$disconnect()
     await tearDownPostgres(setupParams.connectionString)
+  })
+
+  beforeEach(async () => {
+    console.log(await prisma.$queryRaw`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`)
   })
 
   test('includes version in generated client', () => {
