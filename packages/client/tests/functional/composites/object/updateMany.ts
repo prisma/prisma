@@ -275,7 +275,7 @@ setupTestSuite(({ contentProperty }) => {
     }
   })
 
-  test('upsert set', async () => {
+  test.skip('upsert set', async () => {
     const comment = prisma.comment.updateMany({
       where: { id },
       data: {
