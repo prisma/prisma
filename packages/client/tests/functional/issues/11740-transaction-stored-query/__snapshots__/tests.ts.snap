@@ -1,17 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`issues.11740-transaction-stored-query (provider=cockroachdb) no multiple resolves should happen 1`] = `
-
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX 
-  XX process.on('multipleResolves', mockMultipleResolve)
-  XX 
-→ XX const query = prisma.resource.create(
-Unique constraint failed on the fields: (\`email\`)
-`;
-
 exports[`issues.11740-transaction-stored-query (provider=cockroachdb) stored query trigger .requestTransaction twice should fail 1`] = `
 
 Invalid \`prisma.resource.create()\` invocation in
@@ -36,18 +24,6 @@ Invalid \`prisma.resource.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`issues.11740-transaction-stored-query (provider=mongodb) no multiple resolves should happen 1`] = `
-
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX 
-  XX process.on('multipleResolves', mockMultipleResolve)
-  XX 
-→ XX const query = prisma.resource.create(
-Unique constraint failed on the constraint: \`Resource_email_key\`
-`;
-
 exports[`issues.11740-transaction-stored-query (provider=mongodb) stored query trigger .requestTransaction twice should fail 1`] = `
 
 Invalid \`prisma.resource.create()\` invocation in
@@ -69,18 +45,6 @@ Invalid \`prisma.resource.create()\` invocation in
   XX   'stored query triggered twice should fail but not exit process',
   XX   async () => {
 → XX     const query = prisma.resource.create(
-Unique constraint failed on the constraint: \`Resource_email_key\`
-`;
-
-exports[`issues.11740-transaction-stored-query (provider=mysql) no multiple resolves should happen 1`] = `
-
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX 
-  XX process.on('multipleResolves', mockMultipleResolve)
-  XX 
-→ XX const query = prisma.resource.create(
 Unique constraint failed on the constraint: \`Resource_email_key\`
 `;
 
@@ -108,18 +72,6 @@ Invalid \`prisma.resource.create()\` invocation in
 Unique constraint failed on the constraint: \`Resource_email_key\`
 `;
 
-exports[`issues.11740-transaction-stored-query (provider=postgresql) no multiple resolves should happen 1`] = `
-
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX 
-  XX process.on('multipleResolves', mockMultipleResolve)
-  XX 
-→ XX const query = prisma.resource.create(
-Unique constraint failed on the fields: (\`email\`)
-`;
-
 exports[`issues.11740-transaction-stored-query (provider=postgresql) stored query trigger .requestTransaction twice should fail 1`] = `
 
 Invalid \`prisma.resource.create()\` invocation in
@@ -141,18 +93,6 @@ Invalid \`prisma.resource.create()\` invocation in
   XX   'stored query triggered twice should fail but not exit process',
   XX   async () => {
 → XX     const query = prisma.resource.create(
-Unique constraint failed on the fields: (\`email\`)
-`;
-
-exports[`issues.11740-transaction-stored-query (provider=sqlite) no multiple resolves should happen 1`] = `
-
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX 
-  XX process.on('multipleResolves', mockMultipleResolve)
-  XX 
-→ XX const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)
 `;
 
@@ -178,18 +118,6 @@ Invalid \`prisma.resource.create()\` invocation in
   XX   async () => {
 → XX     const query = prisma.resource.create(
 Unique constraint failed on the fields: (\`email\`)
-`;
-
-exports[`issues.11740-transaction-stored-query (provider=sqlserver) no multiple resolves should happen 1`] = `
-
-Invalid \`prisma.resource.create()\` invocation in
-/client/tests/functional/issues/11740-transaction-stored-query/tests.ts:0:0
-
-  XX 
-  XX process.on('multipleResolves', mockMultipleResolve)
-  XX 
-→ XX const query = prisma.resource.create(
-Unique constraint failed on the constraint: \`dbo.Resource\`
 `;
 
 exports[`issues.11740-transaction-stored-query (provider=sqlserver) stored query trigger .requestTransaction twice should fail 1`] = `
