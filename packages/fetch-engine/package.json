@@ -13,7 +13,9 @@
     "directory": "packages/fetch-engine"
   },
   "bugs": "https://github.com/prisma/prisma/issues",
-  "enginesOverride": {},
+  "enginesOverride": {
+    "branch": "fix/ref-integrity-restrict"
+  },
   "devDependencies": {
     "@prisma/engines-version": "4.4.0-12.ef027724572e12df6f7ce8c487bd5579b008cd71",
     "@swc/core": "1.3.1",
