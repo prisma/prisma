@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.4.0-33.94146edaafca9703aa6ad050adf1b1fd2dff438e",
+    "@prisma/engines-version": "4.4.0-35.integration-database-assertion-violation-error-853cbb4e7b6a0b5b344eda1d15f9419bc3f7b526",
     "@swc/core": "1.3.1",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
