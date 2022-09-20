@@ -32,9 +32,19 @@ test('lineAt', () => {
   expect(slice.lineAt(2)).toBe('2')
 })
 
+test('lineAt outside of range', () => {
+  const slice = SourceFileSlice.fromContent('1\n2\n3')
+  expect(slice.lineAt(10)).toBeUndefined()
+})
+
 test('lineAt after slice', () => {
   const slice = SourceFileSlice.fromContent('1\n2\n3\n4\n5').slice(2, 3)
   expect(slice.lineAt(2)).toBe('2')
+})
+
+test('lineAt after slice outside of range', () => {
+  const slice = SourceFileSlice.fromContent('1\n2\n3\n4\n5').slice(2, 3)
+  expect(slice.lineAt(10)).toBeUndefined()
 })
 
 test('mapLineAt', () => {

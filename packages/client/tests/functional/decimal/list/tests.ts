@@ -1,6 +1,7 @@
-import { setupTestSuiteMatrix } from '../_utils/setupTestSuiteMatrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from '@prisma/client'
+
+import { setupTestSuiteMatrix } from '../../_utils/setupTestSuiteMatrix'
 
 declare let prisma: PrismaClient
 
