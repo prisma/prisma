@@ -23,10 +23,10 @@ export default defineMatrix(() => [
   ],
   [
     {
-      previewFeatures: '"tracing"',
+      previewFeatures: '"tracing", "interactiveTransactions"',
     },
     {
-      previewFeatures: '',
+      previewFeatures: '"interactiveTransactions"',
     },
   ],
 ])
