@@ -48,15 +48,11 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  () => {
     const queries: string[] = []
 
     function checkQueriesHaveNotTraceparent() {
-      const result = !queries.every((q) => q.includes('traceparent'))
-
-      if (result === true) {
-        console.log('queries', queries)
-      }
+      const result = !queries.some((q) => q.includes('traceparent'))
 
       queries.length = 0
 
