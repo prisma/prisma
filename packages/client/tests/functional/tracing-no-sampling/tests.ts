@@ -48,11 +48,15 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     const queries: string[] = []
 
     function checkQueriesHaveNotTraceparent() {
       const result = !queries.every((q) => q.includes('traceparent'))
+
+      if (result === true) {
+        console.log('queries', queries)
+      }
 
       queries.length = 0
 
@@ -74,16 +78,19 @@ testMatrix.setupTestSuite(
       expect(checkQueriesHaveNotTraceparent()).toBe(true)
     })
 
-    test('should perform a query and assert that no spans were generated via itx', async () => {
-      await prisma.$transaction(async (prisma) => {
-        await prisma.user.findMany()
-      })
+    testIf(!process.env.DATA_PROXY)(
+      'should perform a query and assert that no spans were generated via itx',
+      async () => {
+        await prisma.$transaction(async (prisma) => {
+          await prisma.user.findMany()
+        })
 
-      const spans = inMemorySpanExporter.getFinishedSpans()
+        const spans = inMemorySpanExporter.getFinishedSpans()
 
-      expect(spans).toHaveLength(0)
-      expect(checkQueriesHaveNotTraceparent()).toBe(true)
-    })
+        expect(spans).toHaveLength(0)
+        expect(checkQueriesHaveNotTraceparent()).toBe(true)
+      },
+    )
   },
   {
     skipDefaultClientInstance: true,
