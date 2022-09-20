@@ -14,7 +14,7 @@
   "devDependencies": {
     "@prisma/internals": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",
-    "@swc/core": "1.2.242",
+    "@swc/core": "1.3.1",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
     "@types/mssql": "8.1.1",
@@ -22,7 +22,7 @@
     "@types/pg": "8.6.5",
     "@types/sqlite3": "3.1.8",
     "decimal.js": "10.4.0",
-    "esbuild": "0.15.5",
+    "esbuild": "0.15.7",
     "execa": "5.1.1",
     "fs-jetpack": "4.3.1",
     "jest": "28.1.3",
@@ -36,7 +36,7 @@
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
     "ts-node": "10.9.1",
-    "typescript": "4.8.2",
+    "typescript": "4.8.3",
     "verror": "1.10.1"
   },
   "scripts": {

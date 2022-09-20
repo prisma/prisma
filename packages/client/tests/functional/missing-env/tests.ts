@@ -13,5 +13,15 @@ testMatrix.setupTestSuite(
       await expect(prisma.$connect()).rejects.toBeInstanceOf(Prisma.PrismaClientInitializationError)
     })
   },
-  { skipDb: true, skipDefaultClientInstance: true }, // So we can manually call connect for this test
+  {
+    skipDb: true,
+    skipDefaultClientInstance: true, // So we can manually call connect for this test
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: `
+        Fails with Data Proxy: error is an instance of InvalidDatasourceError
+        instead of Prisma.PrismaClientInitializationError.
+      `,
+    },
+  },
 )

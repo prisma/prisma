@@ -60,15 +60,16 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@faker-js/faker": "7.4.0",
+    "@faker-js/faker": "7.5.0",
+    "@fast-check/jest": "1.0.1",
     "@jest/test-sequencer": "28.1.3",
-    "@microsoft/api-extractor": "7.29.5",
-    "@opentelemetry/api": "1.1.0",
-    "@opentelemetry/context-async-hooks": "1.5.0",
-    "@opentelemetry/instrumentation": "0.31.0",
-    "@opentelemetry/resources": "1.5.0",
-    "@opentelemetry/sdk-trace-base": "1.5.0",
-    "@opentelemetry/semantic-conventions": "1.5.0",
+    "@microsoft/api-extractor": "7.31.1",
+    "@opentelemetry/api": "1.2.0",
+    "@opentelemetry/context-async-hooks": "1.6.0",
+    "@opentelemetry/instrumentation": "0.32.0",
+    "@opentelemetry/resources": "1.6.0",
+    "@opentelemetry/sdk-trace-base": "1.6.0",
+    "@opentelemetry/semantic-conventions": "1.6.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "workspace:*",
@@ -78,8 +79,9 @@
     "@prisma/instrumentation": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
+    "@prisma/mini-proxy": "0.1.2",
     "@swc-node/register": "1.5.1",
-    "@swc/core": "1.2.242",
+    "@swc/core": "1.3.1",
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
@@ -87,7 +89,7 @@
     "@types/jest": "28.1.8",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.1",
-    "@types/node": "14.18.26",
+    "@types/node": "14.18.29",
     "@types/pg": "8.6.5",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
@@ -95,9 +97,9 @@
     "chalk": "4.1.2",
     "cuid": "2.1.8",
     "decimal.js": "10.4.0",
-    "esbuild": "0.15.5",
+    "esbuild": "0.15.7",
     "execa": "5.1.1",
-    "expect-type": "0.13.0",
+    "expect-type": "0.14.2",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "10.1.0",
     "fs-monkey": "1.0.3",
@@ -132,7 +134,7 @@
     "ts-jest": "28.0.8",
     "ts-node": "10.9.1",
     "tsd": "0.21.0",
-    "typescript": "4.8.2",
+    "typescript": "4.8.3",
     "yeoman-generator": "5.7.0",
     "yo": "4.3.0"
   },
@@ -145,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-6.ecd18e861c87d2df92b2f686f88210a2c66ef5e1"
+    "@prisma/engines-version": "4.4.0-33.94146edaafca9703aa6ad050adf1b1fd2dff438e"
   },
   "sideEffects": false
 }

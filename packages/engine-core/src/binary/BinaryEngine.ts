@@ -17,7 +17,13 @@ import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
 
-import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import type {
+  BatchTransactionOptions,
+  DatasourceOverwrite,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
@@ -29,7 +35,12 @@ import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import type {
+  EngineSpanEvent,
+  QueryEngineBatchRequest,
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
@@ -964,14 +975,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async requestBatch<T>(
     queries: string[],
     headers: QueryEngineRequestHeaders = {},
-    transaction = false,
+    transaction?: BatchTransactionOptions,
     numTry = 1,
   ): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
-    const request = {
+    const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
-      transaction,
+      transaction: Boolean(transaction),
+      isolationLevel: transaction?.isolationLevel,
     }
 
     this.lastQuery = JSON.stringify(request)
@@ -1031,14 +1043,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const result = await Connection.onHttpError(
         this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
-        transactionHttpErrorHandler,
+        (result) => this.transactionHttpErrorHandler(result),
       )
 
       return result.data
     } else if (action === 'commit') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), transactionHttpErrorHandler)
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/commit`), (result) =>
+        this.transactionHttpErrorHandler(result),
+      )
     } else if (action === 'rollback') {
-      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), transactionHttpErrorHandler)
+      await Connection.onHttpError(this.connection.post(`/transaction/${arg.id}/rollback`), (result) =>
+        this.transactionHttpErrorHandler(result),
+      )
     }
 
     return undefined
@@ -1166,6 +1182,20 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
     )
     return response.data
   }
+
+  /**
+   * Decides how to handle error responses for transactions
+   * @param result
+   */
+  transactionHttpErrorHandler<R>(result: Result<R>): never {
+    const response = result.data as { [K: string]: unknown }
+    throw new PrismaClientKnownRequestError(
+      response.message as string,
+      response.error_code as string,
+      this.clientVersion as string,
+      response.meta,
+    )
+  }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
@@ -1209,14 +1239,6 @@ function initHooks() {
     hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
-}
-
-/**
- * Decides how to handle error responses for transactions
- * @param result
- */
-function transactionHttpErrorHandler<R>(result: Result<R>): never {
-  throw result.data
 }
 
 /**
