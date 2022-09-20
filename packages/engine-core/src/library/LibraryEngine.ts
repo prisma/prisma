@@ -6,7 +6,7 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
-import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
+import type { BatchTransactionOptions, DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
@@ -489,13 +489,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   async requestBatch<T>(
     queries: string[],
     headers: QueryEngineRequestHeaders = {},
-    transaction = false,
-    numTry = 1,
+    transaction?: BatchTransactionOptions,
   ): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
-      transaction,
+      transaction: Boolean(transaction),
+      isolationLevel: transaction?.isolationLevel,
     }
     await this.start()
 

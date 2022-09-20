@@ -269,16 +269,6 @@ testMatrix.setupTestSuite(({ provider }) => {
       expect(res1).toStrictEqual(res2)
     })
 
-    test('repeated calls to .requestTransaction', async () => {
-      const promise = createPromise()
-
-      // repeated calls to then & co should not change the result
-      const res1 = await promise.requestTransaction(1)
-      const res2 = await promise.requestTransaction(1)
-
-      expect(res1).toStrictEqual(res2)
-    })
-
     test('fluent promises should have promise properties', async () => {
       const promise = createPromise()
 
