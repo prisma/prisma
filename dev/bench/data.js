@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663677495736,
+  "lastUpdate": 1663685162685,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -126462,6 +126462,93 @@ window.BENCHMARK_DATA = {
             "name": "client generation 100 models with relations",
             "value": 0.48,
             "range": "±3.59%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "a3a2177e3c6e3160dd450550919fb56c7fe8b0d3",
+          "message": "feat(client): Implement isolation levels for bathc transactions (#15362)\n\nEngines part: prisma/prisma-engines#3199\r\n\r\nBatch `$transaction` call will now receive optional options\r\nobjects with `isolationLevel` property, allowing to pick any level,\r\nsupporting by current transaction. Internally, refactors a bunch of\r\nthings about the way transaction info is stored in `PrismaPromise`,\r\n`Request` and `InternalRequest` types.\r\n\r\n- All transaction-related properties are now grouped under `transaction`\r\n  key. Distiction between iTx and batch transaction is done explcitly\r\n  via discriminated union type.\r\n- `runInTransaction` property is removed from everywhere expcept\r\n  middleware public APIs. `transaction` field now indicates that the\r\n  request should run in transaction.\r\n\r\nFor testing we are checking that engine correctly generates corresponding SQL.\r\nProperly testing different isolation level effects would be very\r\ndifficult, especially in case of batch transactions, where we can not\r\nexecute any code between the queries.\r\n\r\nRef #9678",
+          "timestamp": "2022-09-20T16:42:44+02:00",
+          "tree_id": "0267d72aa27a8db15f614b09c8f51b8f35f4e2d8",
+          "url": "https://github.com/prisma/prisma/commit/a3a2177e3c6e3160dd450550919fb56c7fe8b0d3"
+        },
+        "date": 1663685153241,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.28,
+            "range": "±5.18%",
+            "unit": "ops/sec",
+            "extra": "16 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±1.77%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3731536865234375,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.08753967285156,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.784651756286621,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.09941864013672,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.349302291870117,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.55,
+            "range": "±4.86%",
             "unit": "ops/sec",
             "extra": "7 samples"
           }
