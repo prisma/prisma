@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663685162685,
+  "lastUpdate": 1663687444296,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -126551,6 +126551,93 @@ window.BENCHMARK_DATA = {
             "range": "±4.86%",
             "unit": "ops/sec",
             "extra": "7 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "tatarintsev@prisma.io",
+            "name": "Sergey Tatarintsev",
+            "username": "SevInf"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "3391f771e7e3aac3c4befb3545ab16c9c42395a2",
+          "message": "fix(client): Fix crash on large inserts. (#15279)\n\nProblem: our `flatMap` helper would call `Array.prototype.apply([],\r\ninput)` at some point. That will crash with `Maximum call stack size\r\nexceeded` in case of large amount of docs. Built-in Array.flatMap is\r\nwidely supported now and can handle large input, we don't need our\r\nhelper anymore.\r\n\r\nAside from `query.ts` where the issues was happening, I also removed\r\n`flatMap` helpers from other places just in case.\r\n\r\nFix #9372",
+          "timestamp": "2022-09-20T17:19:27+02:00",
+          "tree_id": "a60d1ffa13691c936e467ef744387a3d158ed2e5",
+          "url": "https://github.com/prisma/prisma/commit/3391f771e7e3aac3c4befb3545ab16c9c42395a2"
+        },
+        "date": 1663687433358,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.64,
+            "range": "±6.66%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.11,
+            "range": "±2.08%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3727798461914062,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.08753967285156,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.784651756286621,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.09941864013672,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.349180221557617,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.37,
+            "range": "±4.30%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
           }
         ]
       }
