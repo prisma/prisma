@@ -284,10 +284,10 @@ setupTestSuite(({ contentProperty }) => {
           upsert: {
             update: {
               // TODO: validation error if removed
-              text: 'Hello World',
+              text: 'Hello World update',
             },
             set: {
-              text: 'Hello World',
+              text: 'Hello World new',
             },
           },
         },

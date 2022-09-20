@@ -17,7 +17,13 @@ import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
 
-import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import type {
+  BatchTransactionOptions,
+  DatasourceOverwrite,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
@@ -29,7 +35,12 @@ import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import type {
+  EngineSpanEvent,
+  QueryEngineBatchRequest,
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
@@ -964,14 +975,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async requestBatch<T>(
     queries: string[],
     headers: QueryEngineRequestHeaders = {},
-    transaction = false,
+    transaction?: BatchTransactionOptions,
     numTry = 1,
   ): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
-    const request = {
+    const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
-      transaction,
+      transaction: Boolean(transaction),
+      isolationLevel: transaction?.isolationLevel,
     }
 
     this.lastQuery = JSON.stringify(request)

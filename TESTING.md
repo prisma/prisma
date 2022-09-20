@@ -268,6 +268,39 @@ Will generate following test suites:
 - `{ provider: 'postgresql', providerFeatures: '' }`
 - `{ provider: 'postgresql', providerFeatures: 'improvedQueryRaw' }`
 
+You can also optionally exclude certain combinations from matrix by using second argument of `defineMatrix` function:
+
+```ts
+import { defineMatrix } from '../_utils/defineMatrix'
+
+export default defineMatrix(
+  () => [
+    [
+      {
+        provider: 'sqlite',
+      },
+      {
+        provider: 'postgresql',
+      },
+    ],
+    [
+      {
+        providerFeatures: '',
+      },
+
+      {
+        providerFeatures: 'improvedQueryRaw',
+      },
+    ],
+  ],
+  {
+    exclude: ({ provider, providerFeatures }) => provider === 'sqlite' && providerFeatures === 'improvedQueryRaw',
+  },
+)
+```
+
+This will generate the same test suites as the previous example, except `sqlite`/`improvedQuery` combination
+
 #### Schema template
 
 `prisma/_schema.ts` will be used for generating an actual schema for the test suite:
