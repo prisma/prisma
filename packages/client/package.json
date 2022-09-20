@@ -147,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-33.94146edaafca9703aa6ad050adf1b1fd2dff438e"
+    "@prisma/engines-version": "4.4.0-36.integration-database-assertion-violation-error-9d3481512cabaca02f889fc7298e8f11dec787f4"
   },
   "sideEffects": false
 }
