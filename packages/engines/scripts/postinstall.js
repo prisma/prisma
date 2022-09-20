@@ -12,9 +12,13 @@ try {
 
     execa.sync('node', ['-r', 'esbuild-register', buildScriptPath], {
       env: { DEV: true },
+      stdio: 'inherit',
     })
 
-    require(localInstallScriptPath) // may install engines overrides
+    // if enabled, it will install engine overrides into the cache dir
+    execa.sync('node', [localInstallScriptPath], {
+      stdio: 'inherit',
+    })
   }
 } catch {}
 
