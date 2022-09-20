@@ -394,6 +394,33 @@ testMatrix.setupTestSuite(
 
         expect(users.length).toBe(2)
       })
+
+      test('middleware exclude from transaction', async () => {
+        const isolatedPrisma = newPrismaClient()
+
+        isolatedPrisma.$use((params, next) => {
+          return next({ ...params, runInTransaction: false })
+        })
+
+        await isolatedPrisma
+          .$transaction(async (prisma) => {
+            await prisma.user.create({
+              data: {
+                email: 'user_1@website.com',
+              },
+            })
+
+            await prisma.user.create({
+              data: {
+                email: 'user_1@website.com',
+              },
+            })
+          })
+          .catch((e) => {})
+
+        const users = await isolatedPrisma.user.findMany()
+        expect(users).toHaveLength(1)
+      })
     })
 
     /**
@@ -696,12 +723,13 @@ testMatrix.setupTestSuite(
       // })
 
       test('invalid value', async () => {
+        // @ts-test-if: provider === 'mongodb'
         const result = prisma.$transaction(
           async (tx) => {
             await tx.user.create({ data: { email: 'user@example.com' } })
           },
           {
-            // @ts-expect-error
+            // @ts-test-if: provider !== 'mongodb'
             isolationLevel: 'NotAValidLevel',
           },
         )
@@ -719,12 +747,13 @@ testMatrix.setupTestSuite(
     })
 
     testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {
+      // @ts-test-if: provider === 'mongodb'
       const result = prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
         },
         {
-          // @ts-expect-error
+          // @ts-test-if: provider !== 'mongodb'
           isolationLevel: 'CanBeAnything',
         },
       )
