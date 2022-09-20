@@ -1,4 +1,4 @@
-import { idForProvider } from '../../_utils/idForProvider'
+import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
