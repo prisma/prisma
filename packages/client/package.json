@@ -147,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-33.94146edaafca9703aa6ad050adf1b1fd2dff438e"
+    "@prisma/engines-version": "4.4.0-37.integration-query-raw-itx-mongo-fa5baf707cf4ac80743c8651921d7291280034b7"
   },
   "sideEffects": false
 }
