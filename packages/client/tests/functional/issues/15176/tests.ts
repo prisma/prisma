@@ -19,7 +19,9 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     })
 
-    expect(created.updatedAt_wo_default).toEqual(null)
+    expect(created.updatedAt_w_default).toBeTruthy()
+    expect(created.updatedAt_wo_default).toBeFalsy()
+
     expect(getTime(created.updatedAt_w_default)).toEqual(getTime(created.createdAt))
 
     const updated = await prisma.TestModel.update({
