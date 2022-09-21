@@ -1,5 +1,7 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
+import * as Transaction from './Transaction'
+
 // Events
 export type QueryEngineEvent = QueryEngineLogEvent | QueryEngineQueryEvent | QueryEnginePanicEvent | EngineSpanEvent
 
@@ -86,6 +88,7 @@ export type QueryEngineRequestHeaders = {
 export type QueryEngineBatchRequest = {
   batch: QueryEngineRequest[]
   transaction: boolean
+  isolationLevel?: Transaction.IsolationLevel
 }
 
 export type GetConfigOptions = {

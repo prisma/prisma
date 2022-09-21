@@ -18,6 +18,10 @@ export type InlineDatasource = {
   url: NullableEnvValue
 }
 
+export type BatchTransactionOptions = {
+  isolationLevel?: Transaction.IsolationLevel
+}
+
 // TODO Move shared logic in here
 export abstract class Engine {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
@@ -34,7 +38,7 @@ export abstract class Engine {
   abstract requestBatch<T>(
     queries: string[],
     headers?: QueryEngineRequestHeaders,
-    transaction?: boolean,
+    transaction?: BatchTransactionOptions,
     numTry?: number,
   ): Promise<QueryEngineResult<T>[]>
   abstract transaction(

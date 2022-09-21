@@ -2,13 +2,12 @@ import { Decimal } from 'decimal.js'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
-declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  () => {
     describe('possible inputs', () => {
       beforeAll(async () => {
         await prisma.user.create({
@@ -62,43 +61,6 @@ testMatrix.setupTestSuite(
         })
 
         expect(String(result?.money)).toBe('12.5')
-      })
-    })
-
-    describe('precision', () => {
-      afterEach(async () => {
-        await prisma.user.deleteMany()
-      })
-
-      // https://github.com/prisma/prisma/issues/8160
-      test.failing('preserves precision when writing longer numbers to to db', async () => {
-        const value = '1.100000000000000000000000000001234'
-        await prisma.user.create({
-          data: { money: value },
-        })
-
-        const user = await prisma.user.findFirst({ where: {} })
-
-        expect(user?.money.toFixed()).toBe(value)
-      })
-
-      // https://github.com/prisma/prisma/issues/5925
-      // fails on sqlite, because sqlite decimal is actually a float
-      testIf(provider !== 'sqlite')('preserves precision when writing shorter numbers to to db', async () => {
-        await prisma.user.create({
-          data: { money: new Prisma.Decimal('8.7') },
-        })
-
-        const user = await prisma.user.findFirst({ where: {} })
-
-        expect(user?.money.toFixed()).toBe('8.7')
-      })
-
-      test('raw Prisma.Decimal preserve precision', () => {
-        expect(new Prisma.Decimal('1.100000000000000000000000000001234').toFixed()).toBe(
-          '1.100000000000000000000000000001234',
-        )
-        expect(new Prisma.Decimal('8.7').toFixed()).toBe('8.7')
       })
     })
   },

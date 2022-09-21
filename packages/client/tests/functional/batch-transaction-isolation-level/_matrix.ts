@@ -6,7 +6,10 @@ export default defineMatrix(() => [
       provider: 'postgresql',
     },
     {
-      provider: 'cockroachdb',
+      provider: 'mysql',
+    },
+    {
+      provider: 'sqlserver',
     },
   ],
 ])
