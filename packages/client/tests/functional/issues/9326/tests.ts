@@ -56,14 +56,9 @@ testMatrix.setupTestSuite(
         try {
           await getTagsParams(ids)
         } catch (e) {
-          const error = e as Error
-          // @ts-ignore
+          const error = e as Error & { code: number; meta?: unknown }
           expect(error.message).toContain('Assertion violation on the database: `value too large to transmit`')
-
-          // @ts-ignore
           expect(error.code).toBe('P2034')
-
-          // @ts-ignore
           expect(error.meta).toMatchObject({
             database_error: 'value too large to transmit',
           })
