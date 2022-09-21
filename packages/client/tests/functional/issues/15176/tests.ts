@@ -31,7 +31,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     })
 
-    expect(created.updatedAt_wo_default).toBeTruthy()
+    expect(updated.updatedAt_wo_default).toBeTruthy()
 
     expect(getTime(updated.updatedAt_w_default)).toBeGreaterThan(getTime(created.updatedAt_w_default))
 
