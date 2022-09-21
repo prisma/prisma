@@ -9,6 +9,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
@@ -30,11 +31,10 @@ export type RequestParams = {
   clientMethod: string
   callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
-  runInTransaction?: boolean
+  transaction?: PrismaPromiseTransaction
   engineHook?: EngineMiddleware
   args: any
   headers?: Record<string, string>
-  transactionId?: string | number
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
@@ -48,8 +48,7 @@ export type HandleErrorParams = {
 
 export type Request = {
   document: Document
-  runInTransaction?: boolean
-  transactionId?: string | number
+  transaction?: PrismaPromiseTransaction
   headers?: Record<string, string>
   otelParentCtx?: Context
   otelChildCtx?: Context
@@ -57,20 +56,22 @@ export type Request = {
 }
 
 function getRequestInfo(request: Request) {
-  const txId = request.transactionId
-  const inTx = request.runInTransaction
+  const transaction = request.transaction
   const headers = request.headers ?? {}
   const traceparent = getTraceParent({ tracingConfig: request.tracingConfig })
 
-  // if the tx has a number for an id, then it's a regular batch tx
-  const _inTx = typeof txId === 'number' && inTx ? true : undefined
-  // if the tx has a string for id, it's an interactive transaction
-  const _txId = typeof txId === 'string' && inTx ? txId : undefined
+  if (transaction?.kind === 'itx') {
+    headers.transactionId = transaction.id
+  }
 
-  if (_txId !== undefined) headers.transactionId = _txId
-  if (traceparent !== undefined) headers.traceparent = traceparent
+  if (traceparent !== undefined) {
+    headers.traceparent = traceparent
+  }
 
-  return { inTx: _inTx, headers }
+  return {
+    batchTransaction: transaction?.kind === 'batch' ? transaction : undefined,
+    headers,
+  }
 }
 
 export class RequestHandler {
@@ -91,7 +92,9 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        return this.client._engine.requestBatch(queries, info.headers, info.inTx)
+        return this.client._engine.requestBatch(queries, info.headers, {
+          isolationLevel: info.batchTransaction?.isolationLevel,
+        })
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
@@ -100,8 +103,8 @@ export class RequestHandler {
         return this.client._engine.request(query, info.headers)
       },
       batchBy: (request) => {
-        if (request.transactionId) {
-          return `transaction-${request.transactionId}`
+        if (request.transaction?.id) {
+          return `transaction-${request.transaction.id}`
         }
 
         return batchFindUniqueBy(request)
@@ -118,11 +121,10 @@ export class RequestHandler {
     callsite,
     rejectOnNotFound,
     clientMethod,
-    runInTransaction,
     engineHook,
     args,
     headers,
-    transactionId,
+    transaction,
     unpacker,
     otelParentCtx,
     otelChildCtx,
@@ -149,18 +151,19 @@ export class RequestHandler {
         const result = await engineHook(
           {
             document,
-            runInTransaction,
+            runInTransaction: Boolean(transaction),
           },
-          (params) => this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig }),
+          (params) => {
+            return this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig })
+          },
         )
         data = result.data
         elapsed = result.elapsed
       } else {
         const result = await this.dataloader.request({
           document,
-          runInTransaction,
           headers,
-          transactionId,
+          transaction,
           otelParentCtx,
           otelChildCtx,
           tracingConfig: this.client._tracingConfig,

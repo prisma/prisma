@@ -33,7 +33,6 @@ import { isDecimalJsLike, stringifyDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
-import { flatMap } from './utils/flatMap'
 import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
 import type { MissingItem, PrintJsonWithErrorsArgs } from './utils/printJsonErrors'
@@ -592,7 +591,7 @@ export class Args {
       return []
     }
 
-    return flatMap(this.args, (arg) => arg.collectErrors())
+    return this.args.flatMap((arg) => arg.collectErrors())
   }
 }
 
@@ -746,8 +745,8 @@ ${indent(value.toString(), 2)}
     }
 
     if (Array.isArray(this.value)) {
-      errors.push(
-        ...(flatMap(this.value as any[], (val, index) => {
+      return errors.concat(
+        (this.value as any[]).flatMap((val, index) => {
           if (!val?.collectErrors) {
             return []
           }
@@ -755,13 +754,13 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map((e) => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }) as any),
+        }),
       )
     }
 
     // collect errors of children if there are any
     if (this.value instanceof Args) {
-      errors.push(...this.value.collectErrors().map((e) => ({ ...e, path: [this.key, ...e.path] })))
+      return errors.concat(this.value.collectErrors().map((e) => ({ ...e, path: [this.key, ...e.path] })))
     }
 
     return errors
