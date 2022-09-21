@@ -14,7 +14,8 @@
       "prisma": ["./packages/cli/src"],
       "@prisma/get-platform": ["./packages/get-platform/src"],
       "@prisma/fetch-engine": ["./packages/fetch-engine/src"],
-      "@prisma/engines": ["./packages/engines/src"]
+      "@prisma/engines": ["./packages/engines/src"],
+      "@prisma/instrumentation": ["./packages/instrumentation/src"]
     }
   }
 }
