@@ -20,7 +20,7 @@ testMatrix.setupTestSuite(
             uuid: { contains: 'foo-bar' },
           },
         }),
-      ).rejects.toThrowError('sm')
+      ).rejects.toThrowError()
     })
 
     test('should not generate the contains field on the where type', async () => {
