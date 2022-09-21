@@ -3,9 +3,6 @@ import { defineMatrix } from '../_utils/defineMatrix'
 export default defineMatrix(() => [
   [
     {
-      provider: 'sqlite',
-    },
-    {
       provider: 'postgresql',
     },
     {
@@ -13,12 +10,6 @@ export default defineMatrix(() => [
     },
     {
       provider: 'sqlserver',
-    },
-    {
-      provider: 'cockroachdb',
-    },
-    {
-      provider: 'mongodb',
     },
   ],
 ])

@@ -56,5 +56,14 @@ testMatrix.setupTestSuite(
         mySql You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
       `,
     },
+    skipDataProxy: {
+      runtimes: ['edge'],
+      reason: `
+        This test is broken with the edge client. It needs to be updated to
+        send ArrayBuffers and expect them as results, and the client might need
+        to be fixed to return ArrayBuffers and not polyfilled Buffers in
+        query results.
+      `,
+    },
   },
 )

@@ -61,13 +61,27 @@ export function applyModel(client: Client, dmmfModelName: string) {
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
-        return createPrismaPromise((txId, lock) => {
-          const data = { args: userArgs, dataPath: [] } // data and its dataPath for nested results
-          const action = { action: dmmfActionName, model: dmmfModelName } // action name and its related model
-          const method = { clientMethod: `${jsModelName}.${prop}`, jsModelName } // method name for display only
-          const tx = { runInTransaction: !!txId, transactionId: txId, lock } // transaction information
-          const trace = { callsite: callSite } // stack trace
-          const params = { ...data, ...action, ...method, ...tx, ...trace }
+        return createPrismaPromise((transaction, lock) => {
+          const params: InternalRequestParams = {
+            // data and its dataPath for nested results
+            args: userArgs,
+            dataPath: [],
+
+            // action name and its related model
+            action: dmmfActionName,
+            model: dmmfModelName,
+
+            // method name for display only
+            clientMethod: `${jsModelName}.${prop}`,
+            jsModelName,
+
+            // transaction information
+            transaction,
+            lock,
+
+            // stack trace
+            callsite: callSite,
+          }
 
           return requestFn({ ...params, ...paramOverrides })
         })

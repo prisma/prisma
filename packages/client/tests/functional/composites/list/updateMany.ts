@@ -136,7 +136,7 @@ setupTestSuite(() => {
             },
             where: {
               upvotes: {
-                isEmpty: true,
+                isEmpty: false,
               },
             },
           },
@@ -155,7 +155,7 @@ setupTestSuite(() => {
           deleteMany: {
             where: {
               upvotes: {
-                isEmpty: true,
+                isEmpty: false,
               },
             },
           },
