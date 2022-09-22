@@ -63,13 +63,13 @@
     "@faker-js/faker": "7.5.0",
     "@fast-check/jest": "1.0.1",
     "@jest/test-sequencer": "28.1.3",
-    "@microsoft/api-extractor": "7.31.1",
+    "@microsoft/api-extractor": "7.31.2",
     "@opentelemetry/api": "1.2.0",
-    "@opentelemetry/context-async-hooks": "1.6.0",
-    "@opentelemetry/instrumentation": "0.32.0",
-    "@opentelemetry/resources": "1.6.0",
-    "@opentelemetry/sdk-trace-base": "1.6.0",
-    "@opentelemetry/semantic-conventions": "1.6.0",
+    "@opentelemetry/context-async-hooks": "1.7.0",
+    "@opentelemetry/instrumentation": "0.33.0",
+    "@opentelemetry/resources": "1.7.0",
+    "@opentelemetry/sdk-trace-base": "1.7.0",
+    "@opentelemetry/semantic-conventions": "1.7.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "workspace:*",
@@ -81,7 +81,7 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.1.2",
     "@swc-node/register": "1.5.1",
-    "@swc/core": "1.3.1",
+    "@swc/core": "1.3.2",
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
@@ -96,8 +96,8 @@
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "cuid": "2.1.8",
-    "decimal.js": "10.4.0",
-    "esbuild": "0.15.7",
+    "decimal.js": "10.4.1",
+    "esbuild": "0.15.8",
     "execa": "5.1.1",
     "expect-type": "0.14.2",
     "flat-map-polyfill": "0.3.8",
@@ -147,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-40.9887882a6b7d31b136d9f20c2a6cf8c7ef526424"
+    "@prisma/engines-version": "4.4.0-41.f0b0274e7652c9bd47f9d2c663342ea9c3083c5e"
   },
   "sideEffects": false
 }
