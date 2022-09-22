@@ -16,11 +16,12 @@ export function getTraceParent({
 }): string {
   const span = trace.getSpanContext(context ?? _context.active())
 
-  if (tracingConfig?.enabled && span?.traceFlags === 1) {
-    return `00-${span.traceId}-${span.spanId}-01`
+  if (tracingConfig?.enabled && span) {
+    return `00-${span.traceId}-${span.spanId}-0${span.traceFlags}`
   } else {
     // https://www.w3.org/TR/trace-context/#examples-of-http-traceparent-headers
     // If traceparent ends with -00 this trace will not be sampled
-    return `00-00-00-00`
+    // the query engine needs the `10` for the span and trace id otherwise it does not parse this
+    return `00-10-10-00`
   }
 }
