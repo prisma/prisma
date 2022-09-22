@@ -80,7 +80,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(totalCount).toBe(1)
   })
 
-  // issue with mysql
+  // issue with mysql: https://github.com/prisma/prisma/issues/15470
   testIf(provider !== 'mysql')('upsert', async () => {
     const fn = async () => {
       const resource = (await prisma.resource.findFirst())!
