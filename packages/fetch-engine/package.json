@@ -16,7 +16,7 @@
   "enginesOverride": {},
   "devDependencies": {
     "@prisma/engines-version": "4.4.0-36.integration-database-assertion-violation-error-9d3481512cabaca02f889fc7298e8f11dec787f4",
-    "@swc/core": "1.3.1",
+    "@swc/core": "1.3.2",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
     "@types/node": "16.11.59",
