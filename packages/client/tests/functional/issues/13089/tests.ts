@@ -7,7 +7,7 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/13089
 testMatrix.setupTestSuite(
   () => {
-    test('should return records when using a `$` in the search string', async () => {
+    beforeAll(async () => {
       await prisma.users.create({
         data: {
           firstName: 'foo',
@@ -19,7 +19,9 @@ testMatrix.setupTestSuite(
           firstName: '$foo',
         },
       })
+    })
 
+    test('should return records when using a `$` in the search string', async () => {
       const records = await prisma.users.findMany({
         where: {
           firstName: '$foo',
@@ -28,6 +30,31 @@ testMatrix.setupTestSuite(
 
       expect(records).toHaveLength(1)
       expect(records[0].firstName).toEqual('$foo')
+    })
+
+    test('should update records when using a `$` in the search string', async () => {
+      const records = await prisma.users.update({
+        where: {
+          firstName: '$foo',
+        },
+        data: {
+          firstName: '$$foo',
+        },
+        select: {
+          firstName: true,
+        },
+      })
+
+      expect(records).toHaveLength(1)
+      expect(records[0].firstName).toEqual('$$foo')
+    })
+
+    test('should delete records when using a `$` in the search string', async () => {
+      await prisma.users.delete({
+        where: {
+          firstName: '$$foo',
+        },
+      })
     })
   },
   {

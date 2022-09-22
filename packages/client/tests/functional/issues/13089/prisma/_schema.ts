@@ -13,7 +13,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     
     model users {
       id        String @id @map("_id") @default(auto()) @db.ObjectId
-      firstName String
+      firstName String @unique
     }
   `
 })
