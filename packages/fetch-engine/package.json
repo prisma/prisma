@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.4.0-41.f0b0274e7652c9bd47f9d2c663342ea9c3083c5e",
+    "@prisma/engines-version": "4.4.0-43.integration-query-raw-itx-mongo-e5ccee611e0dac785d27c75481672389bdf102dc",
     "@swc/core": "1.3.2",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
