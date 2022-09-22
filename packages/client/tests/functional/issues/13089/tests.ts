@@ -33,7 +33,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should update records when using a `$` in the search string', async () => {
-      const records = await prisma.users.update({
+      const record = await prisma.users.update({
         where: {
           firstName: '$foo',
         },
@@ -45,8 +45,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(records).toHaveLength(1)
-      expect(records[0].firstName).toEqual('$$foo')
+      expect(record.firstName).toEqual('$$foo')
     })
 
     test('should delete records when using a `$` in the search string', async () => {
