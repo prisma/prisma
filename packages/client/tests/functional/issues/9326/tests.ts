@@ -71,5 +71,9 @@ testMatrix.setupTestSuite(
       from: ['mysql', 'sqlserver', 'cockroachdb', 'sqlite', 'mongodb'],
       reason: 'we have only captured this issue with postgres',
     },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: "Mini-Proxy can't currently handle big queries, un-skip when it starts using QE server instead of CLI",
+    },
   },
 )
