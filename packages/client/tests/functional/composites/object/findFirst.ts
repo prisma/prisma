@@ -2,9 +2,10 @@ import { faker } from '@faker-js/faker'
 
 import { setupTestSuite } from './_matrix'
 import { commentDataA } from './_testData'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 const id = faker.database.mongodbObjectId()
 

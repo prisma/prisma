@@ -1,12 +1,11 @@
-// @ts-ignore
-import type { PrismaClient } from '@prisma/client'
-
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, { runtime }) => {
     afterEach(async () => {
       await prisma.product.deleteMany({})
     })
@@ -122,7 +121,8 @@ testMatrix.setupTestSuite(
       expect(products).toEqual([expect.objectContaining({ title: 'potato' })])
     })
 
-    test('wrong field type', async () => {
+    // TODO: Edge: skipped because of the error snapshot
+    testIf(runtime !== 'edge')('wrong field type', async () => {
       const products = prisma.product.findMany({
         where: {
           properties1: {

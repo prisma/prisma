@@ -1,9 +1,10 @@
 import { faker } from '@faker-js/faker'
 
 import { setupTestSuite } from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 setupTestSuite(({ contentProperty }) => {
   let id: string
@@ -283,10 +284,10 @@ setupTestSuite(({ contentProperty }) => {
           upsert: {
             update: {
               // TODO: validation error if removed
-              text: 'Hello World',
+              text: 'Hello World update',
             },
             set: {
-              text: 'Hello World',
+              text: 'Hello World new',
             },
           },
         },

@@ -30,12 +30,12 @@
     "@types/jest": "28.1.8",
     "@types/node": "12.20.55",
     "@types/resolve": "1.20.2",
-    "esbuild": "0.15.5",
+    "esbuild": "0.15.8",
     "jest": "28.1.3",
     "jest-junit": "14.0.1",
     "mock-stdin": "1.0.0",
     "ts-node": "10.9.1",
-    "typescript": "4.7.4",
+    "typescript": "4.8.3",
     "yarn": "1.22.19"
   },
   "dependencies": {
@@ -45,7 +45,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-fmt-wasm": "4.4.0-3.88f6ab88e559ef52ab26bc98f1da15200e0c25b4",
+    "@prisma/prisma-fmt-wasm": "4.4.0-41.f0b0274e7652c9bd47f9d2c663342ea9c3083c5e",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "chalk": "4.1.2",

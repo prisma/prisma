@@ -10,6 +10,7 @@ import {
 } from '../../runtime/clientActions'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import {
   getAggregateArgsName,
   getAggregateGetName,
@@ -52,6 +53,7 @@ export class Model implements Generatable {
   constructor(
     protected readonly model: DMMF.Model,
     protected readonly dmmf: DMMFHelper,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly generator?: GeneratorConfig,
   ) {
     this.type = dmmf.outputTypeMap[model.name]
@@ -71,15 +73,15 @@ export class Model implements Generatable {
       }
 
       if (action === 'updateMany' || action === 'deleteMany' || action === 'createMany') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, this.genericsInfo, action as DMMF.ModelAction))
       } else if (action === 'findRaw' || action === 'aggregateRaw') {
-        argsTypes.push(new MinimalArgsType(field.args, this.type, action as DMMF.ModelAction))
+        argsTypes.push(new MinimalArgsType(field.args, this.type, this.genericsInfo, action as DMMF.ModelAction))
       } else if (action !== 'groupBy' && action !== 'aggregate') {
-        argsTypes.push(new ArgsType(field.args, this.type, action as ClientModelAction))
+        argsTypes.push(new ArgsType(field.args, this.type, this.genericsInfo, action as ClientModelAction))
       }
     }
 
-    argsTypes.push(new ArgsType([], this.type))
+    argsTypes.push(new ArgsType([], this.type, this.genericsInfo))
 
     return argsTypes
   }
@@ -111,7 +113,7 @@ ${indent(
   groupByRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
-      return new InputField(arg, false, arg.name === 'by').toTS()
+      return new InputField(arg, false, arg.name === 'by', this.genericsInfo).toTS()
     })
     .concat(
       groupByType.fields
@@ -216,7 +218,7 @@ ${
               ],
             })),
           }
-          return new InputType(newType).toTS()
+          return new InputType(newType, this.genericsInfo).toTS()
         })
         .join('\n')
     : ''
@@ -227,7 +229,7 @@ ${indent(
   aggregateRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
-      return new InputField(arg).toTS()
+      return new InputField(arg, false, false, this.genericsInfo).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
@@ -325,7 +327,7 @@ ${indent(
 )}
 }
 ${includeType}
-${new PayloadType(this.outputType, !this.dmmf.typeMap[model.name]).toTS()}
+${new PayloadType(this.outputType, this.dmmf).toTS()}
 
 ${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 
@@ -395,7 +397,7 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings> {
+export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
 ${indent(
   nonAggregateActions
     .map(

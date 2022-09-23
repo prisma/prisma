@@ -2,9 +2,10 @@ import { faker } from '@faker-js/faker'
 
 import { setupTestSuite } from './_matrix'
 import { commentListDataA } from './_testData'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
 
 setupTestSuite(() => {
   let id
@@ -135,7 +136,7 @@ setupTestSuite(() => {
             },
             where: {
               upvotes: {
-                isEmpty: true,
+                isEmpty: false,
               },
             },
           },
@@ -154,7 +155,7 @@ setupTestSuite(() => {
           deleteMany: {
             where: {
               upvotes: {
-                isEmpty: true,
+                isEmpty: false,
               },
             },
           },

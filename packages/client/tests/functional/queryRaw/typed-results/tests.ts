@@ -1,9 +1,9 @@
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore
-declare let prisma: import('@prisma/client').PrismaClient
-// @ts-ignore
-declare let Prisma: typeof import('@prisma/client').Prisma
+declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
   () => {
@@ -44,7 +44,7 @@ testMatrix.setupTestSuite(
           dec: new Prisma.Decimal('0.0625'),
         },
       ])
-      // @ts-ignore
+      // @ts-test-if: false
       expect(testModel[0].bInt === BigInt('12345')).toBe(true)
     })
   },
@@ -54,6 +54,15 @@ testMatrix.setupTestSuite(
       reason: `
         $queryRaw only works on SQL based providers
         mySql You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
+      `,
+    },
+    skipDataProxy: {
+      runtimes: ['edge'],
+      reason: `
+        This test is broken with the edge client. It needs to be updated to
+        send ArrayBuffers and expect them as results, and the client might need
+        to be fixed to return ArrayBuffers and not polyfilled Buffers in
+        query results.
       `,
     },
   },
