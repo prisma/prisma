@@ -1,15 +1,16 @@
+import { expectTypeOf } from 'expect-type'
 import fs from 'fs'
 import path from 'path'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/9007
 testMatrix.setupTestSuite(
-  () => {
+  (_, { testRoot }) => {
     test('should throw an error if using contains filter on uuid type', async () => {
       await prisma.user.create({ data: {} })
 
@@ -25,7 +26,7 @@ testMatrix.setupTestSuite(
 
     test('should not generate the contains field on the where type', async () => {
       const generatedTypeScriptSrc = await fs.promises.readFile(
-        path.join(__dirname, 'node_modules/', '@prisma/', 'client/', 'index.d.ts'),
+        path.join(testRoot, 'node_modules', '@prisma', 'client', 'index.d.ts'),
         'utf-8',
       )
 
@@ -34,6 +35,7 @@ testMatrix.setupTestSuite(
       const hasContains = uuidFilter.includes('contains')
 
       expect(hasContains).toEqual(false)
+      expectTypeOf<Prisma.UuidFilter>().not.toHaveProperty('contains')
     })
   },
   {
