@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.4.0-47.c6b5fdac855d9b76c03ffc33c58188b56985fc6b",
+    "@prisma/engines-version": "4.4.0-55.qe-transaction-write-conflict-911f8bae8f9b08719066939ba0aaff82c1fe4a50",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.2",
