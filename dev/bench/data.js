@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1663953760009,
+  "lastUpdate": 1663954234717,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -128028,6 +128028,93 @@ window.BENCHMARK_DATA = {
             "name": "client generation 100 models with relations",
             "value": 0.52,
             "range": "±3.98%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "danielstarns@hotmail.com",
+            "name": "Daniel Starns",
+            "username": "danstarns"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "8bbead4b00f5541ee070c8f3f7f7d0b1e221b843",
+          "message": "test(client): Regression test for gh-13089 (#15435)",
+          "timestamp": "2022-09-23T07:27:11-10:00",
+          "tree_id": "6b3f357b408e97259aa4f10a66f3a6b250793a3c",
+          "url": "https://github.com/prisma/prisma/commit/8bbead4b00f5541ee070c8f3f7f7d0b1e221b843"
+        },
+        "date": 1663954225411,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.1,
+            "range": "±5.52%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±0.74%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.372587203979492,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.23663330078125,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.784651756286621,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.248512268066406,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.411999702453613,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.52,
+            "range": "±4.46%",
             "unit": "ops/sec",
             "extra": "7 samples"
           }
