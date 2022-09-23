@@ -147,7 +147,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.4.0-47.c6b5fdac855d9b76c03ffc33c58188b56985fc6b"
+    "@prisma/engines-version": "4.4.0-56.integration-sqlite-conversion-panic-3ba0d959e76c2282691aecac535009a8c0fd2ff1"
   },
   "sideEffects": false
 }
