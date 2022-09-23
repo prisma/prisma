@@ -287,8 +287,16 @@ export class Init implements Command {
       )} to generate the Prisma Client. You can then start querying your database.`,
     )
 
-    if (!url || args['--datasource-provider']) {
-      if (!args['--datasource-provider']) {
+    if (!args['--url']) {
+      if (args['--datasource-provider']) {
+        steps.unshift(
+          `Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
+            '.env',
+          )} file to point to your existing database. Default values are set in the ${chalk.green(
+            '.env',
+          )} file. If your database has no tables yet, read https://pris.ly/d/getting-started`,
+        )
+      } else {
         steps.unshift(
           `Set the ${chalk.green('provider')} of the ${chalk.green('datasource')} block in ${chalk.green(
             'schema.prisma',
@@ -296,13 +304,13 @@ export class Init implements Command {
             'sqlite',
           )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green('cockroachdb')}.`,
         )
-      }
 
-      steps.unshift(
-        `Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
-          '.env',
-        )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
-      )
+        steps.unshift(
+          `Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
+            '.env',
+          )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
+        )
+      }
     }
 
     return `

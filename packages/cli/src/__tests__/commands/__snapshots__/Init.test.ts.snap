@@ -114,9 +114,8 @@ exports[`works with provider and url params - cockroachdb 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
-2. Run prisma db pull to turn your database schema into a Prisma schema.
-3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
+1. Run prisma db pull to turn your database schema into a Prisma schema.
+2. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
 More information in our documentation:
 https://pris.ly/d/getting-started
@@ -144,7 +143,7 @@ exports[`works with provider param - MongoDB 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+1. Set the DATABASE_URL in the .env file to point to your existing database. Default values are set in the .env file. If your database has no tables yet, read https://pris.ly/d/getting-started
 2. Define models in the schema.prisma file.
 3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -174,7 +173,7 @@ exports[`works with provider param - SQLITE 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+1. Set the DATABASE_URL in the .env file to point to your existing database. Default values are set in the .env file. If your database has no tables yet, read https://pris.ly/d/getting-started
 2. Run prisma db pull to turn your database schema into a Prisma schema.
 3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -204,7 +203,7 @@ exports[`works with provider param - SqlServer 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+1. Set the DATABASE_URL in the .env file to point to your existing database. Default values are set in the .env file. If your database has no tables yet, read https://pris.ly/d/getting-started
 2. Run prisma db pull to turn your database schema into a Prisma schema.
 3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -234,7 +233,7 @@ exports[`works with provider param - cockroachdb 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+1. Set the DATABASE_URL in the .env file to point to your existing database. Default values are set in the .env file. If your database has no tables yet, read https://pris.ly/d/getting-started
 2. Run prisma db pull to turn your database schema into a Prisma schema.
 3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -264,7 +263,7 @@ exports[`works with provider param - mysql 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+1. Set the DATABASE_URL in the .env file to point to your existing database. Default values are set in the .env file. If your database has no tables yet, read https://pris.ly/d/getting-started
 2. Run prisma db pull to turn your database schema into a Prisma schema.
 3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
@@ -294,7 +293,7 @@ exports[`works with provider param - postgresql 1`] = `
   You can now open it in your favorite editor.
 
 Next steps:
-1. Set the DATABASE_URL in the .env file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started
+1. Set the DATABASE_URL in the .env file to point to your existing database. Default values are set in the .env file. If your database has no tables yet, read https://pris.ly/d/getting-started
 2. Run prisma db pull to turn your database schema into a Prisma schema.
 3. Run prisma generate to generate the Prisma Client. You can then start querying your database.
 
