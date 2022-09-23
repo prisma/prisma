@@ -8,57 +8,57 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 - Create a `.envrc` in the root directory of the project with this content:
 
-   ```sh
-   # PostgreSQL
-   export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
-   export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
-   export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
-   export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
-   export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
+  ```sh
+  # PostgreSQL
+  export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
+  export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
+  export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
+  export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
+  export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
 
-   # MySQL
-   export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
-   export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
-   export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
-   export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
-   export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
+  # MySQL
+  export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
+  export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
+  export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
+  export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
+  export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
 
-   # MariaDB
-   export TEST_MARIADB_BASE_URI="mysql://root:root@localhost:4306"
-   export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
+  # MariaDB
+  export TEST_MARIADB_BASE_URI="mysql://root:root@localhost:4306"
+  export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
 
-   # SQL Server
-   export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
-   export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-   export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-   export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  # SQL Server
+  export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
+  export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
-   # MongoDB
-   export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
-   export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
-   export TEST_MONGO_URI_MIGRATE_EXISTING_DB="mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin"
+  # MongoDB
+  export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
+  export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
+  export TEST_MONGO_URI_MIGRATE_EXISTING_DB="mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin"
 
-   # CockroachDB
-   export TEST_COCKROACH_URI="postgresql://prisma@localhost:26257/tests"
-   export TEST_COCKROACH_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate"
-   export TEST_COCKROACH_SHADOWDB_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate-shadowdb"
+  # CockroachDB
+  export TEST_COCKROACH_URI="postgresql://prisma@localhost:26257/tests"
+  export TEST_COCKROACH_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate"
+  export TEST_COCKROACH_SHADOWDB_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate-shadowdb"
 
-   # Prisma Client - Functonal test suite
-   export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
-   export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
-   export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-   export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
-   export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
+  # Prisma Client - Functonal test suite
+  export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
+  export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
+  export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
+  export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
 
-   # To hide "Update available 0.0.0 -> x.x.x"
-   export PRISMA_HIDE_UPDATE_MESSAGE="true"
-   ```
+  # To hide "Update available 0.0.0 -> x.x.x"
+  export PRISMA_HIDE_UPDATE_MESSAGE="true"
+  ```
 
 - Load the environment variables with:
 
-   ```sh
-   direnv allow
-   ```
+  ```sh
+  direnv allow
+  ```
 
 ## Jest tips
 
