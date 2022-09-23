@@ -1,5 +1,5 @@
 import { randomBytes } from 'crypto'
-import { A, Test, U } from 'ts-toolbelt'
+import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -14,28 +14,28 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     const result = await prisma.resource.findFirst().children()
 
     expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 1, Test.Pass>()])
+    expectTypeOf(result).toBeNullable()
   })
 
   test('findUnique', async () => {
     const result = await prisma.resource.findUnique({ where: { id: nonExistingId } }).children()
 
     expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 1, Test.Pass>()])
+    expectTypeOf(result).toBeNullable()
   })
 
   test('findFirstOrThrow', async () => {
     const result = prisma.resource.findFirstOrThrow().children()
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('findUniqueOrThrow', async () => {
     const result = prisma.resource.findUniqueOrThrow({ where: { id: nonExistingId } }).children()
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('create', async () => {
@@ -44,14 +44,14 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
 
     expect(result).toStrictEqual([])
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    expectTypeOf(result).not.toBeNullable()
   })
 
   test('update', async () => {
     const result = prisma.resource.update({ where: { id: nonExistingId }, data: {} }).children()
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('upsert', async () => {
@@ -60,7 +60,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
 
     expect(result).toStrictEqual([])
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    expectTypeOf(result).not.toBeNullable()
   })
 
   test('findFirst with select', async () => {
@@ -71,7 +71,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 1, Test.Pass>()])
+    expectTypeOf(result).toBeNullable()
   })
 
   test('findUnique with select', async () => {
@@ -82,7 +82,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 1, Test.Pass>()])
+    expectTypeOf(result).toBeNullable()
   })
 
   test('findFirstOrThrow with select', async () => {
@@ -93,7 +93,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('findUniqueOrThrow with select', async () => {
@@ -104,7 +104,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('create with select', async () => {
@@ -117,7 +117,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
 
     expect(result).toStrictEqual([])
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    expectTypeOf(result).not.toBeNullable()
   })
 
   test('update with select', async () => {
@@ -128,7 +128,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('upsert with select', async () => {
@@ -141,7 +141,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
 
     expect(result).toStrictEqual([])
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    expectTypeOf(result).not.toBeNullable()
   })
 
   test('findFirst with include', async () => {
@@ -152,7 +152,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 1, Test.Pass>()])
+    expectTypeOf(result).toBeNullable()
   })
 
   test('findUnique with include', async () => {
@@ -163,7 +163,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 1, Test.Pass>()])
+    expectTypeOf(result).toBeNullable()
   })
 
   test('findFirstOrThrow with include', async () => {
@@ -174,7 +174,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('findUniqueOrThrow with include', async () => {
@@ -185,7 +185,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('create with include', async () => {
@@ -198,7 +198,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
 
     expect(result).toStrictEqual([])
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    expectTypeOf(result).not.toBeNullable()
   })
 
   test('update with include', async () => {
@@ -209,7 +209,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('upsert with include', async () => {
@@ -222,20 +222,20 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     await prisma.resource.deleteMany()
 
     expect(result).toStrictEqual([])
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    expectTypeOf(result).not.toBeNullable()
   })
 
   test('findFirst with rejectOnNotFound', async () => {
     const result = prisma.resource.findFirst({ rejectOnNotFound: true }).children()
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('findUnique with rejectOnNotFound', async () => {
     const result = prisma.resource.findUnique({ where: { id: nonExistingId }, rejectOnNotFound: true }).children()
 
     await expect(result).rejects.toThrowError()
-    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
+    expectTypeOf(result).resolves.not.toBeNullable()
   })
 })
