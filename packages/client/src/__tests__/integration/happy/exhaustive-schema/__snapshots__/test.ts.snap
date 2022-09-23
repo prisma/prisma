@@ -1972,7 +1972,7 @@ export namespace Prisma {
     **/
     findUnique<T extends PostFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, PostFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null >, Prisma__PostClient<PostGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null, null>, Prisma__PostClient<PostGetPayload<T> | null, null>>
 
     /**
      * Find the first Post that matches the filter.
@@ -1989,7 +1989,7 @@ export namespace Prisma {
     **/
     findFirst<T extends PostFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, PostFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null >, Prisma__PostClient<PostGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null, null>, Prisma__PostClient<PostGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Posts that matches the filter.
@@ -2304,7 +2304,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__PostClient<T> implements PrismaPromise<T> {
+  export class Prisma__PostClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -2321,7 +2321,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>;
+    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | Null>, Prisma__UserClient<UserGetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -3015,7 +3015,7 @@ export namespace Prisma {
     **/
     findUnique<T extends UserFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, UserFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null, null>, Prisma__UserClient<UserGetPayload<T> | null, null>>
 
     /**
      * Find the first User that matches the filter.
@@ -3032,7 +3032,7 @@ export namespace Prisma {
     **/
     findFirst<T extends UserFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, UserFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null, null>, Prisma__UserClient<UserGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -3347,7 +3347,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__UserClient<T> implements PrismaPromise<T> {
+  export class Prisma__UserClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -3364,7 +3364,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, PrismaPromise<Array<Post>>, PrismaPromise<Array<PostGetPayload<T>>>>;
+    posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, PrismaPromise<Array<Post>| Null>, PrismaPromise<Array<PostGetPayload<T>>| Null>>;
 
     private get _document();
     /**
@@ -4050,7 +4050,7 @@ export namespace Prisma {
     **/
     findUnique<T extends MFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, MFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null >, Prisma__MClient<MGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null, null>, Prisma__MClient<MGetPayload<T> | null, null>>
 
     /**
      * Find the first M that matches the filter.
@@ -4067,7 +4067,7 @@ export namespace Prisma {
     **/
     findFirst<T extends MFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, MFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null >, Prisma__MClient<MGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null, null>, Prisma__MClient<MGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Ms that matches the filter.
@@ -4382,7 +4382,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__MClient<T> implements PrismaPromise<T> {
+  export class Prisma__MClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -4399,7 +4399,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    n<T extends NFindManyArgs = {}>(args?: Subset<T, NFindManyArgs>): CheckSelect<T, PrismaPromise<Array<N>>, PrismaPromise<Array<NGetPayload<T>>>>;
+    n<T extends NFindManyArgs = {}>(args?: Subset<T, NFindManyArgs>): CheckSelect<T, PrismaPromise<Array<N>| Null>, PrismaPromise<Array<NGetPayload<T>>| Null>>;
 
     private get _document();
     /**
@@ -5085,7 +5085,7 @@ export namespace Prisma {
     **/
     findUnique<T extends NFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, NFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null >, Prisma__NClient<NGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null, null>, Prisma__NClient<NGetPayload<T> | null, null>>
 
     /**
      * Find the first N that matches the filter.
@@ -5102,7 +5102,7 @@ export namespace Prisma {
     **/
     findFirst<T extends NFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, NFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null >, Prisma__NClient<NGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null, null>, Prisma__NClient<NGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Ns that matches the filter.
@@ -5417,7 +5417,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__NClient<T> implements PrismaPromise<T> {
+  export class Prisma__NClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -5434,7 +5434,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    m<T extends MFindManyArgs = {}>(args?: Subset<T, MFindManyArgs>): CheckSelect<T, PrismaPromise<Array<M>>, PrismaPromise<Array<MGetPayload<T>>>>;
+    m<T extends MFindManyArgs = {}>(args?: Subset<T, MFindManyArgs>): CheckSelect<T, PrismaPromise<Array<M>| Null>, PrismaPromise<Array<MGetPayload<T>>| Null>>;
 
     private get _document();
     /**
@@ -6120,7 +6120,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OneOptionalFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OneOptionalFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null, null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>>
 
     /**
      * Find the first OneOptional that matches the filter.
@@ -6137,7 +6137,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OneOptionalFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OneOptionalFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null, null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>>
 
     /**
      * Find zero or more OneOptionals that matches the filter.
@@ -6452,7 +6452,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__OneOptionalClient<T> implements PrismaPromise<T> {
+  export class Prisma__OneOptionalClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -6469,7 +6469,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    many<T extends ManyRequiredFindManyArgs = {}>(args?: Subset<T, ManyRequiredFindManyArgs>): CheckSelect<T, PrismaPromise<Array<ManyRequired>>, PrismaPromise<Array<ManyRequiredGetPayload<T>>>>;
+    many<T extends ManyRequiredFindManyArgs = {}>(args?: Subset<T, ManyRequiredFindManyArgs>): CheckSelect<T, PrismaPromise<Array<ManyRequired>| Null>, PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>>;
 
     private get _document();
     /**
@@ -7163,7 +7163,7 @@ export namespace Prisma {
     **/
     findUnique<T extends ManyRequiredFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, ManyRequiredFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null, null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>>
 
     /**
      * Find the first ManyRequired that matches the filter.
@@ -7180,7 +7180,7 @@ export namespace Prisma {
     **/
     findFirst<T extends ManyRequiredFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, ManyRequiredFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null >, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null, null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>>
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
@@ -7495,7 +7495,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__ManyRequiredClient<T> implements PrismaPromise<T> {
+  export class Prisma__ManyRequiredClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -7512,7 +7512,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>;
+    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | Null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -8206,7 +8206,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide1FindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide1FindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null, null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>>
 
     /**
      * Find the first OptionalSide1 that matches the filter.
@@ -8223,7 +8223,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide1FindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide1FindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null, null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>>
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
@@ -8538,7 +8538,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__OptionalSide1Client<T> implements PrismaPromise<T> {
+  export class Prisma__OptionalSide1Client<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -8555,7 +8555,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>;
+    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | Null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -9237,7 +9237,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide2FindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide2FindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null, null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>>
 
     /**
      * Find the first OptionalSide2 that matches the filter.
@@ -9254,7 +9254,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide2FindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide2FindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null, null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>>
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
@@ -9569,7 +9569,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__OptionalSide2Client<T> implements PrismaPromise<T> {
+  export class Prisma__OptionalSide2Client<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -9586,7 +9586,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>;
+    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | Null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -10240,7 +10240,7 @@ export namespace Prisma {
     **/
     findUnique<T extends AFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, AFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null >, Prisma__AClient<AGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null, null>, Prisma__AClient<AGetPayload<T> | null, null>>
 
     /**
      * Find the first A that matches the filter.
@@ -10257,7 +10257,7 @@ export namespace Prisma {
     **/
     findFirst<T extends AFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, AFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null >, Prisma__AClient<AGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null, null>, Prisma__AClient<AGetPayload<T> | null, null>>
 
     /**
      * Find zero or more As that matches the filter.
@@ -10572,7 +10572,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__AClient<T> implements PrismaPromise<T> {
+  export class Prisma__AClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -11162,7 +11162,7 @@ export namespace Prisma {
     **/
     findUnique<T extends BFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, BFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null >, Prisma__BClient<BGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null, null>, Prisma__BClient<BGetPayload<T> | null, null>>
 
     /**
      * Find the first B that matches the filter.
@@ -11179,7 +11179,7 @@ export namespace Prisma {
     **/
     findFirst<T extends BFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, BFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null >, Prisma__BClient<BGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null, null>, Prisma__BClient<BGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Bs that matches the filter.
@@ -11494,7 +11494,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__BClient<T> implements PrismaPromise<T> {
+  export class Prisma__BClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -12054,7 +12054,7 @@ export namespace Prisma {
     **/
     findUnique<T extends CFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, CFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null >, Prisma__CClient<CGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null, null>, Prisma__CClient<CGetPayload<T> | null, null>>
 
     /**
      * Find the first C that matches the filter.
@@ -12071,7 +12071,7 @@ export namespace Prisma {
     **/
     findFirst<T extends CFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, CFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null >, Prisma__CClient<CGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null, null>, Prisma__CClient<CGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Cs that matches the filter.
@@ -12386,7 +12386,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__CClient<T> implements PrismaPromise<T> {
+  export class Prisma__CClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -12968,7 +12968,7 @@ export namespace Prisma {
     **/
     findUnique<T extends DFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, DFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null >, Prisma__DClient<DGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null, null>, Prisma__DClient<DGetPayload<T> | null, null>>
 
     /**
      * Find the first D that matches the filter.
@@ -12985,7 +12985,7 @@ export namespace Prisma {
     **/
     findFirst<T extends DFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, DFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null >, Prisma__DClient<DGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null, null>, Prisma__DClient<DGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Ds that matches the filter.
@@ -13300,7 +13300,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__DClient<T> implements PrismaPromise<T> {
+  export class Prisma__DClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
@@ -13836,7 +13836,7 @@ export namespace Prisma {
     **/
     findUnique<T extends EFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null >, Prisma__EClient<EGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null, null>, Prisma__EClient<EGetPayload<T> | null, null>>
 
     /**
      * Find the first E that matches the filter.
@@ -13853,7 +13853,7 @@ export namespace Prisma {
     **/
     findFirst<T extends EFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null >, Prisma__EClient<EGetPayload<T> | null >>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null, null>, Prisma__EClient<EGetPayload<T> | null, null>>
 
     /**
      * Find zero or more Es that matches the filter.
@@ -14168,7 +14168,7 @@ export namespace Prisma {
    * Because we want to prevent naming conflicts as mentioned in
    * https://github.com/prisma/prisma-client-js/issues/707
    */
-  export class Prisma__EClient<T> implements PrismaPromise<T> {
+  export class Prisma__EClient<T, Null = never> implements PrismaPromise<T> {
     [prisma]: true;
     private readonly _dmmf;
     private readonly _fetcher;
