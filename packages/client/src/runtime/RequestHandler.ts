@@ -92,9 +92,7 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        return this.client._engine.requestBatch(queries, info.headers, {
-          isolationLevel: info.batchTransaction?.isolationLevel,
-        })
+        return this.client._engine.requestBatch(queries, info.headers, info.batchTransaction)
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
