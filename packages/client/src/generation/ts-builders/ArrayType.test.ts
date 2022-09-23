@@ -25,3 +25,20 @@ test('with union type', () => {
   const union = unionType(A).addVariant(B).addVariant(C)
   expect(stringify(array(union))).toMatchInlineSnapshot(`"(A | B | C)[]"`)
 })
+
+test('readonly array type', () => {
+  expect(stringify(array(A).readonly())).toMatchInlineSnapshot(`"readonly A[]"`)
+})
+
+test('readonly array of object type', () => {
+  expect(stringify(array(objectType()).readonly())).toMatchInlineSnapshot(`"readonly ({})[]"`)
+})
+
+test('readonly array of function type', () => {
+  expect(stringify(array(functionType()).readonly())).toMatchInlineSnapshot(`"readonly (() => void)[]"`)
+})
+
+test('readonly array of union type', () => {
+  const union = unionType(A).addVariant(B).addVariant(C)
+  expect(stringify(array(union).readonly())).toMatchInlineSnapshot(`"readonly (A | B | C)[]"`)
+})

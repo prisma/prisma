@@ -12,20 +12,29 @@ export class InputField implements Generable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly readonlyInput = false,
     protected readonly source?: string,
   ) {}
   public toTS(): string {
-    const property = buildInputField(this.field, this.genericsInfo, this.source)
+    const property = buildInputField(this.field, this.genericsInfo, this.readonlyInput, this.source)
     return ts.stringify(property)
   }
 }
 
-export function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, source?: string): ts.Property {
-  const tsType = buildAllFieldTypes(field.inputTypes, genericsInfo, source)
+export function buildInputField(
+  field: DMMF.SchemaArg,
+  genericsInfo: GenericArgsInfo,
+  readonlyInput: boolean,
+  source?: string,
+): ts.Property {
+  const tsType = buildAllFieldTypes(field.inputTypes, genericsInfo, readonlyInput, source)
 
   const tsProperty = ts.property(field.name, tsType)
   if (!field.isRequired) {
     tsProperty.optional()
+  }
+  if (readonlyInput) {
+    tsProperty.readonly()
   }
   const docComment = ts.docComment()
   if (field.comment) {
@@ -42,7 +51,12 @@ export function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgs
   return tsProperty
 }
 
-function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInfo, source?: string): ts.TypeBuilder {
+function buildSingleFieldType(
+  t: DMMF.InputTypeRef,
+  genericsInfo: GenericArgsInfo,
+  readonlyInput: boolean,
+  source?: string,
+): ts.TypeBuilder {
   let type: ts.NamedType
 
   const scalarType = GraphQLScalarToJSTypeTable[t.type]
@@ -53,7 +67,13 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
   } else if (Array.isArray(scalarType)) {
     const union = ts.unionType(scalarType.map(namedInputType))
     if (t.isList) {
-      return union.mapVariants((variant) => ts.array(variant))
+      return union.mapVariants((variant) => {
+        const array = ts.array(variant)
+        if (readonlyInput) {
+          array.readonly()
+        }
+        return array
+      })
     }
     return union
   } else {
@@ -69,7 +89,11 @@ function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInf
   }
 
   if (t.isList) {
-    return ts.array(type)
+    const array = ts.array(type)
+    if (readonlyInput) {
+      array.readonly()
+    }
+    return array
   }
 
   return type
@@ -94,15 +118,18 @@ function namedInputType(typeName: string) {
 function buildAllFieldTypes(
   inputTypes: readonly DMMF.InputTypeRef[],
   genericsInfo: GenericArgsInfo,
+  readonlyInput: boolean,
   source?: string,
 ): ts.TypeBuilder {
   const inputObjectTypes = inputTypes.filter((t) => t.location === 'inputObjectTypes' && !t.isList)
 
   const otherTypes = inputTypes.filter((t) => t.location !== 'inputObjectTypes' || t.isList)
 
-  const tsInputObjectTypes = inputObjectTypes.map((type) => buildSingleFieldType(type, genericsInfo, source))
+  const tsInputObjectTypes = inputObjectTypes.map((type) =>
+    buildSingleFieldType(type, genericsInfo, readonlyInput, source),
+  )
 
-  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, genericsInfo, source))
+  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, genericsInfo, readonlyInput, source))
 
   if (tsOtherTypes.length === 0) {
     return xorTypes(tsInputObjectTypes)
@@ -121,7 +148,11 @@ function xorTypes(types: ts.TypeBuilder[]) {
 
 export class InputType implements Generable {
   private generatedName: string
-  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {
+  constructor(
+    protected readonly type: DMMF.InputType,
+    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly readonlyInput = false,
+  ) {
     this.generatedName = type.name
   }
 
@@ -135,7 +166,7 @@ export class InputType implements Generable {
 ${indent(
   fields
     .map((arg) => {
-      return new InputField(arg, this.genericsInfo, source).toTS()
+      return new InputField(arg, this.genericsInfo, this.readonlyInput, source).toTS()
     })
     .join('\n'),
   TAB_SIZE,
