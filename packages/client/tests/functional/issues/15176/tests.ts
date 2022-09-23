@@ -37,6 +37,9 @@ testMatrix.setupTestSuite(({ provider }) => {
 
 
     expect(getTime(updated.updatedAt_w_default)).toBeGreaterThan(getTime(created.updatedAt_w_default))
+    console.log(created.createdAt)
+    console.log(updated.updatedAt_w_default)
+    console.log(updated.updatedAt_wo_default)
 
     expect(getTime(updated.updatedAt_w_default)).toEqual(getTime(updated.updatedAt_wo_default))
   })
