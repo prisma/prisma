@@ -15,6 +15,7 @@ export class InputField implements Generatable {
     protected readonly noEnumerable = false,
     protected readonly genericsInfo: GenericArgsInfo,
     protected readonly source?,
+    protected readonly readonlyInput = false,
   ) {}
   public toTS(): string {
     const { field } = this
@@ -31,9 +32,12 @@ export class InputField implements Generatable {
       this.noEnumerable,
       this.genericsInfo,
       this.source,
+      this.readonlyInput,
     )
 
-    return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
+    const readonlyPrefix = this.readonlyInput ? 'readonly ' : ''
+
+    return `${jsdoc}${readonlyPrefix}${field.name}${optionalStr}: ${fieldType}`
   }
 }
 
@@ -43,6 +47,7 @@ function stringifyInputType(
   noEnumerable = false, // used for group by, there we need an Array<> for "by"
   genericsInfo: GenericArgsInfo,
   source?: string,
+  readonlyInput = false,
 ): string {
   let type =
     typeof t.type === 'string'
@@ -65,7 +70,13 @@ function stringifyInputType(
   }
 
   if (t.isList) {
-    const keyword = noEnumerable ? 'Array' : 'Enumerable'
+    const keyword = noEnumerable
+      ? readonlyInput
+        ? 'ReadonlyArray'
+        : 'Array'
+      : readonlyInput
+      ? 'ReadonlyEnumerable'
+      : 'Enumerable'
     if (Array.isArray(type)) {
       return type.map((t) => `${keyword}<${t}>`).join(' | ')
     } else {
@@ -98,6 +109,7 @@ function stringifyInputTypes(
   noEnumerable = false,
   genericsInfo: GenericArgsInfo,
   source?: string,
+  readonlyInput = false,
 ): string {
   const pairMap: Record<string, number> = Object.create(null)
 
@@ -126,7 +138,7 @@ function stringifyInputTypes(
   const nonInputObjectTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
 
   const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>((acc, curr) => {
-    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable, genericsInfo, source)
+    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable, genericsInfo, source, readonlyInput)
     if (acc.length > 0) {
       return `XOR<${acc}, ${currentStringified}>`
     }
@@ -135,7 +147,7 @@ function stringifyInputTypes(
   }, '')
 
   const stringifiedNonInputTypes = nonInputObjectTypes
-    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable, genericsInfo, source))
+    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable, genericsInfo, source, readonlyInput))
     .join(' | ')
 
   if (stringifiedNonInputTypes.length === 0) {
@@ -150,7 +162,11 @@ function stringifyInputTypes(
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+  constructor(
+    protected readonly type: DMMF.InputType,
+    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly readonlyInput: boolean = false,
+  ) {}
 
   public toTS(): string {
     const { type } = this
@@ -164,7 +180,7 @@ ${indent(
     .map((arg) => {
       // This disables enumerable on JsonFilter path argument
       const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
-      return new InputField(arg, false, noEnumerable, this.genericsInfo, source).toTS()
+      return new InputField(arg, false, noEnumerable, this.genericsInfo, source, this.readonlyInput).toTS()
     })
     .join('\n'),
   TAB_SIZE,

@@ -19,6 +19,8 @@ model User {
 model Profile {
   id String @id
 
+  name String
+
   user   User   @relation(fields: [userId], references: [id])
   userId String @unique
 }

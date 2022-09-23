@@ -10,6 +10,13 @@ async function main() {
   // @ts-expect-error where should be readonly
   where.OR = []
 
+  // @ts-expect-error arrays should also be readonly
+  where.OR.push({
+    profile: {
+      name: 'bar',
+    },
+  })
+
   const user: User | null = await prisma.user.findFirst({ where })
 
   // query result is not readonly
