@@ -273,10 +273,10 @@ export function getReturnType({
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
+      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | Null>, Prisma__${name}Client<${getType(
         getPayloadName(name) + '<T>',
         isList,
-      )} | null >>`
+      )} | Null>>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
       name,

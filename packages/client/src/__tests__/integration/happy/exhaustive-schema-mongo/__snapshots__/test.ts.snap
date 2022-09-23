@@ -1831,9 +1831,9 @@ export namespace Prisma {
 
     embedEmbedList<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, PrismaPromise<Array<EmbedEmbed>| Null>, PrismaPromise<Array<EmbedEmbedGetPayload<T>>| Null>>;
 
-    requiredEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
+    requiredEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | Null>, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | Null>>;
 
-    optionalEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | null >, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | null >>;
+    optionalEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | Null>, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -2590,7 +2590,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | null >, Prisma__UserClient<UserGetPayload<T> | null >>;
+    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | Null>, Prisma__UserClient<UserGetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -3703,7 +3703,7 @@ export namespace Prisma {
 
     posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, PrismaPromise<Array<Post>| Null>, PrismaPromise<Array<PostGetPayload<T>>| Null>>;
 
-    embedHolder<T extends EmbedHolderArgs = {}>(args?: Subset<T, EmbedHolderArgs>): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null >, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null >>;
+    embedHolder<T extends EmbedHolderArgs = {}>(args?: Subset<T, EmbedHolderArgs>): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | Null>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -4692,9 +4692,9 @@ export namespace Prisma {
 
     embedList<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, PrismaPromise<Array<Embed>| Null>, PrismaPromise<Array<EmbedGetPayload<T>>| Null>>;
 
-    requiredEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
+    requiredEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | Null>, Prisma__EmbedClient<EmbedGetPayload<T> | Null>>;
 
-    optionalEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | null >, Prisma__EmbedClient<EmbedGetPayload<T> | null >>;
+    optionalEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | Null>, Prisma__EmbedClient<EmbedGetPayload<T> | Null>>;
 
     User<T extends UserFindManyArgs = {}>(args?: Subset<T, UserFindManyArgs>): CheckSelect<T, PrismaPromise<Array<User>| Null>, PrismaPromise<Array<UserGetPayload<T>>| Null>>;
 
@@ -9072,7 +9072,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null >, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null >>;
+    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | Null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -10167,7 +10167,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null >, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null >>;
+    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | Null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | Null>>;
 
     private get _document();
     /**
@@ -11254,7 +11254,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null >, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null >>;
+    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | Null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | Null>>;
 
     private get _document();
     /**
