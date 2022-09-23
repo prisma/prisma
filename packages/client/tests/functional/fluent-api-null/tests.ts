@@ -226,16 +226,16 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   })
 
   test('findFirst with rejectOnNotFound', async () => {
-    const result = await prisma.resource.findFirst({ rejectOnNotFound: true }).children()
+    const result = prisma.resource.findFirst({ rejectOnNotFound: true }).children()
 
-    expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    await expect(result).rejects.toThrowError()
+    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
   })
 
   test('findUnique with rejectOnNotFound', async () => {
-    const result = await prisma.resource.findUnique({ where: { id: nonExistingId }, rejectOnNotFound: true }).children()
+    const result = prisma.resource.findUnique({ where: { id: nonExistingId }, rejectOnNotFound: true }).children()
 
-    expect(result).toBeNull()
-    ;() => Test.checks([Test.check<U.Has<typeof result, null>, 0, Test.Pass>()])
+    await expect(result).rejects.toThrowError()
+    ;() => Test.checks([Test.check<U.Has<A.Await<typeof result>, null>, 0, Test.Pass>()])
   })
 })
