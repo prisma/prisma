@@ -13,9 +13,9 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
     
     model User {
-      id                     ${idForProvider(provider)}
-      createdAt              DateTime            @default(now())
-      updatedAt              DateTime            @updatedAt
+      id        ${idForProvider(provider)}
+      createdAt DateTime @default(now())
+      updatedAt DateTime @updatedAt
     }
   `
 })
