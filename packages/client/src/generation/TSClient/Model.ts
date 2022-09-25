@@ -509,7 +509,7 @@ ${fieldsProxy}
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export class Prisma__${name}Client<T> implements PrismaPromise<T> {
+export class Prisma__${name}Client<T, Null = never> implements PrismaPromise<T> {
   [prisma]: true;
   private readonly _dmmf;
   private readonly _fetcher;
@@ -541,6 +541,7 @@ ${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])} = {
         isField: true,
         renderPromise: true,
         fieldName: f.name,
+        isChaining: true,
         projection: Projection.select,
       })};`
     })
