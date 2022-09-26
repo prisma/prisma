@@ -19,6 +19,7 @@ const data = [
 testMatrix.setupTestSuite(
   () => {
     test('concurrent deleteMany/createMany', async () => {
+      let hasRetried = false
       const MAX_RETRIES = 5
       const fn = async () => {
         let retries = 0
@@ -35,6 +36,7 @@ testMatrix.setupTestSuite(
             return result
           } catch (e) {
             if (e.code === 'P2034') {
+              hasRetried = true
               retries++
               continue
             }
@@ -44,14 +46,16 @@ testMatrix.setupTestSuite(
       }
 
       await Promise.all([fn(), fn(), fn(), fn(), fn()])
+      expect(hasRetried).toBe(true)
     })
   },
   {
     optOut: {
-      from: ['sqlite', 'mongodb'],
+      from: ['sqlite', 'mongodb', 'sqlserver'],
       reason: `
         sqlite - concurrent transactions are not supported
         mongo - isolation levels are not supported
+        sqlserver - upstream work needs to be done
       `,
     },
   },
