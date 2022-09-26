@@ -137,7 +137,7 @@ services:
       - '4306:3306'
 
   mssql:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2022-latest
     restart: always
     environment:
       - ACCEPT_EULA=Y
