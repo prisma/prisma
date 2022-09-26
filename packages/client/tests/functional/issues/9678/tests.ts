@@ -21,10 +21,10 @@ testMatrix.setupTestSuite(
     test('concurrent deleteMany/createMany', async () => {
       const MAX_RETRIES = 5
       const fn = async () => {
-        let retires = 0
+        let retries = 0
 
         let result
-        while (retires < MAX_RETRIES) {
+        while (retries < MAX_RETRIES) {
           try {
             result = await prisma.$transaction(
               [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
@@ -35,7 +35,7 @@ testMatrix.setupTestSuite(
             return result
           } catch (e) {
             if (e.code === 'P2034') {
-              retires++
+              retries++
               continue
             }
             throw e
