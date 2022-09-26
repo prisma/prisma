@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664199019553,
+  "lastUpdate": 1664203218652,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -128813,6 +128813,93 @@ window.BENCHMARK_DATA = {
             "range": "±4.98%",
             "unit": "ops/sec",
             "extra": "6 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "pierre",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "90c01fde973582d9c89cb7edc7e0523aab2884ae",
+          "message": "chore: fix pipeline (#15524)\n\n* remove non necessary manual type check\r\n\r\n* Revert \"chore(deps): update mariadb docker tag to v10.9.3 (#15425)\"\r\n\r\nThis reverts commit 3af2bc6760ba1be68dda6d2dd09820dc7e2418b7.",
+          "timestamp": "2022-09-26T16:36:56+02:00",
+          "tree_id": "7b82a083b0a061f8f6837444ed03556038b3dcc0",
+          "url": "https://github.com/prisma/prisma/commit/90c01fde973582d9c89cb7edc7e0523aab2884ae"
+        },
+        "date": 1664203208461,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.09,
+            "range": "±6.46%",
+            "unit": "ops/sec",
+            "extra": "15 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.14,
+            "range": "±2.38%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.372699737548828,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.24405097961426,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.786240577697754,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.25434112548828,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.410507202148438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.46,
+            "range": "±5.12%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
           }
         ]
       }
