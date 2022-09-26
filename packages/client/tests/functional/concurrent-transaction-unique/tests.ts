@@ -1,10 +1,11 @@
 // @ts-ignore
-import { PrismaClient, Prisma } from '@prisma/client'
 import crypto from 'crypto'
 
 import testMatrix from './_matrix'
+import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 const data = [
   { name: 'name', id: crypto.randomBytes(12).toString('hex') },
