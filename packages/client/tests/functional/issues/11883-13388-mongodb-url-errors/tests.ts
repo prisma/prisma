@@ -44,5 +44,18 @@ testMatrix.setupTestSuite(
       from: ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver'],
       reason: 'Test for MongoDB-specific errors',
     },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: `
+        The test is not relevant for the Data Proxy. It is not possible to
+        create a project with invalid connection string via PDP UI. If an
+        invalid connection string somehow ended up saved for the project due to
+        a bug in PDP, the behavior is unspecified. We could adapt this to be a
+        contrived test tailor-made for mini-proxy (by importing mini-proxy API
+        and programmatically generating mini-proxy connection strings pointing
+        at broken URLs), but it would not reflect real use cases and would not
+        bring much value.
+      `,
+    },
   },
 )
