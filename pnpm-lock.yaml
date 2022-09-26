@@ -227,7 +227,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -293,7 +293,7 @@ importers:
       yeoman-generator: 5.7.0
       yo: 4.3.0
     dependencies:
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
     devDependencies:
       '@faker-js/faker': 7.5.0
       '@fast-check/jest': 1.0.1_jest@28.1.3
@@ -448,7 +448,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.2
@@ -460,7 +460,7 @@ importers:
       typescript: 4.8.3
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.3.2
@@ -474,7 +474,7 @@ importers:
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.2
       '@swc/jest': 0.2.22
@@ -520,7 +520,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@swc/core': 1.3.2
       '@swc/jest': 0.2.22_@swc+core@1.3.2
       '@types/jest': 28.1.8
@@ -781,7 +781,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -836,7 +836,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0
+      '@prisma/engines-version': 4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.2
@@ -2505,8 +2505,8 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
-  /@prisma/engines-version/4.4.0-59.46fdd5d57f6803fac12266db34f9dca13d83f9c0:
-    resolution: {integrity: sha512-4RgfYgzTtskENA5rFR69PNmKX1zmct/8lmUGDf3wxCOh1/ruPb2m+M/ZJ2VJAy8bGo9AO2qBzUyraiFxxOQ4gw==}
+  /@prisma/engines-version/4.4.0-61.integration-smaller-pg-batch-size-d648eeea3754295b57706d66257a7fe7be19c7c9:
+    resolution: {integrity: sha512-EL8aYY11gnpB8HEdeGI8TPJEusG9kwrjMVpIXlKsTIhh4b517tVXVdsurDpoVhodJPqb0RZK3cJ+/hbtrih+xg==}
 
   /@prisma/mini-proxy/0.1.2:
     resolution: {integrity: sha512-HtTKq8I9AQLZhHcmPLYWLwDyw8v97D11TF3G0zX9NoDf4IrygL+9mUgRQFZhFiO4BXo5w1hsl2EeB8O2EVM+1A==}
