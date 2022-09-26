@@ -11,25 +11,21 @@ export default testMatrix.setupSchema(({ provider }) => {
     datasource db {
       provider = "${provider}"
       url      = env("DATABASE_URI_${provider}")
-    }
-
-    enum OrderStatus {
-      NEW
-      PICKED
-      STORED
-      DELIVERED
+      referentialIntegrity = "prisma"
     }
 
     model Order {
-      orderId          ${idForProvider(provider)}
+      id               ${idForProvider(provider)}
+      orderId          String @unique
       paid             Boolean?
       statusMilestones OrderStatusHistory[]
     }
 
     model OrderStatusHistory {
-      orderStatusHistoryId ${idForProvider(provider)}
+      id                   ${idForProvider(provider)}
+      orderStatusHistoryId String
       orderId              String
-      status               OrderStatus
+      status               String
       createdAt            DateTime    @default(now())
       order                Order       @relation(fields: [orderId], references: [orderId], onUpdate: Restrict, onDelete: Cascade)
     }

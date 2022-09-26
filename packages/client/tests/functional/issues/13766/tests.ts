@@ -7,82 +7,79 @@ import testMatrix from './_matrix'
 declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/13766
-testMatrix.setupTestSuite(
-  ({ provider }) => {
-    test('should not prevent any updates on a model when updating a field', async () => {
-      const orderId = faker.random.numeric().toString()
+testMatrix.setupTestSuite(({ provider }) => {
+  test('referentialIntegrity=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation', async () => {
+    const orderId = faker.database.mongodbObjectId()
+    const orderStatusHistoryId = faker.database.mongodbObjectId()
 
-      await prisma.order.create({
-        data: {
-          orderId,
-          paid: false,
-          statusMilestones: {
-            create: {
-              status: 'NEW',
-            },
+    await prisma.order.create({
+      data: {
+        orderId,
+        paid: false,
+        statusMilestones: {
+          create: {
+            orderStatusHistoryId,
+            status: 'NEW',
           },
         },
-      })
-
-      const updatedOrder = await prisma.order.update({
-        where: {
-          orderId,
-        },
-        data: {
-          paid: true,
-        },
-      })
-
-      expect(updatedOrder).toMatchObject({ orderId, paid: true })
+      },
     })
 
-    test('should prevent updates on a model if any other relation references an field', async () => {
-      const orderId1 = faker.random.numeric().toString()
-      const orderId2 = faker.random.numeric().toString()
+    const updatedOrder = await prisma.order.update({
+      where: {
+        orderId,
+      },
+      data: {
+        paid: true,
+      },
+    })
 
-      await prisma.order.create({
-        data: {
-          orderId: orderId1,
-          paid: false,
-          statusMilestones: {
-            create: {
-              status: 'NEW',
-            },
+    expect(updatedOrder).toMatchObject({ orderId, paid: true })
+  })
+
+  test('referentialIntegrity=prisma should prevent updates on a model if any other relation references a field', async () => {
+    const orderId1 = faker.database.mongodbObjectId()
+    const orderId2 = faker.database.mongodbObjectId()
+    const orderStatusHistoryId1 = faker.database.mongodbObjectId()
+    const orderStatusHistoryId2 = faker.database.mongodbObjectId()
+
+    await prisma.order.create({
+      data: {
+        orderId: orderId1,
+        paid: false,
+        statusMilestones: {
+          create: {
+            orderStatusHistoryId: orderStatusHistoryId1,
+            status: 'NEW',
           },
         },
-      })
+      },
+    })
 
-      await prisma.order.create({
+    await prisma.order.create({
+      data: {
+        orderId: orderId2,
+        paid: false,
+        statusMilestones: {
+          create: {
+            orderStatusHistoryId: orderStatusHistoryId2,
+            status: 'NEW',
+          },
+        },
+      },
+    })
+
+    await expect(
+      prisma.order.update({
+        where: {
+          orderId: orderId1,
+        },
         data: {
           orderId: orderId2,
-          paid: false,
-          statusMilestones: {
-            create: {
-              status: 'NEW',
-            },
-          },
         },
-      })
-
-      await expect(() =>
-        prisma.order.update({
-          where: {
-            orderId: orderId1,
-          },
-          data: {
-            orderId: orderId2,
-          },
-        }),
-      ).toThrowError()
-    })
-  },
-  {
-    optOut: {
-      from: ['sqlserver', 'sqlite', 'mongodb'],
-      reason: `
-        sqlserver, sqlite - dont support enum's
-        mongodb - Command failed (InvalidIndexSpecificationOption): The field 'unique' is not valid for an _id index specification - TODO
-      `,
-    },
-  },
-)
+      }),
+    ).rejects.toThrowError(
+      "The change you are trying to make would violate the required relation 'OrderToOrderStatusHistory' between the `Order` and `OrderStatusHistory` models.",
+    )
+  })
+})
