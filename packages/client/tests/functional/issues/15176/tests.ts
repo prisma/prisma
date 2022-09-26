@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(({ provider }) => {
         id,
       },
       data: {
-        test: false,
+        bool: false,
       },
     })
 
