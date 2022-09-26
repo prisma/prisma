@@ -1,5 +1,5 @@
 // @ts-ignore
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
 import crypto from 'crypto'
 
 import testMatrix from './_matrix'
