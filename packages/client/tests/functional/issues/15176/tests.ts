@@ -8,7 +8,9 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/15176
 testMatrix.setupTestSuite(({ provider }) => {
-  const getTime = (str: string): number => new Date(str).getTime()
+  const getTime = (dt: string | Date): number => {
+    return dt instanceof Date ? dt.getTime() : new Date(dt).getTime()
+  }
 
   test('should update both updatedAt fields on a model', async () => {
     const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.alpha(10)
@@ -23,7 +25,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(created.updatedAt_wo_default).toBeTruthy()
 
     expect(getTime(created.updatedAt_w_default)).toEqual(getTime(created.createdAt))
-    expect(getTime(created.updatedAt_wo_default)).toEqual(getTime(created.createdAt))
+    expect(getTime(created.updatedAt_wo_default!)).toEqual(getTime(created.createdAt))
 
     const updated = await prisma.testModel.update({
       where: {
@@ -36,6 +38,6 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(getTime(updated.updatedAt_w_default)).toBeGreaterThan(getTime(created.updatedAt_w_default))
 
-    expect(getTime(updated.updatedAt_w_default)).toEqual(getTime(updated.updatedAt_wo_default))
+    expect(getTime(updated.updatedAt_w_default)).toEqual(getTime(updated.updatedAt_wo_default!))
   })
 })
