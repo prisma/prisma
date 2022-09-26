@@ -13,6 +13,8 @@ const data = [
   { name: 'name', id: crypto.randomBytes(12).toString('hex') },
 ]
 
+jest.retryTimes(3)
+
 /**
  * Reproduction for issue #9678
  */
@@ -45,7 +47,7 @@ testMatrix.setupTestSuite(
         }
       }
 
-      await Promise.all([fn(), fn(), fn(), fn(), fn()])
+      await Promise.all([fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn(), fn()])
       expect(hasRetried).toBe(true)
     })
   },
