@@ -12,7 +12,13 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(promise).rejects.toMatchPrismaErrorInlineSnapshot(`
+    await expect(promise).rejects.toMatchObject({
+      message: expect.stringContaining('Failed to validate the query'),
+      code: 'P2009',
+    })
+
+    if (!process.env.DATA_PROXY) {
+      await expect(promise).rejects.toMatchPrismaErrorInlineSnapshot(`
 
       Invalid \`prisma.resource.create()\` invocation in
       /client/tests/functional/issues/13913-integer-overflow/tests.ts:0:0
@@ -23,5 +29,6 @@ testMatrix.setupTestSuite(() => {
       → XX     const promise = prisma.resource.create(
       Failed to validate the query: \`Unable to match input value to any allowed input type for the field. Parse errors: [Query parsing/validation error at \`Mutation.createOneResource.data.ResourceCreateInput.number\`: Unable to fit integer value '2265000000' into a 32-bit signed integer for field 'number'., Query parsing/validation error at \`Mutation.createOneResource.data.ResourceUncheckedCreateInput.number\`: Unable to fit integer value '2265000000' into a 32-bit signed integer for field 'number'.]\` at \`Mutation.createOneResource.data\`
     `)
+    }
   })
 })
