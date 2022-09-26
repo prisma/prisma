@@ -17,6 +17,7 @@ testMatrix.setupTestSuite(() => {
       code: 'P2009',
     })
 
+    // TODO: stack trace is not able to locate this error via dataproxy
     if (!process.env.DATA_PROXY) {
       await expect(promise).rejects.toMatchPrismaErrorInlineSnapshot(`
 
