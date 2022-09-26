@@ -29,17 +29,14 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  testIf(provider !== 'sqlite' && provider !== 'mysql' && provider !== 'sqlserver').failing(
-    'concurrent deleteMany/createMany',
-    async () => {
-      const fn = async () => {
-        await prisma.$transaction([
-          prisma.resource.deleteMany({ where: { name: 'name' } }),
-          prisma.resource.createMany({ data }),
-        ])
-      }
+  testIf(provider !== 'sqlite')('concurrent deleteMany/createMany', async () => {
+    const fn = async () => {
+      await prisma.$transaction([
+        prisma.resource.deleteMany({ where: { name: 'name' } }),
+        prisma.resource.createMany({ data }),
+      ])
+    }
 
-      await Promise.all([fn(), fn(), fn(), fn(), fn()])
-    },
-  )
+    await Promise.all([fn(), fn(), fn(), fn(), fn()])
+  })
 })
