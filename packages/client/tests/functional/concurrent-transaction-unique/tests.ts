@@ -3,6 +3,7 @@ import crypto from 'crypto'
 
 import testMatrix from './_matrix'
 import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import { Retry } from './retry';
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -34,6 +35,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     provider !== 'sqlite' && provider !== 'mongodb', // no isolation levels for MongoDB
   )('concurrent deleteMany/createMany', async () => {
     const fn = async () => {
+    prisma.$use(Retry())
       await prisma.$transaction(
         [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
         {
