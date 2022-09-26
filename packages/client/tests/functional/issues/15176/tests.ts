@@ -25,7 +25,6 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(getTime(created.updatedAt_w_default)).toEqual(getTime(created.createdAt))
     expect(getTime(created.updatedAt_wo_default)).toEqual(getTime(created.createdAt))
 
-
     const updated = await prisma.testModel.update({
       where: {
         id,
@@ -35,11 +34,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     })
 
-
     expect(getTime(updated.updatedAt_w_default)).toBeGreaterThan(getTime(created.updatedAt_w_default))
-    console.log(created.createdAt)
-    console.log(updated.updatedAt_w_default)
-    console.log(updated.updatedAt_wo_default)
 
     expect(getTime(updated.updatedAt_w_default)).toEqual(getTime(updated.updatedAt_wo_default))
   })
