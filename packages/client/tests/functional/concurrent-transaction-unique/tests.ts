@@ -43,7 +43,7 @@ const data = [
  * Reproduction for issue #9678
  */
 testMatrix.setupTestSuite(({ provider }) => {
-  testIf(provider !== 'sqlite')('serialized deleteMany/createMany', async () => {
+  test('serialized deleteMany/createMany', async () => {
     const fn = async () => {
       await prisma.$transaction([
         prisma.resource.deleteMany({ where: { name: 'name' } }),
@@ -56,9 +56,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  testIf(
-    provider !== 'sqlite' && provider !== 'mongodb', // no isolation levels for MongoDB
-  )('concurrent deleteMany/createMany', async () => {
+  // no isolation levels for MongoDB
+  testIf(provider !== 'mongodb')('concurrent deleteMany/createMany', async () => {
     const fn = async () => {
       prisma.$use(Retry())
       await prisma.$transaction(
