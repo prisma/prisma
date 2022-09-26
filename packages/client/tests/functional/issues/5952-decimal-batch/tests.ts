@@ -1,114 +1,94 @@
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
+declare let Prisma: typeof PrismaNamespace
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
+    const decimal1 = '1.2'
+    const decimal2 = '2.4'
+
     beforeAll(async () => {
       await prisma.resource.create({
-        data: { decimal: 1.2 },
+        data: { decimal: decimal1 },
       })
       await prisma.resource.create({
-        data: { decimal: 2.4 },
+        data: { decimal: decimal2 },
       })
     })
 
     test.skip('findUnique decimal with Promise.all', async () => {
       const result = await Promise.all([
         prisma.resource.findUnique({
-          where: { decimal: 1.2 },
+          where: { decimal: decimal1 },
           select: { decimal: true },
         }),
         prisma.resource.findUnique({
-          where: { decimal: 2.4 },
+          where: { decimal: decimal2 },
           select: { decimal: true },
         }),
       ])
 
-      expect(result).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            decimal: 1.2,
-          },
-          Object {
-            decimal: 2.4,
-          },
-        ]
-      `)
+      expect(result).toMatchObject([
+        { decimal: new Prisma.Decimal(decimal1) },
+        { decimal: new Prisma.Decimal(decimal2) },
+      ])
     })
 
     test.skip('findUnique decimal with $transaction([...])', async () => {
       const result = await prisma.$transaction([
         prisma.resource.findUnique({
-          where: { decimal: 1.2 },
+          where: { decimal: decimal1 },
           select: { decimal: true },
         }),
         prisma.resource.findUnique({
-          where: { decimal: 2.4 },
+          where: { decimal: decimal2 },
           select: { decimal: true },
         }),
       ])
 
-      expect(result).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            decimal: 1.2,
-          },
-          Object {
-            decimal: 2.4,
-          },
-        ]
-      `)
+      expect(result).toMatchObject([
+        { decimal: new Prisma.Decimal(decimal1) },
+        { decimal: new Prisma.Decimal(decimal2) },
+      ])
     })
 
     test('findFirst decimal with Promise.all', async () => {
       const result = await Promise.all([
         prisma.resource.findFirst({
-          where: { decimal: 1.2 },
+          where: { decimal: decimal1 },
           select: { decimal: true },
         }),
         prisma.resource.findFirst({
-          where: { decimal: 2.4 },
+          where: { decimal: decimal2 },
           select: { decimal: true },
         }),
       ])
 
-      expect(result).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            decimal: 1.2,
-          },
-          Object {
-            decimal: 2.4,
-          },
-        ]
-      `)
+      expect(result).toMatchObject([
+        { decimal: new Prisma.Decimal(decimal1) },
+        { decimal: new Prisma.Decimal(decimal2) },
+      ])
     })
 
     test('findFirst decimal with $transaction([...])', async () => {
       const result = await prisma.$transaction([
         prisma.resource.findFirst({
-          where: { decimal: 1.2 },
+          where: { decimal: decimal1 },
           select: { decimal: true },
         }),
         prisma.resource.findFirst({
-          where: { decimal: 2.4 },
+          where: { decimal: decimal2 },
           select: { decimal: true },
         }),
       ])
 
-      expect(result).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            decimal: 1.2,
-          },
-          Object {
-            decimal: 2.4,
-          },
-        ]
-      `)
+      expect(result).toMatchObject([
+        { decimal: new Prisma.Decimal(decimal1) },
+        { decimal: new Prisma.Decimal(decimal2) },
+      ])
     })
   },
   {
