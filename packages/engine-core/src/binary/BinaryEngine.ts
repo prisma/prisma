@@ -823,17 +823,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.getConfigPromise = undefined
     let stopChildPromise
     if (this.child) {
-      debug(`Stopping Prisma engine4`)
+      debug(`Stopping Prisma engine`)
       if (this.startPromise) {
         debug(`Waiting for start promise`)
         await this.startPromise
       }
       debug(`Done waiting for start promise`)
-      stopChildPromise = new Promise((resolve, reject) => {
-        this.engineStopDeferred = { resolve, reject }
-      })
+      if (this.child.exitCode === null) {
+        stopChildPromise = new Promise((resolve, reject) => {
+          this.engineStopDeferred = { resolve, reject }
+        })
+      } else {
+        debug('Child already exited with code', this.child.exitCode)
+      }
       this.connection.close()
-      this.child?.kill()
+      this.child.kill()
       this.child = undefined
     }
     if (stopChildPromise) {
