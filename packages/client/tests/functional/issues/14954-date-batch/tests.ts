@@ -5,12 +5,14 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
+    const date1 = '2011-01-01T00:00:00Z';
+    const date2 = '2022-02-02T00:00:00Z';
   beforeAll(async () => {
     await prisma.resource.create({
-      data: { date: '2011-01-01T00:00:00Z' },
+      data: { date: date1 },
     })
     await prisma.resource.create({
-      data: { date: '2022-02-02T00:00:00Z' },
+      data: { date: date2 },
     })
   })
 
@@ -26,16 +28,7 @@ testMatrix.setupTestSuite(() => {
       }),
     ])
 
-    expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          date: 2011-01-01T00:00:00.000Z,
-        },
-        Object {
-          date: 2022-02-02T00:00:00.000Z,
-        },
-      ]
-    `)
+    expect(result).toMatchObject([{ date: date1 }, { date: date2 }]);
   })
 
   test('findUnique date with $transaction([...])', async () => {
