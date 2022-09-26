@@ -22,7 +22,7 @@
     "@types/node": "16.11.59",
     "@types/node-fetch": "2.6.2",
     "@types/progress": "2.0.5",
-    "del": "6.1.1",
+    "del": "7.0.0",
     "jest": "28.1.3",
     "strip-ansi": "6.0.1",
     "typescript": "4.8.3"
