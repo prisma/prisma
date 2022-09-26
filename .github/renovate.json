@@ -10,7 +10,8 @@
     "@prisma/engines",
     "@prisma/engines-version",
     "@prisma/fetch-engine",
-    "@prisma/get-platform"
+    "@prisma/get-platform",
+    "@prisma/prisma-fmt-wasm"
   ],
   "constraints": {
     "pnpm": "7"
