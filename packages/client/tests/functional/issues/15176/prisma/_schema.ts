@@ -14,7 +14,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     
     model TestModel {
       id                    ${idForProvider(provider)}
-      test                  Boolean?
+      bool                  Boolean?
       updatedAt_w_default   DateTime  @default(now()) @updatedAt
       updatedAt_wo_default  DateTime? @updatedAt
       createdAt             DateTime  @default(now())
