@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
       reason: `
         sqlite - concurrent transactions are not supported
         mongo - isolation levels are not supported
-        sqlserver - upstream work needs to be done
+        sqlserver - upstream work needs to be done (https://github.com/prisma/tiberius/pull/245)
       `,
     },
   },
