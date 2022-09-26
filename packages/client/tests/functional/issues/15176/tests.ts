@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/15176
 testMatrix.setupTestSuite(({ provider }) => {
-  const getTime = (dt: Date): number => new Date(dt).getTime()
+  const getTime = (dt: Date): number => dt.getTime()
 
   test('should update both updatedAt fields on a model', async () => {
     const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.alpha(10)
