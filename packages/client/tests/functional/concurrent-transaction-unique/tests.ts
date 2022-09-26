@@ -30,16 +30,15 @@ testMatrix.setupTestSuite(({ provider }) => {
     }
   })
 
-  testIf(provider !== 'sqlite')('concurrent deleteMany/createMany', async () => {
+  testIf(
+    provider !== 'sqlite' && provider !== 'mongodb', // no isolation levels for MongoDB
+  )('concurrent deleteMany/createMany', async () => {
     const fn = async () => {
       await prisma.$transaction(
-        [
-          prisma.resource.deleteMany({ where: { name: 'name' } }),
-          prisma.resource.createMany({ data }),
-        ],
+        [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
         {
           isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        }
+        },
       )
     }
 
