@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   beforeAll(async () => {
     await prisma.product.create({
       data: {
@@ -48,7 +48,8 @@ testMatrix.setupTestSuite(() => {
     ])
   })
 
-  test('wrong field type', async () => {
+  // TODO: Edge: skipped because of the error snapshot
+  testIf(runtime !== 'edge')('wrong field type', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -63,9 +64,9 @@ testMatrix.setupTestSuite(() => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
-        XX })
         XX 
-        XX test('wrong field type', async () => {
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(runtime !== 'edge')('wrong field type', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -81,7 +82,8 @@ testMatrix.setupTestSuite(() => {
     `)
   })
 
-  test('wrong model', async () => {
+  // TODO: Edge: skipped because of the error snapshot
+  testIf(runtime !== 'edge')('wrong model', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -96,9 +98,9 @@ testMatrix.setupTestSuite(() => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
-        XX })
         XX 
-        XX test('wrong model', async () => {
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(runtime !== 'edge')('wrong model', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -114,7 +116,8 @@ testMatrix.setupTestSuite(() => {
     `)
   })
 
-  test('wrong identical model', async () => {
+  // TODO: Edge: skipped because of the error snapshot
+  testIf(runtime !== 'edge')('wrong identical model', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -129,9 +132,9 @@ testMatrix.setupTestSuite(() => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
-        XX })
         XX 
-        XX test('wrong identical model', async () => {
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(runtime !== 'edge')('wrong identical model', async () => {
       → XX   const products = prisma.product.findMany({
                 where: {
                   string: {
