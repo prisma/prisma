@@ -1,4 +1,4 @@
-import { idForProvider } from '../../../_utils/idForProvider'
+import { idForProvider } from '../../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider }) => {
@@ -15,15 +15,13 @@ export default testMatrix.setupSchema(({ provider }) => {
     }
 
     model Order {
-      id               ${idForProvider(provider)}
-      orderId          String @unique
+      orderId          ${idForProvider(provider)}
       paid             Boolean?
       statusMilestones OrderStatusHistory[]
     }
 
     model OrderStatusHistory {
-      id                   ${idForProvider(provider)}
-      orderStatusHistoryId String
+      orderStatusHistoryId ${idForProvider(provider)}
       orderId              String
       status               String
       createdAt            DateTime    @default(now())

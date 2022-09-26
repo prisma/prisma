@@ -1,4 +1,4 @@
-import { defineMatrix } from '../../_utils/defineMatrix'
+import { defineMatrix } from '../../../_utils/defineMatrix'
 
 export default defineMatrix(() => [
   [
