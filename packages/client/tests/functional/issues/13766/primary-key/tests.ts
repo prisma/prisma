@@ -79,6 +79,7 @@ testMatrix.setupTestSuite(({ provider }) => {
             orderId: orderId1,
           },
           data: {
+            // @ts-test-if: provider !== 'mongodb'
             orderId: orderId2,
           },
         }),
