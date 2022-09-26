@@ -42,32 +42,40 @@ const data = [
 /**
  * Reproduction for issue #9678
  */
-testMatrix.setupTestSuite(({ provider }) => {
-  test('serialized deleteMany/createMany', async () => {
-    const fn = async () => {
-      await prisma.$transaction([
-        prisma.resource.deleteMany({ where: { name: 'name' } }),
-        prisma.resource.createMany({ data }),
-      ])
-    }
+testMatrix.setupTestSuite(
+  ({ provider }) => {
+    test('serialized deleteMany/createMany', async () => {
+      const fn = async () => {
+        await prisma.$transaction([
+          prisma.resource.deleteMany({ where: { name: 'name' } }),
+          prisma.resource.createMany({ data }),
+        ])
+      }
 
-    for (let i = 0; i < 50; i++) {
-      await fn()
-    }
-  })
+      for (let i = 0; i < 50; i++) {
+        await fn()
+      }
+    })
 
-  // no isolation levels for MongoDB
-  testIf(provider !== 'mongodb')('concurrent deleteMany/createMany', async () => {
-    const fn = async () => {
-      prisma.$use(Retry())
-      await prisma.$transaction(
-        [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
-        {
-          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
-        },
-      )
-    }
+    // no isolation levels for MongoDB
+    testIf(provider !== 'mongodb')('concurrent deleteMany/createMany', async () => {
+      const fn = async () => {
+        prisma.$use(Retry())
+        await prisma.$transaction(
+          [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
+          {
+            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+          },
+        )
+      }
 
-    await Promise.all([fn(), fn(), fn(), fn(), fn()])
-  })
-})
+      await Promise.all([fn(), fn(), fn(), fn(), fn()])
+    })
+  },
+  {
+    optOut: {
+      from: ['sqlite'],
+      reason: 'No idea',
+    },
+  },
+)
