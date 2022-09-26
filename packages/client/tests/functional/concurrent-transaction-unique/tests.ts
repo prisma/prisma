@@ -31,10 +31,15 @@ testMatrix.setupTestSuite(({ provider }) => {
 
   testIf(provider !== 'sqlite')('concurrent deleteMany/createMany', async () => {
     const fn = async () => {
-      await prisma.$transaction([
-        prisma.resource.deleteMany({ where: { name: 'name' } }),
-        prisma.resource.createMany({ data }),
-      ])
+      await prisma.$transaction(
+        [
+          prisma.resource.deleteMany({ where: { name: 'name' } }),
+          prisma.resource.createMany({ data }),
+        ],
+        {
+          isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+        }
+      )
     }
 
     await Promise.all([fn(), fn(), fn(), fn(), fn()])
