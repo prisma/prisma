@@ -1,6 +1,6 @@
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma, PrismaClient, Tag } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -16,7 +16,7 @@ testMatrix.setupTestSuite(
       return ids
     }
 
-    async function getTagsFindManyIn(ids: number[]): Promise<unknown[]> {
+    async function getTagsFindManyIn(ids: number[]): Promise<Tag[]> {
       const tags = await prisma.tag.findMany({
         where: {
           id: {
@@ -27,7 +27,7 @@ testMatrix.setupTestSuite(
       return tags
     }
 
-    async function getTagsFindManyInclude(): Promise<unknown[]> {
+    async function getTagsFindManyInclude(): Promise<Tag[]> {
       const tags = await prisma.tag.findMany({
         include: {
           posts: true,
@@ -115,7 +115,7 @@ testMatrix.setupTestSuite(
        * in the query filters.
        */
       describe('unhandled filters', () => {
-        test('should fail with `value too large to transmit` when "in" is repeated at least twice and "n" is $QUERY_BATCH_SIZE', async () => {
+        test('should fail with `Assertion violation` when "in" is repeated at least twice and "n" is $QUERY_BATCH_SIZE', async () => {
           expect.assertions(3)
           const n = 32766
           const ids = await createTags(n)
@@ -134,7 +134,7 @@ testMatrix.setupTestSuite(
               },
             })
           } catch (e) {
-            const error = e as Error & { code: number; meta?: unknown }
+            const error = e as Prisma.PrismaClientKnownRequestError
             expect(error.message).toContain(
               'Assertion violation on the database: `too many bind variables in prepared statement, expected maximum of 32767, received 65533`',
             )
@@ -146,7 +146,7 @@ testMatrix.setupTestSuite(
           }
         })
 
-        test('should fail with `value too large to transmit` when "in" has 32766 ids and a "take" filter', async () => {
+        test('should fail with `Assertion violation` when "in" has 32766 ids and a "take" filter', async () => {
           expect.assertions(3)
           const n = 32766
           const ids = await createTags(n)
@@ -159,7 +159,7 @@ testMatrix.setupTestSuite(
               take: 1,
             })
           } catch (e) {
-            const error = e as Error & { code: number; meta?: unknown }
+            const error = e as Prisma.PrismaClientKnownRequestError
             expect(error.message).toContain(
               'Assertion violation on the database: `too many bind variables in prepared statement, expected maximum of 32767, received 32768`',
             )
