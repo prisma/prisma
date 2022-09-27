@@ -194,6 +194,8 @@ jobs:
       # we run all of them
       - run: pnpm run test:functional
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        # If one or more functional tests fails we still want to run the other tests below
+        continue-on-error: true
         working-directory: packages/client
       # And we also run the all the other tests (except the types tests)
       - run: pnpm run test-notypes

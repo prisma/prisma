@@ -19,7 +19,7 @@ testMatrix.setupTestSuite(({ provider }) => {
         statusMilestones: {
           create: {
             orderStatusHistoryId,
-            status: 'NEW',
+            status: 'PAID',
           },
         },
       },
