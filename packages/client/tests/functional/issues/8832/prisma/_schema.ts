@@ -17,11 +17,13 @@ export default testMatrix.setupSchema(({ provider }) => {
       tags TagsOnPosts[]
       @@map("post")
     }
+
     model Tag {
       id    Int           @id
       posts TagsOnPosts[]
       @@map("tag")
     }
+
     model TagsOnPosts {
       postId Int
       tagId  Int
