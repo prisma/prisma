@@ -27,7 +27,6 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await prisma.resource.deleteMany()
     })
   },
   {
