@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(
       await prisma.$transaction(cleanPrismaPromises)
     }
 
-    describe('issue #8832', () => {
+    describe.skip('issue #8832', () => {
       beforeEach(async () => {
         await clean()
       }, 10_000)
