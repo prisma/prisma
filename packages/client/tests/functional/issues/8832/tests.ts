@@ -109,7 +109,13 @@ testMatrix.setupTestSuite(
 
         expect(tags.length).toBe(n)
       })
+    })
 
+    /**
+     * Highlight scenarios of the query chunking logic behavior depending on how the bind variables are counted
+     * in the query filters.
+     */
+    describe('unhandled filters', () => {
       test('should fail with `value too large to transmit` when "in" is repeated at least twice and "n" is $QUERY_BATCH_SIZE', async () => {
         expect.assertions(3)
         const n = 32766
@@ -184,6 +190,8 @@ testMatrix.setupTestSuite(
       from: ['mysql', 'sqlserver', 'cockroachdb', 'sqlite', 'mongodb'],
       reason: 'we have only captured this issue with postgres',
     },
+
+    // see: https://github.com/prisma/mini-proxy/issues/30
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: "Mini-Proxy can't currently handle big queries, un-skip when it starts using QE server instead of CLI",
