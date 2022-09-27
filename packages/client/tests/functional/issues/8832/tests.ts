@@ -109,79 +109,81 @@ testMatrix.setupTestSuite(
 
         expect(tags.length).toBe(n)
       })
-    })
 
-    /**
-     * Highlight scenarios of the query chunking logic behavior depending on how the bind variables are counted
-     * in the query filters.
-     */
-    describe('unhandled filters', () => {
-      test('should fail with `value too large to transmit` when "in" is repeated at least twice and "n" is $QUERY_BATCH_SIZE', async () => {
-        expect.assertions(3)
-        const n = 32766
-        const ids = await createTags(n)
+      /**
+       * Highlight scenarios of the query chunking logic behavior depending on how the bind variables are counted
+       * in the query filters.
+       */
+      describe('unhandled filters', () => {
+        test('should fail with `value too large to transmit` when "in" is repeated at least twice and "n" is $QUERY_BATCH_SIZE', async () => {
+          expect.assertions(3)
+          const n = 32766
+          const ids = await createTags(n)
 
-        try {
-          await prisma.tag.findMany({
-            where: {
-              OR: [
-                {
-                  id: { in: ids },
-                },
-                {
-                  id: { in: ids },
-                },
-              ],
-            },
-          })
-        } catch (e) {
-          const error = e as Error & { code: number; meta?: unknown }
-          expect(error.message).toContain(
-            'Assertion violation on the database: `too many bind variables in prepared statement, expected maximum of 32767, received 65533`',
-          )
-          expect(error.code).toBe('P2035')
-          expect(error.meta).toMatchObject({
-            database_error: 'too many bind variables in prepared statement, expected maximum of 32767, received 65533',
-          })
-        }
-      })
+          try {
+            await prisma.tag.findMany({
+              where: {
+                OR: [
+                  {
+                    id: { in: ids },
+                  },
+                  {
+                    id: { in: ids },
+                  },
+                ],
+              },
+            })
+          } catch (e) {
+            const error = e as Error & { code: number; meta?: unknown }
+            expect(error.message).toContain(
+              'Assertion violation on the database: `too many bind variables in prepared statement, expected maximum of 32767, received 65533`',
+            )
+            expect(error.code).toBe('P2035')
+            expect(error.meta).toMatchObject({
+              database_error:
+                'too many bind variables in prepared statement, expected maximum of 32767, received 65533',
+            })
+          }
+        })
 
-      test('should fail with `value too large to transmit` when "in" has 32766 ids and a "take" filter', async () => {
-        expect.assertions(3)
-        const n = 32766
-        const ids = await createTags(n)
+        test('should fail with `value too large to transmit` when "in" has 32766 ids and a "take" filter', async () => {
+          expect.assertions(3)
+          const n = 32766
+          const ids = await createTags(n)
 
-        try {
-          await prisma.tag.findMany({
+          try {
+            await prisma.tag.findMany({
+              where: {
+                id: { in: ids },
+              },
+              take: 1,
+            })
+          } catch (e) {
+            const error = e as Error & { code: number; meta?: unknown }
+            expect(error.message).toContain(
+              'Assertion violation on the database: `too many bind variables in prepared statement, expected maximum of 32767, received 32768`',
+            )
+            expect(error.code).toBe('P2035')
+            expect(error.meta).toMatchObject({
+              database_error:
+                'too many bind variables in prepared statement, expected maximum of 32767, received 32768',
+            })
+          }
+        })
+
+        test('should succeed when "in" has 32766 ids and a "skip" filter', async () => {
+          const n = 32766
+          const ids = await createTags(n)
+
+          const tags = await prisma.tag.findMany({
             where: {
               id: { in: ids },
             },
-            take: 1,
+            skip: 1,
           })
-        } catch (e) {
-          const error = e as Error & { code: number; meta?: unknown }
-          expect(error.message).toContain(
-            'Assertion violation on the database: `too many bind variables in prepared statement, expected maximum of 32767, received 32768`',
-          )
-          expect(error.code).toBe('P2035')
-          expect(error.meta).toMatchObject({
-            database_error: 'too many bind variables in prepared statement, expected maximum of 32767, received 32768',
-          })
-        }
-      })
 
-      test('should succeed when "in" has 32766 ids and a "skip" filter', async () => {
-        const n = 32766
-        const ids = await createTags(n)
-
-        const tags = await prisma.tag.findMany({
-          where: {
-            id: { in: ids },
-          },
-          skip: 1,
+          expect(tags.length).toBe(n - 1)
         })
-
-        expect(tags.length).toBe(n - 1)
       })
     })
   },
