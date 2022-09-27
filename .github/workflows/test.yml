@@ -120,7 +120,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-clientOnlyChangedFunctionalTests-') }}
 
     strategy:
       fail-fast: false
