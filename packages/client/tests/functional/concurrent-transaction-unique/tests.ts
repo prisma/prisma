@@ -2,7 +2,7 @@
 import crypto from 'crypto'
 
 import testMatrix from './_matrix'
-import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
 
 declare let prisma: PrismaClient
 
