@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
         await clean()
       }, 10_000)
 
-      test('should succeed when "in" has 32766 or less ids', async () => {
+      test('should succeed when "in" has 32766 ids', async () => {
         const n = 32766
         const ids = await createTags(n)
         const tags = await getTagsFindManyIn(ids)
@@ -54,7 +54,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "include" involves 32766 or less records', async () => {
+      test('should succeed when "include" involves 32766 records', async () => {
         const n = 32766
         await createTags(n)
         const tags = await getTagsFindManyInclude()
@@ -62,7 +62,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "in" has 32767 or less ids', async () => {
+      test('should succeed when "in" has 32767 ids', async () => {
         const n = 32767
         const ids = await createTags(n)
         const tags = await getTagsFindManyIn(ids)
@@ -70,7 +70,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "include" involves 32767 or less records', async () => {
+      test('should succeed when "include" involves 32767 records', async () => {
         const n = 32767
         await createTags(n)
         const tags = await getTagsFindManyInclude()
@@ -78,7 +78,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "in" has 32768 or less ids', async () => {
+      test('should succeed when "in" has 32768 ids', async () => {
         const n = 32768
         const ids = await createTags(n)
         const tags = await getTagsFindManyIn(ids)
@@ -86,7 +86,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "include" involves 32768 or less records', async () => {
+      test('should succeed when "include" involves 32768 records', async () => {
         const n = 32768
         await createTags(n)
         const tags = await getTagsFindManyInclude()
@@ -94,7 +94,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "in" has 65536 or less ids', async () => {
+      test('should succeed when "in" has 65536 ids', async () => {
         const n = 65536
         const ids = await createTags(n)
         const tags = await getTagsFindManyIn(ids)
@@ -102,7 +102,7 @@ testMatrix.setupTestSuite(
         expect(tags.length).toBe(n)
       })
 
-      test('should succeed when "include" involves 65536 or less records', async () => {
+      test('should succeed when "include" involves 65536 records', async () => {
         const n = 65536
         await createTags(n)
         const tags = await getTagsFindManyInclude()
@@ -146,7 +146,7 @@ testMatrix.setupTestSuite(
         }
       })
 
-      test('should fail with `value too large to transmit` when "in" has 32766 or less ids and a "take" filter', async () => {
+      test('should fail with `value too large to transmit` when "in" has 32766 ids and a "take" filter', async () => {
         expect.assertions(3)
         const n = 32766
         const ids = await createTags(n)
@@ -170,7 +170,7 @@ testMatrix.setupTestSuite(
         }
       })
 
-      test('should succeed when "in" has 32766 or less ids and a "skip" filter', async () => {
+      test('should succeed when "in" has 32766 ids and a "skip" filter', async () => {
         const n = 32766
         const ids = await createTags(n)
 
