@@ -6,10 +6,7 @@ declare let Prisma: typeof PrismaNamespace
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  () => {
-    const decimal1 = '1.2'
-    const decimal2 = '2.4'
-
+  ({ decimal1, decimal2 }) => {
     beforeAll(async () => {
       await prisma.resource.create({
         data: { decimal: decimal1 },

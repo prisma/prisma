@@ -19,4 +19,14 @@ export default defineMatrix(() => [
       provider: 'cockroachdb',
     },
   ],
+  [
+    {
+      decimal1: '1.2',
+      decimal2: '2.4',
+    },
+    {
+      decimal1: 1.2,
+      decimal2: 2.4,
+    },
+  ],
 ])
