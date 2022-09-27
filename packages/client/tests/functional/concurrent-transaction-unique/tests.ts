@@ -5,7 +5,6 @@ import testMatrix from './_matrix'
 import { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
-declare let Prisma: typeof PrismaNamespace
 
 class PrismaRetryError extends Error {
   constructor() {
