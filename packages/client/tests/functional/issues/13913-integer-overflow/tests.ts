@@ -5,7 +5,8 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
-  test('int overflow', async () => {
+  // TODO: re-enable this or change it once we have decided the fix
+  test.skip('int overflow', async () => {
     const promise = prisma.resource.create({
       data: {
         number: 2265000000,
