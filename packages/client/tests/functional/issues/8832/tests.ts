@@ -115,7 +115,7 @@ testMatrix.setupTestSuite(
        * in the query filters.
        */
       describe('unhandled filters', () => {
-        test('should fail with `Assertion violation` when "in" is repeated at least twice and "n" is $QUERY_BATCH_SIZE', async () => {
+        test('should fail with `Assertion violation` when "in" is repeated at least twice and "n" is the default value of $QUERY_BATCH_SIZE', async () => {
           expect.assertions(3)
           const n = 32766
           const ids = await createTags(n)
