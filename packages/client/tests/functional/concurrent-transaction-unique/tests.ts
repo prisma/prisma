@@ -14,7 +14,7 @@ class PrismaRetryError extends Error {
   }
 }
 
-const Retry = (): Prisma.Middleware => {
+const Retry = (): PrismaNamespace.Middleware => {
   return async (params, next) => {
     let retries = 0
     do {
