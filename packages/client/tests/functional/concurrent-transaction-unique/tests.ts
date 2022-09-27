@@ -64,7 +64,7 @@ testMatrix.setupTestSuite(
         await prisma.$transaction(
           [prisma.resource.deleteMany({ where: { name: 'name' } }), prisma.resource.createMany({ data })],
           {
-            isolationLevel: Prisma.TransactionIsolationLevel.Serializable,
+            isolationLevel: PrismaNamespace.TransactionIsolationLevel.Serializable,
           },
         )
       }
