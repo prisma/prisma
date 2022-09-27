@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1664267721064,
+  "lastUpdate": 1664269252241,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -129944,6 +129944,93 @@ window.BENCHMARK_DATA = {
             "range": "±3.85%",
             "unit": "ops/sec",
             "extra": "6 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "pierreantoine.urvoy@gmail.com",
+            "name": "pierre",
+            "username": "millsp"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "b0e77cf64227e976921909d5531f0c853fe64584",
+          "message": "test(client): int overflow #13913 (#15545)\n\n* test(client): int overflow\r\n\r\n* make tests pass for data proxy\r\n\r\n* add comment about the dataproxy issue\r\n\r\n* refactor: move to use allProviders\r\n\r\nCo-authored-by: Daniel Starns <danielstarns@hotmail.com>",
+          "timestamp": "2022-09-27T09:57:33+01:00",
+          "tree_id": "1e5195ea130a6c3285814a8da5216ae429c79ccf",
+          "url": "https://github.com/prisma/prisma/commit/b0e77cf64227e976921909d5531f0c853fe64584"
+        },
+        "date": 1664269242362,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 2.37,
+            "range": "±5.37%",
+            "unit": "ops/sec",
+            "extra": "16 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.15,
+            "range": "±1.16%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.3727922439575195,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.28483009338379,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.786240577697754,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.29512023925781,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.425037384033203,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.55,
+            "range": "±5.30%",
+            "unit": "ops/sec",
+            "extra": "7 samples"
           }
         ]
       }
