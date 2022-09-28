@@ -38,6 +38,8 @@ const args = arg(
     '--onlyChanged': Boolean,
     // Passes the same flag to Jest to only run tests related to changed files
     '--changedSince': String,
+    // Passes the same flag to Jest to only run tests related to changed files
+    '--changedFilesWithAncestor': Boolean,
   },
   true,
   true,
