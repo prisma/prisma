@@ -43,7 +43,7 @@ testMatrix.setupTestSuite(
       }
     }
 
-    describe.skip('issue #8832', () => {
+    describe('issue #8832', () => {
       beforeEach(async () => {
         await clean()
       }, 30_000)
