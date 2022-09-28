@@ -36,6 +36,8 @@ const args = arg(
     '--mini-proxy-debug': Boolean,
     // Passes the same flag to Jest to only run tests related to changed files
     '--onlyChanged': Boolean,
+    // Passes the same flag to Jest to only run tests related to changed files
+    '--changedSince': String,
   },
   true,
   true,
@@ -96,6 +98,9 @@ async function main(): Promise<number | void> {
   const jestArgs = ['--testPathIgnorePatterns', 'typescript']
   if (args['--onlyChanged']) {
     jestArgs.push('--onlyChanged')
+  }
+  if (args['--changedSince']) {
+    jestArgs.push('--changedSince', args['--changedSince'])
   }
   const codeTestCli = jestCli.withArgs(jestArgs)
 
