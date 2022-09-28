@@ -10,6 +10,7 @@ import * as TE from 'fp-ts/TaskEither'
 import { match, P } from 'ts-pattern'
 
 import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
+import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
@@ -84,7 +85,19 @@ ${detailsHeader} ${message}`
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
+
+  // always use Wasm for now. At some point we'll get rid of the node-api and binary getConfig
   const data: ConfigMetaFormat = await match(cliEngineBinaryType)
+    .when(
+      () => true,
+      () => {
+        return getConfigWasm(options)
+      },
+    )
+
+    /**
+     * @deprecated
+     */
     .with(BinaryType.libqueryEngine, () => {
       return getConfigNodeAPI(options)
     })
@@ -93,6 +106,80 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
     .exhaustive()
   return data
+}
+
+async function getConfigWasm(options: GetConfigOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getConfigWasm')
+  debug(`Using getConfig Wasm`)
+
+  const configEither = pipe(
+    E.tryCatch(
+      () => {
+        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+          debug('Triggering a Rust panic...')
+          prismaFmt.debug_panic()
+        }
+
+        const params = JSON.stringify({
+          prismaSchema: options.datamodel,
+          datasourceOverrides: {},
+          ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+          env: process.env,
+        })
+
+        // TODO: errors are currently returned as values. This needs to change on the Rust side.
+        const data = prismaFmt.get_config(params)
+        return data
+      },
+      (e) => ({
+        type: 'wasm-panic' as const,
+        reason: 'Error (get-config wasm)',
+        error: e as Error,
+      }),
+    ),
+    E.map((result) => ({ result })),
+    E.chainW(({ result }) =>
+      E.tryCatch(
+        () => JSON.parse(result) as ConfigMetaFormat,
+        (e) => ({
+          type: 'parse-json' as const,
+          reason: 'Unable to parse JSON',
+          error: e as Error,
+        }),
+      ),
+    ),
+  )
+
+  if (E.isRight(configEither)) {
+    debug('config data retrieved without errors in getConfig Wasm')
+    const { right: data } = configEither
+    return Promise.resolve(data)
+  }
+
+  /**
+   * Check which error to throw.
+   */
+  const error = match(configEither.left)
+    .with({ type: 'wasm-panic' }, (e) => {
+      debugErrorType(e)
+
+      const wasmError = e.error as Error
+      const panic = new RustPanic(
+        /* message */ wasmError.message,
+        /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+        /* request */ '@prisma/prisma-fmt-wasm get_config',
+        ErrorArea.FMT_CLI,
+        /* schemaPath */ options.prismaPath,
+        /* schema */ options.datamodel,
+      )
+      return panic
+    })
+    .otherwise((e) => {
+      debugErrorType(e)
+      return new GetConfigError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
+    })
+
+  throw error
 }
 
 async function getConfigNodeAPI(options: GetConfigOptions) {
