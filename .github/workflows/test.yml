@@ -187,7 +187,7 @@ jobs:
 
       # If we detected (in detect_jobs_to_run) that only functional test files changed
       # We only run the tests that changed (or were added)
-      - run: pnpm run test:functional --changedSince ${{ github.event.pull_request.base.sha }}"
+      - run: pnpm run test:functional --changedSince ${{ github.event.pull_request.base.sha }}
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-clientOnlyChangedFunctionalTests-') }}
         working-directory: packages/client
       # If not
