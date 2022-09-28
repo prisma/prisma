@@ -74,7 +74,9 @@ jobs:
     runs-on: ubuntu-latest
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
-      - uses: fkirc/skip-duplicate-actions@v4.0.0
+      - uses: fkirc/skip-duplicate-actions@v5
+        with:
+          cancel_others: 'false'
 
   #
   # Linting
