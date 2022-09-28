@@ -32,13 +32,15 @@ testMatrix.setupTestSuite(
 
     async function clean() {
       const cleanPrismaPromises = [prisma.tagsOnPosts.deleteMany(), prisma.post.deleteMany(), prisma.tag.deleteMany()]
-      await prisma.$transaction(cleanPrismaPromises)
+      for (const promise of cleanPrismaPromises) {
+        await promise
+      }
     }
 
     describe('issue #9326', () => {
       beforeEach(async () => {
         await clean()
-      }, 10_000)
+      }, 30_000)
 
       test('should succeed when the number of params is 32767 or less', async () => {
         const n = 32767
