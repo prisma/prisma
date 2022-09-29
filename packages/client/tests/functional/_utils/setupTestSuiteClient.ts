@@ -26,12 +26,14 @@ export async function setupTestSuiteClient({
   skipDb,
   datasourceInfo,
   clientMeta,
+  alterStatement,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   skipDb?: boolean
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  alterStatement?: string
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
@@ -44,7 +46,7 @@ export async function setupTestSuiteClient({
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatement)
   }
 
   process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl

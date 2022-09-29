@@ -11,6 +11,8 @@ export type MatrixOptions = {
     runtimes: ClientRuntime[]
     reason: string
   }
+  // SQL Migraiton to apply after inital generated migration
+  alterStatement?: string
 }
 
 export type NewPrismaClient<T extends new (...args: any) => any> = (

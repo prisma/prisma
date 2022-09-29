@@ -14,6 +14,25 @@ testMatrix.setupTestSuite(
       return
     }
 
+    test('should propagate the correct error when a method fails', async () => {
+      const user = await prisma.user.create({
+        data: {
+          email: faker.internet.email(),
+          name: faker.name.firstName(),
+        },
+      })
+
+      await expect(
+        prisma.post.create({
+          data: {
+            authorId: user.id,
+            title: faker.lorem.sentence(),
+            viewCount: -1, // should fail, must be >= 0
+          },
+        }),
+      ).rejects.toThrowError('violates check constraint \\"post_viewcount_check\\"')
+    })
+
     test('should propagate the correct error when a method fails inside an transaction', async () => {
       const user = await prisma.user.create({
         data: {
@@ -32,7 +51,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ]),
-      ).rejects.toThrowError('violates check constraint \\"Post_viewCount_check\\"')
+      ).rejects.toThrowError('violates check constraint \\"post_viewcount_check\\"')
     })
 
     test('should propagate the correct error when a method fails inside an interactive transaction', async () => {
@@ -55,13 +74,17 @@ testMatrix.setupTestSuite(
 
           return post
         }),
-      ).rejects.toThrowError('violates check constraint \\"Post_viewCount_check\\"')
+      ).rejects.toThrowError('violates check constraint \\"post_viewcount_check\\"')
     })
   },
   {
     optOut: {
       from: ['cockroachdb', 'mongodb', 'mysql', 'sqlite', 'sqlserver'],
-      reason: 'bla',
+      reason: 'Issue relates to postgresql only',
     },
+    alterStatement: `
+      ALTER TABLE "Post" 
+      ADD CONSTRAINT Post_viewCount_check CHECK ("viewCount" >= 0);
+    `,
   },
 )

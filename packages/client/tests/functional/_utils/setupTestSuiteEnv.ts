@@ -6,6 +6,7 @@ import path from 'path'
 import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
+import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
@@ -106,12 +107,30 @@ export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
+  alterStatement?: string,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
+
+    if (alterStatement) {
+      const prismaDir = path.dirname(schemaPath)
+      const timestamp = new Date().getTime()
+
+      await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
+      await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, 'provider = "postgresql"')
+      await fs.promises.writeFile(`${prismaDir}/migrations/${timestamp}/migration.sql`, alterStatement)
+
+      await DbExecute.new().parse([
+        '--file',
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        '--schema',
+        `${schemaPath}`,
+      ])
+    }
+
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)

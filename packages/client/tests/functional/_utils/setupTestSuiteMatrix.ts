@@ -75,6 +75,7 @@ function setupTestSuiteMatrix(
           skipDb: options?.skipDb,
           datasourceInfo,
           clientMeta,
+          alterStatement: options?.alterStatement,
         })
 
         globalThis['newPrismaClient'] = (...args) => {
