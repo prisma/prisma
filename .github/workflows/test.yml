@@ -76,7 +76,7 @@ jobs:
     steps:
       - uses: fkirc/skip-duplicate-actions@v5
         with:
-          cancel_others: 'true'
+          cancel_others: 'false'
 
   #
   # Linting
@@ -122,7 +122,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-clientOnlyChangedFunctionalTests-') }}
 
     strategy:
       fail-fast: false
@@ -187,13 +187,19 @@ jobs:
 
       - run: bash .github/workflows/scripts/setup.sh
 
-      # Run the functional test suite
+      # If we detected (in detect_jobs_to_run) that only functional test files changed
+      # We only run the tests that changed (or were added)
+      - run: pnpm run test:functional --changedFilesWithAncestor
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-clientOnlyChangedFunctionalTests-') }}
+        working-directory: packages/client
+      # If not
+      # we run all of them
       - run: pnpm run test:functional
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         # If one or more functional tests fails we still want to run the other tests below
         continue-on-error: true
         working-directory: packages/client
-      # And run  all the other tests (except the types tests)
+      # And we also run the all the other tests (except the types tests)
       - run: pnpm run test-notypes
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         working-directory: packages/client
