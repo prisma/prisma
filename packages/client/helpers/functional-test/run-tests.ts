@@ -34,12 +34,6 @@ const args = arg(
     '--no-mini-proxy-default-ca': Boolean,
     // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
-    // Passes the same flag to Jest to only run tests related to changed files
-    '--onlyChanged': Boolean,
-    // Passes the same flag to Jest to only run tests related to changed files
-    '--changedSince': String,
-    // Passes the same flag to Jest to only run tests related to changed files
-    '--changedFilesWithAncestor': Boolean,
   },
   true,
   true,
@@ -97,14 +91,7 @@ async function main(): Promise<number | void> {
     throw new Error('--edge-client is only available when --data-proxy is used')
   }
 
-  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
-  if (args['--onlyChanged']) {
-    jestArgs.push('--onlyChanged')
-  }
-  if (args['--changedSince']) {
-    jestArgs.push('--changedSince', args['--changedSince'])
-  }
-  const codeTestCli = jestCli.withArgs(jestArgs)
+  const codeTestCli = jestCli.withArgs(['--testPathIgnorePatterns', 'typescript'])
 
   try {
     if (args['-u']) {
