@@ -33,7 +33,9 @@ async function main() {
   const jobsToRun = []
 
   // If changes are located only in one of the paths below
-  if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {
+  if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/client/tests/functional'))) {
+    jobsToRun.push('-clientOnlyChangedFunctionalTests-')
+  } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {
     jobsToRun.push('-cli-')
   } else if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/client/'))) {
     jobsToRun.push('-client-')
