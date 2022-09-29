@@ -122,7 +122,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-clientOnlyChangedFunctionalTests-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -130,28 +130,6 @@ jobs:
         queryEngine: ['library', 'binary']
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
-
-    env:
-      CI: true
-      SKIP_GIT: true
-      GITHUB_CONTEXT: ${{ toJson(github) }}
-      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-      TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
-      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-      TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
-      TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-      TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-      TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-      TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
-      TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
-      TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
-      TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
-      TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-      TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
-      TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
-      NODE_OPTIONS: '--max-old-space-size=8096'
 
     steps:
       - uses: actions/checkout@v3
@@ -186,23 +164,34 @@ jobs:
           node-version: ${{ matrix.node }}
 
       - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      # If we detected (in detect_jobs_to_run) that only functional test files changed
-      # We only run the tests that changed (or were added)
-      - run: pnpm run test:functional --changedFilesWithAncestor
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-clientOnlyChangedFunctionalTests-') }}
+      - run: pnpm run test-notypes && pnpm run test:functional
         working-directory: packages/client
-      # If not
-      # we run all of them
-      - run: pnpm run test:functional
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        # If one or more functional tests fails we still want to run the other tests below
-        continue-on-error: true
-        working-directory: packages/client
-      # And we also run the all the other tests (except the types tests)
-      - run: pnpm run test-notypes
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+          TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+          TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+          TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
+          TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+          TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+          TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+          NODE_OPTIONS: '--max-old-space-size=8096'
 
       - uses: codecov/codecov-action@v3
         with:
