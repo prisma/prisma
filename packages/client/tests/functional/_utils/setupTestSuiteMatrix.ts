@@ -1,9 +1,12 @@
+import fs from 'fs-extra'
+import path from 'path'
+
 import { checkMissingProviders } from './checkMissingProviders'
-import { getTestSuiteConfigs, getTestSuiteMeta } from './getTestSuiteInfo'
+import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { setupTestSuiteClient } from './setupTestSuiteClient'
+import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
-import { MatrixOptions } from './types'
+import { ClientMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
 
@@ -39,13 +42,15 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta, clientMeta: ClientMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
+  const clientMeta = getClientMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
-  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+
   checkMissingProviders({
     suiteConfigs,
     suiteMeta,
@@ -57,14 +62,19 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
+
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        process.env = { ...setupTestSuiteDbURI(suiteConfig.matrixOptions), ...originalEnv }
+        const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+
+        globalThis['datasourceInfo'] = datasourceInfo
 
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
           suiteConfig,
           skipDb: options?.skipDb,
+          datasourceInfo,
+          clientMeta,
         })
 
         globalThis['newPrismaClient'] = (...args) => {
@@ -78,6 +88,23 @@ function setupTestSuiteMatrix(
         globalThis['Prisma'] = (await global['loaded'])['Prisma']
       })
 
+      // for better type dx, copy a client into the test suite root node_modules
+      // this is so that we can have intellisense for the client in the test suite
+      beforeAll(() => {
+        const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
+
+        // reserve the node_modules so that parallel tests suites don't conflict
+        fs.mkdir(rootNodeModuleFolderPath, async (error) => {
+          if (error !== null && error.code !== 'EEXIST') throw error // unknown error
+          if (error !== null && error.code === 'EEXIST') return // already reserved
+
+          const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+          const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
+
+          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
+        })
+      })
+
       afterAll(async () => {
         for (const client of clients) {
           await client.$disconnect().catch(() => {
@@ -86,15 +113,20 @@ function setupTestSuiteMatrix(
           })
         }
         clients.length = 0
-        !options?.skipDb && (await dropTestSuiteDatabase(suiteMeta, suiteConfig))
+        if (!options?.skipDb) {
+          const datasourceInfo = globalThis['datasourceInfo']
+          process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+          await dropTestSuiteDatabase(suiteMeta, suiteConfig)
+        }
         process.env = originalEnv
+        delete globalThis['datasourceInfo']
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
       })
 
-      tests(suiteConfig.matrixOptions, suiteMeta)
+      tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
     })
   }
 }

@@ -5,6 +5,7 @@ import path from 'path'
 import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
+import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 
 export enum Projection {
   select = 'select',
@@ -149,6 +150,10 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
   }
 }
 
+export function getFieldRefsTypeName(name: string) {
+  return `${name}FieldRefs`
+}
+
 export function getDefaultArgName(dmmf: DMMFHelper, modelName: string, action: DMMF.ModelAction): string {
   const mapping = dmmf.mappings.modelOperations.find((m) => m.model === modelName)!
 
@@ -211,6 +216,7 @@ interface SelectReturnTypeOptions {
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
+  isChaining?: boolean
   fieldName?: string
   projection: Projection
 }
@@ -226,6 +232,7 @@ export function getReturnType({
   renderPromise = true,
   hideCondition = false,
   isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+  isChaining = false,
 }: SelectReturnTypeOptions): string {
   if (actionName === 'count') {
     return `Promise<number>`
@@ -251,9 +258,11 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
-      name,
-    )}<T>${listClose}${promiseClose}>`
+    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${
+      isChaining ? '| Null' : ''
+    }${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(name)}<T>${listClose}${
+      isChaining ? '| Null' : ''
+    }${promiseClose}>`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
@@ -264,10 +273,10 @@ export function getReturnType({
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
+      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | Null>, Prisma__${name}Client<${getType(
         getPayloadName(name) + '<T>',
         isList,
-      )} | null >>`
+      )} | Null>>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
       name,
@@ -275,10 +284,10 @@ export function getReturnType({
     )}>, Prisma__${name}Client<${getType(
       getPayloadName(name) + '<T>',
       isList,
-    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
+    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null, null>, Prisma__${name}Client<${getType(
       getPayloadName(name) + '<T>',
       isList,
-    )} | null >>`
+    )} | null, null>>`
   }
   return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
     getPayloadName(name) + '<T>',
@@ -311,18 +320,6 @@ export function getRelativePathResolveStatement(outputDir: string, cwd?: string)
   return `path.resolve(__dirname, ${JSON.stringify(path.relative(outputDir, cwd))})`
 }
 
-function flatten(array): any[] {
-  return Array.prototype.concat.apply([], array)
-}
-
-export function flatMap<T, U>(
-  array: T[],
-  callbackFn: (value: T, index: number, array: T[]) => U[],
-  thisArg?: any,
-): U[] {
-  return flatten(array.map(callbackFn, thisArg))
-}
-
 /**
  * Returns unique elements of array
  * @param arr Array
@@ -343,4 +340,18 @@ export function unique<T>(arr: T[]): T[] {
   }
 
   return result
+}
+
+export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
+  let typeName: string
+  if (typeof type.type === 'string') {
+    typeName = type.type
+  } else {
+    typeName = type.type.name
+  }
+  if (type.isList) {
+    typeName += '[]'
+  }
+
+  return `'${typeName}'`
 }

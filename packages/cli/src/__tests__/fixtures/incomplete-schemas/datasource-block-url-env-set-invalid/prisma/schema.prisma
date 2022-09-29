@@ -1,0 +1,6 @@
+// the schema has a `datasource db` block with a defined - but invalid - env url
+
+datasource db {
+  provider = "postgresql"
+  url      = env("SOME_DEFINED_INVALID_URL")
+}

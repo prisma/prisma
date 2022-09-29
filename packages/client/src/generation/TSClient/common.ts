@@ -331,7 +331,7 @@ type IsObject<T extends any> = T extends Array<any>
 ? False
 : T extends Date
 ? False
-: T extends Buffer
+: T extends Uint8Array
 ? False
 : T extends BigInt
 ? False
@@ -527,6 +527,11 @@ type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
  * Exclude all keys with underscores
  */
 type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
+
+
+export import FieldRef = runtime.FieldRef
+
+type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
 ${
   !hideFetcher

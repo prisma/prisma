@@ -1,6 +1,7 @@
 const path = require('path')
 
 const postInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'postinstall.js')
+const localInstallScriptPath = path.join(__dirname, '..', 'dist', 'scripts', 'localinstall.js')
 
 try {
   // that's when we develop in the monorepo, `dist` does not exist yet
@@ -11,6 +12,12 @@ try {
 
     execa.sync('node', ['-r', 'esbuild-register', buildScriptPath], {
       env: { DEV: true },
+      stdio: 'inherit',
+    })
+
+    // if enabled, it will install engine overrides into the cache dir
+    execa.sync('node', [localInstallScriptPath], {
+      stdio: 'inherit',
     })
   }
 } catch {}

@@ -5,7 +5,7 @@ import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
-export type TestSuiteMatrix = { [K in string]: string }[][]
+export type TestSuiteMatrix = { [K in string]: any }[][]
 export type NamedTestSuiteConfig = {
   parametersString: string
   matrixOptions: Record<string, string>
@@ -90,12 +90,23 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
 export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
-  const rawMatrix = typeof matrixModule === 'function' ? matrixModule() : matrixModule.matrix()
+  let rawMatrix: TestSuiteMatrix
+  let exclude: (config: Record<string, string>) => boolean
 
-  return matrix(rawMatrix).map((configs) => ({
-    parametersString: getTestSuiteParametersString(configs),
-    matrixOptions: merge(configs),
-  }))
+  if (typeof matrixModule === 'function') {
+    rawMatrix = matrixModule()
+    exclude = () => false
+  } else {
+    rawMatrix = matrixModule.matrix()
+    exclude = matrixModule.matrixOptions?.exclude ?? (() => false)
+  }
+
+  return matrix(rawMatrix)
+    .map((configs) => ({
+      parametersString: getTestSuiteParametersString(configs),
+      matrixOptions: merge(configs),
+    }))
+    .filter(({ matrixOptions }) => !exclude(matrixOptions))
 }
 
 /**
@@ -137,11 +148,11 @@ export function getTestSuiteMeta() {
   if (testPath === undefined) {
     throw new Error(`getTestSuiteMeta can be executed only within jest test`)
   }
-  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
   const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
-  let testName
+  let testName: string
   if (rootRelativeTestPath === 'tests.ts') {
     testName = testRootDirName
   } else {

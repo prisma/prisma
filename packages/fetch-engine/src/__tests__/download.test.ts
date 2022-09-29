@@ -14,7 +14,8 @@ console.debug({ CURRENT_ENGINES_HASH })
 const FIXED_ENGINES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
-jest.setTimeout(200_000)
+// Network can be slow, especially for macOS in CI.
+jest.setTimeout(300_000)
 
 describe('download', () => {
   beforeEach(async () => {
@@ -552,8 +553,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     )
 
     // This is a rather high number to avoid flakiness in CI
-    expect(timeInMsToDownloadAllFromCache1).toBeLessThan(40_000)
-    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(40_000)
+    expect(timeInMsToDownloadAllFromCache1).toBeLessThan(60_000)
+    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(60_000)
 
     // Using cache should be faster
     expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)

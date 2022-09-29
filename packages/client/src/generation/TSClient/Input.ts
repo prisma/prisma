@@ -3,6 +3,7 @@ import indent from 'indent-string'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
@@ -12,6 +13,8 @@ export class InputField implements Generatable {
     protected readonly field: DMMF.SchemaArg,
     protected readonly prefixFilter = false,
     protected readonly noEnumerable = false,
+    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly source?,
   ) {}
   public toTS(): string {
     const { field } = this
@@ -22,7 +25,13 @@ export class InputField implements Generatable {
       : ''
     const comment = `${field.comment ? field.comment + '\n' : ''}${deprecated}`
     const jsdoc = comment ? wrapComment(comment) + '\n' : ''
-    const fieldType = stringifyInputTypes(field.inputTypes, this.prefixFilter, this.noEnumerable)
+    const fieldType = stringifyInputTypes(
+      field.inputTypes,
+      this.prefixFilter,
+      this.noEnumerable,
+      this.genericsInfo,
+      this.source,
+    )
 
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
@@ -32,6 +41,8 @@ function stringifyInputType(
   t: DMMF.SchemaArgInputType,
   prefixFilter: boolean,
   noEnumerable = false, // used for group by, there we need an Array<> for "by"
+  genericsInfo: GenericArgsInfo,
+  source?: string,
 ): string {
   let type =
     typeof t.type === 'string'
@@ -43,6 +54,14 @@ function stringifyInputType(
 
   if (type === 'Null') {
     return 'null'
+  }
+
+  if (genericsInfo.needsGenericModelArg(t)) {
+    if (source) {
+      type = `${type}<"${source}">`
+    } else {
+      type = `${type}<$PrismaModel>`
+    }
   }
 
   if (t.isList) {
@@ -77,6 +96,8 @@ function stringifyInputTypes(
   inputTypes: DMMF.SchemaArgInputType[],
   prefixFilter: boolean,
   noEnumerable = false,
+  genericsInfo: GenericArgsInfo,
+  source?: string,
 ): string {
   const pairMap: Record<string, number> = Object.create(null)
 
@@ -105,7 +126,7 @@ function stringifyInputTypes(
   const nonInputObjectTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
 
   const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>((acc, curr) => {
-    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable)
+    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable, genericsInfo, source)
     if (acc.length > 0) {
       return `XOR<${acc}, ${currentStringified}>`
     }
@@ -114,7 +135,7 @@ function stringifyInputTypes(
   }, '')
 
   const stringifiedNonInputTypes = nonInputObjectTypes
-    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable))
+    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable, genericsInfo, source))
     .join(' | ')
 
   if (stringifiedNonInputTypes.length === 0) {
@@ -129,9 +150,11 @@ function stringifyInputTypes(
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType) {}
+  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+
   public toTS(): string {
     const { type } = this
+    const source = type.meta?.source
 
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
@@ -141,13 +164,20 @@ ${indent(
     .map((arg) => {
       // This disables enumerable on JsonFilter path argument
       const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
-      return new InputField(arg, false, noEnumerable).toTS()
+      return new InputField(arg, false, noEnumerable, this.genericsInfo, source).toTS()
     })
     .join('\n'),
   TAB_SIZE,
 )}
 }`
     return `
-export type ${type.name} = ${body}`
+export type ${this.getTypeName()} = ${body}`
+  }
+
+  private getTypeName() {
+    if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
+      return `${this.type.name}<$PrismaModel = never>`
+    }
+    return this.type.name
   }
 }

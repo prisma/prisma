@@ -1,4 +1,5 @@
 import { assertNever } from '@prisma/internals'
+import * as miniProxy from '@prisma/mini-proxy'
 import cuid from 'cuid'
 import fs from 'fs-extra'
 import path from 'path'
@@ -10,6 +11,7 @@ import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -49,7 +51,8 @@ async function copyPreprocessed(from: string, to: string, suiteConfig: Record<st
   const newContents = contents
     .replace(/'..\//g, "'../../../")
     .replace(/'.\//g, "'../../")
-    .replace(/\/\/\s*@ts-ignore.+/g, '')
+    .replace(/'..\/..\/node_modules/g, "'./node_modules")
+    .replace(/\/\/\s*@ts-ignore.*/g, '')
     .replace(/\/\/\s*@ts-test-if:(.+)/g, (match, condition) => {
       if (!evaluateMagicComment(condition, suiteConfig)) {
         return '// @ts-expect-error'
@@ -148,19 +151,42 @@ export async function dropTestSuiteDatabase(
   }
 }
 
+export type DatasourceInfo = {
+  envVarName: string
+  databaseUrl: string
+  dataProxyUrl?: string
+}
+
 /**
- * Generate a random string to be used as a test suite db url.
+ * Generate a random string to be used as a test suite db name, and derive the
+ * corresponding database URL and, if required, Mini-Proxy connection string to
+ * that database.
+ *
  * @param suiteConfig
+ * @param clientMeta
  * @returns
  */
-export function setupTestSuiteDbURI(suiteConfig: Record<string, string>) {
+export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
-  // we reuse the original db url but postfix it with a random string
   const dbId = cuid()
   const envVarName = `DATABASE_URI_${provider}`
   const newURI = getDbUrl(provider).replace(DB_NAME_VAR, dbId)
 
-  return { [envVarName]: newURI }
+  let dataProxyUrl: string | undefined
+
+  if (clientMeta.dataProxy) {
+    dataProxyUrl = miniProxy.generateConnectionString({
+      databaseUrl: newURI,
+      envVar: envVarName,
+      port: miniProxy.defaultServerConfig.port,
+    })
+  }
+
+  return {
+    envVarName,
+    databaseUrl: newURI,
+    dataProxyUrl,
+  }
 }
 
 /**

@@ -145,8 +145,9 @@ DROP TABLE 'test-dbexecute';`
                   Script executed successfully.
 
               `)
+        // This is a slow test and macOS machine can be even slower and fail the test
       },
-      20_000,
+      30_000,
     )
 
     it('should pass with --file --schema', async () => {

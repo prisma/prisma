@@ -93,7 +93,7 @@ pnpx prisma generate && pnpx ts-node index.ts
   cd reproductions
   mkdir my-repro
   cd my-repro
-  pnpm init -y
+  pnpm init
   pnpm add ../../packages/client
   pnpm add -D ../../packages/cli
   pnpm add -D typescript ts-node

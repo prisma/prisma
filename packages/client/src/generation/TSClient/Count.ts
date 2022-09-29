@@ -3,6 +3,7 @@ import indent from 'indent-string'
 
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
@@ -15,17 +16,24 @@ export class Count implements Generatable {
   constructor(
     protected readonly type: DMMF.OutputType,
     protected readonly dmmf: DMMFHelper,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly generator?: GeneratorConfig,
   ) {}
   protected get argsTypes(): Generatable[] {
     const argsTypes: Generatable[] = []
 
-    argsTypes.push(new ArgsType([], this.type))
+    argsTypes.push(new ArgsType([], this.type, this.genericsInfo))
 
     for (const field of this.type.fields) {
       if (field.args.length > 0) {
         argsTypes.push(
-          new MinimalArgsType(field.args, this.type, undefined, getCountArgsType(this.type.name, field.name)),
+          new MinimalArgsType(
+            field.args,
+            this.type,
+            this.genericsInfo,
+            undefined,
+            getCountArgsType(this.type.name, field.name),
+          ),
         )
       }
     }
@@ -67,7 +75,7 @@ ${indent(
 )}
 }
 
-${new PayloadType(outputType, false).toTS()}
+${new PayloadType(outputType, this.dmmf, false).toTS()}
 
 
 

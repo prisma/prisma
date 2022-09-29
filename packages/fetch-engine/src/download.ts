@@ -12,11 +12,12 @@ import { promisify } from 'util'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
-import { flatMap } from './flatMap'
 import { getHash } from './getHash'
 import { getLatestTag } from './getLatestTag'
 import { getBar } from './log'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
+
+const { enginesOverride } = require('../package.json')
 
 const debug = Debug('prisma:download')
 const writeFile = promisify(fs.writeFile)
@@ -48,6 +49,7 @@ export interface DownloadOptions {
   failSilent?: boolean
   ignoreCache?: boolean
   printVersion?: boolean
+  skipCacheIntegrityCheck?: boolean
 }
 
 const BINARY_TO_ENV_VAR = {
@@ -65,9 +67,17 @@ type BinaryDownloadJob = {
   fileName: string
   targetFilePath: string
   envVarPath: string | null
+  skipCacheIntegrityCheck: boolean
 }
 
 export async function download(options: DownloadOptions): Promise<BinaryPaths> {
+  if (enginesOverride?.['branch'] || enginesOverride?.['folder']) {
+    // if this is true the engines have been fetched before and already cached
+    // into .cache/prisma/master/_local_ for us to be able to use this version
+    options.version = '_local_'
+    options.skipCacheIntegrityCheck = true
+  }
+
   // get platform
   const platform = await getPlatform()
   const os = await getos()
@@ -98,7 +108,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   // creates a matrix of binaries x binary targets
-  const binaryJobs = flatMap(Object.entries(opts.binaries), ([binaryName, targetFolder]: [string, string]) =>
+  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]: [string, string]) =>
     opts.binaryTargets.map((binaryTarget) => {
       const fileName = getBinaryName(binaryName, binaryTarget)
       const targetFilePath = path.join(targetFolder, fileName)
@@ -109,6 +119,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         fileName,
         targetFilePath,
         envVarPath: getBinaryEnvVarPath(binaryName),
+        skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
       }
     }),
   )
@@ -256,10 +267,17 @@ async function binaryNeedsToBeDownloaded(
   const cachedFile = await getCachedBinaryPath({
     ...job,
     version,
-    failSilent,
   })
 
   if (cachedFile) {
+    // for local development, when using `enginesOverride`
+    // we don't have the sha256 hash, so we can't check it
+    if (job.skipCacheIntegrityCheck === true) {
+      await overwriteFile(cachedFile, job.targetFilePath)
+
+      return false
+    }
+
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
       const sha256File = await readFile(sha256FilePath, 'utf-8')

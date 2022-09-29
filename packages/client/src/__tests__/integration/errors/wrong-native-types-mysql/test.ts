@@ -111,9 +111,13 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
         lText: true,
       },
     }),
-  ).rejects.toThrowErrorMatchingInlineSnapshot(
-    `The provided value for the column is too long for the column's type. Column: char`,
-  )
+  ).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+          Invalid \`prisma.c.create()\` invocation:
+
+
+          The provided value for the column is too long for the column's type. Column: char
+        `)
 
   await prisma.$disconnect()
 })

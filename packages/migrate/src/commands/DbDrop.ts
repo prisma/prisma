@@ -1,12 +1,12 @@
 import {
   arg,
+  canPrompt,
   checkUnsupportedDataProxy,
   Command,
   dropDatabase,
   format,
   getSchemaDir,
   HelpError,
-  isCi,
   isError,
   link,
   loadEnvFile,
@@ -98,8 +98,7 @@ ${chalk.bold('Examples')}
     console.info() // empty line
 
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         throw new DbNeedsForceError('drop')
       }
 
@@ -115,7 +114,8 @@ ${chalk.bold('Examples')}
 
       if (!confirmation.value) {
         console.info('Drop cancelled.')
-        process.exit(0)
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
       } else if (confirmation.value !== dbInfo.dbName) {
         throw Error(`The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
       }

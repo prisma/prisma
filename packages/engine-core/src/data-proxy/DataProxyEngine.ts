@@ -2,10 +2,17 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
-import type { EngineConfig, EngineEventType, GetConfigResult, InlineDatasource } from '../common/Engine'
+import type {
+  BatchTransactionOptions,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+  InlineDatasource,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import { QueryEngineBatchRequest } from '../common/types/QueryEngine'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -55,12 +62,6 @@ export class DataProxyEngine extends Engine {
     this.host = host
 
     debug('host', this.host)
-
-    if (this.config.previewFeatures?.includes('tracing')) {
-      throw new NotImplementedYetError('Tracing is not yet supported for Data Proxy', {
-        clientVersion: this.clientVersion,
-      })
-    }
   }
 
   version() {
@@ -135,14 +136,21 @@ export class DataProxyEngine extends Engine {
     return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
   }
 
-  async requestBatch<T>(queries: string[], headers: Record<string, string>, isTransaction = false, attempt = 0) {
+  async requestBatch<T>(
+    queries: string[],
+    headers: Record<string, string>,
+    transaction?: BatchTransactionOptions,
+    attempt = 0,
+  ) {
+    const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
     })
 
-    const body = {
+    const body: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction: isTransaction,
+      isolationLevel: transaction?.isolationLevel,
     }
 
     const { batchResult } = await this.requestInternal<T>(body, headers, attempt)
