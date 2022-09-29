@@ -1,5 +1,3 @@
-// @ts-ignore
-
 import testMatrix from './_matrix'
 
 testMatrix.setupTestSuite(() => {
