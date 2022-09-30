@@ -78,7 +78,7 @@ describe('generatorHandler', () => {
     // Resolved to value: undefined
     // So we retry it with the hope that it a retry would help
     jest.retryTimes(3)
-    
+
     const generator = new GeneratorProcess(getExecutable('invalid-executable'))
     await expect(() => generator.init()).rejects.toThrow('Cannot find module')
   })

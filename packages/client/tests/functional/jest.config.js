@@ -20,7 +20,7 @@ module.exports = () => {
     globalSetup: './_utils/globalSetup.js',
     snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
-    testTimeout: 60000,
+    testTimeout: 10_000,
     collectCoverage: process.env.CI ? true : false,
   }
 

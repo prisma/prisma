@@ -121,8 +121,9 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteCon
 function getTestSuiteParametersString(configs: Record<string, string>[]) {
   return configs
     .map((config) => {
-      const firstKey = Object.keys(config)[0]
-      return `${firstKey}=${config[firstKey]}`
+      return Object.entries(config).map(
+        ([key, value]) => `${key}=${value !== null && typeof value === 'object' ? JSON.stringify(value) : value}`,
+      )
     })
     .join(', ')
 }
