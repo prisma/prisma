@@ -10,10 +10,6 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/12862
 testMatrix.setupTestSuite(
   () => {
-    if (getClientEngineType() !== ClientEngineType.Binary) {
-      return
-    }
-
     test('should propagate the correct error when a method fails', async () => {
       const user = await prisma.user.create({
         data: {

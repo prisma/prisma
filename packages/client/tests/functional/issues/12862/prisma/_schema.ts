@@ -6,7 +6,6 @@ export default testMatrix.setupSchema(({ provider }) => {
     generator client {
       provider = "prisma-client-js"
       previewFeatures = ["interactiveTransactions"]
-      engineType = "binary"
     }
     
     datasource db {
