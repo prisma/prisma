@@ -98,4 +98,30 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
   })
+
+  test('update with upsert relation', async () => {
+    const fn = async () => {
+      const resource = (await prisma.resource.findFirst())!
+
+      expect(resource).toMatchObject({ occStamp: 0 })
+
+      await prisma.resource.update({
+        where: { occStamp: resource.occStamp },
+        data: {
+          occStamp: { increment: 1 },
+          child: {
+            upsert: {
+              create: {},
+              update: {},
+            },
+          },
+        },
+      })
+    }
+
+    await Promise.allSettled([fn(), fn(), fn(), fn(), fn()])
+
+    expect(await prisma.resource.findFirst()).toMatchObject({ occStamp: 1 })
+    expect(await prisma.child.count()).toBe(1)
+  })
 })
