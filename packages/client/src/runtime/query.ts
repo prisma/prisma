@@ -629,7 +629,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
   }
 
   if (value === undefined) {
-    // TODO: This is a bit weird. can't we unify this with the === null caes?
+    // TODO: This is a bit weird. can't we unify this with the === null case?
     return null
   }
 
