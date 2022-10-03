@@ -208,7 +208,7 @@ Please run \`prisma generate\` manually.`
       if (prismaClientJSGenerator) {
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-              replacePathSeperatorsIfNecessary(
+              replacePathSeparatorsIfNecessary(
                 path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
               ),
             )
@@ -346,7 +346,7 @@ function getCurrentClientVersion(): string | null {
   return null
 }
 
-function replacePathSeperatorsIfNecessary(path: string): string {
+function replacePathSeparatorsIfNecessary(path: string): string {
   const isWindows = os.platform() === 'win32'
   if (isWindows) {
     return path.replace(/\\/g, '/')
