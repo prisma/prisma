@@ -141,7 +141,7 @@ testMatrix.setupTestSuite(
      * A transaction might fail if it's called inside another transaction
      * //! this works only for postgresql
      */
-    testIf(provider === 'postgresql')('potgresql: nested create', async () => {
+    testIf(provider === 'postgresql')('postgresql: nested create', async () => {
       const result = prisma.$transaction(async (tx) => {
         await tx.user.create({
           data: {
