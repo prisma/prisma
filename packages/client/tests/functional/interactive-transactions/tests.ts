@@ -610,7 +610,7 @@ testMatrix.setupTestSuite(
 
             // Add a delay here to force the transaction to be open for longer
             // this will increase the chance of deadlock in the itx transactions
-            // if deadlock is a possiblity.
+            // if deadlock is a possibility.
             await delay(100)
 
             const updatedUser = await transactionPrisma.user.update({
