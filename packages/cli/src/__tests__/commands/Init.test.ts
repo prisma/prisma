@@ -237,7 +237,7 @@ test('writes a minimal .gitignore file', async () => {
 test('ignore .gitignore file if already present (do not override)', async () => {
   ctx.fixture('init')
   const gitignorePath = join(ctx.tmpDir, '.gitignore')
-  fs.writeFileSync(gitignorePath, `# This should not be overriden`)
+  fs.writeFileSync(gitignorePath, `# This should not be overridden`)
   const gitignoreBefore = fs.readFileSync(gitignorePath, 'utf-8')
   await ctx.cli('init')
   const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')
