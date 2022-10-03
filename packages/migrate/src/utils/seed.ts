@@ -162,7 +162,7 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   } catch (_e) {
     const e = _e as execa.ExecaError
     debug({ e })
-    console.error(chalk.bold.red(`\nAn error occured while running the seed command:`))
+    console.error(chalk.bold.red(`\nAn error occurred while running the seed command:`))
     console.error(chalk.red(e.stderr || e))
     return false
   }
