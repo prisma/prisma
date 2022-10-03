@@ -520,4 +520,4 @@ Internal note: You can check the #feed-prisma-releases channel on our private Sl
 Once the integration version is published on npm:
 
 - The `check-for-update` workflow, which runs continuously, will find the new version, update the package.json and do a commit on the [`integration` branch](https://github.com/prisma/ecosystem-tests/tree/integration)
-- The tests worflows will then run for that commit and will be visible [here](https://github.com/prisma/ecosystem-tests/actions?query=branch%3Aintegration)
+- The tests workflows will then run for that commit and will be visible [here](https://github.com/prisma/ecosystem-tests/actions?query=branch%3Aintegration)
