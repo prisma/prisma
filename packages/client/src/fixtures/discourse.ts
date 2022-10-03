@@ -503,7 +503,7 @@ model IncomingReferer {
   id Int @id
   incomingDomainId Int @map("incoming_domain_id")
   path String
-  @@map("incoming_referers")
+  @@map("incoming_referrers")
 }
 
 model InstagramUserInfo {
