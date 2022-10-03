@@ -130,7 +130,7 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 
   const seedCommandFromPkgJson = prismaConfig.data.seed
 
-  // Validate if seed commad is a string
+  // Validate if seed command is a string
   if (typeof seedCommandFromPkgJson !== 'string') {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
