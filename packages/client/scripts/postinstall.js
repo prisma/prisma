@@ -282,7 +282,7 @@ function makeDir(input) {
  * an error while attempting to get this value then the string constant
  * 'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER' is returned.
  * This information is just necessary for telemetry.
- * This get's passed in to Generate, which then automatically get's propagated to telemetry.
+ * This get's passed into Generate, which then automatically get's propagated to telemetry.
  */
 function getPostInstallTrigger() {
   /*

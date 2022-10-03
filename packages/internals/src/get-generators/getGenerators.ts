@@ -328,7 +328,7 @@ generator gen {
         generator.setBinaryPaths(generatorBinaryPaths)
 
         // in case cli engine version !== client engine version
-        // we need to re-generate the dmmf and pass it in to the generator
+        // we need to re-generate the dmmf and pass it into the generator
         if (
           engineVersion !== version &&
           generator.options &&
