@@ -306,7 +306,7 @@ const actionOperationMap = {
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
 // TODO improve all these types, need a common place to share them between type
-// gen and this. This will be relevant relevant for type gen tech debt refactor
+// gen and this. This will be relevant for type gen tech debt refactor
 export interface Client {
   /** Only via tx proxy */
   [TX_ID]?: string
