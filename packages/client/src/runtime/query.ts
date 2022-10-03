@@ -1575,7 +1575,7 @@ export interface UnpackOptions {
 }
 
 /**
- * Unpacks the result of a data object and maps DateTime fields to instances of `Date` inplace
+ * Unpacks the result of a data object and maps DateTime fields to instances of `Date` in-place
  * @param options: UnpackOptions
  */
 export function unpack({ document, path, data }: UnpackOptions): any {
