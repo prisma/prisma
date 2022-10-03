@@ -25,7 +25,7 @@ function direntToType(dirent: fs.Dirent | fs.Stats) {
 
 /**
  * Is true if at least one matched
- * @param string to match aigainst
+ * @param string to match against
  * @param regexs to be matched with
  * @returns
  */
