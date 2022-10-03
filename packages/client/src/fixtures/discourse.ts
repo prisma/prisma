@@ -350,7 +350,7 @@ model FacebookUserInfo {
   @@map("facebook_user_infos")
 }
 
-model GithubUserInfo {
+model GitHubUserInfo {
   id Int @id
   createdAt DateTime @map("created_at")
   githubUserId Int @map("github_user_id") @unique

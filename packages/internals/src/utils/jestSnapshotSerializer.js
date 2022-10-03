@@ -40,7 +40,7 @@ function normalizeToUnixPaths(str) {
   return replaceAll(str, path.sep, '/')
 }
 
-function normalizeGithubLinks(str) {
+function normalizeGitHubLinks(str) {
   return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/new\S+/, 'TEST_GITHUB_LINK')
 }
 
@@ -131,7 +131,7 @@ module.exports = {
       normalizeTmpDir,
       normalizeTime,
       // From Client package
-      normalizeGithubLinks,
+      normalizeGitHubLinks,
       removePlatforms,
       normalizeNodeApiLibFilePath,
       normalizeBinaryFilePath,

@@ -4,7 +4,7 @@ import prompt from 'prompts'
 import type { RustPanic } from '../panic'
 import { sendPanic } from '../sendPanic'
 import { canPrompt } from './canPrompt'
-import { wouldYouLikeToCreateANewIssue } from './getGithubIssueUrl'
+import { wouldYouLikeToCreateANewIssue } from './getGitHubIssueUrl'
 import { link } from './link'
 
 export async function handlePanic(
