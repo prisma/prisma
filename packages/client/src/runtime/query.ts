@@ -618,7 +618,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     if (value === null) {
       return 'null'
     }
-    if (value && value.values && value.__prismaRawParamaters__) {
+    if (value && value.values && value.__prismaRawParameters__) {
       return JSON.stringify(value.values)
     }
     if (inputType?.isList && Array.isArray(value)) {
