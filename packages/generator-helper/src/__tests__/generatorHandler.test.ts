@@ -95,7 +95,7 @@ describe('generatorHandler', () => {
             "SomeForbiddenModel",
           ],
         },
-        "prettyName": "This is a pretty pretty name",
+        "prettyName": "This is a pretty name",
         "requiresEngines": Array [
           "introspection-engine",
           "query-engine",
