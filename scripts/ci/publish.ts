@@ -1056,7 +1056,7 @@ async function publishPackages(
     try {
       const unsavedChanges = await getUnsavedChanges(repo)
       if (!unsavedChanges) {
-        console.log(`\n${chalk.bold('Skipping')} commiting changes, as they're already commited`)
+        console.log(`\n${chalk.bold('Skipping')} commiting changes, as they're already committed`)
       } else {
         console.log(`\nCommiting changes`)
         const message = process.env.UPDATE_STUDIO ? 'Bump Studio' : 'Bump versions'
