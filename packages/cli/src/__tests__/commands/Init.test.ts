@@ -213,7 +213,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
 })
 
 test('appends when .env present', async () => {
-  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
+  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMETHING="is here"`)
   const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
