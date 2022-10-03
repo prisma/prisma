@@ -542,7 +542,7 @@ model InvitedGroup {
   @@map("invited_groups")
 }
 
-model JavascriptCach {
+model JavascriptCache {
   id Int @id
   content String
   createdAt DateTime @map("created_at")
