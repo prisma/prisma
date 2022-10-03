@@ -118,7 +118,7 @@ describe('generatorHandler', () => {
     generator.stop()
   })
 
-  test('non existent executable', async () => {
+  test('nonexistent executable', async () => {
     const generator = new GeneratorProcess(getExecutable('random path that doesnt exist'))
     await expect(() => generator.init()).rejects.toThrow()
   })
