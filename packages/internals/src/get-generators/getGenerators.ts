@@ -279,7 +279,7 @@ generator gen {
 
             // remove item and replace with parsed values
             // value is an array
-            // so we create one new iteam for each element in the array
+            // so we create one new item for each element in the array
             generatorBinaryTargets.shift()
 
             if (Array.isArray(parsedBinaryTargetsEnvValue)) {

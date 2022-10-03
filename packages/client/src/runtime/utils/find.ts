@@ -209,7 +209,7 @@ export async function findAsync(
       const itemType = direntToType(item)
       const itemPath = path.join(root, item.name)
 
-      // if the ietm is one of the selected
+      // if the item is one of the selected
       if (itemType && types.includes(itemType)) {
         // if the path of an item has matched
         if (isMatched(itemPath, match)) {
