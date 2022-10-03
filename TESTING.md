@@ -43,7 +43,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
   export TEST_COCKROACH_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate"
   export TEST_COCKROACH_SHADOWDB_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate-shadowdb"
 
-  # Prisma Client - Functonal test suite
+  # Prisma Client - Functional test suite
   export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
   export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
   export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
