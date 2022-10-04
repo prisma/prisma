@@ -95,7 +95,7 @@ describe('generatorHandler', () => {
             "SomeForbiddenModel",
           ],
         },
-        "prettyName": "This is a pretty pretty name",
+        "prettyName": "This is a pretty name",
         "requiresEngines": Array [
           "introspection-engine",
           "query-engine",
@@ -118,7 +118,7 @@ describe('generatorHandler', () => {
     generator.stop()
   })
 
-  test('non existent executable', async () => {
+  test('nonexistent executable', async () => {
     const generator = new GeneratorProcess(getExecutable('random path that doesnt exist'))
     await expect(() => generator.init()).rejects.toThrow()
   })

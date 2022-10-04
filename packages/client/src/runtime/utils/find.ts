@@ -25,7 +25,7 @@ function direntToType(dirent: fs.Dirent | fs.Stats) {
 
 /**
  * Is true if at least one matched
- * @param string to match aigainst
+ * @param string to match against
  * @param regexs to be matched with
  * @returns
  */
@@ -209,7 +209,7 @@ export async function findAsync(
       const itemType = direntToType(item)
       const itemPath = path.join(root, item.name)
 
-      // if the ietm is one of the selected
+      // if the item is one of the selected
       if (itemType && types.includes(itemType)) {
         // if the path of an item has matched
         if (isMatched(itemPath, match)) {
