@@ -32,15 +32,15 @@ const debug = Debug('prisma:client:dataproxyEngine')
 
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
-  private inlineSchemaHash: string
+  readonly inlineSchemaHash: string
   private inlineDatasources: Record<string, InlineDatasource>
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
-  private remoteClientVersion: Promise<string>
-  private headers: { Authorization: string }
+  readonly remoteClientVersion: Promise<string>
+  readonly headers: { Authorization: string }
   private host: string
 
   constructor(config: EngineConfig) {
@@ -62,6 +62,13 @@ export class DataProxyEngine extends Engine {
     this.host = host
 
     debug('host', this.host)
+  }
+
+  /**
+   * Always returns the Primary Host (see the internal docs for differences between Primary Host and Specific Host).
+   */
+  get primaryHost(): string {
+    return this.host
   }
 
   version() {
