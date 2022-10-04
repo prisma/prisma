@@ -20,7 +20,7 @@ export default testMatrix.setupSchema(({ provider, mapTable }) => {
       posts Post[]
 
       @@schema("base")
-      ${mapTable ? '@@map("some_table-1")' : ''}
+      ${mapTable ? '@@map("some_table")' : ''}
     }
 
     model Post {
@@ -30,7 +30,7 @@ export default testMatrix.setupSchema(({ provider, mapTable }) => {
       author    User?    @relation(fields: [authorId], references: [id])
 
       @@schema("transactional")
-      ${mapTable ? '@@map("some_table-2")' : ''}
+      ${mapTable ? '@@map("some_table")' : ''}
     }
   `
 })
