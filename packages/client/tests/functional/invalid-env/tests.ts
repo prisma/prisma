@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(
   },
   {
     skipDb: true,
-    skipDefaultClientInstance: true, // So we can maually call connect for this test
+    skipDefaultClientInstance: true, // So we can manually call connect for this test
     skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: 'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --data-proxy is used',

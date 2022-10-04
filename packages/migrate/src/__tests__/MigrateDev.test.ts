@@ -861,7 +861,7 @@ describe('sqlite', () => {
       Running seed command \`node prisma/seed.js\` ...
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occured while running the seed command:`)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occurred while running the seed command:`)
     expect(mockExit).toBeCalledWith(1)
   })
 

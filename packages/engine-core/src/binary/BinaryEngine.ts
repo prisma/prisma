@@ -949,7 +949,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
       }
 
-      // Rust engine returns time in microseconds and we want it in miliseconds
+      // Rust engine returns time in microseconds and we want it in milliseconds
       const elapsed = parseInt(headers['x-elapsed']) / 1000
 
       // reset restart count after successful request
@@ -995,7 +995,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in miliseconds
+        // Rust engine returns time in microseconds and we want it in milliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         const { batchResult, errors } = data
         if (Array.isArray(batchResult)) {
