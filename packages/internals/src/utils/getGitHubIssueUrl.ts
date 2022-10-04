@@ -1,13 +1,13 @@
 import { getPlatform } from '@prisma/get-platform'
 import isWindows from 'is-windows'
 import isWSL from 'is-wsl'
-import newGithubIssueUrl from 'new-github-issue-url'
+import newGitHubIssueUrl from 'new-github-issue-url'
 import open from 'open'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import { match } from 'ts-pattern'
 
-export function getGithubIssueUrl({
+export function getGitHubIssueUrl({
   title,
   user = 'prisma',
   repo = 'prisma',
@@ -20,7 +20,7 @@ export function getGithubIssueUrl({
   template?: string
   body?: string
 }): string {
-  return newGithubIssueUrl({
+  return newGitHubIssueUrl({
     user,
     repo,
     template,
@@ -69,7 +69,7 @@ export async function wouldYouLikeToCreateANewIssue(options: IssueOptions) {
   if (shouldCreateNewIssue) {
     const platform = await getPlatform()
 
-    const url = getGithubIssueUrl({
+    const url = getGitHubIssueUrl({
       title: options.title ?? '',
       body: issueTemplate(platform, options),
     })

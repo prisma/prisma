@@ -47,8 +47,8 @@ test('basic panic', () => {
     }),
   ).toMatchInlineSnapshot(`
 
-                                    Oops, an unknown error occured! This is on us, you did nothing wrong.
-                                    It occured in the \`prisma.model.findFirst()\` invocation:
+                                    Oops, an unknown error occurred! This is on us, you did nothing wrong.
+                                    It occurred in the \`prisma.model.findFirst()\` invocation:
 
 
                                     What a terrible failure!
@@ -99,8 +99,8 @@ test('panic with matching source file', () => {
     }),
   ).toMatchInlineSnapshot(`
 
-                Oops, an unknown error occured! This is on us, you did nothing wrong.
-                It occured in the \`prisma.model.findFirst()\` invocation in
+                Oops, an unknown error occurred! This is on us, you did nothing wrong.
+                It occurred in the \`prisma.model.findFirst()\` invocation in
                 /project/some-file.js:1:1
 
                 → 1 prisma.model.findFirst({})
