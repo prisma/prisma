@@ -132,7 +132,7 @@ testMatrix.setupTestSuite(
   {
     optOut: {
       from: ['sqlite', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql', 'postgresql'],
-      reason: 'Only testing xyz provider(s) so opting out of xxx',
+      reason: 'Only testing postgresql',
     },
   },
 )
