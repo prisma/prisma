@@ -27,6 +27,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
+import { $extends } from './core/extends/$extends'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
@@ -282,7 +283,7 @@ export interface GetPrismaClientConfig {
   inlineSchemaHash?: string
 }
 
-const actionOperationMap = {
+export const actionOperationMap = {
   findUnique: 'query',
   findFirst: 'query',
   findMany: 'query',
@@ -332,12 +333,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _transactionId = 1
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
+    _extensions: any[]
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
 
+      this._extensions = []
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
@@ -1231,6 +1234,8 @@ new PrismaClient({
     _hasPreviewFlag(feature: string) {
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
+
+    $extends = $extends.bind(this)
   }
 
   return PrismaClient
