@@ -2,7 +2,7 @@
 
 set -ex
 
-# Disabled (commented) because Builkite agents are missing Node.js right now and are failing.
+# Disabled (commented) because Buildkite agents are missing Node.js right now and are failing.
 
 # https://github.com/timsuchanek/last-git-changes/blob/master/src/bin.ts
 # git clone https://github.com/timsuchanek/last-git-changes.git

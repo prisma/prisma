@@ -350,7 +350,7 @@ model FacebookUserInfo {
   @@map("facebook_user_infos")
 }
 
-model GithubUserInfo {
+model GitHubUserInfo {
   id Int @id
   createdAt DateTime @map("created_at")
   githubUserId Int @map("github_user_id") @unique
@@ -503,7 +503,7 @@ model IncomingReferer {
   id Int @id
   incomingDomainId Int @map("incoming_domain_id")
   path String
-  @@map("incoming_referers")
+  @@map("incoming_referrers")
 }
 
 model InstagramUserInfo {
@@ -542,7 +542,7 @@ model InvitedGroup {
   @@map("invited_groups")
 }
 
-model JavascriptCach {
+model JavascriptCache {
   id Int @id
   content String
   createdAt DateTime @map("created_at")

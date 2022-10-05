@@ -90,7 +90,7 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
           const hideValueScribbles = valueError && isRenderedAsObject(value)
           const valueScribbles = valueError ? '  ' + chalk.redBright('~'.repeat(valueLength)) : ''
 
-          // Either insert both keyScribles and valueScribbles in one line
+          // Either insert both keyScribbles and valueScribbles in one line
           if (keyScribbles && keyScribbles.length > 0 && !hideValueScribbles) {
             lines.splice(1, 0, indent + keyScribbles + valueScribbles)
           }

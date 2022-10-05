@@ -329,7 +329,7 @@ describe('minimal where transformation', () => {
     `)
   })
 
-  test('one-to-one realtion where null', () => {
+  test('one-to-one relation where null', () => {
     const transformedDocument = getTransformedDocument({
       where: {
         profile: {

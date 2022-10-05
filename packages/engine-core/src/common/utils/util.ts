@@ -3,7 +3,7 @@ import type { BinaryTargetsEnvValue } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import crypto from 'crypto'
 import fs from 'fs'
-import newGithubIssueUrl from 'new-github-issue-url'
+import newGitHubIssueUrl from 'new-github-issue-url'
 
 const debug = Debug('plusX')
 
@@ -36,7 +36,7 @@ export function fixBinaryTargets(
   return [...binaryTargets, transformPlatformToEnvValue(platform)]
 }
 
-export function getGithubIssueUrl({
+export function getGitHubIssueUrl({
   title,
   user = 'prisma',
   repo = 'prisma',
@@ -49,7 +49,7 @@ export function getGithubIssueUrl({
   template?: string
   body?: string
 }): string {
-  return newGithubIssueUrl({
+  return newGitHubIssueUrl({
     user,
     repo,
     template,

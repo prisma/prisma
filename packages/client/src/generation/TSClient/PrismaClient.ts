@@ -392,7 +392,7 @@ export type PrismaAction =
   | 'findRaw'
 
 /**
- * These options are being passed in to the middleware as "params"
+ * These options are being passed into the middleware as "params"
  */
 export type MiddlewareParams = {
   model?: ModelName

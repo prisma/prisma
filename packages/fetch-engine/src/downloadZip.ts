@@ -102,7 +102,7 @@ export async function downloadZip(
           }
 
           if (hash !== sha256) {
-            throw new Error(`sha256 of ${url} (uzipped) should be ${sha256} but is ${hash}`)
+            throw new Error(`sha256 of ${url} (unzipped) should be ${sha256} but is ${hash}`)
           }
         })
       } finally {

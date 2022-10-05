@@ -15,5 +15,5 @@ model Blog {
 
 model Cat {
   id    Int @id
-  lifes Int
+  lives Int
 }

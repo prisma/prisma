@@ -130,7 +130,7 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 
   const seedCommandFromPkgJson = prismaConfig.data.seed
 
-  // Validate if seed commad is a string
+  // Validate if seed command is a string
   if (typeof seedCommandFromPkgJson !== 'string') {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
@@ -162,7 +162,7 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   } catch (_e) {
     const e = _e as execa.ExecaError
     debug({ e })
-    console.error(chalk.bold.red(`\nAn error occured while running the seed command:`))
+    console.error(chalk.bold.red(`\nAn error occurred while running the seed command:`))
     console.error(chalk.red(e.stderr || e))
     return false
   }

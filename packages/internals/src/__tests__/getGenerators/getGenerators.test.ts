@@ -47,7 +47,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -130,7 +130,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -221,7 +221,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -312,7 +312,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -403,7 +403,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -501,7 +501,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",

@@ -20,7 +20,7 @@ export function createPrismaPromise(
         return (promise ??= callback(transaction, lock))
       }
 
-      // but for for batch tx we need to trigger them again
+      // but for batch tx we need to trigger them again
       return callback(transaction, lock)
     } catch (error) {
       // if the callback throws, then we reject the promise

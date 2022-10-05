@@ -35,7 +35,7 @@ services:
       - TEST_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/tests
       - TEST_COCKROACH_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate
       - TEST_COCKROACH_SHADOWDB_URI_MIGRATE=postgresql://prisma@cockroachdb:26257/tests-migrate-shadowdb
-      # Functonal test URLS
+      # Functional test URLS
       - TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MYSQL_URI=mysql://root:root@mysql:3306/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MSSQL_URI=sqlserver://mssql:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;

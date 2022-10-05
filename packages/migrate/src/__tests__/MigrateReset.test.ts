@@ -267,7 +267,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            An error occured while running the seed command:
+            An error occurred while running the seed command:
             Error: Command failed with exit code 1: node prisma/seed.js
         `)
     expect(mockExit).toBeCalledWith(1)

@@ -26,7 +26,7 @@ const p1 = new PrismaClient({
   expectError(
     new PrismaClient({
       rejectOnNotFound: {
-        NotAModel: new Error('Contructor Custom Error on User'),
+        NotAModel: new Error('Constructor Custom Error on User'),
       },
     }),
   )
@@ -74,7 +74,7 @@ const p1 = new PrismaClient({
     p1.user.findFirst({
       where: { id: 'anything' },
       rejectOnNotFound: {
-        findUnique: new Error('Contructor Custom Error on User'),
+        findUnique: new Error('Constructor Custom Error on User'),
         findFirst: true,
       },
     }),

@@ -131,7 +131,7 @@ describeIf(process.platform !== 'win32')('drop', () => {
 
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force --preview-feature`,
+      `Use the --force flag to use the drop command in an unattended environment like prisma db drop --force --preview-feature`,
     )
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

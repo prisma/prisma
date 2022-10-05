@@ -306,7 +306,7 @@ const actionOperationMap = {
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
 // TODO improve all these types, need a common place to share them between type
-// gen and this. This will be relevant relevant for type gen tech debt refactor
+// gen and this. This will be relevant for type gen tech debt refactor
 export interface Client {
   /** Only via tx proxy */
   [TX_ID]?: string
@@ -625,7 +625,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         queryString = query
         parameters = {
           values: serializeRawParameters(values || []),
-          __prismaRawParamaters__: true,
+          __prismaRawParameters__: true,
         }
         checkAlter(queryString, values, 'prisma.$executeRawUnsafe(<SQL>, [...values])')
       } else if (isReadonlyArray(query)) {
@@ -638,7 +638,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             queryString = queryInstance.sql
             parameters = {
               values: serializeRawParameters(queryInstance.values),
-              __prismaRawParamaters__: true,
+              __prismaRawParameters__: true,
             }
             break
           }
@@ -651,7 +651,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             checkAlter(queryString, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
             parameters = {
               values: serializeRawParameters(queryInstance.values),
-              __prismaRawParamaters__: true,
+              __prismaRawParameters__: true,
             }
             break
           }
@@ -660,7 +660,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             queryString = mssqlPreparedStatement(query)
             parameters = {
               values: serializeRawParameters(values),
-              __prismaRawParamaters__: true,
+              __prismaRawParameters__: true,
             }
             break
           }
@@ -688,7 +688,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
         parameters = {
           values: serializeRawParameters(query.values),
-          __prismaRawParamaters__: true,
+          __prismaRawParameters__: true,
         }
       }
 
@@ -793,7 +793,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         queryString = query
         parameters = {
           values: serializeRawParameters(values || []),
-          __prismaRawParamaters__: true,
+          __prismaRawParameters__: true,
         }
       } else if (isReadonlyArray(query)) {
         // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
@@ -806,7 +806,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             queryString = queryInstance.sql
             parameters = {
               values: serializeRawParameters(queryInstance.values),
-              __prismaRawParamaters__: true,
+              __prismaRawParameters__: true,
             }
             break
           }
@@ -818,7 +818,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             queryString = queryInstance.text
             parameters = {
               values: serializeRawParameters(queryInstance.values),
-              __prismaRawParamaters__: true,
+              __prismaRawParameters__: true,
             }
             break
           }
@@ -829,7 +829,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             queryString = mssqlPreparedStatement(queryInstance.strings)
             parameters = {
               values: serializeRawParameters(queryInstance.values),
-              __prismaRawParamaters__: true,
+              __prismaRawParameters__: true,
             }
             break
           }
@@ -858,7 +858,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
         parameters = {
           values: serializeRawParameters(query.values),
-          __prismaRawParamaters__: true,
+          __prismaRawParameters__: true,
         }
       }
 

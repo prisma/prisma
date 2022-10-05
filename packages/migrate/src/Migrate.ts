@@ -18,7 +18,7 @@ export class Migrate {
   private schemaPath?: string
   public migrationsDirectoryPath?: string
   constructor(schemaPath?: string, enabledPreviewFeatures?: string[]) {
-    // schemaPath and migrationsDirectoryPath is optionnal for primitives
+    // schemaPath and migrationsDirectoryPath is optional for primitives
     // like migrate diff and db execute
     if (schemaPath) {
       this.schemaPath = this.getSchemaPath(schemaPath)

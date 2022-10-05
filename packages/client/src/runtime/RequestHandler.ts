@@ -273,7 +273,7 @@ function batchFindUniqueBy(request: Request) {
   // we generate a string for the fields we have used in the `includes`
   const selectionSet = request.document.children[0].children!.join(',')
 
-  // queries that share this token will be batched and collapsed alltogether
+  // queries that share this token will be batched and collapsed altogether
   return `${request.document.children[0].name}|${args}|${selectionSet}`
   // this way, the query engine will be able to collapse into a single call
   // and that is because all the queries share their `where` and `includes`

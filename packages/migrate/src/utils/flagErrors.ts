@@ -15,7 +15,7 @@ Please provide the ${chalk.green('--preview-feature')} flag to use this command.
   }
 }
 
-export class EarlyAcessFlagError extends Error {
+export class EarlyAccessFlagError extends Error {
   constructor() {
     super(
       `This feature is currently in Early Access. There may be bugs and it's not recommended to use it in production environments.

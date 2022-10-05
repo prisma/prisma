@@ -618,7 +618,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     if (value === null) {
       return 'null'
     }
-    if (value && value.values && value.__prismaRawParamaters__) {
+    if (value && value.values && value.__prismaRawParameters__) {
       return JSON.stringify(value.values)
     }
     if (inputType?.isList && Array.isArray(value)) {
@@ -629,7 +629,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
   }
 
   if (value === undefined) {
-    // TODO: This is a bit weird. can't we unify this with the === null caes?
+    // TODO: This is a bit weird. can't we unify this with the === null case?
     return null
   }
 
@@ -1575,7 +1575,7 @@ export interface UnpackOptions {
 }
 
 /**
- * Unpacks the result of a data object and maps DateTime fields to instances of `Date` inplace
+ * Unpacks the result of a data object and maps DateTime fields to instances of `Date` in-place
  * @param options: UnpackOptions
  */
 export function unpack({ document, path, data }: UnpackOptions): any {

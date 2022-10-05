@@ -195,7 +195,7 @@ export class MigrateEngine {
             // The following environment variables can be overridden by the user.
             RUST_LOG: 'info',
             RUST_BACKTRACE: '1',
-            // Take env values from process.env (willl override values set before)
+            // Take env values from process.env (will override values set before)
             ...processEnv,
           },
         })

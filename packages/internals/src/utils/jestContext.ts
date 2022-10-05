@@ -34,7 +34,7 @@ type BaseContext = {
  * - A temporary directory
  * - an fs-jetpack instance bound to the temporary directory
  * - Mocked process.cwd via Node process.chdir
- * - Fixture loader for boostrapping the temporary directory with content
+ * - Fixture loader for bootstrapping the temporary directory with content
  */
 export const jestContext = {
   new: function (ctx: BaseContext = {} as any) {

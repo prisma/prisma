@@ -213,7 +213,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
 })
 
 test('appends when .env present', async () => {
-  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
+  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMETHING="is here"`)
   const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
@@ -237,7 +237,7 @@ test('writes a minimal .gitignore file', async () => {
 test('ignore .gitignore file if already present (do not override)', async () => {
   ctx.fixture('init')
   const gitignorePath = join(ctx.tmpDir, '.gitignore')
-  fs.writeFileSync(gitignorePath, `# This should not be overriden`)
+  fs.writeFileSync(gitignorePath, `# This should not be overridden`)
   const gitignoreBefore = fs.readFileSync(gitignorePath, 'utf-8')
   await ctx.cli('init')
   const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')
