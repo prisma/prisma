@@ -1,4 +1,3 @@
-import { Providers } from '../_utils/providers'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -6,18 +5,9 @@ import testMatrix from './_matrix'
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-// @ts-ignore
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    function conditionalError(errors: Record<Providers, string>): string {
-      return errors[suiteConfig.provider] || `TODO add error for ${suiteConfig.provider}`
-    }
-    const { onDelete } = suiteConfig.referentialActions
-    const { onUpdate } = suiteConfig.referentialActions
-
-    describe.only('issue 10000', () => {
+    describe('issue 10000', () => {
       afterAll(async () => {
         await prisma.$disconnect()
       })

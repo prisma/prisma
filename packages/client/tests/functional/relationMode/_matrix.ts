@@ -1,14 +1,14 @@
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
-import { computeMatrix } from '../_utils/referential-integrity/computeMatrix'
+import { computeMatrix } from '../_utils/relationMode/computeMatrix'
 
-const RI = process.env.RI
-if (RI && RI !== 'prisma' && RI !== 'foreignKeys') {
-  throw new Error(`RI must be either "prisma" or "foreignKeys" but was "${RI}"`)
+const RelationModeEnv = process.env.RELATION_MODE
+if (RelationModeEnv && RelationModeEnv !== 'prisma' && RelationModeEnv !== 'foreignKeys') {
+  throw new Error(`RelationMode must be either "prisma" or "foreignKeys" but was "${RelationModeEnv}"`)
 }
 
-type RIType = 'prisma' | 'foreignKeys' | ''
-const referentialIntegrity: RIType = (RI as RIType) || ''
+type RelationMode = 'prisma' | 'foreignKeys' | ''
+const relationMode: RelationMode = (RelationModeEnv as RelationMode) || ''
 
 // Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
 // If no defaults are provided for any of the scalar fields, a runtime error will be thrown.
@@ -20,12 +20,12 @@ const referentialIntegrity: RIType = (RI as RIType) || ''
 // Note: 'SetDefault' is making SQL Server crash badly
 //  const referentialActionsChoices = ['', 'Cascade', 'NoAction']
 
-const defaultMatrix = computeMatrix({ referentialIntegrity })
+const defaultMatrix = computeMatrix({ relationMode })
 
 const mongoDBMatrixBase = {
   provider: Providers.MONGODB,
   id: 'String @id @map("_id")',
-  referentialIntegrity,
+  relationMode,
 }
 
 // TODO: we can potentially add single entries with "SetNull" and "SetDefault" down here

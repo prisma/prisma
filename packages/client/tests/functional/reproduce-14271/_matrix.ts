@@ -1,13 +1,13 @@
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
 
-const RI = process.env.RI
-if (RI && RI !== 'prisma' && RI !== 'foreignKeys') {
-  throw new Error(`RI must be either "prisma" or "foreignKeys" but was "${RI}"`)
+const RelationModeEnv = process.env.RELATION_MODE
+if (RelationModeEnv && RelationModeEnv !== 'prisma' && RelationModeEnv !== 'foreignKeys') {
+  throw new Error(`RelationMode must be either "prisma" or "foreignKeys" but was "${RelationModeEnv}"`)
 }
 
-type RIType = 'prisma' | 'foreignKeys' | ''
-const referentialIntegrity: RIType = (RI as RIType) || ''
+type RelationMode = 'prisma' | 'foreignKeys' | ''
+const relationMode: RelationMode = (RelationModeEnv as RelationMode) || ''
 
 type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'SetNull' | 'SetDefault'
 
@@ -20,7 +20,7 @@ export default defineMatrix(() => [
     {
       provider: Providers.POSTGRESQL,
       id: 'String @id',
-      referentialIntegrity,
+      relationMode,
       referentialActions: {
         onUpdate,
         onDelete,
@@ -31,7 +31,7 @@ export default defineMatrix(() => [
     {
       provider: Providers.COCKROACHDB,
       id: 'String @id',
-      referentialIntegrity,
+      relationMode,
       referentialActions: {
         onUpdate,
         onDelete,
@@ -40,7 +40,7 @@ export default defineMatrix(() => [
     {
       provider: Providers.MYSQL,
       id: 'String @id',
-      referentialIntegrity,
+      relationMode,
       referentialActions: {
         onUpdate,
         onDelete,
@@ -49,7 +49,7 @@ export default defineMatrix(() => [
     {
       provider: Providers.SQLSERVER,
       id: 'String @id',
-      referentialIntegrity,
+      relationMode,
       referentialActions: {
         onUpdate,
         onDelete,

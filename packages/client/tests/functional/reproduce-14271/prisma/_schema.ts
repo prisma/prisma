@@ -1,11 +1,11 @@
 import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, previewFeatures, referentialIntegrity, onUpdate, onDelete, id }) => {
-  // if referentialIntegrity is not defined, we do not add the line
-  // if referentialIntegrity is defined
+export default testMatrix.setupSchema(({ provider, previewFeatures, relationMode, onUpdate, onDelete, id }) => {
+  // if relationMode is not defined, we do not add the line
+  // if relationMode is defined
   // we add the line only if the provider is not MongoDB, since MongoDB doesn't need the setting, it's on by default
-  const referentialIntegrityLine = `referentialIntegrity = "${referentialIntegrity}"`
+  const relationModeLine = `relationMode = "${relationMode}"`
 
   const schemaHeader = /* Prisma */ `
 generator client {
@@ -16,7 +16,7 @@ generator client {
 datasource db {
   provider = "${provider}"
   url      = env("DATABASE_URI_${provider}")
-  ${referentialIntegrityLine}
+  ${relationModeLine}
 }
   `
 

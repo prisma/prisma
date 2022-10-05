@@ -1,8 +1,8 @@
-import { checkIfEmpty } from '../_utils/referential-integrity/checkIfEmpty'
 import { Providers } from '../_utils/providers'
+import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -79,6 +79,7 @@ const expectedFindManyCategoryModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
+    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
 
     /**
@@ -168,7 +169,7 @@ testMatrix.setupTestSuite(
 
         // Note: it's not possible on MongoDB to mutate _id, it is immutable
         test('[update] id (_id) should throw at runtime because id field is read-only/immutable', async () => {
-          expect(
+          await expect(
             prisma[postModel].update({
               where: {
                 id: '1',

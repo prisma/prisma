@@ -115,7 +115,7 @@ jobs:
         working-directory: ./
 
   #
-  # CLIENT test:functional referential-integrity
+  # CLIENT test:functional relationMode
   #
   client-ri:
     timeout-minutes: 35
@@ -155,10 +155,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Set referentialIntegrity custom test env var
+      - name: Set RELATION_MODE custom test env var
         run: |
-          echo "RI=${{ matrix.referentialIntegrity }}"
-          if [ ! -z "${{ matrix.referentialIntegrity }}" ]; then echo "RI=${{ matrix.referentialIntegrity }}" >> $GITHUB_ENV; fi
+          echo "RELATION_MODE=${{ matrix.relationMode }}"
+          if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
 
@@ -179,22 +179,22 @@ jobs:
 
       - name: 1 to 1
         continue-on-error: true
-        run: pnpm run test:functional:code referential-integrity/tests_1-to-1.ts
+        run: pnpm run test:functional:code relationMode/tests_1-to-1.ts
         working-directory: packages/client
 
       - name: 1 to n
         continue-on-error: true
-        run: pnpm run test:functional:code referential-integrity/tests_1-to-n.ts
+        run: pnpm run test:functional:code relationMode/tests_1-to-n.ts
         working-directory: packages/client
 
       - name: m to n (SQL databases)
         continue-on-error: true
-        run: pnpm run test:functional:code referential-integrity/tests_m-to-n.ts
+        run: pnpm run test:functional:code relationMode/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
         continue-on-error: true
-        run: pnpm run test:functional:code referential-integrity/tests_m-to-n-MongoDB.ts
+        run: pnpm run test:functional:code relationMode/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
   #

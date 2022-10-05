@@ -5,12 +5,9 @@ import testMatrix from './_matrix'
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-// @ts-ignore
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    describe.only('issue 10000', () => {
+    describe('issue 10000', () => {
       afterAll(async () => {
         await prisma.$disconnect()
       })
@@ -50,7 +47,7 @@ testMatrix.setupTestSuite(
           {
             _count: { brands: 2 },
             name: 'cat-2',
-          }
+          },
         ])
 
         await prisma.brand.delete({ where: { name: 'brand-1' } })
@@ -70,7 +67,7 @@ testMatrix.setupTestSuite(
           {
             _count: { brands: 2 },
             name: 'cat-2',
-          }
+          },
         ])
       })
     })

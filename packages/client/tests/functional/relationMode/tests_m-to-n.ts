@@ -1,9 +1,9 @@
-import { checkIfEmpty } from '../_utils/referential-integrity/checkIfEmpty'
-import { ConditionalError } from '../_utils/referential-integrity/conditionalError'
 import { Providers } from '../_utils/providers'
+import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
+import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -103,13 +103,14 @@ testMatrix.setupTestSuite(
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       // @ts-ignore
-      .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
+      .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
+    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
-    const isRI_foreignKeys = !isRI_prisma
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_foreignKeys = !isRelationMode_prisma
 
     /**
      * m:n relationship
@@ -158,17 +159,17 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        testIf(isRI_prisma)(
+        testIf(isRelationMode_prisma)(
           '[create] categoriesOnPostsModel with non-existing post and category id should suceed with prisma emulation',
           async () => {
-            expect(
-              await prisma[categoriesOnPostsModel].create({
+            await expect(
+              prisma[categoriesOnPostsModel].create({
                 data: {
                   postId: '99',
                   categoryId: '99',
                 },
               }),
-            ).resolves
+            ).resolves.toBeTruthy()
             expect(await prisma[categoriesOnPostsModel].findMany()).toEqual([
               {
                 postId: '99',
@@ -177,7 +178,7 @@ testMatrix.setupTestSuite(
             ])
           },
         )
-        testIf(isRI_foreignKeys)(
+        testIf(isRelationMode_foreignKeys)(
           '[create] categoriesOnPostsModel with non-existing post and category id should throw with foreignKeys',
           async () => {
             await expect(
@@ -332,8 +333,8 @@ testMatrix.setupTestSuite(
           )
         })
 
-        testIf(isRI_foreignKeys)(
-          'RI=foreignKeys - [update] categoriesOnPostsModel with non-existing postId should throw',
+        testIf(isRelationMode_foreignKeys)(
+          'relationMode=foreignKeys - [update] categoriesOnPostsModel with non-existing postId should throw',
           async () => {
             await expect(
               prisma[categoriesOnPostsModel].update({
@@ -374,8 +375,8 @@ testMatrix.setupTestSuite(
             )
           },
         )
-        testIf(isRI_prisma)(
-          'RI=prisma - [update] categoriesOnPostsModel with non-existing postId should succeed',
+        testIf(isRelationMode_prisma)(
+          'relationMode=prisma - [update] categoriesOnPostsModel with non-existing postId should succeed',
           async () => {
             // TODO! Why is it behaving the same for all actions?
             await prisma[categoriesOnPostsModel].update({
@@ -419,8 +420,8 @@ testMatrix.setupTestSuite(
           },
         )
 
-        testIf(isRI_foreignKeys)(
-          'RI=foreignKeys - [update] categoriesOnPostsModel with non-existing categoryId should throw',
+        testIf(isRelationMode_foreignKeys)(
+          'relationMode=foreignKeys - [update] categoriesOnPostsModel with non-existing categoryId should throw',
           async () => {
             await expect(
               prisma[categoriesOnPostsModel].update({
@@ -461,8 +462,8 @@ testMatrix.setupTestSuite(
             )
           },
         )
-        testIf(isRI_prisma)(
-          'RI=prisma - [update] categoriesOnPostsModel with non-existing categoryId should succeed',
+        testIf(isRelationMode_prisma)(
+          'relationMode=prisma - [update] categoriesOnPostsModel with non-existing categoryId should succeed',
           async () => {
             // TODO! Why is it behaving the same for all actions?
             await prisma[categoriesOnPostsModel].update({
@@ -615,7 +616,7 @@ testMatrix.setupTestSuite(
 
         // TODO: these are the same tests as onUpdate: Restrict, different SQL Server message
         describeIf(['NoAction'].includes(onUpdate))(`onUpdate: NoAction`, () => {
-          testIf(isRI_foreignKeys)('RI=foreignKeys - [update] post id should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [update] post id should throw', async () => {
             await expect(
               prisma[postModel].update({
                 where: {
@@ -651,7 +652,7 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-          testIf(isRI_prisma)('RI=prisma - [update] post id should succeed', async () => {
+          testIf(isRelationMode_prisma)('relationMode=prisma - [update] post id should succeed', async () => {
             await prisma[postModel].update({
               where: {
                 id: '1',
@@ -682,7 +683,7 @@ testMatrix.setupTestSuite(
             )
           })
 
-          testIf(isRI_foreignKeys)('RI=foreignKeys - [update] category should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [update] category should throw', async () => {
             await expect(
               prisma[categoryModel].update({
                 where: {
@@ -718,7 +719,7 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-          testIf(isRI_prisma)('RI=prisma - [update] category should succeed', async () => {
+          testIf(isRelationMode_prisma)('relationMode=prisma - [update] category should succeed', async () => {
             await prisma[categoryModel].update({
               where: {
                 id: '1-cat-a',
@@ -1039,7 +1040,7 @@ testMatrix.setupTestSuite(
         })
 
         describeIf(['NoAction'].includes(onDelete))(`onDelete: NoAction`, () => {
-          testIf(isRI_foreignKeys)('RI=foreignKeys - [delete] post should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({
                 where: { id: '1' },
@@ -1072,7 +1073,7 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-          testIf(isRI_prisma)('RI=prisma - [delete] post should succeed', async () => {
+          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] post should succeed', async () => {
             await prisma[postModel].delete({
               where: { id: '1' },
             })
@@ -1093,7 +1094,7 @@ testMatrix.setupTestSuite(
             )
           })
 
-          testIf(isRI_foreignKeys)('RI=foreignKeys - [delete] category should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] category should throw', async () => {
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
@@ -1126,7 +1127,7 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-          testIf(isRI_prisma)('RI=prisma - [delete] category should succeed', async () => {
+          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] category should succeed', async () => {
             await prisma[categoryModel].delete({
               where: { id: '1-cat-a' },
             })

@@ -1,11 +1,11 @@
 import { Providers } from '../providers'
 
 type ComputeMatrix = {
-  referentialIntegrity: string
+  relationMode: string
   providersBlackList?: Providers[]
 }
 
-export function computeMatrix({ referentialIntegrity, providersBlackList }: ComputeMatrix) {
+export function computeMatrix({ relationMode, providersBlackList }: ComputeMatrix) {
   const providersBase = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
@@ -26,7 +26,7 @@ export function computeMatrix({ referentialIntegrity, providersBlackList }: Comp
   const providersMatrix = providers.map((provider) => ({
     provider,
     id: 'String @id',
-    referentialIntegrity,
+    relationMode,
   }))
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {

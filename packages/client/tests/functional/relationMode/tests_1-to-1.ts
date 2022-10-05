@@ -1,9 +1,9 @@
-import { checkIfEmpty } from '../_utils/referential-integrity/checkIfEmpty'
-import { ConditionalError } from '../_utils/referential-integrity/conditionalError'
 import { Providers } from '../_utils/providers'
+import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
+import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
 
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
@@ -40,13 +40,14 @@ testMatrix.setupTestSuite(
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
       // @ts-ignore
-      .with('referentialIntegrity', suiteConfig.referentialIntegrity || 'foreignKeys')
+      .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
+    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isRI_prisma = isMongoDB || suiteConfig.referentialIntegrity === 'prisma'
-    const isRI_foreignKeys = !isRI_prisma
+    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
+    const isRelationMode_foreignKeys = !isRelationMode_prisma
 
     /**
      * 1:1 relation
@@ -63,54 +64,60 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
-        testIf(isRI_prisma)('RI=prisma [create] child with non existing parent should succeed', async () => {
-          await prisma[profileModel].create({
-            data: {
-              id: '1',
-              userId: '1',
-            },
-          })
-
-          expect(
-            await prisma[profileModel].findMany({
-              orderBy: [{ id: 'asc' }],
-            }),
-          ).toEqual([
-            {
-              id: '1',
-              userId: '1',
-              enabled: null,
-            },
-          ])
-        })
-        testIf(isRI_foreignKeys)('RI=foreignKeys [create] child with non existing parent should throw', async () => {
-          await expect(
-            prisma[profileModel].create({
+        testIf(isRelationMode_prisma)(
+          'relationMode=prisma [create] child with non existing parent should succeed',
+          async () => {
+            await prisma[profileModel].create({
               data: {
                 id: '1',
                 userId: '1',
               },
-            }),
-          ).rejects.toThrowError(
-            conditionalError.snapshot({
-              foreignKeys: {
-                [Providers.POSTGRESQL]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
-                [Providers.SQLSERVER]:
-                  'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-              },
-            }),
-          )
+            })
 
-          expect(
-            await prisma[profileModel].findMany({
-              orderBy: [{ id: 'asc' }],
-            }),
-          ).toEqual([])
-        })
+            expect(
+              await prisma[profileModel].findMany({
+                orderBy: [{ id: 'asc' }],
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                userId: '1',
+                enabled: null,
+              },
+            ])
+          },
+        )
+        testIf(isRelationMode_foreignKeys)(
+          'relationMode=foreignKeys [create] child with non existing parent should throw',
+          async () => {
+            await expect(
+              prisma[profileModel].create({
+                data: {
+                  id: '1',
+                  userId: '1',
+                },
+              }),
+            ).rejects.toThrowError(
+              conditionalError.snapshot({
+                foreignKeys: {
+                  [Providers.POSTGRESQL]:
+                    'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+                  [Providers.SQLSERVER]:
+                    'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                },
+              }),
+            )
+
+            expect(
+              await prisma[profileModel].findMany({
+                orderBy: [{ id: 'asc' }],
+              }),
+            ).toEqual([])
+          },
+        )
 
         test('[create] child with undefined parent should throw with type error', async () => {
           await expect(
@@ -170,7 +177,7 @@ testMatrix.setupTestSuite(
           })
         })
 
-        // Fails with `onUpdate: Restrict` & `referentialIntegrity = "prisma"`
+        // Fails with `onUpdate: Restrict` & `relationMode = "prisma"`
         // On MongoDB / MySQL / Vitess (all providers?) fails with
         // The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.
         test('[update] (user) optional boolean field should succeed', async () => {
@@ -474,8 +481,8 @@ testMatrix.setupTestSuite(
 
           describeIf(['Restrict', 'NoAction'].includes(onUpdate))('onUpdate: Restrict, NoAction', () => {
             // foreignKeys
-            testIf(isRI_foreignKeys)(
-              'RI=foreignKeys - [update] parent id with non-existing id should throw',
+            testIf(isRelationMode_foreignKeys)(
+              'relationMode=foreignKeys - [update] parent id with non-existing id should throw',
               async () => {
                 await expect(
                   prisma[userModel].update({
@@ -520,8 +527,8 @@ testMatrix.setupTestSuite(
 
           describeIf(['Restrict'].includes(onUpdate))('onUpdate: Restrict', () => {
             // prisma - Restrict
-            testIf(isRI_prisma && onUpdate === 'Restrict')(
-              'RI=prisma - Restrict - [update] parent id with non-existing id should throw',
+            testIf(isRelationMode_prisma && onUpdate === 'Restrict')(
+              'relationMode=prisma - Restrict - [update] parent id with non-existing id should throw',
               async () => {
                 await expect(
                   prisma[userModel].update({
@@ -555,8 +562,8 @@ testMatrix.setupTestSuite(
             )
 
             // prisma - Restrict
-            testIf(isRI_prisma && onUpdate === 'Restrict')(
-              'RI=prisma - Restrict - [updateMany] parent id with non-existing id should throw',
+            testIf(isRelationMode_prisma && onUpdate === 'Restrict')(
+              'relationMode=prisma - Restrict - [updateMany] parent id with non-existing id should throw',
               async () => {
                 await expect(
                   prisma[userModel].updateMany({
@@ -601,8 +608,8 @@ testMatrix.setupTestSuite(
 
           describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
             // prisma - NoAction
-            testIf(isRI_prisma)(
-              'RI=prisma - NoAction - [update] parent id with non-existing id should suceed',
+            testIf(isRelationMode_prisma)(
+              'relationMode=prisma - NoAction - [update] parent id with non-existing id should suceed',
               async () => {
                 await prisma[userModel].update({
                   where: { id: '1' },
@@ -629,8 +636,8 @@ testMatrix.setupTestSuite(
             )
 
             // prisma - NoAction
-            testIf(isRI_prisma)(
-              'RI=prisma - NoAction - [updateMany] parent id with non-existing id should succeed',
+            testIf(isRelationMode_prisma)(
+              'relationMode=prisma - NoAction - [updateMany] parent id with non-existing id should succeed',
               async () => {
                 await prisma[userModel].updateMany({
                   where: { id: '1' },
@@ -674,7 +681,7 @@ testMatrix.setupTestSuite(
                   prisma: {
                     [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    //  referential-integrity.tests_1-to-1 (provider=mysql, id=String @id, referentialIntegrity=prisma, referentialActions={onUpdateNoAction,onDeleteNoAction}, previewFeatures=referentialIntegrity) › 1:1 mandatory (explicit) › [update] › mutate id › onUpdate: NoAction › [updateMany] parent id with existing id should throw
+                    //  relationMode.tests_1-to-1 (provider=mysql, id=String @id, relationMode=prisma, referentialActions={onUpdateNoAction,onDeleteNoAction}) › 1:1 mandatory (explicit) › [update] › mutate id › onUpdate: NoAction › [updateMany] parent id with existing id should throw
                     [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                     [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
@@ -753,6 +760,7 @@ testMatrix.setupTestSuite(
                         : // DEFAULT & SetNull
                           {
                             [Providers.POSTGRESQL]:
+                              // @ts-expect-error
                               onUpdate === 'SetNull'
                                 ? // SetNull
                                   'Unique constraint failed on the fields: (`id`)'
@@ -864,6 +872,7 @@ testMatrix.setupTestSuite(
                         : // DEFAULT & SetNull
                           {
                             [Providers.POSTGRESQL]:
+                              // @ts-expect-error
                               onUpdate === 'SetNull'
                                 ? // SetNull
                                   'Unique constraint failed on the fields: (`id`)'
@@ -939,18 +948,16 @@ testMatrix.setupTestSuite(
           // })
 
           test('[update] nested child [connect] should succeed if the relationship already existed', async () => {
-            const user = await expect(
-              prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  profile: {
-                    connect: { id: '1' },
-                  },
+            const user = await prisma[userModel].update({
+              where: { id: '1' },
+              data: {
+                profile: {
+                  connect: { id: '1' },
                 },
-                includes: { profile: true },
-              }),
-            )
-          
+              },
+              includes: { profile: true },
+            })
+
             expect(user).toMatchObject({
               id: '1',
               profile: {
@@ -1112,7 +1119,7 @@ testMatrix.setupTestSuite(
             },
           })
           // foreignKeys
-          testIf(isRI_foreignKeys)('RI=foreignKeys - [delete] parent should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] parent should throw', async () => {
             await expect(
               prisma[userModel].delete({
                 where: { id: '1' },
@@ -1134,27 +1141,30 @@ testMatrix.setupTestSuite(
               },
             ])
           })
-          testIf(isRI_foreignKeys)('RI=foreignKeys - [deleteMany] parents should throw', async () => {
-            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+          testIf(isRelationMode_foreignKeys)(
+            'relationMode=foreignKeys - [deleteMany] parents should throw',
+            async () => {
+              await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
 
-            expect(
-              await prisma[userModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                enabled: null,
-              },
-              {
-                id: '2',
-                enabled: null,
-              },
-            ])
-          })
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            },
+          )
 
           // prisma
-          testIf(isRI_prisma)('RI=prisma - [delete] parent should succeed', async () => {
+          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] parent should succeed', async () => {
             await prisma[userModel].delete({
               where: { id: '1' },
             }),
@@ -1169,7 +1179,7 @@ testMatrix.setupTestSuite(
                 },
               ])
           })
-          testIf(isRI_prisma)('RI=prisma - [deleteMany] parents should succeed', async () => {
+          testIf(isRelationMode_prisma)('relationMode=prisma - [deleteMany] parents should succeed', async () => {
             await prisma[userModel].deleteMany()
 
             expect(
