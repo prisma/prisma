@@ -305,36 +305,10 @@ const actionOperationMap = {
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
-// TODO improve all these types, need a common place to share them between type
-// gen and this. This will be relevant for type gen tech debt refactor
-export interface Client {
-  /** Only via tx proxy */
-  [TX_ID]?: string
-  _baseDmmf: BaseDMMFHelper
-  _dmmf?: DMMFHelper
-  _engine: Engine
-  _fetcher: RequestHandler
-  _connectionPromise?: Promise<any>
-  _disconnectionPromise?: Promise<any>
-  _engineConfig: EngineConfig
-  _clientVersion: string
-  _errorFormat: ErrorFormat
-  _tracingConfig: TracingConfig
-  readonly $metrics: MetricsClient
-  $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>)
-  $on(eventType: EngineEventType, callback: (event: any) => void)
-  $connect()
-  $disconnect()
-  _runDisconnect()
-  $executeRaw(query: TemplateStringsArray | Sql, ...values: any[])
-  $queryRaw(query: TemplateStringsArray | Sql, ...values: any[])
-  __internal_triggerPanic(fatal: boolean)
-  $transaction(input: any, options?: any)
-  _request(internalParams: InternalRequestParams): Promise<any>
-}
+export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
-  class PrismaClient implements Client {
+  class PrismaClient {
     _baseDmmf: BaseDMMFHelper
     _dmmf?: DMMFHelper
     _engine: Engine
@@ -346,18 +320,18 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _errorFormat: ErrorFormat
     _clientEngineType: ClientEngineType
     _tracingConfig: TracingConfig
-    private _hooks?: Hooks
-    private _metrics: MetricsClient
-    private _getConfigPromise?: Promise<{
+    _hooks?: Hooks
+    _metrics: MetricsClient
+    _getConfigPromise?: Promise<{
       datasources: DataSource[]
       generators: GeneratorConfig[]
     }>
-    private _middlewares: Middlewares = new Middlewares()
-    private _previewFeatures: string[]
-    private _activeProvider: string
-    private _transactionId = 1
-    private _rejectOnNotFound?: InstanceRejectOnNotFound
-    private _dataProxy: boolean
+    _middlewares: Middlewares = new Middlewares()
+    _previewFeatures: string[]
+    _activeProvider: string
+    _transactionId = 1
+    _rejectOnNotFound?: InstanceRejectOnNotFound
+    _dataProxy: boolean
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -506,7 +480,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return 'PrismaClient'
     }
 
-    private getEngine(): Engine {
+    getEngine(): Engine {
       if (this._dataProxy === true) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library) {
@@ -599,7 +573,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
     }
 
-    private async _getActiveProvider(): Promise<void> {
+    async _getActiveProvider(): Promise<void> {
       try {
         const configResult = await this._engine.getConfig()
         this._activeProvider = configResult.datasources[0].activeProvider
@@ -611,7 +585,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     /**
      * Executes a raw query and always returns a number
      */
-    private $executeRawInternal(
+    $executeRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
       lock: PromiseLike<void> | undefined,
       query: string | TemplateStringsArray | Sql,
@@ -779,7 +753,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     /**
      * Executes a raw query and returns selected data
      */
-    private $queryRawInternal(
+    async $queryRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
       lock: PromiseLike<void> | undefined,
       query: string | TemplateStringsArray | Sql,
@@ -955,7 +929,7 @@ new PrismaClient({
      * @param requests
      * @param options
      */
-    private _transactionWithArray({
+    _transactionWithArray({
       promises,
       options,
     }: {
@@ -984,7 +958,7 @@ new PrismaClient({
      * @param options
      * @returns
      */
-    private async _transactionWithCallback({
+    async _transactionWithCallback({
       callback,
       options,
     }: {
@@ -1120,7 +1094,7 @@ new PrismaClient({
       }
     }
 
-    private async _executeRequest({
+    async _executeRequest({
       args,
       clientMethod,
       jsModelName,
@@ -1231,7 +1205,7 @@ new PrismaClient({
       })
     }
 
-    private _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
+    _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
       try {
         const dmmf = await this._engine.getDmmf()
         return new DMMFHelper(getPrismaClientDMMF(dmmf))
@@ -1254,12 +1228,12 @@ new PrismaClient({
      * @param feature preview flag
      * @returns
      */
-    private _hasPreviewFlag(feature: string) {
+    _hasPreviewFlag(feature: string) {
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
   }
 
-  return PrismaClient as new (optionsArg?: PrismaClientOptions) => Client
+  return PrismaClient
 }
 
 const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
