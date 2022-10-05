@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.5.0-1.1345307687fcc8a5d46c472b51cdbc9bea08a758",
+    "@prisma/engines-version": "4.5.0-13.870c524ff9bb372be7fdf8ab7efd9fdd3eeeca1a",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.2",
