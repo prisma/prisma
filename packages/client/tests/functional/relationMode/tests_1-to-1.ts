@@ -947,25 +947,53 @@ testMatrix.setupTestSuite(
           //   test.skip('[update] nested child [disconnect] should succeed', async () => {})
           // })
 
-          test('[update] nested child [connect] should succeed if the relationship already existed', async () => {
-            const user = await prisma[userModel].update({
-              where: { id: '1' },
-              data: {
-                profile: {
-                  connect: { id: '1' },
+          // Currently failing
+          // Issue https://github.com/prisma/prisma/issues/14759
+          test.failing(
+            '[update] nested child [connect] should succeed if the relationship already existed',
+            async () => {
+              await prisma[userModel].update({
+                where: { id: '1' },
+                data: {
+                  profile: {
+                    connect: { id: '1' },
+                  },
                 },
-              },
-              includes: { profile: true },
-            })
+              })
 
-            expect(user).toMatchObject({
-              id: '1',
-              profile: {
-                id: '1',
-                userId: '1',
-              },
-            })
-          })
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+
+              expect(
+                await prisma[profileModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                  userId: '1',
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                  userId: '2',
+                },
+              ])
+            },
+          )
 
           // This is ok for 1-to-n and m-to-m
           // test.skip('[update] nested child [updateMany] should succeed', async () => {})

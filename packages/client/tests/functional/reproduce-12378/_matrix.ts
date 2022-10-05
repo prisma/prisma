@@ -3,7 +3,7 @@ import { Providers } from '../_utils/providers'
 
 const RelationModeEnv = process.env.RELATION_MODE
 if (RelationModeEnv && RelationModeEnv !== 'prisma' && RelationModeEnv !== 'foreignKeys') {
-  throw new Error(`RelationMode must be either "prisma" or "foreignKeys" but was "${RelationModeEnv}"`)
+  throw new Error(`RELATION_MODE must be either "prisma" or "foreignKeys" but was "${RelationModeEnv}"`)
 }
 
 type RelationMode = 'prisma' | 'foreignKeys' | ''
