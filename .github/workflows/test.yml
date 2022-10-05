@@ -117,7 +117,7 @@ jobs:
   #
   # CLIENT test:functional relationMode
   #
-  client-ri:
+  client-relationMode:
     timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
@@ -127,8 +127,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        referentialIntegrity: ['', 'foreignKeys', 'prisma']
         # os: [buildjet-4vcpu-ubuntu-2004]
+        relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
         node: [16]
 
