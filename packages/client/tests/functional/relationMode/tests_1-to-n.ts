@@ -360,6 +360,7 @@ testMatrix.setupTestSuite(
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                    [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
                 }),
               )
