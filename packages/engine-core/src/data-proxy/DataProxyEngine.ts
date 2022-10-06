@@ -13,6 +13,7 @@ import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineBatchRequest } from '../common/types/QueryEngine'
+import type * as Tx from '../common/types/Transaction'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -219,11 +220,53 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  // TODO: figure out how to support transactions
-  transaction(): Promise<any> {
-    throw new NotImplementedYetError('Interactive transactions are not yet supported', {
-      clientVersion: this.clientVersion,
-    })
+  /**
+   * Send START, COMMIT, or ROLLBACK to the Query Engine
+   * @param action START, COMMIT, or ROLLBACK
+   * @param headers headers for tracing
+   * @param options to change the default timeouts
+   * @param info transaction information for the QE
+   */
+  // @ts-ignore
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
+  // @ts-ignore
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  // @ts-ignore
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  // @ts-ignore
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
+    await this.start()
+
+    if (action === 'start') {
+      const body = JSON.stringify({
+        max_wait: arg?.maxWait ?? 2000, // default
+        timeout: arg?.timeout ?? 5000, // default
+        isolation_level: arg?.isolationLevel,
+      })
+
+      const url = await this.url('transaction/start')
+
+      const response = await request(url, {
+        method: 'POST',
+        headers: { ...headers, ...this.headers },
+        body,
+        clientVersion: this.clientVersion,
+      })
+
+      const json = await response.json()
+
+      const endpoint = json['data-proxy'].endpoint as string
+
+      const id = endpoint.split('/').pop() as string
+
+      const data: Tx.Info = {
+        id,
+      }
+
+      console.log('data ', data)
+
+      return data as Tx.Info
+    }
   }
 
   private extractHostAndApiKey() {
