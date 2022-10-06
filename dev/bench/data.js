@@ -1,5 +1,5 @@
 window.BENCHMARK_DATA = {
-  "lastUpdate": 1665059336011,
+  "lastUpdate": 1665061773719,
   "repoUrl": "https://github.com/prisma/prisma",
   "entries": {
     "Benchmark.js Benchmark": [
@@ -131771,6 +131771,93 @@ window.BENCHMARK_DATA = {
             "range": "±3.98%",
             "unit": "ops/sec",
             "extra": "7 samples"
+          }
+        ]
+      },
+      {
+        "commit": {
+          "author": {
+            "email": "alex@aqrln.net",
+            "name": "Alexey Orlenko",
+            "username": "aqrln"
+          },
+          "committer": {
+            "email": "noreply@github.com",
+            "name": "GitHub",
+            "username": "web-flow"
+          },
+          "distinct": true,
+          "id": "524a83b614016eb6b04cf8c933bbecc008a425ea",
+          "message": "test: integrate mini-proxy changes (#15650)\n\n* test: integrate mini-proxy changes\r\n\r\nRef: https://github.com/prisma/mini-proxy/pull/34\r\n\r\n* Un-skip tests\r\n\r\nRef: https://github.com/prisma/mini-proxy/issues/30\r\n\r\n* chore: update mini-proxy\r\n\r\n* pkg: mini-proxy\r\n\r\n* refactor: remove primaryHost\r\n\r\nCo-authored-by: daniel starns <danielstarns@hotmail.com>",
+          "timestamp": "2022-10-06T15:05:21+02:00",
+          "tree_id": "90a7ac9bc3dc9b5c37908bff0bd92088e37910e6",
+          "url": "https://github.com/prisma/prisma/commit/524a83b614016eb6b04cf8c933bbecc008a425ea"
+        },
+        "date": 1665061761563,
+        "tool": "benchmarkjs",
+        "benches": [
+          {
+            "name": "client generation ~50 Models",
+            "value": 1.7,
+            "range": "±5.65%",
+            "unit": "ops/sec",
+            "extra": "13 samples"
+          },
+          {
+            "name": "typescript compilation ~50 Models",
+            "value": 0.12,
+            "range": "±2.39%",
+            "unit": "ops/sec",
+            "extra": "5 samples"
+          },
+          {
+            "name": "@prisma/client size",
+            "value": 2.372891426086426,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client size",
+            "value": 41.40235233306885,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.d.ts size",
+            "value": 1.7862396240234375,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/index.js size",
+            "value": 0.16692733764648438,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": ".prisma/client/libquery_engine-debian-openssl-1.1.x.so.node size",
+            "value": 39.41264343261719,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "dotPlusAtPrismaClientFolder.zip size",
+            "value": 14.45973014831543,
+            "range": "±0.00%",
+            "unit": "MB",
+            "extra": "1 samples"
+          },
+          {
+            "name": "client generation 100 models with relations",
+            "value": 0.4,
+            "range": "±5.46%",
+            "unit": "ops/sec",
+            "extra": "6 samples"
           }
         ]
       }
