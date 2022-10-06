@@ -260,7 +260,6 @@ testMatrix.setupTestSuite(
         })
 
         test('[update] (post) optional boolean field should succeed', async () => {
-          // TODO (prisma, *, Restrict): The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.
           await prisma[postModel].update({
             where: {
               id: '1',
@@ -292,7 +291,6 @@ testMatrix.setupTestSuite(
         })
 
         test('[update] (category): optional boolean field should succeed', async () => {
-          // TODO (prisma, *, Restrict): "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models."
           await prisma[categoryModel].update({
             where: {
               id: '1-cat-a',

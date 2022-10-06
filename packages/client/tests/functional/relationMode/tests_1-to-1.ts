@@ -177,9 +177,6 @@ testMatrix.setupTestSuite(
           })
         })
 
-        // Fails with `onUpdate: Restrict` & `relationMode = "prisma"`
-        // On MongoDB / MySQL / Vitess (all providers?) fails with
-        // The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.
         test('[update] (user) optional boolean field should succeed', async () => {
           await prisma[userModel].update({
             where: { id: '1' },
