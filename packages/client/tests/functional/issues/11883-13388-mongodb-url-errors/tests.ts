@@ -7,6 +7,8 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   () => {
+    jest.setTimeout(120_000)
+
     // https://github.com/prisma/prisma/issues/11883
     test('unescaped slashes in password, causes the rest to be interpreted as database name', async () => {
       const prisma = newPrismaClient({
