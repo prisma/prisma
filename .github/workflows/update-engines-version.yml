@@ -41,12 +41,12 @@ jobs:
           echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
 
-      #       - name: Check if version of @prisma/prisma-fmt-wasm is available on npm
-      #         # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
-      #         if: github.event.inputs.npmDistTag == 'latest'
-      #         run: |
-      #           echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
-      #           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
+      - name: Check if version of @prisma/prisma-fmt-wasm is available on npm
+        # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
+        if: github.event.inputs.npmDistTag == 'latest'
+        run: |
+          echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/engines-version)
         uses: nick-fields/retry@v2
@@ -57,16 +57,16 @@ jobs:
             echo 'Updating @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
 
-      #       - name: Update the dependencies (@prisma/prisma-fmt-wasm)
-      #         # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
-      #         if: github.event.inputs.npmDistTag == 'latest'
-      #         uses: nick-fields/retry@v2
-      #         with:
-      #           timeout_minutes: 7
-      #           max_attempts: 3
-      #           command: |
-      #             echo 'Updating @prisma/prisma-fmt-wasm to ${{ github.event.inputs.version }} using pnpm'
-      #             pnpm update -r @prisma/prisma-fmt-wasm@${{ github.event.inputs.version }}
+      - name: Update the dependencies (@prisma/prisma-fmt-wasm)
+        # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
+        if: github.event.inputs.npmDistTag == 'latest'
+        uses: nick-fields/retry@v2
+        with:
+          timeout_minutes: 7
+          max_attempts: 3
+          command: |
+            echo 'Updating @prisma/prisma-fmt-wasm to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/prisma-fmt-wasm@${{ github.event.inputs.version }}
 
       - name: Extract Engine Commit hash from version
         id: extract-engine-commit-hash
