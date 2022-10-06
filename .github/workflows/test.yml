@@ -190,7 +190,6 @@ jobs:
         working-directory: packages/client
 
       - name: 1 to 1
-        continue-on-error: true
         run: pnpm run test:functional:code relationMode/tests_1-to-1.ts
         working-directory: packages/client
 
