@@ -6,7 +6,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/8832
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  () => {
     async function createTags(length: number): Promise<number[]> {
       const ids = Array.from({ length }, (_, i) => i + 1)
       const data = ids.map((id) => ({ id }))
@@ -193,12 +193,6 @@ testMatrix.setupTestSuite(
     optOut: {
       from: ['mysql', 'sqlserver', 'cockroachdb', 'sqlite', 'mongodb'],
       reason: 'we have only captured this issue with postgres',
-    },
-
-    // see: https://github.com/prisma/mini-proxy/issues/30
-    skipDataProxy: {
-      runtimes: ['node', 'edge'],
-      reason: "Mini-Proxy can't currently handle big queries, un-skip when it starts using QE server instead of CLI",
     },
   },
 )
