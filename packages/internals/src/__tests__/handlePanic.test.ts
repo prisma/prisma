@@ -7,7 +7,7 @@ import tempy from 'tempy'
 
 import { ErrorArea, jestConsoleContext, jestContext, RustPanic } from '..'
 import * as sendPanicUtils from '../sendPanic'
-import * as githubUtils from '../utils/getGithubIssueUrl'
+import * as githubUtils from '../utils/getGitHubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
 
 const keys = {

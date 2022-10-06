@@ -190,8 +190,6 @@ jobs:
       # Run the functional test suite
       - run: pnpm run test:functional
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        # If one or more functional tests fails we still want to run the other tests below
-        continue-on-error: true
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
       - run: pnpm run test-notypes
@@ -1097,7 +1095,7 @@ jobs:
           name: engines-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where where we have access to secrets.
+        # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
         uses: Workshop64/buildpulse-action@main
