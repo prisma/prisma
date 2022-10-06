@@ -41,7 +41,7 @@ export class DataProxyEngine extends Engine {
   private clientVersion: string
   readonly remoteClientVersion: Promise<string>
   readonly headers: { Authorization: string }
-  private host: string
+  readonly host: string
 
   constructor(config: EngineConfig) {
     super()
@@ -62,13 +62,6 @@ export class DataProxyEngine extends Engine {
     this.host = host
 
     debug('host', this.host)
-  }
-
-  /**
-   * Always returns the Primary Host (see the internal docs for differences between Primary Host and Specific Host).
-   */
-  get primaryHost(): string {
-    return this.host
   }
 
   version() {

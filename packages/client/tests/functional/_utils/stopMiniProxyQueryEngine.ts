@@ -7,7 +7,7 @@ const debug = Debug('prisma:test:stop-engine')
 export async function stopMiniProxyQueryEngine(client: any): Promise<void> {
   const engine = client._engine as DataProxyEngine
 
-  const host = engine.primaryHost
+  const host = engine.host
   const clientVersion = await engine.remoteClientVersion
   const schemaHash = engine.inlineSchemaHash
 
