@@ -33,16 +33,16 @@ const debug = Debug('prisma:client:dataproxyEngine')
 
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
-  private inlineSchemaHash: string
+  readonly inlineSchemaHash: string
   private inlineDatasources: Record<string, InlineDatasource>
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
-  private remoteClientVersion: Promise<string>
-  private headers: { Authorization: string }
-  private host: string
+  readonly remoteClientVersion: Promise<string>
+  readonly headers: { Authorization: string }
+  readonly host: string
 
   constructor(config: EngineConfig) {
     super()
