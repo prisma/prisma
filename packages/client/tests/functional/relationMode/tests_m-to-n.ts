@@ -1159,6 +1159,20 @@ testMatrix.setupTestSuite(
 
         // TODO check why SetDefault works because we don't have @default in the schema
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
+          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
+          // onDelete: SetNull & relationMode: prisma
+          // fails the 2 following tests with:
+          //
+          // For the first test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"id": "1", "published": null}
+          //
+          // For the second test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"id": "1-cat-a", "published": null}
+          //
+          // See issue https://github.com/prisma/prisma/issues/15683
+
           test('[delete] post should throw', async () => {
             // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1", "published": null}
             await expect(

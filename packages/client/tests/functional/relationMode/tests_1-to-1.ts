@@ -742,11 +742,11 @@ testMatrix.setupTestSuite(
                             Error occurred during query execution:
                             ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
                               code: 1761,
-                              message: \"Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone',
+                              message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                               key 'ProfileOneToOne_userId_key'\",
                               state: \"23000\" })) })
                             */
-                            `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone`,
+                            `Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
@@ -757,17 +757,30 @@ testMatrix.setupTestSuite(
                         : // DEFAULT & SetNull
                           {
                             [Providers.POSTGRESQL]:
-                              // @ts-expect-error
                               onUpdate === 'SetNull'
                                 ? // SetNull
                                   'Unique constraint failed on the fields: (`id`)'
                                 : // DEFAULT
                                   'Unique constraint failed on the fields: (`userId`)',
-                            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.COCKROACHDB]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the fields: (`id`)'
+                                : // DEFAULT
+                                  'Unique constraint failed on the fields: (`userId`)',
                             [Providers.MYSQL]:
-                              'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the constraint: `PRIMARY`'
+                                : // DEFAULT
+                                  'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
                             [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                            [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.SQLITE]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the fields: (`id`)'
+                                : // DEFAULT
+                                  'Unique constraint failed on the fields: (`userId`)',
                           },
                   }),
                 )
@@ -854,11 +867,11 @@ testMatrix.setupTestSuite(
                             Error occurred during query execution:
                             ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
                               code: 1761, 
-                              message: \"Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone',
+                              message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
                               key 'ProfileOneToOne_userId_key'\",
                               state: \"23000\" })) })"
                             */
-                            `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone`,
+                            `Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
@@ -869,17 +882,30 @@ testMatrix.setupTestSuite(
                         : // DEFAULT & SetNull
                           {
                             [Providers.POSTGRESQL]:
-                              // @ts-expect-error
                               onUpdate === 'SetNull'
                                 ? // SetNull
                                   'Unique constraint failed on the fields: (`id`)'
                                 : // DEFAULT
                                   'Unique constraint failed on the fields: (`userId`)',
-                            [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.COCKROACHDB]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the fields: (`id`)'
+                                : // DEFAULT
+                                  'Unique constraint failed on the fields: (`userId`)',
                             [Providers.MYSQL]:
-                              'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the constraint: `PRIMARY`'
+                                : // DEFAULT
+                                  'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
                             [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                            [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
+                            [Providers.SQLITE]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the fields: (`id`)'
+                                : // DEFAULT
+                                  'Unique constraint failed on the fields: (`userId`)',
                           },
                   }),
                 )
@@ -1224,8 +1250,22 @@ testMatrix.setupTestSuite(
               [Providers.SQLSERVER]: 'Null constraint violation on the fields: (`userId`)',
               [Providers.SQLITE]: 'Null constraint violation on the fields: (`userId`)',
             },
-            prisma: 'Null constraint violation on the fields: (`userId`)',
+            prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683',
           })
+
+          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
+          // onDelete: SetNull & relationMode: prisma
+          // fails the 2 following tests with:
+          //
+          // For the first test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"enabled": null, "id": "1"}
+          //
+          // For the second test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"count": 2}
+          //
+          // See issue https://github.com/prisma/prisma/issues/15683
 
           test('[delete] parent should throw', async () => {
             await expect(

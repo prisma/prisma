@@ -379,51 +379,56 @@ testMatrix.setupTestSuite(
             })
           })
 
-          describeIf(['DEFAULT, Cascade'].includes(onUpdate))('onUpdate: DEFAULT, Cascade', () => {
-            test('[update] parent id with existing id should throw', async () => {
-              await expect(
-                prisma[userModel].update({
-                  where: { id: '1' },
-                  data: {
+          describeIf(['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate))(
+            'onUpdate: DEFAULT, Cascade, SetNull',
+            () => {
+              test('[update] parent id with existing id should throw', async () => {
+                await expect(
+                  prisma[userModel].update({
+                    where: { id: '1' },
+                    data: {
+                      id: '2',
+                    },
+                  }),
+                ).rejects.toThrowError(
+                  conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                      [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
+                    },
+                    prisma: {
+                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                      [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
+                    },
+                  }),
+                )
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
                     id: '2',
+                    enabled: null,
                   },
-                }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-                  },
-                  prisma: {
-                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-                  },
-                }),
-              )
+                ])
+              })
+            },
+          )
 
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            })
-          })
-
-          describeIf(['DEFAULT', 'Cascade', 'Restrict'].includes(onUpdate))(
-            'onUpdate: Default, Cascade, Restrict',
+          describeIf(['DEFAULT', 'Cascade', 'Restrict', 'SetNull'].includes(onUpdate))(
+            'onUpdate: DEFAULT, Cascade, Restrict, SetNull',
             () => {
               test('[update] child id with non-existing id should succeed', async () => {
                 await prisma[postModel].update({
@@ -473,7 +478,7 @@ testMatrix.setupTestSuite(
             },
           )
 
-          describeIf(['Restrict'].includes(onUpdate))('onUpdate: Restrict', () => {
+          describeIf(['Restrict', 'SetNull'].includes(onUpdate))('onUpdate: Restrict, SetNull', () => {
             test('[update] parent id with existing id should throw', async () => {
               await expect(
                 prisma[userModel].update({
@@ -492,7 +497,16 @@ testMatrix.setupTestSuite(
                     [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
                   prisma:
-                    "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                    onUpdate === 'SetNull'
+                      ? // SetNull
+                        {
+                          [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                          [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                          [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                          [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
+                        }
+                      : // Restrict
+                        "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 }),
               )
 
@@ -640,97 +654,116 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        // test.skip('[deleteMany] parents should throw', async () => {})
-
-        describeIf(['DEFAULT', 'Restrict'].includes(onDelete))('onDelete: DEFAULT, Restrict', () => {
-          const expectedError = conditionalError.snapshot({
-            foreignKeys: {
-              [Providers.MONGODB]:
+        describeIf(['DEFAULT', 'Restrict', 'SetNull'].includes(onDelete))(
+          'onDelete: DEFAULT, Restrict, SetNull',
+          () => {
+            const expectedError = conditionalError.snapshot({
+              foreignKeys: {
+                [Providers.MONGODB]:
+                  "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
+                [Providers.POSTGRESQL]:
+                  onUpdate === 'SetNull'
+                    ? // SetNull
+                      'Null constraint violation on the fields: (`authorId`)'
+                    : // DEFAULT / Restrict
+                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
+                [Providers.SQLSERVER]:
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                [Providers.SQLITE]:
+                  onUpdate === 'SetNull'
+                    ? // SetNull
+                      'Null constraint violation on the fields: (`authorId`)'
+                    : // DEFAULT / Restrict
+                      'Foreign key constraint failed on the field: `foreign key`',
+              },
+              prisma:
                 "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-              [Providers.POSTGRESQL]:
-                'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-              [Providers.SQLSERVER]:
-                'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-              [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-            },
-            prisma:
-              "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
-          })
+            })
 
-          test('[delete] parent should throw', async () => {
             // this throws because "postModel" has a mandatory relation with "userModel", hence
             // we have a "onDelete: Restrict" situation by default
 
-            await expect(
-              prisma[userModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(expectedError)
+            // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
+            // onDelete: SetNull & relationMode: prisma
+            // fails the 2 following tests with:
+            //
+            // Received promise resolved instead of rejected
+            // Resolved to value: {"enabled": null, "id": "1"}
+            //
+            // See issue https://github.com/prisma/prisma/issues/15683
 
-            expect(
-              await prisma[userModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                enabled: null,
-              },
-              {
-                id: '2',
-                enabled: null,
-              },
-            ])
-          })
+            test('[delete] parent should throw', async () => {
+              await expect(
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(expectedError)
 
-          test('[delete] a subset of children and then [delete] parent should throw', async () => {
-            await prisma[postModel].delete({
-              where: { id: '1-post-a' },
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
             })
 
-            expect(
-              await prisma[postModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1-post-b',
-                authorId: '1',
-              },
-              {
-                id: '2-post-a',
-                authorId: '2',
-              },
-              {
-                id: '2-post-b',
-                authorId: '2',
-              },
-            ])
+            test('[delete] a subset of children and then [delete] parent should throw', async () => {
+              await prisma[postModel].delete({
+                where: { id: '1-post-a' },
+              })
 
-            await expect(
-              prisma[userModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(expectedError)
+              expect(
+                await prisma[postModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1-post-b',
+                  authorId: '1',
+                },
+                {
+                  id: '2-post-a',
+                  authorId: '2',
+                },
+                {
+                  id: '2-post-b',
+                  authorId: '2',
+                },
+              ])
 
-            expect(
-              await prisma[userModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1',
-                enabled: null,
-              },
-              {
-                id: '2',
-                enabled: null,
-              },
-            ])
-          })
-        })
+              await expect(
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(expectedError)
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            })
+          },
+        )
 
         describeIf(['NoAction'].includes(onDelete))(`onDelete: NoAction`, () => {
           const expectedError = conditionalError.snapshot({
