@@ -9,7 +9,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   const providersBase = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
-    // Providers.SQLSERVER,
+    Providers.SQLSERVER,
     Providers.MYSQL,
     Providers.SQLITE,
   ] as const

@@ -746,7 +746,8 @@ testMatrix.setupTestSuite(
                               key 'ProfileOneToOne_userId_key'\",
                               state: \"23000\" })) })
                             */
-                            `Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne`,
+                            // Note: in CI we run with --lower_case_table_names=1
+                            `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone'`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
@@ -871,7 +872,8 @@ testMatrix.setupTestSuite(
                               key 'ProfileOneToOne_userId_key'\",
                               state: \"23000\" })) })"
                             */
-                            `Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne`,
+                            // Note: in CI we run with --lower_case_table_names=1
+                            `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone'`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                       [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                     },
