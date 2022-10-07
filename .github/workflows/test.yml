@@ -177,21 +177,28 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
+      - name: 1 to 1
+        continue-on-error: true
+        run: pnpm run test:functional:code relationMode/tests_1-to-1.ts
+        working-directory: packages/client
+
       - name: 1 to n
+        continue-on-error: true
         run: pnpm run test:functional:code relationMode/tests_1-to-n.ts
         working-directory: packages/client
 
       - name: m to n (SQL databases)
+        continue-on-error: true
         run: pnpm run test:functional:code relationMode/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
+        continue-on-error: true
         run: pnpm run test:functional:code relationMode/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
-      - name: 1 to 1
-        run: pnpm run test:functional:code relationMode/tests_1-to-1.ts
-        working-directory: packages/client
+      - name: force error (some tests are failing but it shows as passing because of `continue-on-error`)
+        run: false
 
   #
   # CLIENT (without types test)
