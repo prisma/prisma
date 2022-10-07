@@ -111,6 +111,7 @@ testMatrix.setupTestSuite(
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
+    const isRelationMode_prismaAndSetNull = isRelationMode_prisma && onDelete === 'SetNull'
 
     /**
      * m:n relationship
@@ -837,9 +838,7 @@ testMatrix.setupTestSuite(
         })
 
         describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: SetNull, SetDefault`, () => {
-          test('[update] post id should throw', async () => {
-            // TODO (prisma, *, SetNull for PostgreSQL):
-            // Resolved to value: {"id": "3", "published": null}
+          testIf(!isRelationMode_prismaAndSetNull)('[update] post id should throw', async () => {
             await expect(
               prisma[postModel].update({
                 where: {
@@ -875,9 +874,7 @@ testMatrix.setupTestSuite(
             )
           })
 
-          test('[update] category id should throw', async () => {
-            // TODO (prisma, *, SetNull for PostgreSQL):
-            // Resolved to value: {"id": "1-cat-a-updated", "published": null}
+          testIf(!isRelationMode_prismaAndSetNull)('[update] category id should throw', async () => {
             await expect(
               prisma[categoryModel].update({
                 where: {
@@ -912,6 +909,101 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
+
+          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
+          // onDelete: SetNull & relationMode: prisma
+          // fails the 2 following tests
+          // they are a copy above the tests above but with relationMode: prisma and `.failing`
+          // So we can run all the tests successfully
+          //
+          // For the first test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"id": "3", "published": null}
+          //
+          // For the second test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"id": "1-cat-a-updated", "published": null}
+          //
+          // See issue https://github.com/prisma/prisma/issues/15683
+
+          testIf(isRelationMode_prismaAndSetNull).failing(
+            'relationMode=prisma / SetNull: [update] post id should throw',
+            async () => {
+              // Resolved to value:
+              await expect(
+                prisma[postModel].update({
+                  where: {
+                    id: '1',
+                  },
+                  data: {
+                    id: '3',
+                  },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+                    // TODO: the following providers throw a migration error
+                    [Providers.SQLSERVER]: '__SNAPSHOT__',
+                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                  },
+                }),
+              )
+
+              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+                expectedFindManyPostModelIfNoChange,
+              )
+              expect(
+                await prisma[categoryModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual(expectedFindManyCategoryModelIfNoChange)
+              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+                expectedFindManyCategoriesOnPostsModelIfNoChange,
+              )
+            },
+          )
+
+          testIf(isRelationMode_prismaAndSetNull).failing(
+            'relationMode=prisma / SetNull: [update] category id should throw',
+            async () => {
+              await expect(
+                prisma[categoryModel].update({
+                  where: {
+                    id: '1-cat-a',
+                  },
+                  data: {
+                    id: '1-cat-a-updated',
+                  },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+                    // TODO: the following providers throw a migration error
+                    [Providers.SQLSERVER]: '__SNAPSHOT__',
+                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                  },
+                }),
+              )
+
+              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+                expectedFindManyPostModelIfNoChange,
+              )
+              expect(
+                await prisma[categoryModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual(expectedFindManyCategoryModelIfNoChange)
+              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+                expectedFindManyCategoriesOnPostsModelIfNoChange,
+              )
+            },
+          )
         })
 
         test('[update] categoriesOnPostsModel postId should succeed', async () => {
@@ -1159,22 +1251,7 @@ testMatrix.setupTestSuite(
 
         // TODO check why SetDefault works because we don't have @default in the schema
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
-          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
-          // onDelete: SetNull & relationMode: prisma
-          // fails the 2 following tests with:
-          //
-          // For the first test:
-          // Received promise resolved instead of rejected
-          // Resolved to value: {"id": "1", "published": null}
-          //
-          // For the second test:
-          // Received promise resolved instead of rejected
-          // Resolved to value: {"id": "1-cat-a", "published": null}
-          //
-          // See issue https://github.com/prisma/prisma/issues/15683
-
-          test('[delete] post should throw', async () => {
-            // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1", "published": null}
+          testIf(!isRelationMode_prismaAndSetNull)('[delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({
                 where: { id: '1' },
@@ -1205,8 +1282,7 @@ testMatrix.setupTestSuite(
             )
           })
 
-          test('[delete] category should throw', async () => {
-            // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1-cat-a", "published": null}
+          testIf(!isRelationMode_prismaAndSetNull)('[delete] category should throw', async () => {
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
@@ -1236,6 +1312,92 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
+
+          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
+          // onDelete: SetNull & relationMode: prisma
+          // fails the 2 following tests
+          // they are a copy above the tests above but with relationMode: prisma and `.failing`
+          // So we can run all the tests successfully
+          //
+          // For the first test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"id": "1", "published": null}
+          //
+          // For the second test:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"id": "1-cat-a", "published": null}
+          //
+          // See issue https://github.com/prisma/prisma/issues/15683
+
+          testIf(isRelationMode_prismaAndSetNull).failing(
+            'relationMode=prisma / SetNull: [delete] post should throw',
+            async () => {
+              // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1", "published": null}
+              await expect(
+                prisma[postModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+                    // TODO: the following providers throw a migration error
+                    [Providers.SQLSERVER]: '__SNAPSHOT__',
+                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                  },
+                }),
+              )
+
+              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+                expectedFindManyPostModelIfNoChange,
+              )
+              expect(
+                await prisma[categoryModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual(expectedFindManyCategoryModelIfNoChange)
+              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+                expectedFindManyCategoriesOnPostsModelIfNoChange,
+              )
+            },
+          )
+
+          testIf(isRelationMode_prismaAndSetNull).failing(
+            'relationMode=prisma / SetNull: [delete] category should throw',
+            async () => {
+              // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1-cat-a", "published": null}
+              await expect(
+                prisma[categoryModel].delete({
+                  where: { id: '1-cat-a' },
+                }),
+              ).rejects.toThrowError(
+                conditionalError.snapshot({
+                  foreignKeys: {
+                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+                    // TODO: the following providers throw a migration error
+                    [Providers.SQLSERVER]: '__SNAPSHOT__',
+                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                  },
+                }),
+              )
+
+              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
+                expectedFindManyPostModelIfNoChange,
+              )
+              expect(
+                await prisma[categoryModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual(expectedFindManyCategoryModelIfNoChange)
+              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
+                expectedFindManyCategoriesOnPostsModelIfNoChange,
+              )
+            },
+          )
         })
 
         describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {

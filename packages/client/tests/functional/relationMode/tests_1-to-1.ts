@@ -1255,21 +1255,7 @@ testMatrix.setupTestSuite(
             prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683',
           })
 
-          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
-          // onDelete: SetNull & relationMode: prisma
-          // fails the 2 following tests with:
-          //
-          // For the first test:
-          // Received promise resolved instead of rejected
-          // Resolved to value: {"enabled": null, "id": "1"}
-          //
-          // For the second test:
-          // Received promise resolved instead of rejected
-          // Resolved to value: {"count": 2}
-          //
-          // See issue https://github.com/prisma/prisma/issues/15683
-
-          test('[delete] parent should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('[delete] parent should throw', async () => {
             await expect(
               prisma[userModel].delete({
                 where: { id: '1' },
@@ -1291,7 +1277,7 @@ testMatrix.setupTestSuite(
               },
             ])
           })
-          test('[deleteMany] parents should throw', async () => {
+          testIf(isRelationMode_foreignKeys)('[deleteMany] parents should throw', async () => {
             await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
 
             expect(
@@ -1309,6 +1295,69 @@ testMatrix.setupTestSuite(
               },
             ])
           })
+
+          // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
+          // onDelete: SetNull & relationMode: prisma
+          // fails the 2 following tests
+          // they are a copy above the tests above but with relationMode: prisma and `.failing`
+          // So we can run all the tests successfully
+          //
+          // For the first test `[delete] parent should throw`:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"enabled": null, "id": "1"}
+          //
+          // For the second test `[deleteMany] parents should throw`:
+          // Received promise resolved instead of rejected
+          // Resolved to value: {"count": 2}
+          //
+          // See issue https://github.com/prisma/prisma/issues/15683
+
+          testIf(isRelationMode_prisma).failing(
+            'relationMode=prisma / SetNull: [delete] parent should throw',
+            async () => {
+              await expect(
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(expectedError)
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            },
+          )
+          testIf(isRelationMode_prisma).failing(
+            'relationMode=prisma / SetNull: [deleteMany] parents should throw',
+            async () => {
+              await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            },
+          )
         })
 
         describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {

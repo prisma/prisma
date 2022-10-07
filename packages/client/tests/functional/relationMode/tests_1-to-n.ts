@@ -81,6 +81,7 @@ testMatrix.setupTestSuite(
     const isSQLite = suiteConfig.provider === Providers.SQLITE
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
+    const isRelationMode_prismaAndSetNull = isRelationMode_prisma && onDelete === 'SetNull'
 
     /**
      * 1:n relationship
@@ -682,86 +683,162 @@ testMatrix.setupTestSuite(
                 "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
             })
 
-            // this throws because "postModel" has a mandatory relation with "userModel", hence
-            // we have a "onDelete: Restrict" situation by default
+            testIf(!isRelationMode_prismaAndSetNull)('[delete] parent should throw', async () => {
+              await expect(
+                prisma[userModel].delete({
+                  where: { id: '1' },
+                }),
+              ).rejects.toThrowError(expectedError)
+
+              expect(
+                await prisma[userModel].findMany({
+                  orderBy: { id: 'asc' },
+                }),
+              ).toEqual([
+                {
+                  id: '1',
+                  enabled: null,
+                },
+                {
+                  id: '2',
+                  enabled: null,
+                },
+              ])
+            })
+            testIf(!isRelationMode_prismaAndSetNull)(
+              '[delete] a subset of children and then [delete] parent should throw',
+              async () => {
+                await prisma[postModel].delete({
+                  where: { id: '1-post-a' },
+                })
+
+                expect(
+                  await prisma[postModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1-post-b',
+                    authorId: '1',
+                  },
+                  {
+                    id: '2-post-a',
+                    authorId: '2',
+                  },
+                  {
+                    id: '2-post-b',
+                    authorId: '2',
+                  },
+                ])
+
+                await expect(
+                  prisma[userModel].delete({
+                    where: { id: '1' },
+                  }),
+                ).rejects.toThrowError(expectedError)
+
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
 
             // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
             // onDelete: SetNull & relationMode: prisma
-            // fails the 2 following tests with:
+            // fails the 2 following tests
+            // they are a copy above the tests above but with relationMode: prisma and `.failing`
+            // So we can run all the tests successfully
             //
+            // They fail with
             // Received promise resolved instead of rejected
             // Resolved to value: {"enabled": null, "id": "1"}
             //
             // See issue https://github.com/prisma/prisma/issues/15683
 
-            test('[delete] parent should throw', async () => {
-              await expect(
-                prisma[userModel].delete({
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError(expectedError)
+            testIf(isRelationMode_prismaAndSetNull).failing(
+              'relationMode=prisma / SetNull: [delete] parent should throw',
+              async () => {
+                await expect(
+                  prisma[userModel].delete({
+                    where: { id: '1' },
+                  }),
+                ).rejects.toThrowError(expectedError)
 
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            })
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
+            testIf(isRelationMode_prismaAndSetNull).failing(
+              'relationMode=prisma / SetNull: [delete] a subset of children and then [delete] parent should throw',
+              async () => {
+                await prisma[postModel].delete({
+                  where: { id: '1-post-a' },
+                })
 
-            test('[delete] a subset of children and then [delete] parent should throw', async () => {
-              await prisma[postModel].delete({
-                where: { id: '1-post-a' },
-              })
+                expect(
+                  await prisma[postModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1-post-b',
+                    authorId: '1',
+                  },
+                  {
+                    id: '2-post-a',
+                    authorId: '2',
+                  },
+                  {
+                    id: '2-post-b',
+                    authorId: '2',
+                  },
+                ])
 
-              expect(
-                await prisma[postModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1-post-b',
-                  authorId: '1',
-                },
-                {
-                  id: '2-post-a',
-                  authorId: '2',
-                },
-                {
-                  id: '2-post-b',
-                  authorId: '2',
-                },
-              ])
+                await expect(
+                  prisma[userModel].delete({
+                    where: { id: '1' },
+                  }),
+                ).rejects.toThrowError(expectedError)
 
-              await expect(
-                prisma[userModel].delete({
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError(expectedError)
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            })
+                expect(
+                  await prisma[userModel].findMany({
+                    orderBy: { id: 'asc' },
+                  }),
+                ).toEqual([
+                  {
+                    id: '1',
+                    enabled: null,
+                  },
+                  {
+                    id: '2',
+                    enabled: null,
+                  },
+                ])
+              },
+            )
           },
         )
 
