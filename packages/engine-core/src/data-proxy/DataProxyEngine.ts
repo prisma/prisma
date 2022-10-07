@@ -22,7 +22,7 @@ import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
-import { request } from './utils/request'
+import { request, RequestResponse } from './utils/request'
 
 const MAX_RETRIES = 10
 
@@ -165,7 +165,14 @@ export class DataProxyEngine extends Engine {
         message: `Calling ${await this.url('graphql')} (n=${attempt})`,
       })
 
-      const response = await request(await this.url('graphql'), {
+      const transactionId = headers.transactionId
+
+      let url = await this.url('graphql')
+      if (transactionId) {
+        url = await this.url(`itx/${transactionId}/graphql`)
+      }
+
+      const response = await request(url, {
         method: 'POST',
         headers: { ...headers, ...this.headers },
         body: JSON.stringify(body),
@@ -227,16 +234,23 @@ export class DataProxyEngine extends Engine {
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  // @ts-ignore
   async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
-  // @ts-ignore
   async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  // @ts-ignore
   async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  // @ts-ignore
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
+    const errorHandler = async (response: RequestResponse) => {
+      if (!response.ok) {
+        const json = await response.json()
+
+        if (json) {
+          throw new Error(`Error in transaction start: ${JSON.stringify(json)}`)
+        } else {
+          throw new Error(`Error in transaction start: ${response.text()}`)
+        }
+      }
+    }
     if (action === 'start') {
       const body = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
@@ -253,6 +267,8 @@ export class DataProxyEngine extends Engine {
         clientVersion: this.clientVersion,
       })
 
+      await errorHandler(response)
+
       const json = await response.json()
 
       const endpoint = json['data-proxy'].endpoint as string
@@ -263,9 +279,19 @@ export class DataProxyEngine extends Engine {
         id,
       }
 
-      console.log('data ', data)
-
       return data as Tx.Info
+    } else {
+      const url = await this.url(`transaction/${arg.id}/${action}`)
+
+      const response = await request(url, {
+        method: 'POST',
+        headers: { ...headers, ...this.headers },
+        clientVersion: this.clientVersion,
+      })
+
+      await errorHandler(response)
+
+      return undefined
     }
   }
 
