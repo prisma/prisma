@@ -33,7 +33,10 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     const denyList = referentialActionsDenylistByProvider[entry.provider] || []
     let referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
-    if (relationMode !== 'prisma' && [Providers.MYSQL, Providers.COCKROACHDB].includes(entry.provider)) {
+    if (
+      relationMode !== 'prisma' &&
+      [Providers.MYSQL, Providers.COCKROACHDB, Providers.SQLSERVER].includes(entry.provider)
+    ) {
       // For 1:1/1:n tests
       //
       // CockroachDB errors with:
@@ -47,7 +50,9 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
       // m:n - Can't create table `cl8ybu3ni0004eo4p9xeubq4u`.`CategoriesOnPostsManyToMany` (errno: 150 "Foreign key constraint is incorrectly formed")
       //
       // SQL Server errors with:
-      // TODO
+      // 1:1 - Cannot create the foreign key "ProfileOneToOne_userId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
+      // 1:n - Cannot create the foreign key "PostOneToMany_authorId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
+      // m:n - Cannot create the foreign key "CategoriesOnPostsManyToMany_postId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
       referentialActions = referentialActionsBase.filter((action) => action !== 'SetNull')
     }
 
