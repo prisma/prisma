@@ -33,6 +33,8 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     const denyList = referentialActionsDenylistByProvider[entry.provider] || []
     let referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
+    // Since `SetNull` when using Foreign Keys fails with migration errors on MySQL, CockroachDB and SQL Server
+    // We skip these combinations in the matrix (= filtering them out)
     if (
       relationMode !== 'prisma' &&
       [Providers.MYSQL, Providers.COCKROACHDB, Providers.SQLSERVER].includes(entry.provider)
@@ -53,7 +55,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
       // 1:1 - Cannot create the foreign key "ProfileOneToOne_userId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
       // 1:n - Cannot create the foreign key "PostOneToMany_authorId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
       // m:n - Cannot create the foreign key "CategoriesOnPostsManyToMany_postId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
-      referentialActions = referentialActionsBase.filter((action) => action !== 'SetNull')
+      referentialActions = referentialActions.filter((action) => action !== 'SetNull')
     }
 
     return referentialActions.map((referentialAction) => ({
