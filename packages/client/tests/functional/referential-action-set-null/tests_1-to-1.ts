@@ -430,8 +430,9 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite', 'mongodb'],
-      reason: "mongodb is not a SQL database, we don't have a sqlite driver installed yet",
+      from: ['sqlite', 'mongodb', 'sqlserver', 'cockroachdb'],
+      reason:
+        "mongodb is not a SQL database, we don't have a sqlite driver installed yet, sqlserver and cockroachdb aren't available on no-docker CI",
     },
   },
 )
