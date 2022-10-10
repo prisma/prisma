@@ -38,7 +38,7 @@ testMatrix.setupTestSuite(
 
     const UserTable = ['postgresql', 'cockroachdb'].includes(provider) ? '"SomeUser"' : 'SomeUser'
 
-    const ProfileTable = ['postgresql', 'cockroachdb'].includes(provider) ? '"Profile"' : 'Profile'
+    const PostTable = ['postgresql', 'cockroachdb'].includes(provider) ? '"Post"' : 'Post'
 
     // queries for all databases
     const runnerQueries = {
@@ -47,8 +47,10 @@ testMatrix.setupTestSuite(
         INSERT INTO ${UserTable} (id) VALUES (1);
         INSERT INTO ${UserTable} (id) VALUES (2);
 
-        INSERT INTO ${ProfileTable} (id, user_id) VALUES (1, 1);
-        INSERT INTO ${ProfileTable} (id, user_id) VALUES (2, 2);
+        INSERT INTO ${PostTable} (id, user_id) VALUES (1, 1);
+        INSERT INTO ${PostTable} (id, user_id) VALUES (2, 1);
+        INSERT INTO ${PostTable} (id, user_id) VALUES (3, 2);
+        INSERT INTO ${PostTable} (id, user_id) VALUES (4, 2);
       `,
       update: `
         UPDATE ${UserTable}
@@ -62,7 +64,7 @@ testMatrix.setupTestSuite(
     }
 
     const dropQuery = `
-      DROP TABLE IF EXISTS ${ProfileTable};
+      DROP TABLE IF EXISTS ${PostTable};
       DROP TABLE IF EXISTS ${UserTable};
     `
 
@@ -89,7 +91,7 @@ testMatrix.setupTestSuite(
       }
     }
 
-    describe('1:1 NULL', () => {
+    describe('1:n NULL', () => {
       // mysql, mariadb
       const createTableMySQL = `
         CREATE TABLE SomeUser (
@@ -97,14 +99,13 @@ testMatrix.setupTestSuite(
           PRIMARY KEY (id)
         );
         
-        CREATE TABLE Profile (
+        CREATE TABLE Post (
             id INT NOT NULL,
             user_id INT NULL,
-            UNIQUE INDEX Profile_user_id_key (user_id),
             PRIMARY KEY (id)
         );
 
-        ALTER TABLE Profile ADD CONSTRAINT Profile_user_id_fkey
+        ALTER TABLE Post ADD CONSTRAINT Post_user_id_fkey
           FOREIGN KEY (user_id) REFERENCES SomeUser(id)
           ON DELETE SET NULL ON UPDATE SET NULL;
       `
@@ -116,15 +117,13 @@ testMatrix.setupTestSuite(
           CONSTRAINT "SomeUser_pkey" PRIMARY KEY ("id")
         );
         
-        CREATE TABLE "Profile" (
+        CREATE TABLE "Post" (
           "id" INT NOT NULL,
           "user_id" INT NULL,
-          CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
+          CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
         );
         
-        CREATE UNIQUE INDEX "Profile_user_id_key" ON "Profile"("user_id");
-        
-        ALTER TABLE "Profile" ADD CONSTRAINT "Profile_user_id_fkey"
+        ALTER TABLE "Post" ADD CONSTRAINT "Post_user_id_fkey"
           FOREIGN KEY ("user_id") REFERENCES "SomeUser"("id")
           ON DELETE SET NULL ON UPDATE SET NULL;
       `
@@ -136,14 +135,13 @@ testMatrix.setupTestSuite(
           CONSTRAINT [SomeUser_pkey] PRIMARY KEY CLUSTERED ([id])
         );
         
-        CREATE TABLE [dbo].[Profile] (
+        CREATE TABLE [dbo].[Post] (
           [id] INT NOT NULL,
           [user_id] INT NULL,
-          CONSTRAINT [Profile_pkey] PRIMARY KEY CLUSTERED ([id]),
-          CONSTRAINT [Profile_user_id_key] UNIQUE NONCLUSTERED ([user_id])
+          CONSTRAINT [Post_pkey] PRIMARY KEY CLUSTERED ([id])
         );
         
-        ALTER TABLE [dbo].[Profile] ADD CONSTRAINT [Profile_user_id_fkey]
+        ALTER TABLE [dbo].[Post] ADD CONSTRAINT [Post_user_id_fkey]
           FOREIGN KEY ([user_id]) REFERENCES [dbo].[SomeUser]([id])
           ON DELETE SET NULL ON UPDATE SET NULL;
       `
@@ -181,8 +179,8 @@ testMatrix.setupTestSuite(
           }
         }
 
-        testIf(['mysql', 'postgres', 'cockroach'].includes(providerFlavor))(
-          `succeeds with mysql, postgres, cockroach`,
+        testIf(['mysql', 'postgres', 'cockroach', 'mssql'].includes(providerFlavor))(
+          `succeeds with mysql, postgres, cockroach, mssql`,
           async () => {
             await tearDown()
             const databaseRunner = await setup()
@@ -190,88 +188,49 @@ testMatrix.setupTestSuite(
             await databaseRunner.insert()
             {
               const users = await databaseRunner.selectAllFrom(UserTable)
-              const profiles = await databaseRunner.selectAllFrom(ProfileTable)
+              const profiles = await databaseRunner.selectAllFrom(PostTable)
 
               expect(users).toMatchObject([{ id: 1 }, { id: 2 }])
               expect(profiles).toMatchObject([
                 { id: 1, user_id: 1 },
-                { id: 2, user_id: 2 },
+                { id: 2, user_id: 1 },
+                { id: 3, user_id: 2 },
+                { id: 4, user_id: 2 },
               ])
             }
 
             await databaseRunner.update()
             {
               const users = await databaseRunner.selectAllFrom(UserTable)
-              const profiles = await databaseRunner.selectAllFrom(ProfileTable)
+              const profiles = await databaseRunner.selectAllFrom(PostTable)
 
               expect(users).toMatchObject([{ id: 2 }, { id: 3 }])
               expect(profiles).toMatchObject([
                 { id: 1, user_id: null },
-                { id: 2, user_id: 2 },
+                { id: 2, user_id: null },
+                { id: 3, user_id: 2 },
+                { id: 4, user_id: 2 },
               ])
             }
 
             await databaseRunner.delete()
             {
               const users = await databaseRunner.selectAllFrom(UserTable)
-              const profiles = await databaseRunner.selectAllFrom(ProfileTable)
+              const profiles = await databaseRunner.selectAllFrom(PostTable)
 
               expect(users).toMatchObject([{ id: 3 }])
               expect(profiles).toMatchObject([
                 { id: 1, user_id: null },
                 { id: 2, user_id: null },
+                { id: 3, user_id: null },
+                { id: 4, user_id: null },
               ])
             }
 
             await databaseRunner.end()
-
             await tearDown()
           },
         )
-
-        testIf(['mssql'].includes(providerFlavor))(`fails with mssql due to NULL in unique`, async () => {
-          await mssql.runAndForget(setupParams, createTableSQLServer)
-
-          const databaseRunner = await mssql.DatabaseRunner.new(setupParams, runnerQueries)
-
-          await databaseRunner.insert()
-          {
-            const users = await databaseRunner.selectAllFrom('SomeUser')
-            const profiles = await databaseRunner.selectAllFrom('Profile')
-
-            expect(users).toMatchObject([{ id: 1 }, { id: 2 }])
-            expect(profiles).toMatchObject([
-              { id: 1, user_id: 1 },
-              { id: 2, user_id: 2 },
-            ])
-          }
-
-          await databaseRunner.update()
-          {
-            const users = await databaseRunner.selectAllFrom('SomeUser')
-            const profiles = await databaseRunner.selectAllFrom('Profile')
-
-            expect(users).toMatchObject([{ id: 2 }, { id: 3 }])
-            expect(profiles).toMatchObject([
-              { id: 1, user_id: null },
-              { id: 2, user_id: 2 },
-            ])
-          }
-
-          try {
-            await databaseRunner.delete()
-
-            // check that this is unreachable, i.e. that an error was thrown
-            expect(true).toBe(false)
-          } catch (e) {
-            expect(e.message).toMatchInlineSnapshot(
-              `Violation of UNIQUE KEY constraint 'Profile_user_id_key'. Cannot insert duplicate key in object 'dbo.Profile'. The duplicate key value is (<NULL>).`,
-            )
-          } finally {
-            await databaseRunner.end()
-            await tearDown()
-          }
-        })
       })
     })
 
@@ -283,14 +242,13 @@ testMatrix.setupTestSuite(
           PRIMARY KEY (id)
         );
         
-        CREATE TABLE Profile (
+        CREATE TABLE Post (
             id INT NOT NULL,
             user_id INT NOT NULL,
-            UNIQUE INDEX Profile_user_id_key (user_id),
             PRIMARY KEY (id)
         );
 
-        ALTER TABLE Profile ADD CONSTRAINT Profile_user_id_fkey
+        ALTER TABLE Post ADD CONSTRAINT Post_user_id_fkey
           FOREIGN KEY (user_id) REFERENCES SomeUser(id)
           ON DELETE SET NULL ON UPDATE SET NULL;
       `
@@ -302,15 +260,13 @@ testMatrix.setupTestSuite(
           CONSTRAINT "SomeUser_pkey" PRIMARY KEY ("id")
         );
         
-        CREATE TABLE "Profile" (
+        CREATE TABLE "Post" (
           "id" INT NOT NULL,
           "user_id" INT NOT NULL,
-          CONSTRAINT "Profile_pkey" PRIMARY KEY ("id")
+          CONSTRAINT "Post_pkey" PRIMARY KEY ("id")
         );
         
-        CREATE UNIQUE INDEX "Profile_user_id_key" ON "Profile"("user_id");
-        
-        ALTER TABLE "Profile" ADD CONSTRAINT "Profile_user_id_fkey"
+        ALTER TABLE "Post" ADD CONSTRAINT "Post_user_id_fkey"
           FOREIGN KEY ("user_id") REFERENCES "SomeUser"("id")
           ON DELETE SET NULL ON UPDATE SET NULL;
       `
@@ -322,14 +278,13 @@ testMatrix.setupTestSuite(
           CONSTRAINT [SomeUser_pkey] PRIMARY KEY CLUSTERED ([id])
         );
         
-        CREATE TABLE [dbo].[Profile] (
+        CREATE TABLE [dbo].[Post] (
           [id] INT NOT NULL,
           [user_id] INT NOT NULL,
-          CONSTRAINT [Profile_pkey] PRIMARY KEY CLUSTERED ([id]),
-          CONSTRAINT [Profile_user_id_key] UNIQUE NONCLUSTERED ([user_id])
+          CONSTRAINT [Post_pkey] PRIMARY KEY CLUSTERED ([id])
         );
         
-        ALTER TABLE [dbo].[Profile] ADD CONSTRAINT [Profile_user_id_fkey]
+        ALTER TABLE [dbo].[Post] ADD CONSTRAINT [Post_user_id_fkey]
           FOREIGN KEY ([user_id]) REFERENCES [dbo].[SomeUser]([id])
           ON DELETE SET NULL ON UPDATE SET NULL;
       `
@@ -343,7 +298,7 @@ testMatrix.setupTestSuite(
             await mysql.runAndForget(setupParams, createTableMySQL)
           } catch (e) {
             expect(e.message).toContain(
-              `Column 'user_id' cannot be NOT NULL: needed in a foreign key constraint 'Profile_user_id_fkey' SET NULL`,
+              `Column 'user_id' cannot be NOT NULL: needed in a foreign key constraint 'Post_user_id_fkey' SET NULL`,
             )
           }
 
@@ -367,7 +322,7 @@ testMatrix.setupTestSuite(
           } catch (e) {
             // fun fact: CockroachDB defines what we call "referential actions" as "cascading actions"
             expect(e.message).toContain(
-              `cannot add a SET NULL cascading action on column "PRISMA_DB_NAME.public.Profile.user_id" which has a NOT NULL constraint`,
+              `cannot add a SET NULL cascading action on column "PRISMA_DB_NAME.public.Post.user_id" which has a NOT NULL constraint`,
             )
           }
 
@@ -389,7 +344,7 @@ testMatrix.setupTestSuite(
       })
 
       describe('insert + update + delete after SQL DDL', () => {
-        // although creating a 1:1 NOT NULL relation with SET NULL as a referential action
+        // although creating a 1:n NOT NULL relation with SET NULL as a referential action
         // works in Postgres, triggering the action at runtime fails as it violates
         // a not-null constraint
         testIf(['postgres'].includes(providerFlavor))(
@@ -401,12 +356,14 @@ testMatrix.setupTestSuite(
             await databaseRunner.insert()
             {
               const users = await databaseRunner.selectAllFrom(UserTable)
-              const profiles = await databaseRunner.selectAllFrom(ProfileTable)
+              const profiles = await databaseRunner.selectAllFrom(PostTable)
 
               expect(users).toMatchObject([{ id: 1 }, { id: 2 }])
               expect(profiles).toMatchObject([
                 { id: 1, user_id: 1 },
-                { id: 2, user_id: 2 },
+                { id: 2, user_id: 1 },
+                { id: 3, user_id: 2 },
+                { id: 4, user_id: 2 },
               ])
             }
 
@@ -417,7 +374,7 @@ testMatrix.setupTestSuite(
               expect(true).toBe(false)
             } catch (e) {
               expect(e.message).toContain(
-                `null value in column "user_id" of relation "Profile" violates not-null constraint`,
+                `null value in column "user_id" of relation "Post" violates not-null constraint`,
               )
             } finally {
               await databaseRunner.end()
