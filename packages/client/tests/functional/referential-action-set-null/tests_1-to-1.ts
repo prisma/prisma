@@ -416,9 +416,7 @@ testMatrix.setupTestSuite(
               // check that this is unreachable, i.e. that an error was thrown
               expect(true).toBe(false)
             } catch (e) {
-              expect(e.message).toContain(
-                `null value in column "user_id" of relation "Profile" violates not-null constraint`,
-              )
+              expect(e.message).toContain(`null value in column "user_id" violates not-null constraint`)
             } finally {
               await databaseRunner.end()
               await tearDown()
