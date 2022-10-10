@@ -20,7 +20,21 @@ function getProviderFromFlavor(providerFlavor: ProviderFlavor) {
   }
 }
 
-const matrix = providerFlavors.map((providerFlavor) => ({
+// if the value is a string, skip the provider flavor indicated by the key
+const skip = {
+  mssql: process.env.TEST_SKIP_MSSQL === 'true',
+  cockroach: process.env.TEST_SKIP_COCKROACHDB === 'true',
+}
+
+const providerFlavorsToSkip = Object.entries(skip)
+  .filter(([_, shouldSkip]) => shouldSkip)
+  .map(([providerFlavor, _]) => providerFlavor as ProviderFlavor)
+
+const availableProviderFlavors = providerFlavors.filter(
+  (providerFlavor) => !providerFlavorsToSkip.includes(providerFlavor),
+)
+
+const matrix = availableProviderFlavors.map((providerFlavor) => ({
   provider: getProviderFromFlavor(providerFlavor),
   providerFlavor,
 }))
