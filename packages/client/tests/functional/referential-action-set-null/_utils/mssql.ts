@@ -39,7 +39,7 @@ export class DatabaseRunner extends AbstractDatabaseRunner {
     const result = await this.db.query(`
       SELECT * FROM ${table};
     `)
-    return result.recordset as any[]
+    return result.recordset
   }
 
   async end() {

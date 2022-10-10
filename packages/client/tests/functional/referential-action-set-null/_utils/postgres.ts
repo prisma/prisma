@@ -39,13 +39,31 @@ export class DatabaseRunner extends AbstractDatabaseRunner {
   }
 
   async selectAllFrom(table: string) {
-    const result = await this.db.query(`
-      SELECT * FROM ${table};
+    const { rows } = await this.db.query(`
+      SELECT * FROM ${table}
+      ORDER BY id ASC;
     `)
-    return result.rows
+
+    // convert values that could be numbers into numbers for consistency.
+    return rows.map((row) => Object.fromEntries(Object.entries(row).map(parseKeyValueToInt)))
   }
 
   async end() {
     return this.db.end()
   }
+}
+
+function parseKeyValueToInt(entry: [string, unknown]): [string, unknown | number] {
+  const [key, value] = entry
+
+  if (typeof value !== 'string') {
+    return entry
+  }
+
+  const n = Number.parseInt(value, 10)
+  if (Number.isNaN(n)) {
+    return entry
+  }
+
+  return [key, n]
 }
