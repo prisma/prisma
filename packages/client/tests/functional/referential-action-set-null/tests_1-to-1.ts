@@ -577,5 +577,11 @@ testMatrix.setupTestSuite(
       reason:
         "mongodb is not a SQL database, we don't have a sqlite driver installed yet, sqlserver and cockroachdb aren't available on no-docker CI",
     },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: `
+        Fails with Data Proxy as it cannot find $TEST_MSSQL_URI.
+      `,
+    },
   },
 )
