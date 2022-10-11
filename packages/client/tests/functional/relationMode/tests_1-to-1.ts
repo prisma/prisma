@@ -775,7 +775,12 @@ testMatrix.setupTestSuite(
                                   'Unique constraint failed on the constraint: `PRIMARY`'
                                 : // DEFAULT
                                   'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                            [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+                            [Providers.SQLSERVER]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the constraint: `dbo.UserOneToOne`'
+                                : // DEFAULT
+                                  'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                             [Providers.SQLITE]:
                               onUpdate === 'SetNull'
                                 ? // SetNull
@@ -901,7 +906,12 @@ testMatrix.setupTestSuite(
                                   'Unique constraint failed on the constraint: `PRIMARY`'
                                 : // DEFAULT
                                   'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                            [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
+                            [Providers.SQLSERVER]:
+                              onUpdate === 'SetNull'
+                                ? // SetNull
+                                  'Unique constraint failed on the constraint: `dbo.UserOneToOne`'
+                                : // DEFAULT
+                                  'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                             [Providers.SQLITE]:
                               onUpdate === 'SetNull'
                                 ? // SetNull
