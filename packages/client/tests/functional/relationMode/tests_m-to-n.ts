@@ -837,6 +837,7 @@ testMatrix.setupTestSuite(
           })
         })
 
+        // Note: SetNull is not run for foreignKeys in the test suite
         describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: SetNull, SetDefault`, () => {
           testIf(!isRelationMode_prismaAndSetNull)('[update] post id should throw', async () => {
             await expect(
@@ -1250,6 +1251,7 @@ testMatrix.setupTestSuite(
         })
 
         // TODO check why SetDefault works because we don't have @default in the schema
+        // Note: SetNull is not run for foreignKeys in the test suite
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
           testIf(!isRelationMode_prismaAndSetNull)('[delete] post should throw', async () => {
             await expect(
@@ -1258,6 +1260,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrowError(
               conditionalError.snapshot({
+                // Note: SetNull is not run for foreignKeys in the test suite
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',

@@ -381,6 +381,7 @@ testMatrix.setupTestSuite(
             })
           })
 
+          // Note: SetNull is not run for foreignKeys in the test suite
           describeIf(['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate))(
             'onUpdate: DEFAULT, Cascade, SetNull',
             () => {
@@ -395,6 +396,7 @@ testMatrix.setupTestSuite(
                 ).rejects.toThrowError(
                   conditionalError.snapshot({
                     foreignKeys: {
+                      // Note: SetNull is not run for foreignKeys in the test suite
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
@@ -429,6 +431,7 @@ testMatrix.setupTestSuite(
             },
           )
 
+          // Note: SetNull is not run for foreignKeys in the test suite
           describeIf(['DEFAULT', 'Cascade', 'Restrict', 'SetNull'].includes(onUpdate))(
             'onUpdate: DEFAULT, Cascade, Restrict, SetNull',
             () => {
@@ -480,6 +483,7 @@ testMatrix.setupTestSuite(
             },
           )
 
+          // Note: SetNull is not run for foreignKeys in the test suite
           describeIf(['Restrict', 'SetNull'].includes(onUpdate))('onUpdate: Restrict, SetNull', () => {
             test('[update] parent id with existing id should throw', async () => {
               await expect(
@@ -492,6 +496,7 @@ testMatrix.setupTestSuite(
               ).rejects.toThrowError(
                 conditionalError.snapshot({
                   foreignKeys: {
+                    // Note: SetNull is not run for foreignKeys in the test suite
                     [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                     [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
@@ -657,10 +662,12 @@ testMatrix.setupTestSuite(
           ])
         })
 
+        // Note: SetNull is not run for foreignKeys in the test suite
         describeIf(['DEFAULT', 'Restrict', 'SetNull'].includes(onDelete))(
           'onDelete: DEFAULT, Restrict, SetNull',
           () => {
             const expectedError = conditionalError.snapshot({
+              // Note: SetNull is not run for foreignKeys in the test suite
               foreignKeys: {
                 [Providers.MONGODB]:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",

@@ -718,6 +718,7 @@ testMatrix.setupTestSuite(
         })
         */
 
+          // Note: SetNull is not run for foreignKeys in the test suite
           describeIf(['DEFAULT', 'Restrict', 'SetNull'].includes(onUpdate))(
             'onUpdate: DEFAULT, Restrict, SetNull',
             () => {
@@ -731,6 +732,7 @@ testMatrix.setupTestSuite(
                   }),
                 ).rejects.toThrowError(
                   conditionalError.snapshot({
+                    // Note: SetNull is not run for foreignKeys in the test suite
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
@@ -738,7 +740,7 @@ testMatrix.setupTestSuite(
                         onUpdate === 'Restrict'
                           ? // Restrict
                             'Foreign key constraint failed on the field: `userId`'
-                          : // DEFAULT & SetNull
+                          : // DEFAULT
                             /*
                             Error occurred during query execution:
                             ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
@@ -861,15 +863,15 @@ testMatrix.setupTestSuite(
                   }),
                 ).rejects.toThrowError(
                   conditionalError.snapshot({
+                    // Note: SetNull is not run for foreignKeys in the test suite
                     foreignKeys: {
-                      // SetNull
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]:
                         onUpdate === 'Restrict'
                           ? // Restrict
                             'Foreign key constraint failed on the field: `userId`'
-                          : // DEFAULT & SetNull
+                          : // DEFAULT
                             /*
                             Error occurred during query execution:
                             ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
@@ -1254,15 +1256,9 @@ testMatrix.setupTestSuite(
           })
         })
 
+        // Note: SetNull is not run for foreignKeys in the test suite
         describeIf(['SetNull'].includes(onDelete))(`onDelete: SetNull`, () => {
           const expectedError = conditionalError.snapshot({
-            foreignKeys: {
-              [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`userId`)',
-              [Providers.COCKROACHDB]: 'Null constraint violation on the fields: (`userId`)',
-              [Providers.MYSQL]: 'Null constraint violation on the fields: (`userId`)',
-              [Providers.SQLSERVER]: 'Null constraint violation on the fields: (`userId`)',
-              [Providers.SQLITE]: 'Null constraint violation on the fields: (`userId`)',
-            },
             prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683',
           })
 
