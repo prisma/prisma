@@ -160,6 +160,7 @@ testMatrix.setupTestSuite(
             prisma[postModel].create({
               data: {
                 id: '1',
+                // @ts-expect-error
                 authorId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),

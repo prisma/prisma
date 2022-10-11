@@ -124,6 +124,7 @@ testMatrix.setupTestSuite(
             prisma[profileModel].create({
               data: {
                 id: '1',
+                // @ts-expect-error
                 userId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),
