@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(
         await prisma.$disconnect()
       })
 
-      test('', async () => {
+      test('issue 12378', async () => {
         const user = await prisma.user.create({
           data: {
             email: 'user@example.com',

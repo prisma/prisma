@@ -7,12 +7,12 @@ declare let prisma: import('@prisma/client').PrismaClient
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    describe('issue 10000', () => {
+    describe('issue 12557', () => {
       afterAll(async () => {
         await prisma.$disconnect()
       })
 
-      test('', async () => {
+      test('issue 12557', async () => {
         await prisma.category.create({
           data: {
             name: 'cat-1',

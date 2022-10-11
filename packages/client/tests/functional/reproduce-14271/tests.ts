@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(
         await prisma.$disconnect()
       })
 
-      test('', async () => {
+      test('issue 14271', async () => {
         await prisma['hub'].create({
           data: {
             name: 'hub-1',

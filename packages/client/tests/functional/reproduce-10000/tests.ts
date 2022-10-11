@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(
         await prisma.$disconnect()
       })
 
-      test('', async () => {
+      test('issue 10000', async () => {
         const events = await prisma.event.create({
           data: {
             id: 'prisma',
