@@ -178,19 +178,19 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: 1 to 1
-        run: pnpm run test:functional:code relationMode/tests_1-to-1.ts
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-1.ts
         working-directory: packages/client
 
       - name: 1 to n
-        run: pnpm run test:functional:code relationMode/tests_1-to-n.ts
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-n.ts
         working-directory: packages/client
 
       - name: m to n (SQL databases)
-        run: pnpm run test:functional:code relationMode/tests_m-to-n.ts
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
-        run: pnpm run test:functional:code relationMode/tests_m-to-n-MongoDB.ts
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
   #

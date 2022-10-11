@@ -200,6 +200,7 @@ testMatrix.setupTestSuite(
         describeIf(![Providers.SQLITE].includes(suiteConfig.provider))('not sqlite', () => {
           // SQLite doesn't support createMany
           test('[create] nested child [createMany]', async () => {
+            // @ts-test-if: provider !== 'sqlite'
             await prisma[userModel].create({
               data: {
                 id: '1',
