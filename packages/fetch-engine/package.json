@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.5.0-20.027031139b1eeffaf00e43c56358d5c5e952ba54",
+    "@prisma/engines-version": "4.5.0-21.integration-remove-simulated-noaction-for-postgres-and-sqlite-2e08a7244ca876351adc7689a8c3551c315eac5c",
     "@swc/core": "1.3.4",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
