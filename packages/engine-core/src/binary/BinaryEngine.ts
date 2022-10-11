@@ -961,9 +961,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return { data, elapsed } as any
     } catch (e: any) {
       logger('req - e', e)
-      if (e instanceof PrismaClientKnownRequestError) {
-        throw e
-      }
 
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
@@ -1120,6 +1117,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
+    }
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      throw error
     }
 
     this.throwAsyncErrorIfExists()
