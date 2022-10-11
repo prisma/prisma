@@ -718,7 +718,8 @@ testMatrix.setupTestSuite(
         })
         */
 
-          // Note: SetNull is not run for foreignKeys in the test suite
+          // Note: The test suite does not test `SetNull` with providers that errors during migration
+          // see _utils/relationMode/computeMatrix.ts
           describeIf(['DEFAULT', 'Restrict', 'SetNull'].includes(onUpdate))(
             'onUpdate: DEFAULT, Restrict, SetNull',
             () => {
@@ -732,7 +733,8 @@ testMatrix.setupTestSuite(
                   }),
                 ).rejects.toThrowError(
                   conditionalError.snapshot({
-                    // Note: SetNull is not run for foreignKeys in the test suite
+                    // Note: The test suite does not test `SetNull` with providers that errors during migration
+                    // see _utils/relationMode/computeMatrix.ts
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
@@ -863,7 +865,8 @@ testMatrix.setupTestSuite(
                   }),
                 ).rejects.toThrowError(
                   conditionalError.snapshot({
-                    // Note: SetNull is not run for foreignKeys in the test suite
+                    // Note: The test suite does not test `SetNull` with providers that errors during migration
+                    // see _utils/relationMode/computeMatrix.ts
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
@@ -1256,9 +1259,17 @@ testMatrix.setupTestSuite(
           })
         })
 
-        // Note: SetNull is not run for foreignKeys in the test suite
+        // Note: The test suite does not test `SetNull` with providers that errors during migration
+        // see _utils/relationMode/computeMatrix.ts
         describeIf(['SetNull'].includes(onDelete))(`onDelete: SetNull`, () => {
           const expectedError = conditionalError.snapshot({
+            foreignKeys: {
+              [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.COCKROACHDB]: 'Migration error',
+              [Providers.MYSQL]: 'Migration error',
+              [Providers.SQLSERVER]: 'Migration error',
+              [Providers.SQLITE]: 'Null constraint violation on the fields: (`userId`)',
+            },
             prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683',
           })
 
