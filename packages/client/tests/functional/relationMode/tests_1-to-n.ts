@@ -481,6 +481,14 @@ testMatrix.setupTestSuite(
 
           describeIf(['Restrict', 'SetNull'].includes(onUpdate))('onUpdate: Restrict, SetNull', () => {
             test('[update] parent id with existing id should throw', async () => {
+              const errorsFromDatabase = {
+                [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
+                [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
+                [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
+              }
+
               await expect(
                 prisma[userModel].update({
                   where: { id: '1' },
@@ -490,22 +498,11 @@ testMatrix.setupTestSuite(
                 }),
               ).rejects.toThrowError(
                 conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
-                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-                    [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                  },
+                  foreignKeys: errorsFromDatabase,
                   prisma:
                     onUpdate === 'SetNull'
                       ? // SetNull
-                        {
-                          [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                          [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                          [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                        }
+                        errorsFromDatabase
                       : // Restrict
                         "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 }),
