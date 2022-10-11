@@ -27,7 +27,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
-import { $extends } from './core/extends/$extends'
+import { $extends, Extension } from './core/extensions/$extends'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModels } from './core/model/applyModels'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
@@ -333,7 +333,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _transactionId = 1
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
-    _extensions: any[]
+    _extensions: Extension[]
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -1235,13 +1235,13 @@ new PrismaClient({
       return !!this._engineConfig.previewFeatures?.includes(feature)
     }
 
-    $extends = $extends.bind(this)
+    $extends = $extends
   }
 
   return PrismaClient
 }
 
-const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use']
+const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
 
 /**
  * Proxy that takes over the client promises to pass `txId`
