@@ -10,16 +10,6 @@ if (RelationModeEnv && RelationModeEnv !== 'prisma' && RelationModeEnv !== 'fore
 type RelationMode = 'prisma' | 'foreignKeys' | ''
 const relationMode: RelationMode = (RelationModeEnv as RelationMode) || ''
 
-// Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
-// If no defaults are provided for any of the scalar fields, a runtime error will be thrown.
-//
-// Note: 'Restrict' is not available when using 'sqlserver' as a provider, and it triggers a schema parsing error arising from DMMF.
-//
-// Note: 'SetNull' is only available on optional relations.
-//
-// Note: 'SetDefault' is making SQL Server crash badly
-//  const referentialActionsChoices = ['', 'Cascade', 'NoAction']
-
 const defaultMatrix = computeMatrix({ relationMode })
 
 const mongoDBMatrixBase = {

@@ -13,7 +13,13 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     Providers.MYSQL,
     Providers.SQLITE,
   ] as const
-  //  Note SetDefault is not implemented in the emulation
+  // Note: SetDefault is not implemented in the emulation (relationMode="prisma")
+
+  // Note: testing 'SetDefault' requires a relation with a scalar field having the "@default" attribute.
+  // If no defaults are provided for any of the scalar fields, a runtime error will be thrown.
+  // Also 'SetDefault' is making SQL Server crash badly for example
+  // See https://www.notion.so/prismaio/Phase-1-Report-on-findings-f21c7bb079c5414296286973fdcd62c2#ac4d9f6a5d3842b5b6ff5b877e7e6782
+
   const referentialActionsBase = ['DEFAULT', 'Cascade', 'NoAction', 'Restrict', 'SetNull'] as const
 
   const providers = providersBase.filter((provider) => !(providersDenyList || []).includes(provider))

@@ -166,7 +166,7 @@ testMatrix.setupTestSuite(
           ).rejects.toThrowError('Argument author for data.author is missing.')
         })
 
-        test('[create] nested child [create]', async () => {
+        test('[create] nested child [create] should succeed', async () => {
           await prisma[userModel].create({
             data: {
               id: '1',

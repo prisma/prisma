@@ -137,7 +137,7 @@ testMatrix.setupTestSuite(
           ).toEqual([])
         })
 
-        test('[create] nested child [create]', async () => {
+        test('[create] nested child [create] should succeed', async () => {
           await prisma[userModel].create({
             data: {
               id: '1',
