@@ -9,7 +9,6 @@ type Target = {
   relationMode: RelationMode
 }
 
-// O.AtLeast<Record<Providers, string>>
 type ConditionalErrorSnapshotErrors = O.AtLeast<Record<Providers, string>> | string
 
 interface With<Supplied> {
