@@ -704,20 +704,6 @@ testMatrix.setupTestSuite(
             })
           })
 
-          /*
-        describeIf(['SetNull'].includes(onUpdate))('onUpdate: SetNull', () => {
-          test('[update] parent id with existing id should succeed', async () => {
-            await prisma[userModel].update({
-              where: { id: '1' },
-              data: {
-                // TODO: Type error with MongoDB, Unknown arg `id` in data.id for type UserOneToOneUpdateInput.
-                id: '2', // existing id
-              },
-            })
-          })
-        })
-        */
-
           // Note: The test suite does not test `SetNull` with providers that errors during migration
           // see _utils/relationMode/computeMatrix.ts
           describeIf(['DEFAULT', 'Restrict', 'SetNull'].includes(onUpdate))(
@@ -981,13 +967,6 @@ testMatrix.setupTestSuite(
             },
           )
 
-          // describeIf(['Cascade'].includes(onUpdate))('onUpdate: Cascade', () => {
-          //   test.skip('[update] parent id with existing id should succeed', async () => {})
-          //   test.skip('[update] child id with existing id should succeed', async () => {})
-          //   test.skip('[updateMany] parent id with existing id should', async () => {})
-          //   test.skip('[update] nested child [disconnect] should succeed', async () => {})
-          // })
-
           // Currently failing
           // Issue https://github.com/prisma/prisma/issues/14759
           test.failing(
@@ -1035,12 +1014,6 @@ testMatrix.setupTestSuite(
               ])
             },
           )
-
-          // This is ok for 1-to-n and m-to-m
-          // test.skip('[update] nested child [updateMany] should succeed', async () => {})
-          // test.skip('[update] nested child [upsert] child should succeed', async () => {})
-          // test.skip('[upsert] parent id should succeed', async () => {})
-          // test.skip('[upsert] parent id with existing id should throw', async () => {})
         })
       })
 

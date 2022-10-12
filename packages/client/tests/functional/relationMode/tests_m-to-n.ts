@@ -247,8 +247,6 @@ testMatrix.setupTestSuite(
             },
           ])
         })
-
-        // test.skip('[create] x connect with non existing x should throw', async () => {})
       })
 
       describe('[update]', () => {
@@ -852,6 +850,8 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrowError(
               conditionalError.snapshot({
+                // Note: The test suite does not test `SetNull` with providers that errors during migration
+                // see _utils/relationMode/computeMatrix.ts
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
@@ -888,6 +888,8 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrowError(
               conditionalError.snapshot({
+                // Note: The test suite does not test `SetNull` with providers that errors during migration
+                // see _utils/relationMode/computeMatrix.ts
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
@@ -941,18 +943,7 @@ testMatrix.setupTestSuite(
                     id: '3',
                   },
                 }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
-                    // TODO: the following providers throw a migration error
-                    [Providers.SQLSERVER]: '__SNAPSHOT__',
-                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                  },
-                }),
-              )
+              ).rejects.toThrowError()
 
               expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
                 expectedFindManyPostModelIfNoChange,
@@ -980,18 +971,7 @@ testMatrix.setupTestSuite(
                     id: '1-cat-a-updated',
                   },
                 }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
-                    // TODO: the following providers throw a migration error
-                    [Providers.SQLSERVER]: '__SNAPSHOT__',
-                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                  },
-                }),
-              )
+              ).rejects.toThrowError()
 
               expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
                 expectedFindManyPostModelIfNoChange,
@@ -1295,6 +1275,8 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrowError(
               conditionalError.snapshot({
+                // Note: The test suite does not test `SetNull` with providers that errors during migration
+                // see _utils/relationMode/computeMatrix.ts
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
@@ -1343,18 +1325,7 @@ testMatrix.setupTestSuite(
                 prisma[postModel].delete({
                   where: { id: '1' },
                 }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
-                    // TODO: the following providers throw a migration error
-                    [Providers.SQLSERVER]: '__SNAPSHOT__',
-                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                  },
-                }),
-              )
+              ).rejects.toThrowError()
 
               expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
                 expectedFindManyPostModelIfNoChange,
@@ -1378,18 +1349,7 @@ testMatrix.setupTestSuite(
                 prisma[categoryModel].delete({
                   where: { id: '1-cat-a' },
                 }),
-              ).rejects.toThrowError(
-                conditionalError.snapshot({
-                  foreignKeys: {
-                    [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                    [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                    [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
-                    // TODO: the following providers throw a migration error
-                    [Providers.SQLSERVER]: '__SNAPSHOT__',
-                    [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                  },
-                }),
-              )
+              ).rejects.toThrowError()
 
               expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
                 expectedFindManyPostModelIfNoChange,

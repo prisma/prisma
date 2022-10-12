@@ -17,16 +17,16 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
 
   for (let i = 1; i <= count; i++) {
     const id = i.toString()
-
     prismaPromises.push(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma[userModel].create({
         data: {
           id,
         },
       }),
     )
-
     prismaPromises.push(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma[postModel].create({
         data: {
           id: `${id}-post-a`,
@@ -34,8 +34,8 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
         },
       }),
     )
-
     prismaPromises.push(
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma[postModel].create({
         data: {
           id: `${id}-post-b`,
@@ -43,26 +43,7 @@ async function createXUsersWith2Posts({ count, userModel, postModel, postColumn 
         },
       }),
     )
-
-    /*
-    const prismaPromise = prisma[userModel].create({
-      data: {
-        id,
-        [postColumn]: {
-          createMany: {
-            data: [{ id: `${id}-post-a` }, { id: `${id}-post-b` }],
-          },
-        },
-      },
-      include: {
-        [postColumn]: true,
-      },
-    })
-
-    prismaPromises.push(prismaPromise)
-    */
   }
-
   return await prisma.$transaction(prismaPromises)
 }
 
