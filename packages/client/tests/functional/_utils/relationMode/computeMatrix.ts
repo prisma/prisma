@@ -66,11 +66,41 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     const denyList = referentialActionsDenylistByProvider[relationMode || 'foreignKeys'][entry.provider] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
-    return referentialActions.map((referentialAction) => ({
+    const referentialActionMatrixForSQL = referentialActions.map((referentialAction) => ({
       ...entry,
       onUpdate: referentialAction,
       onDelete: referentialAction,
     }))
+
+    const mongoDBMatrixBase = {
+      provider: Providers.MONGODB,
+      id: 'String @id @map("_id")',
+      relationMode,
+    }
+    const referentialActionMatrixForMongoDB = [
+      {
+        ...mongoDBMatrixBase,
+        onUpdate: 'DEFAULT',
+        onDelete: 'DEFAULT',
+      },
+      {
+        ...mongoDBMatrixBase,
+        onUpdate: 'Cascade',
+        onDelete: 'Cascade',
+      },
+      {
+        ...mongoDBMatrixBase,
+        onUpdate: 'NoAction',
+        onDelete: 'NoAction',
+      },
+      {
+        ...mongoDBMatrixBase,
+        onUpdate: 'SetNull',
+        onDelete: 'SetNull',
+      },
+    ]
+
+    return [...referentialActionMatrixForSQL, ...referentialActionMatrixForMongoDB]
   })
 
   return referentialActionsMatrix

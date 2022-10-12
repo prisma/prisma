@@ -1,5 +1,5 @@
-import { Providers } from '../../_utils/providers'
-import { computeReferentialActionLine } from '../../_utils/relationMode/computeReferentialActionLine'
+import { Providers } from '../../../_utils/providers'
+import { computeReferentialActionLine } from '../../../_utils/relationMode/computeReferentialActionLine'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures, relationMode, referentialActions }) => {
