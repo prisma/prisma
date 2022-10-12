@@ -1,5 +1,5 @@
-import { defineMatrix } from '../_utils/defineMatrix'
-import { Providers } from '../_utils/providers'
+import { defineMatrix } from '../../_utils/defineMatrix'
+import { Providers } from '../../_utils/providers'
 
 const RelationModeEnv = process.env.RELATION_MODE
 if (RelationModeEnv && RelationModeEnv !== 'prisma' && RelationModeEnv !== 'foreignKeys') {

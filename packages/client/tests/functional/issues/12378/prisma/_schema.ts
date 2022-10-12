@@ -1,4 +1,4 @@
-import { Providers } from '../../_utils/providers'
+import { Providers } from '../../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures, relationMode }) => {
