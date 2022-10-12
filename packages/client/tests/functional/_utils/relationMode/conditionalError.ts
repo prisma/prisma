@@ -20,7 +20,6 @@ interface With<Supplied> {
 }
 
 interface ConditionalErrorSnapshot {
-  // snapshot(errors: O.AtLeast<Record<RelationMode, O.AtLeast<Record<Providers, string>>>>): string
   snapshot(errors: O.AtLeast<Record<RelationMode, ConditionalErrorSnapshotErrors>>): string
 }
 
